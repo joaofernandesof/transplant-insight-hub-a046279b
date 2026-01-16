@@ -17,8 +17,10 @@ import {
   Star,
   Lock,
   Unlock,
-  Save
+  Save,
+  TrendingUp
 } from 'lucide-react';
+import { MetricSparkline } from './MetricSparkline';
 
 interface HorizontalMetricsTableProps {
   weeks: WeekData[];
@@ -247,6 +249,14 @@ export function HorizontalMetricsTable({
                 </div>
               </th>
               
+              {/* Trend/Evolution Column */}
+              <th className="text-center px-3 py-3 font-semibold whitespace-nowrap min-w-[110px] border-r border-border">
+                <div className="flex items-center justify-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                  <span>Tendência</span>
+                </div>
+              </th>
+              
               {/* All weeks of the year */}
               {allWeeks.map((week) => (
                 <th 
@@ -389,7 +399,40 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   
-                  {/* Week Values - All weeks */}
+                  {/* Sparkline/Trend Column */}
+                  <td className="px-2 py-2.5 text-center align-middle border-r border-border">
+                    {(() => {
+                      // Collect all values for this metric across weeks up to current week
+                      const weekNumbers: number[] = [];
+                      const values: (number | null)[] = [];
+                      const currentWeekIdx = allWeeks.findIndex(w => w.weekNumber === currentWeekNumber);
+                      
+                      allWeeks.slice(0, currentWeekIdx + 1).forEach((week) => {
+                        const val = getValue(week.weekNumber, metric);
+                        weekNumbers.push(week.weekNumber);
+                        values.push(typeof val === 'number' ? val : null);
+                      });
+                      
+                      // Get current status for color
+                      const currentValue = getValue(currentWeekNumber, metric);
+                      const currentStatus = getMetricStatus(metric.sigla, currentValue);
+                      
+                      // Determine if higher is better based on metric
+                      const lowerIsBetter = ['Freq', 'CPM', 'CPC', 'PageSpeed', 'Bounce', 'AbForm', 
+                                            'NoShow', 'Obj', 'CostSale', 'CAC', 'FunnelDrop', 
+                                            'LeadLoss', 'Payback'].includes(metric.sigla);
+                      
+                      return (
+                        <MetricSparkline 
+                          data={values}
+                          weeks={weekNumbers}
+                          currentWeekIndex={currentWeekIdx}
+                          status={currentStatus}
+                          higherIsBetter={!lowerIsBetter}
+                        />
+                      );
+                    })()}
+                  </td>
                   {allWeeks.map((week) => {
                     const value = getValue(week.weekNumber, metric);
                     const status = getMetricStatus(metric.sigla, value);
