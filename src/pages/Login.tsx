@@ -1,32 +1,112 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft } from 'lucide-react';
+import { z } from 'zod';
+
+// Validation schemas
+const loginSchema = z.object({
+  email: z.string().trim().email({ message: 'Email inválido' }),
+  password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
+});
+
+const signupSchema = z.object({
+  name: z.string().trim().min(3, { message: 'Nome deve ter no mínimo 3 caracteres' }).max(100),
+  email: z.string().trim().email({ message: 'Email inválido' }),
+  password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Senhas não coincidem',
+  path: ['confirmPassword'],
+});
 
 export default function Login() {
+  const [isSignup, setIsSignup] = useState(false);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
+    setSuccessMessage('');
     setIsLoading(true);
-    
-    const success = await login(email, password);
-    
-    if (success) {
-      navigate('/');
-    } else {
-      setError('Email ou senha incorretos');
+
+    try {
+      if (isSignup) {
+        // Validate signup data
+        const result = signupSchema.safeParse({ name, email, password, confirmPassword });
+        
+        if (!result.success) {
+          const errors: Record<string, string> = {};
+          result.error.errors.forEach((err) => {
+            if (err.path[0]) {
+              errors[err.path[0] as string] = err.message;
+            }
+          });
+          setFieldErrors(errors);
+          setIsLoading(false);
+          return;
+        }
+
+        const { success, error: signupError } = await signup(email, password, name);
+        
+        if (success) {
+          setSuccessMessage('Conta criada com sucesso! Você já pode fazer login.');
+          setIsSignup(false);
+          setPassword('');
+          setConfirmPassword('');
+        } else {
+          setError(signupError || 'Erro ao criar conta');
+        }
+      } else {
+        // Validate login data
+        const result = loginSchema.safeParse({ email, password });
+        
+        if (!result.success) {
+          const errors: Record<string, string> = {};
+          result.error.errors.forEach((err) => {
+            if (err.path[0]) {
+              errors[err.path[0] as string] = err.message;
+            }
+          });
+          setFieldErrors(errors);
+          setIsLoading(false);
+          return;
+        }
+
+        const { success, error: loginError } = await login(email, password);
+        
+        if (success) {
+          navigate('/');
+        } else {
+          setError(loginError || 'Email ou senha incorretos');
+        }
+      }
+    } catch (err) {
+      setError('Ocorreu um erro. Tente novamente.');
     }
     
     setIsLoading(false);
+  };
+
+  const toggleMode = () => {
+    setIsSignup(!isSignup);
+    setError('');
+    setFieldErrors({});
+    setSuccessMessage('');
+    setPassword('');
+    setConfirmPassword('');
   };
   
   return (
@@ -38,13 +118,13 @@ export default function Login() {
             <span className="text-white font-bold text-2xl">B</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground">Byneofolic</h1>
-          <p className="text-muted-foreground mt-1">Dashboard de Métricas para Transplante Capilar</p>
+          <p className="text-muted-foreground mt-1">Portal do Licenciado</p>
         </div>
         
-        {/* Login Form */}
+        {/* Login/Signup Form */}
         <div className="bg-card rounded-2xl border border-border shadow-xl p-8">
           <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
-            Acesse sua conta
+            {isSignup ? 'Criar conta' : 'Acesse sua conta'}
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -52,6 +132,34 @@ export default function Login() {
               <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                {successMessage}
+              </div>
+            )}
+
+            {isSignup && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Nome completo
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Seu nome"
+                    required
+                    className={`input-metric pl-10 w-full ${fieldErrors.name ? 'border-red-500' : ''}`}
+                  />
+                </div>
+                {fieldErrors.name && (
+                  <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
+                )}
               </div>
             )}
             
@@ -67,9 +175,12 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
                   required
-                  className="input-metric pl-10 w-full"
+                  className={`input-metric pl-10 w-full ${fieldErrors.email ? 'border-red-500' : ''}`}
                 />
               </div>
+              {fieldErrors.email && (
+                <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
+              )}
             </div>
             
             <div>
@@ -84,7 +195,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="input-metric pl-10 pr-10 w-full"
+                  className={`input-metric pl-10 pr-10 w-full ${fieldErrors.password ? 'border-red-500' : ''}`}
                 />
                 <button
                   type="button"
@@ -94,32 +205,54 @@ export default function Login() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>
+              )}
             </div>
+
+            {isSignup && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Confirmar senha
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className={`input-metric pl-10 w-full ${fieldErrors.confirmPassword ? 'border-red-500' : ''}`}
+                  />
+                </div>
+                {fieldErrors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">{fieldErrors.confirmPassword}</p>
+                )}
+              </div>
+            )}
             
             <button
               type="submit"
               disabled={isLoading}
               className="btn-primary w-full py-3"
             >
-              {isLoading ? 'Entrando...' : 'Entrar'}
+              {isLoading ? (isSignup ? 'Criando conta...' : 'Entrando...') : (isSignup ? 'Criar conta' : 'Entrar')}
             </button>
           </form>
           
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-border">
-            <p className="text-xs text-muted-foreground text-center mb-3">
-              Credenciais de demonstração:
+          {/* Toggle Login/Signup */}
+          <div className="mt-6 pt-6 border-t border-border text-center">
+            <p className="text-sm text-muted-foreground">
+              {isSignup ? 'Já tem uma conta?' : 'Não tem uma conta?'}
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="ml-2 text-primary hover:underline font-medium"
+              >
+                {isSignup ? 'Fazer login' : 'Criar conta'}
+              </button>
             </p>
-            <div className="space-y-2 text-xs">
-              <div className="bg-muted rounded-lg p-2">
-                <p className="font-medium text-foreground">Administrador:</p>
-                <p className="text-muted-foreground">admin@byneofolic.com / admin123</p>
-              </div>
-              <div className="bg-muted rounded-lg p-2">
-                <p className="font-medium text-foreground">Licenciado:</p>
-                <p className="text-muted-foreground">joao@clinica1.com / clinica123</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
