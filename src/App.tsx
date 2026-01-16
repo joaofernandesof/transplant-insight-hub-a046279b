@@ -90,6 +90,78 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      <Route 
+        path="/university" 
+        element={
+          <ProtectedRoute>
+            <University />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/regularization" 
+        element={
+          <ProtectedRoute>
+            <Regularization />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/materials" 
+        element={
+          <ProtectedRoute>
+            <Materials />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/marketing" 
+        element={
+          <ProtectedRoute>
+            <Marketing />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/store" 
+        element={
+          <ProtectedRoute>
+            <Store />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/financial" 
+        element={
+          <ProtectedRoute>
+            <Financial />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/mentorship" 
+        element={
+          <ProtectedRoute>
+            <Mentorship />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/systems" 
+        element={
+          <ProtectedRoute>
+            <Systems />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/career" 
+        element={
+          <ProtectedRoute>
+            <Career />
+          </ProtectedRoute>
+        } 
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
