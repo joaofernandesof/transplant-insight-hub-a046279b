@@ -8,6 +8,7 @@ import { DataProvider } from "@/contexts/DataContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ClinicComparison from "./pages/ClinicComparison";
+import LicenseeHome from "./pages/LicenseeHome";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,7 +32,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   
   return (
     <Routes>
@@ -43,7 +44,15 @@ function AppRoutes() {
         path="/" 
         element={
           <ProtectedRoute>
-            <Dashboard />
+            {isAdmin ? <Dashboard /> : <LicenseeHome />}
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/home" 
+        element={
+          <ProtectedRoute>
+            <LicenseeHome />
           </ProtectedRoute>
         } 
       />
