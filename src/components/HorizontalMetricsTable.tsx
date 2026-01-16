@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useCallback } from 'react';
 import { metrics, MetricDefinition, WeekData, formatDate, generateWeeks2026 } from '@/data/metricsData';
 import { getMetricStatus, formatMetricValue } from '@/utils/metricCalculations';
 import { cn } from '@/lib/utils';
@@ -18,9 +18,16 @@ import {
   Lock,
   Unlock,
   Save,
-  TrendingUp
+  TrendingUp,
+  Download,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import { MetricSparkline } from './MetricSparkline';
+import { Button } from './ui/button';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface HorizontalMetricsTableProps {
   weeks: WeekData[];
@@ -137,19 +144,134 @@ export function HorizontalMetricsTable({
   // Group metrics by etapa for visual funnel
   const etapas = ['Planejamento', 'Tráfego', 'Landing Page', 'Conversão', 'Leads', 'Atendimento', 'Agendamento', 'Consulta', 'Vendas', 'Financeiro', 'Gestão'];
 
+  // Export to Excel
+  const exportToExcel = useCallback(() => {
+    const data: any[] = [];
+    
+    // Header row
+    const headerRow = ['Etapa', 'Responsável', 'Sigla', 'Indicador', 'O que mede', 'Fórmula', 'Ruim', 'Médio', 'Bom', 'Ótimo'];
+    allWeeks.forEach(week => {
+      headerRow.push(`S${week.weekNumber}`);
+    });
+    data.push(headerRow);
+    
+    // Data rows
+    orderedMetrics.forEach(metric => {
+      const row: any[] = [
+        metric.etapa,
+        metric.responsavel,
+        metric.sigla,
+        metric.nome,
+        metric.oQueMede,
+        metric.formula,
+        metric.ruim,
+        metric.medio,
+        metric.bom,
+        metric.otimo
+      ];
+      
+      allWeeks.forEach(week => {
+        const value = getValue(week.weekNumber, metric);
+        row.push(value !== null ? formatMetricValue(value, metric.unidade) : '');
+      });
+      
+      data.push(row);
+    });
+    
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Indicadores');
+    XLSX.writeFile(wb, `indicadores-2026-semana-${currentWeekNumber}.xlsx`);
+  }, [orderedMetrics, allWeeks, currentWeekNumber, getValue]);
+
+  // Export to PDF
+  const exportToPDF = useCallback(() => {
+    const doc = new jsPDF('landscape', 'mm', 'a3');
+    
+    doc.setFontSize(16);
+    doc.text('Indicadores Completos - 2026', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Semana atual: ${currentWeekNumber}`, 14, 22);
+    
+    // Prepare table data - show only current week and nearby weeks for PDF
+    const weeksToShow = allWeeks.filter(w => 
+      Math.abs(w.weekNumber - currentWeekNumber) <= 4
+    );
+    
+    const headers = ['Etapa', 'Resp.', 'Sigla', 'Indicador', 'Fórmula', ...weeksToShow.map(w => `S${w.weekNumber}`)];
+    
+    const tableData = orderedMetrics.map(metric => {
+      const row = [
+        metric.etapa,
+        metric.responsavel,
+        metric.sigla,
+        metric.nome.substring(0, 20),
+        metric.formula.substring(0, 15)
+      ];
+      
+      weeksToShow.forEach(week => {
+        const value = getValue(week.weekNumber, metric);
+        row.push(value !== null ? formatMetricValue(value, metric.unidade) : '-');
+      });
+      
+      return row;
+    });
+    
+    autoTable(doc, {
+      head: [headers],
+      body: tableData,
+      startY: 28,
+      styles: { fontSize: 6, cellPadding: 1 },
+      headStyles: { fillColor: [99, 102, 241], fontSize: 6 },
+      columnStyles: {
+        0: { cellWidth: 22 },
+        1: { cellWidth: 15 },
+        2: { cellWidth: 12 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 20 }
+      }
+    });
+    
+    doc.save(`indicadores-2026-semana-${currentWeekNumber}.pdf`);
+  }, [orderedMetrics, allWeeks, currentWeekNumber, getValue]);
+
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
       {/* Header matching "Resumo Semana" style */}
       <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-6 py-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/20 rounded-lg">
-            <BarChart3 className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/20 rounded-lg">
+              <BarChart3 className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground text-lg">Indicadores Completos</h3>
+              <p className="text-sm text-muted-foreground">
+                Todos os indicadores do funil com histórico semanal completo de 2026
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-foreground text-lg">Indicadores Completos</h3>
-            <p className="text-sm text-muted-foreground">
-              Todos os indicadores do funil com histórico semanal completo de 2026
-            </p>
+          
+          {/* Export Buttons */}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={exportToExcel}
+              className="gap-2"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span className="hidden sm:inline">Excel</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={exportToPDF}
+              className="gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">PDF</span>
+            </Button>
           </div>
         </div>
         
