@@ -210,22 +210,10 @@ export function HorizontalMetricsTable({
                   <span>O que mede</span>
                 </div>
               </th>
-              <th className="text-center px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[80px]">
-                <div className="flex items-center justify-center gap-1.5">
-                  <Edit3 className="w-3.5 h-3.5 text-primary" />
-                  <span>Tipo</span>
-                </div>
-              </th>
               <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[130px]">
                 <div className="flex items-center gap-1.5">
                   <Calculator className="w-3.5 h-3.5 text-primary" />
                   <span>Fórmula</span>
-                </div>
-              </th>
-              <th className="text-center px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[50px]">
-                <div className="flex items-center justify-center gap-1.5">
-                  <Ruler className="w-3.5 h-3.5 text-primary" />
-                  <span>Un.</span>
                 </div>
               </th>
               <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px]">
@@ -341,39 +329,10 @@ export function HorizontalMetricsTable({
                     </p>
                   </td>
                   
-                  {/* Tipo de preenchimento */}
-                  <td className="px-3 py-2.5 text-center align-middle">
-                    <span className={cn(
-                      "inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-semibold",
-                      isManual 
-                        ? "bg-amber-200 text-gray-900" 
-                        : "bg-slate-200 text-gray-900"
-                    )}>
-                      {isManual ? (
-                        <>
-                          <Unlock className="w-2.5 h-2.5" />
-                          Manual
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="w-2.5 h-2.5" />
-                          Auto
-                        </>
-                      )}
-                    </span>
-                  </td>
-                  
                   {/* Fórmula */}
                   <td className="px-3 py-2.5 align-middle">
                     <span className="text-[10px] font-mono text-muted-foreground leading-tight">
                       {metric.formula}
-                    </span>
-                  </td>
-                  
-                  {/* Unidade */}
-                  <td className="px-3 py-2.5 text-center align-middle">
-                    <span className="text-[10px] bg-muted px-2 py-1 rounded font-medium">
-                      {metric.unidade}
                     </span>
                   </td>
                   
