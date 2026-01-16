@@ -15,15 +15,18 @@ import {
   Lightbulb, 
   Save, 
   Building2,
-  ChevronDown 
+  ChevronDown,
+  GitCompare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 type TabType = 'input' | 'metrics' | 'insights';
 
 export default function Dashboard() {
   const { user, isAdmin } = useAuth();
   const { getClinicData, saveWeekData, getAllClinicsData } = useData();
+  const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState<TabType>('input');
   const [selectedClinicId, setSelectedClinicId] = useState<string>(user?.id || '');
@@ -110,6 +113,15 @@ export default function Dashboard() {
                     </option>
                   ))}
                 </select>
+                
+                {/* Compare Clinics Button */}
+                <button
+                  onClick={() => navigate('/comparison')}
+                  className="btn-primary w-full mt-3 flex items-center justify-center gap-2"
+                >
+                  <GitCompare className="w-4 h-4" />
+                  Comparar Clínicas
+                </button>
               </div>
             )}
             
