@@ -177,68 +177,68 @@ export function HorizontalMetricsTable({
       
       <div ref={tableRef} className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
-          <thead className="bg-muted/50 sticky top-0 z-20">
+          <thead className="bg-muted sticky top-0 z-20">
             <tr className="border-b border-border">
               {/* Fixed columns */}
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted/50 z-30 min-w-[110px] border-r border-border">
+              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-30 min-w-[110px] border-r border-border">
                 <div className="flex items-center gap-1.5">
                   <Target className="w-3.5 h-3.5 text-primary" />
                   <span>Etapa Funil</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[110px] bg-muted/50 z-30 min-w-[90px] border-r border-border">
+              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[110px] bg-muted z-30 min-w-[90px] border-r border-border">
                 <div className="flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-primary" />
                   <span>Resp.</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[200px] bg-muted/50 z-30 min-w-[70px] border-r border-border">
+              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[200px] bg-muted z-30 min-w-[70px] border-r border-border">
                 <div className="flex items-center gap-1.5">
                   <Tag className="w-3.5 h-3.5 text-primary" />
                   <span>Sigla</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[180px]">
+              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[180px] bg-muted">
                 <div className="flex items-center gap-1.5">
                   <BarChart3 className="w-3.5 h-3.5 text-primary" />
                   <span>Indicador</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[160px]">
+              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[160px] bg-muted">
                 <div className="flex items-center gap-1.5">
                   <Search className="w-3.5 h-3.5 text-primary" />
                   <span>O que mede</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[130px]">
+              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[130px] bg-muted">
                 <div className="flex items-center gap-1.5">
                   <Calculator className="w-3.5 h-3.5 text-primary" />
                   <span>Fórmula</span>
                 </div>
               </th>
-              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px]">
+              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px] bg-muted">
                 <div className="flex items-center justify-center gap-1">
                   <span className="px-2 py-0.5 rounded bg-red-200 text-gray-900 text-[10px]">Ruim</span>
                 </div>
               </th>
-              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px]">
+              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px] bg-muted">
                 <div className="flex items-center justify-center gap-1">
                   <span className="px-2 py-0.5 rounded bg-yellow-200 text-gray-900 text-[10px]">Médio</span>
                 </div>
               </th>
-              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px]">
+              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px] bg-muted">
                 <div className="flex items-center justify-center gap-1">
                   <span className="px-2 py-0.5 rounded bg-blue-200 text-gray-900 text-[10px]">Bom</span>
                 </div>
               </th>
-              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px]">
+              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px] bg-muted">
                 <div className="flex items-center justify-center gap-1">
                   <span className="px-2 py-0.5 rounded bg-green-200 text-gray-900 text-[10px]">Ótimo</span>
                 </div>
               </th>
               
               {/* Trend/Evolution Column */}
-              <th className="text-center px-3 py-3 font-semibold whitespace-nowrap min-w-[110px] border-r border-border">
+              <th className="text-center px-3 py-3 font-semibold whitespace-nowrap min-w-[110px] border-r border-border bg-muted">
                 <div className="flex items-center justify-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5 text-primary" />
                   <span>Tendência</span>
@@ -251,7 +251,7 @@ export function HorizontalMetricsTable({
                   key={week.weekNumber}
                   data-week={week.weekNumber}
                   className={cn(
-                    "text-center px-2 py-2 font-semibold whitespace-nowrap min-w-[75px] border-l border-border transition-colors",
+                    "text-center px-2 py-2 font-semibold whitespace-nowrap min-w-[75px] border-l border-border transition-colors bg-muted",
                     week.weekNumber === currentWeekNumber && "bg-primary/20 ring-2 ring-primary ring-inset"
                   )}
                 >
