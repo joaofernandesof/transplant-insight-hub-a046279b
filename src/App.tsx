@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ClinicComparison from "./pages/ClinicComparison";
 import LicenseeHome from "./pages/LicenseeHome";
+import LicenseesPanel from "./pages/LicenseesPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/licensees" 
+        element={
+          <ProtectedRoute>
+            <LicenseesPanel />
           </ProtectedRoute>
         } 
       />
