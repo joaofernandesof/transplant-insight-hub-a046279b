@@ -10,6 +10,15 @@ import Dashboard from "./pages/Dashboard";
 import ClinicComparison from "./pages/ClinicComparison";
 import LicenseeHome from "./pages/LicenseeHome";
 import LicenseesPanel from "./pages/LicenseesPanel";
+import University from "./pages/University";
+import Regularization from "./pages/Regularization";
+import Materials from "./pages/Materials";
+import Marketing from "./pages/Marketing";
+import Store from "./pages/Store";
+import Financial from "./pages/Financial";
+import Mentorship from "./pages/Mentorship";
+import Systems from "./pages/Systems";
+import Career from "./pages/Career";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

@@ -3,7 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, FileCheck, BookOpen, Video, LogOut, Crown, Award, Star, Trophy, Gem, Shield, Sparkles } from "lucide-react";
+import { 
+  BarChart3, 
+  FileCheck, 
+  BookOpen, 
+  Video, 
+  LogOut, 
+  Crown, 
+  Award, 
+  Star, 
+  Trophy, 
+  Gem, 
+  Shield, 
+  Sparkles,
+  Palette,
+  ShoppingBag,
+  DollarSign,
+  Users,
+  Settings,
+  Bell,
+  TrendingUp
+} from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
@@ -84,9 +104,7 @@ const tierConfig: Record<LicenseeTier, TierInfo> = {
   }
 };
 
-// Mock function to get licensee tier - in real app, this would come from the user data
 const getLicenseeTier = (userId: string): LicenseeTier => {
-  // For demo purposes, assign tiers based on user id
   const tierMap: Record<string, LicenseeTier> = {
     'clinic-1': 'pro',
     'clinic-2': 'expert',
@@ -95,42 +113,107 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
   return tierMap[userId] || 'basic';
 };
 
-const menuItems = [
+// Seções principais do portal
+const mainSections = [
   {
     id: 'metrics',
-    title: 'Análise de Métricas',
-    description: 'Dashboard completo com indicadores de desempenho, insights e mentor virtual',
+    title: 'Dashboard de Métricas',
+    description: 'KPIs semanais, funil de vendas e insights do mentor virtual',
     icon: BarChart3,
     route: '/dashboard',
     color: 'bg-primary hover:bg-primary/90',
-    iconBg: 'bg-primary/10'
+    iconBg: 'bg-primary/10',
+    iconColor: 'text-primary'
+  },
+  {
+    id: 'university',
+    title: 'Universidade ByNeofolic',
+    description: 'Trilhas de capacitação, aulas gravadas e imersões',
+    icon: Video,
+    route: '/university',
+    color: 'bg-purple-600 hover:bg-purple-700',
+    iconBg: 'bg-purple-100',
+    iconColor: 'text-purple-600'
   },
   {
     id: 'regularization',
     title: 'Regularização da Clínica',
-    description: 'Documentação, alvarás e conformidade legal da sua unidade',
+    description: 'Checklist de documentos, alvarás e compliance',
     icon: FileCheck,
     route: '/regularization',
     color: 'bg-emerald-600 hover:bg-emerald-700',
-    iconBg: 'bg-emerald-100'
+    iconBg: 'bg-emerald-100',
+    iconColor: 'text-emerald-600'
   },
   {
     id: 'materials',
-    title: 'Materiais do Licenciado',
-    description: 'Manuais, templates, materiais de marketing e recursos exclusivos',
+    title: 'Central de Materiais',
+    description: 'POPs, protocolos, scripts, contratos e termos',
     icon: BookOpen,
     route: '/materials',
     color: 'bg-blue-600 hover:bg-blue-700',
-    iconBg: 'bg-blue-100'
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-600'
   },
   {
-    id: 'classes',
-    title: 'Aulas Gravadas',
-    description: 'Biblioteca completa de treinamentos e capacitações',
-    icon: Video,
-    route: '/classes',
-    color: 'bg-purple-600 hover:bg-purple-700',
-    iconBg: 'bg-purple-100'
+    id: 'marketing',
+    title: 'Central de Marketing',
+    description: 'Templates, campanhas, banco de mídia e branding',
+    icon: Palette,
+    route: '/marketing',
+    color: 'bg-pink-600 hover:bg-pink-700',
+    iconBg: 'bg-pink-100',
+    iconColor: 'text-pink-600'
+  },
+  {
+    id: 'store',
+    title: 'Loja Neo-Spa',
+    description: 'Produtos com preço de custo e fornecedores parceiros',
+    icon: ShoppingBag,
+    route: '/store',
+    color: 'bg-orange-600 hover:bg-orange-700',
+    iconBg: 'bg-orange-100',
+    iconColor: 'text-orange-600'
+  },
+  {
+    id: 'financial',
+    title: 'Gestão Financeira',
+    description: 'Metas comerciais, dashboards e orientações',
+    icon: DollarSign,
+    route: '/financial',
+    color: 'bg-green-600 hover:bg-green-700',
+    iconBg: 'bg-green-100',
+    iconColor: 'text-green-600'
+  },
+  {
+    id: 'mentorship',
+    title: 'Mentoria & Suporte',
+    description: 'Consultorias, grupo exclusivo e comunidade',
+    icon: Users,
+    route: '/mentorship',
+    color: 'bg-indigo-600 hover:bg-indigo-700',
+    iconBg: 'bg-indigo-100',
+    iconColor: 'text-indigo-600'
+  },
+  {
+    id: 'systems',
+    title: 'Sistemas & Ferramentas',
+    description: 'CRM, WhatsApp API, Feegow e robôs',
+    icon: Settings,
+    route: '/systems',
+    color: 'bg-slate-600 hover:bg-slate-700',
+    iconBg: 'bg-slate-100',
+    iconColor: 'text-slate-600'
+  },
+  {
+    id: 'career',
+    title: 'Plano de Carreira',
+    description: 'Roadmap, checklist de domínio e evolução',
+    icon: TrendingUp,
+    route: '/career',
+    color: 'bg-amber-600 hover:bg-amber-700',
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-600'
   }
 ];
 
@@ -164,7 +247,13 @@ export default function LicenseeHome() {
               />
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full text-[10px] flex items-center justify-center text-white">
+                  3
+                </span>
+              </Button>
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium">{user?.name}</p>
                 <p className="text-xs text-muted-foreground">{user?.clinicName}</p>
@@ -178,88 +267,93 @@ export default function LicenseeHome() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Welcome Section with Badge */}
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold mb-2">
-            Bem-vindo, {user?.name?.split(' ')[0]}!
+            Bem-vindo ao Portal do Licenciado
           </h1>
           <p className="text-muted-foreground mb-6">
-            {user?.clinicName}
+            {user?.name} • {user?.clinicName}
           </p>
           
           {/* Licensee Badge */}
           <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-full border-2 ${tierInfo.bgColor} ${tierInfo.borderColor} ${tierInfo.color} shadow-sm`}>
             {tierInfo.icon}
             <div className="text-left">
-              <p className="font-bold text-lg leading-tight">{tierInfo.name}</p>
+              <p className="font-bold text-lg leading-tight">Nível {tierInfo.name}</p>
               <p className="text-xs opacity-80">{tierInfo.threshold} • {tierInfo.description}</p>
             </div>
           </div>
         </div>
 
-        {/* Menu Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {menuItems.map((item) => (
+        {/* Menu Grid - 5 colunas em telas grandes */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-12">
+          {mainSections.map((section) => (
             <Card 
-              key={item.id}
-              className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-2 hover:border-primary/20"
-              onClick={() => handleNavigate(item.route)}
+              key={section.id}
+              className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border hover:border-primary/30"
+              onClick={() => handleNavigate(section.route)}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-xl ${item.iconBg}`}>
-                    <item.icon className="h-8 w-8 text-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-xl mb-1 group-hover:text-primary transition-colors">
-                      {item.title}
-                    </CardTitle>
-                    <CardDescription className="text-sm">
-                      {item.description}
-                    </CardDescription>
-                  </div>
+              <CardContent className="p-4">
+                <div className={`w-12 h-12 rounded-xl ${section.iconBg} flex items-center justify-center mb-3`}>
+                  <section.icon className={`h-6 w-6 ${section.iconColor}`} />
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Button className={`w-full ${item.color} text-white`}>
-                  Acessar
-                </Button>
+                <h3 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors">
+                  {section.title}
+                </h3>
+                <p className="text-xs text-muted-foreground line-clamp-2">
+                  {section.description}
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* All Tiers Preview */}
-        <Card className="border-2">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-lg">Níveis de Licenciado</CardTitle>
-            <CardDescription>Sua jornada de crescimento com a ByNeofolic</CardDescription>
+        {/* Plano de Carreira - Níveis */}
+        <Card className="border-2 mb-8">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Sua Jornada ByNeofolic</CardTitle>
+                <CardDescription>Evolua do Basic ao Legacy e desbloqueie novos benefícios</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => navigate('/career')}>
+                Ver Detalhes
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-              {(Object.keys(tierConfig) as LicenseeTier[]).map((tierKey) => {
+            <div className="flex items-center gap-2 overflow-x-auto pb-2">
+              {(Object.keys(tierConfig) as LicenseeTier[]).map((tierKey, index) => {
                 const info = tierConfig[tierKey];
                 const isCurrentTier = tierKey === tier;
+                const isPast = Object.keys(tierConfig).indexOf(tier) > index;
                 return (
-                  <div 
-                    key={tierKey}
-                    className={`relative p-3 rounded-lg text-center border-2 transition-all ${
-                      isCurrentTier 
-                        ? `${info.bgColor} ${info.borderColor} ${info.color} shadow-md scale-105` 
-                        : 'bg-muted/30 border-transparent opacity-60'
-                    }`}
-                  >
-                    {isCurrentTier && (
-                      <Badge className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5 bg-primary">
-                        Atual
-                      </Badge>
-                    )}
-                    <div className={`mx-auto mb-1 ${isCurrentTier ? info.color : 'text-muted-foreground'}`}>
-                      {info.icon}
+                  <div key={tierKey} className="flex items-center">
+                    <div 
+                      className={`relative flex-shrink-0 p-3 rounded-xl text-center border-2 transition-all min-w-[100px] ${
+                        isCurrentTier 
+                          ? `${info.bgColor} ${info.borderColor} ${info.color} shadow-md` 
+                          : isPast
+                            ? 'bg-primary/10 border-primary/30 text-primary'
+                            : 'bg-muted/30 border-transparent text-muted-foreground'
+                      }`}
+                    >
+                      {isCurrentTier && (
+                        <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 bg-primary">
+                          Você está aqui
+                        </Badge>
+                      )}
+                      <div className={`mx-auto mb-1 ${isCurrentTier ? info.color : isPast ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {info.icon}
+                      </div>
+                      <p className="font-semibold text-sm">{info.name}</p>
+                      <p className="text-[10px] opacity-70">{info.threshold}</p>
                     </div>
-                    <p className="font-semibold text-sm">{info.name}</p>
-                    <p className="text-[10px] opacity-70">{info.threshold}</p>
+                    {index < Object.keys(tierConfig).length - 1 && (
+                      <div className={`w-8 h-0.5 ${isPast ? 'bg-primary' : 'bg-muted'}`} />
+                    )}
                   </div>
                 );
               })}
@@ -274,6 +368,7 @@ export default function LicenseeHome() {
             alt="Licença ByNeofolic" 
             className="h-8 mx-auto object-contain grayscale"
           />
+          <p className="text-xs mt-2">Portal Exclusivo do Licenciado</p>
         </div>
       </main>
     </div>
