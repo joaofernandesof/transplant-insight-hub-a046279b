@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Header } from '@/components/Header';
 import { WeekSelector } from '@/components/WeekSelector';
-import { DataEntryTable } from '@/components/DataEntryTable';
-import { ManualMetricsTable } from '@/components/ManualMetricsTable';
+import { BaseDataInputTable } from '@/components/BaseDataInputTable';
+import { HorizontalMetricsTable } from '@/components/HorizontalMetricsTable';
 import { AllMetricsTable } from '@/components/AllMetricsTable';
 import { InsightsPanel } from '@/components/InsightsPanel';
 import { WeekData, isWeekAvailable, formatDate, getLastAvailableWeek } from '@/data/metricsData';
@@ -15,23 +15,24 @@ import {
   Lightbulb, 
   Save, 
   Building2,
-  ChevronDown,
-  GitCompare
+  GitCompare,
+  Database,
+  Table2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
-type TabType = 'input' | 'metrics' | 'insights';
+type TabType = 'input-base' | 'input-metrics' | 'metrics' | 'insights';
 
 export default function Dashboard() {
   const { user, isAdmin } = useAuth();
   const { getClinicData, saveWeekData, getAllClinicsData } = useData();
   const navigate = useNavigate();
   
-  const [activeTab, setActiveTab] = useState<TabType>('input');
+  const [activeTab, setActiveTab] = useState<TabType>('input-base');
   const [selectedClinicId, setSelectedClinicId] = useState<string>(user?.id || '');
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
-  const [inputValues, setInputValues] = useState<Record<string, number | string | null>>({});
+  const [weekValuesCache, setWeekValuesCache] = useState<Record<number, Record<string, number | string | null>>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Get clinic data
@@ -48,36 +49,51 @@ export default function Dashboard() {
     }
   }, [weeks, selectedWeek]);
   
-  // Load values when week changes
+  // Load all week values into cache
   useEffect(() => {
-    if (selectedWeek) {
-      const week = weeks.find(w => w.weekNumber === selectedWeek);
-      if (week) {
-        setInputValues(week.values || {});
-        setHasUnsavedChanges(false);
-      }
-    }
-  }, [selectedWeek, weeks, selectedClinicId]);
+    const cache: Record<number, Record<string, number | string | null>> = {};
+    weeks.forEach(week => {
+      cache[week.weekNumber] = week.values || {};
+    });
+    setWeekValuesCache(cache);
+  }, [weeks, selectedClinicId]);
   
-  const handleInputChange = (key: string, value: number | string | null) => {
-    setInputValues(prev => ({ ...prev, [key]: value }));
+  const getWeekValues = useCallback((weekNumber: number) => {
+    return weekValuesCache[weekNumber] || {};
+  }, [weekValuesCache]);
+  
+  const getCalculatedMetricsForWeek = useCallback((weekNumber: number) => {
+    const values = getWeekValues(weekNumber);
+    return calculateMetrics(values);
+  }, [getWeekValues]);
+  
+  const handleValueChange = (weekNumber: number, key: string, value: number | string | null) => {
+    setWeekValuesCache(prev => ({
+      ...prev,
+      [weekNumber]: {
+        ...(prev[weekNumber] || {}),
+        [key]: value
+      }
+    }));
     setHasUnsavedChanges(true);
   };
   
-  const handleSave = () => {
-    if (selectedWeek) {
-      saveWeekData(selectedClinicId, selectedWeek, inputValues);
-      setHasUnsavedChanges(false);
-    }
+  const handleSaveAll = () => {
+    Object.entries(weekValuesCache).forEach(([weekNum, values]) => {
+      if (Object.keys(values).length > 0) {
+        saveWeekData(selectedClinicId, parseInt(weekNum), values);
+      }
+    });
+    setHasUnsavedChanges(false);
   };
   
-  const calculatedMetrics = calculateMetrics(inputValues);
+  const currentWeekValues = selectedWeek ? getWeekValues(selectedWeek) : {};
+  const calculatedMetrics = calculateMetrics(currentWeekValues);
   
   const selectedWeekData = weeks.find(w => w.weekNumber === selectedWeek);
   const isEditable = isAdmin || (selectedWeekData && isWeekAvailable(selectedWeekData));
   
   // For admin: list of clinics
-  const allClinicsData = getAllClinicsData();
   const clinicsList = isAdmin ? [
     { id: 'clinic-1', name: 'Clínica Capilar SP' },
     { id: 'clinic-2', name: 'Hair Center RJ' },
@@ -88,16 +104,16 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
+      <div className="max-w-[1920px] mx-auto p-4 lg:p-6">
         <div className="grid grid-cols-12 gap-6">
           {/* Sidebar */}
-          <div className="col-span-12 lg:col-span-3 space-y-4">
+          <div className="col-span-12 lg:col-span-2 space-y-4">
             {/* Admin Clinic Selector */}
             {isAdmin && (
               <div className="bg-card rounded-xl border border-border p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Building2 className="w-5 h-5 text-accent" />
-                  <h3 className="font-semibold text-foreground">Selecionar Clínica</h3>
+                  <h3 className="font-semibold text-foreground text-sm">Selecionar Clínica</h3>
                 </div>
                 <select
                   value={selectedClinicId}
@@ -105,7 +121,7 @@ export default function Dashboard() {
                     setSelectedClinicId(e.target.value);
                     setSelectedWeek(null);
                   }}
-                  className="input-metric w-full"
+                  className="input-metric w-full text-sm"
                 >
                   {clinicsList.map(clinic => (
                     <option key={clinic.id} value={clinic.id}>
@@ -117,7 +133,7 @@ export default function Dashboard() {
                 {/* Compare Clinics Button */}
                 <button
                   onClick={() => navigate('/comparison')}
-                  className="btn-primary w-full mt-3 flex items-center justify-center gap-2"
+                  className="btn-primary w-full mt-3 flex items-center justify-center gap-2 text-sm"
                 >
                   <GitCompare className="w-4 h-4" />
                   Comparar Clínicas
@@ -135,48 +151,62 @@ export default function Dashboard() {
           </div>
           
           {/* Main Content */}
-          <div className="col-span-12 lg:col-span-9 space-y-6">
-            {/* Week Header */}
-            {selectedWeekData && (
-              <div className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">
-                    {selectedWeekData.weekLabel}
-                  </h2>
-                  <p className="text-muted-foreground text-sm">
-                    {formatDate(selectedWeekData.startDate)} a {formatDate(selectedWeekData.endDate)}
-                  </p>
-                </div>
-                
-                {isEditable && (
-                  <button
-                    onClick={handleSave}
-                    disabled={!hasUnsavedChanges}
-                    className={cn(
-                      'btn-primary',
-                      !hasUnsavedChanges && 'opacity-50 cursor-not-allowed'
-                    )}
-                  >
-                    <Save className="w-4 h-4" />
-                    {hasUnsavedChanges ? 'Salvar Alterações' : 'Salvo'}
-                  </button>
+          <div className="col-span-12 lg:col-span-10 space-y-4">
+            {/* Week Header + Save */}
+            <div className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
+              <div>
+                {selectedWeekData && (
+                  <>
+                    <h2 className="text-xl font-bold text-foreground">
+                      {selectedWeekData.weekLabel}
+                    </h2>
+                    <p className="text-muted-foreground text-sm">
+                      {formatDate(selectedWeekData.startDate)} a {formatDate(selectedWeekData.endDate)}
+                    </p>
+                  </>
                 )}
               </div>
-            )}
+              
+              {isEditable && (
+                <button
+                  onClick={handleSaveAll}
+                  disabled={!hasUnsavedChanges}
+                  className={cn(
+                    'btn-primary flex items-center gap-2',
+                    !hasUnsavedChanges && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  <Save className="w-4 h-4" />
+                  {hasUnsavedChanges ? 'Salvar Alterações' : 'Salvo'}
+                </button>
+              )}
+            </div>
             
             {/* Tabs */}
-            <div className="flex gap-2 bg-muted/50 p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap gap-2 bg-muted/50 p-1 rounded-xl w-fit">
               <button
-                onClick={() => setActiveTab('input')}
+                onClick={() => setActiveTab('input-base')}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all',
-                  activeTab === 'input' 
+                  activeTab === 'input-base' 
                     ? 'bg-card text-foreground shadow-sm' 
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                <FileInput className="w-4 h-4" />
-                Preenchimento
+                <Database className="w-4 h-4" />
+                Dados Base
+              </button>
+              <button
+                onClick={() => setActiveTab('input-metrics')}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all',
+                  activeTab === 'input-metrics' 
+                    ? 'bg-card text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Table2 className="w-4 h-4" />
+                Indicadores Completos
               </button>
               <button
                 onClick={() => setActiveTab('metrics')}
@@ -188,7 +218,7 @@ export default function Dashboard() {
                 )}
               >
                 <BarChart3 className="w-4 h-4" />
-                Indicadores
+                Resumo Semana
               </button>
               <button
                 onClick={() => setActiveTab('insights')}
@@ -206,26 +236,32 @@ export default function Dashboard() {
             
             {/* Tab Content */}
             <div className="animate-fade-in">
-              {activeTab === 'input' && (
-                <div className="space-y-6">
-                  <DataEntryTable
-                    values={inputValues}
-                    onChange={handleInputChange}
-                    isEditable={isEditable}
-                  />
-                  <ManualMetricsTable
-                    values={inputValues}
-                    onChange={handleInputChange}
-                    isEditable={isEditable}
-                  />
-                </div>
+              {activeTab === 'input-base' && selectedWeek && (
+                <BaseDataInputTable
+                  weeks={weeks}
+                  currentWeekNumber={selectedWeek}
+                  onValueChange={handleValueChange}
+                  getWeekValues={getWeekValues}
+                  isAdmin={isAdmin}
+                />
+              )}
+              
+              {activeTab === 'input-metrics' && selectedWeek && (
+                <HorizontalMetricsTable
+                  weeks={weeks}
+                  currentWeekNumber={selectedWeek}
+                  onValueChange={handleValueChange}
+                  getWeekValues={getWeekValues}
+                  getCalculatedMetrics={getCalculatedMetricsForWeek}
+                  isAdmin={isAdmin}
+                />
               )}
               
               {activeTab === 'metrics' && (
                 <AllMetricsTable
                   calculatedValues={calculatedMetrics}
-                  manualValues={inputValues}
-                  onManualChange={isEditable ? handleInputChange : undefined}
+                  manualValues={currentWeekValues}
+                  onManualChange={isEditable ? (key, val) => selectedWeek && handleValueChange(selectedWeek, key, val) : undefined}
                   isEditable={isEditable}
                 />
               )}
@@ -233,7 +269,7 @@ export default function Dashboard() {
               {activeTab === 'insights' && (
                 <InsightsPanel
                   calculatedValues={calculatedMetrics}
-                  manualValues={inputValues}
+                  manualValues={currentWeekValues}
                 />
               )}
             </div>
