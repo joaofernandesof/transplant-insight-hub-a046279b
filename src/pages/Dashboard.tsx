@@ -14,25 +14,42 @@ import {
   Building2,
   GitCompare,
   Table2,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 type TabType = 'indicators' | 'summary' | 'insights';
 
 export default function Dashboard() {
   const { user, isAdmin } = useAuth();
-  const { getClinicData, saveWeekData, getAllClinicsData } = useData();
+  const { getClinicData, saveWeekData, getAllClinicsData, isLoading: dataLoading, userClinicId, clinicsData } = useData();
   const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState<TabType>('indicators');
-  const [selectedClinicId, setSelectedClinicId] = useState<string>(user?.id || '');
+  const [selectedClinicId, setSelectedClinicId] = useState<string>('');
   const [weekValuesCache, setWeekValuesCache] = useState<Record<number, Record<string, number | string | null>>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Set selected clinic based on user role
+  useEffect(() => {
+    if (isAdmin) {
+      // Admin: select first clinic from list
+      const clinicIds = Object.keys(clinicsData);
+      if (clinicIds.length > 0 && !selectedClinicId) {
+        setSelectedClinicId(clinicIds[0]);
+      }
+    } else if (userClinicId) {
+      // Licensee: use their own clinic
+      setSelectedClinicId(userClinicId);
+    }
+  }, [isAdmin, userClinicId, clinicsData, selectedClinicId]);
   
   // Get clinic data
-  const clinicData = getClinicData(selectedClinicId);
+  const clinicData = selectedClinicId ? getClinicData(selectedClinicId) : { clinicId: '', weeks: generateWeeks2026() };
   const weeks = clinicData.weeks;
   
   // Get current week number
@@ -47,6 +64,7 @@ export default function Dashboard() {
       cache[week.weekNumber] = week.values || {};
     });
     setWeekValuesCache(cache);
+    setHasUnsavedChanges(false);
   }, [weeks, selectedClinicId]);
   
   const getWeekValues = useCallback((weekNumber: number) => {
@@ -69,27 +87,71 @@ export default function Dashboard() {
     setHasUnsavedChanges(true);
   };
   
-  const handleSaveAll = () => {
-    Object.entries(weekValuesCache).forEach(([weekNum, values]) => {
-      if (Object.keys(values).length > 0) {
-        saveWeekData(selectedClinicId, parseInt(weekNum), values);
-      }
-    });
-    setHasUnsavedChanges(false);
+  const handleSaveAll = async () => {
+    if (!selectedClinicId) {
+      toast.error('Nenhuma clínica selecionada');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const savePromises = Object.entries(weekValuesCache).map(async ([weekNum, values]) => {
+        if (Object.keys(values).length > 0) {
+          await saveWeekData(selectedClinicId, parseInt(weekNum), values);
+        }
+      });
+      
+      await Promise.all(savePromises);
+      setHasUnsavedChanges(false);
+      toast.success('Dados salvos com sucesso!');
+    } catch (error) {
+      console.error('Error saving:', error);
+      toast.error('Erro ao salvar dados');
+    } finally {
+      setIsSaving(false);
+    }
   };
   
   const currentWeekValues = getWeekValues(currentWeekNumber);
   const calculatedMetrics = calculateMetrics(currentWeekValues);
   
   const selectedWeekData = weeks.find(w => w.weekNumber === currentWeekNumber);
-  const isEditable = isAdmin || (selectedWeekData && isWeekAvailable(selectedWeekData));
+  const isEditable = !isAdmin && selectedWeekData && isWeekAvailable(selectedWeekData);
   
-  // For admin: list of clinics
-  const clinicsList = isAdmin ? [
-    { id: 'clinic-1', name: 'Clínica Capilar SP' },
-    { id: 'clinic-2', name: 'Hair Center RJ' },
-    { id: 'clinic-3', name: 'Transplante Capilar BH' }
-  ] : [];
+  // For admin: list of clinics from database
+  const clinicsList = Object.entries(clinicsData).map(([id, data]) => ({
+    id,
+    name: `Clínica ${id.slice(0, 8)}...`
+  }));
+
+  if (dataLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Carregando dados...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedClinicId && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center">
+            <Building2 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Nenhuma clínica encontrada</h2>
+            <p className="text-muted-foreground">Sua clínica será criada automaticamente.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-background">
@@ -108,6 +170,9 @@ export default function Dashboard() {
                   onChange={(e) => setSelectedClinicId(e.target.value)}
                   className="bg-transparent border-none text-sm font-medium focus:outline-none cursor-pointer"
                 >
+                  {clinicsList.length === 0 && (
+                    <option value="">Nenhuma clínica cadastrada</option>
+                  )}
                   {clinicsList.map(clinic => (
                     <option key={clinic.id} value={clinic.id}>
                       {clinic.name}
@@ -148,18 +213,22 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Save Button */}
+          {/* Save Button - Only for licensees */}
           {isEditable && (
             <button
               onClick={handleSaveAll}
-              disabled={!hasUnsavedChanges}
+              disabled={!hasUnsavedChanges || isSaving}
               className={cn(
                 'btn-primary flex items-center gap-2',
-                !hasUnsavedChanges && 'opacity-50 cursor-not-allowed'
+                (!hasUnsavedChanges || isSaving) && 'opacity-50 cursor-not-allowed'
               )}
             >
-              <Save className="w-4 h-4" />
-              {hasUnsavedChanges ? 'Salvar Alterações' : 'Salvo'}
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {isSaving ? 'Salvando...' : hasUnsavedChanges ? 'Salvar Alterações' : 'Salvo'}
             </button>
           )}
         </div>
