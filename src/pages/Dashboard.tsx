@@ -123,6 +123,14 @@ export default function Dashboard() {
                 <GitCompare className="w-4 h-4" />
                 Comparar Clínicas
               </button>
+              
+              <button
+                onClick={() => navigate('/licensees')}
+                className="btn-secondary flex items-center gap-2 text-sm"
+              >
+                <Building2 className="w-4 h-4" />
+                Gerenciar Licenciados
+              </button>
             </div>
           )}
           
