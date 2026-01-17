@@ -469,6 +469,7 @@ export type Database = {
           instagram_personal: string | null
           name: string
           phone: string | null
+          referral_code: string | null
           services: string[] | null
           state: string | null
           status: string | null
@@ -490,6 +491,7 @@ export type Database = {
           instagram_personal?: string | null
           name: string
           phone?: string | null
+          referral_code?: string | null
           services?: string[] | null
           state?: string | null
           status?: string | null
@@ -511,6 +513,7 @@ export type Database = {
           instagram_personal?: string | null
           name?: string
           phone?: string | null
+          referral_code?: string | null
           services?: string[] | null
           state?: string | null
           status?: string | null
@@ -568,6 +571,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_leads: {
+        Row: {
+          city: string | null
+          commission_paid: boolean | null
+          commission_paid_at: string | null
+          commission_value: number | null
+          converted_at: string | null
+          converted_value: number | null
+          created_at: string | null
+          email: string
+          id: string
+          interest: string | null
+          name: string
+          phone: string
+          referrer_user_id: string
+          state: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          city?: string | null
+          commission_paid?: boolean | null
+          commission_paid_at?: string | null
+          commission_value?: number | null
+          converted_at?: string | null
+          converted_value?: number | null
+          created_at?: string | null
+          email: string
+          id?: string
+          interest?: string | null
+          name: string
+          phone: string
+          referrer_user_id: string
+          state?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          city?: string | null
+          commission_paid?: boolean | null
+          commission_paid_at?: string | null
+          commission_value?: number | null
+          converted_at?: string | null
+          converted_value?: number | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          interest?: string | null
+          name?: string
+          phone?: string
+          referrer_user_id?: string
+          state?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       user_course_enrollments: {
         Row: {

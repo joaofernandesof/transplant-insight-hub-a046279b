@@ -29,6 +29,8 @@ import Certificates from "./pages/Certificates";
 import Partners from "./pages/Partners";
 import LicensePayments from "./pages/LicensePayments";
 import EstruturaNeo from "./pages/EstruturaNeo";
+import ReferralProgram from "./pages/ReferralProgram";
+import ReferralLanding from "./pages/ReferralLanding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -235,6 +237,19 @@ function AppRoutes() {
             <EstruturaNeo />
           </ProtectedRoute>
         } 
+      />
+      <Route 
+        path="/indique-e-ganhe" 
+        element={
+          <ProtectedRoute>
+            <ReferralProgram />
+          </ProtectedRoute>
+        } 
+      />
+      {/* Public referral landing page */}
+      <Route 
+        path="/indicacao/:code" 
+        element={<ReferralLanding />}
       />
       <Route path="*" element={<NotFound />} />
     </Routes>
