@@ -17,7 +17,6 @@ import {
   Megaphone
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
-import mentorsTeamImage from "@/assets/mentors-team.jpg";
 
 const mentors = [
   { 
@@ -84,20 +83,6 @@ export default function Mentorship() {
           <p className="text-sm text-muted-foreground">Consultorias, comunidade e grupo exclusivo</p>
         </div>
 
-        {/* Team Hero Image */}
-        <Card className="mb-6 overflow-hidden">
-          <div className="relative">
-            <img 
-              src={mentorsTeamImage} 
-              alt="Equipe de Mentores IBRAMEC" 
-              className="w-full h-auto object-cover"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-              <h2 className="text-white text-xl md:text-2xl font-bold">Equipe de Mentores IBRAMEC</h2>
-              <p className="text-white/80 text-sm">Os melhores profissionais para guiar sua jornada</p>
-            </div>
-          </div>
-        </Card>
 
         {/* Hours Available */}
         <Card className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">

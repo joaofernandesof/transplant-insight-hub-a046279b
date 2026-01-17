@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import mentorsTeamImage from "@/assets/mentors-team.jpg";
 
 const BRAZILIAN_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
@@ -243,19 +242,6 @@ export default function ReferralLanding() {
           </div>
         </div>
 
-        {/* Mentors Team Image */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="rounded-2xl overflow-hidden shadow-2xl">
-            <img 
-              src={mentorsTeamImage} 
-              alt="Equipe de Mentores IBRAMEC" 
-              className="w-full h-auto"
-            />
-          </div>
-          <p className="text-center text-blue-200 text-sm mt-4">
-            Conheça nossa equipe de mentores especializados
-          </p>
-        </div>
 
         {/* Form */}
         <Card className="max-w-lg mx-auto">
