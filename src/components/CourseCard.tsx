@@ -6,6 +6,7 @@ import { Clock, BookOpen, Play, CheckCircle2, Award } from "lucide-react";
 import { CourseWithProgress } from "@/hooks/useUniversity";
 import { CertificateDownloadButton } from "@/components/CertificateDownloadButton";
 import { useAuth } from "@/contexts/AuthContext";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 
 interface CourseCardProps {
   course: CourseWithProgress;
@@ -20,7 +21,7 @@ const difficultyLabels = {
 };
 
 export function CourseCard({ course, onSelect, onEnroll }: CourseCardProps) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const isEnrolled = !!course.enrollment;
   const progress = course.enrollment?.progress_percent || 0;
   const isCompleted = course.enrollment?.status === 'completed';
@@ -52,6 +53,22 @@ export function CourseCard({ course, onSelect, onEnroll }: CourseCardProps) {
         {isCompleted && (
           <div className="absolute top-3 right-3 bg-green-500 rounded-full p-1">
             <CheckCircle2 className="h-5 w-5 text-white" />
+          </div>
+        )}
+        {isAdmin && !isCompleted && (
+          <div 
+            className="absolute top-3 right-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <WhatsAppShareButton
+              title={course.title}
+              description={course.description || undefined}
+              path="/university"
+              type="course"
+              size="icon"
+              variant="default"
+              className="h-8 w-8 bg-green-500 hover:bg-green-600 text-white border-0"
+            />
           </div>
         )}
       </div>

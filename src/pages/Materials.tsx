@@ -23,6 +23,7 @@ import { ModuleLayout } from "@/components/ModuleLayout";
 import { useMaterials } from "@/hooks/useMaterials";
 import { useAuth } from "@/contexts/AuthContext";
 import { UploadMaterialDialog } from "@/components/UploadMaterialDialog";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -185,30 +186,41 @@ export default function Materials() {
                               <Download className="h-4 w-4" />
                             </Button>
                             {isAdmin && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive">
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Excluir material?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Esta ação não pode ser desfeita. O arquivo "{material.title}" será permanentemente excluído.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => deleteMaterial(material.id)}
-                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    >
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                              <>
+                                <WhatsAppShareButton
+                                  title={material.title}
+                                  description={material.description || undefined}
+                                  path="/materials"
+                                  type="material"
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7 px-0"
+                                />
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive hover:text-destructive">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Excluir material?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Esta ação não pode ser desfeita. O arquivo "{material.title}" será permanentemente excluído.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteMaterial(material.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Excluir
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </>
                             )}
                           </div>
                         </div>
