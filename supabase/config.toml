@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.notify-login]
 verify_jwt = false
+
+[functions.check-inactive-users]
+verify_jwt = false
+
+[functions.send-weekly-reports]
+verify_jwt = false
