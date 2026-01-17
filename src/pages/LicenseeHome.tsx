@@ -43,6 +43,7 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 import AchievementsPanel from "@/components/AchievementsPanel";
 import { ModuleSidebar } from "@/components/ModuleSidebar";
+import QuickStats from "@/components/QuickStats";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -398,7 +399,9 @@ export default function LicenseeHome() {
           </div>
         </div>
 
-        {/* First Steps Checklist */}
+        {/* Quick Stats */}
+        <QuickStats />
+
         {/* First Steps & Achievements Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <FirstStepsChecklist />
