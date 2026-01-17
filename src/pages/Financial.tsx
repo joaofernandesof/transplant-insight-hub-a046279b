@@ -157,33 +157,6 @@ export default function Financial() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Recommendations */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-base">Sistemas Recomendados</CardTitle>
-            <CardDescription>Ferramentas para gestão financeira profissional</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-lg border">
-                <h4 className="font-semibold mb-1">Conta Azul</h4>
-                <p className="text-xs text-muted-foreground mb-3">Gestão financeira completa</p>
-                <Badge variant="outline">Recomendado</Badge>
-              </div>
-              <div className="p-4 rounded-lg border">
-                <h4 className="font-semibold mb-1">Feegow</h4>
-                <p className="text-xs text-muted-foreground mb-3">Prontuário e agenda médica</p>
-                <Badge variant="outline">Recomendado</Badge>
-              </div>
-              <div className="p-4 rounded-lg border">
-                <h4 className="font-semibold mb-1">Kommo CRM</h4>
-                <p className="text-xs text-muted-foreground mb-3">Gestão de leads e vendas</p>
-                <Badge variant="outline">Recomendado</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </ModuleLayout>
   );
