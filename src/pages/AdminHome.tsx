@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import NotificationDialog from '@/components/NotificationDialog';
 import {
   Users,
   Building2,
@@ -26,7 +28,9 @@ import {
   FileCheck,
   ChevronRight,
   Loader2,
-  Activity
+  Activity,
+  Bell,
+  Send
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -214,6 +218,7 @@ export default function AdminHome() {
     totalLeads: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -265,14 +270,28 @@ export default function AdminHome() {
     <AdminLayout>
       <div className="p-6 pt-16 lg:pt-8 lg:p-8 max-w-7xl mx-auto">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Bem-vindo, {user?.name?.split(' ')[0]}! 👋
-          </h1>
-          <p className="text-muted-foreground">
-            Gerencie todos os aspectos do sistema ByNeofolic a partir deste painel.
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Bem-vindo, {user?.name?.split(' ')[0]}! 👋
+            </h1>
+            <p className="text-muted-foreground">
+              Gerencie todos os aspectos do sistema ByNeofolic a partir deste painel.
+            </p>
+          </div>
+          <Button
+            onClick={() => setIsNotificationDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Send className="h-4 w-4" />
+            Enviar Notificação
+          </Button>
         </div>
+
+        <NotificationDialog
+          open={isNotificationDialogOpen}
+          onOpenChange={setIsNotificationDialogOpen}
+        />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

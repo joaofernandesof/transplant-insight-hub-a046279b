@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, User, Building2 } from 'lucide-react';
+import UserNotificationsPopover from './UserNotificationsPopover';
 
 export function Header() {
   const { user, logout, isAdmin } = useAuth();
@@ -34,6 +35,8 @@ export function Header() {
           </div>
           
           <div className="flex items-center gap-4">
+            <UserNotificationsPopover />
+            
             <div className="flex items-center gap-3 text-right">
               <div>
                 <p className="font-medium text-foreground text-sm">
