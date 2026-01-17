@@ -38,6 +38,7 @@ import UserNotificationsPopover from "@/components/UserNotificationsPopover";
 import OnboardingTour from "@/components/OnboardingTour";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import FirstStepsChecklist from "@/components/FirstStepsChecklist";
+import AchievementsPanel from "@/components/AchievementsPanel";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -246,6 +247,15 @@ const mainSections = [
     iconColor: 'text-cyan-600'
   },
   {
+    id: 'achievements',
+    title: 'Conquistas',
+    description: 'Suas conquistas e pontos',
+    icon: Trophy,
+    route: '/achievements',
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-600'
+  },
+  {
     id: 'certificates',
     title: 'Certificados',
     description: 'Seus cursos e certificações',
@@ -372,8 +382,10 @@ export default function LicenseeHome() {
         </div>
 
         {/* First Steps Checklist */}
-        <div className="mb-8">
+        {/* First Steps & Achievements Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <FirstStepsChecklist />
+          <AchievementsPanel compact />
         </div>
 
         {/* Menu Grid - 5 colunas em telas grandes */}

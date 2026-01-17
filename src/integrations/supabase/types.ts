@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          order_index: number | null
+          points: number
+          requirement_type: string
+          requirement_value: number | null
+        }
+        Insert: {
+          category?: string
+          code: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          order_index?: number | null
+          points?: number
+          requirement_type?: string
+          requirement_value?: number | null
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          order_index?: number | null
+          points?: number
+          requirement_type?: string
+          requirement_value?: number | null
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string
@@ -478,6 +523,7 @@ export type Database = {
           state: string | null
           status: string | null
           tier: string | null
+          total_points: number | null
           updated_at: string
           user_id: string
           whatsapp_clinic: string | null
@@ -504,6 +550,7 @@ export type Database = {
           state?: string | null
           status?: string | null
           tier?: string | null
+          total_points?: number | null
           updated_at?: string
           user_id: string
           whatsapp_clinic?: string | null
@@ -530,6 +577,7 @@ export type Database = {
           state?: string | null
           status?: string | null
           tier?: string | null
+          total_points?: number | null
           updated_at?: string
           user_id?: string
           whatsapp_clinic?: string | null
@@ -640,6 +688,35 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_course_enrollments: {
         Row: {
