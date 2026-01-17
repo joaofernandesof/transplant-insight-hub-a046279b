@@ -6,7 +6,7 @@ interface SupportButtonProps {
 }
 
 export function SupportButton({ 
-  whatsappNumber = "5511999999999"
+  whatsappNumber = "5585982349248"
 }: SupportButtonProps) {
 
   const handleWhatsApp = () => {
