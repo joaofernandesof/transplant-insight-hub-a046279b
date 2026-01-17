@@ -13,7 +13,8 @@ import {
   Receipt,
   Calendar,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Play
 } from "lucide-react";
 
 interface Payment {
@@ -362,6 +363,30 @@ export default function LicensePayments() {
                   </div>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Vídeo Criação do Ícone */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Play className="h-5 w-5 text-primary" />
+              Criação do Ícone da Licença
+            </CardTitle>
+            <CardDescription>Veja o processo de criação do ícone ByNeofolic</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="rounded-xl overflow-hidden bg-black aspect-video">
+              <video 
+                controls 
+                className="w-full h-full object-contain"
+                poster=""
+                playsInline
+              >
+                <source src="/videos/criacao-icone-licenca.mp4" type="video/mp4" />
+                Seu navegador não suporta vídeos HTML5.
+              </video>
             </div>
           </CardContent>
         </Card>
