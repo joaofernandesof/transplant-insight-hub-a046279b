@@ -81,14 +81,15 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
 };
 
 export function ModuleSidebar({ children }: ModuleSidebarProps) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const tier = user ? getLicenseeTier(user.id) : 'basic';
-  const tierInfo = tierConfig[tier];
+  // Tier é apenas para licenciados, não para admins
+  const tier = (!isAdmin && user) ? getLicenseeTier(user.id) : null;
+  const tierInfo = tier ? tierConfig[tier] : null;
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -158,10 +159,17 @@ export function ModuleSidebar({ children }: ModuleSidebarProps) {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{user?.name}</p>
-                <Badge className={cn("text-[10px] px-1.5 py-0", tierInfo.bgColor, tierInfo.color)}>
-                  {tierInfo.icon}
-                  <span className="ml-1">{tierInfo.name}</span>
-                </Badge>
+                {isAdmin ? (
+                  <Badge className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary">
+                    <Shield className="h-3 w-3" />
+                    <span className="ml-1">Administrador</span>
+                  </Badge>
+                ) : tierInfo && (
+                  <Badge className={cn("text-[10px] px-1.5 py-0", tierInfo.bgColor, tierInfo.color)}>
+                    {tierInfo.icon}
+                    <span className="ml-1">{tierInfo.name}</span>
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
