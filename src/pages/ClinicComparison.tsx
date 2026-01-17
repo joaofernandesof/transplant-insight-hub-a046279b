@@ -210,7 +210,7 @@ export default function ClinicComparison() {
 
   return (
     <AdminLayout>
-      <div className="p-4 lg:p-6 max-w-screen-2xl mx-auto">
+      <div className="p-4 pt-16 lg:pt-6 lg:p-6 max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">

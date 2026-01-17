@@ -263,7 +263,7 @@ export default function AdminHome() {
 
   return (
     <AdminLayout>
-      <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="p-6 pt-16 lg:pt-8 lg:p-8 max-w-7xl mx-auto">
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">

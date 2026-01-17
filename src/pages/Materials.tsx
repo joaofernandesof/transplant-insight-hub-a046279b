@@ -84,7 +84,7 @@ export default function Materials() {
 
   return (
     <ModuleLayout>
-      <div className="p-4 lg:p-6 lg:pt-4">
+      <div className="p-4 pt-16 lg:pt-4 lg:p-6">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold flex items-center gap-2">
