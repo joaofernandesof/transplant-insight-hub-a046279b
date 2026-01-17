@@ -202,7 +202,7 @@ export default function LicensePayments() {
             <div className="mt-4 p-4 bg-white rounded-xl border">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Taxa de Conversão de Leads</span>
-                <span className="text-sm font-bold text-primary">{conversionRate.toFixed(1)}%</span>
+                <span className="text-sm font-bold text-primary">{conversionRate.toFixed(0)}%</span>
               </div>
               <Progress value={conversionRate} className="h-2" />
             </div>
@@ -263,12 +263,12 @@ export default function LicensePayments() {
                 <CardDescription>Total: {formatCurrency(licenseFeeTotal)} em 12 parcelas</CardDescription>
               </div>
               <Badge variant="outline" className="text-lg px-4 py-1">
-                {licenseFeePaid / licenseFeeTotal * 100}% pago
+                {((licenseFeePaid / licenseFeeTotal) * 100).toFixed(0)}% pago
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <Progress value={(licenseFeePaid / licenseFeeTotal) * 100} className="h-3 mb-2" />
+            <Progress value={Math.round((licenseFeePaid / licenseFeeTotal) * 100)} className="h-3 mb-2" />
             <p className="text-sm text-muted-foreground">
               {formatCurrency(licenseFeePaid)} de {formatCurrency(licenseFeeTotal)}
             </p>
