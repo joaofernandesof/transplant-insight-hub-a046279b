@@ -25,7 +25,9 @@ import {
   Bell,
   TrendingUp,
   Flame,
-  User
+  User,
+  GraduationCap,
+  Store
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
@@ -237,6 +239,26 @@ const mainSections = [
     color: 'bg-cyan-600 hover:bg-cyan-700',
     iconBg: 'bg-cyan-100',
     iconColor: 'text-cyan-600'
+  },
+  {
+    id: 'certificates',
+    title: 'Certificados',
+    description: 'Seus cursos e certificações',
+    icon: GraduationCap,
+    route: '/certificates',
+    color: 'bg-violet-600 hover:bg-violet-700',
+    iconBg: 'bg-violet-100',
+    iconColor: 'text-violet-600'
+  },
+  {
+    id: 'partners',
+    title: 'Vitrine de Parceiros',
+    description: 'Cupons exclusivos para você',
+    icon: Store,
+    route: '/partners',
+    color: 'bg-teal-600 hover:bg-teal-700',
+    iconBg: 'bg-teal-100',
+    iconColor: 'text-teal-600'
   }
 ];
 
