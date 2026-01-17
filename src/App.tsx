@@ -32,6 +32,7 @@ import LicensePayments from "./pages/LicensePayments";
 import EstruturaNeo from "./pages/EstruturaNeo";
 import ReferralProgram from "./pages/ReferralProgram";
 import ReferralLanding from "./pages/ReferralLanding";
+import Achievements from "./pages/Achievements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -216,6 +217,14 @@ function AppRoutes() {
         } 
       />
       <Route 
+        path="/achievements" 
+        element={
+          <ProtectedRoute>
+            <Achievements />
+          </ProtectedRoute>
+        } 
+      />
+      <Route
         path="/partners" 
         element={
           <ProtectedRoute>

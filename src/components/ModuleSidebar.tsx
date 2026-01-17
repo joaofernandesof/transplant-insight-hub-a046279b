@@ -59,6 +59,7 @@ const tierConfig: Record<LicenseeTier, { name: string; color: string; bgColor: s
 const menuItems = [
   { id: 'home', title: 'Início', icon: Home, route: '/home' },
   { id: 'metrics', title: 'Dashboard', icon: BarChart3, route: '/dashboard' },
+  { id: 'achievements', title: 'Conquistas', icon: Trophy, route: '/achievements' },
   { id: 'university', title: 'Universidade', icon: Video, route: '/university' },
   { id: 'regularization', title: 'Regularização', icon: FileCheck, route: '/regularization' },
   { id: 'materials', title: 'Materiais', icon: BookOpen, route: '/materials' },
