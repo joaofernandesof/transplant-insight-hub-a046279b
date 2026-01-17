@@ -469,6 +469,8 @@ export type Database = {
           instagram_clinic: string | null
           instagram_personal: string | null
           name: string
+          onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
           phone: string | null
           referral_code: string | null
           rqe: string | null
@@ -493,6 +495,8 @@ export type Database = {
           instagram_clinic?: string | null
           instagram_personal?: string | null
           name: string
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           phone?: string | null
           referral_code?: string | null
           rqe?: string | null
@@ -517,6 +521,8 @@ export type Database = {
           instagram_clinic?: string | null
           instagram_personal?: string | null
           name?: string
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           phone?: string | null
           referral_code?: string | null
           rqe?: string | null

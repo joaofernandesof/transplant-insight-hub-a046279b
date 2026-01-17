@@ -35,6 +35,8 @@ import {
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import UserNotificationsPopover from "@/components/UserNotificationsPopover";
+import OnboardingTour from "@/components/OnboardingTour";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -283,6 +285,7 @@ const mainSections = [
 export default function LicenseeHome() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { showOnboarding, completeOnboarding } = useOnboarding();
   
   const tier = user ? getLicenseeTier(user.id) : 'basic';
   const tierInfo = tierConfig[tier];
@@ -297,7 +300,11 @@ export default function LicenseeHome() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 overflow-x-hidden w-full">
+    <>
+      {/* Onboarding Tour */}
+      <OnboardingTour isOpen={showOnboarding} onComplete={completeOnboarding} />
+
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 overflow-x-hidden w-full">
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -542,5 +549,6 @@ export default function LicenseeHome() {
         </div>
       </main>
     </div>
+    </>
   );
 }
