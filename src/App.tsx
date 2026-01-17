@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
-import { SupportButton } from "@/components/SupportButton";
+import SupportChat from "@/components/SupportChat";
 import { ModuleSidebar } from "@/components/ModuleSidebar";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -284,7 +284,7 @@ function AppWithSupport() {
   return (
     <>
       <AppRoutes />
-      {user && <SupportButton />}
+      {user && <SupportChat />}
     </>
   );
 }

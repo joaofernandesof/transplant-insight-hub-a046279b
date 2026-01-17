@@ -47,7 +47,6 @@ import MonthlyGoals from "@/components/MonthlyGoals";
 import SurgerySubmissions from "@/components/SurgerySubmissions";
 import AchievementTimeline from "@/components/AchievementTimeline";
 import Leaderboard from "@/components/Leaderboard";
-import SupportChat from "@/components/SupportChat";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -404,8 +403,6 @@ export default function LicenseeHome() {
           </div>
         </div>
 
-        {/* Support Chat */}
-        <SupportChat />
 
         {/* First Steps, Achievements, Monthly Goals & Surgery Submissions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
