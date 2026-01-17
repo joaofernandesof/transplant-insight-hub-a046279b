@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { SupportButton } from "@/components/SupportButton";
+import { ModuleSidebar } from "@/components/ModuleSidebar";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminHome from "./pages/AdminHome";
@@ -34,6 +35,11 @@ import ReferralProgram from "./pages/ReferralProgram";
 import ReferralLanding from "./pages/ReferralLanding";
 import Achievements from "./pages/Achievements";
 import NotFound from "./pages/NotFound";
+
+// Wrapper para páginas do licenciado com sidebar
+function LicenseeSidebarWrapper({ children }: { children: React.ReactNode }) {
+  return <ModuleSidebar>{children}</ModuleSidebar>;
+}
 
 const queryClient = new QueryClient();
 
@@ -68,7 +74,11 @@ function AppRoutes() {
         path="/" 
         element={
           <ProtectedRoute>
-            {isAdmin ? <AdminHome /> : <LicenseeHome />}
+            {isAdmin ? <AdminHome /> : (
+              <LicenseeSidebarWrapper>
+                <LicenseeHome />
+              </LicenseeSidebarWrapper>
+            )}
           </ProtectedRoute>
         } 
       />
@@ -76,7 +86,9 @@ function AppRoutes() {
         path="/home" 
         element={
           <ProtectedRoute>
-            <LicenseeHome />
+            <LicenseeSidebarWrapper>
+              <LicenseeHome />
+            </LicenseeSidebarWrapper>
           </ProtectedRoute>
         } 
       />
