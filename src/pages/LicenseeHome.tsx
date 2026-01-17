@@ -43,11 +43,11 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 import AchievementsPanel from "@/components/AchievementsPanel";
 import { ModuleSidebar } from "@/components/ModuleSidebar";
-import QuickStats from "@/components/QuickStats";
 import MonthlyGoals from "@/components/MonthlyGoals";
 import SurgerySubmissions from "@/components/SurgerySubmissions";
 import AchievementTimeline from "@/components/AchievementTimeline";
 import Leaderboard from "@/components/Leaderboard";
+import SupportChat from "@/components/SupportChat";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -404,8 +404,8 @@ export default function LicenseeHome() {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <QuickStats />
+        {/* Support Chat */}
+        <SupportChat />
 
         {/* First Steps, Achievements, Monthly Goals & Surgery Submissions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
