@@ -13,7 +13,7 @@ import {
   Minus
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
-import { UpsellSection } from "@/components/UpsellSection";
+
 
 interface Product {
   id: string;
@@ -108,9 +108,6 @@ export default function Store() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Upsell Section */}
-        <UpsellSection />
 
         {/* Search */}
         <div className="relative mb-6">
