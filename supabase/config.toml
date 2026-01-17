@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.receive-lead]
 verify_jwt = false
+
+[functions.jon-jobs-chat]
+verify_jwt = false
+
+[functions.notify-login]
+verify_jwt = false

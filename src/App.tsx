@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import SupportChat from "@/components/SupportChat";
 import { ModuleSidebar } from "@/components/ModuleSidebar";
+import { useUserPresence } from "@/hooks/useUserPresence";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminHome from "./pages/AdminHome";
@@ -34,6 +35,7 @@ import EstruturaNeo from "./pages/EstruturaNeo";
 import ReferralProgram from "./pages/ReferralProgram";
 import ReferralLanding from "./pages/ReferralLanding";
 import Achievements from "./pages/Achievements";
+import UserMonitoring from "./pages/UserMonitoring";
 import NotFound from "./pages/NotFound";
 
 // Wrapper para páginas do licenciado com sidebar
@@ -268,6 +270,14 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      <Route 
+        path="/monitoring" 
+        element={
+          <ProtectedRoute>
+            <UserMonitoring />
+          </ProtectedRoute>
+        } 
+      />
       {/* Public referral landing page */}
       <Route 
         path="/indicacao/:code" 
@@ -278,12 +288,19 @@ function AppRoutes() {
   );
 }
 
+// Component to track user presence
+function PresenceTracker() {
+  useUserPresence();
+  return null;
+}
+
 function AppWithSupport() {
   const { user } = useAuth();
   
   return (
     <>
       <AppRoutes />
+      {user && <PresenceTracker />}
       {user && <SupportChat />}
     </>
   );

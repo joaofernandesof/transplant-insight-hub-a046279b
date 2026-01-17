@@ -537,6 +537,7 @@ export type Database = {
           id: string
           instagram_clinic: string | null
           instagram_personal: string | null
+          last_seen_at: string | null
           name: string
           onboarding_completed: boolean | null
           onboarding_completed_at: string | null
@@ -564,6 +565,7 @@ export type Database = {
           id?: string
           instagram_clinic?: string | null
           instagram_personal?: string | null
+          last_seen_at?: string | null
           name: string
           onboarding_completed?: boolean | null
           onboarding_completed_at?: string | null
@@ -591,6 +593,7 @@ export type Database = {
           id?: string
           instagram_clinic?: string | null
           instagram_personal?: string | null
+          last_seen_at?: string | null
           name?: string
           onboarding_completed?: boolean | null
           onboarding_completed_at?: string | null
@@ -954,6 +957,33 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string
           user_id?: string
         }
         Relationships: []

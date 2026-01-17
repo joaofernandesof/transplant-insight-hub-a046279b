@@ -62,6 +62,15 @@ const adminModules: ModuleCard[] = [
     category: 'management'
   },
   {
+    id: 'monitoring',
+    title: 'Monitoramento de Usuários',
+    description: 'Presença online e ranking de uso',
+    icon: <Eye className="h-6 w-6" />,
+    path: '/monitoring',
+    color: 'from-cyan-500 to-cyan-600',
+    category: 'management'
+  },
+  {
     id: 'admin-panel',
     title: 'Configurações do Sistema',
     description: 'Visibilidade de páginas, usuários e permissões',

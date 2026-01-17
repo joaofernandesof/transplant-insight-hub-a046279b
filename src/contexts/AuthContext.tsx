@@ -130,6 +130,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.user) {
         const profile = await fetchUserProfile(data.user.id);
         setUser(profile);
+        
+        // Send login notification (fire and forget)
+        if (profile) {
+          supabase.functions.invoke('notify-login', {
+            body: {
+              user_id: data.user.id,
+              user_name: profile.name,
+              user_email: profile.email,
+              login_time: new Date().toISOString(),
+            },
+          }).then((response) => {
+            if (response.error) {
+              console.error('Error sending login notification:', response.error);
+            } else {
+              console.log('Login notification sent');
+            }
+          });
+        }
       }
 
       return { success: true };
