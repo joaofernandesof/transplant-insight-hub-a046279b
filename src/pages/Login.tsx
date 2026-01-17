@@ -130,28 +130,28 @@ export default function Login() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center px-4 py-6 sm:p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-white font-bold text-2xl">B</span>
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg">
+            <span className="text-white font-bold text-xl sm:text-2xl">B</span>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Byneofolic</h1>
-          <p className="text-muted-foreground mt-1">Portal do Licenciado</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Byneofolic</h1>
+          <p className="text-muted-foreground text-sm sm:text-base mt-1">Portal do Licenciado</p>
         </div>
         
         {/* Login/Signup Form */}
-        <div className="bg-card rounded-2xl border border-border shadow-xl p-8">
-          <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
+        <div className="bg-card rounded-2xl border border-border shadow-xl p-5 sm:p-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-5 sm:mb-6 text-center">
             {isSignup ? 'Criar conta' : 'Acesse sua conta'}
           </h2>
           
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                {error}
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
               </div>
             )}
 
@@ -163,7 +163,7 @@ export default function Login() {
 
             {isSignup && (
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
                   Nome completo
                 </label>
                 <div className="relative">
@@ -174,7 +174,7 @@ export default function Login() {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Seu nome"
                     required
-                    className={`input-metric pl-10 w-full ${fieldErrors.name ? 'border-red-500' : ''}`}
+                    className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.name ? 'border-red-500' : ''}`}
                   />
                 </div>
                 {fieldErrors.name && (
@@ -184,7 +184,7 @@ export default function Login() {
             )}
             
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
                 Email
               </label>
               <div className="relative">
@@ -195,7 +195,8 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
                   required
-                  className={`input-metric pl-10 w-full ${fieldErrors.email ? 'border-red-500' : ''}`}
+                  autoComplete="email"
+                  className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.email ? 'border-red-500' : ''}`}
                 />
               </div>
               {fieldErrors.email && (
@@ -204,7 +205,7 @@ export default function Login() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
                 Senha
               </label>
               <div className="relative">
@@ -215,12 +216,13 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className={`input-metric pl-10 pr-10 w-full ${fieldErrors.password ? 'border-red-500' : ''}`}
+                  autoComplete={isSignup ? "new-password" : "current-password"}
+                  className={`input-metric pl-10 pr-12 w-full h-12 text-base ${fieldErrors.password ? 'border-red-500' : ''}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -232,7 +234,7 @@ export default function Login() {
 
             {isSignup && (
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
                   Confirmar senha
                 </label>
                 <div className="relative">
@@ -243,7 +245,8 @@ export default function Login() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className={`input-metric pl-10 w-full ${fieldErrors.confirmPassword ? 'border-red-500' : ''}`}
+                    autoComplete="new-password"
+                    className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.confirmPassword ? 'border-red-500' : ''}`}
                   />
                 </div>
                 {fieldErrors.confirmPassword && (
@@ -253,19 +256,19 @@ export default function Login() {
             )}
             
             {!isSignup && (
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-2">
+                <label className="flex items-center gap-2 cursor-pointer order-1 sm:order-none">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
+                    className="w-5 h-5 sm:w-4 sm:h-4 rounded border-border text-primary focus:ring-primary/20"
                   />
                   <span className="text-sm text-muted-foreground">Lembrar meu email</span>
                 </label>
                 <button
                   type="button"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-primary hover:underline text-left sm:text-right order-2 sm:order-none"
                   onClick={() => {/* TODO: Forgot password */}}
                 >
                   Esqueceu a senha?
@@ -276,14 +279,14 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full py-3"
+              className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2"
             >
               {isLoading ? (isSignup ? 'Criando conta...' : 'Entrando...') : (isSignup ? 'Criar conta' : 'Entrar')}
             </button>
           </form>
           
           {/* Toggle Login/Signup */}
-          <div className="mt-6 pt-6 border-t border-border text-center">
+          <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
               {isSignup ? 'Já tem uma conta?' : 'Não tem uma conta?'}
               <button
@@ -296,6 +299,9 @@ export default function Login() {
             </p>
           </div>
         </div>
+        
+        {/* Safe area spacer for mobile */}
+        <div className="h-4 sm:h-0" />
       </div>
     </div>
   );
