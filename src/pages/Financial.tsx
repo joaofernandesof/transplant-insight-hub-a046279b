@@ -35,7 +35,7 @@ export default function Financial() {
   const totalRevenue = 85000;
   const totalExpenses = 32000;
   const profit = totalRevenue - totalExpenses;
-  const profitMargin = Math.round((profit / totalRevenue) * 100);
+  const profitMargin = ((profit / totalRevenue) * 100).toFixed(0);
 
   return (
     <ModuleLayout>

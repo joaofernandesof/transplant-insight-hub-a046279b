@@ -186,11 +186,17 @@ export function formatMetricValue(value: number | string | null, formato: string
   
   switch (formato) {
     case 'percent':
-      return `${numValue.toFixed(1)}%`;
+      // Para percentuais, usamos 1 casa decimal apenas se necessário
+      return numValue % 1 === 0 ? `${numValue.toFixed(0)}%` : `${numValue.toFixed(1)}%`;
     case 'currency':
+      // Moeda sem casas decimais para valores grandes, 2 casas para valores pequenos
+      if (Math.abs(numValue) >= 100) {
+        return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      }
       return `R$ ${numValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     case 'decimal':
-      return numValue.toFixed(2);
+      // Máximo 2 casas decimais, remove zeros desnecessários
+      return numValue.toFixed(2).replace(/\.?0+$/, '') || '0';
     case 'number':
       return Math.round(numValue).toLocaleString('pt-BR');
     case 'minutes':
@@ -198,11 +204,15 @@ export function formatMetricValue(value: number | string | null, formato: string
     case 'days':
       return `${numValue.toFixed(0)} dias`;
     case 'index':
-      return `${numValue.toFixed(2)}x`;
+      return `${numValue.toFixed(1)}x`;
     case 'status':
       return String(value);
     default:
-      return String(numValue);
+      // Para valores numéricos gerais, usa formatação inteligente
+      if (Number.isInteger(numValue)) {
+        return numValue.toLocaleString('pt-BR');
+      }
+      return numValue.toFixed(2).replace(/\.?0+$/, '');
   }
 }
 
