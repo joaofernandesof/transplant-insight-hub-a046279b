@@ -253,11 +253,19 @@ export default function Career() {
             return (
               <Card 
                 key={tierKey} 
-                className={`transition-all ${isCurrentTier ? 'ring-2 ring-primary' : ''} ${isFuture ? 'opacity-60' : ''}`}
+                className={`transition-all relative ${isCurrentTier ? 'ring-2 ring-primary shadow-lg scale-[1.02] bg-primary/5' : ''} ${isFuture ? 'opacity-50' : ''}`}
               >
-                <CardContent className="p-4">
+                {isCurrentTier && (
+                  <div className="absolute -top-3 left-4">
+                    <Badge className="bg-primary shadow-md">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Seu nível
+                    </Badge>
+                  </div>
+                )}
+                <CardContent className={`p-4 ${isCurrentTier ? 'pt-5' : ''}`}>
                   <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-xl ${tier.bgColor} ${tier.color} flex items-center justify-center relative`}>
+                    <div className={`w-12 h-12 rounded-xl ${tier.bgColor} ${tier.color} flex items-center justify-center relative ${isCurrentTier ? 'ring-2 ring-primary/30' : ''}`}>
                       {tier.icon}
                       {isFuture && (
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-muted rounded-full flex items-center justify-center">
@@ -272,9 +280,8 @@ export default function Career() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold">{tier.name}</h4>
+                        <h4 className={`font-semibold ${isCurrentTier ? 'text-primary' : ''}`}>{tier.name}</h4>
                         <Badge variant="outline" className="text-xs">{tier.threshold}</Badge>
-                        {isCurrentTier && <Badge className="bg-primary">Atual</Badge>}
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">{tier.description}</p>
                       <div className="flex flex-wrap gap-1">
