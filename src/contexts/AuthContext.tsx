@@ -11,6 +11,7 @@ export interface AppUser {
   city?: string;
   state?: string;
   tier?: string;
+  avatarUrl?: string;
 }
 
 interface AuthContextType {
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           city: profile.city || undefined,
           state: profile.state || undefined,
           tier: profile.tier || undefined,
+          avatarUrl: profile.avatar_url || undefined,
         };
       }
 

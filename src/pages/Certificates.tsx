@@ -1,11 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { ModuleLayout } from "@/components/ModuleLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
-  ArrowLeft, 
   Award, 
   Download, 
   CheckCircle2, 
@@ -13,7 +12,6 @@ import {
   Lock,
   GraduationCap
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
 interface Certificate {
   id: string;
@@ -95,7 +93,6 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function Certificates() {
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const completedCount = mockCertificates.filter(c => c.status === 'completed').length;
@@ -108,15 +105,11 @@ export default function Certificates() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <ModuleLayout>
       {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-purple-600" />
@@ -235,6 +228,6 @@ export default function Certificates() {
           ))}
         </div>
       </main>
-    </div>
+    </ModuleLayout>
   );
 }

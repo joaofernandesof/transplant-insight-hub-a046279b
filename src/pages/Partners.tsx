@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { ModuleLayout } from "@/components/ModuleLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
-  ArrowLeft, 
   Store, 
   Copy, 
   Check,
@@ -16,7 +14,6 @@ import {
   Tag
 } from "lucide-react";
 import { toast } from "sonner";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
 interface Partner {
   id: string;
@@ -119,8 +116,6 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function Partners() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -146,15 +141,11 @@ export default function Partners() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <ModuleLayout>
       {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <Store className="h-5 w-5 text-emerald-600" />
@@ -321,6 +312,6 @@ export default function Partners() {
           </div>
         )}
       </main>
-    </div>
+    </ModuleLayout>
   );
 }
