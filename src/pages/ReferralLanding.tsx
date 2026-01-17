@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import mentorsTeamImage from "@/assets/mentors-team.jpg";
 
 const BRAZILIAN_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
@@ -31,10 +32,10 @@ const BRAZILIAN_STATES = [
 
 const COURSE_INTERESTS = [
   'Transplante Capilar FUE',
-  'Transplante Capilar FUT',
   'Micropigmentação Capilar',
   'Tricologia Avançada',
   'PRP e Mesoterapia',
+  'Formação 360 Completa',
   'Outro'
 ];
 
@@ -240,6 +241,20 @@ export default function ReferralLanding() {
             <h3 className="font-semibold mb-2">Prática Intensiva</h3>
             <p className="text-sm text-blue-100">Aprenda fazendo com casos reais</p>
           </div>
+        </div>
+
+        {/* Mentors Team Image */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="rounded-2xl overflow-hidden shadow-2xl">
+            <img 
+              src={mentorsTeamImage} 
+              alt="Equipe de Mentores IBRAMEC" 
+              className="w-full h-auto"
+            />
+          </div>
+          <p className="text-center text-blue-200 text-sm mt-4">
+            Conheça nossa equipe de mentores especializados
+          </p>
         </div>
 
         {/* Form */}
