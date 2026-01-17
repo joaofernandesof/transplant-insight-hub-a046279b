@@ -1,71 +1,20 @@
+import { useState } from "react";
 import { ModuleLayout } from "@/components/ModuleLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Video,
-  Play,
-  Clock,
-  CheckCircle2,
-  Lock,
   GraduationCap,
-  Stethoscope,
-  DollarSign,
-  Palette,
-  Users,
-  Calendar
+  BookOpen,
+  Trophy,
+  Calendar,
+  TrendingUp
 } from "lucide-react";
-
-const tracks = [
-  {
-    id: 'medical',
-    title: 'Trilha Médica',
-    description: 'Técnicas cirúrgicas, protocolos clínicos e anamnese',
-    icon: Stethoscope,
-    color: 'bg-red-100 text-red-600',
-    modules: 12,
-    completed: 4,
-    hours: 24
-  },
-  {
-    id: 'commercial',
-    title: 'Trilha Comercial',
-    description: 'Vendas, objeções, fechamento e scripts',
-    icon: DollarSign,
-    color: 'bg-green-100 text-green-600',
-    modules: 8,
-    completed: 2,
-    hours: 16
-  },
-  {
-    id: 'marketing',
-    title: 'Trilha Marketing',
-    description: 'Tráfego, conteúdo, branding e redes sociais',
-    icon: Palette,
-    color: 'bg-pink-100 text-pink-600',
-    modules: 10,
-    completed: 5,
-    hours: 20
-  },
-  {
-    id: 'management',
-    title: 'Trilha Gestão',
-    description: 'Financeiro, administrativo e operacional',
-    icon: Users,
-    color: 'bg-blue-100 text-blue-600',
-    modules: 6,
-    completed: 1,
-    hours: 12
-  }
-];
-
-const recentClasses = [
-  { id: 1, title: 'Técnica FUE Avançada', track: 'Médica', duration: '45min', completed: true },
-  { id: 2, title: 'Script de Fechamento', track: 'Comercial', duration: '30min', completed: true },
-  { id: 3, title: 'Anamnese Completa', track: 'Médica', duration: '60min', completed: false },
-  { id: 4, title: 'Campanha de Tráfego', track: 'Marketing', duration: '40min', completed: false },
-  { id: 5, title: 'Controle de Caixa', track: 'Gestão', duration: '35min', completed: false },
-];
+import { useUniversity, CourseWithProgress } from "@/hooks/useUniversity";
+import { CourseCard } from "@/components/CourseCard";
+import { CourseViewer } from "@/components/CourseViewer";
 
 const upcomingEvents = [
   { id: 1, title: 'Imersão Presencial', date: '15-20 Fev 2026', type: 'Presencial' },
@@ -74,9 +23,80 @@ const upcomingEvents = [
 ];
 
 export default function University() {
-  const totalModules = tracks.reduce((acc, t) => acc + t.modules, 0);
-  const totalCompleted = tracks.reduce((acc, t) => acc + t.completed, 0);
-  const overallProgress = Math.round((totalCompleted / totalModules) * 100);
+  const {
+    courses,
+    enrollments,
+    isLoading,
+    selectedCourse,
+    selectedLesson,
+    setSelectedCourse,
+    setSelectedLesson,
+    fetchCourseDetails,
+    enrollInCourse,
+    markLessonCompleted,
+    startLesson,
+  } = useUniversity();
+
+  const [activeTab, setActiveTab] = useState('all');
+
+  // Calculate overall stats
+  const enrolledCourses = courses.filter(c => c.enrollment);
+  const completedCourses = courses.filter(c => c.enrollment?.status === 'completed');
+  const inProgressCourses = courses.filter(c => c.enrollment && c.enrollment.status !== 'completed');
+  const totalProgress = enrolledCourses.length > 0
+    ? Math.round(enrolledCourses.reduce((acc, c) => acc + (c.enrollment?.progress_percent || 0), 0) / enrolledCourses.length)
+    : 0;
+
+  const handleSelectCourse = async (course: CourseWithProgress) => {
+    await fetchCourseDetails(course.id);
+  };
+
+  const handleEnroll = async (courseId: string) => {
+    const success = await enrollInCourse(courseId);
+    if (success) {
+      await fetchCourseDetails(courseId);
+    }
+  };
+
+  const handleSelectLesson = async (lesson: any) => {
+    setSelectedLesson(lesson);
+    await startLesson(lesson.id);
+  };
+
+  const handleMarkComplete = async (lessonId: string) => {
+    await markLessonCompleted(lessonId);
+  };
+
+  const handleBack = () => {
+    setSelectedCourse(null);
+    setSelectedLesson(null);
+  };
+
+  // If viewing a specific course
+  if (selectedCourse) {
+    return (
+      <ModuleLayout>
+        <div className="p-4 pt-16 lg:pt-4 lg:p-6 h-[calc(100vh-2rem)]">
+          <CourseViewer
+            course={selectedCourse}
+            onBack={handleBack}
+            onSelectLesson={handleSelectLesson}
+            onMarkComplete={handleMarkComplete}
+            selectedLesson={selectedLesson}
+            isEnrolled={!!selectedCourse.enrollment}
+            onEnroll={() => handleEnroll(selectedCourse.id)}
+          />
+        </div>
+      </ModuleLayout>
+    );
+  }
+
+  // Filter courses based on active tab
+  const filteredCourses = activeTab === 'all' 
+    ? courses 
+    : activeTab === 'enrolled' 
+    ? enrolledCourses 
+    : courses.filter(c => !c.enrollment);
 
   return (
     <ModuleLayout>
@@ -99,93 +119,106 @@ export default function University() {
         {/* Progress Overview */}
         <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-purple-900">Seu Progresso</h2>
-                <p className="text-purple-700">{totalCompleted} de {totalModules} módulos concluídos</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-900">{enrolledCourses.length}</div>
+                <p className="text-sm text-purple-700">Cursos Inscritos</p>
               </div>
-              <div className="w-full md:w-64">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-purple-900">{overallProgress}% completo</span>
-                </div>
-                <Progress value={overallProgress} className="h-3" />
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-900">{completedCourses.length}</div>
+                <p className="text-sm text-purple-700">Concluídos</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-900">{inProgressCourses.length}</div>
+                <p className="text-sm text-purple-700">Em Andamento</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-900">{totalProgress}%</div>
+                <p className="text-sm text-purple-700">Progresso Geral</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Trilhas */}
-        <h3 className="text-lg font-semibold mb-4">Trilhas de Capacitação</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {tracks.map((track) => {
-            const progress = Math.round((track.completed / track.modules) * 100);
-            return (
-              <Card key={track.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader className="pb-3">
-                  <div className={`w-12 h-12 rounded-xl ${track.color} flex items-center justify-center mb-2`}>
-                    <track.icon className="h-6 w-6" />
-                  </div>
-                  <CardTitle className="text-base">{track.title}</CardTitle>
-                  <CardDescription className="text-xs">{track.description}</CardDescription>
+        {/* Tabs and Courses */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList>
+            <TabsTrigger value="all" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              Todos ({courses.length})
+            </TabsTrigger>
+            <TabsTrigger value="enrolled" className="gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Meus Cursos ({enrolledCourses.length})
+            </TabsTrigger>
+            <TabsTrigger value="available" className="gap-2">
+              <GraduationCap className="h-4 w-4" />
+              Disponíveis ({courses.length - enrolledCourses.length})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i}>
+                <Skeleton className="h-40 rounded-t-lg" />
+                <CardHeader>
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                    <span>{track.completed}/{track.modules} módulos</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {track.hours}h
-                    </span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
+                  <Skeleton className="h-8 w-full" />
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Classes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Video className="h-4 w-4 text-purple-600" />
-                Aulas Recentes
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {recentClasses.map((cls) => (
-                <div 
-                  key={cls.id} 
-                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
-                >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${cls.completed ? 'bg-green-100' : 'bg-muted'}`}>
-                    {cls.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Play className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{cls.title}</p>
-                    <p className="text-xs text-muted-foreground">{cls.track} • {cls.duration}</p>
-                  </div>
-                  <Badge variant={cls.completed ? "default" : "outline"} className="text-xs">
-                    {cls.completed ? 'Concluído' : 'Assistir'}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+        {/* Courses Grid */}
+        {!isLoading && (
+          <>
+            {filteredCourses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {filteredCourses.map((course) => (
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    onSelect={handleSelectCourse}
+                    onEnroll={handleEnroll}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-lg font-medium">
+                  {activeTab === 'enrolled' 
+                    ? 'Você ainda não está inscrito em nenhum curso' 
+                    : 'Nenhum curso disponível'}
+                </p>
+                <p className="text-sm">
+                  {activeTab === 'enrolled' 
+                    ? 'Explore os cursos disponíveis e comece sua jornada!' 
+                    : 'Em breve novos cursos serão adicionados.'}
+                </p>
+              </div>
+            )}
+          </>
+        )}
 
-          {/* Upcoming Events */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-indigo-600" />
-                Próximos Eventos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+        {/* Upcoming Events */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-indigo-600" />
+              Próximos Eventos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {upcomingEvents.map((event) => (
                 <div 
                   key={event.id} 
@@ -203,9 +236,9 @@ export default function University() {
                   </Badge>
                 </div>
               ))}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </main>
     </ModuleLayout>
   );
