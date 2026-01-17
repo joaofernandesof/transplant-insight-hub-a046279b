@@ -126,7 +126,7 @@ export default function LicensePayments() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
+      <main className="container mx-auto px-4 py-6 max-w-6xl overflow-x-hidden">
         {/* ROI Panel */}
         <Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-emerald-50">
           <CardHeader>

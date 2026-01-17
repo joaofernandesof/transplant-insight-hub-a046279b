@@ -115,7 +115,7 @@ export default function University() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
+      <main className="container mx-auto px-4 py-6 max-w-7xl overflow-x-hidden">
         {/* Progress Overview */}
         <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
           <CardContent className="pt-6">

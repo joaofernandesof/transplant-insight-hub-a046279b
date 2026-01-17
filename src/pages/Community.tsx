@@ -73,7 +73,7 @@ export default function Community() {
 
   return (
     <ModuleLayout>
-      <div className="p-4 pt-16 lg:pt-4 lg:p-6">
+      <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold flex items-center gap-2">

@@ -171,7 +171,7 @@ export default function Login() {
   };
   
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center px-4 py-6 sm:p-4">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center px-4 py-6 sm:p-4 overflow-x-hidden w-full">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
