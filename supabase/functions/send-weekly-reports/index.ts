@@ -27,7 +27,19 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const adminEmail = Deno.env.get("ADMIN_NOTIFICATION_EMAIL") || "ti@neofolic.com.br";
+    const defaultAdminEmail = Deno.env.get("ADMIN_NOTIFICATION_EMAIL") || "ti@neofolic.com.br";
+
+    // Allow overriding admin email via request body
+    let adminEmail = defaultAdminEmail;
+    try {
+      const body = await req.json();
+      if (body?.test_email) {
+        adminEmail = body.test_email;
+        console.log(`Using override email: ${adminEmail}`);
+      }
+    } catch {
+      // No body or invalid JSON, use default
+    }
 
     if (!resendApiKey) {
       console.error("RESEND_API_KEY not configured");
