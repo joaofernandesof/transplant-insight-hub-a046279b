@@ -186,7 +186,7 @@ export default function AchievementsPanel({ compact = false }: AchievementsPanel
       </CardHeader>
       <CardContent>
         <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-          <TabsList className="w-full flex-wrap h-auto gap-1 mb-4">
+          <TabsList className="grid grid-cols-3 sm:grid-cols-6 h-auto gap-1 mb-4 p-1">
             {categories.map(cat => {
               const count = cat.id === "all" 
                 ? achievements.length 
@@ -199,11 +199,11 @@ export default function AchievementsPanel({ compact = false }: AchievementsPanel
                 <TabsTrigger 
                   key={cat.id} 
                   value={cat.id}
-                  className="flex-1 min-w-[80px] gap-1"
+                  className="flex flex-col sm:flex-row items-center gap-1 py-2 px-2 text-xs"
                 >
                   <cat.icon className="h-4 w-4" />
                   <span className="hidden sm:inline">{cat.name}</span>
-                  <Badge variant="secondary" className="ml-1 text-[10px] px-1">
+                  <Badge variant="secondary" className="text-[10px] px-1 h-4">
                     {unlocked}/{count}
                   </Badge>
                 </TabsTrigger>
