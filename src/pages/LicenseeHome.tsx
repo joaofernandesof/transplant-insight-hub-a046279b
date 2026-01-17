@@ -403,22 +403,22 @@ export default function LicenseeHome() {
           <AchievementsPanel compact />
         </div>
 
-        {/* Menu Grid - 5 colunas em telas grandes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-12">
+        {/* Menu Grid - 2 colunas no mobile para melhor usabilidade */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-12">
           {mainSections.map((section) => (
             <Card 
               key={section.id}
               className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border hover:border-primary/30"
               onClick={() => handleNavigate(section.route)}
             >
-              <CardContent className="p-4">
-                <div className={`w-12 h-12 rounded-xl ${section.iconBg} flex items-center justify-center mb-3`}>
-                  <section.icon className={`h-6 w-6 ${section.iconColor}`} />
+              <CardContent className="p-3 sm:p-4">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${section.iconBg} flex items-center justify-center mb-2 sm:mb-3`}>
+                  <section.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${section.iconColor}`} />
                 </div>
-                <h3 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors">
+                <h3 className="font-semibold text-xs sm:text-sm mb-0.5 sm:mb-1 group-hover:text-primary transition-colors line-clamp-2">
                   {section.title}
                 </h3>
-                <p className="text-xs text-muted-foreground line-clamp-2">
+                <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2 hidden xs:block">
                   {section.description}
                 </p>
               </CardContent>
