@@ -28,6 +28,7 @@ import AdminPanel from "./pages/AdminPanel";
 import Certificates from "./pages/Certificates";
 import Partners from "./pages/Partners";
 import LicensePayments from "./pages/LicensePayments";
+import EstruturaNeo from "./pages/EstruturaNeo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -224,6 +225,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <LicensePayments />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/estrutura-neo" 
+        element={
+          <ProtectedRoute>
+            <EstruturaNeo />
           </ProtectedRoute>
         } 
       />
