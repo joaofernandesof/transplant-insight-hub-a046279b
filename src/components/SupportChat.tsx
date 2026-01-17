@@ -42,9 +42,11 @@ export default function SupportChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasLoadedHistory = useRef(false);
+  const lastSeenMessageCount = useRef(1); // Start with welcome message
 
   // Load chat history when component mounts or user changes
   useEffect(() => {
@@ -139,11 +141,26 @@ export default function SupportChat() {
     }
   }, [messages]);
 
+  // Mark as read when opening chat
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+    if (isOpen) {
+      setHasUnread(false);
+      lastSeenMessageCount.current = messages.length;
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, messages.length]);
+
+  // Detect new messages when chat is closed
+  useEffect(() => {
+    if (!isOpen && messages.length > lastSeenMessageCount.current) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === "assistant" && lastMessage.id !== "welcome") {
+        setHasUnread(true);
+      }
+    }
+  }, [messages.length, isOpen]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -326,6 +343,10 @@ export default function SupportChat() {
         ) : (
           <MessageCircle className="h-6 w-6" />
         )}
+        {/* Unread indicator */}
+        {hasUnread && !isOpen && (
+          <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full border-2 border-background animate-pulse" />
+        )}
       </Button>
 
       {/* Chat Window */}
@@ -358,6 +379,15 @@ export default function SupportChat() {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary-foreground/70 hover:text-primary-foreground hover:bg-white/10"
+                onClick={() => setIsOpen(false)}
+                title="Minimizar"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
