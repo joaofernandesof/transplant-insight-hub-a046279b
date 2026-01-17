@@ -1,21 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowLeft,
   ShoppingBag,
   Search,
   ShoppingCart,
   Package,
   TrendingUp,
-  Star,
   Plus,
   Minus
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
+import { ModuleLayout } from "@/components/ModuleLayout";
 
 interface Product {
   id: string;
@@ -25,7 +22,6 @@ interface Product {
   suggestedPrice: number;
   category: string;
   inStock: boolean;
-  image?: string;
 }
 
 const products: Product[] = [
@@ -40,14 +36,10 @@ const products: Product[] = [
 ];
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 };
 
 export default function Store() {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState<Record<string, number>>({});
 
@@ -57,20 +49,14 @@ export default function Store() {
   );
 
   const addToCart = (productId: string) => {
-    setCart(prev => ({
-      ...prev,
-      [productId]: (prev[productId] || 0) + 1
-    }));
+    setCart(prev => ({ ...prev, [productId]: (prev[productId] || 0) + 1 }));
   };
 
   const removeFromCart = (productId: string) => {
     setCart(prev => {
       const newCart = { ...prev };
-      if (newCart[productId] > 1) {
-        newCart[productId]--;
-      } else {
-        delete newCart[productId];
-      }
+      if (newCart[productId] > 1) newCart[productId]--;
+      else delete newCart[productId];
       return newCart;
     });
   };
@@ -83,38 +69,28 @@ export default function Store() {
   const cartItems = Object.values(cart).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
-              <div>
-                <h1 className="text-xl font-bold flex items-center gap-2">
-                  <ShoppingBag className="h-5 w-5 text-orange-600" />
-                  Loja Neo-Spa
-                </h1>
-                <p className="text-sm text-muted-foreground">Produtos com preço de custo</p>
-              </div>
-            </div>
-            <Button variant="outline" className="gap-2 relative">
-              <ShoppingCart className="h-5 w-5" />
-              {cartItems > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">
-                  {cartItems}
-                </Badge>
-              )}
-              {formatCurrency(cartTotal)}
-            </Button>
+    <ModuleLayout>
+      <div className="p-4 lg:p-6 lg:pt-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <ShoppingBag className="h-6 w-6 text-orange-600" />
+              Loja Neo-Spa
+            </h1>
+            <p className="text-sm text-muted-foreground">Produtos com preço de custo</p>
           </div>
+          <Button variant="outline" className="gap-2 relative">
+            <ShoppingCart className="h-5 w-5" />
+            {cartItems > 0 && (
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">
+                {cartItems}
+              </Badge>
+            )}
+            {formatCurrency(cartTotal)}
+          </Button>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Info Banner */}
         <Card className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
           <CardContent className="pt-6">
@@ -153,9 +129,7 @@ export default function Store() {
               <Card key={product.id} className={`overflow-hidden ${!product.inStock ? 'opacity-60' : ''}`}>
                 <div className="aspect-square bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center relative">
                   <Package className="h-16 w-16 text-orange-300" />
-                  {!product.inStock && (
-                    <Badge className="absolute top-2 right-2 bg-red-500">Indisponível</Badge>
-                  )}
+                  {!product.inStock && <Badge className="absolute top-2 right-2 bg-red-500">Indisponível</Badge>}
                   <Badge className="absolute top-2 left-2 bg-green-600">+{margin}%</Badge>
                 </div>
                 <CardContent className="p-4">
@@ -166,39 +140,23 @@ export default function Store() {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="text-lg font-bold text-green-600">{formatCurrency(product.costPrice)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Revenda: {formatCurrency(product.suggestedPrice)}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Revenda: {formatCurrency(product.suggestedPrice)}</p>
                     </div>
                   </div>
 
                   {product.inStock && (
                     qty > 0 ? (
                       <div className="flex items-center justify-between gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => removeFromCart(product.id)}
-                        >
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => removeFromCart(product.id)}>
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span className="font-semibold">{qty}</span>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => addToCart(product.id)}
-                        >
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => addToCart(product.id)}>
                           <Plus className="h-4 w-4" />
                         </Button>
                       </div>
                     ) : (
-                      <Button 
-                        className="w-full gap-2" 
-                        size="sm"
-                        onClick={() => addToCart(product.id)}
-                      >
+                      <Button className="w-full gap-2" size="sm" onClick={() => addToCart(product.id)}>
                         <ShoppingCart className="h-4 w-4" />
                         Adicionar
                       </Button>
@@ -209,7 +167,7 @@ export default function Store() {
             );
           })}
         </div>
-      </main>
-    </div>
+      </div>
+    </ModuleLayout>
   );
 }

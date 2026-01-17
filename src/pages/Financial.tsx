@@ -1,21 +1,16 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  ArrowLeft,
   DollarSign,
   TrendingUp,
-  TrendingDown,
   Target,
   Calendar,
-  Users,
   Stethoscope,
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
+import { ModuleLayout } from "@/components/ModuleLayout";
 
 const monthlyGoals = [
   { id: 'revenue', label: 'Faturamento', current: 85000, target: 100000, unit: 'R$' },
@@ -33,43 +28,27 @@ const recentTransactions = [
 ];
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-  }).format(Math.abs(value));
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(Math.abs(value));
 };
 
 export default function Financial() {
-  const navigate = useNavigate();
-
   const totalRevenue = 85000;
   const totalExpenses = 32000;
   const profit = totalRevenue - totalExpenses;
   const profitMargin = Math.round((profit / totalRevenue) * 100);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-green-600" />
-                Gestão Financeira
-              </h1>
-              <p className="text-sm text-muted-foreground">Metas, receitas e orientações</p>
-            </div>
-          </div>
+    <ModuleLayout>
+      <div className="p-4 lg:p-6 lg:pt-4">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <DollarSign className="h-6 w-6 text-green-600" />
+            Gestão Financeira
+          </h1>
+          <p className="text-sm text-muted-foreground">Metas, receitas e orientações</p>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Overview Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
@@ -160,19 +139,10 @@ export default function Financial() {
             </CardHeader>
             <CardContent className="space-y-3">
               {recentTransactions.map((tx) => (
-                <div 
-                  key={tx.id}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                >
+                <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      tx.type === 'income' ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
-                      {tx.type === 'income' ? (
-                        <ArrowUpRight className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <ArrowDownRight className="h-4 w-4 text-red-600" />
-                      )}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.type === 'income' ? 'bg-green-100' : 'bg-red-100'}`}>
+                      {tx.type === 'income' ? <ArrowUpRight className="h-4 w-4 text-green-600" /> : <ArrowDownRight className="h-4 w-4 text-red-600" />}
                     </div>
                     <div>
                       <p className="text-sm font-medium">{tx.description}</p>
@@ -214,7 +184,7 @@ export default function Financial() {
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </ModuleLayout>
   );
 }
