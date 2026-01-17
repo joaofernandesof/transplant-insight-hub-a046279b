@@ -357,12 +357,9 @@ export default function LicenseeHome() {
           </p>
           
           {/* Licensee Badge */}
-          <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-full border-2 ${tierInfo.bgColor} ${tierInfo.borderColor} ${tierInfo.color} shadow-sm`}>
+          <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full border-2 ${tierInfo.bgColor} ${tierInfo.borderColor} ${tierInfo.color} shadow-sm`}>
             {tierInfo.icon}
-            <div className="text-left">
-              <p className="font-bold text-lg leading-tight">Nível {tierInfo.name}</p>
-              <p className="text-xs opacity-80">{tierInfo.threshold} • {tierInfo.description}</p>
-            </div>
+            <p className="font-bold text-lg">Nível {tierInfo.name}</p>
           </div>
         </div>
 
