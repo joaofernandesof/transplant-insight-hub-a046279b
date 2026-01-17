@@ -201,7 +201,7 @@ serve(async (req: Request): Promise<Response> => {
 
       try {
         // Send to licensee
-        await fetch("https://api.resend.com/emails", {
+        const licenseeResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${resendApiKey}`,
@@ -215,8 +215,15 @@ serve(async (req: Request): Promise<Response> => {
           }),
         });
         
-        sentCount++;
-        console.log(`Report sent to ${stats.email}`);
+        const licenseeResult = await licenseeResponse.json();
+        console.log(`Resend response for ${stats.email}:`, JSON.stringify(licenseeResult));
+        
+        if (licenseeResponse.ok) {
+          sentCount++;
+          console.log(`Report sent to ${stats.email} - ID: ${licenseeResult.id}`);
+        } else {
+          console.error(`Resend error for ${stats.email}:`, licenseeResult);
+        }
       } catch (emailError) {
         console.error(`Failed to send report to ${stats.email}:`, emailError);
       }
@@ -296,7 +303,8 @@ serve(async (req: Request): Promise<Response> => {
     `;
 
     // Send admin summary
-    await fetch("https://api.resend.com/emails", {
+    console.log(`Sending admin summary to: ${adminEmail}`);
+    const adminResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${resendApiKey}`,
@@ -309,6 +317,15 @@ serve(async (req: Request): Promise<Response> => {
         html: adminReportHtml,
       }),
     });
+    
+    const adminResult = await adminResponse.json();
+    console.log(`Resend admin response:`, JSON.stringify(adminResult));
+    
+    if (!adminResponse.ok) {
+      console.error(`Resend admin error:`, adminResult);
+    } else {
+      console.log(`Admin report sent - ID: ${adminResult.id}`);
+    }
 
     console.log(`Weekly reports completed. Sent to ${sentCount} licensees + admin summary`);
 
