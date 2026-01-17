@@ -756,6 +756,42 @@ export type Database = {
           },
         ]
       }
+      user_goals: {
+        Row: {
+          courses_goal: number
+          created_at: string
+          id: string
+          leads_goal: number
+          month: number
+          points_goal: number
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          courses_goal?: number
+          created_at?: string
+          id?: string
+          leads_goal?: number
+          month: number
+          points_goal?: number
+          updated_at?: string
+          user_id: string
+          year?: number
+        }
+        Update: {
+          courses_goal?: number
+          created_at?: string
+          id?: string
+          leads_goal?: number
+          month?: number
+          points_goal?: number
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       user_lesson_progress: {
         Row: {
           completed_at: string | null
