@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { AdminLayout } from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -10,12 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  ArrowLeft, 
   Settings, 
   Eye,
   EyeOff,
   Users,
-  FileText,
   Sliders,
   Save,
   Loader2,
@@ -24,7 +23,6 @@ import {
   UserX,
   Crown
 } from 'lucide-react';
-import logoByNeofolic from '@/assets/logo-byneofolic.png';
 import { toast } from 'sonner';
 
 interface PageVisibility {
@@ -201,33 +199,22 @@ export default function AdminPanel() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
-            </div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <Settings className="h-6 w-6 text-primary" />
-              Painel Administrativo
-            </h1>
-          </div>
+    <AdminLayout>
+      <div className="p-6 lg:p-8 max-w-4xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <Settings className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold text-foreground">Configurações do Sistema</h1>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-3 mb-6">
             <TabsTrigger value="visibility" className="flex items-center gap-2">
@@ -412,7 +399,7 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

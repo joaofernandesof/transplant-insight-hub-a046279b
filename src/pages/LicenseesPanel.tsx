@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +38,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  ArrowLeft,
   Plus,
   Search,
   MoreHorizontal,
@@ -56,7 +56,6 @@ import {
   Users,
   Building2,
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -243,26 +242,13 @@ export default function LicenseesPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <img src={logoByNeofolic} alt="Licença ByNeofolic" className="h-10 object-contain" />
-              <div>
-                <h1 className="text-xl font-bold">Painel de Licenciados</h1>
-                <p className="text-sm text-muted-foreground">Gerenciamento de cadastros</p>
-              </div>
-            </div>
-          </div>
+    <AdminLayout>
+      <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-foreground">Painel de Licenciados</h1>
+          <p className="text-muted-foreground">Gerenciamento de cadastros</p>
         </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card>
@@ -578,7 +564,7 @@ export default function LicenseesPanel() {
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

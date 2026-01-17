@@ -2,14 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AdminLayout } from '@/components/AdminLayout';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Users,
   Building2,
-  TrendingUp,
   GraduationCap,
   Award,
   Handshake,
@@ -20,7 +17,6 @@ import {
   GitCompare,
   Flame,
   BookOpen,
-  Package,
   Megaphone,
   ShoppingBag,
   DollarSign,
@@ -28,14 +24,10 @@ import {
   Wrench,
   Briefcase,
   FileCheck,
-  Crown,
-  LogOut,
   ChevronRight,
   Loader2,
   Activity
 } from 'lucide-react';
-import logoByNeofolic from '@/assets/logo-byneofolic.png';
-import logoWhite from '@/assets/logo-byneofolic-white.png';
 
 interface DashboardStats {
   totalLicensees: number;
@@ -255,67 +247,23 @@ export default function AdminHome() {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-  };
-
   const managementModules = adminModules.filter(m => m.category === 'management');
   const analyticsModules = adminModules.filter(m => m.category === 'analytics');
   const licenseeModules = adminModules.filter(m => m.category === 'licensee-modules');
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-primary to-accent text-primary-foreground sticky top-0 z-50 shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={logoWhite} alt="ByNeofolic" className="h-12 object-contain" />
-              <div className="hidden md:block">
-                <Badge className="bg-white/20 text-white border-white/30">
-                  <Crown className="h-3 w-3 mr-1" />
-                  Painel Administrativo
-                </Badge>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 bg-white/10 rounded-full px-4 py-2">
-                <Avatar className="h-8 w-8 border-2 border-white/30">
-                  <AvatarImage src={user?.avatarUrl} />
-                  <AvatarFallback className="bg-white/20 text-white text-sm">
-                    {user?.name ? getInitials(user.name) : 'AD'}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium hidden sm:block">{user?.name}</span>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleLogout}
-                className="text-white hover:bg-white/20"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+    <AdminLayout>
+      <div className="p-6 lg:p-8 max-w-7xl mx-auto">
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -466,7 +414,7 @@ export default function AdminHome() {
             ))}
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

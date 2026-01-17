@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { Header } from '@/components/Header';
+import { AdminLayout } from '@/components/AdminLayout';
 import { metrics, getLastAvailableWeek, generateWeeks2026 } from '@/data/metricsData';
 import { calculateMetrics, getMetricStatus, formatMetricValue } from '@/utils/metricCalculations';
 import { 
@@ -10,7 +10,6 @@ import {
   Trophy, 
   AlertTriangle, 
   BarChart3,
-  ArrowLeft,
   Crown,
   Target,
   Zap
@@ -194,13 +193,15 @@ export default function ClinicComparison() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="w-16 h-16 text-status-bad mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">Acesso Restrito</h1>
-          <p className="text-muted-foreground">Esta página é exclusiva para administradores.</p>
+      <AdminLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center">
+            <AlertTriangle className="w-16 h-16 text-status-bad mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">Acesso Restrito</h1>
+            <p className="text-muted-foreground">Esta página é exclusiva para administradores.</p>
+          </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
@@ -208,19 +209,8 @@ export default function ClinicComparison() {
   const selectedComparison = getMetricComparison(selectedMetric);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
-        {/* Back button */}
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar ao Dashboard
-        </button>
-
+    <AdminLayout>
+      <div className="p-4 lg:p-6 max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -530,6 +520,6 @@ export default function ClinicComparison() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

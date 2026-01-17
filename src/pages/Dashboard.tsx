@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Header } from '@/components/Header';
+import { AdminLayout } from '@/components/AdminLayout';
+import { ModuleLayout } from '@/components/ModuleLayout';
 import { HorizontalMetricsTable } from '@/components/HorizontalMetricsTable';
 import { AllMetricsTable } from '@/components/AllMetricsTable';
 import { InsightsPanel } from '@/components/InsightsPanel';
@@ -124,24 +126,24 @@ export default function Dashboard() {
     name: `Clínica ${id.slice(0, 8)}...`
   }));
 
+  const Layout = isAdmin ? AdminLayout : ModuleLayout;
+
   if (dataLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
+      <Layout>
         <div className="flex items-center justify-center h-[60vh]">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <p className="text-muted-foreground">Carregando dados...</p>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (!selectedClinicId && !isAdmin) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
+      <Layout>
         <div className="flex items-center justify-center h-[60vh]">
           <div className="text-center">
             <Building2 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
@@ -149,15 +151,13 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Sua clínica será criada automaticamente.</p>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
   
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="max-w-[1920px] mx-auto p-4 lg:p-6">
+    <Layout>
+      <div className="p-4 lg:p-6 max-w-[1920px] mx-auto">
         {/* Top Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           {/* Admin Controls */}
@@ -303,6 +303,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
