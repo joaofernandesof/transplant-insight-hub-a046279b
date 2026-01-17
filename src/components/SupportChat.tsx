@@ -228,8 +228,8 @@ export default function SupportChat() {
           {/* Header */}
           <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4">
             <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 ring-2 ring-white/30">
-                <AvatarImage src={jonJobsAvatar} alt="JON JOBS" />
+              <Avatar className="h-12 w-12 ring-2 ring-white/30 bg-white/10">
+                <AvatarImage src={jonJobsAvatar} alt="JON JOBS" className="object-contain p-0.5" />
                 <AvatarFallback className="bg-white/20 text-primary-foreground">
                   <Bot className="h-5 w-5" />
                 </AvatarFallback>
@@ -252,8 +252,8 @@ export default function SupportChat() {
                   key={message.id}
                   className={`flex gap-2 ${message.role === "user" ? "flex-row-reverse" : ""}`}
                 >
-                  <Avatar className={`h-8 w-8 flex-shrink-0 ${message.role === "user" ? "bg-primary" : ""}`}>
-                    {message.role === "assistant" && <AvatarImage src={jonJobsAvatar} alt="JON JOBS" className="object-cover" />}
+                  <Avatar className={`h-8 w-8 flex-shrink-0 ${message.role === "user" ? "bg-primary" : "bg-white/80"}`}>
+                    {message.role === "assistant" && <AvatarImage src={jonJobsAvatar} alt="JON JOBS" className="object-contain p-0.5" />}
                     <AvatarFallback className={message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}>
                       {message.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                     </AvatarFallback>
