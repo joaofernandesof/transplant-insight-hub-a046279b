@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BookOpen,
   FileText,
@@ -100,17 +98,39 @@ export default function Materials() {
           <Input placeholder="Buscar materiais..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
 
-        {/* Categories Tabs */}
-        <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-6">
-          <TabsList className="flex flex-wrap h-auto gap-2 bg-transparent p-0">
-            {categories.map((cat) => (
-              <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 px-4">
-                <cat.icon className="h-4 w-4" />{cat.name}
-                <Badge variant="secondary" className="ml-1 text-xs">{getCategoryCount(cat.id)}</Badge>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        {/* Categories Filter - Grid on mobile */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => {
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`
+                    inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors
+                    ${isActive 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted hover:bg-muted/80 text-foreground'
+                    }
+                  `}
+                >
+                  <cat.icon className="h-4 w-4" />
+                  <span className="whitespace-nowrap">{cat.name}</span>
+                  <span className={`
+                    ml-1 px-2 py-0.5 rounded-full text-xs font-semibold
+                    ${isActive 
+                      ? 'bg-primary-foreground/20 text-primary-foreground' 
+                      : 'bg-background text-muted-foreground'
+                    }
+                  `}>
+                    {getCategoryCount(cat.id)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Materials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
