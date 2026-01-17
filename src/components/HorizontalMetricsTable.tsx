@@ -237,51 +237,51 @@ export function HorizontalMetricsTable({
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
-      {/* Header matching "Resumo Semana" style */}
-      <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-6 py-4 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg">
-              <BarChart3 className="w-5 h-5 text-primary" />
+      {/* Header matching "Resumo Semana" style - Mobile optimized */}
+      <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-3 sm:px-6 py-3 sm:py-4 border-b border-border">
+        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="p-1.5 sm:p-2 bg-primary/20 rounded-lg flex-shrink-0">
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
-            <div>
-              <h3 className="font-bold text-foreground text-lg">Indicadores Completos</h3>
-              <p className="text-sm text-muted-foreground">
-                Todos os indicadores do funil com histórico semanal completo de 2026
+            <div className="min-w-0">
+              <h3 className="font-bold text-foreground text-sm sm:text-lg truncate">Indicadores Completos</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden xs:block">
+                Histórico semanal completo de 2026
               </p>
             </div>
           </div>
           
           {/* Export Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <Button 
               variant="outline" 
               size="sm" 
               onClick={exportToExcel}
-              className="gap-2"
+              className="gap-1.5 h-8 px-2 sm:px-3 text-xs"
             >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span className="hidden sm:inline">Excel</span>
+              <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Excel</span>
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={exportToPDF}
-              className="gap-2"
+              className="gap-1.5 h-8 px-2 sm:px-3 text-xs"
             >
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">PDF</span>
+              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">PDF</span>
             </Button>
           </div>
         </div>
         
-        {/* Funnel Visual */}
-        <div className="flex items-center gap-1 mt-4 overflow-x-auto pb-2">
+        {/* Funnel Visual - Hidden on mobile, scrollable on tablet */}
+        <div className="hidden sm:flex items-center gap-1 mt-3 overflow-x-auto pb-2 scrollbar-hide">
           {etapas.map((etapa, idx) => (
             <div 
               key={etapa}
               className={cn(
-                "flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap",
+                "flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium whitespace-nowrap",
                 etapaBadgeColors[etapa]
               )}
               style={{
@@ -297,73 +297,75 @@ export function HorizontalMetricsTable({
         </div>
       </div>
       
-      <div ref={tableRef} className="overflow-x-auto">
+      <div ref={tableRef} className="overflow-x-auto scrollbar-hide">
         <table className="w-full text-xs border-collapse">
           <thead className="bg-muted sticky top-0 z-20">
             <tr className="border-b border-border">
-              {/* Fixed columns */}
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-30 min-w-[110px] border-r border-border">
-                <div className="flex items-center gap-1.5">
-                  <Target className="w-3.5 h-3.5 text-primary" />
-                  <span>Etapa Funil</span>
+              {/* Fixed columns - Responsive widths */}
+              <th className="text-left px-2 sm:px-3 py-2 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-30 min-w-[60px] sm:min-w-[110px] border-r border-border">
+                <div className="flex items-center gap-1">
+                  <Target className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary hidden xs:block" />
+                  <span className="text-[10px] sm:text-xs">Etapa</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[110px] bg-muted z-30 min-w-[90px] border-r border-border">
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-primary" />
-                  <span>Resp.</span>
+              <th className="text-left px-2 sm:px-3 py-2 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[60px] sm:left-[110px] bg-muted z-30 min-w-[50px] sm:min-w-[90px] border-r border-border">
+                <div className="flex items-center gap-1">
+                  <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary hidden sm:block" />
+                  <span className="text-[10px] sm:text-xs">Resp.</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[200px] bg-muted z-30 min-w-[70px] border-r border-border">
-                <div className="flex items-center gap-1.5">
-                  <Tag className="w-3.5 h-3.5 text-primary" />
-                  <span>Sigla</span>
+              <th className="text-left px-2 sm:px-3 py-2 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[110px] sm:left-[200px] bg-muted z-30 min-w-[50px] sm:min-w-[70px] border-r border-border">
+                <div className="flex items-center gap-1">
+                  <Tag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary hidden sm:block" />
+                  <span className="text-[10px] sm:text-xs">Sigla</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[180px] bg-muted">
+              {/* Hidden on mobile */}
+              <th className="hidden sm:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[180px] bg-muted">
                 <div className="flex items-center gap-1.5">
                   <BarChart3 className="w-3.5 h-3.5 text-primary" />
                   <span>Indicador</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[160px] bg-muted">
+              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[160px] bg-muted">
                 <div className="flex items-center gap-1.5">
                   <Search className="w-3.5 h-3.5 text-primary" />
                   <span>O que mede</span>
                 </div>
               </th>
-              <th className="text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[130px] bg-muted">
+              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[130px] bg-muted">
                 <div className="flex items-center gap-1.5">
                   <Calculator className="w-3.5 h-3.5 text-primary" />
                   <span>Fórmula</span>
                 </div>
               </th>
-              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px] bg-muted">
-                <div className="flex items-center justify-center gap-1">
-                  <span className="px-2 py-0.5 rounded bg-red-200 text-gray-900 text-[10px]">Ruim</span>
+              {/* Status columns - Hidden on small mobile */}
+              <th className="hidden xs:table-cell text-center px-1 sm:px-2 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[45px] sm:min-w-[70px] bg-muted">
+                <div className="flex items-center justify-center">
+                  <span className="px-1 sm:px-2 py-0.5 rounded bg-red-200 text-gray-900 text-[8px] sm:text-[10px]">Ruim</span>
                 </div>
               </th>
-              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px] bg-muted">
-                <div className="flex items-center justify-center gap-1">
-                  <span className="px-2 py-0.5 rounded bg-yellow-200 text-gray-900 text-[10px]">Médio</span>
+              <th className="hidden xs:table-cell text-center px-1 sm:px-2 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[45px] sm:min-w-[70px] bg-muted">
+                <div className="flex items-center justify-center">
+                  <span className="px-1 sm:px-2 py-0.5 rounded bg-yellow-200 text-gray-900 text-[8px] sm:text-[10px]">Médio</span>
                 </div>
               </th>
-              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px] bg-muted">
-                <div className="flex items-center justify-center gap-1">
-                  <span className="px-2 py-0.5 rounded bg-blue-200 text-gray-900 text-[10px]">Bom</span>
+              <th className="hidden xs:table-cell text-center px-1 sm:px-2 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[45px] sm:min-w-[70px] bg-muted">
+                <div className="flex items-center justify-center">
+                  <span className="px-1 sm:px-2 py-0.5 rounded bg-blue-200 text-gray-900 text-[8px] sm:text-[10px]">Bom</span>
                 </div>
               </th>
-              <th className="text-center px-2 py-3 font-semibold whitespace-nowrap min-w-[70px] bg-muted">
-                <div className="flex items-center justify-center gap-1">
-                  <span className="px-2 py-0.5 rounded bg-green-200 text-gray-900 text-[10px]">Ótimo</span>
+              <th className="hidden xs:table-cell text-center px-1 sm:px-2 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[45px] sm:min-w-[70px] bg-muted">
+                <div className="flex items-center justify-center">
+                  <span className="px-1 sm:px-2 py-0.5 rounded bg-green-200 text-gray-900 text-[8px] sm:text-[10px]">Ótimo</span>
                 </div>
               </th>
               
-              {/* Trend/Evolution Column */}
-              <th className="text-center px-3 py-3 font-semibold whitespace-nowrap min-w-[110px] border-r border-border bg-muted">
-                <div className="flex items-center justify-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                  <span>Tendência</span>
+              {/* Trend/Evolution Column - Hidden on mobile */}
+              <th className="hidden sm:table-cell text-center px-2 sm:px-3 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[90px] sm:min-w-[110px] border-r border-border bg-muted">
+                <div className="flex items-center justify-center gap-1">
+                  <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                  <span className="text-[10px] sm:text-xs">Tendência</span>
                 </div>
               </th>
               
@@ -373,22 +375,22 @@ export function HorizontalMetricsTable({
                   key={week.weekNumber}
                   data-week={week.weekNumber}
                   className={cn(
-                    "text-center px-2 py-2 font-semibold whitespace-nowrap min-w-[75px] border-l border-border transition-colors bg-muted",
+                    "text-center px-1 sm:px-2 py-1.5 sm:py-2 font-semibold whitespace-nowrap min-w-[55px] sm:min-w-[75px] border-l border-border transition-colors bg-muted",
                     week.weekNumber === currentWeekNumber && "bg-primary/20 ring-2 ring-primary ring-inset"
                   )}
                 >
                   <div className="flex flex-col items-center gap-0.5">
                     <span className={cn(
-                      "text-xs font-bold",
+                      "text-[10px] sm:text-xs font-bold",
                       week.weekNumber === currentWeekNumber ? "text-primary" : "text-foreground"
                     )}>
                       S{week.weekNumber}
                     </span>
-                    <span className="text-[9px] text-muted-foreground">
+                    <span className="text-[8px] sm:text-[9px] text-muted-foreground">
                       {formatDate(week.startDate).split('/').slice(0, 2).join('/')}
                     </span>
                     {week.weekNumber === currentWeekNumber && (
-                      <span className="text-[8px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full font-bold">
+                      <span className="text-[7px] sm:text-[8px] bg-primary text-primary-foreground px-1 sm:px-1.5 py-0.5 rounded-full font-bold">
                         ATUAL
                       </span>
                     )}
@@ -410,78 +412,80 @@ export function HorizontalMetricsTable({
                   )}
                 >
                   {/* Etapa do Funil - texto preto com badge colorido */}
-                  <td className="px-3 py-2.5 sticky left-0 bg-card z-10 border-r border-border align-middle">
+                  <td className="px-1.5 sm:px-3 py-2 sm:py-2.5 sticky left-0 bg-card z-10 border-r border-border align-middle">
                     <span className={cn(
-                      "px-2 py-1 rounded text-[10px] font-semibold whitespace-nowrap inline-block",
+                      "px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[8px] sm:text-[10px] font-semibold whitespace-nowrap inline-block",
                       etapaBadgeColors[metric.etapa] || 'bg-muted text-gray-900'
                     )}>
-                      {metric.etapa}
+                      <span className="hidden xs:inline">{metric.etapa}</span>
+                      <span className="xs:hidden">{metric.etapa.substring(0, 4)}</span>
                     </span>
                   </td>
                   
                   {/* Responsável - texto preto com badge colorido */}
-                  <td className="px-3 py-2.5 sticky left-[110px] bg-card z-10 border-r border-border align-middle">
+                  <td className="px-1.5 sm:px-3 py-2 sm:py-2.5 sticky left-[60px] sm:left-[110px] bg-card z-10 border-r border-border align-middle">
                     <span className={cn(
-                      "px-2 py-1 rounded text-[10px] font-semibold whitespace-nowrap inline-block",
+                      "px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[8px] sm:text-[10px] font-semibold whitespace-nowrap inline-block",
                       responsavelBadgeColors[metric.responsavel] || 'bg-muted text-gray-900'
                     )}>
-                      {metric.responsavel}
+                      <span className="hidden sm:inline">{metric.responsavel}</span>
+                      <span className="sm:hidden">{metric.responsavel.substring(0, 3)}</span>
                     </span>
                   </td>
                   
                   {/* Sigla */}
-                  <td className="px-3 py-2.5 sticky left-[200px] bg-card z-10 border-r border-border align-middle">
-                    <span className="font-mono font-bold text-primary text-xs">
+                  <td className="px-1.5 sm:px-3 py-2 sm:py-2.5 sticky left-[110px] sm:left-[200px] bg-card z-10 border-r border-border align-middle">
+                    <span className="font-mono font-bold text-primary text-[10px] sm:text-xs">
                       {metric.sigla}
                     </span>
                   </td>
                   
-                  {/* Indicador, descrição */}
-                  <td className="px-3 py-2.5 align-middle">
+                  {/* Indicador, descrição - Hidden on mobile */}
+                  <td className="hidden sm:table-cell px-3 py-2.5 align-middle">
                     <div className="max-w-[180px]">
                       <p className="font-semibold text-foreground text-xs leading-tight">{metric.nome}</p>
                       <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 line-clamp-1">{metric.descricao}</p>
                     </div>
                   </td>
                   
-                  {/* O que mede */}
-                  <td className="px-3 py-2.5 align-middle">
+                  {/* O que mede - Hidden on mobile/tablet */}
+                  <td className="hidden lg:table-cell px-3 py-2.5 align-middle">
                     <p className="text-[10px] text-muted-foreground max-w-[160px] line-clamp-2 leading-tight">
                       {metric.oQueMede}
                     </p>
                   </td>
                   
-                  {/* Fórmula */}
-                  <td className="px-3 py-2.5 align-middle">
+                  {/* Fórmula - Hidden on mobile/tablet */}
+                  <td className="hidden lg:table-cell px-3 py-2.5 align-middle">
                     <span className="text-[10px] font-mono text-muted-foreground leading-tight">
                       {metric.formula}
                     </span>
                   </td>
                   
-                  {/* Faixas com badges coloridos */}
-                  <td className="px-2 py-2.5 text-center align-middle">
-                    <span className="px-1.5 py-0.5 rounded bg-red-200 text-gray-900 text-[9px] font-medium">
+                  {/* Faixas com badges coloridos - Hidden on small mobile */}
+                  <td className="hidden xs:table-cell px-1 sm:px-2 py-2 sm:py-2.5 text-center align-middle">
+                    <span className="px-1 sm:px-1.5 py-0.5 rounded bg-red-200 text-gray-900 text-[8px] sm:text-[9px] font-medium">
                       {metric.ruim}
                     </span>
                   </td>
-                  <td className="px-2 py-2.5 text-center align-middle">
-                    <span className="px-1.5 py-0.5 rounded bg-yellow-200 text-gray-900 text-[9px] font-medium">
+                  <td className="hidden xs:table-cell px-1 sm:px-2 py-2 sm:py-2.5 text-center align-middle">
+                    <span className="px-1 sm:px-1.5 py-0.5 rounded bg-yellow-200 text-gray-900 text-[8px] sm:text-[9px] font-medium">
                       {metric.medio}
                     </span>
                   </td>
-                  <td className="px-2 py-2.5 text-center align-middle">
-                    <span className="px-1.5 py-0.5 rounded bg-blue-200 text-gray-900 text-[9px] font-medium">
+                  <td className="hidden xs:table-cell px-1 sm:px-2 py-2 sm:py-2.5 text-center align-middle">
+                    <span className="px-1 sm:px-1.5 py-0.5 rounded bg-blue-200 text-gray-900 text-[8px] sm:text-[9px] font-medium">
                       {metric.bom}
                     </span>
                   </td>
-                  <td className="px-2 py-2.5 text-center align-middle">
-                    <span className="px-1.5 py-0.5 rounded bg-green-200 text-gray-900 text-[9px] font-medium">
+                  <td className="hidden xs:table-cell px-1 sm:px-2 py-2 sm:py-2.5 text-center align-middle">
+                    <span className="px-1 sm:px-1.5 py-0.5 rounded bg-green-200 text-gray-900 text-[8px] sm:text-[9px] font-medium">
                       {metric.otimo}
                     </span>
                   </td>
                   
-                  {/* Sparkline/Trend Column */}
-                  <td className="px-2 py-2.5 text-center align-middle border-r border-border">
+                  {/* Sparkline/Trend Column - Hidden on mobile */}
+                  <td className="hidden sm:table-cell px-1.5 sm:px-2 py-2 sm:py-2.5 text-center align-middle border-r border-border">
                     {(() => {
                       // Collect all values for this metric across weeks up to current week
                       const weekNumbers: number[] = [];
@@ -524,21 +528,22 @@ export function HorizontalMetricsTable({
                       <td 
                         key={`${metric.sigla}-${week.weekNumber}`}
                         className={cn(
-                          "px-1 py-1.5 text-center border-l border-border align-middle",
+                          "px-0.5 sm:px-1 py-1 sm:py-1.5 text-center border-l border-border align-middle",
                           week.weekNumber === currentWeekNumber && "bg-primary/10",
                           isFutureWeek && "bg-muted/30"
                         )}
                       >
                         {isFutureWeek ? (
-                          <div className="text-[9px] text-muted-foreground/50">-</div>
+                          <div className="text-[8px] sm:text-[9px] text-muted-foreground/50">-</div>
                         ) : isManual && editable ? (
                           <input
                             type="number"
+                            inputMode="decimal"
                             step={metric.formato === 'percent' || metric.formato === 'decimal' ? '0.01' : '1'}
                             value={value ?? ''}
                             onChange={(e) => handleInputChange(week.weekNumber, metric.sigla, e.target.value)}
                             className={cn(
-                              "w-full px-1 py-1 text-[10px] text-center rounded border bg-background text-foreground",
+                              "w-full px-0.5 sm:px-1 py-0.5 sm:py-1 text-[9px] sm:text-[10px] text-center rounded border bg-background text-foreground",
                               "focus:outline-none focus:ring-1 focus:ring-primary",
                               status && statusInputBg[status]
                             )}
@@ -546,7 +551,7 @@ export function HorizontalMetricsTable({
                           />
                         ) : (
                           <div className={cn(
-                            "px-1 py-1 rounded text-[10px] font-medium",
+                            "px-0.5 sm:px-1 py-0.5 sm:py-1 rounded text-[9px] sm:text-[10px] font-medium",
                             value !== null && status && statusBadgeColors[status],
                             !isManual && value === null && "text-muted-foreground"
                           )}>
