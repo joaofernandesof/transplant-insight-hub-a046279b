@@ -10,8 +10,16 @@ interface ClinicData {
   weeks: WeekData[];
 }
 
+export interface ClinicInfo {
+  id: string;
+  name: string;
+  state: string | null;
+  city: string | null;
+}
+
 interface DataContextType {
   clinicsData: Record<string, ClinicData>;
+  clinics: ClinicInfo[];
   getClinicData: (clinicId: string) => ClinicData;
   saveWeekData: (clinicId: string, weekNumber: number, values: Record<string, number | string | null>) => Promise<void>;
   getCalculatedMetrics: (clinicId: string, weekNumber: number) => CalculatedMetrics;
@@ -25,6 +33,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [clinicsData, setClinicsData] = useState<Record<string, ClinicData>>({});
+  const [clinics, setClinics] = useState<ClinicInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userClinicId, setUserClinicId] = useState<string | null>(null);
   const { user, isAdmin } = useAuth();
@@ -56,9 +65,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         if (!clinics || clinics.length === 0) {
           setClinicsData({});
+          setClinics([]);
           setIsLoading(false);
           return;
         }
+
+        // Set clinics list
+        setClinics(clinics.map(c => ({
+          id: c.id,
+          name: c.name,
+          state: c.state || null,
+          city: c.city || null
+        })));
 
         // Fetch all metrics for all clinics
         const { data: allMetrics, error: metricsError } = await supabase
@@ -275,6 +293,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   return (
     <DataContext.Provider value={{
       clinicsData,
+      clinics,
       getClinicData,
       saveWeekData,
       getCalculatedMetrics,
