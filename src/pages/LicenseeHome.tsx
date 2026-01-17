@@ -45,6 +45,9 @@ import AchievementsPanel from "@/components/AchievementsPanel";
 import { ModuleSidebar } from "@/components/ModuleSidebar";
 import QuickStats from "@/components/QuickStats";
 import MonthlyGoals from "@/components/MonthlyGoals";
+import SurgerySubmissions from "@/components/SurgerySubmissions";
+import AchievementTimeline from "@/components/AchievementTimeline";
+import Leaderboard from "@/components/Leaderboard";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -404,11 +407,22 @@ export default function LicenseeHome() {
         {/* Quick Stats */}
         <QuickStats />
 
-        {/* First Steps, Achievements & Monthly Goals */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <FirstStepsChecklist />
-          <AchievementsPanel compact />
-          <MonthlyGoals />
+        {/* First Steps, Achievements, Monthly Goals & Surgery Submissions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="space-y-6">
+            <FirstStepsChecklist />
+            <AchievementsPanel compact />
+          </div>
+          <div className="space-y-6">
+            <MonthlyGoals />
+            <SurgerySubmissions />
+          </div>
+        </div>
+
+        {/* Timeline & Leaderboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <AchievementTimeline />
+          <Leaderboard limit={10} />
         </div>
 
         {/* Menu Grid - 2 colunas no mobile para melhor usabilidade */}
