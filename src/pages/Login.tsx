@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import logoByneofolic from '@/assets/logo-byneofolic.png';
+import iconeNeofolic from '@/assets/icone-neofolic.png';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -175,11 +175,11 @@ export default function Login() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg border border-border overflow-hidden">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden mx-auto mb-3 sm:mb-4 shadow-xl">
             <img 
-              src={logoByneofolic} 
-              alt="ByNeoFolic" 
-              className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+              src={iconeNeofolic} 
+              alt="NeoFolic" 
+              className="w-full h-full object-cover"
             />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Licença ByNeoFolic</h1>
