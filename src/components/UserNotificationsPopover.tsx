@@ -9,32 +9,34 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Bell, Check, Image, Video, ExternalLink } from 'lucide-react';
+import { Bell, Check, Image as ImageIcon, Video } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-interface Notification {
+interface NotificationData {
+  id: string;
+  title: string;
+  content: string;
+  content_html: string | null;
+  image_url: string | null;
+  video_url: string | null;
+  created_at: string;
+}
+
+interface RecipientWithNotification {
   id: string;
   notification_id: string;
   is_read: boolean;
   created_at: string;
-  notification: {
-    id: string;
-    title: string;
-    content: string;
-    content_html: string | null;
-    image_url: string | null;
-    video_url: string | null;
-    created_at: string;
-  };
+  notifications: NotificationData | null;
 }
 
 const UserNotificationsPopover: React.FC = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<RecipientWithNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<RecipientWithNotification | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -43,6 +45,8 @@ const UserNotificationsPopover: React.FC = () => {
   }, [user]);
 
   const fetchNotifications = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('notification_recipients')
@@ -51,7 +55,7 @@ const UserNotificationsPopover: React.FC = () => {
           notification_id,
           is_read,
           created_at,
-          notification:notifications (
+          notifications (
             id,
             title,
             content,
@@ -61,14 +65,17 @@ const UserNotificationsPopover: React.FC = () => {
             created_at
           )
         `)
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        return;
+      }
       
-      const typedData = (data || []) as unknown as Notification[];
-      setNotifications(typedData);
-      setUnreadCount(typedData.filter(n => !n.is_read).length);
+      const typedData = (data || []) as unknown as RecipientWithNotification[];
+      setNotifications(typedData.filter(n => n.notifications !== null));
+      setUnreadCount(typedData.filter(n => !n.is_read && n.notifications !== null).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
@@ -109,7 +116,7 @@ const UserNotificationsPopover: React.FC = () => {
     }
   };
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = (notification: RecipientWithNotification) => {
     setSelectedNotification(notification);
     if (!notification.is_read) {
       markAsRead(notification.id);
@@ -119,22 +126,22 @@ const UserNotificationsPopover: React.FC = () => {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <button 
+          type="button"
+          className="relative p-2 rounded-lg hover:bg-muted transition-colors"
+        >
+          <Bell className="h-5 w-5 text-muted-foreground" />
           {unreadCount > 0 && (
-            <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-              variant="destructive"
-            >
+            <span className="absolute -top-0.5 -right-0.5 h-5 w-5 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
               {unreadCount > 9 ? '9+' : unreadCount}
-            </Badge>
+            </span>
           )}
-        </Button>
+        </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[380px] p-0" align="end">
-        {selectedNotification ? (
+      <PopoverContent className="w-[340px] sm:w-[380px] p-0" align="end">
+        {selectedNotification && selectedNotification.notifications ? (
           // Detail view
-          <div className="flex flex-col max-h-[500px]">
+          <div className="flex flex-col max-h-[400px] sm:max-h-[500px]">
             <div className="p-3 border-b flex items-center justify-between">
               <Button 
                 variant="ghost" 
@@ -146,37 +153,37 @@ const UserNotificationsPopover: React.FC = () => {
             </div>
             <ScrollArea className="flex-1 p-4">
               <h3 className="font-semibold text-lg mb-2">
-                {selectedNotification.notification.title}
+                {selectedNotification.notifications.title}
               </h3>
               <p className="text-xs text-muted-foreground mb-4">
-                {formatDistanceToNow(new Date(selectedNotification.notification.created_at), {
+                {formatDistanceToNow(new Date(selectedNotification.notifications.created_at), {
                   addSuffix: true,
                   locale: ptBR
                 })}
               </p>
               
-              {selectedNotification.notification.content_html ? (
+              {selectedNotification.notifications.content_html ? (
                 <div 
                   className="prose prose-sm max-w-none mb-4"
-                  dangerouslySetInnerHTML={{ __html: selectedNotification.notification.content_html }}
+                  dangerouslySetInnerHTML={{ __html: selectedNotification.notifications.content_html }}
                 />
               ) : (
                 <p className="text-sm mb-4 whitespace-pre-wrap">
-                  {selectedNotification.notification.content}
+                  {selectedNotification.notifications.content}
                 </p>
               )}
 
-              {selectedNotification.notification.image_url && (
+              {selectedNotification.notifications.image_url && (
                 <img 
-                  src={selectedNotification.notification.image_url} 
+                  src={selectedNotification.notifications.image_url} 
                   alt="Imagem da notificação"
                   className="w-full rounded-lg mb-4"
                 />
               )}
 
-              {selectedNotification.notification.video_url && (
+              {selectedNotification.notifications.video_url && (
                 <video 
-                  src={selectedNotification.notification.video_url}
+                  src={selectedNotification.notifications.video_url}
                   controls
                   className="w-full rounded-lg"
                 />
@@ -185,7 +192,7 @@ const UserNotificationsPopover: React.FC = () => {
           </div>
         ) : (
           // List view
-          <div className="flex flex-col max-h-[500px]">
+          <div className="flex flex-col max-h-[400px] sm:max-h-[500px]">
             <div className="p-3 border-b flex items-center justify-between">
               <h4 className="font-semibold">Notificações</h4>
               {unreadCount > 0 && (
@@ -196,7 +203,7 @@ const UserNotificationsPopover: React.FC = () => {
                   className="text-xs"
                 >
                   <Check className="h-3 w-3 mr-1" />
-                  Marcar todas como lidas
+                  Marcar todas
                 </Button>
               )}
             </div>
@@ -209,43 +216,45 @@ const UserNotificationsPopover: React.FC = () => {
               ) : (
                 <div className="divide-y">
                   {notifications.map(notification => (
-                    <div
-                      key={notification.id}
-                      className={`p-3 cursor-pointer hover:bg-muted transition-colors ${
-                        !notification.is_read ? 'bg-primary/5' : ''
-                      }`}
-                      onClick={() => handleNotificationClick(notification)}
-                    >
-                      <div className="flex gap-3">
-                        <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
-                          notification.is_read ? 'bg-transparent' : 'bg-primary'
-                        }`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="font-medium text-sm truncate">
-                              {notification.notification.title}
-                            </p>
-                            <div className="flex gap-1 flex-shrink-0">
-                              {notification.notification.image_url && (
-                                <Image className="h-3 w-3 text-muted-foreground" />
-                              )}
-                              {notification.notification.video_url && (
-                                <Video className="h-3 w-3 text-muted-foreground" />
-                              )}
+                    notification.notifications && (
+                      <div
+                        key={notification.id}
+                        className={`p-3 cursor-pointer hover:bg-muted transition-colors ${
+                          !notification.is_read ? 'bg-primary/5' : ''
+                        }`}
+                        onClick={() => handleNotificationClick(notification)}
+                      >
+                        <div className="flex gap-3">
+                          <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${
+                            notification.is_read ? 'bg-transparent' : 'bg-primary'
+                          }`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="font-medium text-sm truncate">
+                                {notification.notifications.title}
+                              </p>
+                              <div className="flex gap-1 flex-shrink-0">
+                                {notification.notifications.image_url && (
+                                  <ImageIcon className="h-3 w-3 text-muted-foreground" />
+                                )}
+                                {notification.notifications.video_url && (
+                                  <Video className="h-3 w-3 text-muted-foreground" />
+                                )}
+                              </div>
                             </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                              {notification.notifications.content}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {formatDistanceToNow(new Date(notification.notifications.created_at), {
+                                addSuffix: true,
+                                locale: ptBR
+                              })}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                            {notification.notification.content}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatDistanceToNow(new Date(notification.notification.created_at), {
-                              addSuffix: true,
-                              locale: ptBR
-                            })}
-                          </p>
                         </div>
                       </div>
-                    </div>
+                    )
                   ))}
                 </div>
               )}
