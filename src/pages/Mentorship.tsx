@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Users,
@@ -10,13 +10,52 @@ import {
   MessageCircle,
   Star,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  Stethoscope,
+  Scale,
+  TrendingUp,
+  Megaphone
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
+import mentorsTeamImage from "@/assets/mentors-team.jpg";
 
 const mentors = [
-  { id: 1, name: 'João Fernandes', role: 'CEO & Fundador', specialty: 'Estratégia e Vendas', avatar: 'JF', available: true },
-  { id: 2, name: 'Dr. Hygor Guerreiro', role: 'Diretor Médico', specialty: 'Técnicas Cirúrgicas', avatar: 'HG', available: true },
+  { 
+    id: 1, 
+    name: 'Dr. Hygor Guerreiro', 
+    role: 'Diretor Médico', 
+    specialty: 'Técnicas Cirúrgicas',
+    description: 'Médico renomado em medicina capilar, especializado em tratamentos clínicos e cirúrgicos. Membro da Sociedade Brasileira do Cabelo e da Indian Society of Hair Restoration.',
+    icon: Stethoscope,
+    available: true 
+  },
+  { 
+    id: 2, 
+    name: 'Larissa Guerreiro', 
+    role: 'Diretora Jurídica', 
+    specialty: 'Direito Médico & Compliance',
+    description: 'Advogada especialista em Direito Médico e professora do IBRAMEC. Mentora e consultora em compliance para clínicas de transplante capilar.',
+    icon: Scale,
+    available: true 
+  },
+  { 
+    id: 3, 
+    name: 'João Fernandes', 
+    role: 'CEO Neo Folic', 
+    specialty: 'Gestão & Estratégia',
+    description: 'Engenheiro civil e CEO da Neo Folic Saúde Capilar. Especialista em gestão de clínicas médicas e mentor de médicos que desejam atuar com transplante capilar.',
+    icon: TrendingUp,
+    available: true 
+  },
+  { 
+    id: 4, 
+    name: 'Edith Gomes', 
+    role: 'Diretora de Marketing', 
+    specialty: 'Marketing & Influência',
+    description: 'Referência no marketing de influência com 17 anos de experiência. Criadora de método exclusivo que capacita empresários a se tornarem influenciadores.',
+    icon: Megaphone,
+    available: true 
+  },
 ];
 
 const upcomingMentorships = [
@@ -45,6 +84,21 @@ export default function Mentorship() {
           <p className="text-sm text-muted-foreground">Consultorias, comunidade e grupo exclusivo</p>
         </div>
 
+        {/* Team Hero Image */}
+        <Card className="mb-6 overflow-hidden">
+          <div className="relative">
+            <img 
+              src={mentorsTeamImage} 
+              alt="Equipe de Mentores IBRAMEC" 
+              className="w-full h-auto object-cover"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+              <h2 className="text-white text-xl md:text-2xl font-bold">Equipe de Mentores IBRAMEC</h2>
+              <p className="text-white/80 text-sm">Os melhores profissionais para guiar sua jornada</p>
+            </div>
+          </div>
+        </Card>
+
         {/* Hours Available */}
         <Card className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
           <CardContent className="pt-6">
@@ -67,72 +121,77 @@ export default function Mentorship() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Mentors */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Star className="h-4 w-4 text-amber-500" />
-                Mentores Disponíveis
-              </CardTitle>
-              <CardDescription>Agende uma consultoria exclusiva</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        {/* Mentors Grid */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Star className="h-4 w-4 text-amber-500" />
+              Nossos Mentores
+            </CardTitle>
+            <CardDescription>Agende uma consultoria exclusiva com nossos especialistas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {mentors.map((mentor) => (
-                <div key={mentor.id} className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors">
-                  <Avatar className="h-14 w-14">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">{mentor.avatar}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">{mentor.name}</h4>
-                      {mentor.available && <Badge className="bg-green-100 text-green-700 text-xs">Disponível</Badge>}
+                <div key={mentor.id} className="p-4 rounded-xl border hover:bg-muted/50 transition-colors">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <mentor.icon className="h-6 w-6 text-primary" />
                     </div>
-                    <p className="text-sm text-muted-foreground">{mentor.role}</p>
-                    <p className="text-xs text-primary">{mentor.specialty}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-semibold">{mentor.name}</h4>
+                        {mentor.available && (
+                          <Badge className="bg-green-100 text-green-700 text-xs">Disponível</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-primary font-medium">{mentor.role}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{mentor.specialty}</p>
+                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{mentor.description}</p>
+                    </div>
                   </div>
-                  <Button size="sm" className="gap-2">
+                  <Button size="sm" className="w-full mt-4 gap-2">
                     <Calendar className="h-4 w-4" />
-                    Agendar
+                    Agendar Mentoria
                   </Button>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Upcoming Events */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Video className="h-4 w-4 text-indigo-600" />
-                Próximas Mentorias em Grupo
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {upcomingMentorships.map((event) => (
-                <div key={event.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                      <Video className="h-5 w-5 text-indigo-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{event.title}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />{event.date}
-                        <Clock className="h-3 w-3 ml-1" />{event.time}
-                      </div>
-                    </div>
+        {/* Upcoming Events */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Video className="h-4 w-4 text-indigo-600" />
+              Próximas Mentorias em Grupo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {upcomingMentorships.map((event) => (
+              <div key={event.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                    <Video className="h-5 w-5 text-indigo-600" />
                   </div>
-                  <div className="text-right">
-                    <Badge variant="outline" className="text-xs mb-1">{event.spots} vagas</Badge>
-                    <br />
-                    <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">Participar</Button>
+                  <div>
+                    <p className="font-medium text-sm">{event.title}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />{event.date}
+                      <Clock className="h-3 w-3 ml-1" />{event.time}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+                <div className="text-right">
+                  <Badge variant="outline" className="text-xs mb-1">{event.spots} vagas</Badge>
+                  <br />
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">Participar</Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
 
         {/* Support Channels */}
         <Card>
