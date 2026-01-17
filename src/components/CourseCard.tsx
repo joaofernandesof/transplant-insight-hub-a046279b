@@ -2,8 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Clock, BookOpen, Play, CheckCircle2 } from "lucide-react";
+import { Clock, BookOpen, Play, CheckCircle2, Award } from "lucide-react";
 import { CourseWithProgress } from "@/hooks/useUniversity";
+import { CertificateDownloadButton } from "@/components/CertificateDownloadButton";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CourseCardProps {
   course: CourseWithProgress;
@@ -18,6 +20,7 @@ const difficultyLabels = {
 };
 
 export function CourseCard({ course, onSelect, onEnroll }: CourseCardProps) {
+  const { user } = useAuth();
   const isEnrolled = !!course.enrollment;
   const progress = course.enrollment?.progress_percent || 0;
   const isCompleted = course.enrollment?.status === 'completed';
@@ -82,10 +85,29 @@ export function CourseCard({ course, onSelect, onEnroll }: CourseCardProps) {
         {isEnrolled ? (
           <div className="space-y-2">
             <Progress value={progress} className="h-2" />
-            <Button className="w-full gap-2" size="sm">
-              <Play className="h-4 w-4" />
-              {progress > 0 ? 'Continuar' : 'Iniciar'}
-            </Button>
+            {isCompleted ? (
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                <Button className="flex-1 gap-2" size="sm" variant="outline">
+                  <Play className="h-4 w-4" />
+                  Rever
+                </Button>
+                <CertificateDownloadButton
+                  studentName={user?.name || 'Aluno'}
+                  courseName={course.title}
+                  completionDate={course.enrollment?.completed_at || new Date()}
+                  courseHours={course.duration_hours}
+                  variant="default"
+                  size="sm"
+                  showIcon={true}
+                  className="flex-1"
+                />
+              </div>
+            ) : (
+              <Button className="w-full gap-2" size="sm">
+                <Play className="h-4 w-4" />
+                {progress > 0 ? 'Continuar' : 'Iniciar'}
+              </Button>
+            )}
           </div>
         ) : (
           <Button 
