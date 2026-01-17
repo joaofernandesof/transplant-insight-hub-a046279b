@@ -460,47 +460,65 @@ export type Database = {
         Row: {
           avatar_url: string | null
           city: string | null
+          clinic_logo_url: string | null
           clinic_name: string | null
           created_at: string
           email: string
           id: string
+          instagram_clinic: string | null
+          instagram_personal: string | null
           name: string
           phone: string | null
+          services: string[] | null
           state: string | null
           status: string | null
           tier: string | null
           updated_at: string
           user_id: string
+          whatsapp_clinic: string | null
+          whatsapp_personal: string | null
         }
         Insert: {
           avatar_url?: string | null
           city?: string | null
+          clinic_logo_url?: string | null
           clinic_name?: string | null
           created_at?: string
           email: string
           id?: string
+          instagram_clinic?: string | null
+          instagram_personal?: string | null
           name: string
           phone?: string | null
+          services?: string[] | null
           state?: string | null
           status?: string | null
           tier?: string | null
           updated_at?: string
           user_id: string
+          whatsapp_clinic?: string | null
+          whatsapp_personal?: string | null
         }
         Update: {
           avatar_url?: string | null
           city?: string | null
+          clinic_logo_url?: string | null
           clinic_name?: string | null
           created_at?: string
           email?: string
           id?: string
+          instagram_clinic?: string | null
+          instagram_personal?: string | null
           name?: string
           phone?: string | null
+          services?: string[] | null
           state?: string | null
           status?: string | null
           tier?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp_clinic?: string | null
+          whatsapp_personal?: string | null
         }
         Relationships: []
       }
