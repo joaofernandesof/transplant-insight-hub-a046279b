@@ -44,6 +44,7 @@ import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 import AchievementsPanel from "@/components/AchievementsPanel";
 import { ModuleSidebar } from "@/components/ModuleSidebar";
 import QuickStats from "@/components/QuickStats";
+import MonthlyGoals from "@/components/MonthlyGoals";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -328,40 +329,41 @@ export default function LicenseeHome() {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 overflow-x-hidden w-full">
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container mx-auto px-3 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <Button 
                 variant="ghost" 
                 size="icon"
                 onClick={openSidebar}
-                className="flex-shrink-0"
+                className="flex-shrink-0 h-9 w-9"
               >
                 <Menu className="h-5 w-5" />
               </Button>
               <img 
                 src={logoByNeofolic} 
                 alt="Licença ByNeofolic" 
-                className="h-12 object-contain"
+                className="h-8 object-contain cursor-pointer flex-shrink-0"
+                onClick={() => navigate('/home')}
               />
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <ThemeToggle />
               <UserNotificationsPopover />
-              <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
-                <Avatar className="h-8 w-8">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/profile')} className="h-9 w-9">
+                <Avatar className="h-7 w-7">
                   <AvatarFallback className="bg-primary/10 text-primary text-xs">
                     {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
-              <div className="text-right hidden sm:block">
+              <div className="text-right hidden md:block">
                 <p className="text-sm font-medium">{user?.name}</p>
                 <p className="text-xs text-muted-foreground">{user?.clinicName}</p>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
-                <LogOut className="h-5 w-5" />
+              <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9">
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -402,10 +404,11 @@ export default function LicenseeHome() {
         {/* Quick Stats */}
         <QuickStats />
 
-        {/* First Steps & Achievements Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* First Steps, Achievements & Monthly Goals */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <FirstStepsChecklist />
           <AchievementsPanel compact />
+          <MonthlyGoals />
         </div>
 
         {/* Menu Grid - 2 colunas no mobile para melhor usabilidade */}
