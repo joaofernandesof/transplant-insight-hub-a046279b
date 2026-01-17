@@ -27,7 +27,8 @@ import {
   Flame,
   User,
   GraduationCap,
-  Store
+  Store,
+  CreditCard
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
@@ -259,6 +260,16 @@ const mainSections = [
     color: 'bg-teal-600 hover:bg-teal-700',
     iconBg: 'bg-teal-100',
     iconColor: 'text-teal-600'
+  },
+  {
+    id: 'license-payments',
+    title: 'Financeiro Licença',
+    description: 'Pagamentos e ROI do HotLeads',
+    icon: CreditCard,
+    route: '/license-payments',
+    color: 'bg-lime-600 hover:bg-lime-700',
+    iconBg: 'bg-lime-100',
+    iconColor: 'text-lime-600'
   }
 ];
 

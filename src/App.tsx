@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import AdminPanel from "./pages/AdminPanel";
 import Certificates from "./pages/Certificates";
 import Partners from "./pages/Partners";
+import LicensePayments from "./pages/LicensePayments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -214,6 +215,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Partners />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/license-payments" 
+        element={
+          <ProtectedRoute>
+            <LicensePayments />
           </ProtectedRoute>
         } 
       />
