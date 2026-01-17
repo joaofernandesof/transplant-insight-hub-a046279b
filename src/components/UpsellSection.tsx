@@ -1,6 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Play, Bot, Users } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ShoppingCart, Play, Bot, Users, X } from "lucide-react";
 
 interface UpsellItem {
   id: string;
@@ -8,6 +15,7 @@ interface UpsellItem {
   description: string;
   icon: React.ReactNode;
   gradient: string;
+  trailerUrl?: string;
 }
 
 const upsellItems: UpsellItem[] = [
@@ -17,6 +25,7 @@ const upsellItems: UpsellItem[] = [
     description: 'Automatize seu processo comercial com um robô especializado em vendas para clínicas de transplante capilar.',
     icon: <Bot className="h-16 w-16 text-white/90" />,
     gradient: 'from-blue-500 to-blue-600',
+    trailerUrl: '/videos/criacao-icone-licenca.mp4', // Placeholder - substituir pelo vídeo real
   },
   {
     id: 'contrate-equipe',
@@ -24,18 +33,27 @@ const upsellItems: UpsellItem[] = [
     description: 'Contrate nossa equipe especializada e se preocupe apenas em operar, deixe todo o restante conosco.',
     icon: <Users className="h-16 w-16 text-white/90" />,
     gradient: 'from-blue-400 to-blue-500',
+    trailerUrl: '/videos/criacao-icone-licenca.mp4', // Placeholder - substituir pelo vídeo real
   },
 ];
 
 export function UpsellSection() {
+  const [trailerOpen, setTrailerOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<UpsellItem | null>(null);
+
   const handleBuy = (itemId: string) => {
     console.log('Comprar:', itemId);
     // TODO: Implementar lógica de compra
   };
 
-  const handleTrailer = (itemId: string) => {
-    console.log('Assistir trailer:', itemId);
-    // TODO: Implementar visualização de trailer
+  const handleTrailer = (item: UpsellItem) => {
+    setSelectedItem(item);
+    setTrailerOpen(true);
+  };
+
+  const handleCloseTrailer = () => {
+    setTrailerOpen(false);
+    setSelectedItem(null);
   };
 
   return (
@@ -72,7 +90,7 @@ export function UpsellSection() {
                 <Button 
                   variant="outline" 
                   className="w-full gap-2"
-                  onClick={() => handleTrailer(item.id)}
+                  onClick={() => handleTrailer(item)}
                 >
                   <Play className="h-4 w-4" />
                   Assistir Trailer
@@ -82,6 +100,33 @@ export function UpsellSection() {
           </Card>
         ))}
       </div>
+
+      {/* Trailer Modal */}
+      <Dialog open={trailerOpen} onOpenChange={handleCloseTrailer}>
+        <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle className="flex items-center gap-2">
+              <Play className="h-5 w-5 text-blue-600" />
+              {selectedItem?.title} - Trailer
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4 pt-2">
+            {selectedItem?.trailerUrl && (
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <video
+                  key={selectedItem.id}
+                  controls
+                  autoPlay
+                  className="w-full h-full object-contain"
+                  src={selectedItem.trailerUrl}
+                >
+                  Seu navegador não suporta vídeos HTML5.
+                </video>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
