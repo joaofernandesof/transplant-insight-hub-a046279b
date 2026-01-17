@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,14 @@ export default function Materials() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const { materials, isLoading, downloadMaterial, deleteMaterial, formatFileSize, getFileTypeFromName } = useMaterials();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+
+  // Mark materials as viewed for first steps checklist
+  useEffect(() => {
+    if (user?.id) {
+      localStorage.setItem(`materials_viewed_${user.id}`, "true");
+    }
+  }, [user?.id]);
 
   const filteredMaterials = materials.filter(m => {
     const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase()) || 

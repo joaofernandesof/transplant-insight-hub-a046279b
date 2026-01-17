@@ -37,6 +37,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import UserNotificationsPopover from "@/components/UserNotificationsPopover";
 import OnboardingTour from "@/components/OnboardingTour";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -368,6 +369,11 @@ export default function LicenseeHome() {
             {tierInfo.icon}
             <p className="font-bold text-lg">Nível {tierInfo.name}</p>
           </div>
+        </div>
+
+        {/* First Steps Checklist */}
+        <div className="mb-8">
+          <FirstStepsChecklist />
         </div>
 
         {/* Menu Grid - 5 colunas em telas grandes */}
