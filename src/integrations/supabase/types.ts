@@ -76,8 +76,13 @@ export type Database = {
       }
       leads: {
         Row: {
+          available_at: string | null
           city: string | null
+          claimed_at: string | null
+          claimed_by: string | null
           clinic_id: string | null
+          converted_at: string | null
+          converted_value: number | null
           created_at: string
           email: string | null
           id: string
@@ -85,6 +90,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string
+          procedures_sold: string[] | null
           source: string | null
           state: string | null
           status: string | null
@@ -94,8 +100,13 @@ export type Database = {
           utm_source: string | null
         }
         Insert: {
+          available_at?: string | null
           city?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
           clinic_id?: string | null
+          converted_at?: string | null
+          converted_value?: number | null
           created_at?: string
           email?: string | null
           id?: string
@@ -103,6 +114,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone: string
+          procedures_sold?: string[] | null
           source?: string | null
           state?: string | null
           status?: string | null
@@ -112,8 +124,13 @@ export type Database = {
           utm_source?: string | null
         }
         Update: {
+          available_at?: string | null
           city?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
           clinic_id?: string | null
+          converted_at?: string | null
+          converted_value?: number | null
           created_at?: string
           email?: string | null
           id?: string
@@ -121,6 +138,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string
+          procedures_sold?: string[] | null
           source?: string | null
           state?: string | null
           status?: string | null
