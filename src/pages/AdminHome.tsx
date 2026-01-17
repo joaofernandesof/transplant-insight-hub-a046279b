@@ -30,7 +30,8 @@ import {
   Loader2,
   Activity,
   Bell,
-  Send
+  Send,
+  FileText
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -86,6 +87,15 @@ const adminModules: ModuleCard[] = [
     icon: <GitCompare className="h-6 w-6" />,
     path: '/comparison',
     color: 'from-purple-500 to-purple-600',
+    category: 'management'
+  },
+  {
+    id: 'weekly-reports',
+    title: 'Relatórios Semanais',
+    description: 'Gerar e baixar relatórios em PDF',
+    icon: <FileText className="h-6 w-6" />,
+    path: '/weekly-reports',
+    color: 'from-rose-500 to-rose-600',
     category: 'management'
   },
   {
