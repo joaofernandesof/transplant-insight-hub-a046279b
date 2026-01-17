@@ -229,28 +229,31 @@ export function ModuleSidebar({ children }: ModuleSidebarProps) {
                 {!isCollapsed && <span className="truncate">{item.title}</span>}
               </Button>
             ))}
+            
+            {/* Separator before logout */}
+            <div className="my-3 border-t border-border" />
+            
+            {/* Logout Button - part of scrollable content */}
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-3 h-10 text-destructive hover:text-destructive hover:bg-destructive/10",
+                isCollapsed && "justify-center px-2"
+              )}
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span className="truncate">Sair</span>}
+            </Button>
           </nav>
         </ScrollArea>
 
-        {/* Footer */}
-        <div className={cn("p-4 border-t space-y-2", isCollapsed && "flex flex-col items-center")}>
-          {/* Logout Button */}
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-full justify-start gap-3 h-10 text-destructive hover:text-destructive hover:bg-destructive/10",
-              isCollapsed && "justify-center px-2"
-            )}
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4 flex-shrink-0" />
-            {!isCollapsed && <span className="truncate">Sair</span>}
-          </Button>
-          
+        {/* Footer - only theme toggle */}
+        <div className={cn("p-4 border-t", isCollapsed && "flex flex-col items-center")}>
           {isCollapsed ? (
             <ThemeToggle />
           ) : (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between">
               <p className="text-[10px] text-muted-foreground">
                 Portal do Licenciado
               </p>
