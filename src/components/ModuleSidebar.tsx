@@ -32,7 +32,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
-  X
+  X,
+  Gift
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { useState, useEffect } from "react";
@@ -70,6 +71,7 @@ const menuItems = [
   { id: 'community', title: 'Comunidade', icon: Users, route: '/community' },
   { id: 'certificates', title: 'Certificados', icon: GraduationCap, route: '/certificates' },
   { id: 'partners', title: 'Parceiros', icon: Store, route: '/partners' },
+  { id: 'referral', title: 'Indique e Ganhe', icon: Gift, route: '/indique-e-ganhe' },
   { id: 'license-payments', title: 'Financeiro Licença', icon: CreditCard, route: '/license-payments' },
 ];
 
