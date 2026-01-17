@@ -30,7 +30,8 @@ import {
   ArrowRight,
   CheckCircle,
   Building2,
-  Gift
+  Gift,
+  Menu
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -39,6 +40,7 @@ import OnboardingTour from "@/components/OnboardingTour";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 import AchievementsPanel from "@/components/AchievementsPanel";
+import { ModuleSidebar } from "@/components/ModuleSidebar";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -310,6 +312,11 @@ export default function LicenseeHome() {
     navigate('/login');
   };
 
+  // Função para abrir o menu lateral (dispara evento customizado)
+  const openSidebar = () => {
+    window.dispatchEvent(new CustomEvent('openSidebar'));
+  };
+
   return (
     <>
       {/* Onboarding Tour */}
@@ -321,6 +328,14 @@ export default function LicenseeHome() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={openSidebar}
+                className="flex-shrink-0"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
               <img 
                 src={logoByNeofolic} 
                 alt="Licença ByNeofolic" 

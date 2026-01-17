@@ -108,6 +108,16 @@ export function ModuleSidebar({ children }: ModuleSidebarProps) {
     setIsMobileOpen(false);
   }, [location.pathname]);
 
+  // Listen for custom event to open sidebar
+  useEffect(() => {
+    const handleOpenSidebar = () => {
+      setIsMobileOpen(true);
+    };
+    
+    window.addEventListener('openSidebar', handleOpenSidebar);
+    return () => window.removeEventListener('openSidebar', handleOpenSidebar);
+  }, []);
+
   const isActive = (route: string) => location.pathname === route;
 
   return (
