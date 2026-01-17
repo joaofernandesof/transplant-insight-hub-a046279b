@@ -33,7 +33,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Gift
+  Gift,
+  LogOut
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { useState, useEffect } from "react";
@@ -86,11 +87,16 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
 };
 
 export function ModuleSidebar({ children }: ModuleSidebarProps) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   // Tier é apenas para licenciados, não para admins
   const tier = (!isAdmin && user) ? getLicenseeTier(user.id) : null;
@@ -216,11 +222,24 @@ export function ModuleSidebar({ children }: ModuleSidebarProps) {
         </ScrollArea>
 
         {/* Footer */}
-        <div className={cn("p-4 border-t", isCollapsed && "flex justify-center")}>
+        <div className={cn("p-4 border-t space-y-2", isCollapsed && "flex flex-col items-center")}>
+          {/* Logout Button */}
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 h-10 text-destructive hover:text-destructive hover:bg-destructive/10",
+              isCollapsed && "justify-center px-2"
+            )}
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && <span className="truncate">Sair</span>}
+          </Button>
+          
           {isCollapsed ? (
             <ThemeToggle />
           ) : (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pt-2">
               <p className="text-[10px] text-muted-foreground">
                 Portal do Licenciado
               </p>

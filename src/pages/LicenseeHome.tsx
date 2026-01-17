@@ -22,18 +22,19 @@ import {
   DollarSign,
   Users,
   Settings,
-  Bell,
   TrendingUp,
   Flame,
-  User,
   GraduationCap,
   Store,
   CreditCard,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  Building2,
+  Gift
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import UserNotificationsPopover from "@/components/UserNotificationsPopover";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -122,7 +123,7 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
   return tierMap[userId] || 'basic';
 };
 
-// Seções principais do portal
+// Seções principais do portal - mesma ordem do menu lateral
 const mainSections = [
   {
     id: 'metrics',
@@ -130,7 +131,6 @@ const mainSections = [
     description: 'KPIs semanais, funil de vendas e insights do mentor virtual',
     icon: BarChart3,
     route: '/dashboard',
-    color: 'bg-primary hover:bg-primary/90',
     iconBg: 'bg-primary/10',
     iconColor: 'text-primary'
   },
@@ -140,7 +140,6 @@ const mainSections = [
     description: 'Trilhas de capacitação, aulas gravadas e imersões',
     icon: Video,
     route: '/university',
-    color: 'bg-purple-600 hover:bg-purple-700',
     iconBg: 'bg-purple-100',
     iconColor: 'text-purple-600'
   },
@@ -150,7 +149,6 @@ const mainSections = [
     description: 'Checklist de documentos, alvarás e compliance',
     icon: FileCheck,
     route: '/regularization',
-    color: 'bg-emerald-600 hover:bg-emerald-700',
     iconBg: 'bg-emerald-100',
     iconColor: 'text-emerald-600'
   },
@@ -160,7 +158,6 @@ const mainSections = [
     description: 'POPs, protocolos, scripts, contratos e termos',
     icon: BookOpen,
     route: '/materials',
-    color: 'bg-blue-600 hover:bg-blue-700',
     iconBg: 'bg-blue-100',
     iconColor: 'text-blue-600'
   },
@@ -170,7 +167,6 @@ const mainSections = [
     description: 'Templates, campanhas, banco de mídia e branding',
     icon: Palette,
     route: '/marketing',
-    color: 'bg-pink-600 hover:bg-pink-700',
     iconBg: 'bg-pink-100',
     iconColor: 'text-pink-600'
   },
@@ -180,9 +176,17 @@ const mainSections = [
     description: 'Produtos com preço de custo e fornecedores parceiros',
     icon: ShoppingBag,
     route: '/store',
-    color: 'bg-orange-600 hover:bg-orange-700',
     iconBg: 'bg-orange-100',
     iconColor: 'text-orange-600'
+  },
+  {
+    id: 'estrutura-neo',
+    title: 'Estrutura NEO',
+    description: 'Modelo de negócio e estrutura da franquia',
+    icon: Building2,
+    route: '/estrutura-neo',
+    iconBg: 'bg-sky-100',
+    iconColor: 'text-sky-600'
   },
   {
     id: 'financial',
@@ -190,7 +194,6 @@ const mainSections = [
     description: 'Metas comerciais, dashboards e orientações',
     icon: DollarSign,
     route: '/financial',
-    color: 'bg-green-600 hover:bg-green-700',
     iconBg: 'bg-green-100',
     iconColor: 'text-green-600'
   },
@@ -200,7 +203,6 @@ const mainSections = [
     description: 'Consultorias, grupo exclusivo e comunidade',
     icon: Users,
     route: '/mentorship',
-    color: 'bg-indigo-600 hover:bg-indigo-700',
     iconBg: 'bg-indigo-100',
     iconColor: 'text-indigo-600'
   },
@@ -210,7 +212,6 @@ const mainSections = [
     description: 'CRM, WhatsApp API, Feegow e robôs',
     icon: Settings,
     route: '/systems',
-    color: 'bg-slate-600 hover:bg-slate-700',
     iconBg: 'bg-slate-100',
     iconColor: 'text-slate-600'
   },
@@ -220,7 +221,6 @@ const mainSections = [
     description: 'Roadmap, checklist de domínio e evolução',
     icon: TrendingUp,
     route: '/career',
-    color: 'bg-amber-600 hover:bg-amber-700',
     iconBg: 'bg-amber-100',
     iconColor: 'text-amber-600'
   },
@@ -230,7 +230,6 @@ const mainSections = [
     description: 'Leads qualificados para sua clínica',
     icon: Flame,
     route: '/hotleads',
-    color: 'bg-red-600 hover:bg-red-700',
     iconBg: 'bg-red-100',
     iconColor: 'text-red-600'
   },
@@ -240,7 +239,6 @@ const mainSections = [
     description: 'Conecte-se com outros licenciados',
     icon: Users,
     route: '/community',
-    color: 'bg-cyan-600 hover:bg-cyan-700',
     iconBg: 'bg-cyan-100',
     iconColor: 'text-cyan-600'
   },
@@ -250,7 +248,6 @@ const mainSections = [
     description: 'Seus cursos e certificações',
     icon: GraduationCap,
     route: '/certificates',
-    color: 'bg-violet-600 hover:bg-violet-700',
     iconBg: 'bg-violet-100',
     iconColor: 'text-violet-600'
   },
@@ -260,9 +257,17 @@ const mainSections = [
     description: 'Cupons exclusivos para você',
     icon: Store,
     route: '/partners',
-    color: 'bg-teal-600 hover:bg-teal-700',
     iconBg: 'bg-teal-100',
     iconColor: 'text-teal-600'
+  },
+  {
+    id: 'referral',
+    title: 'Indique e Ganhe',
+    description: 'Ganhe 5% de comissão por indicação',
+    icon: Gift,
+    route: '/indique-e-ganhe',
+    iconBg: 'bg-rose-100',
+    iconColor: 'text-rose-600'
   },
   {
     id: 'license-payments',
@@ -270,7 +275,6 @@ const mainSections = [
     description: 'Pagamentos e ROI do HotLeads',
     icon: CreditCard,
     route: '/license-payments',
-    color: 'bg-lime-600 hover:bg-lime-700',
     iconBg: 'bg-lime-100',
     iconColor: 'text-lime-600'
   }
@@ -308,12 +312,7 @@ export default function LicenseeHome() {
             
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full text-[10px] flex items-center justify-center text-white">
-                  3
-                </span>
-              </Button>
+              <UserNotificationsPopover />
               <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-primary/10 text-primary text-xs">
