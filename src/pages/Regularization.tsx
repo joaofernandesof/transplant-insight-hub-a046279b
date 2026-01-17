@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
   FileCheck,
   CheckCircle2,
   Circle,
@@ -17,7 +15,7 @@ import {
   Scale,
   Download
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
+import { ModuleLayout } from "@/components/ModuleLayout";
 
 interface ChecklistItem {
   id: string;
@@ -29,25 +27,18 @@ interface ChecklistItem {
 }
 
 const initialChecklist: ChecklistItem[] = [
-  // Documentação Básica
   { id: '1', title: 'CNPJ Ativo', description: 'Cadastro Nacional de Pessoa Jurídica', category: 'documentacao', completed: true, required: true },
   { id: '2', title: 'Contrato Social', description: 'Registrado na Junta Comercial', category: 'documentacao', completed: true, required: true },
   { id: '3', title: 'Inscrição Estadual', description: 'Se aplicável ao seu estado', category: 'documentacao', completed: false, required: false },
   { id: '4', title: 'Inscrição Municipal', description: 'Cadastro no município', category: 'documentacao', completed: true, required: true },
-  
-  // Alvarás e Licenças
   { id: '5', title: 'Alvará de Funcionamento', description: 'Emitido pela prefeitura local', category: 'alvaras', completed: true, required: true },
   { id: '6', title: 'Licença Sanitária (Vigilância)', description: 'Vigilância Sanitária municipal/estadual', category: 'alvaras', completed: false, required: true },
   { id: '7', title: 'AVCB (Bombeiros)', description: 'Auto de Vistoria do Corpo de Bombeiros', category: 'alvaras', completed: false, required: true },
   { id: '8', title: 'Licença Ambiental', description: 'Se aplicável à sua região', category: 'alvaras', completed: true, required: false },
-  
-  // Compliance Médico
   { id: '9', title: 'CRM do Responsável Técnico', description: 'Registro ativo no Conselho Regional', category: 'medico', completed: true, required: true },
   { id: '10', title: 'Registro no CRM como PJ', description: 'Clínica registrada no conselho', category: 'medico', completed: true, required: true },
   { id: '11', title: 'Protocolos de Esterilização', description: 'Documentados e validados', category: 'medico', completed: false, required: true },
   { id: '12', title: 'PGRSS', description: 'Plano de Gerenciamento de Resíduos', category: 'medico', completed: false, required: true },
-  
-  // LGPD e Jurídico
   { id: '13', title: 'Política de Privacidade', description: 'Conforme LGPD', category: 'juridico', completed: true, required: true },
   { id: '14', title: 'Termos de Consentimento', description: 'TCLE atualizados', category: 'juridico', completed: true, required: true },
   { id: '15', title: 'Contrato de Prestação de Serviços', description: 'Modelo validado juridicamente', category: 'juridico', completed: true, required: true },
@@ -62,13 +53,10 @@ const categories = [
 ];
 
 export default function Regularization() {
-  const navigate = useNavigate();
   const [checklist, setChecklist] = useState(initialChecklist);
 
   const toggleItem = (id: string) => {
-    setChecklist(prev => prev.map(item => 
-      item.id === id ? { ...item, completed: !item.completed } : item
-    ));
+    setChecklist(prev => prev.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
   };
 
   const totalItems = checklist.length;
@@ -94,30 +82,20 @@ export default function Regularization() {
   const status = getStatusBadge();
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
-              <div>
-                <h1 className="text-xl font-bold flex items-center gap-2">
-                  <FileCheck className="h-5 w-5 text-emerald-600" />
-                  Regularização da Clínica
-                </h1>
-                <p className="text-sm text-muted-foreground">Checklist de documentação e compliance</p>
-              </div>
-            </div>
-            <Badge className={status.color}>{status.label}</Badge>
+    <ModuleLayout>
+      <div className="p-4 lg:p-6 lg:pt-4 max-w-5xl">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <FileCheck className="h-6 w-6 text-emerald-600" />
+              Regularização da Clínica
+            </h1>
+            <p className="text-sm text-muted-foreground">Checklist de documentação e compliance</p>
           </div>
+          <Badge className={status.color}>{status.label}</Badge>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-5xl">
         {/* Progress Overview */}
         <Card className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
           <CardContent className="pt-6">
@@ -156,40 +134,20 @@ export default function Regularization() {
                     </div>
                     <div>
                       <CardTitle className="text-base">{category.name}</CardTitle>
-                      <CardDescription className="text-xs">
-                        {categoryCompleted}/{categoryItems.length} concluídos
-                      </CardDescription>
+                      <CardDescription className="text-xs">{categoryCompleted}/{categoryItems.length} concluídos</CardDescription>
                     </div>
                   </div>
-                  <Progress 
-                    value={(categoryCompleted / categoryItems.length) * 100} 
-                    className="w-24 h-2" 
-                  />
+                  <Progress value={(categoryCompleted / categoryItems.length) * 100} className="w-24 h-2" />
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {categoryItems.map((item) => (
-                  <div 
-                    key={item.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
-                      item.completed ? 'bg-green-50 border-green-200' : 'hover:bg-muted/50'
-                    }`}
-                  >
-                    <Checkbox 
-                      checked={item.completed}
-                      onCheckedChange={() => toggleItem(item.id)}
-                      className="mt-0.5"
-                    />
+                  <div key={item.id} className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${item.completed ? 'bg-green-50 border-green-200' : 'hover:bg-muted/50'}`}>
+                    <Checkbox checked={item.completed} onCheckedChange={() => toggleItem(item.id)} className="mt-0.5" />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className={`font-medium text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                          {item.title}
-                        </p>
-                        {item.required && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            Obrigatório
-                          </Badge>
-                        )}
+                        <p className={`font-medium text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>{item.title}</p>
+                        {item.required && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Obrigatório</Badge>}
                       </div>
                       <p className="text-xs text-muted-foreground">{item.description}</p>
                     </div>
@@ -218,7 +176,7 @@ export default function Regularization() {
             Ver Modelos de Documentos
           </Button>
         </div>
-      </main>
-    </div>
+      </div>
+    </ModuleLayout>
   );
 }

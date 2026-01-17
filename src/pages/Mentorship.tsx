@@ -1,10 +1,8 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
   Users,
   Calendar,
   Clock,
@@ -14,25 +12,11 @@ import {
   CheckCircle2,
   ExternalLink
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
+import { ModuleLayout } from "@/components/ModuleLayout";
 
 const mentors = [
-  {
-    id: 1,
-    name: 'João Fernandes',
-    role: 'CEO & Fundador',
-    specialty: 'Estratégia e Vendas',
-    avatar: 'JF',
-    available: true
-  },
-  {
-    id: 2,
-    name: 'Dr. Hygor Guerreiro',
-    role: 'Diretor Médico',
-    specialty: 'Técnicas Cirúrgicas',
-    avatar: 'HG',
-    available: true
-  },
+  { id: 1, name: 'João Fernandes', role: 'CEO & Fundador', specialty: 'Estratégia e Vendas', avatar: 'JF', available: true },
+  { id: 2, name: 'Dr. Hygor Guerreiro', role: 'Diretor Médico', specialty: 'Técnicas Cirúrgicas', avatar: 'HG', available: true },
 ];
 
 const upcomingMentorships = [
@@ -41,11 +25,7 @@ const upcomingMentorships = [
   { id: 3, title: 'Mastermind Licenciados', date: '01 Fev 2026', time: '10:00', type: 'Online', spots: 12 },
 ];
 
-const mentorshipHours = {
-  total: 10,
-  used: 4,
-  available: 6
-};
+const mentorshipHours = { total: 10, used: 4, available: 6 };
 
 const supportChannels = [
   { id: 1, name: 'Grupo WhatsApp Suporte', description: 'Suporte diário com a equipe Neo Folic', members: 45, icon: MessageCircle },
@@ -53,30 +33,18 @@ const supportChannels = [
 ];
 
 export default function Mentorship() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <Users className="h-5 w-5 text-indigo-600" />
-                Mentoria & Suporte
-              </h1>
-              <p className="text-sm text-muted-foreground">Consultorias, comunidade e grupo exclusivo</p>
-            </div>
-          </div>
+    <ModuleLayout>
+      <div className="p-4 lg:p-6 lg:pt-4">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Users className="h-6 w-6 text-indigo-600" />
+            Mentoria & Suporte
+          </h1>
+          <p className="text-sm text-muted-foreground">Consultorias, comunidade e grupo exclusivo</p>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Hours Available */}
         <Card className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
           <CardContent className="pt-6">
@@ -111,21 +79,14 @@ export default function Mentorship() {
             </CardHeader>
             <CardContent className="space-y-4">
               {mentors.map((mentor) => (
-                <div 
-                  key={mentor.id}
-                  className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
-                >
+                <div key={mentor.id} className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors">
                   <Avatar className="h-14 w-14">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                      {mentor.avatar}
-                    </AvatarFallback>
+                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">{mentor.avatar}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold">{mentor.name}</h4>
-                      {mentor.available && (
-                        <Badge className="bg-green-100 text-green-700 text-xs">Disponível</Badge>
-                      )}
+                      {mentor.available && <Badge className="bg-green-100 text-green-700 text-xs">Disponível</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground">{mentor.role}</p>
                     <p className="text-xs text-primary">{mentor.specialty}</p>
@@ -149,10 +110,7 @@ export default function Mentorship() {
             </CardHeader>
             <CardContent className="space-y-3">
               {upcomingMentorships.map((event) => (
-                <div 
-                  key={event.id}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                >
+                <div key={event.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
                       <Video className="h-5 w-5 text-indigo-600" />
@@ -160,19 +118,15 @@ export default function Mentorship() {
                     <div>
                       <p className="font-medium text-sm">{event.title}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {event.date}
-                        <Clock className="h-3 w-3 ml-1" />
-                        {event.time}
+                        <Calendar className="h-3 w-3" />{event.date}
+                        <Clock className="h-3 w-3 ml-1" />{event.time}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
                     <Badge variant="outline" className="text-xs mb-1">{event.spots} vagas</Badge>
                     <br />
-                    <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">
-                      Participar
-                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">Participar</Button>
                   </div>
                 </div>
               ))}
@@ -192,10 +146,7 @@ export default function Mentorship() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {supportChannels.map((channel) => (
-                <div 
-                  key={channel.id}
-                  className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
-                >
+                <div key={channel.id} className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                   <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
                     <channel.icon className="h-6 w-6 text-green-600" />
                   </div>
@@ -242,7 +193,7 @@ export default function Mentorship() {
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </ModuleLayout>
   );
 }

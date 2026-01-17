@@ -1,26 +1,22 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ArrowLeft,
   Palette,
   Image,
   Video,
-  FileText,
   Download,
   Search,
   Instagram,
   Facebook,
-  Youtube,
   Megaphone,
   Sparkles,
   Play
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
+import { ModuleLayout } from "@/components/ModuleLayout";
 
 const templates = [
   { id: 1, title: 'Post - Antes e Depois', type: 'image', platform: 'Instagram', downloads: 234 },
@@ -48,31 +44,20 @@ const campaigns = [
 ];
 
 export default function Marketing() {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <Palette className="h-5 w-5 text-pink-600" />
-                Central de Marketing
-              </h1>
-              <p className="text-sm text-muted-foreground">Templates, campanhas e banco de mídia</p>
-            </div>
-          </div>
+    <ModuleLayout>
+      <div className="p-4 lg:p-6 lg:pt-4">
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Palette className="h-6 w-6 text-pink-600" />
+            Central de Marketing
+          </h1>
+          <p className="text-sm text-muted-foreground">Templates, campanhas e banco de mídia</p>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card>
@@ -247,7 +232,7 @@ export default function Marketing() {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
-    </div>
+      </div>
+    </ModuleLayout>
   );
 }
