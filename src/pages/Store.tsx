@@ -70,7 +70,7 @@ export default function Store() {
 
   return (
     <ModuleLayout>
-      <div className="p-4 lg:p-6 lg:pt-4">
+      <div className="p-4 pt-16 lg:pt-4 lg:p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
