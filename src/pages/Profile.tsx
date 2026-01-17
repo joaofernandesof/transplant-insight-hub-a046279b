@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ImageCropper } from '@/components/ImageCropper';
 import { 
   ArrowLeft, 
   User, 
@@ -48,6 +49,10 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Image cropper state
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -110,9 +115,9 @@ export default function Profile() {
     }
   };
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user?.id) return;
+    if (!file) return;
 
     // Validate file
     if (!file.type.startsWith('image/')) {
@@ -120,29 +125,45 @@ export default function Profile() {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('A imagem deve ter no máximo 2MB');
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 10MB');
       return;
     }
 
+    // Create object URL for cropper
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImage(imageUrl);
+    setCropperOpen(true);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user?.id) return;
+
     setIsUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${user.id}/avatar.jpg`;
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, croppedBlob, { 
+          upsert: true,
+          contentType: 'image/jpeg'
+        });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL with cache-busting
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      const avatarUrl = urlData.publicUrl;
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
       // Update profile
       const { error: updateError } = await supabase
@@ -159,6 +180,10 @@ export default function Profile() {
       toast.error('Erro ao enviar foto');
     } finally {
       setIsUploading(false);
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+        setSelectedImage(null);
+      }
     }
   };
 
@@ -223,7 +248,7 @@ export default function Profile() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={handleAvatarUpload}
+                  onChange={handleFileSelect}
                 />
               </div>
               <h2 className="mt-4 text-xl font-bold">{profile.name}</h2>
@@ -232,6 +257,21 @@ export default function Profile() {
           </CardContent>
         </Card>
 
+        {/* Image Cropper Modal */}
+        {selectedImage && (
+          <ImageCropper
+            open={cropperOpen}
+            onClose={() => {
+              setCropperOpen(false);
+              if (selectedImage) {
+                URL.revokeObjectURL(selectedImage);
+                setSelectedImage(null);
+              }
+            }}
+            imageSrc={selectedImage}
+            onCropComplete={handleCropComplete}
+          />
+        )}
         {/* Profile Form */}
         <Card>
           <CardHeader>
