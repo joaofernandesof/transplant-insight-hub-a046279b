@@ -8,6 +8,7 @@ import { DataProvider } from "@/contexts/DataContext";
 import { SupportButton } from "@/components/SupportButton";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import AdminHome from "./pages/AdminHome";
 import ClinicComparison from "./pages/ClinicComparison";
 import LicenseeHome from "./pages/LicenseeHome";
 import LicenseesPanel from "./pages/LicenseesPanel";
@@ -62,7 +63,7 @@ function AppRoutes() {
         path="/" 
         element={
           <ProtectedRoute>
-            {isAdmin ? <Dashboard /> : <LicenseeHome />}
+            {isAdmin ? <AdminHome /> : <LicenseeHome />}
           </ProtectedRoute>
         } 
       />
