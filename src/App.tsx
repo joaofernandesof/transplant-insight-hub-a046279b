@@ -36,6 +36,7 @@ import ReferralProgram from "./pages/ReferralProgram";
 import ReferralLanding from "./pages/ReferralLanding";
 import Achievements from "./pages/Achievements";
 import UserMonitoring from "./pages/UserMonitoring";
+import WeeklyReports from "./pages/WeeklyReports";
 import NotFound from "./pages/NotFound";
 
 // Wrapper para páginas do licenciado com sidebar
@@ -275,6 +276,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <UserMonitoring />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/weekly-reports" 
+        element={
+          <ProtectedRoute>
+            <WeeklyReports />
           </ProtectedRoute>
         } 
       />
