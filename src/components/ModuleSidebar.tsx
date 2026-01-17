@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { useState, useEffect } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface ModuleSidebarProps {
   children: React.ReactNode;
@@ -215,13 +216,18 @@ export function ModuleSidebar({ children }: ModuleSidebarProps) {
         </ScrollArea>
 
         {/* Footer */}
-        {!isCollapsed && (
-          <div className="p-4 border-t">
-            <p className="text-[10px] text-muted-foreground text-center">
-              Portal do Licenciado
-            </p>
-          </div>
-        )}
+        <div className={cn("p-4 border-t", isCollapsed && "flex justify-center")}>
+          {isCollapsed ? (
+            <ThemeToggle />
+          ) : (
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] text-muted-foreground">
+                Portal do Licenciado
+              </p>
+              <ThemeToggle />
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* Main Content */}
