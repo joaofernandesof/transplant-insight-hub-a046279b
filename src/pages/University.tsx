@@ -1,10 +1,8 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { ModuleLayout } from "@/components/ModuleLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  ArrowLeft,
   Video,
   Play,
   Clock,
@@ -17,7 +15,6 @@ import {
   Users,
   Calendar
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
 const tracks = [
   {
@@ -77,22 +74,16 @@ const upcomingEvents = [
 ];
 
 export default function University() {
-  const navigate = useNavigate();
-
   const totalModules = tracks.reduce((acc, t) => acc + t.modules, 0);
   const totalCompleted = tracks.reduce((acc, t) => acc + t.completed, 0);
   const overallProgress = Math.round((totalCompleted / totalModules) * 100);
 
   return (
-    <div className="min-h-screen bg-background">
+    <ModuleLayout>
       {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-purple-600" />
@@ -216,6 +207,6 @@ export default function University() {
           </Card>
         </div>
       </main>
-    </div>
+    </ModuleLayout>
   );
 }

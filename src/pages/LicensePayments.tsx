@@ -1,11 +1,8 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
+import { ModuleLayout } from "@/components/ModuleLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
-  ArrowLeft, 
   CreditCard, 
   CheckCircle2, 
   AlertCircle, 
@@ -18,7 +15,6 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
 interface Payment {
   id: string;
@@ -79,9 +75,6 @@ const formatCurrency = (value: number) => {
 };
 
 export default function LicensePayments() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
   // Cálculos
   const licenseFeeTotal = 120000;
   const monthlyFeeTotal = 5000;
@@ -116,15 +109,11 @@ export default function LicensePayments() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <ModuleLayout>
       {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/home')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-emerald-600" />
@@ -383,6 +372,6 @@ export default function LicensePayments() {
           <p className="mt-1">Os dados exibidos são simulados para demonstração.</p>
         </div>
       </main>
-    </div>
+    </ModuleLayout>
   );
 }

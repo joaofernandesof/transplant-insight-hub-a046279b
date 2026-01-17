@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { ModuleLayout } from '@/components/ModuleLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { 
-  ArrowLeft, 
   Flame, 
   Phone, 
   Mail, 
@@ -22,7 +22,6 @@ import {
   TrendingUp,
   Users
 } from 'lucide-react';
-import logoByNeofolic from '@/assets/logo-byneofolic.png';
 import { toast } from 'sonner';
 
 interface Lead {
@@ -117,17 +116,11 @@ export default function HotLeads() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <ModuleLayout>
       {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
-            </div>
             <h1 className="text-xl font-bold flex items-center gap-2">
               <Flame className="h-6 w-6 text-orange-500" />
               HotLeads
@@ -304,6 +297,6 @@ export default function HotLeads() {
           </div>
         )}
       </main>
-    </div>
+    </ModuleLayout>
   );
 }
