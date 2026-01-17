@@ -19,6 +19,10 @@ import Financial from "./pages/Financial";
 import Mentorship from "./pages/Mentorship";
 import Systems from "./pages/Systems";
 import Career from "./pages/Career";
+import HotLeads from "./pages/HotLeads";
+import Community from "./pages/Community";
+import Profile from "./pages/Profile";
+import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -159,6 +163,38 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Career />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/hotleads" 
+        element={
+          <ProtectedRoute>
+            <HotLeads />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/community" 
+        element={
+          <ProtectedRoute>
+            <Community />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute>
+            <AdminPanel />
           </ProtectedRoute>
         } 
       />

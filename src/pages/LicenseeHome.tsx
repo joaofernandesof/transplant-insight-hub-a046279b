@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   BarChart3, 
   FileCheck, 
@@ -22,7 +23,9 @@ import {
   Users,
   Settings,
   Bell,
-  TrendingUp
+  TrendingUp,
+  Flame,
+  User
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 
@@ -214,6 +217,26 @@ const mainSections = [
     color: 'bg-amber-600 hover:bg-amber-700',
     iconBg: 'bg-amber-100',
     iconColor: 'text-amber-600'
+  },
+  {
+    id: 'hotleads',
+    title: 'HotLeads',
+    description: 'Leads qualificados para sua clínica',
+    icon: Flame,
+    route: '/hotleads',
+    color: 'bg-red-600 hover:bg-red-700',
+    iconBg: 'bg-red-100',
+    iconColor: 'text-red-600'
+  },
+  {
+    id: 'community',
+    title: 'Comunidade',
+    description: 'Conecte-se com outros licenciados',
+    icon: Users,
+    route: '/community',
+    color: 'bg-cyan-600 hover:bg-cyan-700',
+    iconBg: 'bg-cyan-100',
+    iconColor: 'text-cyan-600'
   }
 ];
 
@@ -253,6 +276,13 @@ export default function LicenseeHome() {
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full text-[10px] flex items-center justify-center text-white">
                   3
                 </span>
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
               </Button>
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium">{user?.name}</p>
