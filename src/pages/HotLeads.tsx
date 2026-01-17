@@ -581,7 +581,7 @@ export default function HotLeads() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto px-4 py-8 max-w-7xl overflow-x-hidden">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>

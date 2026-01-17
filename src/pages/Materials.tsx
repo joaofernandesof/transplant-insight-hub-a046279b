@@ -74,7 +74,7 @@ export default function Materials() {
 
   return (
     <ModuleLayout>
-      <div className="p-4 pt-16 lg:pt-4 lg:p-6">
+      <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full">
         {/* Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

@@ -82,7 +82,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
   };
 
   return (
-    <div className="min-h-screen flex w-full">
+    <div className="min-h-screen flex w-full overflow-x-hidden">
       {/* Mobile Menu Button */}
       <Button
         variant="ghost"
@@ -225,7 +225,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
 
       {/* Main Content */}
       <main className={cn(
-        "flex-1 transition-all duration-300",
+        "flex-1 transition-all duration-300 overflow-x-hidden w-full min-w-0",
         isCollapsed ? "lg:ml-16" : "lg:ml-64"
       )}>
         {children}

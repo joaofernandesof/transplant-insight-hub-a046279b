@@ -157,7 +157,7 @@ export default function Partners() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-5xl">
+      <main className="container mx-auto px-4 py-6 max-w-5xl overflow-x-hidden">
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">

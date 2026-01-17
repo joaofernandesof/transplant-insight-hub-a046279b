@@ -157,7 +157,7 @@ export default function Dashboard() {
   
   return (
     <Layout>
-      <div className="p-2 sm:p-4 lg:p-6 pt-14 sm:pt-4 max-w-[1920px] mx-auto">
+      <div className="p-2 sm:p-4 lg:p-6 pt-14 sm:pt-4 max-w-[1920px] mx-auto overflow-x-hidden w-full">
         {/* Top Bar - Mobile optimized */}
         <div className="flex flex-col gap-2 sm:gap-3 mb-3 sm:mb-6">
           {/* Admin Controls - Stack on mobile */}

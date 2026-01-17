@@ -121,7 +121,7 @@ export default function Certificates() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-5xl">
+      <main className="container mx-auto px-4 py-6 max-w-5xl overflow-x-hidden">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card className="bg-green-50 border-green-200">
