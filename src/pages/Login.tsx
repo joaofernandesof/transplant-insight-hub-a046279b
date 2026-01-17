@@ -5,6 +5,7 @@ import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft } from 'lucide-re
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -171,7 +172,12 @@ export default function Login() {
   };
   
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center px-4 py-6 sm:p-4 overflow-x-hidden w-full">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center px-4 py-6 sm:p-4 overflow-x-hidden w-full relative">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">

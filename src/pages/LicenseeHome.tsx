@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import mentorsTeamImage from "@/assets/mentors-team.jpg";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -305,6 +306,7 @@ export default function LicenseeHome() {
             </div>
             
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full text-[10px] flex items-center justify-center text-white">
