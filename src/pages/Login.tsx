@@ -379,7 +379,7 @@ export default function Login() {
                         onChange={(e) => setRememberMe(e.target.checked)}
                         className="w-5 h-5 sm:w-4 sm:h-4 rounded border-border text-primary focus:ring-primary/20"
                       />
-                      <span className="text-sm text-muted-foreground">Lembrar meu email</span>
+                      <span className="text-sm text-muted-foreground">Lembrar meu login</span>
                     </label>
                     <button
                       type="button"
