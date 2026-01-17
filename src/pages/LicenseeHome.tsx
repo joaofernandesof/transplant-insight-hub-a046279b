@@ -31,6 +31,7 @@ import {
   CreditCard
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
+import mentorsTeamImage from "@/assets/mentors-team.jpg";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -385,6 +386,30 @@ export default function LicenseeHome() {
             </Card>
           ))}
         </div>
+
+        {/* Mentors Section */}
+        <Card className="mb-8 overflow-hidden">
+          <div className="relative">
+            <img 
+              src={mentorsTeamImage} 
+              alt="Equipe de Mentores IBRAMEC" 
+              className="w-full h-auto object-cover"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+              <h2 className="text-white text-xl md:text-2xl font-bold">Seus Mentores</h2>
+              <p className="text-white/80 text-sm mb-3">
+                Equipe especializada para guiar sua jornada no transplante capilar
+              </p>
+              <Button 
+                size="sm" 
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30"
+                onClick={() => navigate('/mentorship')}
+              >
+                Agendar Mentoria
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         {/* Plano de Carreira - Níveis */}
         <Card className="border-2 mb-8">
