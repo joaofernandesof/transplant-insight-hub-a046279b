@@ -4,7 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { ModuleLayout } from '@/components/ModuleLayout';
+import { ResetPasswordDialog } from '@/components/ResetPasswordDialog';
 import { useUsageStats, formatDuration } from '@/hooks/useUsageStats';
 import { 
   Users, 
@@ -15,7 +17,8 @@ import {
   TrendingUp,
   Calendar,
   Eye,
-  Medal
+  Medal,
+  KeyRound
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -23,11 +26,18 @@ import { ptBR } from 'date-fns/locale';
 export default function UserMonitoring() {
   const [period, setPeriod] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const { stats, isLoading } = useUsageStats({ period });
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string; email: string } | null>(null);
 
   const onlineUsers = stats.filter(s => s.is_online);
   const offlineUsers = stats.filter(s => !s.is_online);
   const totalTime = stats.reduce((acc, s) => acc + s.total_time_seconds, 0);
   const maxTime = Math.max(...stats.map(s => s.total_time_seconds), 1);
+
+  const handleResetPassword = (user: { user_id: string; user_name: string; user_email: string }) => {
+    setSelectedUser({ id: user.user_id, name: user.user_name, email: user.user_email });
+    setResetPasswordOpen(true);
+  };
 
   const getRankBadge = (index: number) => {
     if (index === 0) return <Medal className="h-5 w-5 text-yellow-500" />;
@@ -148,9 +158,20 @@ export default function UserMonitoring() {
                             {user.clinic_name || user.user_email}
                           </p>
                         </div>
-                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700">
-                          Online
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleResetPassword(user)}
+                            title="Redefinir senha"
+                          >
+                            <KeyRound className="h-4 w-4" />
+                          </Button>
+                          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700">
+                            Online
+                          </Badge>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -195,6 +216,15 @@ export default function UserMonitoring() {
                               : 'Nunca acessou'}
                           </p>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleResetPassword(user)}
+                          title="Redefinir senha"
+                        >
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -301,6 +331,13 @@ export default function UserMonitoring() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Reset Password Dialog */}
+        <ResetPasswordDialog
+          open={resetPasswordOpen}
+          onOpenChange={setResetPasswordOpen}
+          targetUser={selectedUser}
+        />
       </div>
     </ModuleLayout>
   );
