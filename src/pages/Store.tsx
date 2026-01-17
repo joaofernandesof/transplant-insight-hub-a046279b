@@ -13,6 +13,7 @@ import {
   Minus
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
+import { UpsellSection } from "@/components/UpsellSection";
 
 interface Product {
   id: string;
@@ -108,6 +109,9 @@ export default function Store() {
           </CardContent>
         </Card>
 
+        {/* Upsell Section */}
+        <UpsellSection />
+
         {/* Search */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -117,6 +121,12 @@ export default function Store() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
+        </div>
+
+        {/* Products Header */}
+        <div className="mb-4">
+          <h2 className="text-xl font-bold">Loja Neo-Spa</h2>
+          <p className="text-sm text-muted-foreground">Produtos com preço de custo para revenda</p>
         </div>
 
         {/* Products Grid */}
