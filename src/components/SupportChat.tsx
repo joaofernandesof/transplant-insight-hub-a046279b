@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   MessageCircle, X, Send, Bot, User, 
-  Loader2, Sparkles, ExternalLink
+  Loader2, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import jonJobsAvatar from "@/assets/jon-jobs-avatar.png";
@@ -184,10 +184,6 @@ export default function SupportChat() {
     window.open(`https://wa.me/5585982349248?text=${message}`, '_blank');
   };
 
-  const openKommo = () => {
-    // Placeholder for Kommo integration
-    window.open("https://www.kommo.com", '_blank');
-  };
 
   // Render markdown-like content
   const renderContent = (content: string) => {
@@ -281,26 +277,15 @@ export default function SupportChat() {
             <p className="text-[10px] text-muted-foreground mb-2 text-center">
               Precisa de atendimento humano?
             </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs gap-1 h-8 bg-[#25D366]/10 border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/20"
-                onClick={openWhatsApp}
-              >
-                <WhatsAppIcon className="h-3.5 w-3.5" />
-                WhatsApp
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs gap-1 h-8"
-                onClick={openKommo}
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                Kommo CRM
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs gap-1 h-8 bg-[#25D366]/10 border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366]/20"
+              onClick={openWhatsApp}
+            >
+              <WhatsAppIcon className="h-3.5 w-3.5" />
+              WhatsApp
+            </Button>
           </div>
 
           {/* Input */}
