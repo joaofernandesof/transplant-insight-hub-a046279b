@@ -32,7 +32,6 @@ import { toast } from 'sonner';
 // Predefined services for hair transplant clinics
 const PREDEFINED_SERVICES = [
   'Transplante Capilar FUE',
-  'Transplante Capilar FUT',
   'Transplante de Barba',
   'Transplante de Sobrancelha',
   'Micropigmentação Capilar',
@@ -57,6 +56,8 @@ interface ProfileData {
   whatsapp_clinic: string;
   clinic_logo_url: string | null;
   services: string[];
+  crm: string;
+  rqe: string;
 }
 
 export default function Profile() {
@@ -78,7 +79,9 @@ export default function Profile() {
     instagram_clinic: '',
     whatsapp_clinic: '',
     clinic_logo_url: null,
-    services: []
+    services: [],
+    crm: '',
+    rqe: ''
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -121,7 +124,9 @@ export default function Profile() {
           instagram_clinic: data.instagram_clinic || '',
           whatsapp_clinic: data.whatsapp_clinic || '',
           clinic_logo_url: data.clinic_logo_url,
-          services: data.services || []
+          services: data.services || [],
+          crm: data.crm || '',
+          rqe: data.rqe || ''
         });
       }
     } catch (error) {
@@ -149,7 +154,9 @@ export default function Profile() {
           whatsapp_personal: profile.whatsapp_personal,
           instagram_clinic: profile.instagram_clinic,
           whatsapp_clinic: profile.whatsapp_clinic,
-          services: profile.services
+          services: profile.services,
+          crm: profile.crm || null,
+          rqe: profile.rqe || null
         })
         .eq('user_id', user.id);
 
@@ -435,10 +442,32 @@ export default function Profile() {
                 </div>
               </div>
             </div>
+
+            {/* CRM and RQE */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="crm">CRM (opcional)</Label>
+                <Input
+                  id="crm"
+                  value={profile.crm}
+                  onChange={(e) => setProfile(prev => ({ ...prev, crm: e.target.value }))}
+                  placeholder="CRM/UF 123456"
+                />
+                <p className="text-xs text-muted-foreground">Registro no Conselho Regional de Medicina</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rqe">RQE (opcional)</Label>
+                <Input
+                  id="rqe"
+                  value={profile.rqe}
+                  onChange={(e) => setProfile(prev => ({ ...prev, rqe: e.target.value }))}
+                  placeholder="RQE 12345"
+                />
+                <p className="text-xs text-muted-foreground">Registro de Qualificação de Especialista</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-
-        {/* Clinic Info */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Informações da Clínica</CardTitle>
