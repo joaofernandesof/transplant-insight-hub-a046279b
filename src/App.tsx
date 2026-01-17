@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
+import { SupportButton } from "@/components/SupportButton";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ClinicComparison from "./pages/ClinicComparison";
@@ -23,6 +24,8 @@ import HotLeads from "./pages/HotLeads";
 import Community from "./pages/Community";
 import Profile from "./pages/Profile";
 import AdminPanel from "./pages/AdminPanel";
+import Certificates from "./pages/Certificates";
+import Partners from "./pages/Partners";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -198,8 +201,35 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      <Route 
+        path="/certificates" 
+        element={
+          <ProtectedRoute>
+            <Certificates />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/partners" 
+        element={
+          <ProtectedRoute>
+            <Partners />
+          </ProtectedRoute>
+        } 
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
+  );
+}
+
+function AppWithSupport() {
+  const { user } = useAuth();
+  
+  return (
+    <>
+      <AppRoutes />
+      {user && <SupportButton />}
+    </>
   );
 }
 
@@ -211,7 +241,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <AppRoutes />
+            <AppWithSupport />
           </BrowserRouter>
         </TooltipProvider>
       </DataProvider>
