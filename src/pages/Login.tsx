@@ -27,6 +27,11 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => {
+    // Check if there's a saved email
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    return !!savedEmail;
+  });
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +39,15 @@ export default function Login() {
   
   const { login, signup } = useAuth();
   const navigate = useNavigate();
+
+  // Load remembered email on mount
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +102,12 @@ export default function Login() {
         const { success, error: loginError } = await login(email, password);
         
         if (success) {
+          // Save or remove email based on remember me preference
+          if (rememberMe) {
+            localStorage.setItem('rememberedEmail', email);
+          } else {
+            localStorage.removeItem('rememberedEmail');
+          }
           navigate('/');
         } else {
           setError(loginError || 'Email ou senha incorretos');
@@ -229,6 +249,27 @@ export default function Login() {
                 {fieldErrors.confirmPassword && (
                   <p className="text-red-500 text-xs mt-1">{fieldErrors.confirmPassword}</p>
                 )}
+              </div>
+            )}
+            
+            {!isSignup && (
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
+                  />
+                  <span className="text-sm text-muted-foreground">Lembrar meu email</span>
+                </label>
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => {/* TODO: Forgot password */}}
+                >
+                  Esqueceu a senha?
+                </button>
               </div>
             )}
             
