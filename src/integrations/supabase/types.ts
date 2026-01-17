@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       clinics: {
         Row: {
           city: string | null
@@ -44,8 +74,74 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          city: string | null
+          clinic_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          interest_level: string | null
+          name: string
+          notes: string | null
+          phone: string
+          source: string | null
+          state: string | null
+          status: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          city?: string | null
+          clinic_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          interest_level?: string | null
+          name: string
+          notes?: string | null
+          phone: string
+          source?: string | null
+          state?: string | null
+          status?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          city?: string | null
+          clinic_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          interest_level?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string
+          source?: string | null
+          state?: string | null
+          status?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          avatar_url: string | null
           city: string | null
           clinic_name: string | null
           created_at: string
@@ -60,6 +156,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_url?: string | null
           city?: string | null
           clinic_name?: string | null
           created_at?: string
@@ -74,6 +171,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
           city?: string | null
           clinic_name?: string | null
           created_at?: string
