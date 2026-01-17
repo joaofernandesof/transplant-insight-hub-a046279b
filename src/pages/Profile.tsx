@@ -24,7 +24,10 @@ import {
   Image as ImageIcon,
   Plus,
   X,
-  Briefcase
+  Briefcase,
+  Trophy,
+  RotateCcw,
+  ChevronRight
 } from 'lucide-react';
 import logoByNeofolic from '@/assets/logo-byneofolic.png';
 import { toast } from 'sonner';
@@ -650,6 +653,69 @@ export default function Profile() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Ações Rápidas</CardTitle>
+            <CardDescription>Acesse funcionalidades do seu perfil</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-between"
+              onClick={() => navigate('/achievements')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                  <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Minhas Conquistas</p>
+                  <p className="text-xs text-muted-foreground">Veja seus pontos e badges</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Button>
+
+            <Button 
+              variant="outline" 
+              className="w-full justify-between"
+              onClick={async () => {
+                if (!user?.id) return;
+                try {
+                  await supabase
+                    .from('profiles')
+                    .update({ 
+                      onboarding_completed: false,
+                      onboarding_completed_at: null
+                    })
+                    .eq('user_id', user.id);
+                  
+                  // Clear checklist dismissed state
+                  localStorage.removeItem(`checklist_dismissed_${user.id}`);
+                  
+                  toast.success('Tutorial resetado! Volte à Home para iniciar.');
+                  navigate('/home');
+                } catch (error) {
+                  console.error('Error resetting onboarding:', error);
+                  toast.error('Erro ao resetar tutorial');
+                }
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                  <RotateCcw className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Reiniciar Tutorial</p>
+                  <p className="text-xs text-muted-foreground">Reveja o onboarding e primeiros passos</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Button>
           </CardContent>
         </Card>
 
