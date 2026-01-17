@@ -157,18 +157,18 @@ export default function Dashboard() {
   
   return (
     <Layout>
-      <div className="p-3 sm:p-4 lg:p-6 max-w-[1920px] mx-auto">
+      <div className="p-2 sm:p-4 lg:p-6 pt-14 sm:pt-4 max-w-[1920px] mx-auto">
         {/* Top Bar - Mobile optimized */}
-        <div className="flex flex-col gap-3 mb-4 sm:mb-6">
+        <div className="flex flex-col gap-2 sm:gap-3 mb-3 sm:mb-6">
           {/* Admin Controls - Stack on mobile */}
           {isAdmin && (
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 bg-card rounded-xl border border-border px-3 sm:px-4 py-2 w-full sm:w-auto">
-                <Building2 className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex items-center gap-2 bg-card rounded-lg sm:rounded-xl border border-border px-2 sm:px-4 py-1.5 sm:py-2 w-full sm:w-auto">
+                <Building2 className="w-4 h-4 text-primary flex-shrink-0" />
                 <select
                   value={selectedClinicId}
                   onChange={(e) => setSelectedClinicId(e.target.value)}
-                  className="bg-transparent border-none text-sm font-medium focus:outline-none cursor-pointer flex-1 min-w-0"
+                  className="bg-transparent border-none text-xs sm:text-sm font-medium focus:outline-none cursor-pointer flex-1 min-w-0"
                 >
                   {clinicsList.length === 0 && (
                     <option value="">Nenhuma clínica cadastrada</option>
@@ -184,36 +184,33 @@ export default function Dashboard() {
               <div className="flex gap-2">
                 <button
                   onClick={() => navigate('/comparison')}
-                  className="btn-secondary flex items-center justify-center gap-2 text-xs sm:text-sm flex-1 sm:flex-none px-3 py-2"
+                  className="btn-secondary flex items-center justify-center gap-1 text-xs flex-1 sm:flex-none px-2 py-1.5"
                 >
-                  <GitCompare className="w-4 h-4" />
+                  <GitCompare className="w-3.5 h-3.5" />
                   <span className="hidden xs:inline">Comparar</span>
                 </button>
                 
                 <button
                   onClick={() => navigate('/licensees')}
-                  className="btn-secondary flex items-center justify-center gap-2 text-xs sm:text-sm flex-1 sm:flex-none px-3 py-2"
+                  className="btn-secondary flex items-center justify-center gap-1 text-xs flex-1 sm:flex-none px-2 py-1.5"
                 >
-                  <Building2 className="w-4 h-4" />
+                  <Building2 className="w-3.5 h-3.5" />
                   <span className="hidden xs:inline">Licenciados</span>
                 </button>
               </div>
             </div>
           )}
           
-          {/* Week Info + Save - Row on mobile */}
-          <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 sm:gap-4">
+          {/* Week Info + Save - Compact on mobile */}
+          <div className="flex items-center gap-2">
             {/* Current Week Info */}
-            <div className="flex items-center gap-2 sm:gap-3 bg-card rounded-xl border border-border px-3 sm:px-4 py-2 flex-1">
-              <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0" />
-              <div className="flex flex-col xs:flex-row xs:items-center gap-0 xs:gap-1 min-w-0">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs sm:text-sm font-semibold text-foreground">Semana: </span>
-                  <span className="text-xs sm:text-sm text-primary font-bold">S{currentWeekNumber}</span>
-                </div>
+            <div className="flex items-center gap-1.5 sm:gap-3 bg-card rounded-lg sm:rounded-xl border border-border px-2 sm:px-4 py-1.5 sm:py-2 flex-1 min-w-0">
+              <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+              <div className="flex flex-wrap items-center gap-x-1 gap-y-0 min-w-0">
+                <span className="text-xs font-semibold text-foreground">S{currentWeekNumber}</span>
                 {currentWeek && (
-                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                    ({formatDate(currentWeek.startDate)} - {formatDate(currentWeek.endDate)})
+                  <span className="text-[9px] sm:text-xs text-muted-foreground truncate">
+                    {formatDate(currentWeek.startDate)} - {formatDate(currentWeek.endDate)}
                   </span>
                 )}
               </div>
@@ -225,14 +222,14 @@ export default function Dashboard() {
                 onClick={handleSaveAll}
                 disabled={!hasUnsavedChanges || isSaving}
                 className={cn(
-                  'btn-primary flex items-center justify-center gap-2 px-4 py-2 text-sm whitespace-nowrap',
+                  'btn-primary flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2 text-xs whitespace-nowrap',
                   (!hasUnsavedChanges || isSaving) && 'opacity-50 cursor-not-allowed'
                 )}
               >
                 {isSaving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <Save className="w-4 h-4" />
+                  <Save className="w-3.5 h-3.5" />
                 )}
                 <span className="hidden xs:inline">
                   {isSaving ? 'Salvando...' : hasUnsavedChanges ? 'Salvar' : 'Salvo'}
@@ -242,44 +239,43 @@ export default function Dashboard() {
           </div>
         </div>
         
-        {/* Tabs - Horizontal scroll on mobile */}
-        <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 mb-4 sm:mb-6 scrollbar-hide">
-          <div className="flex gap-1 sm:gap-2 bg-card border border-border p-1 sm:p-1.5 rounded-xl w-fit min-w-full sm:min-w-0 shadow-sm">
+        {/* Tabs - Compact on mobile */}
+        <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0 mb-3 sm:mb-6 scrollbar-hide">
+          <div className="flex gap-1 bg-card border border-border p-1 rounded-lg sm:rounded-xl w-fit min-w-full sm:min-w-0 shadow-sm">
             <button
               onClick={() => setActiveTab('indicators')}
               className={cn(
-                'flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex-1 sm:flex-none whitespace-nowrap',
+                'flex items-center justify-center gap-1 px-2 sm:px-5 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg font-semibold text-[11px] sm:text-sm transition-all flex-1 sm:flex-none whitespace-nowrap',
                 activeTab === 'indicators' 
                   ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
             >
-              <Table2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Indicadores</span>
-              <span className="sm:hidden">Indicadores</span>
+              <Table2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Indicadores</span>
             </button>
             <button
               onClick={() => setActiveTab('summary')}
               className={cn(
-                'flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex-1 sm:flex-none whitespace-nowrap',
+                'flex items-center justify-center gap-1 px-2 sm:px-5 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg font-semibold text-[11px] sm:text-sm transition-all flex-1 sm:flex-none whitespace-nowrap',
                 activeTab === 'summary' 
                   ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
             >
-              <BarChart3 className="w-4 h-4" />
+              <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>Resumo</span>
             </button>
             <button
               onClick={() => setActiveTab('insights')}
               className={cn(
-                'flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all flex-1 sm:flex-none whitespace-nowrap',
+                'flex items-center justify-center gap-1 px-2 sm:px-5 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg font-semibold text-[11px] sm:text-sm transition-all flex-1 sm:flex-none whitespace-nowrap',
                 activeTab === 'insights' 
                   ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
             >
-              <Lightbulb className="w-4 h-4" />
+              <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>Insights</span>
             </button>
           </div>
