@@ -463,6 +463,7 @@ export type Database = {
           clinic_logo_url: string | null
           clinic_name: string | null
           created_at: string
+          crm: string | null
           email: string
           id: string
           instagram_clinic: string | null
@@ -470,6 +471,7 @@ export type Database = {
           name: string
           phone: string | null
           referral_code: string | null
+          rqe: string | null
           services: string[] | null
           state: string | null
           status: string | null
@@ -485,6 +487,7 @@ export type Database = {
           clinic_logo_url?: string | null
           clinic_name?: string | null
           created_at?: string
+          crm?: string | null
           email: string
           id?: string
           instagram_clinic?: string | null
@@ -492,6 +495,7 @@ export type Database = {
           name: string
           phone?: string | null
           referral_code?: string | null
+          rqe?: string | null
           services?: string[] | null
           state?: string | null
           status?: string | null
@@ -507,6 +511,7 @@ export type Database = {
           clinic_logo_url?: string | null
           clinic_name?: string | null
           created_at?: string
+          crm?: string | null
           email?: string
           id?: string
           instagram_clinic?: string | null
@@ -514,6 +519,7 @@ export type Database = {
           name?: string
           phone?: string | null
           referral_code?: string | null
+          rqe?: string | null
           services?: string[] | null
           state?: string | null
           status?: string | null
