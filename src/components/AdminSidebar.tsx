@@ -29,7 +29,9 @@ import {
   Menu,
   X,
   LogOut,
-  Crown
+  Crown,
+  PieChart,
+  CalendarDays
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { useState, useEffect } from "react";
@@ -45,6 +47,8 @@ const menuItems = [
   { id: 'admin-panel', title: 'Configurações', icon: Settings, route: '/admin' },
   { id: 'comparison', title: 'Comparar Clínicas', icon: GitCompare, route: '/comparison' },
   { id: 'dashboard', title: 'Dashboard', icon: BarChart3, route: '/dashboard' },
+  { id: 'consolidated', title: 'Resultados Consolidados', icon: PieChart, route: '/consolidated-results' },
+  { id: 'surgery-schedule', title: 'Agenda Cirurgias', icon: CalendarDays, route: '/surgery-schedule' },
   { id: 'divider-2', title: 'Módulos', isDivider: true },
   { id: 'hotleads', title: 'HotLeads', icon: Flame, route: '/hotleads' },
   { id: 'university', title: 'Universidade', icon: GraduationCap, route: '/university' },
