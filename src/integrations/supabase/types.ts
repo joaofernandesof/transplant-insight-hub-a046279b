@@ -716,6 +716,140 @@ export type Database = {
         }
         Relationships: []
       }
+      surgery_schedule: {
+        Row: {
+          balance_due: number | null
+          category: string | null
+          checkin_sent: boolean | null
+          clinic_id: string | null
+          companion_name: string | null
+          companion_phone: string | null
+          confirmed: boolean | null
+          contract_signed: boolean | null
+          created_at: string
+          d0_discharge_form: boolean | null
+          d1_contact: boolean | null
+          d1_gpi: boolean | null
+          d2_contact: boolean | null
+          d7_contact: boolean | null
+          day_of_week: string | null
+          deposit_paid: number | null
+          exams_in_system: boolean | null
+          exams_sent: boolean | null
+          final_value: number | null
+          financial_verification: string | null
+          grade: number | null
+          id: string
+          initial_value: number | null
+          medical_record: string | null
+          observations: string | null
+          patient_name: string
+          patient_phone: string | null
+          post_sale_notes: string | null
+          procedure_type: string | null
+          referral_bonus: number | null
+          remaining_paid: number | null
+          scheduling_form: boolean | null
+          surgery_date: string
+          surgery_time: string | null
+          trichotomy_datetime: string | null
+          updated_at: string
+          upgrade_value: number | null
+          upsell_value: number | null
+          user_id: string
+        }
+        Insert: {
+          balance_due?: number | null
+          category?: string | null
+          checkin_sent?: boolean | null
+          clinic_id?: string | null
+          companion_name?: string | null
+          companion_phone?: string | null
+          confirmed?: boolean | null
+          contract_signed?: boolean | null
+          created_at?: string
+          d0_discharge_form?: boolean | null
+          d1_contact?: boolean | null
+          d1_gpi?: boolean | null
+          d2_contact?: boolean | null
+          d7_contact?: boolean | null
+          day_of_week?: string | null
+          deposit_paid?: number | null
+          exams_in_system?: boolean | null
+          exams_sent?: boolean | null
+          final_value?: number | null
+          financial_verification?: string | null
+          grade?: number | null
+          id?: string
+          initial_value?: number | null
+          medical_record?: string | null
+          observations?: string | null
+          patient_name: string
+          patient_phone?: string | null
+          post_sale_notes?: string | null
+          procedure_type?: string | null
+          referral_bonus?: number | null
+          remaining_paid?: number | null
+          scheduling_form?: boolean | null
+          surgery_date: string
+          surgery_time?: string | null
+          trichotomy_datetime?: string | null
+          updated_at?: string
+          upgrade_value?: number | null
+          upsell_value?: number | null
+          user_id: string
+        }
+        Update: {
+          balance_due?: number | null
+          category?: string | null
+          checkin_sent?: boolean | null
+          clinic_id?: string | null
+          companion_name?: string | null
+          companion_phone?: string | null
+          confirmed?: boolean | null
+          contract_signed?: boolean | null
+          created_at?: string
+          d0_discharge_form?: boolean | null
+          d1_contact?: boolean | null
+          d1_gpi?: boolean | null
+          d2_contact?: boolean | null
+          d7_contact?: boolean | null
+          day_of_week?: string | null
+          deposit_paid?: number | null
+          exams_in_system?: boolean | null
+          exams_sent?: boolean | null
+          final_value?: number | null
+          financial_verification?: string | null
+          grade?: number | null
+          id?: string
+          initial_value?: number | null
+          medical_record?: string | null
+          observations?: string | null
+          patient_name?: string
+          patient_phone?: string | null
+          post_sale_notes?: string | null
+          procedure_type?: string | null
+          referral_bonus?: number | null
+          remaining_paid?: number | null
+          scheduling_form?: boolean | null
+          surgery_date?: string
+          surgery_time?: string | null
+          trichotomy_datetime?: string | null
+          updated_at?: string
+          upgrade_value?: number | null
+          upsell_value?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surgery_schedule_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       surgery_submissions: {
         Row: {
           created_at: string
