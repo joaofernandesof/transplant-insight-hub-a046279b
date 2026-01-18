@@ -1,22 +1,143 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { ModuleLayout } from "@/components/ModuleLayout";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSales, useAvailableMonths } from "@/hooks/useSales";
+import { useSales, useAvailableMonths, Sale } from "@/hooks/useSales";
 import { SalesKPICards } from "@/components/sales/SalesKPICards";
 import { SalesCharts } from "@/components/sales/SalesCharts";
 import { SalesTable } from "@/components/sales/SalesTable";
+import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
+import { SalesImportDialog } from "@/components/sales/SalesImportDialog";
+import { SalesFilters, SalesFiltersState } from "@/components/sales/SalesFilters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, BarChart3, Table, TrendingUp } from "lucide-react";
+import { Loader2, BarChart3, Table, TrendingUp, Plus, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 export default function ConsolidatedResults() {
   const { isAdmin } = useAuth();
-  const [selectedMonth, setSelectedMonth] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filters, setFilters] = useState<SalesFiltersState>({
+    month: undefined,
+    serviceType: undefined,
+    category: undefined,
+    branch: undefined,
+    seller: undefined,
+    contractStatus: undefined,
+    origin: undefined,
+    minValue: undefined,
+    maxValue: undefined,
+  });
   
-  const { sales, stats, isLoading } = useSales(selectedMonth);
+  const { sales: allSales, isLoading } = useSales();
   const { data: availableMonths = [] } = useAvailableMonths();
+
+  // Extract unique values for filters
+  const filterOptions = useMemo(() => {
+    const serviceTypes = [...new Set(allSales.map(s => s.service_type).filter(Boolean))];
+    const categories = [...new Set(allSales.map(s => s.category).filter(Boolean))] as string[];
+    const branches = [...new Set(allSales.map(s => s.branch).filter(Boolean))] as string[];
+    const sellers = [...new Set(allSales.map(s => s.sold_by).filter(Boolean))] as string[];
+    const contractStatuses = [...new Set(allSales.map(s => s.contract_status).filter(Boolean))] as string[];
+    const origins = [...new Set(allSales.map(s => s.patient_origin).filter(Boolean))] as string[];
+    
+    return { serviceTypes, categories, branches, sellers, contractStatuses, origins };
+  }, [allSales]);
+
+  // Apply filters
+  const filteredSales = useMemo(() => {
+    return allSales.filter(sale => {
+      if (filters.month && sale.month_year !== filters.month) return false;
+      if (filters.serviceType && sale.service_type !== filters.serviceType) return false;
+      if (filters.category && sale.category !== filters.category) return false;
+      if (filters.branch && sale.branch !== filters.branch) return false;
+      if (filters.seller && sale.sold_by !== filters.seller) return false;
+      if (filters.contractStatus && sale.contract_status !== filters.contractStatus) return false;
+      if (filters.origin && sale.patient_origin !== filters.origin) return false;
+      if (filters.minValue && (sale.vgv_initial || 0) < filters.minValue) return false;
+      if (filters.maxValue && (sale.vgv_initial || 0) > filters.maxValue) return false;
+      return true;
+    });
+  }, [allSales, filters]);
+
+  // Calculate stats from filtered sales
+  const stats = useMemo(() => {
+    const result = filteredSales.reduce((acc, sale) => {
+      const vgv = Number(sale.vgv_initial) || 0;
+      const deposit = Number(sale.deposit_paid) || 0;
+      
+      acc.totalVgv += vgv;
+      acc.totalDeposits += deposit;
+      acc.totalBalance += (vgv - deposit);
+      acc.salesCount += 1;
+
+      // By service type
+      const service = sale.service_type || 'Outros';
+      if (!acc.byService[service]) acc.byService[service] = { count: 0, value: 0 };
+      acc.byService[service].count += 1;
+      acc.byService[service].value += vgv;
+
+      // Classify services
+      const serviceLower = service.toLowerCase();
+      if (serviceLower.includes('transplante') || serviceLower.includes('aluno')) {
+        acc.transplantsSold += 1;
+      } else if (serviceLower.includes('formação') || serviceLower.includes('360')) {
+        acc.coursesSold += 1;
+      } else {
+        acc.treatmentsSold += 1;
+      }
+
+      // By category
+      const category = sale.category || 'Sem categoria';
+      if (!acc.byCategory[category]) acc.byCategory[category] = { count: 0, value: 0 };
+      acc.byCategory[category].count += 1;
+      acc.byCategory[category].value += vgv;
+
+      // By branch
+      const branch = sale.branch || 'Sem filial';
+      if (!acc.byBranch[branch]) acc.byBranch[branch] = { count: 0, value: 0 };
+      acc.byBranch[branch].count += 1;
+      acc.byBranch[branch].value += vgv;
+
+      // By seller
+      const seller = sale.sold_by || 'Sem vendedor';
+      if (!acc.bySeller[seller]) acc.bySeller[seller] = { count: 0, value: 0 };
+      acc.bySeller[seller].count += 1;
+      acc.bySeller[seller].value += vgv;
+
+      // By month
+      const month = sale.month_year || 'Sem data';
+      if (!acc.byMonth[month]) acc.byMonth[month] = { count: 0, value: 0 };
+      acc.byMonth[month].count += 1;
+      acc.byMonth[month].value += vgv;
+
+      // By contract status
+      const status = sale.contract_status || 'Sem status';
+      acc.byContractStatus[status] = (acc.byContractStatus[status] || 0) + 1;
+
+      return acc;
+    }, {
+      totalVgv: 0,
+      totalDeposits: 0,
+      totalBalance: 0,
+      salesCount: 0,
+      avgTicket: 0,
+      byService: {} as Record<string, { count: number; value: number }>,
+      byCategory: {} as Record<string, { count: number; value: number }>,
+      byBranch: {} as Record<string, { count: number; value: number }>,
+      bySeller: {} as Record<string, { count: number; value: number }>,
+      byMonth: {} as Record<string, { count: number; value: number }>,
+      byContractStatus: {} as Record<string, number>,
+      transplantsSold: 0,
+      treatmentsSold: 0,
+      coursesSold: 0,
+    });
+
+    result.avgTicket = result.salesCount > 0 ? result.totalVgv / result.salesCount : 0;
+    return result;
+  }, [filteredSales]);
 
   const Layout = isAdmin ? AdminLayout : ModuleLayout;
 
@@ -42,25 +163,50 @@ export default function ConsolidatedResults() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Select
-              value={selectedMonth || "all"}
-              onValueChange={(value) => setSelectedMonth(value === "all" ? undefined : value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Todos os meses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os meses</SelectItem>
-                {availableMonths.map((month) => (
-                  <SelectItem key={month} value={month}>
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2">
+            <SalesImportDialog
+              trigger={
+                <Button variant="outline" size="sm">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Importar
+                </Button>
+              }
+            />
+            <SaleFormDialog
+              trigger={
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Venda
+                </Button>
+              }
+            />
           </div>
         </div>
+
+        {/* Filters */}
+        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <div className="rounded-lg border bg-card p-4">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                <span className="text-sm font-medium">Filtros Avançados</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${filtersOpen ? "rotate-180" : ""}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
+              <SalesFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                availableMonths={availableMonths}
+                serviceTypes={filterOptions.serviceTypes}
+                categories={filterOptions.categories}
+                branches={filterOptions.branches}
+                sellers={filterOptions.sellers}
+                contractStatuses={filterOptions.contractStatuses}
+                origins={filterOptions.origins}
+              />
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
 
         {/* KPI Cards */}
         <SalesKPICards stats={stats} />
@@ -87,7 +233,7 @@ export default function ConsolidatedResults() {
           </TabsContent>
 
           <TabsContent value="table" className="mt-6">
-            <SalesTable sales={sales} />
+            <SalesTable sales={filteredSales} />
           </TabsContent>
 
           <TabsContent value="analysis" className="mt-6">
