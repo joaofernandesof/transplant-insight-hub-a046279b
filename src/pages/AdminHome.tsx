@@ -378,44 +378,23 @@ export default function AdminHome() {
             Gestão do Sistema
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            {managementModules.map((module) => (
+            {[...managementModules, ...analyticsModules].map((module) => (
               <Card 
                 key={module.id}
-                className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                className="group cursor-pointer hover:shadow-md transition-all duration-300 overflow-hidden"
                 onClick={() => navigate(module.path)}
               >
                 <CardContent className="p-0">
-                  <div className={`h-2 bg-gradient-to-r ${module.color}`} />
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`p-3 rounded-xl bg-gradient-to-br ${module.color} text-white`}>
-                        {module.icon}
+                  <div className={`h-1.5 bg-gradient-to-r ${module.color}`} />
+                  <div className="p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`p-2 rounded-lg bg-gradient-to-br ${module.color} text-white`}>
+                        <span className="[&>svg]:h-4 [&>svg]:w-4">{module.icon}</span>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors ml-auto" />
                     </div>
-                    <h3 className="font-semibold text-foreground mb-1">{module.title}</h3>
-                    <p className="text-sm text-muted-foreground">{module.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {analyticsModules.map((module) => (
-              <Card 
-                key={module.id}
-                className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-                onClick={() => navigate(module.path)}
-              >
-                <CardContent className="p-0">
-                  <div className={`h-2 bg-gradient-to-r ${module.color}`} />
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`p-3 rounded-xl bg-gradient-to-br ${module.color} text-white`}>
-                        {module.icon}
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1">{module.title}</h3>
-                    <p className="text-sm text-muted-foreground">{module.description}</p>
+                    <h3 className="font-semibold text-foreground text-xs leading-tight mb-0.5 line-clamp-2">{module.title}</h3>
+                    <p className="text-[10px] text-muted-foreground line-clamp-2">{module.description}</p>
                   </div>
                 </CardContent>
               </Card>
