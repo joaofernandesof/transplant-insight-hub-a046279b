@@ -716,6 +716,113 @@ export type Database = {
         }
         Relationships: []
       }
+      sales: {
+        Row: {
+          baldness_grade: string | null
+          branch: string | null
+          category: string | null
+          clinic_id: string | null
+          consulted_by: string | null
+          contract_status: string | null
+          created_at: string
+          deposit_paid: number | null
+          distract_date: string | null
+          exchange_value: number | null
+          id: string
+          in_clickup: boolean | null
+          in_conta_azul: boolean | null
+          in_feegow: boolean | null
+          in_surgery_schedule: boolean | null
+          medical_record: string | null
+          month_year: string
+          observations: string | null
+          origin_observation: string | null
+          patient_cpf: string | null
+          patient_email: string | null
+          patient_name: string
+          patient_origin: string | null
+          registered_by: string | null
+          sale_date: string
+          service_type: string
+          sold_by: string | null
+          updated_at: string
+          user_id: string
+          vgv_initial: number | null
+        }
+        Insert: {
+          baldness_grade?: string | null
+          branch?: string | null
+          category?: string | null
+          clinic_id?: string | null
+          consulted_by?: string | null
+          contract_status?: string | null
+          created_at?: string
+          deposit_paid?: number | null
+          distract_date?: string | null
+          exchange_value?: number | null
+          id?: string
+          in_clickup?: boolean | null
+          in_conta_azul?: boolean | null
+          in_feegow?: boolean | null
+          in_surgery_schedule?: boolean | null
+          medical_record?: string | null
+          month_year: string
+          observations?: string | null
+          origin_observation?: string | null
+          patient_cpf?: string | null
+          patient_email?: string | null
+          patient_name: string
+          patient_origin?: string | null
+          registered_by?: string | null
+          sale_date: string
+          service_type: string
+          sold_by?: string | null
+          updated_at?: string
+          user_id: string
+          vgv_initial?: number | null
+        }
+        Update: {
+          baldness_grade?: string | null
+          branch?: string | null
+          category?: string | null
+          clinic_id?: string | null
+          consulted_by?: string | null
+          contract_status?: string | null
+          created_at?: string
+          deposit_paid?: number | null
+          distract_date?: string | null
+          exchange_value?: number | null
+          id?: string
+          in_clickup?: boolean | null
+          in_conta_azul?: boolean | null
+          in_feegow?: boolean | null
+          in_surgery_schedule?: boolean | null
+          medical_record?: string | null
+          month_year?: string
+          observations?: string | null
+          origin_observation?: string | null
+          patient_cpf?: string | null
+          patient_email?: string | null
+          patient_name?: string
+          patient_origin?: string | null
+          registered_by?: string | null
+          sale_date?: string
+          service_type?: string
+          sold_by?: string | null
+          updated_at?: string
+          user_id?: string
+          vgv_initial?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       surgery_schedule: {
         Row: {
           balance_due: number | null
