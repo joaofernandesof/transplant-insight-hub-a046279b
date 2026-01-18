@@ -408,23 +408,25 @@ export default function AdminHome() {
             <Eye className="h-5 w-5 text-primary" />
             Módulos dos Licenciados (Editar Conteúdo)
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {licenseeModules.map((module) => (
               <Card 
                 key={module.id}
-                className="group cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 overflow-hidden border-border/50"
+                className="group cursor-pointer hover:shadow-md transition-all duration-300 overflow-hidden border-border/50"
                 onClick={() => navigate(module.path)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-lg bg-gradient-to-br ${module.color} text-white shrink-0`}>
-                      {module.icon}
+                <CardContent className="p-3">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className={`p-2 rounded-lg bg-gradient-to-br ${module.color} text-white`}>
+                        <span className="[&>svg]:h-4 [&>svg]:w-4">{module.icon}</span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-foreground text-sm truncate">{module.title}</h3>
-                      <p className="text-xs text-muted-foreground truncate">{module.description}</p>
+                    <div>
+                      <h3 className="font-medium text-foreground text-xs leading-tight line-clamp-2">{module.title}</h3>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">{module.description}</p>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
                   </div>
                 </CardContent>
               </Card>
