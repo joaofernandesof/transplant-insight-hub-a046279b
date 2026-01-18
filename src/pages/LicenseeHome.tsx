@@ -148,6 +148,24 @@ const mainSections = [
     iconColor: 'text-primary'
   },
   {
+    id: 'achievements',
+    title: 'Conquistas',
+    description: 'Suas conquistas e pontos acumulados',
+    icon: Trophy,
+    route: '/achievements',
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-600'
+  },
+  {
+    id: 'surgery-schedule',
+    title: 'Agenda de Cirurgias',
+    description: 'Gerencie a agenda da sua clínica',
+    icon: Stethoscope,
+    route: '/surgery-schedule',
+    iconBg: 'bg-teal-100',
+    iconColor: 'text-teal-600'
+  },
+  {
     id: 'university',
     title: 'Universidade ByNeofolic',
     description: 'Trilhas de capacitação, aulas gravadas e imersões',
@@ -247,15 +265,6 @@ const mainSections = [
     iconColor: 'text-red-600'
   },
   {
-    id: 'surgery-schedule',
-    title: 'Agenda de Cirurgias',
-    description: 'Gerencie a agenda da sua clínica',
-    icon: Stethoscope,
-    route: '/surgery-schedule',
-    iconBg: 'bg-teal-100',
-    iconColor: 'text-teal-600'
-  },
-  {
     id: 'community',
     title: 'Comunidade',
     description: 'Conecte-se com outros licenciados',
@@ -263,15 +272,6 @@ const mainSections = [
     route: '/community',
     iconBg: 'bg-cyan-100',
     iconColor: 'text-cyan-600'
-  },
-  {
-    id: 'achievements',
-    title: 'Conquistas',
-    description: 'Suas conquistas e pontos',
-    icon: Trophy,
-    route: '/achievements',
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600'
   },
   {
     id: 'certificates',

@@ -31,7 +31,8 @@ import {
   Activity,
   Bell,
   Send,
-  FileText
+  FileText,
+  Gift
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -98,6 +99,7 @@ const adminModules: ModuleCard[] = [
     color: 'from-rose-500 to-rose-600',
     category: 'management'
   },
+  // Analytics
   {
     id: 'dashboard',
     title: 'Dashboard de Indicadores',
@@ -105,6 +107,24 @@ const adminModules: ModuleCard[] = [
     icon: <BarChart3 className="h-6 w-6" />,
     path: '/dashboard',
     color: 'from-emerald-500 to-emerald-600',
+    category: 'analytics'
+  },
+  {
+    id: 'consolidated',
+    title: 'Resultados Consolidados',
+    description: 'Controle de vendas e indicadores de performance',
+    icon: <BarChart3 className="h-6 w-6" />,
+    path: '/consolidated-results',
+    color: 'from-indigo-500 to-indigo-600',
+    category: 'analytics'
+  },
+  {
+    id: 'surgery-schedule',
+    title: 'Agenda de Cirurgias',
+    description: 'Gerenciar agenda e pacientes de cirurgia',
+    icon: <Building2 className="h-6 w-6" />,
+    path: '/surgery-schedule',
+    color: 'from-teal-500 to-teal-600',
     category: 'analytics'
   },
   // Licensee Modules (Admin can edit)
@@ -137,7 +157,7 @@ const adminModules: ModuleCard[] = [
   },
   {
     id: 'partners',
-    title: 'Parceiros',
+    title: 'Vitrine de Parceiros',
     description: 'Gerenciar rede de parceiros e fornecedores',
     icon: <Handshake className="h-6 w-6" />,
     path: '/partners',
@@ -172,6 +192,15 @@ const adminModules: ModuleCard[] = [
     category: 'licensee-modules'
   },
   {
+    id: 'estrutura-neo',
+    title: 'Estrutura NEO',
+    description: 'Modelo de negócio e estrutura da franquia',
+    icon: <Building2 className="h-6 w-6" />,
+    path: '/estrutura-neo',
+    color: 'from-sky-500 to-sky-600',
+    category: 'licensee-modules'
+  },
+  {
     id: 'financial',
     title: 'Gestão Financeira',
     description: 'Relatórios financeiros dos licenciados',
@@ -182,7 +211,7 @@ const adminModules: ModuleCard[] = [
   },
   {
     id: 'license-payments',
-    title: 'Pagamentos de Licença',
+    title: 'Financeiro Licença',
     description: 'Controle de taxas e mensalidades',
     icon: <CreditCard className="h-6 w-6" />,
     path: '/license-payments',
@@ -218,11 +247,38 @@ const adminModules: ModuleCard[] = [
   },
   {
     id: 'regularization',
-    title: 'Regularização',
+    title: 'Regularização da Clínica',
     description: 'Checklist de compliance e documentos',
     icon: <FileCheck className="h-6 w-6" />,
     path: '/regularization',
     color: 'from-red-500 to-red-600',
+    category: 'licensee-modules'
+  },
+  {
+    id: 'community',
+    title: 'Comunidade',
+    description: 'Conecte-se com outros licenciados',
+    icon: <Users className="h-6 w-6" />,
+    path: '/community',
+    color: 'from-cyan-500 to-cyan-600',
+    category: 'licensee-modules'
+  },
+  {
+    id: 'achievements',
+    title: 'Conquistas',
+    description: 'Gamificação e pontos dos licenciados',
+    icon: <Award className="h-6 w-6" />,
+    path: '/achievements',
+    color: 'from-amber-500 to-amber-600',
+    category: 'licensee-modules'
+  },
+  {
+    id: 'referral',
+    title: 'Indique e Ganhe',
+    description: 'Programa de indicação com comissões',
+    icon: <Gift className="h-6 w-6" />,
+    path: '/indique-e-ganhe',
+    color: 'from-rose-500 to-rose-600',
     category: 'licensee-modules'
   },
 ];
