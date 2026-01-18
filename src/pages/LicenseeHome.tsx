@@ -33,7 +33,8 @@ import {
   Building2,
   Gift,
   Menu,
-  ChevronRight
+  ChevronRight,
+  Stethoscope
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -244,6 +245,15 @@ const mainSections = [
     route: '/hotleads',
     iconBg: 'bg-red-100',
     iconColor: 'text-red-600'
+  },
+  {
+    id: 'surgery-schedule',
+    title: 'Agenda de Cirurgias',
+    description: 'Gerencie a agenda da sua clínica',
+    icon: Stethoscope,
+    route: '/surgery-schedule',
+    iconBg: 'bg-teal-100',
+    iconColor: 'text-teal-600'
   },
   {
     id: 'community',
