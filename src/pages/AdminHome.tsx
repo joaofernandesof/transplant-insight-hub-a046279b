@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,19 +27,11 @@ import {
   FileCheck,
   ChevronRight,
   Loader2,
-  Activity,
-  Bell,
   Send,
   FileText,
-  Gift
+  Gift,
+  LayoutDashboard
 } from 'lucide-react';
-
-interface DashboardStats {
-  totalLicensees: number;
-  activeLicensees: number;
-  pendingLicensees: number;
-  totalLeads: number;
-}
 
 interface ModuleCard {
   id: string;
@@ -54,6 +45,15 @@ interface ModuleCard {
 
 const adminModules: ModuleCard[] = [
   // Management
+  {
+    id: 'admin-dashboard',
+    title: 'Dashboard Admin',
+    description: 'Visão geral completa do sistema',
+    icon: <LayoutDashboard className="h-6 w-6" />,
+    path: '/admin-dashboard',
+    color: 'from-primary to-primary/80',
+    category: 'management'
+  },
   {
     id: 'licensees',
     title: 'Gerenciar Licenciados',
@@ -285,14 +285,8 @@ const adminModules: ModuleCard[] = [
 
 export default function AdminHome() {
   const navigate = useNavigate();
-  const { user, logout, isAdmin } = useAuth();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalLicensees: 0,
-    activeLicensees: 0,
-    pendingLicensees: 0,
-    totalLeads: 0
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAdmin } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -300,32 +294,7 @@ export default function AdminHome() {
       navigate('/');
       return;
     }
-    fetchStats();
   }, [isAdmin]);
-
-  const fetchStats = async () => {
-    try {
-      const [profilesRes, leadsRes] = await Promise.all([
-        supabase.from('profiles').select('status'),
-        supabase.from('leads').select('id', { count: 'exact', head: true })
-      ]);
-
-      const profiles = profilesRes.data || [];
-      const active = profiles.filter(p => p.status === 'active').length;
-      const pending = profiles.filter(p => p.status === 'pending').length;
-
-      setStats({
-        totalLicensees: profiles.length,
-        activeLicensees: active,
-        pendingLicensees: pending,
-        totalLeads: leadsRes.count || 0
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const managementModules = adminModules.filter(m => m.category === 'management');
   const analyticsModules = adminModules.filter(m => m.category === 'analytics');
@@ -368,64 +337,6 @@ export default function AdminHome() {
           onOpenChange={setIsNotificationDialogOpen}
         />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-blue-500 text-white">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{stats.totalLicensees}</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">Total Licenciados</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-green-500 text-white">
-                  <Activity className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-green-700 dark:text-green-300">{stats.activeLicensees}</p>
-                  <p className="text-xs text-green-600 dark:text-green-400">Ativos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 border-amber-200 dark:border-amber-800">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-amber-500 text-white">
-                  <Building2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-amber-700 dark:text-amber-300">{stats.pendingLicensees}</p>
-                  <p className="text-xs text-amber-600 dark:text-amber-400">Pendentes</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-orange-500 text-white">
-                  <Flame className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">{stats.totalLeads}</p>
-                  <p className="text-xs text-orange-600 dark:text-orange-400">Leads Totais</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Management Section - Compact Horizontal Buttons */}
         <div className="mb-8">

@@ -12,6 +12,7 @@ import { useUserPresence } from "@/hooks/useUserPresence";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminHome from "./pages/AdminHome";
+import AdminDashboard from "./pages/AdminDashboard";
 import ClinicComparison from "./pages/ClinicComparison";
 import LicenseeHome from "./pages/LicenseeHome";
 import LicenseesPanel from "./pages/LicenseesPanel";
@@ -94,6 +95,14 @@ function AppRoutes() {
             <LicenseeSidebarWrapper>
               <LicenseeHome />
             </LicenseeSidebarWrapper>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin-dashboard" 
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
           </ProtectedRoute>
         } 
       />
