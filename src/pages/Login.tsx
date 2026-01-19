@@ -33,8 +33,8 @@ type ViewMode = 'login' | 'signup' | 'forgot-password';
 const modules = [
   { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Pacientes' },
   { id: 'neoteam', name: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-500', description: 'Colaboradores' },
-  { id: 'academy', name: 'Academy', icon: GraduationCap, gradient: 'from-amber-500 to-orange-500', description: 'Alunos' },
-  { id: 'neolicense', name: 'NeoLicense', icon: Building2, gradient: 'from-emerald-500 to-teal-500', description: 'Licenciados' },
+  { id: 'academy', name: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Alunos' },
+  { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
   { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
 ];
 
@@ -281,8 +281,8 @@ export default function Login() {
             Um único acesso para todos os portais:
             <span className="text-rose-400 font-medium"> Pacientes</span>,
             <span className="text-blue-400 font-medium"> Colaboradores</span>,
-            <span className="text-amber-400 font-medium"> Alunos</span>,
-            <span className="text-emerald-400 font-medium"> Licenciados</span> e
+            <span className="text-emerald-400 font-medium"> Alunos IBRAMEC</span>,
+            <span className="text-amber-400 font-medium"> Licenciados</span> e
             <span className="text-purple-400 font-medium"> Marketing</span>.
           </p>
         </div>

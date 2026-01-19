@@ -28,16 +28,16 @@ const modules = [
   },
   { 
     id: 'academy', 
-    name: 'Academy', 
+    name: 'IBRAMEC', 
     icon: GraduationCap, 
-    color: 'from-amber-500 to-orange-500',
+    color: 'from-emerald-500 to-green-500',
     description: 'Portal do Aluno'
   },
   { 
     id: 'neolicense', 
-    name: 'NeoLicense', 
+    name: 'Licença ByNeoFolic', 
     icon: Building2, 
-    color: 'from-emerald-500 to-teal-500',
+    color: 'from-amber-400 to-yellow-500',
     description: 'Portal do Licenciado'
   },
   { 
@@ -219,10 +219,10 @@ export default function NeoHubLogin() {
           <div className="mt-8 text-center max-w-md">
             <p className="text-slate-300 text-sm leading-relaxed">
               Um único acesso para todos os portais: 
-              <span className="text-primary font-medium"> Pacientes</span>,
+              <span className="text-rose-400 font-medium"> Pacientes</span>,
               <span className="text-blue-400 font-medium"> Colaboradores</span>,
-              <span className="text-amber-400 font-medium"> Alunos</span>,
-              <span className="text-emerald-400 font-medium"> Licenciados</span> e
+              <span className="text-emerald-400 font-medium"> Alunos IBRAMEC</span>,
+              <span className="text-amber-400 font-medium"> Licenciados</span> e
               <span className="text-purple-400 font-medium"> Marketing</span>.
             </p>
           </div>
