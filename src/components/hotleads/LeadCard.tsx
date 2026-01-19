@@ -85,96 +85,92 @@ export function LeadCard({
         } ${isClaimed && !isMine && !isAdmin ? 'opacity-75' : ''}`}
         onClick={() => showData && onOpenDetails(lead)}
       >
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2">
+        <CardContent className="p-2 lg:p-3">
+          {/* Header: Name + Status */}
+          <div className="flex items-start justify-between gap-1 mb-1.5">
+            <div className="flex items-center gap-1 min-w-0 flex-1">
               {isClaimed && !isMine ? (
-                <Lock className="h-4 w-4 text-muted-foreground" />
+                <Lock className="h-3 w-3 text-muted-foreground flex-shrink-0" />
               ) : (
-                <User className="h-4 w-4 text-muted-foreground" />
+                <User className="h-3 w-3 text-muted-foreground flex-shrink-0" />
               )}
-              <span className="font-semibold text-sm truncate max-w-[120px]">
+              <span className="font-medium text-xs truncate">
                 {showData ? lead.name : '••••••••'}
               </span>
             </div>
-            <Badge variant="outline" className={`text-xs ${statusConfig[lead.status].color}`}>
-              <StatusIcon className="h-3 w-3 mr-1" />
-              {statusConfig[lead.status].label}
+            <Badge variant="outline" className={`text-[10px] px-1 py-0 h-4 flex-shrink-0 ${statusConfig[lead.status].color}`}>
+              <StatusIcon className="h-2.5 w-2.5" />
             </Badge>
           </div>
 
           {/* Procedure Interest */}
           {lead.procedure_interest && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-              <Briefcase className="h-3 w-3" />
+            <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+              <Briefcase className="h-2.5 w-2.5 flex-shrink-0" />
               <span className="truncate">{lead.procedure_interest}</span>
             </div>
           )}
 
           {/* Location */}
           {showData ? (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-              <MapPin className="h-3 w-3" />
+            <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+              <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
               <span className="truncate">
-                {lead.city || 'Cidade'}
-                {lead.state ? `, ${lead.state}` : ''}
+                {lead.city || 'Cidade'}{lead.state ? `, ${lead.state}` : ''}
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-              <EyeOff className="h-3 w-3" />
+            <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+              <EyeOff className="h-2.5 w-2.5 flex-shrink-0" />
               <span>Dados ocultos</span>
             </div>
           )}
 
           {/* Date */}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
-            <Calendar className="h-3 w-3" />
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1.5">
+            <Calendar className="h-2.5 w-2.5 flex-shrink-0" />
             <span>{new Date(lead.created_at).toLocaleDateString('pt-BR')}</span>
           </div>
 
           {/* Converted Value */}
           {lead.status === 'converted' && lead.converted_value && (
-            <div className="flex items-center gap-1 text-xs text-green-600 font-medium mb-3">
-              <DollarSign className="h-3 w-3" />
+            <div className="flex items-center gap-1 text-[10px] text-green-600 font-medium mb-1.5">
+              <DollarSign className="h-2.5 w-2.5 flex-shrink-0" />
               <span>R$ {lead.converted_value.toLocaleString('pt-BR')}</span>
             </div>
           )}
 
-          {/* Priority Badge */}
-          {!isClaimed && inPriority && (
-            <Badge variant="outline" className="text-xs gap-1 text-orange-600 border-orange-300 mb-3">
-              <Timer className="h-3 w-3" />
-              Prioridade {lead.state}
-            </Badge>
-          )}
-
-          {/* Owner Badge */}
-          {isClaimed && (
-            <div className="mt-2">
-              {isMine ? (
-                <Badge className="bg-primary text-primary-foreground text-xs">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Meu Lead
-                </Badge>
-              ) : isAdmin && licenseName ? (
-                <Badge variant="outline" className="text-xs">
-                  <Lock className="h-3 w-3 mr-1" />
-                  {licenseName}
-                </Badge>
-              ) : null}
-            </div>
-          )}
+          {/* Owner/Priority Badge */}
+          <div className="flex items-center gap-1 flex-wrap mb-1.5">
+            {!isClaimed && inPriority && (
+              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 gap-0.5 text-orange-600 border-orange-300">
+                <Timer className="h-2.5 w-2.5" />
+                {lead.state}
+              </Badge>
+            )}
+            {isClaimed && isMine && (
+              <Badge className="bg-primary text-primary-foreground text-[10px] px-1 py-0 h-4">
+                <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                Meu
+              </Badge>
+            )}
+            {isClaimed && !isMine && isAdmin && licenseName && (
+              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                <Lock className="h-2.5 w-2.5 mr-0.5" />
+                <span className="truncate max-w-[60px]">{licenseName}</span>
+              </Badge>
+            )}
+          </div>
 
           {/* Actions */}
-          <div className="mt-3 flex gap-2">
+          <div className="flex gap-1">
             {!isClaimed && canClaim && (
               <Button 
                 size="sm" 
-                className="w-full" 
+                className="w-full h-6 text-[10px] px-2" 
                 onClick={(e) => { e.stopPropagation(); onClaim(lead); }}
               >
-                <Flame className="h-3 w-3 mr-1" />
+                <Flame className="h-2.5 w-2.5 mr-0.5" />
                 Captar
               </Button>
             )}
@@ -182,7 +178,7 @@ export function LeadCard({
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="w-full"
+                className="w-full h-6 text-[10px] px-2"
                 onClick={(e) => { e.stopPropagation(); onOpenDetails(lead); }}
               >
                 Detalhes
