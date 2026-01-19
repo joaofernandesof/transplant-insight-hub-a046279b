@@ -46,6 +46,7 @@ import ExamsList from "./pages/ExamsList";
 import ExamTaking from "./pages/ExamTaking";
 import ExamResults from "./pages/ExamResults";
 import ExamsAdmin from "./pages/ExamsAdmin";
+import AccessMatrix from "./pages/AccessMatrix";
 import PortalApp from "./portal/PortalApp";
 import NeoHubApp from "./neohub/NeoHubApp";
 import { MarketplaceHome } from "./marketplace/pages/MarketplaceHome";
@@ -279,6 +280,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <AdminPanel />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/access-matrix" 
+        element={
+          <ProtectedRoute>
+            <AccessMatrix />
           </ProtectedRoute>
         } 
       />
