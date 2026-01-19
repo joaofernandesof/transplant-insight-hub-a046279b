@@ -1,16 +1,19 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ModuleLayout } from "@/components/ModuleLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import {
   GraduationCap,
   BookOpen,
   Trophy,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  FileText
 } from "lucide-react";
 import { useUniversity, CourseWithProgress } from "@/hooks/useUniversity";
 import { CourseCard } from "@/components/CourseCard";
@@ -23,6 +26,7 @@ const upcomingEvents = [
 ];
 
 export default function University() {
+  const navigate = useNavigate();
   const {
     courses,
     enrollments,
@@ -103,7 +107,7 @@ export default function University() {
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 pl-12 lg:pl-0">
+          <div className="flex items-center justify-between gap-4 pl-12 lg:pl-0">
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-purple-600" />
@@ -111,6 +115,10 @@ export default function University() {
               </h1>
               <p className="text-sm text-muted-foreground">Trilhas de capacitação e aulas gravadas</p>
             </div>
+            <Button onClick={() => navigate('/university/exams')} variant="outline" className="gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Provas</span>
+            </Button>
           </div>
         </div>
       </header>

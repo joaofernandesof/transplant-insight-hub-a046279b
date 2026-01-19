@@ -42,6 +42,10 @@ import SurgerySchedule from "./pages/SurgerySchedule";
 import ConsolidatedResults from "./pages/ConsolidatedResults";
 import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
+import ExamsList from "./pages/ExamsList";
+import ExamTaking from "./pages/ExamTaking";
+import ExamResults from "./pages/ExamResults";
+import ExamsAdmin from "./pages/ExamsAdmin";
 import PortalApp from "./portal/PortalApp";
 import NeoHubApp from "./neohub/NeoHubApp";
 import { MarketplaceHome } from "./marketplace/pages/MarketplaceHome";
@@ -147,6 +151,38 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <University />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/university/exams" 
+        element={
+          <ProtectedRoute>
+            <ExamsList />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/university/exams/:examId/take" 
+        element={
+          <ProtectedRoute>
+            <ExamTaking />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/university/exams/:examId/results/:attemptId" 
+        element={
+          <ProtectedRoute>
+            <ExamResults />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/university/exams/admin" 
+        element={
+          <ProtectedRoute>
+            <ExamsAdmin />
           </ProtectedRoute>
         } 
       />
