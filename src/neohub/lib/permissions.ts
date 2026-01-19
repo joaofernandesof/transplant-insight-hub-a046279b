@@ -35,9 +35,9 @@ export const PROFILE_ROUTES: Record<NeoHubProfile, string> = {
 // Nomes amigáveis dos perfis
 export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
   administrador: 'Administrador',
-  licenciado: 'NeoLicense',
+  licenciado: 'Licença ByNeoFolic',
   colaborador: 'NeoTeam',
-  aluno: 'Ibramed Academy',
+  aluno: 'IBRAMEC',
   paciente: 'NeoCare',
   cliente_avivar: 'Avivar',
 };
@@ -46,8 +46,8 @@ export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
 export const PORTAL_NAMES: Record<Portal, string> = {
   neocare: 'NeoCare',
   neoteam: 'NeoTeam',
-  academy: 'Ibramed Academy',
-  neolicense: 'NeoLicense',
+  academy: 'IBRAMEC',
+  neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
 };
 
@@ -64,9 +64,9 @@ export const PROFILE_ICONS: Record<NeoHubProfile, string> = {
 // Cores dos perfis (Tailwind)
 export const PROFILE_COLORS: Record<NeoHubProfile, string> = {
   administrador: 'text-red-500',
-  licenciado: 'text-blue-500',
-  colaborador: 'text-green-500',
-  aluno: 'text-purple-500',
+  licenciado: 'text-amber-500', // Dourado para Licença ByNeoFolic
+  colaborador: 'text-blue-500',
+  aluno: 'text-emerald-500', // Verde para IBRAMEC
   paciente: 'text-pink-500',
   cliente_avivar: 'text-orange-500',
 };

@@ -83,13 +83,13 @@ function NeoTeamRoutes() {
   );
 }
 
-// Wrapper para Academy (Portal do Aluno)
+// Wrapper para Academy (Portal do Aluno - IBRAMEC)
 function AcademyRoutes() {
   return (
     <ProfileGuard allowedProfiles={['aluno', 'administrador']}>
       <ModuleSidebar>
         <Routes>
-          <Route index element={<PlaceholderPage title="Ibramed Academy" />} />
+          <Route index element={<PlaceholderPage title="IBRAMEC - Portal do Aluno" />} />
           <Route path="courses" element={<University />} />
           <Route path="materials" element={<Materials />} />
           <Route path="certificates" element={<PlaceholderPage title="Certificados" />} />

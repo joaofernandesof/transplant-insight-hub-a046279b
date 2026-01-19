@@ -20,8 +20,8 @@ const PROFILE_COLORS: Record<NeoHubProfile, string> = {
   administrador: 'bg-red-500',
   paciente: 'bg-rose-500',
   colaborador: 'bg-blue-500',
-  aluno: 'bg-amber-500',
-  licenciado: 'bg-emerald-500',
+  aluno: 'bg-emerald-500', // Verde para IBRAMEC
+  licenciado: 'bg-amber-500', // Dourado para Licença ByNeoFolic
   cliente_avivar: 'bg-orange-500',
 };
 
@@ -29,8 +29,8 @@ const PROFILE_DESCRIPTIONS: Record<NeoHubProfile, string> = {
   administrador: 'Acesso total ao sistema e configurações',
   paciente: 'Acesse seus agendamentos, histórico e documentos médicos',
   colaborador: 'Gerencie pacientes, agenda e operações da clínica',
-  aluno: 'Cursos, materiais e certificados da Ibramed Academy',
-  licenciado: 'Dashboard completo da sua clínica licenciada',
+  aluno: 'Cursos, materiais e certificados do IBRAMEC',
+  licenciado: 'Dashboard completo da sua Licença ByNeoFolic',
   cliente_avivar: 'Marketing, leads e crescimento do seu negócio',
 };
 
