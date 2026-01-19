@@ -17,7 +17,8 @@ import {
   useUserConfirmation, 
   useConfirmMeeting,
   useMeetingConfirmations,
-  SalaTecnicaMeeting
+  SalaTecnicaMeeting,
+  useIsLicensee
 } from '@/hooks/useSalaTecnica';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -113,9 +114,15 @@ interface SalaTecnicaUpcomingProps {
 
 export function SalaTecnicaUpcoming({ limit = 4, showViewAll = true, className }: SalaTecnicaUpcomingProps) {
   const navigate = useNavigate();
+  const isLicensee = useIsLicensee();
   const { data: meetings, isLoading } = useSalaTecnicaMeetings();
   
   const displayMeetings = meetings?.slice(0, limit) || [];
+
+  // Don't render for non-licensees
+  if (!isLicensee) {
+    return null;
+  }
 
   if (isLoading) {
     return (

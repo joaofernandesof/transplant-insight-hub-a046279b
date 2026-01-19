@@ -1,13 +1,20 @@
+import { Navigate } from 'react-router-dom';
 import { ModuleSidebar } from '@/components/ModuleSidebar';
 import { SalaTecnicaCalendar } from '@/components/SalaTecnicaCalendar';
 import { SalaTecnicaNotification } from '@/components/SalaTecnicaNotification';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Video, Users, Calendar, Award } from 'lucide-react';
-import { useAllSalaTecnicaMeetings } from '@/hooks/useSalaTecnica';
+import { useAllSalaTecnicaMeetings, useIsLicensee } from '@/hooks/useSalaTecnica';
 
 export default function SalaTecnica() {
+  const isLicensee = useIsLicensee();
   const { data: allMeetings } = useAllSalaTecnicaMeetings();
+  
+  // Redirect non-licensees away from this page
+  if (!isLicensee) {
+    return <Navigate to="/" replace />;
+  }
   
   const stats = {
     total: allMeetings?.length || 0,

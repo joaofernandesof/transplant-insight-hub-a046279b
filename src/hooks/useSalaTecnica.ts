@@ -3,6 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+// Helper to check if user is licensee (not admin)
+export function useIsLicensee() {
+  const { isAdmin } = useAuth();
+  return !isAdmin;
+}
+
 export interface SalaTecnicaMeeting {
   id: string;
   title: string;
