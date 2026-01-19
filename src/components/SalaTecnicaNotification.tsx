@@ -16,7 +16,8 @@ import {
   useUserConfirmation, 
   useConfirmMeeting,
   useMeetingConfirmations,
-  useIsThursday
+  useIsThursday,
+  useIsLicensee
 } from '@/hooks/useSalaTecnica';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +28,7 @@ interface SalaTecnicaNotificationProps {
 export function SalaTecnicaNotification({ className }: SalaTecnicaNotificationProps) {
   const [dismissed, setDismissed] = useState(false);
   const isThursday = useIsThursday();
+  const isLicensee = useIsLicensee();
   const { data: todaysMeeting, isLoading } = useTodaysMeeting();
   const { data: userConfirmation } = useUserConfirmation(todaysMeeting?.id);
   const { data: confirmations } = useMeetingConfirmations(todaysMeeting?.id);
@@ -53,8 +55,8 @@ export function SalaTecnicaNotification({ className }: SalaTecnicaNotificationPr
     }
   };
 
-  // Don't show if not Thursday, no meeting today, already dismissed, or loading
-  if (!isThursday || !todaysMeeting || dismissed || isLoading) {
+  // Don't show if not licensee, not Thursday, no meeting today, already dismissed, or loading
+  if (!isLicensee || !isThursday || !todaysMeeting || dismissed || isLoading) {
     return null;
   }
 
