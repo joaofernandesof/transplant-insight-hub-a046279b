@@ -260,6 +260,46 @@ export default function HotLeads() {
     }
   };
 
+  // Handle drag-and-drop status change
+  const handleKanbanStatusChange = async (lead: Lead, newStatus: 'new' | 'contacted' | 'scheduled' | 'converted' | 'lost') => {
+    // For converted and lost, we need extra info - open dialog instead
+    if (newStatus === 'converted' || newStatus === 'lost') {
+      setSelectedLead(lead);
+      setIsDetailOpen(true);
+      toast.info(newStatus === 'converted' 
+        ? 'Informe o valor e procedimento da venda' 
+        : 'Informe o motivo do descarte');
+      return;
+    }
+    
+    try {
+      const updateData: Partial<Lead> = { status: newStatus };
+      
+      if (newStatus === 'scheduled') {
+        updateData.scheduled_at = new Date().toISOString();
+      }
+
+      const { error } = await supabase
+        .from('leads')
+        .update(updateData)
+        .eq('id', lead.id);
+
+      if (error) throw error;
+      
+      const updatedLead = { ...lead, ...updateData } as Lead;
+      setLeads(prev => prev.map(l => l.id === lead.id ? updatedLead : l));
+      
+      toast.success('Status atualizado!');
+      
+      if (newStatus === 'scheduled') {
+        notifyEvent('lead_scheduled', updatedLead);
+      }
+    } catch (error) {
+      console.error('Error updating lead status:', error);
+      toast.error('Erro ao atualizar status');
+    }
+  };
+
   // Filter leads
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
@@ -509,6 +549,7 @@ export default function HotLeads() {
                 isInPriorityPeriod={isInPriorityPeriod}
                 onClaim={claimLead}
                 onOpenDetails={openDetails}
+                onStatusChange={handleKanbanStatusChange}
               />
             ) : (
               <div className="space-y-3">
