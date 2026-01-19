@@ -7,10 +7,9 @@ import NeoHubRegister from './pages/NeoHubRegister';
 import ProfileSelector from './pages/ProfileSelector';
 import { Loader2 } from 'lucide-react';
 
-// Import existing portal pages
-import PortalHome from '@/portal/pages/PortalHome';
-import PortalSettings from '@/portal/pages/PortalSettings';
-import { PortalSidebar } from '@/portal/components/PortalSidebar';
+// NeoCare (Portal do Paciente) pages
+import { NeoCareSidebar } from './components/NeoCareSidebar';
+import { NeoCareHome, NeoCareAppointments, NeoCareNewAppointment, NeoCareSettings } from './pages/neocare';
 
 // Import existing licensee pages
 import LicenseeHome from '@/pages/LicenseeHome';
@@ -42,18 +41,18 @@ function PlaceholderPage({ title }: { title: string }) {
 function NeoCareRoutes() {
   return (
     <ProfileGuard allowedProfiles={['paciente']}>
-      <PortalSidebar>
+      <NeoCareSidebar>
         <Routes>
-          <Route index element={<PortalHome />} />
-          <Route path="settings" element={<PortalSettings />} />
-          <Route path="appointments" element={<PlaceholderPage title="Meus Agendamentos" />} />
-          <Route path="appointments/new" element={<PlaceholderPage title="Novo Agendamento" />} />
+          <Route index element={<NeoCareHome />} />
+          <Route path="appointments" element={<NeoCareAppointments />} />
+          <Route path="appointments/new" element={<NeoCareNewAppointment />} />
+          <Route path="settings" element={<NeoCareSettings />} />
           <Route path="my-records" element={<PlaceholderPage title="Meus Documentos" />} />
           <Route path="my-invoices" element={<PlaceholderPage title="Minhas Faturas" />} />
           <Route path="teleconsultation" element={<PlaceholderPage title="Teleconsulta" />} />
           <Route path="*" element={<Navigate to="/neocare" replace />} />
         </Routes>
-      </PortalSidebar>
+      </NeoCareSidebar>
     </ProfileGuard>
   );
 }
@@ -62,10 +61,9 @@ function NeoCareRoutes() {
 function NeoTeamRoutes() {
   return (
     <ProfileGuard allowedProfiles={['colaborador']}>
-      <PortalSidebar>
+      <ModuleSidebar>
         <Routes>
-          <Route index element={<PortalHome />} />
-          <Route path="settings" element={<PortalSettings />} />
+          <Route index element={<PlaceholderPage title="NeoTeam - Portal do Colaborador" />} />
           <Route path="schedule" element={<PlaceholderPage title="Agenda" />} />
           <Route path="waiting-room" element={<PlaceholderPage title="Sala de Espera" />} />
           <Route path="patients" element={<PlaceholderPage title="Pacientes" />} />
@@ -77,9 +75,10 @@ function NeoTeamRoutes() {
           <Route path="campaigns" element={<PlaceholderPage title="Campanhas" />} />
           <Route path="nps" element={<PlaceholderPage title="NPS" />} />
           <Route path="reports" element={<PlaceholderPage title="Relatórios" />} />
+          <Route path="settings" element={<PlaceholderPage title="Configurações" />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>
-      </PortalSidebar>
+      </ModuleSidebar>
     </ProfileGuard>
   );
 }
