@@ -31,7 +31,8 @@ import {
   LogOut,
   Crown,
   PieChart,
-  CalendarDays
+  CalendarDays,
+  LayoutDashboard
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { useState, useEffect } from "react";
@@ -42,6 +43,7 @@ interface AdminSidebarProps {
 
 const menuItems = [
   { id: 'home', title: 'Início', icon: Home, route: '/' },
+  { id: 'admin-dashboard', title: 'Dashboard Admin', icon: LayoutDashboard, route: '/admin-dashboard' },
   { id: 'divider-1', title: 'Gestão', isDivider: true },
   { id: 'licensees', title: 'Gerenciar Licenciados', icon: Users, route: '/licensees' },
   { id: 'monitoring', title: 'Monitoramento de Usuários', icon: Crown, route: '/monitoring' },
