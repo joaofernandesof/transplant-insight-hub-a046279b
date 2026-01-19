@@ -117,7 +117,7 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ByNeofolic <noreply@neofolic.com.br>",
+        from: "ByNeofolic <onboarding@resend.dev>",
         to: uniqueEmails,
         subject: `🔐 Login: ${user_name} acessou o portal`,
         html: emailHtml,
