@@ -2485,6 +2485,80 @@ export type Database = {
         }
         Relationships: []
       }
+      sala_tecnica_confirmations: {
+        Row: {
+          attendance_status: string | null
+          confirmed_at: string
+          id: string
+          meeting_id: string
+          user_id: string
+        }
+        Insert: {
+          attendance_status?: string | null
+          confirmed_at?: string
+          id?: string
+          meeting_id: string
+          user_id: string
+        }
+        Update: {
+          attendance_status?: string | null
+          confirmed_at?: string
+          id?: string
+          meeting_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sala_tecnica_confirmations_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "sala_tecnica_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sala_tecnica_meetings: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          google_meet_link: string | null
+          id: string
+          is_cancelled: boolean | null
+          meeting_date: string
+          meeting_time: string
+          mentor_names: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          google_meet_link?: string | null
+          id?: string
+          is_cancelled?: boolean | null
+          meeting_date: string
+          meeting_time?: string
+          mentor_names?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          google_meet_link?: string | null
+          id?: string
+          is_cancelled?: boolean | null
+          meeting_date?: string
+          meeting_time?: string
+          mentor_names?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           baldness_grade: string | null
