@@ -34,7 +34,8 @@ import {
   Menu,
   X,
   Gift,
-  LogOut
+  LogOut,
+  CalendarDays
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { useState, useEffect } from "react";
@@ -62,6 +63,7 @@ const menuItems = [
   { id: 'metrics', title: 'Dashboard de Métricas', icon: BarChart3, route: '/dashboard' },
   { id: 'achievements', title: 'Conquistas', icon: Trophy, route: '/achievements' },
   { id: 'surgery-schedule', title: 'Agenda de Cirurgias', icon: Building2, route: '/surgery-schedule' },
+  { id: 'sala-tecnica', title: 'Sala Técnica', icon: CalendarDays, route: '/sala-tecnica' },
   { id: 'university', title: 'Universidade ByNeofolic', icon: Video, route: '/university' },
   { id: 'regularization', title: 'Regularização da Clínica', icon: FileCheck, route: '/regularization' },
   { id: 'materials', title: 'Central de Materiais', icon: BookOpen, route: '/materials' },

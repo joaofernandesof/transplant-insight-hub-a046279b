@@ -48,6 +48,8 @@ import MonthlyGoals from "@/components/MonthlyGoals";
 import SurgerySubmissions from "@/components/SurgerySubmissions";
 import AchievementTimeline from "@/components/AchievementTimeline";
 import Leaderboard from "@/components/Leaderboard";
+import { SalaTecnicaNotification } from "@/components/SalaTecnicaNotification";
+import { SalaTecnicaUpcoming } from "@/components/SalaTecnicaUpcoming";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -414,6 +416,9 @@ export default function LicenseeHome() {
         </div>
 
 
+        {/* Thursday Sala Técnica Notification */}
+        <SalaTecnicaNotification className="mb-6" />
+
         {/* First Steps, Achievements, Monthly Goals & Surgery Submissions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div className="space-y-6">
@@ -426,10 +431,15 @@ export default function LicenseeHome() {
           </div>
         </div>
 
-        {/* Timeline & Leaderboard */}
+        {/* Sala Técnica & Leaderboard */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <AchievementTimeline />
+          <SalaTecnicaUpcoming />
           <Leaderboard limit={10} />
+        </div>
+
+        {/* Timeline */}
+        <div className="mb-8">
+          <AchievementTimeline />
         </div>
 
         {/* Menu Grid - 2 colunas no mobile para melhor usabilidade */}

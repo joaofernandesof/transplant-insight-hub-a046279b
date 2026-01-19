@@ -39,6 +39,7 @@ import Achievements from "./pages/Achievements";
 import UserMonitoring from "./pages/UserMonitoring";
 import WeeklyReports from "./pages/WeeklyReports";
 import SurgerySchedule from "./pages/SurgerySchedule";
+import SalaTecnica from "./pages/SalaTecnica";
 import ConsolidatedResults from "./pages/ConsolidatedResults";
 import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
@@ -360,6 +361,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SurgerySchedule />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/sala-tecnica" 
+        element={
+          <ProtectedRoute>
+            <SalaTecnica />
           </ProtectedRoute>
         } 
       />
