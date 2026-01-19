@@ -525,6 +525,1242 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_appointments: {
+        Row: {
+          appointment_type: string
+          cancellation_reason: string | null
+          check_in_at: string | null
+          check_out_at: string | null
+          created_at: string | null
+          created_by: string | null
+          doctor_id: string | null
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          patient_id: string
+          procedure_type: string | null
+          room_id: string | null
+          scheduled_at: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_type: string
+          cancellation_reason?: string | null
+          check_in_at?: string | null
+          check_out_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          doctor_id?: string | null
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          procedure_type?: string | null
+          room_id?: string | null
+          scheduled_at: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_type?: string
+          cancellation_reason?: string | null
+          check_in_at?: string | null
+          check_out_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          doctor_id?: string | null
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          procedure_type?: string | null
+          room_id?: string | null
+          scheduled_at?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "portal_doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "portal_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_appointments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "portal_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_attachments: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          medical_record_id: string | null
+          patient_id: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          medical_record_id?: string | null
+          patient_id?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          medical_record_id?: string | null
+          patient_id?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_attachments_medical_record_id_fkey"
+            columns: ["medical_record_id"]
+            isOneToOne: false
+            referencedRelation: "portal_medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_attachments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "portal_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          new_values: Json | null
+          old_values: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      portal_automations: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          template_id: string | null
+          trigger_timing: string | null
+          trigger_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template_id?: string | null
+          trigger_timing?: string | null
+          trigger_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template_id?: string | null
+          trigger_timing?: string | null
+          trigger_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_automations_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "portal_message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_campaigns: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          delivered_count: number | null
+          description: string | null
+          id: string
+          name: string
+          scheduled_at: string | null
+          sent_at: string | null
+          sent_count: number | null
+          status: string | null
+          target_criteria: Json | null
+          template_id: string | null
+          total_recipients: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          delivered_count?: number | null
+          description?: string | null
+          id?: string
+          name: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          target_criteria?: Json | null
+          template_id?: string | null
+          total_recipients?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          delivered_count?: number | null
+          description?: string | null
+          id?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          target_criteria?: Json | null
+          template_id?: string | null
+          total_recipients?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "portal_message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_cash_flow: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          date: string
+          description: string | null
+          id: string
+          is_recurring: boolean | null
+          payment_id: string | null
+          type: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          payment_id?: string | null
+          type: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          payment_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_cash_flow_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "portal_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_consents: {
+        Row: {
+          accepted: boolean | null
+          accepted_at: string | null
+          consent_type: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          patient_id: string
+          version: string | null
+        }
+        Insert: {
+          accepted?: boolean | null
+          accepted_at?: string | null
+          consent_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          patient_id: string
+          version?: string | null
+        }
+        Update: {
+          accepted?: boolean | null
+          accepted_at?: string | null
+          consent_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          patient_id?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_consents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "portal_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_doctors: {
+        Row: {
+          bio: string | null
+          consultation_duration_minutes: number | null
+          created_at: string | null
+          crm: string
+          crm_state: string | null
+          id: string
+          is_available: boolean | null
+          portal_user_id: string
+          rqe: string | null
+          specialty: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bio?: string | null
+          consultation_duration_minutes?: number | null
+          created_at?: string | null
+          crm: string
+          crm_state?: string | null
+          id?: string
+          is_available?: boolean | null
+          portal_user_id: string
+          rqe?: string | null
+          specialty?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bio?: string | null
+          consultation_duration_minutes?: number | null
+          created_at?: string | null
+          crm?: string
+          crm_state?: string | null
+          id?: string
+          is_available?: boolean | null
+          portal_user_id?: string
+          rqe?: string | null
+          specialty?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_doctors_portal_user_id_fkey"
+            columns: ["portal_user_id"]
+            isOneToOne: true
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_equipment: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_available: boolean | null
+          name: string
+          room_id: string | null
+          serial_number: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_available?: boolean | null
+          name: string
+          room_id?: string | null
+          serial_number?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_available?: boolean | null
+          name?: string
+          room_id?: string | null
+          serial_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_equipment_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "portal_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_inventory_items: {
+        Row: {
+          average_cost: number | null
+          barcode: string | null
+          category: string | null
+          created_at: string | null
+          current_stock: number | null
+          expiry_alert_days: number | null
+          id: string
+          is_active: boolean | null
+          location: string | null
+          min_stock: number | null
+          name: string
+          sale_price: number | null
+          sku: string | null
+          supplier_id: string | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_cost?: number | null
+          barcode?: string | null
+          category?: string | null
+          created_at?: string | null
+          current_stock?: number | null
+          expiry_alert_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          min_stock?: number | null
+          name: string
+          sale_price?: number | null
+          sku?: string | null
+          supplier_id?: string | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_cost?: number | null
+          barcode?: string | null
+          category?: string | null
+          created_at?: string | null
+          current_stock?: number | null
+          expiry_alert_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          min_stock?: number | null
+          name?: string
+          sale_price?: number | null
+          sku?: string | null
+          supplier_id?: string | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_inventory_items_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "portal_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_invoices: {
+        Row: {
+          amount: number | null
+          appointment_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          discount: number | null
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          paid_at: string | null
+          patient_id: string | null
+          payment_method: string | null
+          status: string | null
+          total: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number | null
+          appointment_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          patient_id?: string | null
+          payment_method?: string | null
+          status?: string | null
+          total?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number | null
+          appointment_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          patient_id?: string | null
+          payment_method?: string | null
+          status?: string | null
+          total?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_invoices_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "portal_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_invoices_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "portal_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_medical_records: {
+        Row: {
+          appointment_id: string | null
+          content: Json | null
+          content_html: string | null
+          created_at: string | null
+          doctor_id: string | null
+          id: string
+          is_signed: boolean | null
+          patient_id: string
+          record_type: string
+          signed_at: string | null
+          template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          content?: Json | null
+          content_html?: string | null
+          created_at?: string | null
+          doctor_id?: string | null
+          id?: string
+          is_signed?: boolean | null
+          patient_id: string
+          record_type: string
+          signed_at?: string | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          content?: Json | null
+          content_html?: string | null
+          created_at?: string | null
+          doctor_id?: string | null
+          id?: string
+          is_signed?: boolean | null
+          patient_id?: string
+          record_type?: string
+          signed_at?: string | null
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_medical_records_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "portal_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_medical_records_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "portal_doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "portal_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_message_templates: {
+        Row: {
+          channel: string
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string | null
+          variables: string[] | null
+        }
+        Insert: {
+          channel: string
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject?: string | null
+          variables?: string[] | null
+        }
+        Update: {
+          channel?: string
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string | null
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
+      portal_messages: {
+        Row: {
+          chat_id: string | null
+          content: string | null
+          created_at: string | null
+          direction: string
+          id: string
+          media_type: string | null
+          media_url: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          chat_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          direction: string
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          chat_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          direction?: string
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "portal_whatsapp_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_patients: {
+        Row: {
+          allergies: string[] | null
+          blood_type: string | null
+          created_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          health_insurance: string | null
+          health_insurance_number: string | null
+          id: string
+          medical_record_number: string | null
+          portal_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          allergies?: string[] | null
+          blood_type?: string | null
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          health_insurance?: string | null
+          health_insurance_number?: string | null
+          id?: string
+          medical_record_number?: string | null
+          portal_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          allergies?: string[] | null
+          blood_type?: string | null
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          health_insurance?: string | null
+          health_insurance_number?: string | null
+          id?: string
+          medical_record_number?: string | null
+          portal_user_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_patients_portal_user_id_fkey"
+            columns: ["portal_user_id"]
+            isOneToOne: true
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          payment_date: string | null
+          payment_method: string
+          received_by: string | null
+          status: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          payment_method: string
+          received_by?: string | null
+          status?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string
+          received_by?: string | null
+          status?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "portal_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_rooms: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          room_type: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          room_type?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          room_type?: string | null
+        }
+        Relationships: []
+      }
+      portal_stock_movements: {
+        Row: {
+          appointment_id: string | null
+          batch_number: string | null
+          created_at: string | null
+          created_by: string | null
+          expiry_date: string | null
+          id: string
+          item_id: string
+          movement_type: string
+          quantity: number
+          reason: string | null
+          total_cost: number | null
+          unit_cost: number | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          batch_number?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          expiry_date?: string | null
+          id?: string
+          item_id: string
+          movement_type: string
+          quantity: number
+          reason?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Update: {
+          appointment_id?: string | null
+          batch_number?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          expiry_date?: string | null
+          id?: string
+          item_id?: string
+          movement_type?: string
+          quantity?: number
+          reason?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_stock_movements_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "portal_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_stock_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "portal_inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_suppliers: {
+        Row: {
+          address: string | null
+          cnpj: string | null
+          contact_name: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          phone: string | null
+        }
+        Insert: {
+          address?: string | null
+          cnpj?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+        }
+        Update: {
+          address?: string | null
+          cnpj?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      portal_survey_responses: {
+        Row: {
+          answers: Json | null
+          appointment_id: string | null
+          created_at: string | null
+          doctor_id: string | null
+          id: string
+          nps_score: number | null
+          patient_id: string | null
+          survey_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          appointment_id?: string | null
+          created_at?: string | null
+          doctor_id?: string | null
+          id?: string
+          nps_score?: number | null
+          patient_id?: string | null
+          survey_id: string
+        }
+        Update: {
+          answers?: Json | null
+          appointment_id?: string | null
+          created_at?: string | null
+          doctor_id?: string | null
+          id?: string
+          nps_score?: number | null
+          patient_id?: string | null
+          survey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_survey_responses_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "portal_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_survey_responses_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "portal_doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_survey_responses_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "portal_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_survey_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "portal_surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_surveys: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_nps: boolean | null
+          name: string
+          questions: Json | null
+          trigger_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_nps?: boolean | null
+          name: string
+          questions?: Json | null
+          trigger_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_nps?: boolean | null
+          name?: string
+          questions?: Json | null
+          trigger_type?: string | null
+        }
+        Relationships: []
+      }
+      portal_teleconsultations: {
+        Row: {
+          appointment_id: string
+          created_at: string | null
+          doctor_joined_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          patient_joined_at: string | null
+          recording_url: string | null
+          room_url: string | null
+          status: string | null
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string | null
+          doctor_joined_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          patient_joined_at?: string | null
+          recording_url?: string | null
+          room_url?: string | null
+          status?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string | null
+          doctor_joined_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          patient_joined_at?: string | null
+          recording_url?: string | null
+          room_url?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_teleconsultations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "portal_appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          portal_user_id: string
+          role: Database["public"]["Enums"]["portal_role"]
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          portal_user_id: string
+          role: Database["public"]["Enums"]["portal_role"]
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          portal_user_id?: string
+          role?: Database["public"]["Enums"]["portal_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_user_roles_portal_user_id_fkey"
+            columns: ["portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_users: {
+        Row: {
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip: string | null
+          avatar_url: string | null
+          birth_date: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          gender: string | null
+          id: string
+          is_active: boolean | null
+          phone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          avatar_url?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          gender?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          avatar_url?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      portal_whatsapp_chats: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          patient_id: string | null
+          phone: string
+          status: string | null
+          unread_count: number | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          patient_id?: string | null
+          phone: string
+          status?: string | null
+          unread_count?: number | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          patient_id?: string | null
+          phone?: string
+          status?: string | null
+          unread_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_whatsapp_chats_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "portal_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1275,9 +2511,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_portal_user_id: { Args: { _auth_user_id: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_portal_role: {
+        Args: {
+          _auth_user_id: string
+          _role: Database["public"]["Enums"]["portal_role"]
+        }
+        Returns: boolean
       }
       has_role: {
         Args: {
@@ -1289,6 +2533,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "licensee"
+      portal_role:
+        | "patient"
+        | "doctor"
+        | "admin"
+        | "financial"
+        | "reception"
+        | "inventory"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1417,6 +2668,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "licensee"],
+      portal_role: [
+        "patient",
+        "doctor",
+        "admin",
+        "financial",
+        "reception",
+        "inventory",
+      ],
     },
   },
 } as const
