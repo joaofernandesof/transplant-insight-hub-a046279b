@@ -58,6 +58,7 @@ const tierConfig: Record<LicenseeTier, { name: string; color: string; bgColor: s
 
 const menuItems = [
   { id: 'home', title: 'Início', icon: Home, route: '/home' },
+  { id: 'marketplace', title: 'Marketplace', icon: Store, route: '/marketplace' },
   { id: 'metrics', title: 'Dashboard de Métricas', icon: BarChart3, route: '/dashboard' },
   { id: 'achievements', title: 'Conquistas', icon: Trophy, route: '/achievements' },
   { id: 'surgery-schedule', title: 'Agenda de Cirurgias', icon: Building2, route: '/surgery-schedule' },

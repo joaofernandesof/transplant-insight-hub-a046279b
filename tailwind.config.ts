@@ -71,6 +71,17 @@ export default {
           good: "hsl(var(--status-good))",
           great: "hsl(var(--status-great))",
         },
+        marketplace: {
+          DEFAULT: "hsl(var(--marketplace-primary))",
+          foreground: "hsl(var(--marketplace-primary-foreground))",
+          accent: "hsl(var(--marketplace-accent))",
+          "accent-foreground": "hsl(var(--marketplace-accent-foreground))",
+          background: "hsl(var(--marketplace-background))",
+          card: "hsl(var(--marketplace-card))",
+          border: "hsl(var(--marketplace-border))",
+          warning: "hsl(var(--marketplace-warning))",
+          error: "hsl(var(--marketplace-error))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
