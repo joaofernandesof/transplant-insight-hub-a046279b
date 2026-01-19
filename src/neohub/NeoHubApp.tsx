@@ -40,7 +40,7 @@ function PlaceholderPage({ title }: { title: string }) {
 // Wrapper para NeoCare (Portal do Paciente)
 function NeoCareRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['paciente']}>
+    <ProfileGuard allowedProfiles={['paciente', 'administrador']}>
       <NeoCareSidebar>
         <Routes>
           <Route index element={<NeoCareHome />} />
@@ -60,7 +60,7 @@ function NeoCareRoutes() {
 // Wrapper para NeoTeam (Portal do Colaborador)
 function NeoTeamRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['colaborador']}>
+    <ProfileGuard allowedProfiles={['colaborador', 'administrador']}>
       <ModuleSidebar>
         <Routes>
           <Route index element={<PlaceholderPage title="NeoTeam - Portal do Colaborador" />} />
@@ -86,7 +86,7 @@ function NeoTeamRoutes() {
 // Wrapper para Academy (Portal do Aluno)
 function AcademyRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['aluno']}>
+    <ProfileGuard allowedProfiles={['aluno', 'administrador']}>
       <ModuleSidebar>
         <Routes>
           <Route index element={<PlaceholderPage title="Ibramed Academy" />} />
@@ -104,7 +104,7 @@ function AcademyRoutes() {
 // Wrapper para NeoLicense (Portal do Licenciado)
 function NeoLicenseRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['licenciado']}>
+    <ProfileGuard allowedProfiles={['licenciado', 'administrador']}>
       <ModuleSidebar>
         <Routes>
           <Route index element={<LicenseeHome />} />
@@ -121,6 +121,26 @@ function NeoLicenseRoutes() {
           <Route path="career" element={<Career />} />
           <Route path="community" element={<Community />} />
           <Route path="*" element={<Navigate to="/neolicense" replace />} />
+        </Routes>
+      </ModuleSidebar>
+    </ProfileGuard>
+  );
+}
+
+// Wrapper para Avivar (Portal Cliente Avivar)
+function AvivarRoutes() {
+  return (
+    <ProfileGuard allowedProfiles={['cliente_avivar', 'administrador']}>
+      <ModuleSidebar>
+        <Routes>
+          <Route index element={<PlaceholderPage title="Avivar - Marketing & Crescimento" />} />
+          <Route path="dashboard" element={<PlaceholderPage title="Dashboard Marketing" />} />
+          <Route path="hotleads" element={<HotLeads />} />
+          <Route path="traffic" element={<PlaceholderPage title="Indicadores de Tráfego" />} />
+          <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
+          <Route path="mentorship" element={<PlaceholderPage title="Mentoria Avivar" />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="*" element={<Navigate to="/avivar" replace />} />
         </Routes>
       </ModuleSidebar>
     </ProfileGuard>
@@ -181,6 +201,7 @@ function NeoHubRoutes() {
       <Route path="/neoteam/*" element={<NeoTeamRoutes />} />
       <Route path="/academy/*" element={<AcademyRoutes />} />
       <Route path="/neolicense/*" element={<NeoLicenseRoutes />} />
+      <Route path="/avivar/*" element={<AvivarRoutes />} />
 
       {/* Rota raiz - redireciona baseado no estado */}
       <Route path="/" element={

@@ -535,6 +535,42 @@ export type Database = {
           },
         ]
       }
+      neohub_module_permissions: {
+        Row: {
+          can_delete: boolean | null
+          can_read: boolean | null
+          can_write: boolean | null
+          created_at: string | null
+          id: string
+          module_code: string
+          module_name: string
+          portal: string
+          profile: Database["public"]["Enums"]["neohub_profile"]
+        }
+        Insert: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          created_at?: string | null
+          id?: string
+          module_code: string
+          module_name: string
+          portal: string
+          profile: Database["public"]["Enums"]["neohub_profile"]
+        }
+        Update: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          created_at?: string | null
+          id?: string
+          module_code?: string
+          module_name?: string
+          portal?: string
+          profile?: Database["public"]["Enums"]["neohub_profile"]
+        }
+        Relationships: []
+      }
       neohub_user_profiles: {
         Row: {
           granted_at: string | null
@@ -2696,6 +2732,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_module: {
+        Args: { _module_code: string; _user_id: string }
+        Returns: boolean
+      }
       get_neohub_user_id: { Args: { _auth_user_id: string }; Returns: string }
       get_neohub_user_profiles: {
         Args: { _user_id: string }
@@ -2729,10 +2769,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "licensee"
-      neohub_profile: "paciente" | "colaborador" | "aluno" | "licenciado"
+      neohub_profile:
+        | "paciente"
+        | "colaborador"
+        | "aluno"
+        | "licenciado"
+        | "administrador"
+        | "cliente_avivar"
       portal_role:
         | "patient"
         | "doctor"
@@ -2868,7 +2915,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "licensee"],
-      neohub_profile: ["paciente", "colaborador", "aluno", "licenciado"],
+      neohub_profile: [
+        "paciente",
+        "colaborador",
+        "aluno",
+        "licenciado",
+        "administrador",
+        "cliente_avivar",
+      ],
       portal_role: [
         "patient",
         "doctor",

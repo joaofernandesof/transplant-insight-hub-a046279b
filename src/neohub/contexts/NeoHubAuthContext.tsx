@@ -1,25 +1,27 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { 
+  NeoHubProfile, 
+  Portal,
+  PROFILE_ROUTES,
+  PROFILE_NAMES,
+  PROFILE_PORTAL_MAP,
+  isAdminProfile,
+  canAccessPortal,
+  canAccessRoute,
+  getDefaultRouteForProfile,
+} from '../lib/permissions';
 
-// Tipos de perfil do NeoHub
-export type NeoHubProfile = 'paciente' | 'colaborador' | 'aluno' | 'licenciado';
-
-// Mapeamento de perfis para rotas
-export const PROFILE_ROUTES: Record<NeoHubProfile, string> = {
-  paciente: '/neocare',
-  colaborador: '/neoteam',
-  aluno: '/academy',
-  licenciado: '/neolicense',
-};
-
-// Mapeamento de perfis para nomes amigáveis
-export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
-  paciente: 'NeoCare',
-  colaborador: 'NeoTeam',
-  aluno: 'Ibramed Academy',
-  licenciado: 'NeoLicense',
+// Re-exportar tipos e constantes para compatibilidade
+export type { NeoHubProfile, Portal };
+export { 
+  PROFILE_ROUTES, 
+  PROFILE_NAMES, 
+  PROFILE_PORTAL_MAP,
+  isAdminProfile,
+  canAccessPortal,
+  canAccessRoute,
 };
 
 // Interface do usuário do NeoHub
@@ -55,6 +57,8 @@ interface NeoHubAuthContextType {
   signup: (data: SignupData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   hasProfile: (profile: NeoHubProfile) => boolean;
+  canAccess: (portal: Portal) => boolean;
+  canAccessCurrentRoute: (route: string) => boolean;
   refreshUser: () => Promise<void>;
 }
 
@@ -69,6 +73,11 @@ interface SignupData {
 
 const NeoHubAuthContext = createContext<NeoHubAuthContextType | undefined>(undefined);
 
+// Lista de perfis válidos para validação
+const VALID_PROFILES: NeoHubProfile[] = [
+  'administrador', 'licenciado', 'colaborador', 'aluno', 'paciente', 'cliente_avivar'
+];
+
 export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<NeoHubUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -78,12 +87,17 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
   // Carregar perfil ativo do localStorage
   useEffect(() => {
     const stored = localStorage.getItem('neohub_active_profile');
-    if (stored && ['paciente', 'colaborador', 'aluno', 'licenciado'].includes(stored)) {
+    if (stored && VALID_PROFILES.includes(stored as NeoHubProfile)) {
       setActiveProfileState(stored as NeoHubProfile);
     }
   }, []);
 
   const setActiveProfile = (profile: NeoHubProfile) => {
+    // Verificar se o usuário possui este perfil
+    if (user && !user.profiles.includes(profile) && !user.isAdmin) {
+      console.warn('User does not have this profile:', profile);
+      return;
+    }
     setActiveProfileState(profile);
     localStorage.setItem('neohub_active_profile', profile);
   };
@@ -109,15 +123,28 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
         .eq('neohub_user_id', userData.id)
         .eq('is_active', true);
 
-      const profiles = (profilesData || []).map(p => p.profile as NeoHubProfile);
+      const profiles = (profilesData || [])
+        .map(p => p.profile as NeoHubProfile)
+        .filter(p => VALID_PROFILES.includes(p));
 
-      // Verificar se é admin (via tabela user_roles legada)
+      // Verificar se é admin (via tabela user_roles legada OU perfil administrador)
+      const isAdminByProfile = profiles.includes('administrador');
+      
+      let isAdminByRole = false;
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', authUser.id)
         .eq('role', 'admin')
         .single();
+      
+      isAdminByRole = !!roleData;
+      const isAdmin = isAdminByProfile || isAdminByRole;
+
+      // Se for admin por role mas não tem perfil administrador, adicionar
+      if (isAdminByRole && !isAdminByProfile) {
+        profiles.unshift('administrador');
+      }
 
       return {
         id: userData.id,
@@ -138,7 +165,7 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
         maritalStatus: userData.marital_status,
         nationality: userData.nationality,
         profiles,
-        isAdmin: !!roleData,
+        isAdmin,
       };
     } catch (error) {
       console.error('Error fetching NeoHub user:', error);
@@ -159,7 +186,6 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
         setSession(session);
 
         if (session?.user) {
-          // Usar setTimeout para evitar deadlock com Supabase
           setTimeout(async () => {
             const userData = await fetchUserData(session.user);
             setUser(userData);
@@ -204,7 +230,6 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
 
   const signup = async (data: SignupData) => {
     try {
-      // Criar usuário no Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -224,7 +249,6 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
         return { success: false, error: 'Erro ao criar usuário' };
       }
 
-      // Criar entrada na tabela neohub_users
       const { data: neoHubUser, error: userError } = await supabase
         .from('neohub_users')
         .insert({
@@ -242,7 +266,6 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
         return { success: false, error: 'Erro ao criar perfil de usuário' };
       }
 
-      // Atribuir perfil inicial
       const { error: profileError } = await supabase
         .from('neohub_user_profiles')
         .insert({
@@ -268,7 +291,18 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
   };
 
   const hasProfile = (profile: NeoHubProfile): boolean => {
+    if (user?.isAdmin) return true;
     return user?.profiles.includes(profile) || false;
+  };
+
+  const canAccess = (portal: Portal): boolean => {
+    if (!user || !activeProfile) return false;
+    return canAccessPortal(activeProfile, portal);
+  };
+
+  const canAccessCurrentRoute = (route: string): boolean => {
+    if (!user || !activeProfile) return false;
+    return canAccessRoute(activeProfile, route);
   };
 
   return (
@@ -283,6 +317,8 @@ export function NeoHubAuthProvider({ children }: { children: React.ReactNode }) 
         signup,
         logout,
         hasProfile,
+        canAccess,
+        canAccessCurrentRoute,
         refreshUser,
       }}
     >

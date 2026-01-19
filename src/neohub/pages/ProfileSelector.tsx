@@ -4,28 +4,34 @@ import { useNeoHubAuth, NeoHubProfile, PROFILE_NAMES, PROFILE_ROUTES } from '../
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, Briefcase, GraduationCap, User, ChevronRight, LogOut } from 'lucide-react';
+import { Heart, Briefcase, GraduationCap, User, ChevronRight, LogOut, Shield, TrendingUp } from 'lucide-react';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
 
 const PROFILE_ICONS: Record<NeoHubProfile, React.ElementType> = {
+  administrador: Shield,
   paciente: Heart,
   colaborador: Briefcase,
   aluno: GraduationCap,
   licenciado: User,
+  cliente_avivar: TrendingUp,
 };
 
 const PROFILE_COLORS: Record<NeoHubProfile, string> = {
+  administrador: 'bg-red-500',
   paciente: 'bg-rose-500',
   colaborador: 'bg-blue-500',
   aluno: 'bg-amber-500',
   licenciado: 'bg-emerald-500',
+  cliente_avivar: 'bg-orange-500',
 };
 
 const PROFILE_DESCRIPTIONS: Record<NeoHubProfile, string> = {
+  administrador: 'Acesso total ao sistema e configurações',
   paciente: 'Acesse seus agendamentos, histórico e documentos médicos',
   colaborador: 'Gerencie pacientes, agenda e operações da clínica',
   aluno: 'Cursos, materiais e certificados da Ibramed Academy',
   licenciado: 'Dashboard completo da sua clínica licenciada',
+  cliente_avivar: 'Marketing, leads e crescimento do seu negócio',
 };
 
 export default function ProfileSelector() {
