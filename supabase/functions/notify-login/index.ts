@@ -127,6 +127,14 @@ serve(async (req: Request): Promise<Response> => {
     const emailResult = await emailResponse.json();
     
     if (!emailResponse.ok) {
+      // Check if it's a Resend testing mode restriction
+      if (emailResult.message?.includes("testing emails") || emailResult.name === "validation_error") {
+        console.warn("Resend in testing mode - skipping email notification:", emailResult.message);
+        return new Response(
+          JSON.stringify({ success: true, skipped: true, reason: "Resend testing mode - domain not verified" }),
+          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
       console.error("Error sending email:", emailResult);
       throw new Error(emailResult.message || "Failed to send email");
     }
@@ -139,9 +147,10 @@ serve(async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error("Error in notify-login function:", error);
+    // Don't fail the login flow due to notification errors
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      JSON.stringify({ success: false, error: error.message, warning: "Notification failed but login succeeded" }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 });
