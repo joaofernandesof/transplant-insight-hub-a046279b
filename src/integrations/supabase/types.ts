@@ -226,6 +226,78 @@ export type Database = {
         }
         Relationships: []
       }
+      jon_jobs_nps: {
+        Row: {
+          closed_by: string | null
+          created_at: string
+          feedback: string | null
+          id: string
+          score: number
+          session_duration_seconds: number | null
+          session_id: string
+          total_messages: number | null
+          user_id: string
+        }
+        Insert: {
+          closed_by?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          score: number
+          session_duration_seconds?: number | null
+          session_id: string
+          total_messages?: number | null
+          user_id: string
+        }
+        Update: {
+          closed_by?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          score?: number
+          session_duration_seconds?: number | null
+          session_id?: string
+          total_messages?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      jon_jobs_sessions: {
+        Row: {
+          email_nps_sent: boolean | null
+          ended_at: string | null
+          id: string
+          last_activity_at: string
+          message_count: number | null
+          nps_sent: boolean | null
+          started_at: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          email_nps_sent?: boolean | null
+          ended_at?: string | null
+          id?: string
+          last_activity_at?: string
+          message_count?: number | null
+          nps_sent?: boolean | null
+          started_at?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          email_nps_sent?: boolean | null
+          ended_at?: string | null
+          id?: string
+          last_activity_at?: string
+          message_count?: number | null
+          nps_sent?: boolean | null
+          started_at?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           available_at: string | null
