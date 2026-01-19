@@ -109,7 +109,7 @@ export function LeadKanban({
   }, [draggedLead, userId, isAdmin, onStatusChange]);
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4">
+    <div className="grid grid-cols-5 gap-2 lg:gap-3 max-md:flex max-md:overflow-x-auto max-md:gap-3 pb-4">
       {columns.map(column => {
         const Icon = column.icon;
         const columnValue = column.leads
@@ -120,7 +120,7 @@ export function LeadKanban({
         return (
           <div 
             key={column.status} 
-            className="flex-shrink-0 w-[280px]"
+            className="w-full min-w-0 max-md:flex-shrink-0 max-md:w-[260px]"
             onDragOver={(e) => handleDragOver(e, column.status)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, column.status)}
@@ -129,23 +129,23 @@ export function LeadKanban({
               `border-t-4 ${column.color} transition-all duration-200`,
               isDropTarget && 'ring-2 ring-primary ring-offset-2 bg-accent/50'
             )}>
-              <CardHeader className="py-3 px-4">
+              <CardHeader className="py-2 px-2 lg:px-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    {column.label}
+                  <CardTitle className="text-xs lg:text-sm font-medium flex items-center gap-1 lg:gap-2">
+                    <Icon className="h-3 w-3 lg:h-4 lg:w-4" />
+                    <span className="truncate">{column.label}</span>
                   </CardTitle>
-                  <span className="text-xs font-semibold bg-muted px-2 py-1 rounded-full">
+                  <span className="text-[10px] lg:text-xs font-semibold bg-muted px-1.5 lg:px-2 py-0.5 lg:py-1 rounded-full">
                     {column.leads.length}
                   </span>
                 </div>
                 {column.status === 'converted' && columnValue > 0 && (
-                  <p className="text-xs text-green-600 font-medium mt-1">
+                  <p className="text-[10px] lg:text-xs text-green-600 font-medium mt-1">
                     R$ {columnValue.toLocaleString('pt-BR')}
                   </p>
                 )}
               </CardHeader>
-              <CardContent className="p-2">
+              <CardContent className="p-1.5 lg:p-2">
                 <ScrollArea className="h-[calc(100vh-350px)] min-h-[400px]">
                   <div className="space-y-2 pr-2">
                     {column.leads.length === 0 ? (
