@@ -42,10 +42,22 @@
     --status-good: 200 85% 45%;
     --status-great: 142 71% 45%;
 
+    /* Marketplace colors - Medical theme */
+    --marketplace-primary: 211 100% 50%;
+    --marketplace-primary-foreground: 0 0% 100%;
+    --marketplace-accent: 142 76% 58%;
+    --marketplace-accent-foreground: 0 0% 100%;
+    --marketplace-background: 210 20% 98%;
+    --marketplace-card: 0 0% 100%;
+    --marketplace-border: 220 13% 91%;
+    --marketplace-warning: 38 92% 50%;
+    --marketplace-error: 350 89% 60%;
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(210 60% 25%), hsl(210 70% 35%));
     --gradient-accent: linear-gradient(135deg, hsl(200 85% 45%), hsl(190 85% 55%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(150 70% 50%));
+    --gradient-marketplace: linear-gradient(135deg, hsl(211 100% 50%), hsl(211 100% 40%));
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);

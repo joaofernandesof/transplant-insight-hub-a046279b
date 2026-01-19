@@ -43,6 +43,15 @@ import ConsolidatedResults from "./pages/ConsolidatedResults";
 import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
 import PortalApp from "./portal/PortalApp";
+import { MarketplaceHome } from "./marketplace/pages/MarketplaceHome";
+import { MarketplaceProfessionals } from "./marketplace/pages/MarketplaceProfessionals";
+import { MarketplaceUnits } from "./marketplace/pages/MarketplaceUnits";
+import { MarketplaceLeads } from "./marketplace/pages/MarketplaceLeads";
+import { MarketplaceSchedule } from "./marketplace/pages/MarketplaceSchedule";
+import { MarketplaceReviews } from "./marketplace/pages/MarketplaceReviews";
+import { MarketplaceCampaigns } from "./marketplace/pages/MarketplaceCampaigns";
+import { MarketplaceDashboard } from "./marketplace/pages/MarketplaceDashboard";
+import { MarketplaceDiscovery } from "./marketplace/pages/MarketplaceDiscovery";
 
 // Wrapper para páginas do licenciado com sidebar
 function LicenseeSidebarWrapper({ children }: { children: React.ReactNode }) {
@@ -326,6 +335,16 @@ function AppRoutes() {
         path="/api-docs" 
         element={<ApiDocs />}
       />
+      {/* Marketplace Neo Folic */}
+      <Route path="/marketplace" element={<ProtectedRoute><MarketplaceHome /></ProtectedRoute>} />
+      <Route path="/marketplace/professionals" element={<ProtectedRoute><MarketplaceProfessionals /></ProtectedRoute>} />
+      <Route path="/marketplace/units" element={<ProtectedRoute><MarketplaceUnits /></ProtectedRoute>} />
+      <Route path="/marketplace/leads" element={<ProtectedRoute><MarketplaceLeads /></ProtectedRoute>} />
+      <Route path="/marketplace/schedule" element={<ProtectedRoute><MarketplaceSchedule /></ProtectedRoute>} />
+      <Route path="/marketplace/reviews" element={<ProtectedRoute><MarketplaceReviews /></ProtectedRoute>} />
+      <Route path="/marketplace/campaigns" element={<ProtectedRoute><MarketplaceCampaigns /></ProtectedRoute>} />
+      <Route path="/marketplace/dashboard" element={<ProtectedRoute><MarketplaceDashboard /></ProtectedRoute>} />
+      <Route path="/marketplace/discovery" element={<ProtectedRoute><MarketplaceDiscovery /></ProtectedRoute>} />
       {/* Portal Neo Folic - Sistema Médico Separado */}
       <Route 
         path="/portal/*" 
