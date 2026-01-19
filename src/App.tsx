@@ -42,6 +42,7 @@ import SurgerySchedule from "./pages/SurgerySchedule";
 import ConsolidatedResults from "./pages/ConsolidatedResults";
 import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
+import PortalApp from "./portal/PortalApp";
 
 // Wrapper para páginas do licenciado com sidebar
 function LicenseeSidebarWrapper({ children }: { children: React.ReactNode }) {
@@ -324,6 +325,11 @@ function AppRoutes() {
       <Route 
         path="/api-docs" 
         element={<ApiDocs />}
+      />
+      {/* Portal Neo Folic - Sistema Médico Separado */}
+      <Route 
+        path="/portal/*" 
+        element={<PortalApp />}
       />
       <Route path="*" element={<NotFound />} />
     </Routes>
