@@ -1,6 +1,12 @@
 import React from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
-import { useNeoHubAuth, NeoHubProfile, PROFILE_ROUTES } from '../contexts/NeoHubAuthContext';
+import { 
+  useNeoHubAuth, 
+  NeoHubProfile, 
+  Portal,
+  PROFILE_ROUTES,
+  canAccessPortal,
+} from '../contexts/NeoHubAuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface NeoHubLayoutProps {
@@ -59,6 +65,11 @@ export function ProfileGuard({ allowedProfiles, children }: ProfileGuardProps) {
     return <Navigate to="/login" replace />;
   }
 
+  // Admin tem acesso total
+  if (user.isAdmin) {
+    return <>{children}</>;
+  }
+
   // Verificar se o usuário tem algum dos perfis permitidos
   const hasAccess = allowedProfiles.some(profile => user.profiles.includes(profile));
 
@@ -69,6 +80,40 @@ export function ProfileGuard({ allowedProfiles, children }: ProfileGuardProps) {
   // Verificar se o perfil ativo é um dos permitidos
   if (activeProfile && !allowedProfiles.includes(activeProfile)) {
     return <Navigate to="/select-profile" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// HOC para proteger rotas por portal
+interface PortalGuardProps {
+  portal: Portal;
+  children: React.ReactNode;
+}
+
+export function PortalGuard({ portal, children }: PortalGuardProps) {
+  const { user, activeProfile, isLoading } = useNeoHubAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Admin tem acesso total
+  if (user.isAdmin) {
+    return <>{children}</>;
+  }
+
+  // Verificar se o perfil ativo pode acessar o portal
+  if (!activeProfile || !canAccessPortal(activeProfile, portal)) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;
