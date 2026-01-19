@@ -18,7 +18,8 @@ import {
   LeadFilters,
   LeadDetailDialog,
   LeadDashboard,
-  statusConfig
+  statusConfig,
+  SortOption
 } from '@/components/hotleads';
 import {
   BarChart,
@@ -54,6 +55,7 @@ export default function HotLeads() {
   const [stateFilter, setStateFilter] = useState('all');
   const [procedureFilter, setProcedureFilter] = useState('all');
   const [licenseeFilter, setLicenseeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState<SortOption>('created_desc');
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   
   // Dashboard filters
@@ -300,9 +302,18 @@ export default function HotLeads() {
     }
   };
 
-  // Filter leads
+  // Status order for sorting
+  const statusOrder: Record<string, number> = {
+    new: 1,
+    contacted: 2,
+    scheduled: 3,
+    converted: 4,
+    lost: 5
+  };
+
+  // Filter and sort leads
   const filteredLeads = useMemo(() => {
-    return leads.filter(lead => {
+    let result = leads.filter(lead => {
       // For licensees: show only unclaimed OR their own leads
       if (!isAdmin && lead.claimed_by && lead.claimed_by !== user?.id) {
         return false;
@@ -318,7 +329,31 @@ export default function HotLeads() {
       
       return matchesSearch && matchesStatus && matchesState && matchesProcedure && matchesLicensee;
     });
-  }, [leads, searchTerm, statusFilter, stateFilter, procedureFilter, licenseeFilter, isAdmin, user?.id]);
+
+    // Apply sorting
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'created_desc':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'created_asc':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'name_asc':
+          return a.name.localeCompare(b.name, 'pt-BR');
+        case 'name_desc':
+          return b.name.localeCompare(a.name, 'pt-BR');
+        case 'value_desc':
+          return (b.converted_value || 0) - (a.converted_value || 0);
+        case 'value_asc':
+          return (a.converted_value || 0) - (b.converted_value || 0);
+        case 'status_asc':
+          return (statusOrder[a.status || 'new'] || 0) - (statusOrder[b.status || 'new'] || 0);
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [leads, searchTerm, statusFilter, stateFilter, procedureFilter, licenseeFilter, sortBy, isAdmin, user?.id]);
 
   // Stats
   const stats = useMemo(() => {
@@ -511,6 +546,8 @@ export default function HotLeads() {
                   setProcedureFilter={setProcedureFilter}
                   licenseeFilter={licenseeFilter}
                   setLicenseeFilter={setLicenseeFilter}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
                   viewMode={viewMode}
                   setViewMode={setViewMode}
                   availableStates={availableStates}

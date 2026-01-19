@@ -7,8 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, X, LayoutGrid, List } from 'lucide-react';
+import { Search, X, LayoutGrid, List, ArrowUpDown } from 'lucide-react';
 import { PROCEDURES } from './LeadCard';
+
+export type SortOption = 'created_desc' | 'created_asc' | 'name_asc' | 'name_desc' | 'value_desc' | 'value_asc' | 'status_asc';
 
 interface LeadFiltersProps {
   searchTerm: string;
@@ -21,6 +23,8 @@ interface LeadFiltersProps {
   setProcedureFilter: (value: string) => void;
   licenseeFilter: string;
   setLicenseeFilter: (value: string) => void;
+  sortBy: SortOption;
+  setSortBy: (value: SortOption) => void;
   viewMode: 'kanban' | 'list';
   setViewMode: (value: 'kanban' | 'list') => void;
   availableStates: string[];
@@ -41,6 +45,8 @@ export function LeadFilters({
   setProcedureFilter,
   licenseeFilter,
   setLicenseeFilter,
+  sortBy,
+  setSortBy,
   viewMode,
   setViewMode,
   availableStates,
@@ -50,7 +56,7 @@ export function LeadFilters({
   totalCount
 }: LeadFiltersProps) {
   const hasFilters = searchTerm || statusFilter !== 'all' || stateFilter !== 'all' || 
-    procedureFilter !== 'all' || licenseeFilter !== 'all';
+    procedureFilter !== 'all' || licenseeFilter !== 'all' || sortBy !== 'created_desc';
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -58,6 +64,7 @@ export function LeadFilters({
     setStateFilter('all');
     setProcedureFilter('all');
     setLicenseeFilter('all');
+    setSortBy('created_desc');
   };
 
   return (
@@ -146,6 +153,23 @@ export function LeadFilters({
             </SelectContent>
           </Select>
         )}
+
+        {/* Sort Select */}
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+          <SelectTrigger className="w-[180px]">
+            <ArrowUpDown className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Ordenar por" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="created_desc">Mais recentes</SelectItem>
+            <SelectItem value="created_asc">Mais antigos</SelectItem>
+            <SelectItem value="name_asc">Nome (A-Z)</SelectItem>
+            <SelectItem value="name_desc">Nome (Z-A)</SelectItem>
+            <SelectItem value="value_desc">Maior valor</SelectItem>
+            <SelectItem value="value_asc">Menor valor</SelectItem>
+            <SelectItem value="status_asc">Status (funil)</SelectItem>
+          </SelectContent>
+        </Select>
 
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
