@@ -6,6 +6,7 @@ import PortalLanding from './pages/PortalLanding';
 import PortalLogin from './pages/PortalLogin';
 import PortalRegister from './pages/PortalRegister';
 import PortalHome from './pages/PortalHome';
+import PortalSettings from './pages/PortalSettings';
 import { Loader2 } from 'lucide-react';
 
 // Placeholder component for pages not yet implemented
@@ -47,6 +48,7 @@ function PortalRoutes() {
 
       {/* Protected routes */}
       <Route path="/" element={<ProtectedRoute><PortalHome /></ProtectedRoute>} />
+      <Route path="settings" element={<ProtectedRoute><PortalSettings /></ProtectedRoute>} />
       
       {/* Scheduling */}
       <Route path="appointments" element={<ProtectedRoute><PlaceholderPage title="Meus Agendamentos" /></ProtectedRoute>} />
