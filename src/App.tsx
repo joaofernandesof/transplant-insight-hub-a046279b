@@ -43,6 +43,7 @@ import ConsolidatedResults from "./pages/ConsolidatedResults";
 import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
 import PortalApp from "./portal/PortalApp";
+import NeoHubApp from "./neohub/NeoHubApp";
 import { MarketplaceHome } from "./marketplace/pages/MarketplaceHome";
 import { MarketplaceProfessionals } from "./marketplace/pages/MarketplaceProfessionals";
 import { MarketplaceUnits } from "./marketplace/pages/MarketplaceUnits";
@@ -350,6 +351,12 @@ function AppRoutes() {
         path="/portal/*" 
         element={<PortalApp />}
       />
+      {/* NeoHub - Hub Central Unificado */}
+      <Route path="/neocare/*" element={<NeoHubApp />} />
+      <Route path="/neoteam/*" element={<NeoHubApp />} />
+      <Route path="/academy/*" element={<NeoHubApp />} />
+      <Route path="/neolicense/*" element={<NeoHubApp />} />
+      <Route path="/select-profile" element={<NeoHubApp />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

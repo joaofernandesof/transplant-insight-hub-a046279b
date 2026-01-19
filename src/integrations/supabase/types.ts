@@ -535,6 +535,110 @@ export type Database = {
           },
         ]
       }
+      neohub_user_profiles: {
+        Row: {
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          is_active: boolean | null
+          neohub_user_id: string
+          profile: Database["public"]["Enums"]["neohub_profile"]
+        }
+        Insert: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          neohub_user_id: string
+          profile: Database["public"]["Enums"]["neohub_profile"]
+        }
+        Update: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          neohub_user_id?: string
+          profile?: Database["public"]["Enums"]["neohub_profile"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neohub_user_profiles_neohub_user_id_fkey"
+            columns: ["neohub_user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neohub_users: {
+        Row: {
+          address_cep: string | null
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          avatar_url: string | null
+          birth_date: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean | null
+          marital_status: string | null
+          nationality: string | null
+          phone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          avatar_url?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          marital_status?: string | null
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          avatar_url?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          marital_status?: string | null
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_recipients: {
         Row: {
           created_at: string
@@ -2592,10 +2696,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_neohub_user_id: { Args: { _auth_user_id: string }; Returns: string }
+      get_neohub_user_profiles: {
+        Args: { _user_id: string }
+        Returns: {
+          profile: Database["public"]["Enums"]["neohub_profile"]
+        }[]
+      }
       get_portal_user_id: { Args: { _auth_user_id: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_neohub_profile: {
+        Args: {
+          _profile: Database["public"]["Enums"]["neohub_profile"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       has_portal_role: {
         Args: {
@@ -2614,6 +2732,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "licensee"
+      neohub_profile: "paciente" | "colaborador" | "aluno" | "licenciado"
       portal_role:
         | "patient"
         | "doctor"
@@ -2749,6 +2868,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "licensee"],
+      neohub_profile: ["paciente", "colaborador", "aluno", "licenciado"],
       portal_role: [
         "patient",
         "doctor",
