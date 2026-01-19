@@ -427,33 +427,25 @@ export default function AdminHome() {
           </Card>
         </div>
 
-        {/* Management Section */}
+        {/* Management Section - Compact Horizontal Buttons */}
         <div className="mb-8">
           <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
             <Settings className="h-5 w-5 text-primary" />
             Gestão do Sistema
           </h2>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[...managementModules, ...analyticsModules].map((module) => (
-              <Card 
+              <button 
                 key={module.id}
-                className="group cursor-pointer hover:shadow-md transition-all duration-300 overflow-hidden"
+                className="group flex items-center gap-2 p-2.5 rounded-lg border border-border bg-card hover:bg-muted/50 transition-all duration-200 text-left"
                 onClick={() => navigate(module.path)}
               >
-                <CardContent className="p-0">
-                  <div className={`h-1.5 bg-gradient-to-r ${module.color}`} />
-                  <div className="p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`p-2 rounded-lg bg-gradient-to-br ${module.color} text-white`}>
-                        <span className="[&>svg]:h-4 [&>svg]:w-4">{module.icon}</span>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors ml-auto" />
-                    </div>
-                    <h3 className="font-semibold text-foreground text-xs leading-tight mb-0.5 line-clamp-2">{module.title}</h3>
-                    <p className="text-[10px] text-muted-foreground line-clamp-2">{module.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
+                <div className={`p-1.5 rounded-md bg-gradient-to-br ${module.color} text-white shrink-0`}>
+                  <span className="[&>svg]:h-4 [&>svg]:w-4">{module.icon}</span>
+                </div>
+                <span className="text-xs font-medium text-foreground leading-tight line-clamp-2 flex-1">{module.title}</span>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+              </button>
             ))}
           </div>
         </div>
