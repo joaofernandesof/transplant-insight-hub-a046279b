@@ -19,7 +19,10 @@ import {
   FileText,
   Calendar,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  DollarSign,
+  Scissors,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoWhite from "@/assets/logo-byneofolic-white.png";
@@ -237,6 +240,522 @@ const apiSections: ApiSection[] = [
             success: true,
             response: "Resposta do assistente...",
             tokens_used: 150
+          }
+        }
+      }
+    ]
+  },
+  {
+    id: "sales",
+    title: "Vendas",
+    icon: <DollarSign className="h-5 w-5" />,
+    description: "Endpoints para gerenciamento de vendas e resultados consolidados",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/sales",
+        title: "Listar Vendas",
+        description: "Retorna lista de vendas com filtros opcionais por período, categoria e status",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            month_year: { type: "string", description: "Mês/ano no formato MM/YYYY" },
+            category: { type: "string", description: "Categoria da venda (ex: FUE, FUT)" },
+            service_type: { type: "string", description: "Tipo de serviço" },
+            contract_status: { type: "string", description: "Status do contrato" },
+            limit: { type: "number", description: "Limite de registros (padrão: 100)" },
+            offset: { type: "number", description: "Offset para paginação" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            data: [
+              {
+                id: "uuid",
+                patient_name: "João Silva",
+                service_type: "Transplante Capilar",
+                category: "FUE",
+                vgv_initial: 25000,
+                sale_date: "2026-01-15",
+                contract_status: "assinado"
+              }
+            ],
+            total: 45,
+            page: 1
+          }
+        }
+      },
+      {
+        method: "POST",
+        path: "/sales",
+        title: "Criar Venda",
+        description: "Registra uma nova venda no sistema",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            patient_name: { type: "string", description: "Nome do paciente", required: true },
+            patient_email: { type: "string", description: "Email do paciente" },
+            patient_cpf: { type: "string", description: "CPF do paciente" },
+            service_type: { type: "string", description: "Tipo de serviço", required: true },
+            category: { type: "string", description: "Categoria (FUE, FUT, etc.)" },
+            vgv_initial: { type: "number", description: "Valor Geral de Venda inicial", required: true },
+            deposit_paid: { type: "number", description: "Valor de entrada pago" },
+            sale_date: { type: "string", description: "Data da venda (YYYY-MM-DD)", required: true },
+            sold_by: { type: "string", description: "Vendedor responsável" },
+            branch: { type: "string", description: "Unidade/filial" },
+            contract_status: { type: "string", description: "Status do contrato" },
+            observations: { type: "string", description: "Observações gerais" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Venda registrada com sucesso",
+            sale_id: "uuid-da-venda"
+          }
+        }
+      },
+      {
+        method: "PUT",
+        path: "/sales/{id}",
+        title: "Atualizar Venda",
+        description: "Atualiza os dados de uma venda existente",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            patient_name: { type: "string", description: "Nome do paciente" },
+            vgv_initial: { type: "number", description: "Valor Geral de Venda" },
+            contract_status: { type: "string", description: "Status do contrato" },
+            observations: { type: "string", description: "Observações" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Venda atualizada com sucesso"
+          }
+        }
+      },
+      {
+        method: "DELETE",
+        path: "/sales/{id}",
+        title: "Excluir Venda",
+        description: "Remove uma venda do sistema",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Venda excluída com sucesso"
+          }
+        }
+      },
+      {
+        method: "GET",
+        path: "/sales/stats",
+        title: "Estatísticas de Vendas",
+        description: "Retorna métricas consolidadas de vendas (VGV total, ticket médio, conversões)",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            start_date: { type: "string", description: "Data inicial (YYYY-MM-DD)" },
+            end_date: { type: "string", description: "Data final (YYYY-MM-DD)" },
+            group_by: { type: "string", description: "Agrupar por: month, seller, category, branch" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            stats: {
+              total_vgv: 1250000,
+              total_sales: 52,
+              average_ticket: 24038.46,
+              conversion_rate: 0.32,
+              by_category: {
+                "FUE": { count: 35, vgv: 875000 },
+                "FUT": { count: 17, vgv: 375000 }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    id: "surgeries",
+    title: "Cirurgias",
+    icon: <Scissors className="h-5 w-5" />,
+    description: "Endpoints para gerenciamento da agenda de cirurgias",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/surgeries",
+        title: "Listar Cirurgias",
+        description: "Retorna a agenda de cirurgias com filtros por período e status",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            start_date: { type: "string", description: "Data inicial (YYYY-MM-DD)" },
+            end_date: { type: "string", description: "Data final (YYYY-MM-DD)" },
+            confirmed: { type: "boolean", description: "Filtrar por confirmadas" },
+            procedure_type: { type: "string", description: "Tipo de procedimento" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            data: [
+              {
+                id: "uuid",
+                patient_name: "Maria Oliveira",
+                surgery_date: "2026-01-20",
+                surgery_time: "08:00",
+                procedure_type: "Transplante FUE",
+                confirmed: true,
+                initial_value: 28000,
+                balance_due: 14000
+              }
+            ],
+            total: 12
+          }
+        }
+      },
+      {
+        method: "POST",
+        path: "/surgeries",
+        title: "Agendar Cirurgia",
+        description: "Cria um novo agendamento de cirurgia",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            patient_name: { type: "string", description: "Nome do paciente", required: true },
+            patient_phone: { type: "string", description: "Telefone do paciente" },
+            surgery_date: { type: "string", description: "Data da cirurgia (YYYY-MM-DD)", required: true },
+            surgery_time: { type: "string", description: "Horário (HH:MM)" },
+            procedure_type: { type: "string", description: "Tipo de procedimento" },
+            category: { type: "string", description: "Categoria (FUE, FUT, etc.)" },
+            initial_value: { type: "number", description: "Valor inicial" },
+            deposit_paid: { type: "number", description: "Entrada paga" },
+            companion_name: { type: "string", description: "Nome do acompanhante" },
+            companion_phone: { type: "string", description: "Telefone do acompanhante" },
+            observations: { type: "string", description: "Observações" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Cirurgia agendada com sucesso",
+            surgery_id: "uuid-da-cirurgia"
+          }
+        }
+      },
+      {
+        method: "PUT",
+        path: "/surgeries/{id}",
+        title: "Atualizar Cirurgia",
+        description: "Atualiza os dados de uma cirurgia agendada",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            surgery_date: { type: "string", description: "Nova data da cirurgia" },
+            surgery_time: { type: "string", description: "Novo horário" },
+            confirmed: { type: "boolean", description: "Confirmação da cirurgia" },
+            contract_signed: { type: "boolean", description: "Contrato assinado" },
+            exams_sent: { type: "boolean", description: "Exames enviados" },
+            checkin_sent: { type: "boolean", description: "Check-in enviado" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Cirurgia atualizada com sucesso"
+          }
+        }
+      },
+      {
+        method: "PATCH",
+        path: "/surgeries/{id}/checklist",
+        title: "Atualizar Checklist",
+        description: "Atualiza itens do checklist de acompanhamento da cirurgia",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            d1_contact: { type: "boolean", description: "Contato D+1 realizado" },
+            d1_gpi: { type: "boolean", description: "GPI D+1 realizado" },
+            d2_contact: { type: "boolean", description: "Contato D+2 realizado" },
+            d7_contact: { type: "boolean", description: "Contato D+7 realizado" },
+            d0_discharge_form: { type: "boolean", description: "Formulário de alta D0" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Checklist atualizado"
+          }
+        }
+      },
+      {
+        method: "DELETE",
+        path: "/surgeries/{id}",
+        title: "Cancelar Cirurgia",
+        description: "Remove uma cirurgia da agenda",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Cirurgia cancelada com sucesso"
+          }
+        }
+      },
+      {
+        method: "GET",
+        path: "/surgeries/stats",
+        title: "Estatísticas de Cirurgias",
+        description: "Retorna métricas consolidadas da agenda de cirurgias",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            start_date: { type: "string", description: "Data inicial" },
+            end_date: { type: "string", description: "Data final" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            stats: {
+              total_scheduled: 45,
+              confirmed: 38,
+              pending: 7,
+              total_value: 1260000,
+              total_received: 890000,
+              total_pending: 370000,
+              confirmation_rate: 0.84
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    id: "weekly-metrics",
+    title: "Métricas Semanais",
+    icon: <BarChart3 className="h-5 w-5" />,
+    description: "Endpoints para gerenciamento de métricas e indicadores semanais",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/weekly-metrics",
+        title: "Listar Métricas Semanais",
+        description: "Retorna as métricas semanais de uma clínica",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            clinic_id: { type: "string", description: "ID da clínica", required: true },
+            year: { type: "number", description: "Ano (ex: 2026)" },
+            week_start: { type: "number", description: "Semana inicial" },
+            week_end: { type: "number", description: "Semana final" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            data: [
+              {
+                id: "uuid",
+                clinic_id: "uuid-clinica",
+                week_number: 3,
+                year: 2026,
+                is_filled: true,
+                values: {
+                  leads_total: 45,
+                  leads_qualified: 32,
+                  appointments_scheduled: 18,
+                  appointments_attended: 15,
+                  sales_closed: 8,
+                  revenue: 200000
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        method: "POST",
+        path: "/weekly-metrics",
+        title: "Registrar Métricas",
+        description: "Registra as métricas de uma semana específica",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            clinic_id: { type: "string", description: "ID da clínica", required: true },
+            week_number: { type: "number", description: "Número da semana (1-52)", required: true },
+            year: { type: "number", description: "Ano", required: true },
+            values: { type: "object", description: "Objeto com os valores das métricas", required: true },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Métricas registradas com sucesso",
+            metric_id: "uuid-da-metrica"
+          }
+        }
+      },
+      {
+        method: "PUT",
+        path: "/weekly-metrics/{id}",
+        title: "Atualizar Métricas",
+        description: "Atualiza os valores de uma métrica semanal existente",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            values: { type: "object", description: "Objeto com os valores atualizados", required: true },
+            is_filled: { type: "boolean", description: "Marcar como preenchida" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            message: "Métricas atualizadas com sucesso"
+          }
+        }
+      },
+      {
+        method: "GET",
+        path: "/weekly-metrics/comparison",
+        title: "Comparativo de Métricas",
+        description: "Retorna comparativo de métricas entre períodos ou clínicas",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            clinic_ids: { type: "array", description: "IDs das clínicas para comparar" },
+            period_1_start: { type: "number", description: "Semana inicial período 1" },
+            period_1_end: { type: "number", description: "Semana final período 1" },
+            period_2_start: { type: "number", description: "Semana inicial período 2" },
+            period_2_end: { type: "number", description: "Semana final período 2" },
+            year: { type: "number", description: "Ano" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            comparison: {
+              period_1: {
+                total_leads: 180,
+                total_sales: 32,
+                conversion_rate: 0.178
+              },
+              period_2: {
+                total_leads: 210,
+                total_sales: 45,
+                conversion_rate: 0.214
+              },
+              growth: {
+                leads: 0.167,
+                sales: 0.406,
+                conversion: 0.202
+              }
+            }
+          }
+        }
+      },
+      {
+        method: "GET",
+        path: "/weekly-metrics/export",
+        title: "Exportar Métricas",
+        description: "Exporta métricas em formato CSV ou Excel",
+        auth: true,
+        headers: {
+          "Authorization": "Bearer {user_token}"
+        },
+        requestBody: {
+          type: "object",
+          properties: {
+            clinic_id: { type: "string", description: "ID da clínica", required: true },
+            format: { type: "string", description: "Formato: csv ou xlsx", required: true },
+            year: { type: "number", description: "Ano" },
+            weeks: { type: "array", description: "Lista de semanas para exportar" },
+          }
+        },
+        response: {
+          type: "object",
+          example: {
+            success: true,
+            download_url: "https://storage.example.com/exports/metrics-2026-w1-w4.xlsx",
+            expires_at: "2026-01-20T12:00:00Z"
           }
         }
       }
