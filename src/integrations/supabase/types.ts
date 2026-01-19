@@ -236,13 +236,16 @@ export type Database = {
           converted_at: string | null
           converted_value: number | null
           created_at: string
+          discard_reason: string | null
           email: string | null
           id: string
           interest_level: string | null
           name: string
           notes: string | null
           phone: string
+          procedure_interest: string | null
           procedures_sold: string[] | null
+          scheduled_at: string | null
           source: string | null
           state: string | null
           status: string | null
@@ -260,13 +263,16 @@ export type Database = {
           converted_at?: string | null
           converted_value?: number | null
           created_at?: string
+          discard_reason?: string | null
           email?: string | null
           id?: string
           interest_level?: string | null
           name: string
           notes?: string | null
           phone: string
+          procedure_interest?: string | null
           procedures_sold?: string[] | null
+          scheduled_at?: string | null
           source?: string | null
           state?: string | null
           status?: string | null
@@ -284,13 +290,16 @@ export type Database = {
           converted_at?: string | null
           converted_value?: number | null
           created_at?: string
+          discard_reason?: string | null
           email?: string | null
           id?: string
           interest_level?: string | null
           name?: string
           notes?: string | null
           phone?: string
+          procedure_interest?: string | null
           procedures_sold?: string[] | null
+          scheduled_at?: string | null
           source?: string | null
           state?: string | null
           status?: string | null
