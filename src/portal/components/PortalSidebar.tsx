@@ -276,6 +276,20 @@ export function PortalSidebar({ children }: { children: React.ReactNode }) {
           {!isCollapsed && <span>Notificações</span>}
         </Button>
         <Button
+          variant={isActive('/portal/settings') ? 'secondary' : 'ghost'}
+          className={cn(
+            "w-full justify-start gap-3",
+            isActive('/portal/settings') && "bg-primary/10 text-primary"
+          )}
+          onClick={() => {
+            navigate('/portal/settings');
+            setIsMobileOpen(false);
+          }}
+        >
+          <Settings className="h-5 w-5" />
+          {!isCollapsed && <span>Configurações</span>}
+        </Button>
+        <Button
           variant="ghost"
           className="w-full justify-start gap-3 text-destructive hover:text-destructive"
           onClick={handleLogout}
