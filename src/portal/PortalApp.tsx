@@ -7,17 +7,13 @@ import PortalLogin from './pages/PortalLogin';
 import PortalRegister from './pages/PortalRegister';
 import PortalHome from './pages/PortalHome';
 import PortalSettings from './pages/PortalSettings';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import MyAppointments from './pages/MyAppointments';
+import NewAppointment from './pages/NewAppointment';
+import AuthDiagnostic from './pages/AuthDiagnostic';
+import PlaceholderPage from './pages/PlaceholderPage';
 import { Loader2 } from 'lucide-react';
-
-// Placeholder component for pages not yet implemented
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">{title}</h1>
-      <p className="text-muted-foreground">Esta página está em desenvolvimento.</p>
-    </div>
-  );
-}
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -45,33 +41,36 @@ function PortalRoutes() {
       <Route path="landing" element={<PortalLanding />} />
       <Route path="login" element={<PortalLogin />} />
       <Route path="register" element={<PortalRegister />} />
+      <Route path="forgot-password" element={<ForgotPassword />} />
+      <Route path="reset-password" element={<ResetPassword />} />
+      <Route path="auth-diagnostic" element={<AuthDiagnostic />} />
 
       {/* Protected routes */}
       <Route path="/" element={<ProtectedRoute><PortalHome /></ProtectedRoute>} />
       <Route path="settings" element={<ProtectedRoute><PortalSettings /></ProtectedRoute>} />
       
-      {/* Scheduling */}
-      <Route path="appointments" element={<ProtectedRoute><PlaceholderPage title="Meus Agendamentos" /></ProtectedRoute>} />
-      <Route path="appointments/new" element={<ProtectedRoute><PlaceholderPage title="Novo Agendamento" /></ProtectedRoute>} />
+      {/* Appointments */}
+      <Route path="appointments" element={<ProtectedRoute><MyAppointments /></ProtectedRoute>} />
+      <Route path="appointments/new" element={<ProtectedRoute><NewAppointment /></ProtectedRoute>} />
       <Route path="schedule" element={<ProtectedRoute><PlaceholderPage title="Agenda" /></ProtectedRoute>} />
       <Route path="waiting-room" element={<ProtectedRoute><PlaceholderPage title="Sala de Espera" /></ProtectedRoute>} />
       <Route path="rooms" element={<ProtectedRoute><PlaceholderPage title="Salas" /></ProtectedRoute>} />
 
-      {/* Medical */}
+      {/* Patient */}
       <Route path="my-records" element={<ProtectedRoute><PlaceholderPage title="Meus Documentos" /></ProtectedRoute>} />
+      <Route path="orientations" element={<ProtectedRoute><PlaceholderPage title="Orientações" /></ProtectedRoute>} />
+      <Route path="news" element={<ProtectedRoute><PlaceholderPage title="Notícias" /></ProtectedRoute>} />
+
+      {/* Medical */}
       <Route path="patients" element={<ProtectedRoute><PlaceholderPage title="Pacientes" /></ProtectedRoute>} />
       <Route path="medical-records" element={<ProtectedRoute><PlaceholderPage title="Prontuários" /></ProtectedRoute>} />
       <Route path="templates" element={<ProtectedRoute><PlaceholderPage title="Modelos" /></ProtectedRoute>} />
-
-      {/* Teleconsultation */}
       <Route path="teleconsultation" element={<ProtectedRoute><PlaceholderPage title="Teleconsulta" /></ProtectedRoute>} />
 
       {/* Financial */}
-      <Route path="my-invoices" element={<ProtectedRoute><PlaceholderPage title="Minhas Faturas" /></ProtectedRoute>} />
       <Route path="invoices" element={<ProtectedRoute><PlaceholderPage title="Faturas" /></ProtectedRoute>} />
       <Route path="payments" element={<ProtectedRoute><PlaceholderPage title="Pagamentos" /></ProtectedRoute>} />
-      <Route path="cash-flow" element={<ProtectedRoute><PlaceholderPage title="Fluxo de Caixa" /></ProtectedRoute>} />
-      <Route path="accounts" element={<ProtectedRoute><PlaceholderPage title="Contas" /></ProtectedRoute>} />
+      <Route path="reports/financial" element={<ProtectedRoute><PlaceholderPage title="Relatórios Financeiros" /></ProtectedRoute>} />
 
       {/* Inventory */}
       <Route path="inventory/items" element={<ProtectedRoute><PlaceholderPage title="Itens de Estoque" /></ProtectedRoute>} />
@@ -81,7 +80,6 @@ function PortalRoutes() {
       {/* Communication */}
       <Route path="whatsapp" element={<ProtectedRoute><PlaceholderPage title="WhatsApp" /></ProtectedRoute>} />
       <Route path="campaigns" element={<ProtectedRoute><PlaceholderPage title="Campanhas" /></ProtectedRoute>} />
-      <Route path="automations" element={<ProtectedRoute><PlaceholderPage title="Automações" /></ProtectedRoute>} />
 
       {/* Surveys */}
       <Route path="nps" element={<ProtectedRoute><PlaceholderPage title="NPS" /></ProtectedRoute>} />
@@ -92,9 +90,6 @@ function PortalRoutes() {
 
       {/* Admin */}
       <Route path="admin/users" element={<ProtectedRoute><PlaceholderPage title="Usuários" /></ProtectedRoute>} />
-      <Route path="admin/doctors" element={<ProtectedRoute><PlaceholderPage title="Médicos" /></ProtectedRoute>} />
-      <Route path="admin/audit" element={<ProtectedRoute><PlaceholderPage title="Auditoria" /></ProtectedRoute>} />
-      <Route path="admin/lgpd" element={<ProtectedRoute><PlaceholderPage title="LGPD" /></ProtectedRoute>} />
       <Route path="admin/settings" element={<ProtectedRoute><PlaceholderPage title="Configurações" /></ProtectedRoute>} />
 
       {/* Fallback */}
