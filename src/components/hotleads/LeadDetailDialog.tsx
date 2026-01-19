@@ -43,7 +43,7 @@ interface LeadDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (data: {
-    status?: string;
+    status?: 'new' | 'contacted' | 'scheduled' | 'converted' | 'lost';
     converted_value?: number;
     procedures_sold?: string[];
     notes?: string;
