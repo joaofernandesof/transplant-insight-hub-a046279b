@@ -40,6 +40,7 @@ import UserMonitoring from "./pages/UserMonitoring";
 import WeeklyReports from "./pages/WeeklyReports";
 import SurgerySchedule from "./pages/SurgerySchedule";
 import ConsolidatedResults from "./pages/ConsolidatedResults";
+import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
 
 // Wrapper para páginas do licenciado com sidebar
@@ -318,6 +319,11 @@ function AppRoutes() {
       <Route 
         path="/indicacao/:code" 
         element={<ReferralLanding />}
+      />
+      {/* Public API Documentation */}
+      <Route 
+        path="/api-docs" 
+        element={<ApiDocs />}
       />
       <Route path="*" element={<NotFound />} />
     </Routes>
