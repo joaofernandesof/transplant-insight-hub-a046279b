@@ -95,14 +95,27 @@ export function useAllExamAttempts(examId?: string) {
   return useQuery({
     queryKey: ['all-exam-attempts', examId],
     queryFn: async () => {
-      let query = supabase.from('exam_attempts').select(`
-        *,
-        profiles:user_id (name, email, clinic_name)
-      `).eq('status', 'submitted');
+      // First get all attempts
+      let query = supabase.from('exam_attempts').select('*').eq('status', 'submitted');
       if (examId) query = query.eq('exam_id', examId);
-      const { data, error } = await query.order('submitted_at', { ascending: false });
+      const { data: attempts, error } = await query.order('submitted_at', { ascending: false });
       if (error) throw error;
-      return data;
+      
+      // Then fetch profiles for each user
+      if (!attempts || attempts.length === 0) return [];
+      
+      const userIds = [...new Set(attempts.map(a => a.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, name, email, clinic_name')
+        .in('user_id', userIds);
+      
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+      
+      return attempts.map(a => ({
+        ...a,
+        profiles: profileMap.get(a.user_id) || null
+      }));
     },
   });
 }
