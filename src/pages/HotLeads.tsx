@@ -472,8 +472,8 @@ export default function HotLeads() {
         
         {activeTab === 'leads' && (
           <>
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <Card>
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center gap-3">
@@ -539,29 +539,29 @@ export default function HotLeads() {
               </div>
             </CardContent>
           </Card>
-        </div>
+            </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="leads">
-              <Flame className="h-4 w-4 mr-2" />
-              Leads
-            </TabsTrigger>
-            <TabsTrigger value="dashboard">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Dashboard
-            </TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="comparison">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Comparativo
-              </TabsTrigger>
-            )}
-          </TabsList>
+            {/* Internal Tabs for Leads view */}
+            <Tabs defaultValue="pipeline" className="space-y-6">
+              <TabsList>
+                <TabsTrigger value="pipeline">
+                  <Flame className="h-4 w-4 mr-2" />
+                  Pipeline
+                </TabsTrigger>
+                <TabsTrigger value="dashboard">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Dashboard
+                </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger value="comparison">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Comparativo
+                  </TabsTrigger>
+                )}
+              </TabsList>
 
-          {/* Leads Tab */}
-          <TabsContent value="leads" className="space-y-6">
+              {/* Pipeline Tab */}
+              <TabsContent value="pipeline" className="space-y-6">
             {/* Filters */}
             <Card>
               <CardContent className="pt-6">
@@ -781,9 +781,11 @@ export default function HotLeads() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-          )}
-        </Tabs>
+              </TabsContent>
+            )}
+            </Tabs>
+          </>
+        )}
       </main>
 
       {/* Lead Detail Dialog */}
