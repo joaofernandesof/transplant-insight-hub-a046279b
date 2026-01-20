@@ -15,29 +15,29 @@ interface TestUser {
 
 const testUsers: TestUser[] = [
   {
-    email: "paciente@neohub.com",
-    password: "Paciente123!",
+    email: "paciente@neofolic.com.br",
+    password: "Paciente123@",
     fullName: "Maria Paciente",
     profile: "paciente",
     phone: "(11) 99999-1111"
   },
   {
-    email: "colaborador@neohub.com",
-    password: "Colaborador123!",
+    email: "colaborador@neofolic.com.br",
+    password: "Colaborador123@",
     fullName: "João Colaborador",
     profile: "colaborador",
     phone: "(11) 99999-2222"
   },
   {
-    email: "aluno@neohub.com",
-    password: "Aluno123!",
+    email: "aluno@ibramec.com",
+    password: "Aluno123@",
     fullName: "Ana Aluna",
     profile: "aluno",
     phone: "(11) 99999-3333"
   },
   {
-    email: "licenciado@neohub.com",
-    password: "Licenciado123!",
+    email: "licenciado@neofolic.com.br",
+    password: "Licenciado123@",
     fullName: "Dr. Pedro Licenciado",
     profile: "licenciado",
     phone: "(11) 99999-4444"
