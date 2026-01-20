@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
-  Home, Calendar, FileText, Video, CreditCard, 
-  Settings, LogOut, Heart, ArrowLeft, User,
+  Home, Calendar, FileText, BookOpen, Newspaper,
+  Settings, LogOut, Heart, User,
   ChevronLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useNeoHubAuth } from '../contexts/NeoHubAuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import logoNeofolic from '@/assets/logo-byneofolic.png';
 
 interface NeoCareSidebarProps {
   children: React.ReactNode;
@@ -22,9 +21,8 @@ const navItems = [
   { icon: Home, label: 'Início', path: '/neocare' },
   { icon: Calendar, label: 'Meus Agendamentos', path: '/neocare/appointments' },
   { icon: FileText, label: 'Meus Documentos', path: '/neocare/my-records' },
-  { icon: Video, label: 'Teleconsulta', path: '/neocare/teleconsultation' },
-  { icon: CreditCard, label: 'Minhas Faturas', path: '/neocare/my-invoices' },
-  { icon: Settings, label: 'Configurações', path: '/neocare/settings' },
+  { icon: BookOpen, label: 'Orientações', path: '/neocare/orientations' },
+  { icon: Newspaper, label: 'Notícias', path: '/neocare/news' },
 ];
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
@@ -56,30 +54,12 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       {/* Logo */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
-          <img 
-            src={logoNeofolic} 
-            alt="NeoFolic" 
-            className="h-8 w-auto dark:invert"
-          />
-          <div>
-            <span className="font-bold text-primary">NeoCare</span>
-            <p className="text-xs text-muted-foreground">Portal do Paciente</p>
+          <div className="w-10 h-10 rounded-full bg-[hsl(var(--neocare-primary))] flex items-center justify-center">
+            <Heart className="h-5 w-5 text-white" />
           </div>
-        </div>
-      </div>
-
-      {/* User Info */}
-      <div className="p-4 border-b">
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src={user?.avatarUrl} />
-            <AvatarFallback>
-              {user?.fullName ? getInitials(user.fullName) : <User className="h-4 w-4" />}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium truncate">{user?.fullName}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+          <div>
+            <span className="font-bold text-[hsl(var(--neocare-primary))]">Portal Neo Folic</span>
+            <p className="text-xs text-muted-foreground">Clínica de Transplante Capilar</p>
           </div>
         </div>
       </div>
@@ -97,8 +77,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                 cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-[hsl(var(--neocare-primary-light))] text-[hsl(var(--neocare-primary))] font-medium"
+                    : "text-muted-foreground hover:bg-[hsl(var(--neocare-primary-light))] hover:text-[hsl(var(--neocare-primary))]"
                 )
               }
             >
@@ -110,29 +90,38 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       </ScrollArea>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t space-y-2">
-        {hasMultipleProfiles && (
-          <Button 
-            variant="outline" 
-            className="w-full justify-start gap-2"
-            onClick={handleSwitchProfile}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Trocar Perfil
-          </Button>
-        )}
-        <div className="flex items-center justify-between">
+      <div className="p-4 border-t space-y-3">
+        {/* User info */}
+        <div className="flex items-center gap-3 py-2">
           <ThemeToggle />
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-muted-foreground hover:text-destructive"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
+          <span className="text-sm text-muted-foreground truncate">{user?.fullName}</span>
         </div>
+        
+        {/* Settings */}
+        <NavLink
+          to="/neocare/settings"
+          onClick={onClose}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+              isActive
+                ? "bg-[hsl(var(--neocare-primary-light))] text-[hsl(var(--neocare-primary))] font-medium"
+                : "text-muted-foreground hover:bg-muted"
+            )
+          }
+        >
+          <Settings className="h-4 w-4" />
+          Configurações
+        </NavLink>
+        
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors text-red-500 hover:bg-red-50 dark:hover:bg-red-950 w-full"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </button>
       </div>
     </div>
   );
@@ -154,9 +143,9 @@ export function NeoCareSidebar({ children }: NeoCareSidebarProps) {
           <Button
             variant="outline"
             size="icon"
-            className="fixed top-4 left-4 z-40 lg:hidden"
+            className="fixed top-4 left-4 z-40 lg:hidden border-[hsl(var(--neocare-primary))]"
           >
-            <Heart className="h-5 w-5 text-primary" />
+            <Heart className="h-5 w-5 text-[hsl(var(--neocare-primary))]" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
