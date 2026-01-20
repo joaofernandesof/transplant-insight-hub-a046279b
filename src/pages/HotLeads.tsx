@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Flame, RefreshCw, Loader2, Users, CheckCircle2, DollarSign,
-  BarChart3, TrendingUp, Calendar
+  BarChart3, TrendingUp, Calendar, MessageCircle, ListTodo, PieChart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -21,6 +21,7 @@ import {
   statusConfig,
   SortOption
 } from '@/components/hotleads';
+import { CrmInbox, CrmTasksPanel, CrmMetricsDashboard } from '@/components/crm';
 import {
   BarChart,
   Bar,
@@ -426,7 +427,7 @@ export default function HotLeads() {
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold flex items-center gap-2 pl-12 lg:pl-0">
               <Flame className="h-6 w-6 text-orange-500" />
-              HotLeads
+              CRM Médico Neo
             </h1>
             <Button 
               variant="outline" 
@@ -438,10 +439,39 @@ export default function HotLeads() {
               Atualizar
             </Button>
           </div>
+          
+          {/* CRM Navigation Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+            <TabsList className="grid grid-cols-4 w-full max-w-md">
+              <TabsTrigger value="leads" className="gap-1 text-xs">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Funil</span>
+              </TabsTrigger>
+              <TabsTrigger value="inbox" className="gap-1 text-xs">
+                <MessageCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Inbox</span>
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="gap-1 text-xs">
+                <ListTodo className="h-4 w-4" />
+                <span className="hidden sm:inline">Rotina</span>
+              </TabsTrigger>
+              <TabsTrigger value="metrics" className="gap-1 text-xs">
+                <PieChart className="h-4 w-4" />
+                <span className="hidden sm:inline">Métricas</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-7xl overflow-x-hidden">
+        {/* CRM Tab Contents */}
+        {activeTab === 'inbox' && <CrmInbox />}
+        {activeTab === 'tasks' && <CrmTasksPanel />}
+        {activeTab === 'metrics' && <CrmMetricsDashboard />}
+        
+        {activeTab === 'leads' && (
+          <>
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <Card>
