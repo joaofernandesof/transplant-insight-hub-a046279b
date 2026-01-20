@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { 
   FileText, 
   Download, 
@@ -12,7 +12,11 @@ import {
   File,
   FileSpreadsheet,
   Loader2,
-  FolderOpen
+  FolderOpen,
+  Search,
+  ArrowUpDown,
+  FileSignature,
+  Filter
 } from 'lucide-react';
 import { useNeoHubAuth } from '@/neohub/contexts/NeoHubAuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +29,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Document {
   id: string;
@@ -38,6 +57,7 @@ interface Document {
 }
 
 const categoryConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  contrato: { label: 'Contrato', color: 'bg-amber-600', icon: <FileSignature className="h-4 w-4" /> },
   exame: { label: 'Exame', color: 'bg-blue-500', icon: <FileSpreadsheet className="h-4 w-4" /> },
   laudo: { label: 'Laudo', color: 'bg-green-500', icon: <FileText className="h-4 w-4" /> },
   receita: { label: 'Receita', color: 'bg-purple-500', icon: <FileText className="h-4 w-4" /> },
@@ -46,19 +66,32 @@ const categoryConfig: Record<string, { label: string; color: string; icon: React
   outro: { label: 'Outro', color: 'bg-gray-500', icon: <File className="h-4 w-4" /> },
 };
 
-function getFileIcon(fileType: string | null) {
-  if (!fileType) return <File className="h-8 w-8 text-muted-foreground" />;
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'category';
+
+const sortOptions: { value: SortOption; label: string }[] = [
+  { value: 'date-desc', label: 'Mais recentes' },
+  { value: 'date-asc', label: 'Mais antigos' },
+  { value: 'name-asc', label: 'Nome (A-Z)' },
+  { value: 'name-desc', label: 'Nome (Z-A)' },
+  { value: 'category', label: 'Por categoria' },
+];
+
+function getFileIcon(fileType: string | null, category: string | null) {
+  if (category === 'contrato') {
+    return <FileSignature className="h-5 w-5 text-amber-600" />;
+  }
+  if (!fileType) return <File className="h-5 w-5 text-muted-foreground" />;
   
   if (fileType.includes('image')) {
-    return <ImageIcon className="h-8 w-8 text-pink-500" />;
+    return <ImageIcon className="h-5 w-5 text-pink-500" />;
   }
   if (fileType.includes('pdf')) {
-    return <FileText className="h-8 w-8 text-red-500" />;
+    return <FileText className="h-5 w-5 text-red-500" />;
   }
   if (fileType.includes('spreadsheet') || fileType.includes('excel')) {
-    return <FileSpreadsheet className="h-8 w-8 text-green-500" />;
+    return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
   }
-  return <File className="h-8 w-8 text-muted-foreground" />;
+  return <File className="h-5 w-5 text-muted-foreground" />;
 }
 
 function formatFileSize(bytes: number | null) {
@@ -69,10 +102,12 @@ function formatFileSize(bytes: number | null) {
 }
 
 export default function NeoCareDocuments() {
-  const { user, session } = useNeoHubAuth();
+  const { user } = useNeoHubAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
   useEffect(() => {
@@ -85,7 +120,6 @@ export default function NeoCareDocuments() {
     
     setIsLoading(true);
     try {
-      // Buscar o patient_id do usuário logado
       const { data: patientData } = await supabase
         .from('portal_patients')
         .select('id')
@@ -99,7 +133,6 @@ export default function NeoCareDocuments() {
         .single();
 
       if (!patientData) {
-        // Tentar buscar via neohub_users
         const { data: neohubUser } = await supabase
           .from('neohub_users')
           .select('id')
@@ -107,7 +140,6 @@ export default function NeoCareDocuments() {
           .single();
 
         if (neohubUser) {
-          // Buscar documentos associados a este usuário
           const { data: attachments, error } = await supabase
             .from('portal_attachments')
             .select('*')
@@ -121,7 +153,6 @@ export default function NeoCareDocuments() {
         return;
       }
 
-      // Buscar anexos do paciente
       const { data: attachments, error } = await supabase
         .from('portal_attachments')
         .select('*')
@@ -140,7 +171,6 @@ export default function NeoCareDocuments() {
 
   async function handleDownload(doc: Document) {
     try {
-      // Se for URL do storage, fazer download via supabase
       if (doc.file_url.includes('patient-documents')) {
         const { data, error } = await supabase.storage
           .from('patient-documents')
@@ -155,7 +185,6 @@ export default function NeoCareDocuments() {
         a.click();
         URL.revokeObjectURL(url);
       } else {
-        // URL externa
         window.open(doc.file_url, '_blank');
       }
       toast.success('Download iniciado');
@@ -165,11 +194,68 @@ export default function NeoCareDocuments() {
     }
   }
 
-  const filteredDocuments = selectedCategory === 'all' 
-    ? documents 
-    : documents.filter(d => d.category === selectedCategory);
+  const processedDocuments = useMemo(() => {
+    let result = [...documents];
 
-  const categories = ['all', ...Object.keys(categoryConfig)];
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(doc => 
+        doc.file_name.toLowerCase().includes(query) ||
+        doc.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by category
+    if (filterCategory !== 'all') {
+      result = result.filter(doc => doc.category === filterCategory);
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'date-desc':
+        result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+        break;
+      case 'date-asc':
+        result.sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
+        break;
+      case 'name-asc':
+        result.sort((a, b) => a.file_name.localeCompare(b.file_name));
+        break;
+      case 'name-desc':
+        result.sort((a, b) => b.file_name.localeCompare(a.file_name));
+        break;
+      case 'category':
+        result.sort((a, b) => (a.category || 'outro').localeCompare(b.category || 'outro'));
+        break;
+    }
+
+    return result;
+  }, [documents, searchQuery, sortBy, filterCategory]);
+
+  // Group documents by date for timeline
+  const groupedByDate = useMemo(() => {
+    const groups: Record<string, Document[]> = {};
+    
+    processedDocuments.forEach(doc => {
+      const dateKey = doc.created_at 
+        ? format(new Date(doc.created_at), 'yyyy-MM-dd')
+        : 'sem-data';
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(doc);
+    });
+
+    return Object.entries(groups).sort((a, b) => {
+      if (a[0] === 'sem-data') return 1;
+      if (b[0] === 'sem-data') return -1;
+      return sortBy === 'date-asc' 
+        ? a[0].localeCompare(b[0]) 
+        : b[0].localeCompare(a[0]);
+    });
+  }, [processedDocuments, sortBy]);
 
   if (isLoading) {
     return (
@@ -184,113 +270,174 @@ export default function NeoCareDocuments() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Meus Documentos</h1>
-        <p className="text-muted-foreground">Exames, laudos e documentos médicos</p>
+        <p className="text-muted-foreground">Exames, laudos, contratos e documentos médicos</p>
       </div>
 
-      {/* Filter Tabs */}
-      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="all">Todos</TabsTrigger>
-          {Object.entries(categoryConfig).map(([key, config]) => (
-            <TabsTrigger key={key} value={key} className="gap-1">
-              {config.icon}
-              {config.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar documento..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
 
-        <TabsContent value={selectedCategory} className="mt-6">
-          {filteredDocuments.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <FolderOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                <h3 className="text-lg font-medium mb-2">Nenhum documento encontrado</h3>
-                <p className="text-muted-foreground">
-                  {selectedCategory === 'all' 
-                    ? 'Seus documentos médicos aparecerão aqui quando disponíveis.'
-                    : `Não há documentos na categoria "${categoryConfig[selectedCategory]?.label}".`}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredDocuments.map((doc) => {
-                const category = categoryConfig[doc.category || 'outro'] || categoryConfig.outro;
-                
-                return (
-                  <Card key={doc.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        {/* Icon */}
-                        <div className="shrink-0 p-3 bg-muted rounded-lg">
-                          {getFileIcon(doc.file_type)}
-                        </div>
-                        
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium truncate" title={doc.file_name}>
-                            {doc.file_name}
-                          </h4>
-                          
-                          {doc.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                              {doc.description}
-                            </p>
-                          )}
-                          
-                          <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <Badge variant="secondary" className={`${category.color} text-white`}>
-                              {category.label}
-                            </Badge>
-                            
-                            {doc.file_size && (
-                              <span className="text-xs text-muted-foreground">
-                                {formatFileSize(doc.file_size)}
-                              </span>
-                            )}
-                          </div>
-                          
-                          {doc.created_at && (
-                            <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3" />
-                              {format(new Date(doc.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+        {/* Filter by Category */}
+        <Select value={filterCategory} onValueChange={setFilterCategory}>
+          <SelectTrigger className="w-full sm:w-44">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas categorias</SelectItem>
+            {Object.entries(categoryConfig).map(([key, config]) => (
+              <SelectItem key={key} value={key}>
+                <span className="flex items-center gap-2">
+                  {config.icon}
+                  {config.label}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Sort */}
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+          <SelectTrigger className="w-full sm:w-44">
+            <ArrowUpDown className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Ordenar" />
+          </SelectTrigger>
+          <SelectContent>
+            {sortOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Documents Timeline */}
+      {processedDocuments.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <FolderOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+            <h3 className="text-lg font-medium mb-2">Nenhum documento encontrado</h3>
+            <p className="text-muted-foreground">
+              {searchQuery 
+                ? `Nenhum resultado para "${searchQuery}".`
+                : 'Seus documentos médicos aparecerão aqui quando disponíveis.'}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="relative">
+          {/* Timeline line */}
+          <div className="absolute left-4 lg:left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[hsl(var(--neocare-primary))] via-[hsl(var(--neocare-primary)/0.5)] to-muted" />
+
+          <div className="space-y-6">
+            {groupedByDate.map(([dateKey, docs]) => (
+              <div key={dateKey} className="relative">
+                {/* Date marker */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="relative z-10 flex items-center justify-center w-8 h-8 lg:w-12 lg:h-12 bg-[hsl(var(--neocare-primary))] rounded-full shadow-lg">
+                    <Calendar className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold text-lg">
+                    {dateKey === 'sem-data' 
+                      ? 'Sem data' 
+                      : format(new Date(dateKey), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </h3>
+                </div>
+
+                {/* Documents for this date */}
+                <div className="ml-12 lg:ml-16 space-y-3">
+                  {docs.map((doc) => {
+                    const category = categoryConfig[doc.category || 'outro'] || categoryConfig.outro;
+                    
+                    return (
+                      <Card key={doc.id} className="hover:shadow-md transition-shadow border-l-4" style={{ borderLeftColor: category.color.replace('bg-', '').includes('amber') ? '#d97706' : category.color.replace('bg-', '').includes('blue') ? '#3b82f6' : category.color.replace('bg-', '').includes('green') ? '#22c55e' : category.color.replace('bg-', '').includes('purple') ? '#a855f7' : category.color.replace('bg-', '').includes('orange') ? '#f97316' : category.color.replace('bg-', '').includes('pink') ? '#ec4899' : '#6b7280' }}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            {/* Icon */}
+                            <div className="shrink-0 p-2 bg-muted rounded-lg">
+                              {getFileIcon(doc.file_type, doc.category)}
                             </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Actions */}
-                      <div className="flex gap-2 mt-4">
-                        {doc.file_type?.includes('image') || doc.file_type?.includes('pdf') ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => setPreviewDoc(doc)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Visualizar
-                          </Button>
-                        ) : null}
-                        
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleDownload(doc)}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          Baixar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                            
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="font-medium truncate" title={doc.file_name}>
+                                  {doc.file_name}
+                                </h4>
+                                <Badge variant="secondary" className={`${category.color} text-white text-xs`}>
+                                  {category.label}
+                                </Badge>
+                              </div>
+                              
+                              {doc.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                                  {doc.description}
+                                </p>
+                              )}
+                              
+                              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                                {doc.file_size && (
+                                  <span>{formatFileSize(doc.file_size)}</span>
+                                )}
+                                {doc.created_at && (
+                                  <span>
+                                    {format(new Date(doc.created_at), "HH:mm", { locale: ptBR })}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Actions */}
+                            <div className="flex gap-2 shrink-0">
+                              {(doc.file_type?.includes('image') || doc.file_type?.includes('pdf')) && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => setPreviewDoc(doc)}
+                                  title="Visualizar"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              )}
+                              
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDownload(doc)}
+                                title="Baixar"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
+      {documents.length > 0 && (
+        <div className="text-center text-sm text-muted-foreground pt-4 border-t">
+          {processedDocuments.length} de {documents.length} documentos
+          {searchQuery && ` para "${searchQuery}"`}
+        </div>
+      )}
 
       {/* Preview Dialog */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
