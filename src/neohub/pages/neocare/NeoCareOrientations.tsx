@@ -1,38 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
 import { 
   BookOpen, 
-  Clock, 
   AlertTriangle, 
-  CheckCircle2, 
+  Clock,
+  CheckCircle2,
   Pill, 
   Droplets,
-  Sun,
-  Moon,
   Heart,
   Scissors,
   Sparkles
 } from 'lucide-react';
+
+interface OrientationItem {
+  title: string;
+  content: string;
+}
 
 interface Orientation {
   id: string;
   title: string;
   description: string;
   icon: React.ElementType;
-  items: {
-    title: string;
-    content: string;
-  }[];
+  items: OrientationItem[];
 }
 
-const preOperativeOrientations: Orientation[] = [
+const beforeOrientations: Orientation[] = [
   {
     id: 'pre-transplant',
-    title: 'Antes do Transplante Capilar',
-    description: 'Orientações importantes para os dias que antecedem o procedimento',
+    title: 'Transplante Capilar',
+    description: 'Orientações para os dias que antecedem o procedimento',
     icon: Scissors,
     items: [
       {
@@ -59,7 +57,7 @@ const preOperativeOrientations: Orientation[] = [
   },
   {
     id: 'pre-prp',
-    title: 'Antes do PRP Capilar',
+    title: 'PRP Capilar',
     description: 'Preparação para a sessão de PRP',
     icon: Droplets,
     items: [
@@ -76,13 +74,33 @@ const preOperativeOrientations: Orientation[] = [
         content: 'Não venha em jejum. Faça uma refeição leve antes do procedimento para evitar mal-estar durante a coleta de sangue.'
       }
     ]
+  },
+  {
+    id: 'pre-meds',
+    title: 'Medicamentos',
+    description: 'Orientações sobre medicamentos de uso contínuo',
+    icon: Pill,
+    items: [
+      {
+        title: 'Minoxidil',
+        content: 'Aplique na dose e frequência prescritas. Resultados aparecem após 3-6 meses de uso contínuo. Não interrompa sem orientação médica.'
+      },
+      {
+        title: 'Finasterida/Dutasterida',
+        content: 'Tome sempre no mesmo horário. Os resultados são progressivos e mantidos com uso contínuo. Comunique qualquer efeito colateral ao seu médico.'
+      },
+      {
+        title: 'Suplementos',
+        content: 'Use apenas os suplementos prescritos. Biotina, ferro e outros nutrientes podem ser indicados conforme avaliação individual.'
+      }
+    ]
   }
 ];
 
-const postOperativeOrientations: Orientation[] = [
+const afterOrientations: Orientation[] = [
   {
     id: 'post-transplant',
-    title: 'Após o Transplante Capilar',
+    title: 'Transplante Capilar',
     description: 'Cuidados essenciais para os primeiros dias e semanas',
     icon: Heart,
     items: [
@@ -114,7 +132,7 @@ const postOperativeOrientations: Orientation[] = [
   },
   {
     id: 'post-prp',
-    title: 'Após o PRP Capilar',
+    title: 'PRP Capilar',
     description: 'Cuidados para potencializar os resultados',
     icon: Sparkles,
     items: [
@@ -138,98 +156,37 @@ const postOperativeOrientations: Orientation[] = [
   }
 ];
 
-const generalCareOrientations: Orientation[] = [
-  {
-    id: 'daily-care',
-    title: 'Cuidados Diários com o Cabelo',
-    description: 'Práticas para manter a saúde capilar',
-    icon: Sun,
-    items: [
-      {
-        title: 'Lavagem adequada',
-        content: 'Lave o cabelo com água morna (nunca quente). Use shampoo adequado ao seu tipo de cabelo. Massageie suavemente o couro cabeludo com as pontas dos dedos.'
-      },
-      {
-        title: 'Secagem',
-        content: 'Prefira secar naturalmente. Se usar secador, mantenha distância de 15cm e use temperatura média. Evite friccionar com a toalha.'
-      },
-      {
-        title: 'Alimentação e hidratação',
-        content: 'Mantenha uma dieta rica em proteínas, ferro, zinco e vitaminas do complexo B. Beba ao menos 2 litros de água por dia. A saúde capilar reflete a saúde geral.'
-      }
-    ]
-  },
-  {
-    id: 'medications',
-    title: 'Uso de Medicamentos',
-    description: 'Orientações sobre tratamentos medicamentosos',
-    icon: Pill,
-    items: [
-      {
-        title: 'Minoxidil',
-        content: 'Aplique na dose e frequência prescritas. Resultados aparecem após 3-6 meses de uso contínuo. Não interrompa sem orientação médica.'
-      },
-      {
-        title: 'Finasterida/Dutasterida',
-        content: 'Tome sempre no mesmo horário. Os resultados são progressivos e mantidos com uso contínuo. Comunique qualquer efeito colateral ao seu médico.'
-      },
-      {
-        title: 'Suplementos',
-        content: 'Use apenas os suplementos prescritos. Biotina, ferro e outros nutrientes podem ser indicados conforme avaliação individual.'
-      }
-    ]
-  },
-  {
-    id: 'sleep',
-    title: 'Sono e Descanso',
-    description: 'Importância do descanso para a saúde capilar',
-    icon: Moon,
-    items: [
-      {
-        title: 'Qualidade do sono',
-        content: 'Durma 7-8 horas por noite. O sono é essencial para a regeneração celular e saúde dos folículos capilares.'
-      },
-      {
-        title: 'Travesseiro',
-        content: 'Prefira fronhas de seda ou cetim que causam menos atrito. Mantenha o travesseiro limpo para evitar oleosidade e acúmulo de bactérias.'
-      }
-    ]
-  }
-];
+const OrientationCard = ({ orientation }: { orientation: Orientation }) => (
+  <Card className="border-border/50 shadow-sm">
+    <CardHeader className="pb-3">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-[hsl(var(--neocare-primary))]/10 rounded-lg shrink-0">
+          <orientation.icon className="h-5 w-5 text-[hsl(var(--neocare-primary))]" />
+        </div>
+        <div>
+          <CardTitle className="text-base">{orientation.title}</CardTitle>
+          <CardDescription className="text-xs">{orientation.description}</CardDescription>
+        </div>
+      </div>
+    </CardHeader>
+    <CardContent className="pt-0">
+      <Accordion type="single" collapsible className="w-full">
+        {orientation.items.map((item, index) => (
+          <AccordionItem key={index} value={`item-${index}`} className="border-b-0">
+            <AccordionTrigger className="text-left hover:no-underline py-2 text-sm">
+              <span className="font-medium">{item.title}</span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-3">
+              {item.content}
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </CardContent>
+  </Card>
+);
 
 export default function NeoCareOrientations() {
-  const [activeTab, setActiveTab] = useState('pre');
-
-  const renderOrientationCard = (orientation: Orientation) => (
-    <Card key={orientation.id} className="mb-4">
-      <CardHeader className="pb-3">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-[hsl(var(--neocare-primary))]/10 rounded-lg shrink-0">
-            <orientation.icon className="h-5 w-5 text-[hsl(var(--neocare-primary))]" />
-          </div>
-          <div>
-            <CardTitle className="text-lg">{orientation.title}</CardTitle>
-            <CardDescription>{orientation.description}</CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Accordion type="single" collapsible className="w-full">
-          {orientation.items.map((item, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="text-left hover:no-underline">
-                <span className="font-medium">{item.title}</span>
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed">
-                {item.content}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </CardContent>
-    </Card>
-  );
-
   return (
     <div className="p-4 lg:p-8 space-y-6">
       {/* Header */}
@@ -257,59 +214,87 @@ export default function NeoCareOrientations() {
         </CardContent>
       </Card>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="pre" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span className="hidden sm:inline">Pré-Procedimento</span>
-            <span className="sm:hidden">Antes</span>
-          </TabsTrigger>
-          <TabsTrigger value="post" className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Pós-Procedimento</span>
-            <span className="sm:hidden">Depois</span>
-          </TabsTrigger>
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            <span className="hidden sm:inline">Cuidados Gerais</span>
-            <span className="sm:hidden">Geral</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Timeline Layout */}
+      <div className="relative">
+        {/* Timeline line */}
+        <div className="absolute left-4 lg:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-[hsl(var(--neocare-primary))] to-green-500" />
 
-        <TabsContent value="pre" className="mt-0">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                {preOperativeOrientations.length} orientações
-              </Badge>
+        {/* ANTES Section */}
+        <div className="relative mb-12">
+          {/* Timeline marker */}
+          <div className="absolute left-4 lg:left-1/2 -translate-x-1/2 z-10">
+            <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full shadow-lg">
+              <Clock className="h-6 w-6 text-white" />
             </div>
-            {preOperativeOrientations.map(renderOrientationCard)}
           </div>
-        </TabsContent>
 
-        <TabsContent value="post" className="mt-0">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                {postOperativeOrientations.length} orientações
-              </Badge>
+          {/* Section header */}
+          <div className="pl-16 lg:pl-0 lg:text-center pt-2 mb-6">
+            <div className="lg:ml-auto lg:mr-auto lg:max-w-xs bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4 lg:ml-[calc(50%+2rem)]">
+              <h2 className="text-xl font-bold text-blue-700 dark:text-blue-300 flex items-center gap-2 lg:justify-center">
+                <span>Antes do Procedimento</span>
+              </h2>
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                Preparação para garantir o melhor resultado
+              </p>
             </div>
-            {postOperativeOrientations.map(renderOrientationCard)}
           </div>
-        </TabsContent>
 
-        <TabsContent value="general" className="mt-0">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                {generalCareOrientations.length} orientações
-              </Badge>
+          {/* Cards grid */}
+          <div className="pl-16 lg:pl-0 lg:pr-0">
+            <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
+              <div className="lg:pr-8 lg:col-start-1 space-y-4">
+                {beforeOrientations.slice(0, 2).map((orientation) => (
+                  <OrientationCard key={orientation.id} orientation={orientation} />
+                ))}
+              </div>
+              <div className="lg:pl-8 lg:col-start-2 space-y-4">
+                {beforeOrientations.slice(2).map((orientation) => (
+                  <OrientationCard key={orientation.id} orientation={orientation} />
+                ))}
+              </div>
             </div>
-            {generalCareOrientations.map(renderOrientationCard)}
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+
+        {/* DEPOIS Section */}
+        <div className="relative">
+          {/* Timeline marker */}
+          <div className="absolute left-4 lg:left-1/2 -translate-x-1/2 z-10">
+            <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full shadow-lg">
+              <CheckCircle2 className="h-6 w-6 text-white" />
+            </div>
+          </div>
+
+          {/* Section header */}
+          <div className="pl-16 lg:pl-0 lg:text-center pt-2 mb-6">
+            <div className="lg:ml-auto lg:mr-auto lg:max-w-xs bg-green-50 dark:bg-green-950/30 rounded-xl p-4 lg:ml-[calc(50%+2rem)]">
+              <h2 className="text-xl font-bold text-green-700 dark:text-green-300 flex items-center gap-2 lg:justify-center">
+                <span>Após o Procedimento</span>
+              </h2>
+              <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                Cuidados essenciais para sua recuperação
+              </p>
+            </div>
+          </div>
+
+          {/* Cards grid */}
+          <div className="pl-16 lg:pl-0 lg:pr-0">
+            <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
+              <div className="lg:pr-8 lg:col-start-1 space-y-4">
+                {afterOrientations.slice(0, 1).map((orientation) => (
+                  <OrientationCard key={orientation.id} orientation={orientation} />
+                ))}
+              </div>
+              <div className="lg:pl-8 lg:col-start-2 space-y-4">
+                {afterOrientations.slice(1).map((orientation) => (
+                  <OrientationCard key={orientation.id} orientation={orientation} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
