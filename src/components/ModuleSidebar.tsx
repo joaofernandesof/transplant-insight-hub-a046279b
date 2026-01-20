@@ -60,26 +60,31 @@ const tierConfig: Record<LicenseeTier, { name: string; color: string; bgColor: s
 const menuItems = [
   { id: 'home', title: 'Início', icon: Home, route: '/home' },
   { id: 'marketplace', title: 'Marketplace', icon: Store, route: '/marketplace' },
+  { id: 'divider-1', title: 'Dados & Indicadores', isDivider: true },
   { id: 'metrics', title: 'Dashboard de Métricas', icon: BarChart3, route: '/dashboard' },
   { id: 'achievements', title: 'Conquistas', icon: Trophy, route: '/achievements' },
   { id: 'surgery-schedule', title: 'Agenda de Cirurgias', icon: Building2, route: '/surgery-schedule' },
   { id: 'sala-tecnica', title: 'Sala Técnica', icon: CalendarDays, route: '/sala-tecnica' },
+  { id: 'divider-2', title: 'Formação', isDivider: true },
   { id: 'university', title: 'Universidade ByNeofolic', icon: Video, route: '/university' },
+  { id: 'certificates', title: 'Certificados', icon: GraduationCap, route: '/certificates' },
   { id: 'regularization', title: 'Regularização da Clínica', icon: FileCheck, route: '/regularization' },
+  { id: 'divider-3', title: 'Recursos', isDivider: true },
   { id: 'materials', title: 'Central de Materiais', icon: BookOpen, route: '/materials' },
   { id: 'marketing', title: 'Central de Marketing', icon: Palette, route: '/marketing' },
   { id: 'store', title: 'Loja Neo-Spa', icon: ShoppingBag, route: '/store' },
+  { id: 'partners', title: 'Vitrine de Parceiros', icon: Store, route: '/partners' },
+  { id: 'divider-4', title: 'Gestão', isDivider: true },
   { id: 'estrutura-neo', title: 'Estrutura NEO', icon: Building2, route: '/estrutura-neo' },
   { id: 'financial', title: 'Gestão Financeira', icon: DollarSign, route: '/financial' },
+  { id: 'license-payments', title: 'Financeiro Licença', icon: CreditCard, route: '/license-payments' },
+  { id: 'hotleads', title: 'HotLeads', icon: Flame, route: '/hotleads' },
+  { id: 'divider-5', title: 'Suporte & Comunidade', isDivider: true },
   { id: 'mentorship', title: 'Mentoria & Suporte', icon: Users, route: '/mentorship' },
   { id: 'systems', title: 'Sistemas & Ferramentas', icon: Settings, route: '/systems' },
   { id: 'career', title: 'Plano de Carreira', icon: TrendingUp, route: '/career' },
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, route: '/hotleads' },
   { id: 'community', title: 'Comunidade', icon: Users, route: '/community' },
-  { id: 'certificates', title: 'Certificados', icon: GraduationCap, route: '/certificates' },
-  { id: 'partners', title: 'Vitrine de Parceiros', icon: Store, route: '/partners' },
   { id: 'referral', title: 'Indique e Ganhe', icon: Gift, route: '/indique-e-ganhe' },
-  { id: 'license-payments', title: 'Financeiro Licença', icon: CreditCard, route: '/license-payments' },
 ];
 
 const getLicenseeTier = (userId: string): LicenseeTier => {
@@ -218,21 +223,34 @@ export function ModuleSidebar({ children }: ModuleSidebarProps) {
         {/* Navigation */}
         <ScrollArea className="flex-1 py-2">
           <nav className="px-2 space-y-1">
-            {menuItems.map((item) => (
-              <Button
-                key={item.id}
-                variant={isActive(item.route) ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full justify-start gap-3 h-10",
-                  isCollapsed && "justify-center px-2",
-                  isActive(item.route) && "bg-primary/10 text-primary font-medium"
-                )}
-                onClick={() => navigate(item.route)}
-              >
-                <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />
-                {!isCollapsed && <span className="truncate">{item.title}</span>}
-              </Button>
-            ))}
+            {menuItems.map((item) => {
+              if (item.isDivider) {
+                if (isCollapsed) return null;
+                return (
+                  <div key={item.id} className="pt-4 pb-2 px-3">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      {item.title}
+                    </p>
+                  </div>
+                );
+              }
+              
+              return (
+                <Button
+                  key={item.id}
+                  variant={isActive(item.route!) ? "secondary" : "ghost"}
+                  className={cn(
+                    "w-full justify-start gap-3 h-10",
+                    isCollapsed && "justify-center px-2",
+                    isActive(item.route!) && "bg-primary/10 text-primary font-medium"
+                  )}
+                  onClick={() => navigate(item.route!)}
+                >
+                  {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route!) && "text-primary")} />}
+                  {!isCollapsed && <span className="truncate">{item.title}</span>}
+                </Button>
+              );
+            })}
             
             {/* Separator before logout */}
             <div className="my-3 border-t border-border" />
