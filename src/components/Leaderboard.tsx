@@ -125,18 +125,22 @@ export default function Leaderboard({ limit = 10, showCurrentUser = true }: Lead
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-amber-500" />
-          Ranking de Pontos
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Os licenciados com mais pontos de conquistas
-        </p>
+      <CardHeader className="pb-2 pt-3 px-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+            <Trophy className="h-4 w-4 text-amber-500" />
+          </div>
+          <div>
+            <CardTitle className="text-sm">Ranking de Pontos</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Licenciados com mais pontos
+            </p>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-1.5 px-3 pb-3">
         {entries.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
+          <p className="text-xs text-muted-foreground text-center py-4">
             Nenhum ranking disponível ainda
           </p>
         ) : (
@@ -148,43 +152,36 @@ export default function Leaderboard({ limit = 10, showCurrentUser = true }: Lead
                 <div
                   key={entry.user_id}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                    "flex items-center gap-2 p-2 rounded-md border transition-all",
                     getRankBg(entry.rank, isCurrentUser),
-                    isCurrentUser && "ring-2 ring-primary/20"
+                    isCurrentUser && "ring-1 ring-primary/20"
                   )}
                 >
-                  <div className="flex items-center justify-center w-8">
+                  <div className="flex items-center justify-center w-5">
                     {getRankIcon(entry.rank)}
                   </div>
                   
-                  <Avatar className="h-10 w-10 ring-2 ring-background">
+                  <Avatar className="h-7 w-7 ring-1 ring-background">
                     <AvatarImage src={entry.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
                       {entry.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm truncate">
-                        {entry.name}
-                        {isCurrentUser && (
-                          <Badge variant="outline" className="ml-2 text-[10px] py-0">
-                            Você
-                          </Badge>
-                        )}
-                      </p>
-                    </div>
-                    {entry.clinic_name && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {entry.clinic_name}
-                      </p>
-                    )}
+                    <p className="font-medium text-xs truncate">
+                      {entry.name}
+                      {isCurrentUser && (
+                        <Badge variant="outline" className="ml-1.5 text-[9px] px-1 py-0 h-4">
+                          Você
+                        </Badge>
+                      )}
+                    </p>
                   </div>
                   
-                  <div className="flex items-center gap-1.5">
-                    <Award className="h-4 w-4 text-amber-500" />
-                    <span className="font-bold text-sm">
+                  <div className="flex items-center gap-1">
+                    <Award className="h-3.5 w-3.5 text-amber-500" />
+                    <span className="font-bold text-xs">
                       {entry.total_points}
                     </span>
                   </div>
@@ -195,45 +192,38 @@ export default function Leaderboard({ limit = 10, showCurrentUser = true }: Lead
             {/* Current user position if not in top list */}
             {currentUserRank && !entries.find(e => e.user_id === user?.id) && (
               <>
-                <div className="flex items-center justify-center py-2">
-                  <span className="text-xs text-muted-foreground">• • •</span>
+                <div className="flex items-center justify-center py-1">
+                  <span className="text-[10px] text-muted-foreground">• • •</span>
                 </div>
                 <div
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border transition-all",
-                    "bg-primary/10 border-primary/30 ring-2 ring-primary/20"
+                    "flex items-center gap-2 p-2 rounded-md border transition-all",
+                    "bg-primary/10 border-primary/30 ring-1 ring-primary/20"
                   )}
                 >
-                  <div className="flex items-center justify-center w-8">
-                    <span className="text-sm font-bold text-primary">{currentUserRank.rank}</span>
+                  <div className="flex items-center justify-center w-5">
+                    <span className="text-xs font-bold text-primary">{currentUserRank.rank}</span>
                   </div>
                   
-                  <Avatar className="h-10 w-10 ring-2 ring-primary/30">
+                  <Avatar className="h-7 w-7 ring-1 ring-primary/30">
                     <AvatarImage src={currentUserRank.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
                       {currentUserRank.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm truncate">
-                        {currentUserRank.name}
-                        <Badge variant="outline" className="ml-2 text-[10px] py-0 border-primary text-primary">
-                          Você
-                        </Badge>
-                      </p>
-                    </div>
-                    {currentUserRank.clinic_name && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {currentUserRank.clinic_name}
-                      </p>
-                    )}
+                    <p className="font-medium text-xs truncate">
+                      {currentUserRank.name}
+                      <Badge variant="outline" className="ml-1.5 text-[9px] px-1 py-0 h-4 border-primary text-primary">
+                        Você
+                      </Badge>
+                    </p>
                   </div>
                   
-                  <div className="flex items-center gap-1.5">
-                    <Award className="h-4 w-4 text-amber-500" />
-                    <span className="font-bold text-sm">
+                  <div className="flex items-center gap-1">
+                    <Award className="h-3.5 w-3.5 text-amber-500" />
+                    <span className="font-bold text-xs">
                       {currentUserRank.total_points}
                     </span>
                   </div>

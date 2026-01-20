@@ -71,37 +71,37 @@ export default function AchievementsPanel({ compact = false }: AchievementsPanel
       .slice(0, 3);
 
     return (
-      <Card className="border-2 border-amber-200/50 dark:border-amber-800/30 bg-gradient-to-br from-amber-50/50 via-background to-background dark:from-amber-950/20">
-        <CardHeader className="pb-3">
+      <Card className="border border-amber-200/50 dark:border-amber-800/30 bg-gradient-to-br from-amber-50/50 via-background to-background dark:from-amber-950/20">
+        <CardHeader className="pb-2 pt-3 px-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30">
-                <Trophy className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-sm flex items-center gap-2">
                   Conquistas
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                     {unlockedCount}/{totalCount}
                   </Badge>
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  <Star className="h-3 w-3 inline mr-1" />
+                <p className="text-xs text-muted-foreground">
+                  <Star className="h-3 w-3 inline mr-0.5" />
                   {totalPoints} pontos
                 </p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/achievements")} className="gap-1">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/achievements")} className="gap-1 h-7 text-xs px-2">
               Ver todas
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2 px-3 pb-3">
           {/* Progress */}
-          <div className="space-y-2">
-            <Progress value={progressPercent} className="h-2" />
-            <p className="text-xs text-muted-foreground text-right">
+          <div className="space-y-1">
+            <Progress value={progressPercent} className="h-1.5" />
+            <p className="text-[10px] text-muted-foreground text-right">
               {Math.round(progressPercent)}% concluído
             </p>
           </div>
@@ -109,8 +109,8 @@ export default function AchievementsPanel({ compact = false }: AchievementsPanel
           {/* Recent achievements */}
           {recentUnlocked.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">Recentes</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-[10px] font-medium text-muted-foreground mb-1.5">Recentes</p>
+              <div className="flex flex-wrap gap-1.5">
                 {recentUnlocked.map(achievement => (
                   <AchievementBadge 
                     key={achievement.id} 
@@ -125,12 +125,12 @@ export default function AchievementsPanel({ compact = false }: AchievementsPanel
           {/* Next to unlock */}
           {nextToUnlock.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">Próximas</p>
-              <div className="space-y-2">
+              <p className="text-[10px] font-medium text-muted-foreground mb-1.5">Próximas</p>
+              <div className="space-y-1.5">
                 {nextToUnlock.map(achievement => (
                   <div 
                     key={achievement.id} 
-                    className="flex items-center gap-3 p-2 rounded-lg bg-muted/30"
+                    className="flex items-center gap-2 p-1.5 rounded-md bg-muted/30"
                   >
                     <AchievementBadge 
                       achievement={achievement} 
@@ -138,13 +138,13 @@ export default function AchievementsPanel({ compact = false }: AchievementsPanel
                       showProgress
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{achievement.name}</p>
-                      <div className="flex items-center gap-2">
+                      <p className="text-xs font-medium truncate">{achievement.name}</p>
+                      <div className="flex items-center gap-1.5">
                         <Progress 
                           value={(achievement.progress || 0) / (achievement.progressMax || 1) * 100} 
                           className="h-1 flex-1" 
                         />
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[10px] text-muted-foreground">
                           {achievement.progress}/{achievement.progressMax}
                         </span>
                       </div>

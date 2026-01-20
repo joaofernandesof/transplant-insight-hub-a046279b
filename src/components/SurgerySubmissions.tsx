@@ -130,31 +130,31 @@ export default function SurgerySubmissions() {
   };
 
   return (
-    <Card className="border-2 border-rose-200/50 dark:border-rose-800/30 bg-gradient-to-br from-rose-50/50 via-background to-background dark:from-rose-950/20">
-      <CardHeader className="pb-3">
+    <Card className="border border-rose-200/50 dark:border-rose-800/30 bg-gradient-to-br from-rose-50/50 via-background to-background dark:from-rose-950/20">
+      <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-900/30">
-              <Scissors className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30">
+              <Scissors className="h-4 w-4 text-rose-600 dark:text-rose-400" />
             </div>
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 Cirurgias Realizadas
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                   {approvedCount}/5
                 </Badge>
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {pendingCount > 0 && `${pendingCount} aguardando validação`}
+              <p className="text-xs text-muted-foreground">
+                Progresso para recompensa
               </p>
             </div>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Enviar</span>
+              <Button size="sm" className="gap-1 h-7 text-xs px-2">
+                <Plus className="h-3.5 w-3.5" />
+                Enviar
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -232,75 +232,46 @@ export default function SurgerySubmissions() {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2 px-3 pb-3">
         {/* Progress to reward */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Progresso para recompensa</span>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Progresso</span>
             <span className="font-medium">{approvedCount}/5 cirurgias</span>
           </div>
-          <Progress value={progressPercent} className="h-2" />
+          <Progress value={progressPercent} className="h-1.5" />
         </div>
         
         {/* Reward Card */}
-        <div className={`p-4 rounded-lg border-2 ${
+        <div className={`p-2.5 rounded-md border ${
           goalReached 
             ? 'bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-amber-300 dark:border-amber-700' 
             : 'bg-muted/30 border-muted-foreground/10'
         }`}>
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${goalReached ? 'bg-amber-200 dark:bg-amber-800' : 'bg-muted'}`}>
+          <div className="flex items-center gap-2">
+            <div className={`p-1.5 rounded-md ${goalReached ? 'bg-amber-200 dark:bg-amber-800' : 'bg-muted'}`}>
               {goalReached ? (
-                <Gift className="h-5 w-5 text-amber-700 dark:text-amber-300" />
+                <Gift className="h-4 w-4 text-amber-700 dark:text-amber-300" />
               ) : (
-                <Play className="h-5 w-5 text-muted-foreground" />
+                <Play className="h-4 w-4 text-muted-foreground" />
               )}
             </div>
-            <div className="flex-1">
-              <p className={`font-semibold ${goalReached ? 'text-amber-800 dark:text-amber-200' : 'text-muted-foreground'}`}>
+            <div className="flex-1 min-w-0">
+              <p className={`font-medium text-xs ${goalReached ? 'text-amber-800 dark:text-amber-200' : 'text-muted-foreground'}`}>
                 {goalReached ? '🎉 Recompensa Desbloqueada!' : 'Recompensa'}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Episódio da WebSérie "Do Zero à Referência Capilar" - IBRAMEC
+              <p className="text-[10px] text-muted-foreground truncate">
+                Episódio da WebSérie "Do Zero à Referência Capilar"
               </p>
             </div>
             {goalReached && (
-              <Button size="sm" className="gap-1 bg-amber-600 hover:bg-amber-700">
-                <Play className="h-4 w-4" />
+              <Button size="sm" className="gap-1 bg-amber-600 hover:bg-amber-700 h-6 text-xs px-2">
+                <Play className="h-3 w-3" />
                 Assistir
               </Button>
             )}
           </div>
         </div>
-        
-        {/* Recent submissions */}
-        {submissions.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">Últimas enviadas</p>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {submissions.slice(0, 5).map((submission) => (
-                <div key={submission.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                    {submission.photo_urls[0] ? (
-                      <img src={submission.photo_urls[0]} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-full h-full p-2 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm truncate">
-                      {submission.description || "Cirurgia enviada"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(submission.created_at).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  {getStatusBadge(submission.status)}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

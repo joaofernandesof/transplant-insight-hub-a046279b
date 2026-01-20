@@ -189,21 +189,21 @@ export default function MonthlyGoals() {
   }
 
   return (
-    <Card className="border-2 border-primary/10">
-      <CardHeader className="pb-2">
+    <Card className="border border-primary/10">
+      <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-primary/10">
               <Target className="h-4 w-4 text-primary" />
             </div>
-            <CardTitle className="text-base">
+            <CardTitle className="text-sm">
               Metas de {monthNames[currentMonth - 1]}
             </CardTitle>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Settings2 className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Settings2 className="h-3.5 w-3.5" />
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -258,32 +258,32 @@ export default function MonthlyGoals() {
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2 px-3 pb-3">
         {goalItems.map((item, index) => {
           const percent = getProgressPercent(item.current, item.goal);
           const isComplete = percent >= 100;
           
           return (
-            <div key={index} className="space-y-1.5">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
+            <div key={index} className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5">
                   <div className={`p-1 rounded ${item.bgColor}`}>
-                    <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                    <item.icon className={`h-3 w-3 ${item.color}`} />
                   </div>
                   <span className="font-medium">{item.label}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground text-[10px]">
                     {item.current}/{item.goal}
                   </span>
                   {isComplete && (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                   )}
                 </div>
               </div>
               <Progress 
                 value={percent} 
-                className={`h-2 ${isComplete ? "[&>div]:bg-green-500" : ""}`}
+                className={`h-1.5 ${isComplete ? "[&>div]:bg-green-500" : ""}`}
               />
             </div>
           );
