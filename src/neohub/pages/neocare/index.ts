@@ -3,3 +3,4 @@ export { default as NeoCareHome } from './NeoCareHome';
 export { default as NeoCareAppointments } from './NeoCareAppointments';
 export { default as NeoCareNewAppointment } from './NeoCareNewAppointment';
 export { default as NeoCareSettings } from './NeoCareSettings';
+export { default as NeoCareDocuments } from './NeoCareDocuments';

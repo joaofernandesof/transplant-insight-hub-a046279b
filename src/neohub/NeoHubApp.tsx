@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 
 // NeoCare (Portal do Paciente) pages
 import { NeoCareSidebar } from './components/NeoCareSidebar';
-import { NeoCareHome, NeoCareAppointments, NeoCareNewAppointment, NeoCareSettings } from './pages/neocare';
+import { NeoCareHome, NeoCareAppointments, NeoCareNewAppointment, NeoCareSettings, NeoCareDocuments } from './pages/neocare';
 
 // Import existing licensee pages
 import LicenseeHome from '@/pages/LicenseeHome';
@@ -47,9 +47,10 @@ function NeoCareRoutes() {
           <Route path="appointments" element={<NeoCareAppointments />} />
           <Route path="appointments/new" element={<NeoCareNewAppointment />} />
           <Route path="settings" element={<NeoCareSettings />} />
-          <Route path="my-records" element={<PlaceholderPage title="Meus Documentos" />} />
+          <Route path="my-records" element={<NeoCareDocuments />} />
           <Route path="my-invoices" element={<PlaceholderPage title="Minhas Faturas" />} />
-          <Route path="teleconsultation" element={<PlaceholderPage title="Teleconsulta" />} />
+          <Route path="teleconsultation" element={<PlaceholderPage title="Orientações" />} />
+          <Route path="notifications" element={<PlaceholderPage title="Notícias" />} />
           <Route path="*" element={<Navigate to="/neocare" replace />} />
         </Routes>
       </NeoCareSidebar>
