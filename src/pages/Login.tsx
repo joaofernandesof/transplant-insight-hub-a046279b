@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { PROFILE_ROUTES, NeoHubProfile } from '@/neohub/lib/permissions';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -166,7 +167,45 @@ export default function Login() {
           } else {
             localStorage.removeItem('rememberedEmail');
           }
-          navigate('/');
+          
+          // Verificar se o usuário tem perfil NeoHub e redirecionar adequadamente
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            // Buscar dados do usuário na tabela neohub_users
+            const { data: neoHubUser } = await supabase
+              .from('neohub_users')
+              .select('id')
+              .eq('user_id', authUser.id)
+              .single();
+
+            if (neoHubUser) {
+              // Buscar perfis do usuário NeoHub
+              const { data: profilesData } = await supabase
+                .from('neohub_user_profiles')
+                .select('profile')
+                .eq('neohub_user_id', neoHubUser.id)
+                .eq('is_active', true);
+
+              const profiles = (profilesData || []).map(p => p.profile as NeoHubProfile);
+              
+              if (profiles.length === 1) {
+                // Redirecionar diretamente para o portal do perfil
+                const targetRoute = PROFILE_ROUTES[profiles[0]];
+                navigate(targetRoute);
+              } else if (profiles.length > 1) {
+                // Múltiplos perfis, redirecionar para seleção
+                navigate('/select-profile');
+              } else {
+                // Sem perfis NeoHub, seguir fluxo normal
+                navigate('/');
+              }
+            } else {
+              // Não é usuário NeoHub, seguir fluxo normal
+              navigate('/');
+            }
+          } else {
+            navigate('/');
+          }
         } else {
           setError(loginError || 'Email ou senha incorretos');
         }
