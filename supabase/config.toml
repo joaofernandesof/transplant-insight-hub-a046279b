@@ -1,5 +1,18 @@
 project_id = "tubzywibnielhcjeswww"
 
+[auth]
+site_url = "https://transplant-insight-hub.lovable.app"
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = false
+enable_confirmations = false
+sender_name = "NeoHub"
+
+[auth.email.template.recovery]
+subject = "🔐 Recuperar Senha - NeoHub"
+content_path = "./supabase/templates/recovery.html"
+
 [functions.notify-lead-arrival]
 verify_jwt = false
 
@@ -16,4 +29,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-weekly-reports]
+verify_jwt = false
+
+[functions.send-password-reset]
 verify_jwt = false
