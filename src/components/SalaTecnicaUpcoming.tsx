@@ -44,42 +44,42 @@ function MeetingItem({ meeting }: MeetingItemProps) {
 
   return (
     <div className={cn(
-      "p-4 rounded-lg border transition-all",
+      "p-2.5 rounded-md border transition-all",
       isToday 
         ? "border-amber-500/30 bg-amber-500/5" 
         : "border-border/50 hover:border-border"
     )}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <div className={cn(
-            "p-2 rounded-lg shrink-0",
+            "p-1.5 rounded-md shrink-0",
             isToday ? "bg-amber-500/20" : "bg-muted"
           )}>
             <Video className={cn(
-              "h-4 w-4",
+              "h-3.5 w-3.5",
               isToday ? "text-amber-500" : "text-muted-foreground"
             )} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h4 className="font-medium text-sm">{meeting.title}</h4>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h4 className="font-medium text-xs truncate">{meeting.title}</h4>
               {isToday && (
-                <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs">
+                <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] px-1.5 py-0">
                   Hoje
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              <div className="flex items-center gap-0.5">
+                <Calendar className="h-2.5 w-2.5" />
                 <span>{format(meetingDate, "d 'de' MMM", { locale: ptBR })}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
+              <div className="flex items-center gap-0.5">
+                <Clock className="h-2.5 w-2.5" />
                 <span>{meeting.meeting_time.slice(0, 5)}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
+              <div className="flex items-center gap-0.5">
+                <Users className="h-2.5 w-2.5" />
                 <span>{confirmations?.length || 0}</span>
               </div>
             </div>
@@ -87,16 +87,14 @@ function MeetingItem({ meeting }: MeetingItemProps) {
         </div>
         
         {userConfirmation ? (
-          <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-4 w-4" />
-          </div>
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
         ) : (
           <Button 
             size="sm" 
             variant="ghost"
             onClick={handleConfirm}
             disabled={confirmMeeting.isPending}
-            className="text-xs h-7"
+            className="text-[10px] h-6 px-2"
           >
             Confirmar
           </Button>
@@ -144,39 +142,41 @@ export function SalaTecnicaUpcoming({ limit = 4, showViewAll = true, className }
 
   return (
     <Card className={cn("border-primary/10", className)}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
               <Video className="h-4 w-4 text-amber-500" />
-              Sala Técnica
-            </CardTitle>
-            <CardDescription>Próximas mentorias semanais</CardDescription>
+            </div>
+            <div>
+              <CardTitle className="text-sm">Sala Técnica</CardTitle>
+              <CardDescription className="text-xs">Mentorias semanais</CardDescription>
+            </div>
           </div>
           {showViewAll && (
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-xs"
+              className="text-[10px] h-6 px-2"
               onClick={() => navigate('/sala-tecnica')}
             >
               Ver Calendário
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
             </Button>
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 pb-3">
         {displayMeetings.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-1.5">
             {displayMeetings.map(meeting => (
               <MeetingItem key={meeting.id} meeting={meeting} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <Calendar className="h-12 w-12 mx-auto mb-3 opacity-40" />
-            <p className="text-sm">Nenhuma reunião agendada</p>
+          <div className="text-center py-4 text-muted-foreground">
+            <Calendar className="h-8 w-8 mx-auto mb-2 opacity-40" />
+            <p className="text-xs">Nenhuma reunião agendada</p>
           </div>
         )}
       </CardContent>
