@@ -25,12 +25,14 @@ import {
   Lock,
   Unlock,
   FileText,
-  ChevronRight
+  ChevronRight,
+  Table as TableIcon
 } from "lucide-react";
 import { useAccessMatrix, ModulePermission, OperationType } from "@/hooks/useAccessMatrix";
 import { AccessPermissionEditor } from "@/components/access-matrix/AccessPermissionEditor";
 import { AccessCompareProfiles } from "@/components/access-matrix/AccessCompareProfiles";
 import { AccessSmartTrails } from "@/components/access-matrix/AccessSmartTrails";
+import { AccessMatrixTable } from "@/components/access-matrix/AccessMatrixTable";
 import { NeoHubProfile, Portal, PORTAL_NAMES, PROFILE_NAMES } from "@/neohub/lib/permissions";
 import { cn } from "@/lib/utils";
 
@@ -71,7 +73,7 @@ export default function AccessMatrix() {
     getPermissionForModule
   } = useAccessMatrix();
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'compare' | 'trails'>('overview');
+  const [activeTab, setActiveTab] = useState<'matrix' | 'overview' | 'compare' | 'trails'>('matrix');
   const [selectedModule, setSelectedModule] = useState<{ portal: Portal; moduleCode: string } | null>(null);
   const [operationType, setOperationType] = useState<OperationType>('clinica');
 
@@ -133,7 +135,11 @@ export default function AccessMatrix() {
       <main className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-4">
+            <TabsTrigger value="matrix" className="gap-2">
+              <TableIcon className="h-4 w-4" />
+              Matriz
+            </TabsTrigger>
             <TabsTrigger value="overview" className="gap-2">
               <Eye className="h-4 w-4" />
               Visão Geral
@@ -148,6 +154,17 @@ export default function AccessMatrix() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        {/* Overview Tab - Portal Cards */}
+        {/* Matrix Tab - Full Table View */}
+        {activeTab === 'matrix' && (
+          <AccessMatrixTable
+            permissions={permissions}
+            isLoading={isLoading}
+            onUpdatePermission={updatePermission}
+            getPermissionForModule={getPermissionForModule}
+          />
+        )}
 
         {/* Overview Tab - Portal Cards */}
         {activeTab === 'overview' && (
