@@ -27,7 +27,7 @@ export default function NeoCareHome() {
           <h1 className="text-2xl font-bold">
             Olá, {user?.fullName?.split(' ')[0] || 'Paciente'}!
           </h1>
-          <p className="text-white/90">Bem-vindo ao seu Portal Neo Folic</p>
+          <p className="text-white/90">Bem-vindo ao seu Portal do Paciente</p>
         </div>
       </div>
 

@@ -58,7 +58,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             <Heart className="h-5 w-5 text-white" />
           </div>
           <div>
-            <span className="font-bold text-[hsl(var(--neocare-primary))]">Portal Neo Folic</span>
+            <span className="font-bold text-[hsl(var(--neocare-primary))]">Portal do Paciente</span>
             <p className="text-xs text-muted-foreground">Clínica de Transplante Capilar</p>
           </div>
         </div>
