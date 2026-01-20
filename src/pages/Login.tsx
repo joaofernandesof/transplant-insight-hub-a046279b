@@ -88,14 +88,20 @@ export default function Login() {
     }
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login?reset=true`,
+      // Use our custom password reset flow
+      const response = await supabase.functions.invoke('request-password-reset', {
+        body: { 
+          email: email.trim().toLowerCase(),
+          redirectUrl: `${window.location.origin}/reset-password`,
+        },
       });
 
-      if (error) {
-        setError(error.message);
+      if (response.error) {
+        setError(response.error.message || 'Erro ao processar solicitação');
+      } else if (response.data?.error) {
+        setError(response.data.error);
       } else {
-        setSuccessMessage('Email de recuperação enviado! Verifique sua caixa de entrada.');
+        setSuccessMessage('Se o email estiver cadastrado, você receberá as instruções de recuperação.');
       }
     } catch (err) {
       setError('Ocorreu um erro. Tente novamente.');
