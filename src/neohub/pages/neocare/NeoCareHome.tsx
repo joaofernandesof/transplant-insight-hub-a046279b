@@ -10,20 +10,25 @@ export default function NeoCareHome() {
   const navigate = useNavigate();
 
   const quickActions = [
-    { icon: Calendar, label: 'Agendar Consulta', path: '/neocare/appointments/new', color: 'bg-blue-500' },
-    { icon: Video, label: 'Teleconsulta', path: '/neocare/teleconsultation', color: 'bg-green-500' },
-    { icon: FileText, label: 'Meus Documentos', path: '/neocare/my-records', color: 'bg-purple-500' },
-    { icon: MessageSquare, label: 'Falar com a Clínica', path: '/neocare/chat', color: 'bg-orange-500' },
+    { icon: Calendar, label: 'Agendar Consulta', path: '/neocare/appointments/new', color: 'bg-[hsl(var(--neocare-primary))]' },
+    { icon: FileText, label: 'Meus Documentos', path: '/neocare/my-records', color: 'bg-emerald-500' },
+    { icon: Video, label: 'Orientações', path: '/neocare/teleconsultation', color: 'bg-purple-500' },
+    { icon: Bell, label: 'Notícias', path: '/neocare/notifications', color: 'bg-orange-500' },
   ];
 
   return (
     <div className="p-4 lg:p-8 space-y-6">
       {/* Welcome */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground">
-        <h1 className="text-2xl font-bold mb-2">
-          Olá, {user?.fullName?.split(' ')[0]}! 👋
-        </h1>
-        <p className="opacity-90">Bem-vindo ao seu portal de saúde capilar.</p>
+      <div className="bg-[var(--neocare-gradient)] rounded-2xl p-6 text-white flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
+          {user?.fullName?.charAt(0) || 'P'}
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold">
+            Olá, {user?.fullName?.split(' ')[0] || 'Paciente'}!
+          </h1>
+          <p className="opacity-90">Bem-vindo ao seu Portal Neo Folic</p>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -60,7 +65,7 @@ export default function NeoCareHome() {
           <div className="text-center py-8 text-muted-foreground">
             <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>Você não tem agendamentos próximos</p>
-            <Button className="mt-4" onClick={() => navigate('/neocare/appointments/new')}>
+            <Button className="mt-4 bg-[hsl(var(--neocare-primary))] hover:bg-[hsl(var(--neocare-primary))]/90" onClick={() => navigate('/neocare/appointments/new')}>
               Agendar Consulta
             </Button>
           </div>
