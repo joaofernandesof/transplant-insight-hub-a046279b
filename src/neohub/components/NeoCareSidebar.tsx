@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, FileText, BookOpen, Newspaper,
-  Settings, LogOut, Heart, User,
+  Settings, LogOut, User,
   ChevronLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useNeoHubAuth } from '../contexts/NeoHubAuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import neofolicIcon from '@/assets/icone-neofolic-neocare.png';
 
 interface NeoCareSidebarProps {
   children: React.ReactNode;
@@ -54,8 +55,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       {/* Logo */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[hsl(var(--neocare-primary))] flex items-center justify-center">
-            <Heart className="h-5 w-5 text-white" />
+          <div className="w-10 h-10 rounded-full bg-[hsl(var(--neocare-primary))] flex items-center justify-center overflow-hidden">
+            <img src={neofolicIcon} alt="NeoFolic" className="w-8 h-8 object-contain" />
           </div>
           <div>
             <span className="font-bold text-[hsl(var(--neocare-primary))]">Portal do Paciente</span>
@@ -145,7 +146,7 @@ export function NeoCareSidebar({ children }: NeoCareSidebarProps) {
             size="icon"
             className="fixed top-4 left-4 z-40 lg:hidden border-[hsl(var(--neocare-primary))]"
           >
-            <Heart className="h-5 w-5 text-[hsl(var(--neocare-primary))]" />
+            <img src={neofolicIcon} alt="Menu" className="h-6 w-6 object-contain" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
