@@ -145,6 +145,215 @@ export type Database = {
           },
         ]
       }
+      clinic_patients: {
+        Row: {
+          cpf: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      clinic_sales: {
+        Row: {
+          balance_due: number | null
+          branch: string
+          category: string | null
+          consultant: string | null
+          contract_status: Database["public"]["Enums"]["contract_status"]
+          created_at: string | null
+          created_by: string | null
+          down_payment: number | null
+          id: string
+          lead_source: string | null
+          notes: string | null
+          patient_id: string | null
+          sale_date: string
+          seller: string | null
+          service_type: string
+          updated_at: string | null
+          vgv: number | null
+        }
+        Insert: {
+          balance_due?: number | null
+          branch: string
+          category?: string | null
+          consultant?: string | null
+          contract_status?: Database["public"]["Enums"]["contract_status"]
+          created_at?: string | null
+          created_by?: string | null
+          down_payment?: number | null
+          id?: string
+          lead_source?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          sale_date?: string
+          seller?: string | null
+          service_type: string
+          updated_at?: string | null
+          vgv?: number | null
+        }
+        Update: {
+          balance_due?: number | null
+          branch?: string
+          category?: string | null
+          consultant?: string | null
+          contract_status?: Database["public"]["Enums"]["contract_status"]
+          created_at?: string | null
+          created_by?: string | null
+          down_payment?: number | null
+          id?: string
+          lead_source?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          sale_date?: string
+          seller?: string | null
+          service_type?: string
+          updated_at?: string | null
+          vgv?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_sales_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_surgeries: {
+        Row: {
+          booking_term_signed: boolean | null
+          branch: string
+          category: string | null
+          chart_ready: boolean | null
+          companion_name: string | null
+          companion_phone: string | null
+          contract_signed: boolean | null
+          created_at: string | null
+          created_by: string | null
+          discharge_term_signed: boolean | null
+          doctor_on_duty: string | null
+          exams_sent: boolean | null
+          expected_month: string | null
+          gpi_d1_done: boolean | null
+          grade: number | null
+          id: string
+          lunch_choice: string | null
+          notes: string | null
+          outsourcing: boolean | null
+          patient_id: string | null
+          procedure: string
+          sale_id: string | null
+          schedule_status: Database["public"]["Enums"]["schedule_status"]
+          surgery_confirmed: boolean | null
+          surgery_date: string | null
+          surgery_time: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_term_signed?: boolean | null
+          branch: string
+          category?: string | null
+          chart_ready?: boolean | null
+          companion_name?: string | null
+          companion_phone?: string | null
+          contract_signed?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          discharge_term_signed?: boolean | null
+          doctor_on_duty?: string | null
+          exams_sent?: boolean | null
+          expected_month?: string | null
+          gpi_d1_done?: boolean | null
+          grade?: number | null
+          id?: string
+          lunch_choice?: string | null
+          notes?: string | null
+          outsourcing?: boolean | null
+          patient_id?: string | null
+          procedure: string
+          sale_id?: string | null
+          schedule_status?: Database["public"]["Enums"]["schedule_status"]
+          surgery_confirmed?: boolean | null
+          surgery_date?: string | null
+          surgery_time?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_term_signed?: boolean | null
+          branch?: string
+          category?: string | null
+          chart_ready?: boolean | null
+          companion_name?: string | null
+          companion_phone?: string | null
+          contract_signed?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          discharge_term_signed?: boolean | null
+          doctor_on_duty?: string | null
+          exams_sent?: boolean | null
+          expected_month?: string | null
+          gpi_d1_done?: boolean | null
+          grade?: number | null
+          id?: string
+          lunch_choice?: string | null
+          notes?: string | null
+          outsourcing?: boolean | null
+          patient_id?: string | null
+          procedure?: string
+          sale_id?: string | null
+          schedule_status?: Database["public"]["Enums"]["schedule_status"]
+          surgery_confirmed?: boolean | null
+          surgery_date?: string | null
+          surgery_time?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_surgeries_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_surgeries_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinics: {
         Row: {
           city: string | null
@@ -2837,6 +3046,45 @@ export type Database = {
           },
         ]
       }
+      staff_profiles: {
+        Row: {
+          additional_branches: string[] | null
+          branch: string
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          name: string
+          role: Database["public"]["Enums"]["clinic_staff_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_branches?: string[] | null
+          branch: string
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          role?: Database["public"]["Enums"]["clinic_staff_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_branches?: string[] | null
+          branch?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          role?: Database["public"]["Enums"]["clinic_staff_role"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       surgery_schedule: {
         Row: {
           balance_due: number | null
@@ -3289,6 +3537,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_branch: {
+        Args: { _branch: string; _user_id: string }
+        Returns: boolean
+      }
       can_access_module: {
         Args: { _module_code: string; _user_id: string }
         Returns: boolean
@@ -3301,6 +3553,14 @@ export type Database = {
         }[]
       }
       get_portal_user_id: { Args: { _auth_user_id: string }; Returns: string }
+      get_staff_profile: {
+        Args: { _user_id: string }
+        Returns: {
+          additional_branches: string[]
+          branch: string
+          role: Database["public"]["Enums"]["clinic_staff_role"]
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -3326,10 +3586,25 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_staff_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["clinic_staff_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "licensee"
+      clinic_staff_role:
+        | "admin"
+        | "gestao"
+        | "comercial"
+        | "operacao"
+        | "recepcao"
+      contract_status: "ativo" | "pendente" | "quitado" | "cancelado"
       neohub_profile:
         | "paciente"
         | "colaborador"
@@ -3344,6 +3619,12 @@ export type Database = {
         | "financial"
         | "reception"
         | "inventory"
+      schedule_status:
+        | "sem_data"
+        | "agendado"
+        | "confirmado"
+        | "realizado"
+        | "cancelado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3472,6 +3753,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "licensee"],
+      clinic_staff_role: [
+        "admin",
+        "gestao",
+        "comercial",
+        "operacao",
+        "recepcao",
+      ],
+      contract_status: ["ativo", "pendente", "quitado", "cancelado"],
       neohub_profile: [
         "paciente",
         "colaborador",
@@ -3487,6 +3776,13 @@ export const Constants = {
         "financial",
         "reception",
         "inventory",
+      ],
+      schedule_status: [
+        "sem_data",
+        "agendado",
+        "confirmado",
+        "realizado",
+        "cancelado",
       ],
     },
   },
