@@ -19,15 +19,15 @@ export default function NeoCareHome() {
   return (
     <div className="p-4 lg:p-8 space-y-6">
       {/* Welcome */}
-      <div className="bg-[var(--neocare-gradient)] rounded-2xl p-6 text-white flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
+      <div className="bg-gradient-to-r from-[hsl(152,69%,40%)] to-[hsl(152,60%,50%)] rounded-2xl p-6 text-white flex items-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-white/30 flex items-center justify-center text-2xl font-bold shrink-0">
           {user?.fullName?.charAt(0) || 'P'}
         </div>
         <div>
           <h1 className="text-2xl font-bold">
             Olá, {user?.fullName?.split(' ')[0] || 'Paciente'}!
           </h1>
-          <p className="opacity-90">Bem-vindo ao seu Portal Neo Folic</p>
+          <p className="text-white/90">Bem-vindo ao seu Portal Neo Folic</p>
         </div>
       </div>
 
