@@ -56,7 +56,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-[hsl(var(--neocare-primary))] flex items-center justify-center overflow-hidden">
-            <img src={neofolicIcon} alt="NeoFolic" className="w-8 h-8 object-contain" />
+            <img src={neofolicIcon} alt="NeoFolic" className="w-full h-full object-cover scale-150" />
           </div>
           <div>
             <span className="font-bold text-[hsl(var(--neocare-primary))]">Portal do Paciente</span>
