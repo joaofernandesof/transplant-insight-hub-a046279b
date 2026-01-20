@@ -87,8 +87,8 @@ export default function NeoCareHome() {
   const quickActions = [
     { icon: Calendar, label: 'Agendar Consulta', path: '/neocare/appointments/new', color: 'bg-[hsl(var(--neocare-primary))]' },
     { icon: FileText, label: 'Meus Documentos', path: '/neocare/my-records', color: 'bg-emerald-500' },
-    { icon: Video, label: 'Orientações', path: '/neocare/teleconsultation', color: 'bg-purple-500' },
-    { icon: Bell, label: 'Notícias', path: '/neocare/notifications', color: 'bg-orange-500' },
+    { icon: Video, label: 'Orientações', path: '/neocare/orientations', color: 'bg-purple-500' },
+    { icon: Bell, label: 'Notícias', path: '/neocare/news', color: 'bg-orange-500' },
   ];
 
   const appointmentTypeLabels: Record<string, string> = {
