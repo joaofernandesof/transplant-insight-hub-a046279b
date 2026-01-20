@@ -10,6 +10,7 @@ import SupportChat from "@/components/SupportChat";
 import { ModuleSidebar } from "@/components/ModuleSidebar";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AdminHome from "./pages/AdminHome";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -93,6 +94,10 @@ function AppRoutes() {
       <Route 
         path="/login" 
         element={user ? <Navigate to="/" replace /> : <Login />} 
+      />
+      <Route 
+        path="/reset-password" 
+        element={<ResetPassword />} 
       />
       <Route 
         path="/" 
