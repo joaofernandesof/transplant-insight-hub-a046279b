@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { NeoHubAuthProvider, useNeoHubAuth } from './contexts/NeoHubAuthContext';
 import { NeoHubLayout, ProfileGuard } from './components/NeoHubLayout';
 import NeoHubLogin from './pages/NeoHubLogin';
@@ -173,6 +173,7 @@ function UnauthorizedPage() {
 
 function NeoHubRoutes() {
   const { isLoading, user } = useNeoHubAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -182,42 +183,56 @@ function NeoHubRoutes() {
     );
   }
 
-  return (
-    <Routes>
-      {/* Rotas públicas */}
-      <Route path="/login" element={<NeoHubLogin />} />
-      <Route path="/register" element={<NeoHubRegister />} />
-      
-      {/* Seleção de perfil */}
-      <Route path="/select-profile" element={
-        user ? <ProfileSelector /> : <Navigate to="/login" replace />
-      } />
-      
-      {/* Acesso negado */}
-      <Route path="/unauthorized" element={<UnauthorizedPage />} />
+  // Determinar qual portal está sendo acessado baseado na URL atual
+  const currentPath = location.pathname;
+  
+  // NeoCare routes
+  if (currentPath.startsWith('/neocare')) {
+    if (!user) {
+      return <Navigate to="/login" replace />;
+    }
+    return <NeoCareRoutes />;
+  }
+  
+  // NeoTeam routes
+  if (currentPath.startsWith('/neoteam')) {
+    if (!user) {
+      return <Navigate to="/login" replace />;
+    }
+    return <NeoTeamRoutes />;
+  }
+  
+  // Academy routes
+  if (currentPath.startsWith('/academy')) {
+    if (!user) {
+      return <Navigate to="/login" replace />;
+    }
+    return <AcademyRoutes />;
+  }
+  
+  // NeoLicense routes
+  if (currentPath.startsWith('/neolicense')) {
+    if (!user) {
+      return <Navigate to="/login" replace />;
+    }
+    return <NeoLicenseRoutes />;
+  }
+  
+  // Avivar routes
+  if (currentPath.startsWith('/avivar')) {
+    if (!user) {
+      return <Navigate to="/login" replace />;
+    }
+    return <AvivarRoutes />;
+  }
+  
+  // Select profile route
+  if (currentPath === '/select-profile') {
+    return user ? <ProfileSelector /> : <Navigate to="/login" replace />;
+  }
 
-      {/* Portais protegidos */}
-      <Route path="/neocare/*" element={<NeoCareRoutes />} />
-      <Route path="/neoteam/*" element={<NeoTeamRoutes />} />
-      <Route path="/academy/*" element={<AcademyRoutes />} />
-      <Route path="/neolicense/*" element={<NeoLicenseRoutes />} />
-      <Route path="/avivar/*" element={<AvivarRoutes />} />
-
-      {/* Rota raiz - redireciona baseado no estado */}
-      <Route path="/" element={
-        user ? (
-          user.profiles.length === 1 
-            ? <Navigate to={`/${user.profiles[0] === 'paciente' ? 'neocare' : 
-                user.profiles[0] === 'colaborador' ? 'neoteam' :
-                user.profiles[0] === 'aluno' ? 'academy' : 'neolicense'}`} replace />
-            : <Navigate to="/select-profile" replace />
-        ) : <Navigate to="/login" replace />
-      } />
-
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
+  // Default fallback
+  return <Navigate to="/login" replace />;
 }
 
 export default function NeoHubApp() {
