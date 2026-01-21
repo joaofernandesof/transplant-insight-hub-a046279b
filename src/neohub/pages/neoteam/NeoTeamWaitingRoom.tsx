@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,16 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  Clock, RefreshCw, Trash2, Settings, Plus, Loader2
+  Clock, RefreshCw, Trash2, Settings, Plus, Loader2, Volume2, VolumeX, Stethoscope
 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,14 +33,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { format, differenceInMinutes, differenceInHours } from 'date-fns';
+import { format, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNeoTeamWaitingRoom, TriageStatus, MoodStatus, AddToWaitingRoom } from '@/neohub/hooks/useNeoTeamWaitingRoom';
-
-const branches = [
-  { id: 'fortaleza', name: 'Filial Fortaleza' },
-  { id: 'juazeiro', name: 'Filial Juazeiro' },
-];
+import { useNeoTeamBranches } from '@/neohub/hooks/useNeoTeamBranches';
+import { useNavigate } from 'react-router-dom';
 
 const typeOptions = [
   { value: 'consulta', label: 'Consulta', color: 'bg-blue-100 text-blue-700' },
@@ -71,18 +60,24 @@ const moodOptions: { value: MoodStatus; label: string; color: string }[] = [
   { value: 'irritado', label: 'Irritado', color: 'bg-red-100 text-red-700' },
 ];
 
+const WAIT_TIME_ALERT_MINUTES = 15;
+
 export default function NeoTeamWaitingRoom() {
-  const [selectedBranch, setSelectedBranch] = useState(branches[0].id);
+  const navigate = useNavigate();
+  const { branches, isLoading: branchesLoading } = useNeoTeamBranches();
+  const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [addPatientOpen, setAddPatientOpen] = useState(false);
   const [deletePatient, setDeletePatient] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [alertedPatients, setAlertedPatients] = useState<Set<string>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // New patient form
   const [newPatient, setNewPatient] = useState<AddToWaitingRoom>({
     patient_name: '',
     scheduled_time: '',
     type: 'consulta',
-    branch: selectedBranch,
+    branch: '',
   });
 
   const {
@@ -95,7 +90,19 @@ export default function NeoTeamWaitingRoom() {
     updateType,
     removeFromWaitingRoom,
     refetch,
-  } = useNeoTeamWaitingRoom(selectedBranch);
+  } = useNeoTeamWaitingRoom(selectedBranch || undefined);
+
+  // Set default branch when branches load
+  useEffect(() => {
+    if (branches.length > 0 && !selectedBranch) {
+      setSelectedBranch(branches[0].code);
+    }
+  }, [branches, selectedBranch]);
+
+  // Update branch in new patient form
+  useEffect(() => {
+    setNewPatient(prev => ({ ...prev, branch: selectedBranch }));
+  }, [selectedBranch]);
 
   // Update time every second for real-time wait time display
   useEffect(() => {
@@ -105,10 +112,31 @@ export default function NeoTeamWaitingRoom() {
     return () => clearInterval(interval);
   }, []);
 
-  // Update branch in new patient form
+  // Check for patients waiting too long and play alert sound
   useEffect(() => {
-    setNewPatient(prev => ({ ...prev, branch: selectedBranch }));
-  }, [selectedBranch]);
+    if (!soundEnabled) return;
+
+    const patientsWaitingTooLong = patients.filter(p => {
+      const waitMinutes = differenceInMinutes(currentTime, new Date(p.arrival_time));
+      return waitMinutes >= WAIT_TIME_ALERT_MINUTES && 
+             ['arrived', 'waiting'].includes(p.status) &&
+             !alertedPatients.has(p.id);
+    });
+
+    if (patientsWaitingTooLong.length > 0) {
+      // Play alert sound
+      if (audioRef.current) {
+        audioRef.current.play().catch(() => {});
+      }
+      
+      // Mark as alerted
+      setAlertedPatients(prev => {
+        const newSet = new Set(prev);
+        patientsWaitingTooLong.forEach(p => newSet.add(p.id));
+        return newSet;
+      });
+    }
+  }, [patients, currentTime, soundEnabled, alertedPatients]);
 
   const formatWaitTime = (arrivalTime: string) => {
     const now = currentTime;
@@ -120,13 +148,18 @@ export default function NeoTeamWaitingRoom() {
     return `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m`;
   };
 
+  const getWaitTimeClass = (arrivalTime: string) => {
+    const totalMinutes = differenceInMinutes(currentTime, new Date(arrivalTime));
+    if (totalMinutes >= 30) return 'text-red-600 font-bold';
+    if (totalMinutes >= WAIT_TIME_ALERT_MINUTES) return 'text-amber-600 font-semibold';
+    return '';
+  };
+
   const formatTimeOnly = (timeString?: string) => {
     if (!timeString) return '--:--';
-    // If it's already in HH:mm format
     if (timeString.includes(':') && !timeString.includes('T')) {
       return timeString.substring(0, 5);
     }
-    // If it's an ISO string
     try {
       return format(new Date(timeString), 'HH:mm');
     } catch {
@@ -148,7 +181,6 @@ export default function NeoTeamWaitingRoom() {
       type: 'consulta',
       branch: selectedBranch,
     });
-    setAddPatientOpen(false);
   };
 
   const handleDeleteConfirm = async () => {
@@ -170,8 +202,21 @@ export default function NeoTeamWaitingRoom() {
     return moodOptions.find(m => m.value === mood) || moodOptions[0];
   };
 
+  if (branchesLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-muted/30">
+      {/* Audio element for alerts */}
+      <audio ref={audioRef} preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2JgYB/g4yTlI+Nh4N9dG9tb3N5gIaJiYmIiIeFg4B8d3NxcXN2eX2AgoSFhoaFhIKAfXp3dHJxcXN2eX2AgoWHiImIh4WCf3x4dXJwcHJ1eH2AhIeJioqJh4WAe3h1cnBvcXR4fIGEh4qLi4mGg395dnNwb3BzdnuAg4eKjIyKiIR/enZzb29wc3Z7gIWIi4yLioeDfnl1cm9vcHN3fIGFiYyNjIqHg355dXJvbnBzdnyBhomMjY2Lh4N+eXVyb29wc3d8gYWJjI2Ni4eDfnl1cm9vcHN3fIGFiYyNjYuIg355dXJvb3Bzd3yBhYmMjY2LiIN+eXVyb29wc3d8gYWJjI2Ni4iDfnl1cm9vcHN3fIGFiYyNjYuIg355dXJvb3BzdnyBhYmMjY2LiIN+eXVyb29wc3d8gYWJjI2Ni4eDfnl1cm9vcHN3fIGFiYyNjYuHg355dXJvb3Bzd3yBhYmMjY2Lh4N+eXVyb29wc3d8gYWJjI2Ni4eDfnl1cm9vcHN3fIGFiIuNjYuIg355dXJvb3Bzd3yBhYiLjY2LiIN+eXVyb29wc3d8gYWIi42Ni4eDfnl1cm9vcHN3fIGFiIuNjYuHg355dXJvb3Bzd3yBhYiLjY2Lh4N+eXVyb29wc3d8gYWIi42Ni4eDfnl1cW9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN2fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gQ==" type="audio/wav" />
+      </audio>
+
       {/* Header */}
       <div className="bg-[#1e3a5f] text-white px-6 py-4">
         <div className="flex items-center justify-between">
@@ -199,7 +244,30 @@ export default function NeoTeamWaitingRoom() {
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full">
+            <Button 
+              variant={soundEnabled ? "secondary" : "outline"}
+              size="icon" 
+              className="rounded-full"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              title={soundEnabled ? 'Desativar alertas sonoros' : 'Ativar alertas sonoros'}
+            >
+              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              className="rounded-full"
+              onClick={() => navigate('/neoteam/doctor-view')}
+              title="Visão do Médico"
+            >
+              <Stethoscope className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              className="rounded-full"
+              onClick={() => navigate('/neoteam/settings')}
+            >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
@@ -208,19 +276,42 @@ export default function NeoTeamWaitingRoom() {
 
       <div className="p-6 space-y-6">
         {/* Branch Tabs */}
-        <Tabs value={selectedBranch} onValueChange={setSelectedBranch}>
-          <TabsList className="bg-transparent gap-2 p-0 h-auto">
-            {branches.map((branch) => (
-              <TabsTrigger
-                key={branch.id}
-                value={branch.id}
-                className="data-[state=active]:bg-[#1e3a5f] data-[state=active]:text-white px-6 py-2 rounded-md"
-              >
-                {branch.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        {branches.length > 0 && (
+          <Tabs value={selectedBranch} onValueChange={setSelectedBranch}>
+            <TabsList className="bg-transparent gap-2 p-0 h-auto">
+              {branches.map((branch) => (
+                <TabsTrigger
+                  key={branch.code}
+                  value={branch.code}
+                  className="data-[state=active]:bg-[#1e3a5f] data-[state=active]:text-white px-6 py-2 rounded-md"
+                >
+                  {branch.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        )}
+
+        {/* Alert for long wait times */}
+        {patients.some(p => 
+          differenceInMinutes(currentTime, new Date(p.arrival_time)) >= WAIT_TIME_ALERT_MINUTES &&
+          ['arrived', 'waiting'].includes(p.status)
+        ) && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center animate-pulse">
+              <Clock className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-medium text-amber-800">Atenção: Pacientes aguardando</p>
+              <p className="text-sm text-amber-600">
+                {patients.filter(p => 
+                  differenceInMinutes(currentTime, new Date(p.arrival_time)) >= WAIT_TIME_ALERT_MINUTES &&
+                  ['arrived', 'waiting'].includes(p.status)
+                ).length} paciente(s) aguardando há mais de {WAIT_TIME_ALERT_MINUTES} minutos
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Waiting List Table */}
         <Card>
@@ -275,7 +366,7 @@ export default function NeoTeamWaitingRoom() {
                             {format(new Date(patient.arrival_time), 'HH:mm')}
                           </div>
                         </TableCell>
-                        <TableCell className="text-center font-mono font-semibold">
+                        <TableCell className={`text-center font-mono ${getWaitTimeClass(patient.arrival_time)}`}>
                           {formatWaitTime(patient.arrival_time)}
                         </TableCell>
                         <TableCell>

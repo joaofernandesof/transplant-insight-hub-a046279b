@@ -1757,6 +1757,39 @@ export type Database = {
           },
         ]
       }
+      neoteam_branches: {
+        Row: {
+          address: string | null
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       neoteam_patient_documents: {
         Row: {
           branch: string | null
