@@ -40,7 +40,7 @@ interface HorizontalMetricsTableProps {
 
 // Ordem correta das métricas conforme especificado
 const metricOrder = [
-  'ICPFit', 'Mix', 'Impr', 'Reach', 'Freq', 'CPM', 'CTR', 'CPC', 'Eng', 'VTR', 'Hook',
+  'InvTraf', 'ICPFit', 'Mix', 'Impr', 'Reach', 'Freq', 'CPM', 'CTR', 'CPC', 'Eng', 'VTR', 'Hook',
   'PageSpeed', 'Bounce', 'LPCR', 'FormCR', 'AbForm', 'WhatsCR', 'LeadDay', 'CPL', 
   'QualLead', 'MQL', 'SQL', 'SLA', 'TTF', 'RespRate', 'Follow', 'ConvFU', 'ConvCall',
   'Show', 'NoShow', 'QualCall', 'ObjWin', 'Close', 'SaleLead', 'CostSale', 'AOV', 
