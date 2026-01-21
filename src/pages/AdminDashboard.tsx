@@ -5,13 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import NotificationDialog from '@/components/NotificationDialog';
 import {
   Users,
   Activity,
   DollarSign,
-  Calendar,
-  Clock,
   BookOpen,
   Award,
   Eye,
@@ -22,10 +22,38 @@ import {
   AlertTriangle,
   CheckCircle,
   HardDrive,
-  Zap
+  Zap,
+  Send,
+  ChevronRight,
+  Settings,
+  BarChart3,
+  Flame,
+  GraduationCap,
+  Building2,
+  FileText,
+  GitCompare
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+// Quick access modules for admin
+const quickModules = [
+  { id: 'licensees', title: 'Licenciados', icon: Users, path: '/licensees', color: 'bg-blue-500' },
+  { id: 'monitoring', title: 'Monitoramento', icon: Eye, path: '/monitoring', color: 'bg-cyan-500' },
+  { id: 'comparison', title: 'Comparar Clínicas', icon: GitCompare, path: '/comparison', color: 'bg-purple-500' },
+  { id: 'sentinel', title: 'Sentinel', icon: Activity, path: '/admin/sentinel', color: 'bg-green-500' },
+  { id: 'dashboard', title: 'Indicadores', icon: BarChart3, path: '/dashboard', color: 'bg-emerald-500' },
+  { id: 'surgery', title: 'Cirurgias', icon: Building2, path: '/surgery-schedule', color: 'bg-teal-500' },
+  { id: 'reports', title: 'Relatórios', icon: FileText, path: '/weekly-reports', color: 'bg-rose-500' },
+  { id: 'settings', title: 'Configurações', icon: Settings, path: '/admin', color: 'bg-slate-500' },
+];
+
+const contentModules = [
+  { id: 'hotleads', title: 'HotLeads', icon: Flame, path: '/hotleads', color: 'bg-orange-500' },
+  { id: 'university', title: 'Universidade', icon: GraduationCap, path: '/university', color: 'bg-indigo-500' },
+  { id: 'crm', title: 'CRM & Vendas', icon: DollarSign, path: '/crm', color: 'bg-green-500' },
+  { id: 'consolidated', title: 'Resultados', icon: BarChart3, path: '/consolidated-results', color: 'bg-amber-500' },
+];
 
 interface SystemStats {
   totalUsers: number;
@@ -59,8 +87,9 @@ interface SystemHealth {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
   const [stats, setStats] = useState<SystemStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -205,10 +234,65 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <div className="p-4 pt-16 lg:pt-6 lg:p-6 max-w-7xl mx-auto overflow-x-hidden w-full space-y-6">
-        {/* Header */}
+        {/* Header with Welcome */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              Olá, {user?.name?.split(' ')[0]}! 👋
+            </h1>
+            <p className="text-sm text-muted-foreground">Painel administrativo do sistema ByNeofolic</p>
+          </div>
+          <Button
+            onClick={() => setIsNotificationDialogOpen(true)}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <Send className="h-4 w-4" />
+            Enviar Notificação
+          </Button>
+        </div>
+
+        <NotificationDialog
+          open={isNotificationDialogOpen}
+          onOpenChange={setIsNotificationDialogOpen}
+        />
+
+        {/* Quick Navigation - Gestão */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard Administrativo</h1>
-          <p className="text-sm text-muted-foreground">Visão geral do sistema e métricas globais</p>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Gestão do Sistema</h3>
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+            {quickModules.map((module) => (
+              <button
+                key={module.id}
+                onClick={() => navigate(module.path)}
+                className="group flex flex-col items-center gap-1.5 p-2 rounded-lg border border-border bg-card hover:bg-muted/50 transition-all"
+              >
+                <div className={`p-2 rounded-lg ${module.color} text-white`}>
+                  <module.icon className="h-4 w-4" />
+                </div>
+                <span className="text-[10px] font-medium text-center leading-tight">{module.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content Modules */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {contentModules.map((module) => (
+            <button
+              key={module.id}
+              onClick={() => navigate(module.path)}
+              className="group flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-all text-left"
+            >
+              <div className={`p-2 rounded-lg ${module.color} text-white`}>
+                <module.icon className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{module.title}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </button>
+          ))}
         </div>
 
         {/* System Health Status */}
@@ -484,48 +568,6 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Ações Rápidas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <button 
-                onClick={() => navigate('/admin/users')}
-                className="p-3 rounded-lg border hover:bg-muted transition-colors text-left"
-              >
-                <Users className="h-5 w-5 text-blue-500 mb-2" />
-                <p className="text-sm font-medium">Gerenciar Usuários</p>
-                <p className="text-xs text-muted-foreground">Editar perfis e permissões</p>
-              </button>
-              <button 
-                onClick={() => navigate('/admin/access-matrix')}
-                className="p-3 rounded-lg border hover:bg-muted transition-colors text-left"
-              >
-                <Shield className="h-5 w-5 text-amber-500 mb-2" />
-                <p className="text-sm font-medium">Matriz de Acesso</p>
-                <p className="text-xs text-muted-foreground">Configurar permissões</p>
-              </button>
-              <button 
-                onClick={() => navigate('/admin/sentinel')}
-                className="p-3 rounded-lg border hover:bg-muted transition-colors text-left"
-              >
-                <Server className="h-5 w-5 text-purple-500 mb-2" />
-                <p className="text-sm font-medium">System Sentinel</p>
-                <p className="text-xs text-muted-foreground">Monitoramento do sistema</p>
-              </button>
-              <button 
-                onClick={() => navigate('/crm')}
-                className="p-3 rounded-lg border hover:bg-muted transition-colors text-left"
-              >
-                <DollarSign className="h-5 w-5 text-green-500 mb-2" />
-                <p className="text-sm font-medium">CRM & Vendas</p>
-                <p className="text-xs text-muted-foreground">Pipeline comercial</p>
-              </button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </AdminLayout>
   );
