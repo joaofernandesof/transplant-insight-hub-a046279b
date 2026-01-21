@@ -92,6 +92,7 @@ import {
   NeoTeamWaitingRoom, 
   NeoTeamPatients, 
   NeoTeamMedicalRecords, 
+  NeoTeamDocuments,
   NeoTeamSettings 
 } from "./neohub/pages/neoteam";
 
