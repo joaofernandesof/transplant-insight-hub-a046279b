@@ -18,14 +18,15 @@ import {
   Calendar,
   Eye,
   Medal,
-  KeyRound
+  KeyRound,
+  RefreshCw
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function UserMonitoring() {
   const [period, setPeriod] = useState<'all' | 'today' | 'week' | 'month'>('all');
-  const { stats, isLoading } = useUsageStats({ period });
+  const { stats, isLoading, lastUpdated, refresh } = useUsageStats({ period });
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string; email: string } | null>(null);
 
@@ -50,14 +51,33 @@ export default function UserMonitoring() {
     <ModuleLayout>
       <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Eye className="h-6 w-6 text-primary" />
-            Monitoramento de Usuários
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Acompanhe a presença e tempo de uso dos licenciados
-          </p>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Eye className="h-6 w-6 text-primary" />
+              Monitoramento de Usuários
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Acompanhe a presença e tempo de uso dos licenciados
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {lastUpdated && (
+              <span className="text-xs text-muted-foreground">
+                Atualizado às {format(lastUpdated, 'HH:mm:ss', { locale: ptBR })}
+              </span>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={refresh}
+              disabled={isLoading}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}
