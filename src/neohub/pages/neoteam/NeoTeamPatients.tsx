@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,7 @@ import {
 import { 
   Users, Search, Plus, Filter, MoreVertical,
   Phone, Mail, Calendar, FileText, Eye, Edit,
-  Download, Upload
+  Download, Upload, Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -35,6 +35,9 @@ import {
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { PatientRegistrationDialog } from '@/neohub/components/PatientRegistrationDialog';
+import { DocumentUploadDialog } from '@/neohub/components/DocumentUploadDialog';
 
 interface Patient {
   id: string;
@@ -49,47 +52,100 @@ interface Patient {
   totalVisits: number;
   status: 'active' | 'inactive' | 'pending';
   tags: string[];
+  portalUserId?: string;
 }
 
 export default function NeoTeamPatients() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [view, setView] = useState<'table' | 'cards'>('table');
+  const [isLoading, setIsLoading] = useState(true);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [showRegistrationDialog, setShowRegistrationDialog] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadPatientId, setUploadPatientId] = useState<string | undefined>();
+  const [uploadPatientName, setUploadPatientName] = useState<string | undefined>();
 
-  // Mock data
-  const patients: Patient[] = [
-    {
-      id: '1', name: 'Maria Silva', email: 'maria@email.com', phone: '(11) 99999-1234',
-      cpf: '123.456.789-00', birthDate: '1985-05-15', gender: 'F',
-      lastVisit: '2024-01-15', nextAppointment: '2024-01-22', totalVisits: 8,
-      status: 'active', tags: ['Transplante', 'VIP']
-    },
-    {
-      id: '2', name: 'João Santos', email: 'joao@email.com', phone: '(11) 99999-5678',
-      cpf: '987.654.321-00', birthDate: '1978-08-22', gender: 'M',
-      lastVisit: '2024-01-10', totalVisits: 3,
-      status: 'active', tags: ['Avaliação']
-    },
-    {
-      id: '3', name: 'Ana Costa', email: 'ana@email.com', phone: '(11) 99999-9012',
-      cpf: '456.789.123-00', birthDate: '1990-12-03', gender: 'F',
-      lastVisit: '2023-12-20', nextAppointment: '2024-01-25', totalVisits: 12,
-      status: 'active', tags: ['Transplante', 'Retorno']
-    },
-    {
-      id: '4', name: 'Pedro Lima', email: 'pedro@email.com', phone: '(11) 99999-3456',
-      cpf: '789.123.456-00', birthDate: '1982-03-18', gender: 'M',
-      lastVisit: '2023-11-05', totalVisits: 2,
-      status: 'inactive', tags: []
-    },
-    {
-      id: '5', name: 'Carla Souza', email: 'carla@email.com', phone: '(11) 99999-7890',
-      cpf: '321.654.987-00', birthDate: '1995-07-30', gender: 'F',
-      lastVisit: '2024-01-18', nextAppointment: '2024-02-01', totalVisits: 5,
-      status: 'active', tags: ['Primeira Consulta']
-    },
-  ];
+  const fetchPatients = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch portal_patients with user data and appointments
+      const { data: patientsData, error } = await supabase
+        .from('portal_patients')
+        .select(`
+          id,
+          blood_type,
+          health_insurance,
+          portal_user:portal_users!inner(
+            id,
+            email,
+            full_name,
+            phone,
+            cpf
+          )
+        `)
+        .limit(100);
 
+      if (error) throw error;
+
+      // Get appointment counts
+      const patientIds = patientsData?.map(p => p.id) || [];
+      const { data: appointmentsData } = await supabase
+        .from('portal_appointments')
+        .select('patient_id, scheduled_at, status')
+        .in('patient_id', patientIds);
+
+      const appointmentsByPatient: Record<string, { count: number; last?: string; next?: string }> = {};
+      appointmentsData?.forEach(apt => {
+        if (!appointmentsByPatient[apt.patient_id]) {
+          appointmentsByPatient[apt.patient_id] = { count: 0 };
+        }
+        appointmentsByPatient[apt.patient_id].count++;
+        const aptDate = new Date(apt.scheduled_at);
+        const now = new Date();
+        if (aptDate < now && (!appointmentsByPatient[apt.patient_id].last || aptDate > new Date(appointmentsByPatient[apt.patient_id].last!))) {
+          appointmentsByPatient[apt.patient_id].last = apt.scheduled_at;
+        }
+        if (aptDate > now && apt.status !== 'cancelled' && (!appointmentsByPatient[apt.patient_id].next || aptDate < new Date(appointmentsByPatient[apt.patient_id].next!))) {
+          appointmentsByPatient[apt.patient_id].next = apt.scheduled_at;
+        }
+      });
+
+      const formattedPatients: Patient[] = (patientsData || []).map(p => ({
+        id: p.id,
+        name: p.portal_user?.full_name || 'Sem nome',
+        email: p.portal_user?.email || '',
+        phone: p.portal_user?.phone || '',
+        cpf: p.portal_user?.cpf || '',
+        birthDate: '',
+        gender: 'O' as const,
+        lastVisit: appointmentsByPatient[p.id]?.last,
+        nextAppointment: appointmentsByPatient[p.id]?.next,
+        totalVisits: appointmentsByPatient[p.id]?.count || 0,
+        status: 'active' as const,
+        tags: [],
+        portalUserId: p.portal_user?.id,
+      }));
+
+      setPatients(formattedPatients);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  const handleUploadDocument = (patient: Patient) => {
+    setUploadPatientId(patient.id);
+    setUploadPatientName(patient.name);
+    setShowUploadDialog(true);
+  };
+
+  // Filtered patients
   const filteredPatients = patients.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -134,12 +190,27 @@ export default function NeoTeamPatients() {
             <Upload className="h-4 w-4" />
             Importar
           </Button>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setShowRegistrationDialog(true)}>
             <Plus className="h-4 w-4" />
             Novo Paciente
           </Button>
         </div>
       </div>
+
+      {/* Patient Registration Dialog */}
+      <PatientRegistrationDialog 
+        open={showRegistrationDialog} 
+        onOpenChange={setShowRegistrationDialog}
+        onSuccess={fetchPatients}
+      />
+
+      {/* Document Upload Dialog */}
+      <DocumentUploadDialog
+        open={showUploadDialog}
+        onOpenChange={setShowUploadDialog}
+        patientId={uploadPatientId}
+        patientName={uploadPatientName}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -208,7 +279,19 @@ export default function NeoTeamPatients() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPatients.map((patient) => (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                  </TableCell>
+                </TableRow>
+              ) : filteredPatients.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Nenhum paciente encontrado
+                  </TableCell>
+                </TableRow>
+              ) : filteredPatients.map((patient) => (
                 <TableRow key={patient.id} className="cursor-pointer hover:bg-muted/50">
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -263,22 +346,26 @@ export default function NeoTeamPatients() {
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Prontuário
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Agendar
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver Detalhes
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleUploadDocument(patient)}>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Enviar Documento
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Prontuário
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Agendar
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>

@@ -1823,6 +1823,103 @@ export type Database = {
         }
         Relationships: []
       }
+      neoteam_doctor_schedules: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          doctor_id: string
+          end_time: string
+          id: string
+          is_active: boolean
+          slot_duration_minutes: number | null
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          doctor_id: string
+          end_time: string
+          id?: string
+          is_active?: boolean
+          slot_duration_minutes?: number | null
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          doctor_id?: string
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          slot_duration_minutes?: number | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_doctor_schedules_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_doctors: {
+        Row: {
+          avatar_url: string | null
+          consultation_duration_minutes: number | null
+          created_at: string
+          crm: string | null
+          crm_state: string | null
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          neohub_user_id: string | null
+          phone: string | null
+          specialty: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          consultation_duration_minutes?: number | null
+          created_at?: string
+          crm?: string | null
+          crm_state?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          neohub_user_id?: string | null
+          phone?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          consultation_duration_minutes?: number | null
+          created_at?: string
+          crm?: string | null
+          crm_state?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          neohub_user_id?: string | null
+          phone?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_doctors_neohub_user_id_fkey"
+            columns: ["neohub_user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoteam_patient_documents: {
         Row: {
           branch: string | null
@@ -1875,6 +1972,44 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_schedule_blocks: {
+        Row: {
+          created_at: string
+          doctor_id: string | null
+          end_date: string
+          id: string
+          is_all_doctors: boolean | null
+          reason: string | null
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_id?: string | null
+          end_date: string
+          id?: string
+          is_all_doctors?: boolean | null
+          reason?: string | null
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          doctor_id?: string | null
+          end_date?: string
+          id?: string
+          is_all_doctors?: boolean | null
+          reason?: string | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_schedule_blocks_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_doctors"
             referencedColumns: ["id"]
           },
         ]
@@ -2190,6 +2325,87 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_notification_preferences: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          id: string
+          patient_id: string
+          push_enabled: boolean
+          reminder_hours_before: number | null
+          updated_at: string
+          whatsapp_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          patient_id: string
+          push_enabled?: boolean
+          reminder_hours_before?: number | null
+          updated_at?: string
+          whatsapp_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          patient_id?: string
+          push_enabled?: boolean
+          reminder_hours_before?: number | null
+          updated_at?: string
+          whatsapp_enabled?: boolean
+        }
+        Relationships: []
+      }
+      patient_notifications: {
+        Row: {
+          channel: string
+          created_at: string
+          error_message: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          patient_id: string
+          read_at: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          title: string
+          type: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          patient_id: string
+          read_at?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          title: string
+          type: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          patient_id?: string
+          read_at?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       permission_definitions: {
         Row: {
           created_at: string | null
@@ -2223,6 +2439,7 @@ export type Database = {
           cancellation_reason: string | null
           check_in_at: string | null
           check_out_at: string | null
+          confirmed_at: string | null
           created_at: string | null
           created_by: string | null
           doctor_id: string | null
@@ -2231,9 +2448,11 @@ export type Database = {
           notes: string | null
           patient_id: string
           procedure_type: string | null
+          reminder_sent_at: string | null
           room_id: string | null
           scheduled_at: string
           status: string | null
+          unit_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2241,6 +2460,7 @@ export type Database = {
           cancellation_reason?: string | null
           check_in_at?: string | null
           check_out_at?: string | null
+          confirmed_at?: string | null
           created_at?: string | null
           created_by?: string | null
           doctor_id?: string | null
@@ -2249,9 +2469,11 @@ export type Database = {
           notes?: string | null
           patient_id: string
           procedure_type?: string | null
+          reminder_sent_at?: string | null
           room_id?: string | null
           scheduled_at: string
           status?: string | null
+          unit_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2259,6 +2481,7 @@ export type Database = {
           cancellation_reason?: string | null
           check_in_at?: string | null
           check_out_at?: string | null
+          confirmed_at?: string | null
           created_at?: string | null
           created_by?: string | null
           doctor_id?: string | null
@@ -2267,9 +2490,11 @@ export type Database = {
           notes?: string | null
           patient_id?: string
           procedure_type?: string | null
+          reminder_sent_at?: string | null
           room_id?: string | null
           scheduled_at?: string
           status?: string | null
+          unit_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
