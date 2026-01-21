@@ -83,6 +83,19 @@ import {
 } from "./neohub/pages/neocare";
 
 // ====================================
+// Pages - NeoTeam (Portal do Colaborador)
+// ====================================
+import { NeoTeamSidebar } from "./neohub/components/NeoTeamSidebar";
+import { 
+  NeoTeamHome, 
+  NeoTeamSchedule, 
+  NeoTeamWaitingRoom, 
+  NeoTeamPatients, 
+  NeoTeamMedicalRecords, 
+  NeoTeamSettings 
+} from "./neohub/pages/neoteam";
+
+// ====================================
 // Pages - ProfileSelector
 // ====================================
 import ProfileSelector from "./neohub/pages/ProfileSelector";
@@ -223,17 +236,18 @@ function NeoCareRoutes() {
 function NeoTeamRoutes() {
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'administrador']}>
-      <SidebarWrapper>
+      <NeoTeamSidebar>
         <Routes>
-          <Route index element={<PlaceholderPage title="NeoTeam - Portal do Colaborador" />} />
-          <Route path="schedule" element={<PlaceholderPage title="Agenda" />} />
-          <Route path="waiting-room" element={<PlaceholderPage title="Sala de Espera" />} />
-          <Route path="patients" element={<PlaceholderPage title="Pacientes" />} />
-          <Route path="medical-records" element={<PlaceholderPage title="Prontuários" />} />
-          <Route path="settings" element={<PlaceholderPage title="Configurações" />} />
+          <Route index element={<NeoTeamHome />} />
+          <Route path="schedule" element={<NeoTeamSchedule />} />
+          <Route path="waiting-room" element={<NeoTeamWaitingRoom />} />
+          <Route path="patients" element={<NeoTeamPatients />} />
+          <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
+          <Route path="documents" element={<PlaceholderPage title="Documentos" />} />
+          <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>
-      </SidebarWrapper>
+      </NeoTeamSidebar>
     </ProfileGuard>
   );
 }
