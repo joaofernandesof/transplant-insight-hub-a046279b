@@ -102,7 +102,11 @@ export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
   const visibleCategories = useMemo(() => {
     return MAIN_MENU_CATEGORIES.map(category => ({
       ...category,
-      items: filterMenuByPermissions(category.items, hasPermission, isAdmin)
+      items: filterMenuByPermissions(category.items, hasPermission, isAdmin).filter(item => {
+        // Para admins, esconder o item "Início" (home) pois o Dashboard Admin é a home
+        if (isAdmin && item.id === 'home') return false;
+        return true;
+      })
     })).filter(category => category.items.length > 0);
   }, [isAdmin]);
 

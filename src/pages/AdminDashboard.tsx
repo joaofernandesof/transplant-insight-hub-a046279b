@@ -35,6 +35,8 @@ import {
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { SystemAlertsWidget } from '@/components/admin/SystemAlertsWidget';
+import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
 
 // Quick access modules for admin
 const quickModules = [
@@ -567,6 +569,12 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Trend Charts */}
+        <AdminTrendCharts />
+
+        {/* Alerts Widget */}
+        <SystemAlertsWidget />
 
       </div>
     </AdminLayout>
