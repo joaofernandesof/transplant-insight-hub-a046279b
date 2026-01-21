@@ -95,16 +95,19 @@ export function DailyMetricsTable({ clinicId, clinicName, isAdmin, onValueChange
 
   const { dailyMetrics, isLoading, saveDailyMetric, isSaving } = useDailyMetrics(clinicId, dateFilter);
 
-  // Generate all dates in the range
+  // Generate all dates in the range (in chronological order: oldest to newest)
   const datesInRange = useMemo(() => {
     const dates: string[] = [];
     const start = parseISO(dateFilter.startDate);
     const end = parseISO(dateFilter.endDate);
     
-    let current = end;
-    while (current >= start && current >= minDate) {
+    // Use the later of start date or minDate
+    let current = start < minDate ? minDate : start;
+    
+    while (current <= end) {
       dates.push(format(current, 'yyyy-MM-dd'));
-      current = subDays(current, 1);
+      // Add one day
+      current = new Date(current.getTime() + 24 * 60 * 60 * 1000);
     }
     
     return dates;
