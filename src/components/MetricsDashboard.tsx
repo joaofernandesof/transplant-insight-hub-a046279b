@@ -478,6 +478,89 @@ export function MetricsDashboard({
           </div>
         </CardContent>
       </Card>
+
+      {/* Resumo Global */}
+      <Card className="border-t-4 border-t-primary">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+            <Target className="w-4 h-4 text-primary" />
+            Resumo Global e Orientações
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-muted/30 rounded-lg p-4 sm:p-5 border border-border">
+            <p className="text-sm sm:text-base text-foreground leading-relaxed">
+              {(() => {
+                const leadsData = metricsData.find(m => m.id === 'leads_novos');
+                const vendasData = metricsData.find(m => m.id === 'vendas_realizadas');
+                const agendamentosData = metricsData.find(m => m.id === 'agendamentos');
+                const atrasadasData = metricsData.find(m => m.id === 'tarefas_atrasadas');
+                
+                const hasLeads = (leadsData?.current || 0) > 0;
+                const hasVendas = (vendasData?.current || 0) > 0;
+                const hasAgendamentos = (agendamentosData?.current || 0) > 0;
+                const hasManyAtrasadas = (atrasadasData?.current || 0) > 5;
+                
+                const problemsCount = [
+                  leadsData?.diagnosis.status === 'danger',
+                  vendasData?.diagnosis.status === 'danger',
+                  agendamentosData?.diagnosis.status === 'danger',
+                  atrasadasData?.diagnosis.status === 'danger'
+                ].filter(Boolean).length;
+
+                const successCount = [
+                  leadsData?.diagnosis.status === 'success',
+                  vendasData?.diagnosis.status === 'success',
+                  agendamentosData?.diagnosis.status === 'success',
+                  atrasadasData?.diagnosis.status === 'success'
+                ].filter(Boolean).length;
+
+                let summary = `Na semana S${currentWeekNumber}, `;
+                
+                if (problemsCount >= 2) {
+                  summary += `identificamos ${problemsCount} pontos críticos que necessitam atenção imediata. `;
+                } else if (successCount >= 2) {
+                  summary += `a performance está acima do esperado com ${successCount} indicadores positivos. `;
+                } else {
+                  summary += `os indicadores estão dentro da normalidade. `;
+                }
+
+                summary += hasLeads 
+                  ? `Foram captados ${leadsData?.current} leads novos (${leadsData?.trend >= 0 ? 'alta' : 'queda'} de ${Math.abs(leadsData?.trend || 0).toFixed(0)}%). ` 
+                  : 'Não houve captação de leads esta semana - revisar campanhas. ';
+
+                summary += hasAgendamentos
+                  ? `Realizados ${agendamentosData?.current} agendamentos. `
+                  : '';
+
+                summary += hasVendas
+                  ? `Convertidas ${vendasData?.current} vendas. `
+                  : 'Nenhuma venda registrada - oportunidade de melhoria no fechamento. ';
+
+                if (hasManyAtrasadas) {
+                  summary += `ATENÇÃO: Há ${atrasadasData?.current} tarefas atrasadas acumuladas que precisam ser priorizadas. `;
+                }
+
+                summary += `\n\n📌 Recomendação principal: `;
+                
+                if (!hasLeads) {
+                  summary += 'Focar na captação de leads através de campanhas e revisão de formulários de contato.';
+                } else if (!hasVendas && hasLeads) {
+                  summary += 'Investir no processo de fechamento e follow-up dos leads já captados.';
+                } else if (hasManyAtrasadas) {
+                  summary += 'Resolver tarefas atrasadas para manter o fluxo operacional saudável.';
+                } else if (successCount >= 2) {
+                  summary += 'Manter a estratégia atual e buscar escalar os resultados positivos.';
+                } else {
+                  summary += 'Acompanhar diariamente os indicadores e agir proativamente nos pontos de atenção.';
+                }
+
+                return summary;
+              })()}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
