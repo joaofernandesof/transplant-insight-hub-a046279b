@@ -5,9 +5,9 @@ import { Header } from '@/components/Header';
 import { AdminLayout } from '@/components/AdminLayout';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { HorizontalMetricsTable } from '@/components/HorizontalMetricsTable';
+import { DailyMetricsTable } from '@/components/DailyMetricsTable';
 import { MetricsDashboard } from '@/components/MetricsDashboard';
 import { InsightsPanel } from '@/components/InsightsPanel';
-import { KeyDailyMetrics } from '@/components/KeyDailyMetrics';
 import { WeekData, isWeekAvailable, formatDate, getLastAvailableWeek, generateWeeks2026 } from '@/data/metricsData';
 import { calculateMetrics } from '@/utils/metricCalculations';
 import { 
@@ -288,17 +288,14 @@ export default function Dashboard() {
         <div className="animate-fade-in">
           {activeTab === 'indicators' && (
             <>
-              {/* Key Daily Metrics - Highlighted Section */}
-              <KeyDailyMetrics
-                weeks={weeks}
-                currentWeekNumber={currentWeekNumber}
-                onValueChange={handleValueChange}
-                getWeekValues={getWeekValues}
-                isAdmin={isAdmin}
+              {/* Daily Metrics History with Filters */}
+              <DailyMetricsTable
+                clinicId={selectedClinicId}
                 clinicName={selectedClinicName}
+                isAdmin={isAdmin}
               />
               
-              {/* Full Metrics Table */}
+              {/* Weekly Metrics Table */}
               <HorizontalMetricsTable
                 weeks={weeks}
                 currentWeekNumber={currentWeekNumber}

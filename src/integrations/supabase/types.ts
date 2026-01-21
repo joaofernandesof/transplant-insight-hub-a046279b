@@ -644,6 +644,77 @@ export type Database = {
           },
         ]
       }
+      daily_metrics: {
+        Row: {
+          agendamentos: number | null
+          atividades_atendente: number | null
+          atividades_robo: number | null
+          clinic_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          leads_descartados: number | null
+          leads_novos: number | null
+          mensagens_enviadas_atendente: number | null
+          mensagens_enviadas_robo: number | null
+          mensagens_recebidas: number | null
+          metric_date: string
+          tarefas_atrasadas: number | null
+          tarefas_realizadas: number | null
+          tempo_uso_atendente: number | null
+          updated_at: string
+          vendas_realizadas: number | null
+        }
+        Insert: {
+          agendamentos?: number | null
+          atividades_atendente?: number | null
+          atividades_robo?: number | null
+          clinic_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          leads_descartados?: number | null
+          leads_novos?: number | null
+          mensagens_enviadas_atendente?: number | null
+          mensagens_enviadas_robo?: number | null
+          mensagens_recebidas?: number | null
+          metric_date: string
+          tarefas_atrasadas?: number | null
+          tarefas_realizadas?: number | null
+          tempo_uso_atendente?: number | null
+          updated_at?: string
+          vendas_realizadas?: number | null
+        }
+        Update: {
+          agendamentos?: number | null
+          atividades_atendente?: number | null
+          atividades_robo?: number | null
+          clinic_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          leads_descartados?: number | null
+          leads_novos?: number | null
+          mensagens_enviadas_atendente?: number | null
+          mensagens_enviadas_robo?: number | null
+          mensagens_recebidas?: number | null
+          metric_date?: string
+          tarefas_atrasadas?: number | null
+          tarefas_realizadas?: number | null
+          tempo_uso_atendente?: number | null
+          updated_at?: string
+          vendas_realizadas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_metrics_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_answers: {
         Row: {
           answered_at: string | null
