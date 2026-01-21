@@ -35,18 +35,38 @@ interface MetricsDashboardProps {
 }
 
 // Indicadores-chave com diagnósticos
-const metricsConfig = [
+// Benchmarks de mercado para cada métrica (valores diários)
+interface MarketBenchmark {
+  ruim: string;
+  medio: string;
+  bom: string;
+  otimo: string;
+}
+
+interface MetricConfig {
+  id: string;
+  nome: string;
+  icon: typeof Users;
+  color: string;
+  goodDirection: 'up' | 'down';
+  benchmark: MarketBenchmark;
+  getDiagnosisFromAvg: (avg: number) => { status: 'danger' | 'warning' | 'neutral' | 'success'; text: string };
+  getOrientation: (status: string) => string;
+}
+
+const metricsConfig: MetricConfig[] = [
   { 
     id: 'leads_novos', 
     nome: 'Leads Novos', 
     icon: Users,
     color: 'text-blue-600',
     goodDirection: 'up',
-    getDiagnosis: (value: number, trend: number) => {
-      if (value === 0) return { status: 'danger', text: 'Sem captação de leads.' };
-      if (trend < -30) return { status: 'warning', text: 'Queda acentuada.' };
-      if (trend > 20) return { status: 'success', text: 'Excelente crescimento!' };
-      return { status: 'neutral', text: 'Volume estável.' };
+    benchmark: { ruim: '<30%', medio: '30–49%', bom: '50–69%', otimo: '≥70%' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg < 2) return { status: 'danger', text: 'Captação muito baixa.' };
+      if (avg < 5) return { status: 'warning', text: 'Captação moderada.' };
+      if (avg < 10) return { status: 'neutral', text: 'Volume aceitável.' };
+      return { status: 'success', text: 'Excelente captação!' };
     },
     getOrientation: (status: string) => {
       if (status === 'danger') return 'Revisar campanhas de marketing e formulários de captação.';
@@ -61,11 +81,12 @@ const metricsConfig = [
     icon: Calendar,
     color: 'text-amber-600',
     goodDirection: 'up',
-    getDiagnosis: (value: number, trend: number) => {
-      if (value === 0) return { status: 'warning', text: 'Nenhum agendamento.' };
-      if (trend > 20) return { status: 'success', text: 'Ótima conversão!' };
-      if (trend < -30) return { status: 'warning', text: 'Queda na agenda.' };
-      return { status: 'neutral', text: 'Dentro do esperado.' };
+    benchmark: { ruim: '≤2', medio: '3–5', bom: '6–10', otimo: '≥11' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg <= 0.5) return { status: 'danger', text: 'Sem agendamentos.' };
+      if (avg <= 2) return { status: 'warning', text: 'Poucos agendamentos.' };
+      if (avg < 5) return { status: 'neutral', text: 'Dentro do esperado.' };
+      return { status: 'success', text: 'Ótima conversão!' };
     },
     getOrientation: (status: string) => {
       if (status === 'danger') return 'Treinar equipe em técnicas de agendamento.';
@@ -80,11 +101,12 @@ const metricsConfig = [
     icon: ShoppingCart,
     color: 'text-pink-600',
     goodDirection: 'up',
-    getDiagnosis: (value: number, trend: number) => {
-      if (value === 0) return { status: 'warning', text: 'Nenhuma venda.' };
-      if (trend > 20) return { status: 'success', text: 'Conversão excelente!' };
-      if (trend < -30) return { status: 'danger', text: 'Queda nas vendas.' };
-      return { status: 'neutral', text: 'Performance normal.' };
+    benchmark: { ruim: 'Queda', medio: 'Oscila', bom: 'Estável', otimo: 'Cresce' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg < 0.2) return { status: 'danger', text: 'Sem vendas.' };
+      if (avg < 0.5) return { status: 'warning', text: 'Vendas baixas.' };
+      if (avg < 1) return { status: 'neutral', text: 'Performance normal.' };
+      return { status: 'success', text: 'Conversão excelente!' };
     },
     getOrientation: (status: string) => {
       if (status === 'danger') return 'Revisar processo de fechamento e treinar objeções.';
@@ -99,13 +121,16 @@ const metricsConfig = [
     icon: CheckCircle2,
     color: 'text-emerald-600',
     goodDirection: 'up',
-    getDiagnosis: (value: number, trend: number) => {
-      if (value === 0) return { status: 'warning', text: 'Nenhuma tarefa.' };
-      if (trend > 20) return { status: 'success', text: 'Boa produtividade!' };
-      return { status: 'neutral', text: 'Atividade normal.' };
+    benchmark: { ruim: 'Baixo', medio: 'Médio', bom: 'Bom', otimo: 'Alto' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg < 2) return { status: 'danger', text: 'Poucas tarefas.' };
+      if (avg < 5) return { status: 'warning', text: 'Produtividade moderada.' };
+      if (avg < 10) return { status: 'neutral', text: 'Atividade normal.' };
+      return { status: 'success', text: 'Alta produtividade!' };
     },
     getOrientation: (status: string) => {
-      if (status === 'warning') return 'Definir prioridades claras e metas diárias.';
+      if (status === 'danger') return 'Definir prioridades claras e metas diárias.';
+      if (status === 'warning') return 'Aumentar foco nas atividades prioritárias.';
       if (status === 'success') return 'Reconhecer equipe produtiva.';
       return 'Manter rotina organizada com foco nas prioridades.';
     }
@@ -116,11 +141,12 @@ const metricsConfig = [
     icon: AlertCircle,
     color: 'text-red-600',
     goodDirection: 'down',
-    getDiagnosis: (value: number) => {
-      if (value === 0) return { status: 'success', text: 'Tudo em dia!' };
-      if (value > 10) return { status: 'danger', text: 'Acúmulo crítico.' };
-      if (value > 5) return { status: 'warning', text: 'Muitas pendências.' };
-      return { status: 'neutral', text: 'Poucas pendências.' };
+    benchmark: { ruim: '>6', medio: '4–6', bom: '2–3,9', otimo: '1–1,9' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg > 6) return { status: 'danger', text: 'Acúmulo crítico.' };
+      if (avg > 3) return { status: 'warning', text: 'Muitas pendências.' };
+      if (avg > 1) return { status: 'neutral', text: 'Poucas pendências.' };
+      return { status: 'success', text: 'Tudo em dia!' };
     },
     getOrientation: (status: string) => {
       if (status === 'danger') return 'Priorizar resolução IMEDIATA. Delegar se necessário.';
@@ -135,10 +161,12 @@ const metricsConfig = [
     icon: MessageSquare,
     color: 'text-green-600',
     goodDirection: 'up',
-    getDiagnosis: (value: number, trend: number) => {
-      if (value === 0) return { status: 'danger', text: 'Sem atividade.' };
-      if (trend < -50) return { status: 'warning', text: 'Queda drástica.' };
-      return { status: 'neutral', text: 'Volume normal.' };
+    benchmark: { ruim: '>15', medio: '10–15', bom: '7–9', otimo: '<7' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg < 5) return { status: 'danger', text: 'Pouca atividade.' };
+      if (avg < 15) return { status: 'warning', text: 'Volume moderado.' };
+      if (avg < 30) return { status: 'neutral', text: 'Volume normal.' };
+      return { status: 'success', text: 'Alta atividade!' };
     },
     getOrientation: (status: string) => {
       if (status === 'danger') return 'Verificar se equipe está ativa.';
@@ -152,12 +180,15 @@ const metricsConfig = [
     icon: Bot,
     color: 'text-teal-600',
     goodDirection: 'up',
-    getDiagnosis: (value: number) => {
-      if (value === 0) return { status: 'warning', text: 'Automação parada.' };
-      return { status: 'neutral', text: 'Automação funcionando.' };
+    benchmark: { ruim: '<1%', medio: '1–1,59%', bom: '1,6–2,32%', otimo: '≥2,33%' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg < 10) return { status: 'warning', text: 'Automação baixa.' };
+      if (avg < 50) return { status: 'neutral', text: 'Automação funcionando.' };
+      return { status: 'success', text: 'Automação otimizada!' };
     },
     getOrientation: (status: string) => {
       if (status === 'warning') return 'Verificar integração do robô.';
+      if (status === 'success') return 'Manter monitoramento.';
       return 'Monitorar automações e ajustar mensagens.';
     }
   },
@@ -167,10 +198,12 @@ const metricsConfig = [
     icon: XCircle,
     color: 'text-slate-600',
     goodDirection: 'down',
-    getDiagnosis: (value: number, trend: number, total: number) => {
-      if (total > 0 && (value / total) > 0.5) return { status: 'danger', text: '>50% descartados.' };
-      if (value > 10) return { status: 'warning', text: 'Alto descarte.' };
-      return { status: 'neutral', text: 'Volume aceitável.' };
+    benchmark: { ruim: '>8', medio: '5–8', bom: '3–4,9', otimo: '<3' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg > 8) return { status: 'danger', text: 'Descarte excessivo.' };
+      if (avg > 5) return { status: 'warning', text: 'Alto descarte.' };
+      if (avg > 2) return { status: 'neutral', text: 'Volume aceitável.' };
+      return { status: 'success', text: 'Baixo descarte!' };
     },
     getOrientation: (status: string) => {
       if (status === 'danger') return 'Revisar qualificação de leads.';
@@ -214,17 +247,20 @@ export function MetricsDashboard({
       });
       
       const total = values.reduce((sum, v) => sum + v, 0);
+      const avg = values.length > 0 ? total / values.length : 0;
       const current = values[values.length - 1] || 0;
       const previous = values[values.length - 2] || 0;
       const trend = previous === 0 ? (current > 0 ? 100 : 0) : ((current - previous) / previous) * 100;
       
-      const diagnosis = metric.getDiagnosis(current, trend, total);
+      // Use average-based diagnosis
+      const diagnosis = metric.getDiagnosisFromAvg(avg);
       const orientation = metric.getOrientation(diagnosis.status);
 
       return {
         ...metric,
         values,
         total,
+        avg,
         current,
         previous,
         trend,
@@ -291,12 +327,21 @@ export function MetricsDashboard({
     return format(date, 'EEE', { locale: ptBR });
   };
 
-const getDiagnosisBadge = (status: string) => {
+  const getDiagnosisBadge = (status: string) => {
     switch (status) {
-      case 'success': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400';
-      case 'warning': return 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400';
-      case 'danger': return 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400';
-      default: return 'bg-muted text-muted-foreground';
+      case 'success': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'; // Bom - Verde
+      case 'warning': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300'; // Médio - Amarelo
+      case 'danger': return 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'; // Ruim - Vermelho
+      default: return 'bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400'; // Neutro - Cinza
+    }
+  };
+
+  const getBenchmarkBadge = (type: 'ruim' | 'medio' | 'bom' | 'otimo') => {
+    switch (type) {
+      case 'ruim': return 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300';
+      case 'medio': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300';
+      case 'bom': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
+      case 'otimo': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300';
     }
   };
 
@@ -489,6 +534,17 @@ const getDiagnosisBadge = (status: string) => {
                       </th>
                     );
                   })}
+                  <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[220px]">
+                    <div className="flex flex-col">
+                      <span>Referência Mercado</span>
+                      <div className="flex justify-center gap-1 mt-1">
+                        <span className="text-[8px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300">Ruim</span>
+                        <span className="text-[8px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300">Médio</span>
+                        <span className="text-[8px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Bom</span>
+                        <span className="text-[8px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">Ótimo</span>
+                      </div>
+                    </div>
+                  </th>
                   <th className="text-center px-3 sm:px-4 py-2.5 font-semibold text-foreground min-w-[140px]">Diagnóstico</th>
                   <th className="text-left px-3 sm:px-4 py-2.5 font-semibold text-foreground min-w-[180px]">Orientações</th>
                 </tr>
@@ -496,7 +552,7 @@ const getDiagnosisBadge = (status: string) => {
               <tbody>
                 {dailyMetricsData.length === 0 ? (
                   <tr>
-                    <td colSpan={last5DaysData.length + 3} className="text-center py-8 text-muted-foreground">
+                    <td colSpan={last5DaysData.length + 4} className="text-center py-8 text-muted-foreground">
                       <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p>Nenhum dado diário registrado ainda.</p>
                     </td>
@@ -539,6 +595,22 @@ const getDiagnosisBadge = (status: string) => {
                             </td>
                           );
                         })}
+                        <td className="text-center px-2 py-2.5">
+                          <div className="flex justify-center gap-1 flex-wrap">
+                            <span className={cn("text-[9px] px-1.5 py-0.5 rounded font-medium", getBenchmarkBadge('ruim'))}>
+                              {metric.benchmark.ruim}
+                            </span>
+                            <span className={cn("text-[9px] px-1.5 py-0.5 rounded font-medium", getBenchmarkBadge('medio'))}>
+                              {metric.benchmark.medio}
+                            </span>
+                            <span className={cn("text-[9px] px-1.5 py-0.5 rounded font-medium", getBenchmarkBadge('bom'))}>
+                              {metric.benchmark.bom}
+                            </span>
+                            <span className={cn("text-[9px] px-1.5 py-0.5 rounded font-medium", getBenchmarkBadge('otimo'))}>
+                              {metric.benchmark.otimo}
+                            </span>
+                          </div>
+                        </td>
                         <td className="text-center px-3 sm:px-4 py-2.5">
                           <span className={cn(
                             "inline-block px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap",
