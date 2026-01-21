@@ -14,15 +14,13 @@ import {
   Bot,
   TrendingUp,
   TrendingDown,
-  ArrowRight,
   Target,
-  Zap,
   AlertTriangle,
   ThumbsUp,
-  Info
+  Minus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface MetricsDashboardProps {
   weeks: WeekData[];
@@ -31,15 +29,109 @@ interface MetricsDashboardProps {
   clinicName?: string;
 }
 
-// Cores do gráfico
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899'];
-
-// Indicadores-chave 
-const keyMetrics = [
-  { id: 'leads_novos', nome: 'Leads Novos', icon: Users, color: 'text-blue-600', bgColor: 'bg-blue-500' },
-  { id: 'agendamentos', nome: 'Agendamentos', icon: Calendar, color: 'text-amber-600', bgColor: 'bg-amber-500' },
-  { id: 'vendas_realizadas', nome: 'Vendas', icon: ShoppingCart, color: 'text-pink-600', bgColor: 'bg-pink-500' },
-  { id: 'tarefas_atrasadas', nome: 'Tarefas Atrasadas', icon: AlertCircle, color: 'text-red-600', bgColor: 'bg-red-500' },
+// Indicadores-chave com diagnósticos
+const metricsConfig = [
+  { 
+    id: 'leads_novos', 
+    nome: 'Leads Novos', 
+    icon: Users,
+    color: 'text-blue-600',
+    goodDirection: 'up', // mais é melhor
+    getDiagnosis: (value: number, trend: number) => {
+      if (value === 0) return { status: 'danger', text: 'Sem captação de leads. Verifique campanhas e formulários.' };
+      if (trend < -30) return { status: 'warning', text: 'Queda acentuada. Revisar fontes de tráfego.' };
+      if (trend > 20) return { status: 'success', text: 'Excelente crescimento na captação!' };
+      return { status: 'neutral', text: 'Volume estável.' };
+    }
+  },
+  { 
+    id: 'agendamentos', 
+    nome: 'Agendamentos', 
+    icon: Calendar,
+    color: 'text-amber-600',
+    goodDirection: 'up',
+    getDiagnosis: (value: number, trend: number, leads: number) => {
+      if (value === 0 && leads > 0) return { status: 'danger', text: 'Leads não estão agendando. Revisar atendimento.' };
+      if (value === 0) return { status: 'warning', text: 'Nenhum agendamento registrado.' };
+      if (leads > 0 && (value / leads) < 0.2) return { status: 'warning', text: 'Taxa de agendamento baixa (<20%).' };
+      if (trend > 20) return { status: 'success', text: 'Ótima conversão para agenda!' };
+      return { status: 'neutral', text: 'Dentro do esperado.' };
+    }
+  },
+  { 
+    id: 'vendas_realizadas', 
+    nome: 'Vendas', 
+    icon: ShoppingCart,
+    color: 'text-pink-600',
+    goodDirection: 'up',
+    getDiagnosis: (value: number, trend: number, leads: number) => {
+      if (value === 0 && leads > 5) return { status: 'danger', text: 'Sem conversão de vendas. Revisar fechamento.' };
+      if (value === 0) return { status: 'warning', text: 'Nenhuma venda registrada.' };
+      if (leads > 0 && (value / leads) > 0.3) return { status: 'success', text: 'Taxa de conversão excelente (>30%)!' };
+      if (leads > 0 && (value / leads) < 0.1) return { status: 'warning', text: 'Conversão baixa (<10%). Revisar script.' };
+      return { status: 'neutral', text: 'Performance dentro da média.' };
+    }
+  },
+  { 
+    id: 'tarefas_realizadas', 
+    nome: 'Tarefas Realizadas', 
+    icon: CheckCircle2,
+    color: 'text-emerald-600',
+    goodDirection: 'up',
+    getDiagnosis: (value: number, trend: number) => {
+      if (value === 0) return { status: 'warning', text: 'Nenhuma tarefa concluída. Verificar atividade.' };
+      if (trend > 20) return { status: 'success', text: 'Boa produtividade da equipe!' };
+      return { status: 'neutral', text: 'Atividade normal.' };
+    }
+  },
+  { 
+    id: 'tarefas_atrasadas', 
+    nome: 'Tarefas Atrasadas', 
+    icon: AlertCircle,
+    color: 'text-red-600',
+    goodDirection: 'down', // menos é melhor
+    getDiagnosis: (value: number) => {
+      if (value === 0) return { status: 'success', text: 'Parabéns! Tudo em dia.' };
+      if (value > 10) return { status: 'danger', text: 'Acúmulo crítico. Priorizar resolução.' };
+      if (value > 5) return { status: 'warning', text: 'Atenção: muitas pendências.' };
+      return { status: 'neutral', text: 'Poucas pendências.' };
+    }
+  },
+  { 
+    id: 'mensagens_enviadas_atendente', 
+    nome: 'Msgs Atendente', 
+    icon: MessageSquare,
+    color: 'text-green-600',
+    goodDirection: 'up',
+    getDiagnosis: (value: number, trend: number) => {
+      if (value === 0) return { status: 'danger', text: 'Sem atividade de atendimento. Time inativo?' };
+      if (trend < -50) return { status: 'warning', text: 'Queda drástica na comunicação.' };
+      return { status: 'neutral', text: 'Volume normal.' };
+    }
+  },
+  { 
+    id: 'mensagens_enviadas_robo', 
+    nome: 'Msgs Robô', 
+    icon: Bot,
+    color: 'text-teal-600',
+    goodDirection: 'up',
+    getDiagnosis: (value: number) => {
+      if (value === 0) return { status: 'warning', text: 'Automação parada. Verificar integração.' };
+      return { status: 'neutral', text: 'Automação funcionando.' };
+    }
+  },
+  { 
+    id: 'leads_descartados', 
+    nome: 'Leads Descartados', 
+    icon: XCircle,
+    color: 'text-slate-600',
+    goodDirection: 'down',
+    getDiagnosis: (value: number, trend: number, leads: number) => {
+      if (leads > 0 && (value / leads) > 0.5) return { status: 'danger', text: 'Mais de 50% descartados. Revisar qualificação.' };
+      if (value > 10) return { status: 'warning', text: 'Alto volume de descarte.' };
+      return { status: 'neutral', text: 'Volume aceitável.' };
+    }
+  },
 ];
 
 export function MetricsDashboard({
@@ -61,17 +153,16 @@ export function MetricsDashboard({
         vendas: Number(values.vendas_realizadas) || 0,
         tarefasAtrasadas: Number(values.tarefas_atrasadas) || 0,
         tarefasRealizadas: Number(values.tarefas_realizadas) || 0,
-        mensagensEnviadas: (Number(values.mensagens_enviadas_atendente) || 0) + (Number(values.mensagens_enviadas_robo) || 0),
-        mensagensRecebidas: Number(values.mensagens_recebidas) || 0,
+        mensagensAtendente: Number(values.mensagens_enviadas_atendente) || 0,
+        mensagensRobo: Number(values.mensagens_enviadas_robo) || 0,
         leadsDescartados: Number(values.leads_descartados) || 0,
-        tempoUso: Number(values.tempo_uso_atendente) || 0,
       });
     }
     return data;
   }, [currentWeekNumber, getWeekValues]);
 
   // Calcular totais e tendências
-  const totals = useMemo(() => {
+  const metricsData = useMemo(() => {
     const currentWeekData = weeklyData[weeklyData.length - 1] || {};
     const previousWeekData = weeklyData[weeklyData.length - 2] || {};
     
@@ -80,43 +171,42 @@ export function MetricsDashboard({
       return ((current - previous) / previous) * 100;
     };
 
-    return {
-      leads: {
-        current: currentWeekData.leads || 0,
-        previous: previousWeekData.leads || 0,
-        trend: calcTrend(currentWeekData.leads || 0, previousWeekData.leads || 0),
-        total: weeklyData.reduce((acc, d) => acc + d.leads, 0)
-      },
-      agendamentos: {
-        current: currentWeekData.agendamentos || 0,
-        previous: previousWeekData.agendamentos || 0,
-        trend: calcTrend(currentWeekData.agendamentos || 0, previousWeekData.agendamentos || 0),
-        total: weeklyData.reduce((acc, d) => acc + d.agendamentos, 0)
-      },
-      vendas: {
-        current: currentWeekData.vendas || 0,
-        previous: previousWeekData.vendas || 0,
-        trend: calcTrend(currentWeekData.vendas || 0, previousWeekData.vendas || 0),
-        total: weeklyData.reduce((acc, d) => acc + d.vendas, 0)
-      },
-      tarefasAtrasadas: {
-        current: currentWeekData.tarefasAtrasadas || 0,
-        previous: previousWeekData.tarefasAtrasadas || 0,
-        trend: calcTrend(currentWeekData.tarefasAtrasadas || 0, previousWeekData.tarefasAtrasadas || 0),
-        total: weeklyData.reduce((acc, d) => acc + d.tarefasAtrasadas, 0)
-      }
-    };
+    const totalLeads = weeklyData.reduce((acc, d) => acc + d.leads, 0);
+
+    return metricsConfig.map(metric => {
+      const fieldMap: Record<string, string> = {
+        leads_novos: 'leads',
+        agendamentos: 'agendamentos',
+        vendas_realizadas: 'vendas',
+        tarefas_realizadas: 'tarefasRealizadas',
+        tarefas_atrasadas: 'tarefasAtrasadas',
+        mensagens_enviadas_atendente: 'mensagensAtendente',
+        mensagens_enviadas_robo: 'mensagensRobo',
+        leads_descartados: 'leadsDescartados',
+      };
+      
+      const field = fieldMap[metric.id] || metric.id;
+      const current = (currentWeekData as any)[field] || 0;
+      const previous = (previousWeekData as any)[field] || 0;
+      const total = weeklyData.reduce((acc, d) => acc + ((d as any)[field] || 0), 0);
+      const trend = calcTrend(current, previous);
+      const avg = total / weeklyData.length;
+      
+      const diagnosis = metric.getDiagnosis(current, trend, totalLeads);
+
+      return {
+        ...metric,
+        current,
+        previous,
+        total,
+        trend,
+        avg,
+        diagnosis,
+      };
+    });
   }, [weeklyData]);
 
-  // Calcular taxa de conversão
-  const conversionRate = useMemo(() => {
-    const totalLeads = totals.leads.total;
-    const totalVendas = totals.vendas.total;
-    if (totalLeads === 0) return 0;
-    return ((totalVendas / totalLeads) * 100).toFixed(1);
-  }, [totals]);
-
-  // Dados para gráfico de pizza (distribuição de atividades)
+  // Dados para gráfico de pizza
   const activityDistribution = useMemo(() => {
     const total = weeklyData.reduce((acc, d) => ({
       tarefasRealizadas: acc.tarefasRealizadas + d.tarefasRealizadas,
@@ -133,106 +223,29 @@ export function MetricsDashboard({
     ].filter(item => item.value > 0);
   }, [weeklyData]);
 
-  // Gerar insights automáticos
-  const insights = useMemo(() => {
-    const insights: { type: 'success' | 'warning' | 'danger' | 'info'; title: string; message: string; action?: string }[] = [];
-    
-    // Análise de leads
-    if (totals.leads.trend > 20) {
-      insights.push({
-        type: 'success',
-        title: 'Leads em Alta! 🚀',
-        message: `Crescimento de ${totals.leads.trend.toFixed(0)}% em leads esta semana.`,
-        action: 'Aproveite o momento e intensifique o atendimento.'
-      });
-    } else if (totals.leads.trend < -20) {
-      insights.push({
-        type: 'warning',
-        title: 'Queda em Leads',
-        message: `Redução de ${Math.abs(totals.leads.trend).toFixed(0)}% em leads.`,
-        action: 'Revise suas campanhas de marketing e fontes de tráfego.'
-      });
-    }
+  // Calcular taxa de conversão
+  const conversionRate = useMemo(() => {
+    const totalLeads = metricsData.find(m => m.id === 'leads_novos')?.total || 0;
+    const totalVendas = metricsData.find(m => m.id === 'vendas_realizadas')?.total || 0;
+    if (totalLeads === 0) return 0;
+    return ((totalVendas / totalLeads) * 100).toFixed(1);
+  }, [metricsData]);
 
-    // Análise de vendas
-    if (totals.vendas.current > 0 && totals.vendas.trend > 0) {
-      insights.push({
-        type: 'success',
-        title: 'Vendas Crescendo',
-        message: `${totals.vendas.current} vendas esta semana, ${totals.vendas.trend.toFixed(0)}% a mais.`,
-        action: 'Continue o bom trabalho no fechamento!'
-      });
-    } else if (totals.vendas.current === 0 && totals.leads.total > 5) {
-      insights.push({
-        type: 'danger',
-        title: 'Nenhuma Venda',
-        message: 'Você tem leads mas não fechou vendas esta semana.',
-        action: 'Foque no follow-up e nas objeções dos clientes.'
-      });
-    }
-
-    // Análise de tarefas atrasadas
-    if (totals.tarefasAtrasadas.current > 5) {
-      insights.push({
-        type: 'danger',
-        title: 'Atenção: Tarefas Atrasadas',
-        message: `${totals.tarefasAtrasadas.current} tarefas estão atrasadas.`,
-        action: 'Priorize a resolução para manter o fluxo saudável.'
-      });
-    } else if (totals.tarefasAtrasadas.current === 0) {
-      insights.push({
-        type: 'success',
-        title: 'Parabéns!',
-        message: 'Nenhuma tarefa atrasada. Operação fluindo bem!',
-      });
-    }
-
-    // Taxa de conversão
-    const rate = parseFloat(conversionRate);
-    if (rate > 30) {
-      insights.push({
-        type: 'success',
-        title: 'Conversão Excelente',
-        message: `Taxa de ${rate}% de leads para vendas.`,
-        action: 'Documente o que está funcionando para replicar.'
-      });
-    } else if (rate < 10 && totals.leads.total > 10) {
-      insights.push({
-        type: 'warning',
-        title: 'Conversão Baixa',
-        message: `Apenas ${rate}% dos leads estão convertendo.`,
-        action: 'Revise seu script de vendas e qualificação de leads.'
-      });
-    }
-
-    // Análise de agendamentos
-    if (totals.agendamentos.current > 0 && totals.vendas.current === 0) {
-      insights.push({
-        type: 'info',
-        title: 'Agendamentos Pendentes',
-        message: `${totals.agendamentos.current} agendamentos, mas sem vendas ainda.`,
-        action: 'Prepare-se para converter nas próximas consultas.'
-      });
-    }
-
-    return insights.slice(0, 4); // Max 4 insights
-  }, [totals, conversionRate]);
-
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case 'success': return ThumbsUp;
-      case 'warning': return AlertTriangle;
-      case 'danger': return AlertCircle;
-      default: return Info;
+  const getStatusColors = (status: string) => {
+    switch (status) {
+      case 'success': return 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+      case 'warning': return 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+      case 'danger': return 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
-  const getInsightColors = (type: string) => {
-    switch (type) {
-      case 'success': return 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300';
-      case 'warning': return 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300';
-      case 'danger': return 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300';
-      default: return 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300';
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'success': return ThumbsUp;
+      case 'warning': return AlertTriangle;
+      case 'danger': return AlertCircle;
+      default: return Minus;
     }
   };
 
@@ -253,130 +266,38 @@ export function MetricsDashboard({
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Top 4 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Leads Card */}
-        <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs sm:text-sm text-muted-foreground font-medium">Total de Leads</span>
-              <div className="p-1.5 bg-blue-100 dark:bg-blue-950/50 rounded-lg">
-                <Users className="w-4 h-4 text-blue-600" />
-              </div>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-2xl sm:text-3xl font-bold text-foreground">{totals.leads.total}</span>
-              <span className={cn(
-                "text-xs sm:text-sm font-medium flex items-center gap-0.5 mb-1",
-                totals.leads.trend >= 0 ? "text-emerald-600" : "text-red-600"
-              )}>
-                {totals.leads.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {Math.abs(totals.leads.trend).toFixed(0)}%
-              </span>
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              {totals.leads.current} esta semana vs {totals.leads.previous} anterior
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Agendamentos Card */}
-        <Card className="border-l-4 border-l-amber-500">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs sm:text-sm text-muted-foreground font-medium">Agendamentos</span>
-              <div className="p-1.5 bg-amber-100 dark:bg-amber-950/50 rounded-lg">
-                <Calendar className="w-4 h-4 text-amber-600" />
-              </div>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-2xl sm:text-3xl font-bold text-foreground">{totals.agendamentos.total}</span>
-              <span className={cn(
-                "text-xs sm:text-sm font-medium flex items-center gap-0.5 mb-1",
-                totals.agendamentos.trend >= 0 ? "text-emerald-600" : "text-red-600"
-              )}>
-                {totals.agendamentos.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {Math.abs(totals.agendamentos.trend).toFixed(0)}%
-              </span>
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              {totals.agendamentos.current} esta semana
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Vendas Card */}
-        <Card className="border-l-4 border-l-pink-500">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs sm:text-sm text-muted-foreground font-medium">Vendas Realizadas</span>
-              <div className="p-1.5 bg-pink-100 dark:bg-pink-950/50 rounded-lg">
-                <ShoppingCart className="w-4 h-4 text-pink-600" />
-              </div>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-2xl sm:text-3xl font-bold text-foreground">{totals.vendas.total}</span>
-              <span className={cn(
-                "text-xs sm:text-sm font-medium flex items-center gap-0.5 mb-1",
-                totals.vendas.trend >= 0 ? "text-emerald-600" : "text-red-600"
-              )}>
-                {totals.vendas.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {Math.abs(totals.vendas.trend).toFixed(0)}%
-              </span>
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              Taxa de conversão: {conversionRate}%
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Tarefas Atrasadas Card */}
-        <Card className={cn(
-          "border-l-4",
-          totals.tarefasAtrasadas.current > 5 
-            ? "border-l-red-500" 
-            : totals.tarefasAtrasadas.current > 0 
-              ? "border-l-amber-500" 
-              : "border-l-emerald-500"
-        )}>
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs sm:text-sm text-muted-foreground font-medium">Tarefas Atrasadas</span>
-              <div className={cn(
-                "p-1.5 rounded-lg",
-                totals.tarefasAtrasadas.current > 5 
-                  ? "bg-red-100 dark:bg-red-950/50" 
-                  : totals.tarefasAtrasadas.current > 0 
-                    ? "bg-amber-100 dark:bg-amber-950/50" 
-                    : "bg-emerald-100 dark:bg-emerald-950/50"
-              )}>
-                <AlertCircle className={cn(
-                  "w-4 h-4",
-                  totals.tarefasAtrasadas.current > 5 
-                    ? "text-red-600" 
-                    : totals.tarefasAtrasadas.current > 0 
-                      ? "text-amber-600" 
-                      : "text-emerald-600"
-                )} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className={cn(
-                "text-2xl sm:text-3xl font-bold",
-                totals.tarefasAtrasadas.current > 5 
-                  ? "text-red-600" 
-                  : totals.tarefasAtrasadas.current > 0 
-                    ? "text-amber-600" 
-                    : "text-emerald-600"
-              )}>
-                {totals.tarefasAtrasadas.current}
-              </span>
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              {totals.tarefasAtrasadas.current === 0 ? 'Parabéns! Tudo em dia' : 'Precisam de atenção imediata'}
-            </p>
-          </CardContent>
-        </Card>
+        {metricsData.slice(0, 4).map(metric => {
+          const Icon = metric.icon;
+          const trendPositive = metric.goodDirection === 'up' ? metric.trend >= 0 : metric.trend <= 0;
+          
+          return (
+            <Card key={metric.id} className={cn("border-l-4", metric.diagnosis.status === 'danger' ? 'border-l-red-500' : metric.diagnosis.status === 'warning' ? 'border-l-amber-500' : metric.diagnosis.status === 'success' ? 'border-l-emerald-500' : 'border-l-blue-500')}>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground font-medium">{metric.nome}</span>
+                  <div className={cn("p-1.5 rounded-lg", metric.diagnosis.status === 'danger' ? 'bg-red-100 dark:bg-red-950/50' : metric.diagnosis.status === 'warning' ? 'bg-amber-100 dark:bg-amber-950/50' : metric.diagnosis.status === 'success' ? 'bg-emerald-100 dark:bg-emerald-950/50' : 'bg-blue-100 dark:bg-blue-950/50')}>
+                    <Icon className={cn("w-4 h-4", metric.color)} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="text-2xl sm:text-3xl font-bold text-foreground">{metric.current}</span>
+                  <span className={cn(
+                    "text-xs sm:text-sm font-medium flex items-center gap-0.5 mb-1",
+                    trendPositive ? "text-emerald-600" : "text-red-600"
+                  )}>
+                    {metric.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {Math.abs(metric.trend).toFixed(0)}%
+                  </span>
+                </div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                  Total: {metric.total} | Média: {metric.avg.toFixed(1)}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Charts Row */}
@@ -389,7 +310,7 @@ export function MetricsDashboard({
               Evolução Semanal
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              Acompanhe leads, agendamentos e vendas ao longo das semanas
+              Leads, agendamentos e vendas ao longo das semanas
             </p>
           </CardHeader>
           <CardContent>
@@ -434,7 +355,7 @@ export function MetricsDashboard({
               Distribuição de Atividades
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              Visão proporcional das principais métricas do período
+              Proporção das métricas do período • Conversão: {conversionRate}%
             </p>
           </CardHeader>
           <CardContent>
@@ -478,88 +399,83 @@ export function MetricsDashboard({
         </Card>
       </div>
 
-      {/* Mensagens e Engajamento */}
+      {/* Tabela de Indicadores com Diagnóstico */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-primary" />
-            Volume de Mensagens por Semana
+            <Activity className="w-4 h-4 text-primary" />
+            Indicadores da Semana com Diagnóstico
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Mensagens enviadas (atendente + robô) vs mensagens recebidas
+            Valores atuais, tendência e análise automática de cada métrica
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="h-[180px] sm:h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="week" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }} 
-                />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
-                <Bar dataKey="mensagensEnviadas" name="Enviadas" fill="#10b981" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="mensagensRecebidas" name="Recebidas" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted border-b border-border">
+                <tr>
+                  <th className="text-left px-3 sm:px-4 py-2.5 font-semibold text-foreground">Indicador</th>
+                  <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[60px]">Atual</th>
+                  <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[60px]">Anterior</th>
+                  <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[70px]">Tendência</th>
+                  <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[60px]">Total</th>
+                  <th className="text-left px-3 sm:px-4 py-2.5 font-semibold text-foreground min-w-[200px]">Diagnóstico</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metricsData.map((metric, idx) => {
+                  const Icon = metric.icon;
+                  const StatusIcon = getStatusIcon(metric.diagnosis.status);
+                  const trendPositive = metric.goodDirection === 'up' ? metric.trend >= 0 : metric.trend <= 0;
+                  
+                  return (
+                    <tr 
+                      key={metric.id}
+                      className={cn(
+                        'border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors',
+                        idx % 2 === 0 && 'bg-muted/10'
+                      )}
+                    >
+                      <td className="px-3 sm:px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <Icon className={cn("w-4 h-4 flex-shrink-0", metric.color)} />
+                          <span className="font-medium text-foreground text-xs sm:text-sm">{metric.nome}</span>
+                        </div>
+                      </td>
+                      <td className="text-center px-2 py-2.5">
+                        <span className="font-bold text-foreground">{metric.current}</span>
+                      </td>
+                      <td className="text-center px-2 py-2.5">
+                        <span className="text-muted-foreground">{metric.previous}</span>
+                      </td>
+                      <td className="text-center px-2 py-2.5">
+                        <span className={cn(
+                          "inline-flex items-center gap-0.5 text-xs font-medium",
+                          trendPositive ? "text-emerald-600" : "text-red-600"
+                        )}>
+                          {metric.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                          {Math.abs(metric.trend).toFixed(0)}%
+                        </span>
+                      </td>
+                      <td className="text-center px-2 py-2.5">
+                        <span className="text-muted-foreground">{metric.total}</span>
+                      </td>
+                      <td className="px-3 sm:px-4 py-2.5">
+                        <div className={cn(
+                          "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] sm:text-xs border",
+                          getStatusColors(metric.diagnosis.status)
+                        )}>
+                          <StatusIcon className="w-3 h-3 flex-shrink-0" />
+                          <span>{metric.diagnosis.text}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Insights Inteligentes */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-            <Zap className="w-4 h-4 text-amber-500" />
-            Insights Inteligentes
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Análise automática dos seus indicadores com recomendações de ação
-          </p>
-        </CardHeader>
-        <CardContent>
-          {insights.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {insights.map((insight, idx) => {
-                const Icon = getInsightIcon(insight.type);
-                return (
-                  <div 
-                    key={idx} 
-                    className={cn(
-                      "p-3 sm:p-4 rounded-lg border",
-                      getInsightColors(insight.type)
-                    )}
-                  >
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1">{insight.title}</h4>
-                        <p className="text-[10px] sm:text-xs opacity-90">{insight.message}</p>
-                        {insight.action && (
-                          <p className="text-[10px] sm:text-xs mt-2 font-medium flex items-center gap-1">
-                            <ArrowRight className="w-3 h-3" />
-                            {insight.action}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Info className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Preencha mais dados para receber insights personalizados</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
