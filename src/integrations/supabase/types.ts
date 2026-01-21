@@ -1538,17 +1538,32 @@ export type Database = {
           address_street: string | null
           avatar_url: string | null
           birth_date: string | null
+          clinic_logo_url: string | null
+          clinic_name: string | null
           cpf: string | null
           created_at: string | null
+          crm: string | null
           email: string
           full_name: string
           id: string
+          instagram_clinic: string | null
+          instagram_personal: string | null
           is_active: boolean | null
+          last_seen_at: string | null
           marital_status: string | null
           nationality: string | null
+          onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
           phone: string | null
+          referral_code: string | null
+          rqe: string | null
+          services: string[] | null
+          tier: string | null
+          total_points: number | null
           updated_at: string | null
           user_id: string
+          whatsapp_clinic: string | null
+          whatsapp_personal: string | null
         }
         Insert: {
           address_cep?: string | null
@@ -1560,17 +1575,32 @@ export type Database = {
           address_street?: string | null
           avatar_url?: string | null
           birth_date?: string | null
+          clinic_logo_url?: string | null
+          clinic_name?: string | null
           cpf?: string | null
           created_at?: string | null
+          crm?: string | null
           email: string
           full_name: string
           id?: string
+          instagram_clinic?: string | null
+          instagram_personal?: string | null
           is_active?: boolean | null
+          last_seen_at?: string | null
           marital_status?: string | null
           nationality?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           phone?: string | null
+          referral_code?: string | null
+          rqe?: string | null
+          services?: string[] | null
+          tier?: string | null
+          total_points?: number | null
           updated_at?: string | null
           user_id: string
+          whatsapp_clinic?: string | null
+          whatsapp_personal?: string | null
         }
         Update: {
           address_cep?: string | null
@@ -1582,17 +1612,32 @@ export type Database = {
           address_street?: string | null
           avatar_url?: string | null
           birth_date?: string | null
+          clinic_logo_url?: string | null
+          clinic_name?: string | null
           cpf?: string | null
           created_at?: string | null
+          crm?: string | null
           email?: string
           full_name?: string
           id?: string
+          instagram_clinic?: string | null
+          instagram_personal?: string | null
           is_active?: boolean | null
+          last_seen_at?: string | null
           marital_status?: string | null
           nationality?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           phone?: string | null
+          referral_code?: string | null
+          rqe?: string | null
+          services?: string[] | null
+          tier?: string | null
+          total_points?: number | null
           updated_at?: string | null
           user_id?: string
+          whatsapp_clinic?: string | null
+          whatsapp_personal?: string | null
         }
         Relationships: []
       }
