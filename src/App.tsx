@@ -94,6 +94,7 @@ import {
   NeoTeamPatients, 
   NeoTeamMedicalRecords, 
   NeoTeamDocuments,
+  NeoTeamTasks,
   NeoTeamSettings 
 } from "./neohub/pages/neoteam";
 
@@ -247,6 +248,7 @@ function NeoTeamRoutes() {
           <Route path="patients" element={<NeoTeamPatients />} />
           <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
           <Route path="documents" element={<NeoTeamDocuments />} />
+          <Route path="tasks" element={<NeoTeamTasks />} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>

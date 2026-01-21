@@ -57,6 +57,14 @@ const contentModules = [
   { id: 'consolidated', title: 'Resultados', icon: BarChart3, path: '/consolidated-results', color: 'bg-amber-500' },
 ];
 
+// Profile quick access for admin to view system as different profiles
+const profileAccess = [
+  { profile: 'licenciado', title: 'Licenciado', icon: Award, path: '/home', color: 'bg-amber-500' },
+  { profile: 'colaborador', title: 'Colaborador', icon: Users, path: '/neoteam', color: 'bg-blue-500' },
+  { profile: 'aluno', title: 'Aluno', icon: GraduationCap, path: '/university', color: 'bg-indigo-500' },
+  { profile: 'paciente', title: 'Paciente', icon: Users, path: '/neocare', color: 'bg-green-500' },
+];
+
 interface SystemStats {
   totalUsers: number;
   activeUsers: number;

@@ -23,6 +23,7 @@ const menuItems = [
   { id: 'schedule', title: 'Agenda', icon: Calendar, route: '/neoteam/schedule' },
   { id: 'waiting-room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
   { id: 'doctor-view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view' },
+  { id: 'tasks', title: 'Tarefas', icon: FileText, route: '/neoteam/tasks' },
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },

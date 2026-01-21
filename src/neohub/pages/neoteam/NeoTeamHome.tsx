@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,74 +6,103 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Users, Calendar, Clock, Activity, 
   UserPlus, ClipboardList, Bell, ArrowRight,
-  CheckCircle2, AlertCircle, Timer
+  CheckCircle2, AlertCircle, Timer, ListTodo,
+  TrendingUp, Stethoscope, FileText, Building2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { format } from 'date-fns';
+import { useNeoTeamWaitingRoom } from '@/neohub/hooks/useNeoTeamWaitingRoom';
+import { useNeoTeamTasks } from '@/neohub/hooks/useNeoTeamTasks';
+import { format, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function NeoTeamHome() {
   const { user } = useUnifiedAuth();
   const navigate = useNavigate();
   const today = new Date();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Mock data - will be replaced with real data
+  const { patients } = useNeoTeamWaitingRoom();
+  const { tasks } = useNeoTeamTasks();
+
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Compute real stats
+  const waitingCount = patients.filter(p => ['arrived', 'waiting'].includes(p.status)).length;
+  const inServiceCount = patients.filter(p => p.status === 'in_service').length;
+  const completedCount = patients.filter(p => p.status === 'completed').length;
+  
+  const pendingTasks = tasks.filter(t => t.status !== 'done').length;
+  const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done').length;
+
+  const avgWaitTime = patients.length > 0
+    ? Math.round(patients.reduce((acc, p) => acc + differenceInMinutes(currentTime, new Date(p.arrival_time)), 0) / patients.length)
+    : 0;
+
   const stats = [
     { 
-      label: 'Pacientes Hoje', 
-      value: '12', 
-      icon: Users, 
-      color: 'bg-blue-500',
-      change: '+3 vs ontem'
-    },
-    { 
       label: 'Na Sala de Espera', 
-      value: '4', 
+      value: waitingCount.toString(), 
       icon: Clock, 
       color: 'bg-amber-500',
-      change: '~15min média'
+      subtitle: `~${avgWaitTime}min média`
     },
     { 
-      label: 'Atendidos', 
-      value: '8', 
+      label: 'Em Atendimento', 
+      value: inServiceCount.toString(), 
+      icon: Stethoscope, 
+      color: 'bg-purple-500',
+      subtitle: 'Agora'
+    },
+    { 
+      label: 'Atendidos Hoje', 
+      value: completedCount.toString(), 
       icon: CheckCircle2, 
       color: 'bg-green-500',
-      change: '67% do dia'
+      subtitle: 'Finalizados'
     },
     { 
-      label: 'Próximo Horário', 
-      value: '14:30', 
-      icon: Timer, 
-      color: 'bg-purple-500',
-      change: 'em 25min'
+      label: 'Tarefas Pendentes', 
+      value: pendingTasks.toString(), 
+      icon: ListTodo, 
+      color: 'bg-blue-500',
+      subtitle: urgentTasks > 0 ? `${urgentTasks} urgente(s)` : 'Nenhuma urgente'
     },
   ];
 
   const quickActions = [
-    { icon: UserPlus, label: 'Novo Paciente', path: '/neoteam/patients/new', color: 'text-blue-500' },
-    { icon: Calendar, label: 'Agendar', path: '/neoteam/schedule/new', color: 'text-green-500' },
-    { icon: ClipboardList, label: 'Prontuário', path: '/neoteam/medical-records', color: 'text-purple-500' },
-    { icon: Bell, label: 'Chamar Próximo', path: '/neoteam/waiting-room', color: 'text-amber-500' },
+    { icon: UserPlus, label: 'Novo Paciente', path: '/neoteam/patients', color: 'text-blue-500' },
+    { icon: Calendar, label: 'Agenda', path: '/neoteam/schedule', color: 'text-green-500' },
+    { icon: Clock, label: 'Sala de Espera', path: '/neoteam/waiting-room', color: 'text-amber-500' },
+    { icon: ListTodo, label: 'Tarefas', path: '/neoteam/tasks', color: 'text-purple-500' },
   ];
 
-  const waitingPatients = [
-    { id: 1, name: 'Maria Silva', time: '14:00', waitTime: '15min', status: 'waiting', type: 'Consulta' },
-    { id: 2, name: 'João Santos', time: '14:15', waitTime: '10min', status: 'waiting', type: 'Retorno' },
-    { id: 3, name: 'Ana Costa', time: '14:30', waitTime: '5min', status: 'waiting', type: 'Procedimento' },
-    { id: 4, name: 'Pedro Lima', time: '14:45', waitTime: '2min', status: 'arrived', type: 'Consulta' },
+  const modules = [
+    { icon: Calendar, label: 'Agendamentos', path: '/neoteam/schedule', description: 'Gerenciar agenda', color: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600' },
+    { icon: Clock, label: 'Sala de Espera', path: '/neoteam/waiting-room', description: 'Fila de pacientes', color: 'bg-amber-100 dark:bg-amber-900/30', iconColor: 'text-amber-600' },
+    { icon: Stethoscope, label: 'Visão Médico', path: '/neoteam/doctor-view', description: 'Pacientes chamados', color: 'bg-green-100 dark:bg-green-900/30', iconColor: 'text-green-600' },
+    { icon: Users, label: 'Pacientes', path: '/neoteam/patients', description: 'Cadastro de pacientes', color: 'bg-purple-100 dark:bg-purple-900/30', iconColor: 'text-purple-600' },
+    { icon: FileText, label: 'Prontuários', path: '/neoteam/medical-records', description: 'Histórico médico', color: 'bg-rose-100 dark:bg-rose-900/30', iconColor: 'text-rose-600' },
+    { icon: ListTodo, label: 'Tarefas', path: '/neoteam/tasks', description: 'Gerenciar tarefas', color: 'bg-indigo-100 dark:bg-indigo-900/30', iconColor: 'text-indigo-600' },
   ];
 
-  const upcomingAppointments = [
-    { id: 1, name: 'Carlos Oliveira', time: '15:00', type: 'Avaliação', doctor: 'Dr. Ricardo' },
-    { id: 2, name: 'Fernanda Souza', time: '15:30', type: 'Procedimento', doctor: 'Dra. Paula' },
-    { id: 3, name: 'Bruno Alves', time: '16:00', type: 'Retorno', doctor: 'Dr. Ricardo' },
-  ];
+  // Get recent waiting patients
+  const waitingPatients = patients
+    .filter(p => ['arrived', 'waiting'].includes(p.status))
+    .slice(0, 4);
+
+  // Get urgent/high priority tasks
+  const urgentTasksList = tasks
+    .filter(t => ['urgent', 'high'].includes(t.priority) && t.status !== 'done')
+    .slice(0, 4);
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-6 text-white">
+      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold mb-1">
@@ -102,7 +131,7 @@ export default function NeoTeamHome() {
               </div>
               <p className="text-2xl font-bold">{stat.value}</p>
               <p className="text-sm text-muted-foreground">{stat.label}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
+              <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
             </CardContent>
           </Card>
         ))}
@@ -123,6 +152,31 @@ export default function NeoTeamHome() {
         ))}
       </div>
 
+      {/* Modules Grid */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Módulos</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          {modules.map((module) => (
+            <Card 
+              key={module.label} 
+              className="hover:shadow-md transition-all cursor-pointer group"
+              onClick={() => navigate(module.path)}
+            >
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className={`${module.color} p-3 rounded-lg`}>
+                  <module.icon className={`h-6 w-6 ${module.iconColor}`} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{module.label}</p>
+                  <p className="text-xs text-muted-foreground">{module.description}</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Waiting Room */}
@@ -133,7 +187,7 @@ export default function NeoTeamHome() {
                 <Clock className="h-5 w-5 text-amber-500" />
                 Sala de Espera
               </CardTitle>
-              <CardDescription>{waitingPatients.length} pacientes aguardando</CardDescription>
+              <CardDescription>{waitingCount} pacientes aguardando</CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={() => navigate('/neoteam/waiting-room')}>
               Ver todos
@@ -141,85 +195,108 @@ export default function NeoTeamHome() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {waitingPatients.slice(0, 4).map((patient) => (
-              <div 
-                key={patient.id} 
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {patient.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">{patient.name}</p>
-                    <p className="text-xs text-muted-foreground">{patient.type} • {patient.time}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={patient.status === 'arrived' ? 'default' : 'secondary'}>
-                    {patient.waitTime}
-                  </Badge>
-                </div>
+            {waitingPatients.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum paciente aguardando
               </div>
-            ))}
+            ) : (
+              waitingPatients.map((patient) => {
+                const waitMinutes = differenceInMinutes(currentTime, new Date(patient.arrival_time));
+                return (
+                  <div 
+                    key={patient.id} 
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {patient.patient_name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-sm">{patient.patient_name}</p>
+                        <p className="text-xs text-muted-foreground">{patient.type}</p>
+                      </div>
+                    </div>
+                    <Badge variant={waitMinutes > 15 ? 'destructive' : 'secondary'}>
+                      {waitMinutes}min
+                    </Badge>
+                  </div>
+                );
+              })
+            )}
           </CardContent>
         </Card>
 
-        {/* Upcoming Appointments */}
+        {/* Urgent Tasks */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-500" />
-                Próximos Atendimentos
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                Tarefas Prioritárias
               </CardTitle>
-              <CardDescription>Agenda do restante do dia</CardDescription>
+              <CardDescription>{urgentTasks} tarefas urgentes</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/neoteam/schedule')}>
-              Ver agenda
+            <Button variant="ghost" size="sm" onClick={() => navigate('/neoteam/tasks')}>
+              Ver todas
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            {upcomingAppointments.map((apt) => (
-              <div 
-                key={apt.id} 
-                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{apt.time}</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{apt.name}</p>
-                    <p className="text-xs text-muted-foreground">{apt.type} • {apt.doctor}</p>
-                  </div>
-                </div>
-                <Button size="sm" variant="ghost">
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+            {urgentTasksList.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhuma tarefa prioritária
               </div>
-            ))}
+            ) : (
+              urgentTasksList.map((task) => (
+                <div 
+                  key={task.id} 
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      task.priority === 'urgent' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'
+                    }`}>
+                      <AlertCircle className={`h-5 w-5 ${
+                        task.priority === 'urgent' ? 'text-red-600' : 'text-orange-600'
+                      }`} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{task.title}</p>
+                      {task.due_date && (
+                        <p className="text-xs text-muted-foreground">
+                          Prazo: {format(new Date(task.due_date), 'dd/MM')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant={task.priority === 'urgent' ? 'destructive' : 'secondary'}>
+                    {task.priority === 'urgent' ? 'Urgente' : 'Alta'}
+                  </Badge>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Alerts Section */}
-      <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-            <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">Atenção</p>
-              <p className="text-sm text-amber-700 dark:text-amber-300">
-                3 pacientes aguardando há mais de 20 minutos. Considere priorizar o atendimento.
-              </p>
+      {/* Alert if many patients waiting */}
+      {waitingCount >= 3 && avgWaitTime > 15 && (
+        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-amber-800 dark:text-amber-200">Atenção</p>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  {waitingCount} pacientes aguardando com tempo médio de {avgWaitTime} minutos. Considere priorizar o atendimento.
+                </p>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
