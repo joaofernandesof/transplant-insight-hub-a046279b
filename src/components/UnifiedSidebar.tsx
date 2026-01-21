@@ -1,3 +1,8 @@
+// ====================================
+// UnifiedSidebar - Sidebar Dinâmica Unificada
+// ====================================
+// Menu derivado de menuConfig.ts - fonte única de verdade
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -6,10 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { 
-  BarChart3, 
-  FileCheck, 
-  BookOpen, 
-  Video, 
   Crown, 
   Award, 
   Star, 
@@ -17,37 +18,21 @@ import {
   Gem, 
   Shield, 
   Sparkles,
-  Palette,
-  ShoppingBag,
-  DollarSign,
-  Users,
-  Settings,
-  TrendingUp,
-  Flame,
-  GraduationCap,
-  Store,
-  Building2,
-  CreditCard,
-  Home,
   ChevronLeft,
   ChevronRight,
   Menu,
   X,
-  Gift,
   LogOut,
-  CalendarDays,
-  LayoutDashboard,
-  GitCompare,
-  PieChart,
-  Handshake,
-  Megaphone,
-  MessageCircle,
-  Wrench,
-  Briefcase
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { 
+  MAIN_MENU_CATEGORIES, 
+  filterMenuByPermissions,
+  type MenuItem,
+  type MenuCategory,
+} from "@/config/menuConfig";
 
 interface UnifiedSidebarProps {
   children: React.ReactNode;
@@ -64,52 +49,6 @@ const tierConfig: Record<LicenseeTier, { name: string; color: string; bgColor: s
   titan: { name: 'Titan', color: 'text-emerald-700', bgColor: 'bg-emerald-100', icon: <Crown className="h-4 w-4" /> },
   legacy: { name: 'Legacy', color: 'text-primary', bgColor: 'bg-amber-100', icon: <Sparkles className="h-4 w-4" /> }
 };
-
-// Menu unificado - admin vê tudo, licenciado vê tudo
-const menuItems = [
-  { id: 'home', title: 'Início', icon: Home, route: '/' },
-  { id: 'admin-dashboard', title: 'Dashboard Admin', icon: LayoutDashboard, route: '/admin-dashboard', adminOnly: true },
-  { id: 'marketplace', title: 'Marketplace', icon: Store, route: '/marketplace' },
-  
-  { id: 'divider-gestao', title: 'Gestão', isDivider: true, adminOnly: true },
-  { id: 'licensees', title: 'Gerenciar Licenciados', icon: Users, route: '/licensees', adminOnly: true },
-  { id: 'monitoring', title: 'Monitoramento de Usuários', icon: Crown, route: '/monitoring', adminOnly: true },
-  { id: 'system-metrics', title: 'Métricas do Sistema', icon: TrendingUp, route: '/system-metrics', adminOnly: true },
-  { id: 'admin-panel', title: 'Configurações do Sistema', icon: Settings, route: '/admin', adminOnly: true },
-  { id: 'comparison', title: 'Comparar Clínicas', icon: GitCompare, route: '/comparison', adminOnly: true },
-  { id: 'weekly-reports', title: 'Relatórios Semanais', icon: FileCheck, route: '/weekly-reports', adminOnly: true },
-  
-  { id: 'divider-dados', title: 'Dados & Indicadores', isDivider: true },
-  { id: 'dashboard', title: 'Dashboard de Métricas', icon: BarChart3, route: '/dashboard' },
-  { id: 'consolidated', title: 'Resultados Consolidados', icon: PieChart, route: '/consolidated-results' },
-  { id: 'achievements', title: 'Conquistas', icon: Trophy, route: '/achievements' },
-  { id: 'surgery-schedule', title: 'Agenda de Cirurgias', icon: CalendarDays, route: '/surgery-schedule' },
-  { id: 'sala-tecnica', title: 'Sala Técnica', icon: Building2, route: '/sala-tecnica' },
-  
-  { id: 'divider-formacao', title: 'Formação', isDivider: true },
-  { id: 'university', title: 'Universidade ByNeofolic', icon: GraduationCap, route: '/university' },
-  { id: 'certificates', title: 'Certificados', icon: Award, route: '/certificates' },
-  { id: 'regularization', title: 'Regularização da Clínica', icon: FileCheck, route: '/regularization' },
-  
-  { id: 'divider-recursos', title: 'Recursos', isDivider: true },
-  { id: 'materials', title: 'Central de Materiais', icon: BookOpen, route: '/materials' },
-  { id: 'marketing', title: 'Central de Marketing', icon: Megaphone, route: '/marketing' },
-  { id: 'store', title: 'Loja Neo-Spa', icon: ShoppingBag, route: '/store' },
-  { id: 'partners', title: 'Vitrine de Parceiros', icon: Handshake, route: '/partners' },
-  
-  { id: 'divider-gestao-cli', title: 'Gestão', isDivider: true },
-  { id: 'estrutura-neo', title: 'Estrutura NEO', icon: Briefcase, route: '/estrutura-neo' },
-  { id: 'financial', title: 'Gestão Financeira', icon: DollarSign, route: '/financial' },
-  { id: 'license-payments', title: 'Financeiro Licença', icon: CreditCard, route: '/license-payments' },
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, route: '/hotleads' },
-  
-  { id: 'divider-suporte', title: 'Suporte & Comunidade', isDivider: true },
-  { id: 'mentorship', title: 'Mentoria & Suporte', icon: MessageCircle, route: '/mentorship' },
-  { id: 'systems', title: 'Sistemas & Ferramentas', icon: Wrench, route: '/systems' },
-  { id: 'career', title: 'Plano de Carreira', icon: TrendingUp, route: '/career' },
-  { id: 'community', title: 'Comunidade', icon: Users, route: '/community' },
-  { id: 'referral', title: 'Indique e Ganhe', icon: Gift, route: '/indique-e-ganhe' },
-];
 
 const getLicenseeTier = (userId: string): LicenseeTier => {
   const tierMap: Record<string, LicenseeTier> = {
@@ -153,11 +92,19 @@ export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
 
   const isActive = (route: string) => location.pathname === route;
 
-  // Filter menu items based on admin status
-  const visibleMenuItems = menuItems.filter(item => {
-    if (item.adminOnly && !isAdmin) return false;
+  // Função de verificação de permissão (TODO: integrar com sistema real)
+  const hasPermission = (moduleCode: string, action?: string): boolean => {
+    // Por enquanto, todos têm acesso se não for adminOnly
     return true;
-  });
+  };
+
+  // Filtrar categorias e itens baseado em permissões
+  const visibleCategories = useMemo(() => {
+    return MAIN_MENU_CATEGORIES.map(category => ({
+      ...category,
+      items: filterMenuByPermissions(category.items, hasPermission, isAdmin)
+    })).filter(category => category.items.length > 0);
+  }, [isAdmin]);
 
   return (
     <div className="min-h-screen flex w-full overflow-x-hidden">
@@ -253,39 +200,40 @@ export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
         {/* Navigation */}
         <ScrollArea className="flex-1 py-2">
           <nav className="px-2 space-y-1">
-            {visibleMenuItems.map((item) => {
-              if (item.isDivider) {
-                if (isCollapsed) return null;
-                return (
-                  <div key={item.id} className="pt-4 pb-2 px-3">
+            {visibleCategories.map((category) => (
+              <div key={category.id}>
+                {/* Category Header */}
+                {category.title && !isCollapsed && (
+                  <div className="pt-4 pb-2 px-3">
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      {item.title}
+                      {category.title}
                     </p>
                   </div>
-                );
-              }
-              
-              return (
-                <Button
-                  key={item.id}
-                  variant={isActive(item.route!) ? "secondary" : "ghost"}
-                  className={cn(
-                    "w-full justify-start gap-3 h-10",
-                    isCollapsed && "justify-center px-2",
-                    isActive(item.route!) && "bg-primary/10 text-primary font-medium"
-                  )}
-                  onClick={() => navigate(item.route!)}
-                >
-                  {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route!) && "text-primary")} />}
-                  {!isCollapsed && <span className="truncate">{item.title}</span>}
-                </Button>
-              );
-            })}
+                )}
+                
+                {/* Category Items */}
+                {category.items.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={isActive(item.route) ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start gap-3 h-10",
+                      isCollapsed && "justify-center px-2",
+                      isActive(item.route) && "bg-primary/10 text-primary font-medium"
+                    )}
+                    onClick={() => navigate(item.route)}
+                  >
+                    {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
+                    {!isCollapsed && <span className="truncate">{item.title}</span>}
+                  </Button>
+                ))}
+              </div>
+            ))}
             
             {/* Separator before logout */}
             <div className="my-3 border-t border-border" />
             
-            {/* Logout Button - part of scrollable content */}
+            {/* Logout Button */}
             <Button
               variant="ghost"
               className={cn(
@@ -300,7 +248,7 @@ export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
           </nav>
         </ScrollArea>
 
-        {/* Footer - only theme toggle */}
+        {/* Footer */}
         <div className={cn("p-4 border-t", isCollapsed && "flex flex-col items-center")}>
           {isCollapsed ? (
             <ThemeToggle />
