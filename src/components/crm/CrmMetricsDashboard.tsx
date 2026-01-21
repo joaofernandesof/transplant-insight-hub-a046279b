@@ -7,7 +7,8 @@ import {
   AlertTriangle,
   ArrowUp,
   ArrowDown,
-  Target
+  Target,
+  Flame
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,8 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 const statusColors: Record<string, string> = {
   new: '#E5E7EB',
@@ -44,8 +47,43 @@ const statusLabels: Record<string, string> = {
   lost: 'Perdidos',
 };
 
+interface SalesByMonth {
+  month: string;
+  sales: number;
+  vgv: number;
+}
+
+function useSalesByMonth() {
+  return useQuery({
+    queryKey: ['sales-by-month'],
+    queryFn: async (): Promise<SalesByMonth[]> => {
+      const { data } = await supabase
+        .from('sales')
+        .select('month_year, vgv_initial');
+
+      if (!data) return [];
+
+      const monthData: Record<string, { sales: number; vgv: number }> = {};
+      data.forEach(sale => {
+        const month = sale.month_year;
+        if (!monthData[month]) {
+          monthData[month] = { sales: 0, vgv: 0 };
+        }
+        monthData[month].sales += 1;
+        monthData[month].vgv += sale.vgv_initial || 0;
+      });
+
+      return Object.entries(monthData)
+        .map(([month, data]) => ({ month, ...data }))
+        .sort((a, b) => a.month.localeCompare(b.month))
+        .slice(-6);
+    },
+  });
+}
+
 export function CrmMetricsDashboard() {
   const { data: metrics, isLoading } = useCrmMetrics();
+  const { data: salesByMonth = [] } = useSalesByMonth();
 
   if (isLoading || !metrics) {
     return (
@@ -71,7 +109,7 @@ export function CrmMetricsDashboard() {
     <div className="space-y-6">
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-l-4 border-l-orange-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -92,14 +130,14 @@ export function CrmMetricsDashboard() {
                   <span className="text-xs text-muted-foreground">vs mês anterior</span>
                 </div>
               </div>
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Users className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center">
+                <Flame className="h-5 w-5 text-orange-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-green-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -116,7 +154,7 @@ export function CrmMetricsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-amber-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -135,7 +173,7 @@ export function CrmMetricsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-blue-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -158,12 +196,46 @@ export function CrmMetricsDashboard() {
         </Card>
       </div>
 
-      {/* Charts Row */}
+      {/* Charts Row - VGV + Daily Leads */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* VGV por Mês */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">VGV por Mês</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={salesByMonth}>
+                <defs>
+                  <linearGradient id="colorVgv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
+                <Tooltip 
+                  formatter={(value: number) => [formatCurrency(value), 'VGV']}
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="vgv" 
+                  stroke="hsl(142, 76%, 36%)" 
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#colorVgv)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
         {/* Daily Leads Chart */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Leads nos Últimos 30 Dias</CardTitle>
+            <CardTitle className="text-sm font-medium">Leads nos Últimos 14 Dias</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -200,7 +272,10 @@ export function CrmMetricsDashboard() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      </div>
 
+      {/* Second Row - Status Distribution + Leads by State */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Status Distribution */}
         <Card>
           <CardHeader className="pb-2">
@@ -244,6 +319,24 @@ export function CrmMetricsDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Leads by State */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Leads por Estado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={metrics.byState.slice(0, 8)} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis type="number" tick={{ fontSize: 10 }} />
+                <YAxis dataKey="state" type="category" tick={{ fontSize: 10 }} width={30} />
+                <Tooltip />
+                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Bottom Row */}
@@ -267,25 +360,42 @@ export function CrmMetricsDashboard() {
                   </div>
                 </div>
               ))}
+              {metrics.byProcedure.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  Nenhum procedimento registrado
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Top States */}
+        {/* Sources */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Leads por Estado</CardTitle>
+            <CardTitle className="text-sm font-medium">Leads por Fonte</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={metrics.byState.slice(0, 5)} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis type="number" tick={{ fontSize: 10 }} />
-                <YAxis dataKey="state" type="category" tick={{ fontSize: 10 }} width={30} />
-                <Tooltip />
-                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-3">
+              {metrics.bySource.slice(0, 5).map((item) => (
+                <div key={item.source} className="flex items-center justify-between">
+                  <span className="text-sm truncate max-w-[150px]">{item.source}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{item.count}</span>
+                    <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary rounded-full"
+                        style={{ width: `${(item.count / metrics.totalLeads) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {metrics.bySource.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  Nenhuma fonte registrada
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
 

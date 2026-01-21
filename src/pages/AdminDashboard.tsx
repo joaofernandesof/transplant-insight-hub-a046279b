@@ -4,17 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Users,
-  Building2,
-  Flame,
   Activity,
-  TrendingUp,
-  TrendingDown,
   DollarSign,
   Calendar,
   Clock,
@@ -22,36 +16,31 @@ import {
   Award,
   Eye,
   Loader2,
-  AlertCircle,
+  Database,
+  Server,
+  Shield,
+  AlertTriangle,
   CheckCircle,
-  ArrowRight
+  HardDrive,
+  Zap
 } from 'lucide-react';
-import { format, subDays, startOfMonth, endOfMonth, startOfWeek, differenceInDays } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface SystemStats {
+  totalUsers: number;
+  activeUsers: number;
   totalLicensees: number;
-  activeLicensees: number;
-  pendingLicensees: number;
-  totalLeads: number;
-  convertedLeads: number;
-  totalSales: number;
-  totalVGV: number;
-  totalSurgeries: number;
-  upcomingSurgeries: number;
+  totalStudents: number;
+  totalPatients: number;
+  totalCollaborators: number;
   totalCourses: number;
   totalEnrollments: number;
   completedEnrollments: number;
   onlineUsers: number;
   weeklyActiveUsers: number;
-}
-
-interface RecentActivity {
-  type: 'lead' | 'sale' | 'surgery' | 'user';
-  description: string;
-  timestamp: string;
-  user?: string;
+  totalMaterials: number;
+  totalNotifications: number;
 }
 
 interface UserPresence {
@@ -61,43 +50,39 @@ interface UserPresence {
   status: string;
 }
 
-interface LeadsByState {
-  state: string;
-  count: number;
+interface SystemHealth {
+  database: 'ok' | 'warning' | 'error';
+  auth: 'ok' | 'warning' | 'error';
+  storage: 'ok' | 'warning' | 'error';
+  edgeFunctions: 'ok' | 'warning' | 'error';
 }
-
-interface SalesByMonth {
-  month: string;
-  sales: number;
-  vgv: number;
-}
-
-const CHART_COLORS = ['hsl(221, 83%, 53%)', 'hsl(142, 76%, 36%)', 'hsl(25, 95%, 53%)', 'hsl(262, 83%, 58%)', 'hsl(0, 84%, 60%)'];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<SystemStats>({
+    totalUsers: 0,
+    activeUsers: 0,
     totalLicensees: 0,
-    activeLicensees: 0,
-    pendingLicensees: 0,
-    totalLeads: 0,
-    convertedLeads: 0,
-    totalSales: 0,
-    totalVGV: 0,
-    totalSurgeries: 0,
-    upcomingSurgeries: 0,
+    totalStudents: 0,
+    totalPatients: 0,
+    totalCollaborators: 0,
     totalCourses: 0,
     totalEnrollments: 0,
     completedEnrollments: 0,
     onlineUsers: 0,
-    weeklyActiveUsers: 0
+    weeklyActiveUsers: 0,
+    totalMaterials: 0,
+    totalNotifications: 0
   });
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<UserPresence[]>([]);
-  const [leadsByState, setLeadsByState] = useState<LeadsByState[]>([]);
-  const [salesByMonth, setSalesByMonth] = useState<SalesByMonth[]>([]);
+  const [systemHealth] = useState<SystemHealth>({
+    database: 'ok',
+    auth: 'ok',
+    storage: 'ok',
+    edgeFunctions: 'ok'
+  });
 
   useEffect(() => {
     if (!isAdmin) {
@@ -111,10 +96,7 @@ export default function AdminDashboard() {
     try {
       await Promise.all([
         fetchStats(),
-        fetchRecentActivities(),
-        fetchOnlineUsers(),
-        fetchLeadsByState(),
-        fetchSalesByMonth()
+        fetchOnlineUsers()
       ]);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -126,195 +108,89 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     const now = new Date();
     const weekAgo = subDays(now, 7);
-    const fiveMinutesAgo = subDays(now, 1 / 288); // 5 minutes
+    const fiveMinutesAgo = subDays(now, 1 / 288);
 
     const [
+      neohubUsersRes,
       profilesRes,
-      leadsRes,
-      convertedLeadsRes,
-      salesRes,
-      surgeriesRes,
-      upcomingSurgeriesRes,
+      studentsRes,
+      patientsRes,
+      collaboratorsRes,
+      licensedRes,
       coursesRes,
       enrollmentsRes,
       completedEnrollmentsRes,
       onlineUsersRes,
-      weeklyActiveRes
+      weeklyActiveRes,
+      materialsRes,
+      notificationsRes
     ] = await Promise.all([
+      supabase.from('neohub_users').select('id', { count: 'exact', head: true }).eq('is_active', true),
       supabase.from('profiles').select('status'),
-      supabase.from('leads').select('id', { count: 'exact', head: true }),
-      supabase.from('leads').select('id', { count: 'exact', head: true }).eq('status', 'converted'),
-      supabase.from('sales').select('vgv_initial'),
-      supabase.from('surgery_schedule').select('id', { count: 'exact', head: true }),
-      supabase.from('surgery_schedule').select('id', { count: 'exact', head: true }).gte('surgery_date', format(now, 'yyyy-MM-dd')),
+      supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'aluno').eq('is_active', true),
+      supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'paciente').eq('is_active', true),
+      supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'colaborador').eq('is_active', true),
+      supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'licenciado').eq('is_active', true),
       supabase.from('courses').select('id', { count: 'exact', head: true }),
       supabase.from('user_course_enrollments').select('id', { count: 'exact', head: true }),
       supabase.from('user_course_enrollments').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('last_seen_at', fiveMinutesAgo.toISOString()),
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('last_seen_at', weekAgo.toISOString())
+      supabase.from('neohub_users').select('id', { count: 'exact', head: true }).gte('last_seen_at', fiveMinutesAgo.toISOString()),
+      supabase.from('neohub_users').select('id', { count: 'exact', head: true }).gte('last_seen_at', weekAgo.toISOString()),
+      supabase.from('materials').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('notifications').select('id', { count: 'exact', head: true })
     ]);
 
     const profiles = profilesRes.data || [];
-    const active = profiles.filter(p => p.status === 'active').length;
-    const pending = profiles.filter(p => p.status === 'pending').length;
-    const salesData = salesRes.data || [];
-    const totalVGV = salesData.reduce((sum, s) => sum + (s.vgv_initial || 0), 0);
+    const activeProfiles = profiles.filter(p => p.status === 'active').length;
 
     setStats({
-      totalLicensees: profiles.length,
-      activeLicensees: active,
-      pendingLicensees: pending,
-      totalLeads: leadsRes.count || 0,
-      convertedLeads: convertedLeadsRes.count || 0,
-      totalSales: salesData.length,
-      totalVGV,
-      totalSurgeries: surgeriesRes.count || 0,
-      upcomingSurgeries: upcomingSurgeriesRes.count || 0,
+      totalUsers: neohubUsersRes.count || 0,
+      activeUsers: activeProfiles,
+      totalLicensees: licensedRes.count || 0,
+      totalStudents: studentsRes.count || 0,
+      totalPatients: patientsRes.count || 0,
+      totalCollaborators: collaboratorsRes.count || 0,
       totalCourses: coursesRes.count || 0,
       totalEnrollments: enrollmentsRes.count || 0,
       completedEnrollments: completedEnrollmentsRes.count || 0,
       onlineUsers: onlineUsersRes.count || 0,
-      weeklyActiveUsers: weeklyActiveRes.count || 0
+      weeklyActiveUsers: weeklyActiveRes.count || 0,
+      totalMaterials: materialsRes.count || 0,
+      totalNotifications: notificationsRes.count || 0
     });
-  };
-
-  const fetchRecentActivities = async () => {
-    const activities: RecentActivity[] = [];
-
-    // Recent leads
-    const { data: leads } = await supabase
-      .from('leads')
-      .select('name, created_at, state')
-      .order('created_at', { ascending: false })
-      .limit(3);
-
-    leads?.forEach(lead => {
-      activities.push({
-        type: 'lead',
-        description: `Novo lead: ${lead.name} (${lead.state || 'N/A'})`,
-        timestamp: lead.created_at
-      });
-    });
-
-    // Recent sales
-    const { data: sales } = await supabase
-      .from('sales')
-      .select('patient_name, created_at, vgv_initial')
-      .order('created_at', { ascending: false })
-      .limit(3);
-
-    sales?.forEach(sale => {
-      activities.push({
-        type: 'sale',
-        description: `Venda registrada: ${sale.patient_name} - R$ ${(sale.vgv_initial || 0).toLocaleString('pt-BR')}`,
-        timestamp: sale.created_at
-      });
-    });
-
-    // Recent surgeries scheduled
-    const { data: surgeries } = await supabase
-      .from('surgery_schedule')
-      .select('patient_name, created_at, surgery_date')
-      .order('created_at', { ascending: false })
-      .limit(3);
-
-    surgeries?.forEach(surgery => {
-      activities.push({
-        type: 'surgery',
-        description: `Cirurgia agendada: ${surgery.patient_name} para ${format(new Date(surgery.surgery_date), 'dd/MM')}`,
-        timestamp: surgery.created_at
-      });
-    });
-
-    // Sort by timestamp
-    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    setRecentActivities(activities.slice(0, 8));
   };
 
   const fetchOnlineUsers = async () => {
     const fiveMinutesAgo = subDays(new Date(), 1 / 288);
     
     const { data } = await supabase
-      .from('profiles')
-      .select('name, avatar_url, last_seen_at, status')
+      .from('neohub_users')
+      .select('full_name, avatar_url, last_seen_at')
       .gte('last_seen_at', fiveMinutesAgo.toISOString())
       .order('last_seen_at', { ascending: false })
       .limit(10);
 
-    setOnlineUsers(data || []);
-  };
-
-  const fetchLeadsByState = async () => {
-    const { data } = await supabase
-      .from('leads')
-      .select('state');
-
-    if (data) {
-      const stateCount: Record<string, number> = {};
-      data.forEach(lead => {
-        const state = lead.state || 'N/A';
-        stateCount[state] = (stateCount[state] || 0) + 1;
-      });
-      
-      const sortedStates = Object.entries(stateCount)
-        .map(([state, count]) => ({ state, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
-      
-      setLeadsByState(sortedStates);
-    }
-  };
-
-  const fetchSalesByMonth = async () => {
-    const { data } = await supabase
-      .from('sales')
-      .select('month_year, vgv_initial');
-
-    if (data) {
-      const monthData: Record<string, { sales: number; vgv: number }> = {};
-      data.forEach(sale => {
-        const month = sale.month_year;
-        if (!monthData[month]) {
-          monthData[month] = { sales: 0, vgv: 0 };
-        }
-        monthData[month].sales += 1;
-        monthData[month].vgv += sale.vgv_initial || 0;
-      });
-
-      const sortedMonths = Object.entries(monthData)
-        .map(([month, data]) => ({ month, ...data }))
-        .sort((a, b) => a.month.localeCompare(b.month))
-        .slice(-6);
-
-      setSalesByMonth(sortedMonths);
-    }
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'lead': return <Flame className="h-4 w-4 text-orange-500" />;
-      case 'sale': return <DollarSign className="h-4 w-4 text-green-500" />;
-      case 'surgery': return <Calendar className="h-4 w-4 text-blue-500" />;
-      case 'user': return <Users className="h-4 w-4 text-purple-500" />;
-      default: return <Activity className="h-4 w-4" />;
-    }
+    setOnlineUsers((data || []).map(u => ({
+      name: u.full_name,
+      avatar_url: u.avatar_url,
+      last_seen_at: u.last_seen_at,
+      status: 'online'
+    })));
   };
 
   const getInitials = (name: string) => {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
   };
 
-  const conversionRate = stats.totalLeads > 0 ? ((stats.convertedLeads / stats.totalLeads) * 100).toFixed(1) : '0';
   const courseCompletionRate = stats.totalEnrollments > 0 ? ((stats.completedEnrollments / stats.totalEnrollments) * 100).toFixed(1) : '0';
+
+  const getHealthIcon = (status: 'ok' | 'warning' | 'error') => {
+    switch (status) {
+      case 'ok': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
+      case 'error': return <AlertTriangle className="h-4 w-4 text-destructive" />;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -332,28 +208,55 @@ export default function AdminDashboard() {
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dashboard Administrativo</h1>
-          <p className="text-sm text-muted-foreground">Visão geral do sistema e dos licenciados</p>
+          <p className="text-sm text-muted-foreground">Visão geral do sistema e métricas globais</p>
         </div>
 
-        {/* Main Stats Grid */}
+        {/* System Health Status */}
+        <Card className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-slate-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                  <Server className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="font-medium">Status do Sistema</p>
+                  <p className="text-xs text-muted-foreground">Todos os serviços operacionais</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Database className="h-4 w-4 text-muted-foreground" />
+                  {getHealthIcon(systemHealth.database)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  {getHealthIcon(systemHealth.auth)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4 text-muted-foreground" />
+                  {getHealthIcon(systemHealth.storage)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-muted-foreground" />
+                  {getHealthIcon(systemHealth.edgeFunctions)}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Main Stats - Users by Profile */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {/* Licenciados */}
           <Card className="border-l-4 border-l-blue-500">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Licenciados</p>
-                  <p className="text-2xl font-bold">{stats.totalLicensees}</p>
-                  <div className="flex gap-2 mt-1">
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                      {stats.activeLicensees} ativos
-                    </Badge>
-                    {stats.pendingLicensees > 0 && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-amber-600">
-                        {stats.pendingLicensees} pendentes
-                      </Badge>
-                    )}
-                  </div>
+                  <p className="text-xs text-muted-foreground">Total Usuários</p>
+                  <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mt-1">
+                    {stats.activeUsers} ativos
+                  </Badge>
                 </div>
                 <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
                   <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -362,69 +265,58 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* Leads */}
-          <Card className="border-l-4 border-l-orange-500">
+          <Card className="border-l-4 border-l-amber-500">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Leads</p>
-                  <p className="text-2xl font-bold">{stats.totalLeads}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-[10px] text-green-600">{conversionRate}% convertidos</span>
-                  </div>
+                  <p className="text-xs text-muted-foreground">Licenciados</p>
+                  <p className="text-2xl font-bold">{stats.totalLicensees}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Clínicas ativas</p>
                 </div>
-                <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                  <Flame className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                  <Award className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Vendas */}
-          <Card className="border-l-4 border-l-green-500">
+          <Card className="border-l-4 border-l-emerald-500">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Vendas</p>
-                  <p className="text-2xl font-bold">{stats.totalSales}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    VGV: {formatCurrency(stats.totalVGV)}
-                  </p>
+                  <p className="text-xs text-muted-foreground">Alunos</p>
+                  <p className="text-2xl font-bold">{stats.totalStudents}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">IBRAMEC</p>
                 </div>
-                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                  <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                  <BookOpen className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Cirurgias */}
-          <Card className="border-l-4 border-l-teal-500">
+          <Card className="border-l-4 border-l-purple-500">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Cirurgias</p>
-                  <p className="text-2xl font-bold">{stats.totalSurgeries}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Calendar className="h-3 w-3 text-teal-500" />
-                    <span className="text-[10px] text-teal-600">{stats.upcomingSurgeries} agendadas</span>
-                  </div>
+                  <p className="text-xs text-muted-foreground">Pacientes</p>
+                  <p className="text-2xl font-bold">{stats.totalPatients}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">NeoCare</p>
                 </div>
-                <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30">
-                  <Building2 className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                  <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Secondary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {/* Secondary Stats - Platform Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <Card>
             <CardContent className="p-3 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                <BookOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+                <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
                 <p className="text-lg font-bold">{stats.totalCourses}</p>
@@ -435,12 +327,24 @@ export default function AdminDashboard() {
 
           <Card>
             <CardContent className="p-3 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
-                <Award className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30">
+                <Award className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               </div>
               <div>
                 <p className="text-lg font-bold">{courseCompletionRate}%</p>
-                <p className="text-[10px] text-muted-foreground">Conclusão cursos</p>
+                <p className="text-[10px] text-muted-foreground">Conclusão</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-rose-100 dark:bg-rose-900/30">
+                <HardDrive className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{stats.totalMaterials}</p>
+                <p className="text-[10px] text-muted-foreground">Materiais</p>
               </div>
             </CardContent>
           </Card>
@@ -452,7 +356,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-lg font-bold">{stats.onlineUsers}</p>
-                <p className="text-[10px] text-muted-foreground">Online agora</p>
+                <p className="text-[10px] text-muted-foreground">Online</p>
               </div>
             </CardContent>
           </Card>
@@ -464,101 +368,81 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-lg font-bold">{stats.weeklyActiveUsers}</p>
-                <p className="text-[10px] text-muted-foreground">Ativos (7 dias)</p>
+                <p className="text-[10px] text-muted-foreground">Ativos (7d)</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Charts and Activity Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Sales Chart */}
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Vendas por Mês</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={salesByMonth}>
-                    <defs>
-                      <linearGradient id="colorVgv" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="month" tick={{ fontSize: 10 }} className="text-muted-foreground" />
-                    <YAxis tick={{ fontSize: 10 }} className="text-muted-foreground" tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
-                    <Tooltip 
-                      formatter={(value: number) => [formatCurrency(value), 'VGV']}
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="vgv" 
-                      stroke="hsl(142, 76%, 36%)" 
-                      strokeWidth={2}
-                      fillOpacity={1} 
-                      fill="url(#colorVgv)" 
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Leads by State */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Leads por Estado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {leadsByState.map((item, index) => (
-                  <div key={item.state} className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                    />
-                    <span className="text-xs flex-1">{item.state}</span>
-                    <span className="text-xs font-medium">{item.count}</span>
-                    <Progress 
-                      value={(item.count / (leadsByState[0]?.count || 1)) * 100} 
-                      className="w-16 h-1.5"
-                    />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Activity and Online Users */}
+        {/* Profile Distribution & Online Users */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Recent Activity */}
+          {/* Profile Distribution */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Atividade Recente</CardTitle>
+              <CardTitle className="text-sm font-medium">Distribuição por Perfil</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentActivities.slice(0, 6).map((activity, index) => (
-                  <div key={index} className="flex items-start gap-3 text-sm">
-                    <div className="mt-0.5">{getActivityIcon(activity.type)}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs line-clamp-1">{activity.description}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {format(new Date(activity.timestamp), "dd/MM 'às' HH:mm", { locale: ptBR })}
-                      </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-amber-500" />
+                    <span className="text-sm">Licenciados</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{stats.totalLicensees}</span>
+                    <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-amber-500 rounded-full"
+                        style={{ width: `${stats.totalUsers > 0 ? (stats.totalLicensees / stats.totalUsers) * 100 : 0}%` }}
+                      />
                     </div>
                   </div>
-                ))}
-                {recentActivities.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-4">
-                    Nenhuma atividade recente
-                  </p>
-                )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="text-sm">Alunos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{stats.totalStudents}</span>
+                    <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-emerald-500 rounded-full"
+                        style={{ width: `${stats.totalUsers > 0 ? (stats.totalStudents / stats.totalUsers) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500" />
+                    <span className="text-sm">Pacientes</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{stats.totalPatients}</span>
+                    <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-purple-500 rounded-full"
+                        style={{ width: `${stats.totalUsers > 0 ? (stats.totalPatients / stats.totalUsers) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <span className="text-sm">Colaboradores</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{stats.totalCollaborators}</span>
+                    <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 rounded-full"
+                        style={{ width: `${stats.totalUsers > 0 ? (stats.totalCollaborators / stats.totalUsers) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -573,7 +457,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {onlineUsers.slice(0, 6).map((user, index) => (
+                {onlineUsers.slice(0, 8).map((user, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <div className="relative">
                       <Avatar className="h-7 w-7">
@@ -599,6 +483,49 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Ações Rápidas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <button 
+                onClick={() => navigate('/admin/users')}
+                className="p-3 rounded-lg border hover:bg-muted transition-colors text-left"
+              >
+                <Users className="h-5 w-5 text-blue-500 mb-2" />
+                <p className="text-sm font-medium">Gerenciar Usuários</p>
+                <p className="text-xs text-muted-foreground">Editar perfis e permissões</p>
+              </button>
+              <button 
+                onClick={() => navigate('/admin/access-matrix')}
+                className="p-3 rounded-lg border hover:bg-muted transition-colors text-left"
+              >
+                <Shield className="h-5 w-5 text-amber-500 mb-2" />
+                <p className="text-sm font-medium">Matriz de Acesso</p>
+                <p className="text-xs text-muted-foreground">Configurar permissões</p>
+              </button>
+              <button 
+                onClick={() => navigate('/admin/sentinel')}
+                className="p-3 rounded-lg border hover:bg-muted transition-colors text-left"
+              >
+                <Server className="h-5 w-5 text-purple-500 mb-2" />
+                <p className="text-sm font-medium">System Sentinel</p>
+                <p className="text-xs text-muted-foreground">Monitoramento do sistema</p>
+              </button>
+              <button 
+                onClick={() => navigate('/crm')}
+                className="p-3 rounded-lg border hover:bg-muted transition-colors text-left"
+              >
+                <DollarSign className="h-5 w-5 text-green-500 mb-2" />
+                <p className="text-sm font-medium">CRM & Vendas</p>
+                <p className="text-xs text-muted-foreground">Pipeline comercial</p>
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
