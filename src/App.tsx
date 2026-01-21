@@ -89,7 +89,8 @@ import { NeoTeamSidebar } from "./neohub/components/NeoTeamSidebar";
 import { 
   NeoTeamHome, 
   NeoTeamSchedule, 
-  NeoTeamWaitingRoom, 
+  NeoTeamWaitingRoom,
+  NeoTeamWaitingRoomReports,
   NeoTeamDoctorView,
   NeoTeamPatients, 
   NeoTeamMedicalRecords, 
@@ -244,6 +245,7 @@ function NeoTeamRoutes() {
           <Route index element={<NeoTeamHome />} />
           <Route path="schedule" element={<NeoTeamSchedule />} />
           <Route path="waiting-room" element={<NeoTeamWaitingRoom />} />
+          <Route path="waiting-room/reports" element={<NeoTeamWaitingRoomReports />} />
           <Route path="doctor-view" element={<NeoTeamDoctorView />} />
           <Route path="patients" element={<NeoTeamPatients />} />
           <Route path="medical-records" element={<NeoTeamMedicalRecords />} />

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation } from '@tanstack/react-query';
 
 export type TriageStatus = 'em_espera' | 'nao_precisa' | 'triado' | 'urgente';
 export type MoodStatus = 'calmo' | 'ansioso' | 'irritado' | 'tranquilo';
@@ -10,8 +11,8 @@ export interface WaitingPatient {
   appointment_id?: string;
   patient_id?: string;
   patient_name: string;
+  patient_phone?: string;
   scheduled_time?: string;
-  appointment_time?: string;
   arrival_time: string;
   type: string;
   doctor_name?: string;
@@ -198,8 +199,11 @@ export function useNeoTeamWaitingRoom(branch?: string) {
     return updatePatient(id, { type });
   };
 
-  const callPatient = async (id: string, room?: string) => {
+  const callPatient = async (id: string, room?: string, notifyWhatsApp = true) => {
     try {
+      // Get patient data first for WhatsApp notification
+      const patient = patients.find(p => p.id === id);
+      
       const { error } = await supabase
         .from('neoteam_waiting_room')
         .update({
@@ -215,6 +219,31 @@ export function useNeoTeamWaitingRoom(branch?: string) {
         title: 'Paciente Chamado',
         description: room ? `Direcionado para ${room}` : 'Aguardando direcionamento',
       });
+
+      // Send WhatsApp notification if patient has phone
+      if (notifyWhatsApp && patient?.patient_phone) {
+        try {
+          const response = await supabase.functions.invoke('notify-patient-called', {
+            body: {
+              patient_name: patient.patient_name,
+              patient_phone: patient.patient_phone,
+              room: room,
+              doctor_name: patient.doctor_name,
+              branch: patient.branch,
+            },
+          });
+
+          if (response.data?.success) {
+            toast({
+              title: 'WhatsApp Enviado',
+              description: `Notificação enviada para ${patient.patient_name}`,
+            });
+          }
+        } catch (whatsappError) {
+          console.log('WhatsApp notification failed:', whatsappError);
+          // Don't throw - WhatsApp failure shouldn't block the call
+        }
+      }
     } catch (error) {
       console.error('Error calling patient:', error);
       toast({
