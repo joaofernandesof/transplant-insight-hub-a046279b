@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -12,18 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  Clock, Users, Bell, Search, UserCheck,
-  AlertCircle, CheckCircle2, Timer, Volume2,
-  ArrowRight, MoreVertical, Phone, Loader2,
-  Plus, RefreshCw
+  Clock, RefreshCw, Trash2, Settings, Plus, Loader2
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -32,420 +30,413 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { format, differenceInMinutes } from 'date-fns';
+import { format, differenceInMinutes, differenceInHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useNeoTeamWaitingRoom, WaitingPatient, AddToWaitingRoom } from '@/neohub/hooks/useNeoTeamWaitingRoom';
+import { useNeoTeamWaitingRoom, TriageStatus, MoodStatus, AddToWaitingRoom } from '@/neohub/hooks/useNeoTeamWaitingRoom';
 
-type WaitingStatus = 'arrived' | 'waiting' | 'called' | 'in_service' | 'completed';
+const branches = [
+  { id: 'fortaleza', name: 'Filial Fortaleza' },
+  { id: 'juazeiro', name: 'Filial Juazeiro' },
+];
 
-const statusConfig: Record<WaitingStatus, { label: string; color: string; bg: string }> = {
-  arrived: { label: 'Chegou', color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-  waiting: { label: 'Aguardando', color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
-  called: { label: 'Chamado', color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-  in_service: { label: 'Em Atendimento', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
-  completed: { label: 'Concluído', color: 'text-gray-600', bg: 'bg-gray-100 dark:bg-gray-800' },
-};
+const typeOptions = [
+  { value: 'consulta', label: 'Consulta', color: 'bg-blue-100 text-blue-700' },
+  { value: 'retorno', label: 'Retorno', color: 'bg-purple-100 text-purple-700' },
+  { value: 'procedimento', label: 'Procedimento', color: 'bg-green-100 text-green-700' },
+  { value: 'exame', label: 'Exame', color: 'bg-amber-100 text-amber-700' },
+];
 
-const priorityConfig = {
-  normal: { label: 'Normal', color: 'bg-gray-100 text-gray-600' },
-  high: { label: 'Alta', color: 'bg-amber-100 text-amber-600' },
-  urgent: { label: 'Urgente', color: 'bg-red-100 text-red-600' },
-};
+const triageOptions: { value: TriageStatus; label: string; color: string }[] = [
+  { value: 'em_espera', label: 'Em Espera', color: 'bg-yellow-100 text-yellow-700' },
+  { value: 'nao_precisa', label: 'Não Precisa', color: 'bg-gray-100 text-gray-700' },
+  { value: 'triado', label: 'Triado', color: 'bg-green-100 text-green-700' },
+  { value: 'urgente', label: 'Urgente', color: 'bg-red-100 text-red-700' },
+];
 
-const rooms = ['Sala 1', 'Sala 2', 'Sala 3', 'Consultório 1', 'Consultório 2'];
+const moodOptions: { value: MoodStatus; label: string; color: string }[] = [
+  { value: 'calmo', label: 'Calmo', color: 'bg-green-100 text-green-700' },
+  { value: 'tranquilo', label: 'Tranquilo', color: 'bg-blue-100 text-blue-700' },
+  { value: 'ansioso', label: 'Ansioso', color: 'bg-yellow-100 text-yellow-700' },
+  { value: 'irritado', label: 'Irritado', color: 'bg-red-100 text-red-700' },
+];
 
 export default function NeoTeamWaitingRoom() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<WaitingStatus | 'all'>('all');
+  const [selectedBranch, setSelectedBranch] = useState(branches[0].id);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [addPatientOpen, setAddPatientOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<string>('');
+  const [deletePatient, setDeletePatient] = useState<string | null>(null);
   
   // New patient form
   const [newPatient, setNewPatient] = useState<AddToWaitingRoom>({
     patient_name: '',
+    scheduled_time: '',
     type: 'consulta',
-    doctor_name: '',
-    priority: 'normal',
+    branch: selectedBranch,
   });
 
   const {
     patients,
     isLoading,
-    stats,
     addToWaitingRoom,
-    callPatient,
-    startService,
-    completeService,
+    updateTriage,
+    updateMood,
+    updateObservations,
+    updateType,
     removeFromWaitingRoom,
-    updatePriority,
     refetch,
-  } = useNeoTeamWaitingRoom();
+  } = useNeoTeamWaitingRoom(selectedBranch);
 
-  const now = new Date();
+  // Update time every second for real-time wait time display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const filteredPatients = patients.filter(p => {
-    const matchesSearch = p.patient_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === 'all' || p.status === filter;
-    return matchesSearch && matchesFilter;
-  });
+  // Update branch in new patient form
+  useEffect(() => {
+    setNewPatient(prev => ({ ...prev, branch: selectedBranch }));
+  }, [selectedBranch]);
 
-  const getWaitTime = (arrivalTime: string) => {
-    const minutes = differenceInMinutes(now, new Date(arrivalTime));
-    if (minutes < 60) return `${minutes}min`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}min`;
+  const formatWaitTime = (arrivalTime: string) => {
+    const now = currentTime;
+    const arrival = new Date(arrivalTime);
+    const totalMinutes = differenceInMinutes(now, arrival);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    return `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m`;
+  };
+
+  const formatTimeOnly = (timeString?: string) => {
+    if (!timeString) return '--:--';
+    // If it's already in HH:mm format
+    if (timeString.includes(':') && !timeString.includes('T')) {
+      return timeString.substring(0, 5);
+    }
+    // If it's an ISO string
+    try {
+      return format(new Date(timeString), 'HH:mm');
+    } catch {
+      return '--:--';
+    }
   };
 
   const handleAddPatient = async () => {
     if (!newPatient.patient_name) return;
     
-    await addToWaitingRoom(newPatient);
+    await addToWaitingRoom({
+      ...newPatient,
+      scheduled_time: newPatient.scheduled_time || undefined,
+    });
+    
     setNewPatient({
       patient_name: '',
+      scheduled_time: '',
       type: 'consulta',
-      doctor_name: '',
-      priority: 'normal',
+      branch: selectedBranch,
     });
     setAddPatientOpen(false);
   };
 
-  const handleCallPatient = async (patient: WaitingPatient) => {
-    await callPatient(patient.id, selectedRoom || undefined);
-    setSelectedRoom('');
+  const handleDeleteConfirm = async () => {
+    if (deletePatient) {
+      await removeFromWaitingRoom(deletePatient);
+      setDeletePatient(null);
+    }
   };
 
-  const handleStartService = async (patient: WaitingPatient, room: string) => {
-    await startService(patient.id, room);
+  const getTypeConfig = (type: string) => {
+    return typeOptions.find(t => t.value === type) || typeOptions[0];
+  };
+
+  const getTriageConfig = (triage: TriageStatus) => {
+    return triageOptions.find(t => t.value === triage) || triageOptions[0];
+  };
+
+  const getMoodConfig = (mood: MoodStatus) => {
+    return moodOptions.find(m => m.value === mood) || moodOptions[0];
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="min-h-screen bg-muted/30">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Clock className="h-6 w-6 text-amber-500" />
-            Sala de Espera
-            <Badge variant="outline" className="ml-2 animate-pulse">
-              🔴 Tempo Real
-            </Badge>
-          </h1>
-          <p className="text-muted-foreground">
-            {format(now, "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={refetch}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Dialog open={addPatientOpen} onOpenChange={setAddPatientOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Adicionar Paciente
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar à Sala de Espera</DialogTitle>
-                <DialogDescription>
-                  Registre a chegada de um paciente
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label>Nome do Paciente *</Label>
-                  <Input
-                    placeholder="Nome completo"
-                    value={newPatient.patient_name}
-                    onChange={(e) => setNewPatient({ ...newPatient, patient_name: e.target.value })}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Tipo</Label>
-                    <Select 
-                      value={newPatient.type} 
-                      onValueChange={(v) => setNewPatient({ ...newPatient, type: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="consulta">Consulta</SelectItem>
-                        <SelectItem value="retorno">Retorno</SelectItem>
-                        <SelectItem value="procedimento">Procedimento</SelectItem>
-                        <SelectItem value="exame">Exame</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Prioridade</Label>
-                    <Select 
-                      value={newPatient.priority} 
-                      onValueChange={(v) => setNewPatient({ ...newPatient, priority: v as 'normal' | 'high' | 'urgent' })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="urgent">Urgente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Médico (opcional)</Label>
-                  <Input
-                    placeholder="Nome do médico"
-                    value={newPatient.doctor_name || ''}
-                    onChange={(e) => setNewPatient({ ...newPatient, doctor_name: e.target.value })}
-                  />
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <Button variant="outline" onClick={() => setAddPatientOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleAddPatient} disabled={!newPatient.patient_name}>
-                    Adicionar
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-              <Users className="h-6 w-6 text-amber-600" />
-            </div>
+      <div className="bg-[#1e3a5f] text-white px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Clock className="h-8 w-8" />
             <div>
-              <p className="text-2xl font-bold">{stats.waiting}</p>
-              <p className="text-sm text-muted-foreground">Aguardando</p>
+              <h1 className="text-2xl font-bold">FILA DE ESPERA</h1>
+              <p className="text-sm opacity-80">Gerenciamento de Pacientes</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-              <Bell className="h-6 w-6 text-purple-600" />
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <p className="text-sm opacity-80">DATA</p>
+              <p className="font-semibold">{format(currentTime, 'dd/MM/yyyy')}</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.called}</p>
-              <p className="text-sm text-muted-foreground">Chamados</p>
+            <div className="text-right">
+              <p className="text-sm opacity-80">HORA</p>
+              <p className="font-semibold text-xl">{format(currentTime, 'HH:mm')}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <UserCheck className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.inService}</p>
-              <p className="text-sm text-muted-foreground">Em Atendimento</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <Timer className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.avgWaitTime}min</p>
-              <p className="text-sm text-muted-foreground">Tempo Médio</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar paciente..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {(['all', 'arrived', 'waiting', 'called', 'in_service'] as const).map((status) => (
-            <Button
-              key={status}
-              variant={filter === status ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter(status)}
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              className="rounded-full"
+              onClick={refetch}
             >
-              {status === 'all' ? 'Todos' : statusConfig[status].label}
+              <RefreshCw className="h-4 w-4" />
             </Button>
-          ))}
+            <Button variant="secondary" size="icon" className="rounded-full">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Patient List */}
-      <div className="grid gap-4">
-        {isLoading ? (
-          <Card>
-            <CardContent className="p-12 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </CardContent>
-          </Card>
-        ) : filteredPatients.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <p className="text-lg font-medium">Nenhum paciente na sala de espera</p>
-              <p className="text-muted-foreground">Os pacientes aparecerão aqui quando chegarem</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredPatients.map((patient) => (
-            <Card 
-              key={patient.id} 
-              className={`transition-all hover:shadow-md ${
-                patient.priority === 'urgent' ? 'border-l-4 border-l-red-500' :
-                patient.priority === 'high' ? 'border-l-4 border-l-amber-500' : ''
-              }`}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                        {patient.patient_name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{patient.patient_name}</p>
-                        {patient.priority !== 'normal' && (
-                          <Badge className={priorityConfig[patient.priority].color}>
-                            {priorityConfig[patient.priority].label}
-                          </Badge>
-                        )}
-                        <Badge 
-                          variant="secondary" 
-                          className={`${statusConfig[patient.status].bg} ${statusConfig[patient.status].color}`}
-                        >
-                          {statusConfig[patient.status].label}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                        {patient.appointment_time && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Agendado: {patient.appointment_time}
-                          </span>
-                        )}
-                        <span className="flex items-center gap-1">
-                          <Timer className="h-3 w-3" />
-                          Espera: {getWaitTime(patient.arrival_time)}
-                        </span>
-                        <span>{patient.type}</span>
-                        {patient.doctor_name && <span>• {patient.doctor_name}</span>}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {patient.room && (
-                      <Badge variant="outline" className="font-medium">
-                        {patient.room}
-                      </Badge>
-                    )}
-                    {['arrived', 'waiting'].includes(patient.status) && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" className="gap-2">
-                            <Volume2 className="h-4 w-4" />
-                            Chamar
+      <div className="p-6 space-y-6">
+        {/* Branch Tabs */}
+        <Tabs value={selectedBranch} onValueChange={setSelectedBranch}>
+          <TabsList className="bg-transparent gap-2 p-0 h-auto">
+            {branches.map((branch) => (
+              <TabsTrigger
+                key={branch.id}
+                value={branch.id}
+                className="data-[state=active]:bg-[#1e3a5f] data-[state=active]:text-white px-6 py-2 rounded-md"
+              >
+                {branch.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        {/* Waiting List Table */}
+        <Card>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">PACIENTE ↕</TableHead>
+                    <TableHead className="text-center font-semibold">
+                      HORÁRIO<br/>AGENDAMENTO ↕
+                    </TableHead>
+                    <TableHead className="text-center font-semibold">
+                      HORÁRIO<br/>CHEGADA ↕
+                    </TableHead>
+                    <TableHead className="text-center font-semibold">
+                      TEMPO DE<br/>ESPERA ↕
+                    </TableHead>
+                    <TableHead className="text-center font-semibold">TIPO ↕</TableHead>
+                    <TableHead className="text-center font-semibold">TRIAGEM ↕</TableHead>
+                    <TableHead className="text-center font-semibold">HUMOR ↕</TableHead>
+                    <TableHead className="font-semibold">OBSERVAÇÕES</TableHead>
+                    <TableHead className="text-center font-semibold">AÇÃO</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {patients.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                        Nenhum paciente na fila de espera
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    patients.map((patient) => (
+                      <TableRow key={patient.id} className="hover:bg-muted/30">
+                        <TableCell className="font-medium py-4">
+                          <div className="border rounded-md px-3 py-2 bg-background">
+                            {patient.patient_name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="border rounded-md px-3 py-2 bg-background inline-block min-w-[80px]">
+                            {formatTimeOnly(patient.scheduled_time)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="border rounded-md px-3 py-2 bg-background inline-block min-w-[80px]">
+                            {format(new Date(patient.arrival_time), 'HH:mm')}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-mono font-semibold">
+                          {formatWaitTime(patient.arrival_time)}
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={patient.type}
+                            onValueChange={(value) => updateType(patient.id, value)}
+                          >
+                            <SelectTrigger className={`w-[120px] ${getTypeConfig(patient.type).color} border-0`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {typeOptions.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={patient.triage}
+                            onValueChange={(value) => updateTriage(patient.id, value as TriageStatus)}
+                          >
+                            <SelectTrigger className={`w-[120px] ${getTriageConfig(patient.triage).color} border-0`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {triageOptions.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={patient.mood}
+                            onValueChange={(value) => updateMood(patient.id, value as MoodStatus)}
+                          >
+                            <SelectTrigger className={`w-[100px] ${getMoodConfig(patient.mood).color} border-0`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {moodOptions.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            placeholder=""
+                            defaultValue={patient.observations || ''}
+                            onBlur={(e) => {
+                              if (e.target.value !== patient.observations) {
+                                updateObservations(patient.id, e.target.value);
+                              }
+                            }}
+                            className="min-w-[150px]"
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => setDeletePatient(patient.id)}
+                          >
+                            <Trash2 className="h-5 w-5" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {rooms.map((room) => (
-                            <DropdownMenuItem 
-                              key={room}
-                              onClick={() => callPatient(patient.id, room)}
-                            >
-                              {room}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                    {patient.status === 'called' && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="outline" className="gap-2">
-                            <ArrowRight className="h-4 w-4" />
-                            Iniciar
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {rooms.map((room) => (
-                            <DropdownMenuItem 
-                              key={room}
-                              onClick={() => handleStartService(patient, room)}
-                            >
-                              {room}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                    {patient.status === 'in_service' && (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="gap-2"
-                        onClick={() => completeService(patient.id)}
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                        Finalizar
-                      </Button>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => updatePriority(patient.id, 'high')}>
-                          Prioridade Alta
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updatePriority(patient.id, 'urgent')}>
-                          Prioridade Urgente
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updatePriority(patient.id, 'normal')}>
-                          Prioridade Normal
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={() => removeFromWaitingRoom(patient.id)}
-                        >
-                          Remover da Fila
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Add New Patient Section */}
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-center mb-4">Adicionar Novo Paciente</h3>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+              <div className="space-y-2">
+                <Label>Nome do Paciente</Label>
+                <Input
+                  placeholder="Nome completo"
+                  value={newPatient.patient_name}
+                  onChange={(e) => setNewPatient({ ...newPatient, patient_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Horário Agendamento</Label>
+                <Input
+                  type="time"
+                  value={newPatient.scheduled_time || ''}
+                  onChange={(e) => setNewPatient({ ...newPatient, scheduled_time: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo</Label>
+                <Select
+                  value={newPatient.type}
+                  onValueChange={(value) => setNewPatient({ ...newPatient, type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {typeOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Médico (opcional)</Label>
+                <Input
+                  placeholder="Nome do médico"
+                  value={newPatient.doctor_name || ''}
+                  onChange={(e) => setNewPatient({ ...newPatient, doctor_name: e.target.value })}
+                />
+              </div>
+              <Button 
+                onClick={handleAddPatient}
+                disabled={!newPatient.patient_name}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletePatient} onOpenChange={() => setDeletePatient(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover Paciente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover este paciente da fila de espera?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
