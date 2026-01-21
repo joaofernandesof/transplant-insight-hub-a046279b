@@ -9,7 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   Home, Calendar, Clock, Users, FileText,
   Settings, LogOut, Menu, X, ChevronLeft,
-  Bell, Folder
+  Bell, Folder, Stethoscope
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,8 @@ interface NeoTeamSidebarProps {
 const menuItems = [
   { id: 'home', title: 'Início', icon: Home, route: '/neoteam' },
   { id: 'schedule', title: 'Agenda', icon: Calendar, route: '/neoteam/schedule' },
-  { id: 'waiting-room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room', badge: 4 },
+  { id: 'waiting-room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
+  { id: 'doctor-view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view' },
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
@@ -145,12 +146,7 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
                 >
                   <item.icon className="h-5 w-5 flex-shrink-0" />
                   {!isCollapsed && (
-                    <>
-                      <span className="flex-1 text-left">{item.title}</span>
-                      {item.badge && (
-                        <Badge className="bg-amber-500 text-white">{item.badge}</Badge>
-                      )}
-                    </>
+                    <span className="flex-1 text-left">{item.title}</span>
                   )}
                 </Button>
               ))}

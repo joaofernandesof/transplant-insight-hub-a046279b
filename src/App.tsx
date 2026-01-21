@@ -90,6 +90,7 @@ import {
   NeoTeamHome, 
   NeoTeamSchedule, 
   NeoTeamWaitingRoom, 
+  NeoTeamDoctorView,
   NeoTeamPatients, 
   NeoTeamMedicalRecords, 
   NeoTeamDocuments,
@@ -242,6 +243,7 @@ function NeoTeamRoutes() {
           <Route index element={<NeoTeamHome />} />
           <Route path="schedule" element={<NeoTeamSchedule />} />
           <Route path="waiting-room" element={<NeoTeamWaitingRoom />} />
+          <Route path="doctor-view" element={<NeoTeamDoctorView />} />
           <Route path="patients" element={<NeoTeamPatients />} />
           <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
           <Route path="documents" element={<NeoTeamDocuments />} />
