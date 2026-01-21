@@ -18,7 +18,6 @@ import {
   Globe,
   Link2,
   MessageSquare,
-  Plus,
   RefreshCw,
   Send,
   Server,
@@ -30,7 +29,7 @@ import {
   Wifi,
   WifiOff,
   XCircle,
-  Zap
+  BarChart3,
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
 import { cn } from "@/lib/utils";
@@ -44,9 +43,9 @@ import {
   useSentinelMutations,
   useSentinelStats,
   useRealtimeAlerts,
-  type MonitoredSystem,
   type SystemAlert,
 } from "@/hooks/useSystemSentinel";
+import { AddSystemDialog, SentinelExportPanel, SentinelMetricsChart, SentinelScheduler } from "@/components/sentinel";
 
 // Icon mapper for system types
 const getSystemIcon = (type: string) => {
@@ -194,10 +193,7 @@ export default function SystemSentinel() {
               <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
               Verificar Agora
             </Button>
-            <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Adicionar Sistema
-            </Button>
+            <AddSystemDialog />
           </div>
         </div>
 
@@ -258,16 +254,20 @@ export default function SystemSentinel() {
 
         {/* Tabs */}
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-4">
+          <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="dashboard" className="gap-1">
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="metrics" className="gap-1">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Métricas</span>
             </TabsTrigger>
             <TabsTrigger value="alerts" className="gap-1 relative">
               <Bell className="h-4 w-4" />
               <span className="hidden sm:inline">Alertas</span>
               {activeAlerts.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] rounded-full flex items-center justify-center">
                   {activeAlerts.length}
                 </span>
               )}
@@ -437,6 +437,17 @@ export default function SystemSentinel() {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Metrics Tab */}
+          <TabsContent value="metrics" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Métricas Históricas</h3>
+                <p className="text-sm text-muted-foreground">Análise de performance e disponibilidade</p>
+              </div>
+            </div>
+            <SentinelMetricsChart />
           </TabsContent>
 
           {/* Alerts Tab */}
@@ -674,6 +685,19 @@ export default function SystemSentinel() {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
+            {/* Scheduler Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Agendamento e Automação</h3>
+              <SentinelScheduler />
+            </div>
+
+            {/* Export Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Exportação e BI</h3>
+              <SentinelExportPanel />
+            </div>
+
+            {/* Quick Settings */}
             <div className="grid gap-6 md:grid-cols-2">
               {/* Integration Settings */}
               <Card>
@@ -710,60 +734,44 @@ export default function SystemSentinel() {
                           </Badge>
                         </div>
                       ))}
+                      {(!systems || systems.length === 0) && (
+                        <p className="text-sm text-muted-foreground">Nenhum sistema cadastrado</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Export Settings */}
+              {/* Quick Actions */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Exportação & BI</CardTitle>
-                  <CardDescription>Exporte dados para ferramentas de análise</CardDescription>
+                  <CardTitle className="text-base">Ações Rápidas</CardTitle>
+                  <CardDescription>Gerencie sistemas e alertas</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="pt-4 space-y-2">
-                    <h4 className="font-medium mb-3">Exportar Para</h4>
+                <CardContent className="space-y-3">
+                  <AddSystemDialog>
                     <Button variant="outline" className="w-full justify-start gap-2">
-                      <Globe className="h-4 w-4" />
-                      Power BI
+                      <Server className="h-4 w-4" />
+                      Adicionar Novo Sistema
                     </Button>
-                    <Button variant="outline" className="w-full justify-start gap-2">
-                      <Globe className="h-4 w-4" />
-                      Looker Studio
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start gap-2">
-                      <Globe className="h-4 w-4" />
-                      CSV/Excel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Monitoring Config */}
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-base">Configurações de Monitoramento</CardTitle>
-                  <CardDescription>Defina intervalos e limites de alerta</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-6 md:grid-cols-3">
-                    <div className="grid gap-2">
-                      <Label>Intervalo de Verificação</Label>
-                      <Input type="number" defaultValue={60} />
-                      <p className="text-xs text-muted-foreground">Segundos entre cada check</p>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Limite de Latência (ms)</Label>
-                      <Input type="number" defaultValue={500} />
-                      <p className="text-xs text-muted-foreground">Alerta se ultrapassar</p>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Tentativas antes de Alerta</Label>
-                      <Input type="number" defaultValue={3} />
-                      <p className="text-xs text-muted-foreground">Falhas consecutivas</p>
-                    </div>
-                  </div>
+                  </AddSystemDialog>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                  >
+                    <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+                    Verificar Todos os Sistemas
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2"
+                    onClick={() => mutations.resolveAlert.mutate('all')}
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Resolver Todos os Alertas
+                  </Button>
                 </CardContent>
               </Card>
             </div>
