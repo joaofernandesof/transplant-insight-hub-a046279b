@@ -1,300 +1,392 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useState } from 'react';
 import { 
-  BookOpen, 
-  AlertTriangle, 
-  Clock,
-  CheckCircle2,
-  Pill, 
-  Droplets,
-  Heart,
-  Scissors,
-  Sparkles
+  Droplets, Clock, Bed, Shirt, Sun, Dumbbell, 
+  Coffee, Scissors, AlertCircle, CheckCircle2, 
+  Calendar, Trophy, Star, Sparkles, ShowerHead,
+  Pill, Camera, Phone, Youtube, Gift, Heart,
+  ChevronDown, ChevronUp, Lock, Unlock, Award,
+  Wine, Waves, Cat, Ban
 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
-interface OrientationItem {
-  title: string;
-  content: string;
-}
+// Timeline phases for gamification
+const timelinePhases = [
+  { day: 0, label: 'Cirurgia', icon: Scissors },
+  { day: 2, label: 'Curativo', icon: Droplets },
+  { day: 8, label: 'Toque leve', icon: ShowerHead },
+  { day: 15, label: 'Normalizar', icon: Sparkles },
+  { day: 30, label: 'Retorno', icon: Calendar },
+  { day: 90, label: 'Crescimento', icon: Trophy },
+];
 
-interface Orientation {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  items: OrientationItem[];
-}
-
-const beforeOrientations: Orientation[] = [
+// Day-by-day washing protocol
+const washingProtocol = [
   {
-    id: 'pre-transplant',
-    title: 'Transplante Capilar',
-    description: 'Orientações para os dias que antecedem o procedimento',
-    icon: Scissors,
-    items: [
-      {
-        title: 'Medicamentos a evitar',
-        content: 'Suspenda o uso de aspirina, anti-inflamatórios e suplementos vitamínicos (especialmente vitamina E e ômega 3) pelo menos 7 dias antes do procedimento. Esses medicamentos podem aumentar o sangramento durante a cirurgia.'
-      },
-      {
-        title: 'Álcool e tabaco',
-        content: 'Evite consumo de bebidas alcoólicas por 72 horas antes do procedimento. Se você fuma, reduza significativamente ou suspenda o consumo por pelo menos 1 semana antes, pois o tabaco prejudica a cicatrização.'
-      },
-      {
-        title: 'Alimentação',
-        content: 'Na noite anterior e no dia do procedimento, faça refeições leves. Evite cafeína em excesso. Tome um café da manhã nutritivo, pois o procedimento pode durar várias horas.'
-      },
-      {
-        title: 'Vestimenta',
-        content: 'Use roupas confortáveis, preferencialmente com abertura frontal (botões ou zíper) para não precisar passar pela cabeça após o procedimento.'
-      },
-      {
-        title: 'Cabelo',
-        content: 'Lave bem o cabelo no dia do procedimento. Não aplique gel, pomada ou qualquer produto capilar. Venha com o cabelo limpo e seco.'
-      }
-    ]
-  },
-  {
-    id: 'pre-prp',
-    title: 'PRP Capilar',
-    description: 'Preparação para a sessão de PRP',
+    days: '1-2',
+    title: 'Apenas Soro',
     icon: Droplets,
-    items: [
-      {
-        title: 'Hidratação',
-        content: 'Beba bastante água nos dias anteriores ao procedimento. Uma boa hidratação melhora a qualidade do plasma e facilita a coleta de sangue.'
-      },
-      {
-        title: 'Medicamentos',
-        content: 'Evite anti-inflamatórios por 3 dias antes do procedimento. Mantenha seus medicamentos de uso contínuo normalmente, comunicando à equipe médica.'
-      },
-      {
-        title: 'Alimentação',
-        content: 'Não venha em jejum. Faça uma refeição leve antes do procedimento para evitar mal-estar durante a coleta de sangue.'
-      }
+    color: 'from-blue-400 to-blue-600',
+    tasks: [
+      'Borrifar soro fisiológico a cada hora',
+      'Não lavar com água',
+      'Não tocar na área receptora',
     ]
   },
   {
-    id: 'pre-meds',
-    title: 'Medicamentos',
-    description: 'Orientações sobre medicamentos de uso contínuo',
-    icon: Pill,
-    items: [
-      {
-        title: 'Minoxidil',
-        content: 'Aplique na dose e frequência prescritas. Resultados aparecem após 3-6 meses de uso contínuo. Não interrompa sem orientação médica.'
-      },
-      {
-        title: 'Finasterida/Dutasterida',
-        content: 'Tome sempre no mesmo horário. Os resultados são progressivos e mantidos com uso contínuo. Comunique qualquer efeito colateral ao seu médico.'
-      },
-      {
-        title: 'Suplementos',
-        content: 'Use apenas os suplementos prescritos. Biotina, ferro e outros nutrientes podem ser indicados conforme avaliação individual.'
-      }
-    ]
-  }
-];
-
-const afterOrientations: Orientation[] = [
-  {
-    id: 'post-transplant',
-    title: 'Transplante Capilar',
-    description: 'Cuidados essenciais para os primeiros dias e semanas',
-    icon: Heart,
-    items: [
-      {
-        title: 'Primeiras 48 horas',
-        content: 'Mantenha a cabeça elevada ao dormir (use 2-3 travesseiros). Evite qualquer contato com a área transplantada. Não lave o cabelo nas primeiras 48 horas. Aplique o spray de soro fisiológico conforme orientado.'
-      },
-      {
-        title: 'Lavagem do cabelo',
-        content: 'A partir do 3º dia, inicie a lavagem suave com o shampoo prescrito. Use água morna e movimentos delicados, sem esfregar. Seque com toalha macia, apenas pressionando levemente.'
-      },
-      {
-        title: 'Crostas e cascas',
-        content: 'As crostas são normais e devem cair naturalmente em 7-14 dias. NÃO coce, arranhe ou tente removê-las manualmente. Isso pode danificar os folículos transplantados.'
-      },
-      {
-        title: 'Atividades físicas',
-        content: 'Evite exercícios físicos intensos por 30 dias. Caminhadas leves são permitidas após 7 dias. Evite piscina, sauna e mar por 30 dias.'
-      },
-      {
-        title: 'Exposição solar',
-        content: 'Evite exposição direta ao sol por 30 dias. Após este período, use sempre protetor solar ou boné. A radiação UV pode danificar os folículos em recuperação.'
-      },
-      {
-        title: 'Queda temporária',
-        content: 'Entre 2-6 semanas, os fios transplantados podem cair. Isso é NORMAL e esperado (shock loss). Os folículos permanecem e novos fios nascerão em 3-4 meses.'
-      }
+    days: '3-4',
+    title: 'Espuma Suave',
+    icon: ShowerHead,
+    color: 'from-cyan-400 to-cyan-600',
+    tasks: [
+      'Esfregar só área doadora',
+      'Espuma na mão → área receptora',
+      'Caneca para enxaguar',
     ]
   },
   {
-    id: 'post-prp',
-    title: 'PRP Capilar',
-    description: 'Cuidados para potencializar os resultados',
+    days: '5-7',
+    title: 'Lavagem Cuidadosa',
+    icon: Droplets,
+    color: 'from-teal-400 to-teal-600',
+    tasks: [
+      'Aplicar espuma suavemente',
+      'Água morna ou fria apenas',
+      'Secar ao vento (sem toalha)',
+    ]
+  },
+  {
+    days: '8-15',
+    title: 'Toque Circular',
+    icon: ShowerHead,
+    color: 'from-emerald-400 to-emerald-600',
+    tasks: [
+      'Movimentos circulares leves',
+      'Óleo de girassol (dia 10+)',
+      'Crostas devem soltar naturalmente',
+    ]
+  },
+  {
+    days: '15+',
+    title: 'Normal',
     icon: Sparkles,
-    items: [
-      {
-        title: 'Primeiras horas',
-        content: 'Você pode sentir leve desconforto ou sensibilidade no couro cabeludo. Isso é normal e passa em poucas horas. Evite tocar ou coçar a região tratada.'
-      },
-      {
-        title: 'Lavagem',
-        content: 'Evite lavar o cabelo nas primeiras 4-6 horas após o procedimento. Depois, pode lavar normalmente com seu shampoo habitual.'
-      },
-      {
-        title: 'Atividades',
-        content: 'Evite exercícios intensos e sauna por 24-48 horas. Atividades leves podem ser retomadas no mesmo dia.'
-      },
-      {
-        title: 'Resultados',
-        content: 'Os resultados do PRP são progressivos. A melhora começa a ser notada após 2-3 sessões, com resultados mais expressivos após o protocolo completo (geralmente 3-6 sessões).'
-      }
+    color: 'from-purple-400 to-purple-600',
+    tasks: [
+      'Chuveiro normal liberado',
+      'Shampoo regular ou prescrito',
+      'Massagens liberadas',
     ]
-  }
+  },
 ];
 
-const OrientationCard = ({ orientation }: { orientation: Orientation }) => (
-  <Card className="border-border/50 shadow-sm">
-    <CardHeader className="pb-3">
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-[hsl(var(--neocare-primary))]/10 rounded-lg shrink-0">
-          <orientation.icon className="h-5 w-5 text-[hsl(var(--neocare-primary))]" />
-        </div>
-        <div>
-          <CardTitle className="text-base">{orientation.title}</CardTitle>
-          <CardDescription className="text-xs">{orientation.description}</CardDescription>
-        </div>
-      </div>
-    </CardHeader>
-    <CardContent className="pt-0">
-      <Accordion type="single" collapsible className="w-full">
-        {orientation.items.map((item, index) => (
-          <AccordionItem key={index} value={`item-${index}`} className="border-b-0">
-            <AccordionTrigger className="text-left hover:no-underline py-2 text-sm">
-              <span className="font-medium">{item.title}</span>
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-3">
-              {item.content}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </CardContent>
-  </Card>
-);
+// Quick reference cards with icons
+const quickRules = [
+  { icon: Bed, title: 'Dormir', rule: 'Barriga ↑', duration: '8d', color: 'bg-indigo-500' },
+  { icon: Coffee, title: 'Café', rule: 'Evitar', duration: '5d', color: 'bg-amber-600' },
+  { icon: Wine, title: 'Álcool', rule: 'Proibido', duration: '5d', color: 'bg-red-500' },
+  { icon: Dumbbell, title: 'Academia', rule: 'Proibido', duration: '10d', color: 'bg-orange-500' },
+  { icon: Shirt, title: 'Camisas', rule: 'Botão', duration: '14d', color: 'bg-blue-500' },
+  { icon: Sun, title: 'Sol', rule: 'Evitar', duration: '60d', color: 'bg-yellow-500' },
+  { icon: Waves, title: 'Piscina', rule: 'Proibido', duration: '60d', color: 'bg-cyan-500' },
+  { icon: Cat, title: 'Pets', rule: 'Afastar', duration: '5d', color: 'bg-pink-500' },
+];
+
+// Progress unlocks - gamification
+const progressUnlocks = [
+  { day: 3, label: 'Trabalho', icon: CheckCircle2 },
+  { day: 5, label: 'Caminhada', icon: Dumbbell },
+  { day: 5, label: 'Boné largo', icon: Shirt },
+  { day: 8, label: 'Dormir lado', icon: Bed },
+  { day: 10, label: 'Academia', icon: Dumbbell },
+  { day: 15, label: 'Chuveiro', icon: ShowerHead },
+  { day: 21, label: 'Capacete', icon: Shirt },
+  { day: 30, label: 'Esportes', icon: Trophy },
+  { day: 60, label: 'Mar', icon: Waves },
+];
+
+// FAQ items
+const faqItems = [
+  { q: 'Cabelo caiu todo?', a: 'Normal! Volta em ~90 dias.', icon: '🔄' },
+  { q: 'Massinha branca?', a: 'É mucina, não o bulbo.', icon: '✅' },
+  { q: 'Foliculite?', a: 'Shampoo + pomada. Não esprema!', icon: '⚠️' },
+  { q: 'Área dormente?', a: 'Normal até 8 meses.', icon: '⏳' },
+  { q: 'Medo de lavar?', a: 'Siga o protocolo. É essencial!', icon: '💪' },
+  { q: 'Quanto tempo a medicação?', a: 'Siga receita médica.', icon: '💊' },
+];
+
+// Photo schedule
+const photoSchedule = [
+  { period: 'Semana 1', freq: 'Diário', emoji: '📸📸📸📸📸📸📸' },
+  { period: 'Sem 2-4', freq: 'Semanal', emoji: '📸📸📸' },
+  { period: 'Mês 2-12', freq: 'Mensal', emoji: '📸' },
+];
+
+// Kit essentials
+const kitItems = [
+  { name: 'Shampoo Neo Spa', use: 'Até dia 15', icon: Droplets },
+  { name: 'Soro Fisiológico', use: 'Borrifar 1h/1h', icon: Droplets },
+  { name: 'Óleo de Girassol', use: 'A partir D10', icon: Sparkles },
+  { name: 'Água Termal', use: 'Alívio coceira', icon: Heart },
+];
 
 export default function NeoCareOrientations() {
+  const [expandedPhase, setExpandedPhase] = useState<string | null>('1-2');
+  const [showFaq, setShowFaq] = useState(false);
+  
+  // Simulate current day (would come from surgery date in real app)
+  const currentDay = 5;
+  const progressPercent = Math.min((currentDay / 30) * 100, 100);
+
   return (
-    <div className="p-4 lg:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-[hsl(var(--neocare-primary))]/10 rounded-xl">
-          <BookOpen className="h-6 w-6 text-[hsl(var(--neocare-primary))]" />
+    <div className="space-y-4 pb-8 max-w-4xl mx-auto">
+      {/* Header with Progress */}
+      <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-4 sm:p-6 text-white">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">Sua Recuperação</h1>
+            <p className="text-emerald-100 text-sm">Dia {currentDay} pós-transplante</p>
+          </div>
+          <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1.5">
+            <Trophy className="h-4 w-4" />
+            <span className="font-bold text-sm">{Math.round(progressPercent)}%</span>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold">Orientações</h1>
-          <p className="text-muted-foreground">Informações importantes para seu tratamento</p>
+        
+        {/* Timeline Progress */}
+        <div className="relative">
+          <Progress value={progressPercent} className="h-2 bg-white/20" />
+          <div className="flex justify-between mt-2">
+            {timelinePhases.map((phase, idx) => {
+              const PhaseIcon = phase.icon;
+              const isActive = currentDay >= phase.day;
+              const isCurrent = currentDay >= phase.day && (idx === timelinePhases.length - 1 || currentDay < timelinePhases[idx + 1].day);
+              return (
+                <div key={phase.day} className={cn("flex flex-col items-center transition-all", isActive ? "opacity-100" : "opacity-40")}>
+                  <div className={cn(
+                    "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center -mt-5",
+                    isCurrent ? "bg-white text-emerald-600 ring-2 ring-white/50 scale-110" : 
+                    isActive ? "bg-white/90 text-emerald-600" : "bg-white/30 text-white"
+                  )}>
+                    <PhaseIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] mt-1 font-medium hidden sm:block">{phase.label}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Alert */}
-      <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
-        <CardContent className="flex items-start gap-3 p-4">
-          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="font-medium text-amber-800 dark:text-amber-200">Importante</p>
-            <p className="text-amber-700 dark:text-amber-300">
-              Estas orientações são gerais. Sempre siga as instruções específicas fornecidas pelo seu médico, 
-              pois podem variar de acordo com seu caso particular.
-            </p>
+      {/* Quick Rules - Compact Grid */}
+      <div>
+        <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5 text-muted-foreground">
+          <Ban className="h-4 w-4 text-red-500" />
+          RESTRIÇÕES
+        </h2>
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+          {quickRules.map((rule) => {
+            const RuleIcon = rule.icon;
+            return (
+              <div key={rule.title} className="text-center p-2 rounded-xl bg-card border hover:scale-105 transition-transform cursor-default">
+                <div className={cn("w-8 h-8 rounded-full mx-auto mb-1 flex items-center justify-center text-white", rule.color)}>
+                  <RuleIcon className="h-4 w-4" />
+                </div>
+                <p className="text-[10px] font-medium truncate">{rule.title}</p>
+                <p className="text-[9px] text-muted-foreground">{rule.duration}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Washing Protocol - Horizontal Scroll */}
+      <div>
+        <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5 text-muted-foreground">
+          <ShowerHead className="h-4 w-4 text-blue-500" />
+          PROTOCOLO DE LAVAGEM
+        </h2>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+          {washingProtocol.map((phase) => {
+            const PhaseIcon = phase.icon;
+            const dayStart = parseInt(phase.days.split('-')[0].replace('+', ''));
+            const isCurrent = phase.days.includes('+') ? currentDay >= 15 : 
+              currentDay >= dayStart && currentDay <= (parseInt(phase.days.split('-')[1]) || dayStart);
+            
+            return (
+              <Card 
+                key={phase.days}
+                className={cn(
+                  "shrink-0 w-36 sm:w-40 overflow-hidden cursor-pointer transition-all",
+                  isCurrent && "ring-2 ring-emerald-500 scale-105"
+                )}
+                onClick={() => setExpandedPhase(expandedPhase === phase.days ? null : phase.days)}
+              >
+                <div className={cn("h-1 bg-gradient-to-r", phase.color)} />
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={cn("w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0", phase.color)}>
+                      <PhaseIcon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <Badge variant={isCurrent ? "default" : "secondary"} className="text-[10px] px-1.5">
+                        D{phase.days}
+                      </Badge>
+                      {isCurrent && <Star className="h-3 w-3 text-amber-500 fill-amber-500 inline ml-1" />}
+                    </div>
+                  </div>
+                  <p className="font-semibold text-xs mb-1">{phase.title}</p>
+                  <div className="space-y-0.5">
+                    {phase.tasks.map((task, idx) => (
+                      <div key={idx} className="flex items-start gap-1 text-[10px] text-muted-foreground">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>{task}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Unlocks - Compact Badges */}
+      <div>
+        <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5 text-muted-foreground">
+          <Award className="h-4 w-4 text-purple-500" />
+          DESBLOQUEIOS
+        </h2>
+        <div className="flex flex-wrap gap-1.5">
+          {progressUnlocks.map((unlock) => {
+            const isUnlocked = currentDay >= unlock.day;
+            return (
+              <Badge
+                key={`${unlock.day}-${unlock.label}`}
+                variant={isUnlocked ? "default" : "outline"}
+                className={cn(
+                  "py-1 px-2 gap-1 text-[10px]",
+                  isUnlocked ? "bg-emerald-500 hover:bg-emerald-600" : "opacity-40"
+                )}
+              >
+                {isUnlocked ? <Unlock className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />}
+                D{unlock.day} {unlock.label}
+              </Badge>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Kit Essentials - Horizontal */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {kitItems.map((item) => {
+          const ItemIcon = item.icon;
+          return (
+            <Card key={item.name} className="p-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                  <ItemIcon className="h-4 w-4 text-emerald-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold truncate">{item.name}</p>
+                  <p className="text-[9px] text-muted-foreground">{item.use}</p>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* FAQ - Collapsible */}
+      <div>
+        <button 
+          onClick={() => setShowFaq(!showFaq)}
+          className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground py-2"
+        >
+          <div className="flex items-center gap-1.5">
+            <AlertCircle className="h-4 w-4 text-blue-500" />
+            DÚVIDAS FREQUENTES
           </div>
-        </CardContent>
+          {showFaq ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+        
+        {showFaq && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {faqItems.map((faq, idx) => (
+              <Card key={idx} className="p-2">
+                <div className="flex items-start gap-2">
+                  <span className="text-lg">{faq.icon}</span>
+                  <div className="min-w-0">
+                    <p className="font-medium text-[11px] truncate">{faq.q}</p>
+                    <p className="text-[10px] text-muted-foreground">{faq.a}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Photo Schedule - Compact */}
+      <Card className="p-3 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
+        <div className="flex items-center gap-2 mb-2">
+          <Camera className="h-4 w-4 text-pink-500" />
+          <h3 className="text-sm font-semibold">Envie suas Fotos</h3>
+        </div>
+        <div className="flex gap-4 text-xs">
+          {photoSchedule.map((item) => (
+            <div key={item.period} className="text-center">
+              <p className="font-medium">{item.period}</p>
+              <p className="text-[10px] text-muted-foreground">{item.freq}</p>
+              <p className="text-[10px]">{item.emoji}</p>
+            </div>
+          ))}
+        </div>
       </Card>
 
-      {/* Timeline Layout */}
-      <div className="relative">
-        {/* Timeline line */}
-        <div className="absolute left-4 lg:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-[hsl(var(--neocare-primary))] to-green-500" />
-
-        {/* ANTES Section */}
-        <div className="relative mb-12">
-          {/* Timeline marker */}
-          <div className="absolute left-4 lg:left-1/2 -translate-x-1/2 z-10">
-            <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full shadow-lg">
-              <Clock className="h-6 w-6 text-white" />
+      {/* Contact & Referral - Side by Side */}
+      <div className="grid grid-cols-2 gap-2">
+        <Card className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+              <Phone className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold truncate">Sucesso do Paciente</p>
+              <p className="text-[10px] text-muted-foreground">(85) 98118-1212</p>
             </div>
           </div>
-
-          {/* Section header */}
-          <div className="pl-16 lg:pl-0 lg:text-center pt-2 mb-6">
-            <div className="lg:ml-auto lg:mr-auto lg:max-w-xs bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4 lg:ml-[calc(50%+2rem)]">
-              <h2 className="text-xl font-bold text-blue-700 dark:text-blue-300 flex items-center gap-2 lg:justify-center">
-                <span>Antes do Procedimento</span>
-              </h2>
-              <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                Preparação para garantir o melhor resultado
-              </p>
+        </Card>
+        
+        <Card className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white shrink-0">
+              <Gift className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold truncate">Indique e Ganhe</p>
+              <p className="text-[10px] text-muted-foreground">5% no PIX!</p>
             </div>
           </div>
-
-          {/* Cards grid */}
-          <div className="pl-16 lg:pl-0 lg:pr-0">
-            <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
-              <div className="lg:pr-8 lg:col-start-1 space-y-4">
-                {beforeOrientations.slice(0, 2).map((orientation) => (
-                  <OrientationCard key={orientation.id} orientation={orientation} />
-                ))}
-              </div>
-              <div className="lg:pl-8 lg:col-start-2 space-y-4">
-                {beforeOrientations.slice(2).map((orientation) => (
-                  <OrientationCard key={orientation.id} orientation={orientation} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* DEPOIS Section */}
-        <div className="relative">
-          {/* Timeline marker */}
-          <div className="absolute left-4 lg:left-1/2 -translate-x-1/2 z-10">
-            <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full shadow-lg">
-              <CheckCircle2 className="h-6 w-6 text-white" />
-            </div>
-          </div>
-
-          {/* Section header */}
-          <div className="pl-16 lg:pl-0 lg:text-center pt-2 mb-6">
-            <div className="lg:ml-auto lg:mr-auto lg:max-w-xs bg-green-50 dark:bg-green-950/30 rounded-xl p-4 lg:ml-[calc(50%+2rem)]">
-              <h2 className="text-xl font-bold text-green-700 dark:text-green-300 flex items-center gap-2 lg:justify-center">
-                <span>Após o Procedimento</span>
-              </h2>
-              <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                Cuidados essenciais para sua recuperação
-              </p>
-            </div>
-          </div>
-
-          {/* Cards grid */}
-          <div className="pl-16 lg:pl-0 lg:pr-0">
-            <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
-              <div className="lg:pr-8 lg:col-start-1 space-y-4">
-                {afterOrientations.slice(0, 1).map((orientation) => (
-                  <OrientationCard key={orientation.id} orientation={orientation} />
-                ))}
-              </div>
-              <div className="lg:pl-8 lg:col-start-2 space-y-4">
-                {afterOrientations.slice(1).map((orientation) => (
-                  <OrientationCard key={orientation.id} orientation={orientation} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        </Card>
       </div>
+
+      {/* YouTube CTA */}
+      <Card className="p-3 bg-gradient-to-r from-red-500 to-red-600 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Youtube className="h-6 w-6" />
+            <div>
+              <p className="text-sm font-bold">Vídeos Explicativos</p>
+              <p className="text-[10px] text-red-100">Aprenda a lavar corretamente</p>
+            </div>
+          </div>
+          <Badge className="bg-white text-red-600 hover:bg-red-50 text-xs">
+            Assistir
+          </Badge>
+        </div>
+      </Card>
     </div>
   );
 }
