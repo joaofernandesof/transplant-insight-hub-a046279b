@@ -399,15 +399,15 @@ export function MetricsDashboard({
         </Card>
       </div>
 
-      {/* Tabela de Indicadores com Diagnóstico */}
+      {/* Tabela de Indicadores com Diagnóstico e Orientações */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
             <Activity className="w-4 h-4 text-primary" />
-            Indicadores da Semana com Diagnóstico
+            Indicadores com Diagnóstico e Orientações
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Valores atuais, tendência e análise automática de cada métrica
+            Valores atuais, tendência, análise automática e orientações para cada métrica
           </p>
         </CardHeader>
         <CardContent className="p-0">
@@ -420,7 +420,8 @@ export function MetricsDashboard({
                   <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[60px]">Anterior</th>
                   <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[70px]">Tendência</th>
                   <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[60px]">Total</th>
-                  <th className="text-left px-3 sm:px-4 py-2.5 font-semibold text-foreground min-w-[200px]">Diagnóstico</th>
+                  <th className="text-left px-3 sm:px-4 py-2.5 font-semibold text-foreground min-w-[180px]">Diagnóstico</th>
+                  <th className="text-left px-3 sm:px-4 py-2.5 font-semibold text-foreground min-w-[200px] bg-primary/10">Orientações</th>
                 </tr>
               </thead>
               <tbody>
@@ -428,6 +429,56 @@ export function MetricsDashboard({
                   const Icon = metric.icon;
                   const StatusIcon = getStatusIcon(metric.diagnosis.status);
                   const trendPositive = metric.goodDirection === 'up' ? metric.trend >= 0 : metric.trend <= 0;
+                  
+                  // Generate specific orientation based on metric status and type
+                  const getOrientation = () => {
+                    const { status } = metric.diagnosis;
+                    
+                    if (metric.id === 'leads_novos') {
+                      if (status === 'danger') return 'Revisar campanhas de marketing e formulários de captação. Verificar se anúncios estão ativos.';
+                      if (status === 'warning') return 'Analisar fontes de tráfego e considerar aumentar investimento em ads.';
+                      if (status === 'success') return 'Manter estratégia atual e buscar escalar os canais de melhor performance.';
+                      return 'Monitorar diariamente e garantir que campanhas estejam ativas.';
+                    }
+                    if (metric.id === 'agendamentos') {
+                      if (status === 'danger') return 'Treinar equipe em técnicas de agendamento. Verificar script de atendimento.';
+                      if (status === 'warning') return 'Aumentar follow-up com leads. Oferecer horários flexíveis.';
+                      if (status === 'success') return 'Replicar abordagem bem-sucedida para toda a equipe.';
+                      return 'Continuar com rotina de follow-up e confirmação de agendas.';
+                    }
+                    if (metric.id === 'vendas_realizadas') {
+                      if (status === 'danger') return 'Revisar processo de fechamento. Treinar objeções comuns. Verificar proposta.';
+                      if (status === 'warning') return 'Acompanhar de perto os atendimentos. Fazer coaching com time de vendas.';
+                      if (status === 'success') return 'Documentar técnicas de sucesso e compartilhar com a equipe.';
+                      return 'Manter acompanhamento dos leads em negociação.';
+                    }
+                    if (metric.id === 'tarefas_realizadas') {
+                      if (status === 'warning') return 'Definir prioridades claras e metas diárias para a equipe.';
+                      if (status === 'success') return 'Reconhecer equipe produtiva. Manter ritmo de trabalho.';
+                      return 'Manter rotina organizada com foco nas tarefas prioritárias.';
+                    }
+                    if (metric.id === 'tarefas_atrasadas') {
+                      if (status === 'danger') return 'Priorizar resolução IMEDIATA. Delegar se necessário. Revisar carga de trabalho.';
+                      if (status === 'warning') return 'Identificar gargalos e redistribuir tarefas na equipe.';
+                      if (status === 'success') return 'Parabéns! Manter organização e controle de prazos.';
+                      return 'Resolver pendências antes de acumular. Priorizar diariamente.';
+                    }
+                    if (metric.id === 'mensagens_enviadas_atendente') {
+                      if (status === 'danger') return 'Verificar se equipe está ativa. Definir meta diária de contatos.';
+                      if (status === 'warning') return 'Aumentar volume de contatos. Verificar disponibilidade do time.';
+                      return 'Manter ritmo de atendimento e priorizar respostas rápidas.';
+                    }
+                    if (metric.id === 'mensagens_enviadas_robo') {
+                      if (status === 'warning') return 'Verificar integração do robô e fluxos automatizados.';
+                      return 'Monitorar automações e ajustar mensagens conforme feedback.';
+                    }
+                    if (metric.id === 'leads_descartados') {
+                      if (status === 'danger') return 'Revisar qualificação de leads. Ajustar segmentação das campanhas.';
+                      if (status === 'warning') return 'Analisar motivos de descarte e melhorar filtros.';
+                      return 'Manter registro dos motivos de descarte para análise.';
+                    }
+                    return 'Acompanhar evolução do indicador nos próximos dias.';
+                  };
                   
                   return (
                     <tr 
@@ -470,94 +521,16 @@ export function MetricsDashboard({
                           <span>{metric.diagnosis.text}</span>
                         </div>
                       </td>
+                      <td className="px-3 sm:px-4 py-2.5 bg-primary/5">
+                        <p className="text-[10px] sm:text-xs text-foreground leading-relaxed">
+                          {getOrientation()}
+                        </p>
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Resumo Global */}
-      <Card className="border-t-4 border-t-primary">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-            <Target className="w-4 h-4 text-primary" />
-            Resumo Global e Orientações
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-muted/30 rounded-lg p-4 sm:p-5 border border-border">
-            <p className="text-sm sm:text-base text-foreground leading-relaxed">
-              {(() => {
-                const leadsData = metricsData.find(m => m.id === 'leads_novos');
-                const vendasData = metricsData.find(m => m.id === 'vendas_realizadas');
-                const agendamentosData = metricsData.find(m => m.id === 'agendamentos');
-                const atrasadasData = metricsData.find(m => m.id === 'tarefas_atrasadas');
-                
-                const hasLeads = (leadsData?.current || 0) > 0;
-                const hasVendas = (vendasData?.current || 0) > 0;
-                const hasAgendamentos = (agendamentosData?.current || 0) > 0;
-                const hasManyAtrasadas = (atrasadasData?.current || 0) > 5;
-                
-                const problemsCount = [
-                  leadsData?.diagnosis.status === 'danger',
-                  vendasData?.diagnosis.status === 'danger',
-                  agendamentosData?.diagnosis.status === 'danger',
-                  atrasadasData?.diagnosis.status === 'danger'
-                ].filter(Boolean).length;
-
-                const successCount = [
-                  leadsData?.diagnosis.status === 'success',
-                  vendasData?.diagnosis.status === 'success',
-                  agendamentosData?.diagnosis.status === 'success',
-                  atrasadasData?.diagnosis.status === 'success'
-                ].filter(Boolean).length;
-
-                let summary = `Na semana S${currentWeekNumber}, `;
-                
-                if (problemsCount >= 2) {
-                  summary += `identificamos ${problemsCount} pontos críticos que necessitam atenção imediata. `;
-                } else if (successCount >= 2) {
-                  summary += `a performance está acima do esperado com ${successCount} indicadores positivos. `;
-                } else {
-                  summary += `os indicadores estão dentro da normalidade. `;
-                }
-
-                summary += hasLeads 
-                  ? `Foram captados ${leadsData?.current} leads novos (${leadsData?.trend >= 0 ? 'alta' : 'queda'} de ${Math.abs(leadsData?.trend || 0).toFixed(0)}%). ` 
-                  : 'Não houve captação de leads esta semana - revisar campanhas. ';
-
-                summary += hasAgendamentos
-                  ? `Realizados ${agendamentosData?.current} agendamentos. `
-                  : '';
-
-                summary += hasVendas
-                  ? `Convertidas ${vendasData?.current} vendas. `
-                  : 'Nenhuma venda registrada - oportunidade de melhoria no fechamento. ';
-
-                if (hasManyAtrasadas) {
-                  summary += `ATENÇÃO: Há ${atrasadasData?.current} tarefas atrasadas acumuladas que precisam ser priorizadas. `;
-                }
-
-                summary += `\n\n📌 Recomendação principal: `;
-                
-                if (!hasLeads) {
-                  summary += 'Focar na captação de leads através de campanhas e revisão de formulários de contato.';
-                } else if (!hasVendas && hasLeads) {
-                  summary += 'Investir no processo de fechamento e follow-up dos leads já captados.';
-                } else if (hasManyAtrasadas) {
-                  summary += 'Resolver tarefas atrasadas para manter o fluxo operacional saudável.';
-                } else if (successCount >= 2) {
-                  summary += 'Manter a estratégia atual e buscar escalar os resultados positivos.';
-                } else {
-                  summary += 'Acompanhar diariamente os indicadores e agir proativamente nos pontos de atenção.';
-                }
-
-                return summary;
-              })()}
-            </p>
           </div>
         </CardContent>
       </Card>
