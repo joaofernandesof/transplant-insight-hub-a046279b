@@ -14,6 +14,7 @@ import {
   Bot,
   User
 } from 'lucide-react';
+import { DailyMetricsReport } from './DailyMetricsReport';
 
 interface KeyDailyMetricsProps {
   weeks: WeekData[];
@@ -21,6 +22,7 @@ interface KeyDailyMetricsProps {
   onValueChange: (weekNumber: number, key: string, value: number | string | null) => void;
   getWeekValues: (weekNumber: number) => Record<string, number | string | null>;
   isAdmin: boolean;
+  clinicName?: string;
 }
 
 // Indicadores-chave diários para preenchimento da atendente
@@ -128,7 +130,8 @@ export function KeyDailyMetrics({
   currentWeekNumber,
   onValueChange,
   getWeekValues,
-  isAdmin
+  isAdmin,
+  clinicName
 }: KeyDailyMetricsProps) {
   // Get last 7 days/weeks for display
   const allWeeks = useMemo(() => generateWeeks2026(), []);
@@ -160,16 +163,25 @@ export function KeyDailyMetrics({
     <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm mb-4">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-4 sm:px-6 py-3 sm:py-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-500/20 rounded-lg">
-            <Activity className="w-5 h-5 text-amber-600" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500/20 rounded-lg">
+              <Activity className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground text-base sm:text-lg">Indicadores-Chave Diários</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Métricas operacionais para acompanhamento rápido
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-foreground text-base sm:text-lg">Indicadores-Chave Diários</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Métricas operacionais para acompanhamento rápido
-            </p>
-          </div>
+          
+          {/* PDF Report Button */}
+          <DailyMetricsReport
+            currentWeekNumber={currentWeekNumber}
+            getWeekValues={getWeekValues}
+            clinicName={clinicName}
+          />
         </div>
       </div>
 
