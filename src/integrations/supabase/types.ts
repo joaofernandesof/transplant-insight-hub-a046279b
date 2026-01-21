@@ -1456,6 +1456,54 @@ export type Database = {
         }
         Relationships: []
       }
+      monitored_systems: {
+        Row: {
+          check_interval_seconds: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          expected_status_codes: number[] | null
+          headers: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          timeout_ms: number | null
+          type: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          check_interval_seconds?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expected_status_codes?: number[] | null
+          headers?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          timeout_ms?: number | null
+          type: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          check_interval_seconds?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expected_status_codes?: number[] | null
+          headers?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          timeout_ms?: number | null
+          type?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       neohub_module_permissions: {
         Row: {
           can_delete: boolean | null
@@ -3347,6 +3395,93 @@ export type Database = {
           },
         ]
       }
+      sentinel_alert_recipients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          receive_email: boolean | null
+          receive_whatsapp: boolean | null
+          severity_filter: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          receive_email?: boolean | null
+          receive_whatsapp?: boolean | null
+          severity_filter?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          receive_email?: boolean | null
+          receive_whatsapp?: boolean | null
+          severity_filter?: string[] | null
+        }
+        Relationships: []
+      }
+      sentinel_whatsapp_config: {
+        Row: {
+          api_token: string
+          created_at: string
+          created_by: string | null
+          daily_summary_hour: number | null
+          id: string
+          instance_url: string
+          is_connected: boolean | null
+          last_test_at: string | null
+          notify_daily_summary: boolean | null
+          notify_high: boolean | null
+          notify_low: boolean | null
+          notify_medium: boolean | null
+          phone_number: string
+          updated_at: string
+        }
+        Insert: {
+          api_token: string
+          created_at?: string
+          created_by?: string | null
+          daily_summary_hour?: number | null
+          id?: string
+          instance_url: string
+          is_connected?: boolean | null
+          last_test_at?: string | null
+          notify_daily_summary?: boolean | null
+          notify_high?: boolean | null
+          notify_low?: boolean | null
+          notify_medium?: boolean | null
+          phone_number: string
+          updated_at?: string
+        }
+        Update: {
+          api_token?: string
+          created_at?: string
+          created_by?: string | null
+          daily_summary_hour?: number | null
+          id?: string
+          instance_url?: string
+          is_connected?: boolean | null
+          last_test_at?: string | null
+          notify_daily_summary?: boolean | null
+          notify_high?: boolean | null
+          notify_low?: boolean | null
+          notify_medium?: boolean | null
+          phone_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       staff_profiles: {
         Row: {
           additional_branches: string[] | null
@@ -3558,6 +3693,144 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      system_alerts: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          message: string
+          notified_via: string[] | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          system_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          message: string
+          notified_via?: string[] | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          system_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          message?: string
+          notified_via?: string[] | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          system_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_alerts_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "monitored_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_health_checks: {
+        Row: {
+          checked_at: string
+          error_message: string | null
+          id: string
+          response_time_ms: number | null
+          status: string
+          status_code: number | null
+          system_id: string
+        }
+        Insert: {
+          checked_at?: string
+          error_message?: string | null
+          id?: string
+          response_time_ms?: number | null
+          status: string
+          status_code?: number | null
+          system_id: string
+        }
+        Update: {
+          checked_at?: string
+          error_message?: string | null
+          id?: string
+          response_time_ms?: number | null
+          status?: string
+          status_code?: number | null
+          system_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_health_checks_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "monitored_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_metrics_daily: {
+        Row: {
+          avg_response_time_ms: number | null
+          created_at: string
+          date: string
+          failed_checks: number | null
+          id: string
+          max_response_time_ms: number | null
+          min_response_time_ms: number | null
+          successful_checks: number | null
+          system_id: string
+          total_checks: number | null
+          uptime_percentage: number | null
+        }
+        Insert: {
+          avg_response_time_ms?: number | null
+          created_at?: string
+          date: string
+          failed_checks?: number | null
+          id?: string
+          max_response_time_ms?: number | null
+          min_response_time_ms?: number | null
+          successful_checks?: number | null
+          system_id: string
+          total_checks?: number | null
+          uptime_percentage?: number | null
+        }
+        Update: {
+          avg_response_time_ms?: number | null
+          created_at?: string
+          date?: string
+          failed_checks?: number | null
+          id?: string
+          max_response_time_ms?: number | null
+          min_response_time_ms?: number | null
+          successful_checks?: number | null
+          system_id?: string
+          total_checks?: number | null
+          uptime_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_metrics_daily_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "monitored_systems"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_achievements: {
         Row: {
