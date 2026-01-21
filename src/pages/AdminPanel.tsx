@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
+import { useModulePermissions, ACCESS_PROFILES as HOOK_ACCESS_PROFILES } from '@/hooks/useModulePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -202,8 +203,17 @@ export default function AdminPanel() {
     community: true
   });
 
-  // Permission matrix state
-  const [modulePermissions, setModulePermissions] = useState<Record<string, Record<string, { read: boolean; write: boolean; delete: boolean }>>>({});
+  // Permission matrix - persisted in database
+  const { 
+    permissions: dbPermissions, 
+    isLoading: permissionsLoading, 
+    getPermissionMatrix, 
+    updatePermission: updateDbPermission,
+    saveAllPermissions,
+    isSaving: permissionsSaving 
+  } = useModulePermissions();
+  
+  const modulePermissions = getPermissionMatrix();
   const [permissionFilter, setPermissionFilter] = useState<string>('all');
 
   useEffect(() => {
@@ -213,26 +223,7 @@ export default function AdminPanel() {
     }
     fetchSettings();
     fetchUsers();
-    initializePermissions();
   }, [isAdmin]);
-
-  const initializePermissions = () => {
-    // Initialize default permissions
-    const defaultPerms: Record<string, Record<string, { read: boolean; write: boolean; delete: boolean }>> = {};
-    
-    SYSTEM_MODULES.forEach(mod => {
-      defaultPerms[mod.code] = {
-        admin: { read: true, write: true, delete: true },
-        licensee: { 
-          read: !mod.category.includes('Admin'), 
-          write: false, 
-          delete: false 
-        },
-      };
-    });
-    
-    setModulePermissions(defaultPerms);
-  };
 
   const fetchSettings = async () => {
     try {
@@ -431,42 +422,9 @@ export default function AdminPanel() {
     }
   };
 
-  const handlePermissionChange = (moduleCode: string, profileId: string, field: 'read' | 'write' | 'delete', value: boolean) => {
-    if (profileId === 'admin') {
-      toast.info('O perfil Administrador possui acesso total e não pode ser alterado.');
-      return;
-    }
-
-    setModulePermissions(prev => {
-      const updated = { ...prev };
-      if (!updated[moduleCode]) {
-        updated[moduleCode] = {};
-      }
-      if (!updated[moduleCode][profileId]) {
-        updated[moduleCode][profileId] = { read: false, write: false, delete: false };
-      }
-      
-      // If disabling read, also disable write and delete
-      if (field === 'read' && !value) {
-        updated[moduleCode][profileId] = { read: false, write: false, delete: false };
-      }
-      // If enabling write or delete, also enable read
-      else if ((field === 'write' || field === 'delete') && value) {
-        updated[moduleCode][profileId] = { 
-          ...updated[moduleCode][profileId], 
-          read: true,
-          [field]: value 
-        };
-      }
-      else {
-        updated[moduleCode][profileId] = { 
-          ...updated[moduleCode][profileId], 
-          [field]: value 
-        };
-      }
-      
-      return updated;
-    });
+  const handlePermissionChange = async (moduleCode: string, profileId: string, field: 'read' | 'write' | 'delete', value: boolean) => {
+    const dbField = field === 'read' ? 'can_read' : field === 'write' ? 'can_write' : 'can_delete';
+    await updateDbPermission(moduleCode, profileId as any, dbField, value);
   };
 
   const getInitials = (name: string) => {
@@ -873,11 +831,16 @@ export default function AdminPanel() {
                   </span>
                 </div>
 
-                <div className="flex justify-end mt-4">
-                  <Button onClick={() => toast.success('Permissões salvas!')}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Salvar Permissões
-                  </Button>
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    As alterações são salvas automaticamente no banco de dados.
+                  </p>
+                  {permissionsLoading && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Carregando permissões...
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
