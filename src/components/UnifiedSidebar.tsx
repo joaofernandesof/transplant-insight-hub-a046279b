@@ -221,7 +221,15 @@ export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
                       isCollapsed && "justify-center px-2",
                       isActive(item.route) && "bg-primary/10 text-primary font-medium"
                     )}
-                    onClick={() => navigate(item.route)}
+                    onClick={() => {
+                      // Salvar posição do scroll antes de navegar
+                      const scrollY = window.scrollY;
+                      navigate(item.route);
+                      // Restaurar posição após a navegação
+                      requestAnimationFrame(() => {
+                        window.scrollTo(0, scrollY);
+                      });
+                    }}
                   >
                     {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
                     {!isCollapsed && <span className="truncate">{item.title}</span>}
