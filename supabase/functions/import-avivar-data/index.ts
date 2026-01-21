@@ -8,17 +8,19 @@ const corsHeaders = {
 
 // Dados dos clientes AVIVAR
 const avivarClients = [
-  { name: "Dr. Adailson", email: "adailson@avivar.neofolic.com" },
+  { name: "Antônio Adailson de Sousa Silva", email: "adailson@avivar.neofolic.com" },
   { name: "Medequip", email: "medequip@avivar.neofolic.com" },
-  { name: "Dra. Gleyldes Leão", email: "gleyldes@avivar.neofolic.com" },
-  { name: "Dr. Jean Romão", email: "jean@avivar.neofolic.com" },
-  { name: "Dr. Eder Eiji", email: "eder@avivar.neofolic.com" },
-  { name: "Dr. Maxwell", email: "maxwell@avivar.neofolic.com" },
-  { name: "Dra. Erika Coimbra", email: "erika@avivar.neofolic.com" },
-  { name: "Dr. Elenilton", email: "elenilton@avivar.neofolic.com" },
+  { name: "Gleyldes Gonçalves Guimarães Leão", email: "gleyldes@avivar.neofolic.com" },
+  { name: "Jean Carlos Romão de Sousa", email: "jean@avivar.neofolic.com" },
+  { name: "Eder Eiji Yanagitani", email: "eder@avivar.neofolic.com" },
+  { name: "Maxwell e Silva Pereira", email: "maxwell@avivar.neofolic.com" },
   { name: "Instituto Keyla Klava", email: "keyla@avivar.neofolic.com" },
-  { name: "Dr. Clayson Pujol", email: "clayson@avivar.neofolic.com" },
-  { name: "Dr. Leonardo Lincoln", email: "leonardo@avivar.neofolic.com" },
+  { name: "Elenilton Pinheiro Rocha", email: "elenilton@avivar.neofolic.com" },
+  { name: "Erika Alves Coimbra", email: "erika@avivar.neofolic.com" },
+  { name: "Clayson Pujol Santos", email: "clayson@avivar.neofolic.com" },
+  { name: "Leonardo Lincoln de Melo Chaga", email: "leonardo@avivar.neofolic.com" },
+  { name: "Cirurgia Center", email: "cirurgiacenter@avivar.neofolic.com" },
+  { name: "Vivart Jeri", email: "vivart@avivar.neofolic.com" },
 ];
 
 // Dados semanais extraídos da planilha (agregados por semana)
