@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, FileText, Video, Bell, Clock, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useNeoHubAuth } from '@/neohub/contexts/NeoHubAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -24,7 +24,7 @@ interface Document {
 }
 
 export default function NeoCareHome() {
-  const { user } = useNeoHubAuth();
+  const { user } = useUnifiedAuth();
   const navigate = useNavigate();
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);

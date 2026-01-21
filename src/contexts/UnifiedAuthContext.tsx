@@ -38,6 +38,7 @@ export interface UnifiedUser {
   // Identificadores
   id: string;                    // neohub_users.id
   authUserId: string;            // auth.users.id
+  userId: string;                // Alias para authUserId (compatibilidade)
   
   // Dados pessoais
   email: string;
@@ -188,6 +189,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         return {
           id: neoHubData.id,
           authUserId: neoHubData.user_id,
+          userId: neoHubData.user_id, // Alias
           email: neoHubData.email,
           fullName: neoHubData.full_name,
           cpf: neoHubData.cpf,
@@ -239,6 +241,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         return {
           id: legacyProfile.id || authUser.id,
           authUserId: authUser.id,
+          userId: authUser.id, // Alias
           email: legacyProfile.email,
           fullName: legacyProfile.name,
           phone: legacyProfile.phone,

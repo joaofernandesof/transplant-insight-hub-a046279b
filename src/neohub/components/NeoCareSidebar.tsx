@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useNeoHubAuth } from '../contexts/NeoHubAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import neofolicIcon from '@/assets/icone-neofolic-neocare.png';
 
@@ -27,7 +27,7 @@ const navItems = [
 ];
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
-  const { user, logout, hasProfile } = useNeoHubAuth();
+  const { user, logout, hasProfile } = useUnifiedAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {

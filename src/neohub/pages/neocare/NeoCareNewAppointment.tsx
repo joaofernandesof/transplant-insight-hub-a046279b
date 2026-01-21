@@ -13,7 +13,7 @@ import {
   Check, Loader2, AlertCircle 
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNeoHubAuth } from '@/neohub/contexts/NeoHubAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 
 interface AppointmentType {
@@ -38,7 +38,7 @@ const timeSlots = [
 
 export default function NeoCareNewAppointment() {
   const navigate = useNavigate();
-  const { user } = useNeoHubAuth();
+  const { user } = useUnifiedAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   

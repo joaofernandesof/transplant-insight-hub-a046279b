@@ -18,7 +18,7 @@ import {
   FileSignature,
   Filter
 } from 'lucide-react';
-import { useNeoHubAuth } from '@/neohub/contexts/NeoHubAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -102,7 +102,7 @@ function formatFileSize(bytes: number | null) {
 }
 
 export default function NeoCareDocuments() {
-  const { user } = useNeoHubAuth();
+  const { user } = useUnifiedAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

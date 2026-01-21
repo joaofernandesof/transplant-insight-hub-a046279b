@@ -22,7 +22,7 @@ import {
   CheckCircle2, XCircle, AlertCircle 
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNeoHubAuth } from '@/neohub/contexts/NeoHubAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 
 interface Appointment {
@@ -44,7 +44,7 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 
 export default function NeoCareAppointments() {
   const navigate = useNavigate();
-  const { user, session } = useNeoHubAuth();
+  const { user, session } = useUnifiedAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
