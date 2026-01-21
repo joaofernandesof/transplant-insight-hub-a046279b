@@ -79,7 +79,8 @@ import {
   NeoCareNewAppointment, 
   NeoCareSettings, 
   NeoCareDocuments, 
-  NeoCareOrientations 
+  NeoCareOrientations,
+  NeoCareLanding
 } from "./neohub/pages/neocare";
 
 // ====================================
@@ -348,6 +349,7 @@ function AppRoutes() {
       <Route path="/indicacao/:code" element={<ReferralLanding />} />
       <Route path="/api-docs" element={<ApiDocs />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/neocare-landing" element={<NeoCareLanding />} />
 
       {/* ====================================
           Home - Roteamento dinâmico por perfil
