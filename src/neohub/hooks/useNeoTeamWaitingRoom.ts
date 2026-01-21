@@ -2,11 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export type TriageStatus = 'em_espera' | 'nao_precisa' | 'triado' | 'urgente';
+export type MoodStatus = 'calmo' | 'ansioso' | 'irritado' | 'tranquilo';
+
 export interface WaitingPatient {
   id: string;
   appointment_id?: string;
   patient_id?: string;
   patient_name: string;
+  scheduled_time?: string;
   appointment_time?: string;
   arrival_time: string;
   type: string;
@@ -14,6 +18,9 @@ export interface WaitingPatient {
   room?: string;
   status: 'arrived' | 'waiting' | 'called' | 'in_service' | 'completed';
   priority: 'normal' | 'high' | 'urgent';
+  triage: TriageStatus;
+  mood: MoodStatus;
+  observations?: string;
   called_at?: string;
   service_started_at?: string;
   service_ended_at?: string;
@@ -24,14 +31,17 @@ export interface WaitingPatient {
 
 export interface AddToWaitingRoom {
   patient_name: string;
-  appointment_time?: string;
+  scheduled_time?: string;
   type: string;
   doctor_name?: string;
   priority?: 'normal' | 'high' | 'urgent';
+  triage?: TriageStatus;
+  mood?: MoodStatus;
+  branch?: string;
   appointment_id?: string;
 }
 
-export function useNeoTeamWaitingRoom() {
+export function useNeoTeamWaitingRoom(branch?: string) {
   const [patients, setPatients] = useState<WaitingPatient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -40,7 +50,7 @@ export function useNeoTeamWaitingRoom() {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('neoteam_waiting_room')
         .select('*')
         .gte('arrival_time', `${today}T00:00:00`)
@@ -49,6 +59,12 @@ export function useNeoTeamWaitingRoom() {
         .order('priority', { ascending: false })
         .order('arrival_time', { ascending: true });
 
+      if (branch) {
+        query = query.eq('branch', branch);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
       setPatients((data as WaitingPatient[]) || []);
     } catch (error) {
@@ -56,14 +72,14 @@ export function useNeoTeamWaitingRoom() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [branch]);
 
   // Subscribe to realtime updates
   useEffect(() => {
     fetchPatients();
 
     const channel = supabase
-      .channel('neoteam-waiting-room-changes')
+      .channel('neoteam-waiting-room-realtime')
       .on(
         'postgres_changes',
         {
@@ -75,22 +91,24 @@ export function useNeoTeamWaitingRoom() {
           console.log('Waiting room change:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setPatients((prev) => {
-              const newPatient = payload.new as WaitingPatient;
-              // Sort by priority and arrival time
-              const updated = [...prev, newPatient].sort((a, b) => {
-                const priorityOrder = { urgent: 0, high: 1, normal: 2 };
-                const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
-                if (priorityDiff !== 0) return priorityDiff;
-                return new Date(a.arrival_time).getTime() - new Date(b.arrival_time).getTime();
+            const newPatient = payload.new as WaitingPatient;
+            // Only add if matches current branch filter
+            if (!branch || newPatient.branch === branch) {
+              setPatients((prev) => {
+                const updated = [...prev, newPatient].sort((a, b) => {
+                  const priorityOrder = { urgent: 0, high: 1, normal: 2 };
+                  const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+                  if (priorityDiff !== 0) return priorityDiff;
+                  return new Date(a.arrival_time).getTime() - new Date(b.arrival_time).getTime();
+                });
+                return updated;
               });
-              return updated;
-            });
-            
-            toast({
-              title: 'Novo Paciente',
-              description: `${(payload.new as WaitingPatient).patient_name} chegou na recepção`,
-            });
+              
+              toast({
+                title: 'Novo Paciente',
+                description: `${newPatient.patient_name} chegou na recepção`,
+              });
+            }
           } else if (payload.eventType === 'UPDATE') {
             setPatients((prev) =>
               prev.map((p) =>
@@ -109,7 +127,7 @@ export function useNeoTeamWaitingRoom() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchPatients, toast]);
+  }, [fetchPatients, toast, branch]);
 
   const addToWaitingRoom = async (patient: AddToWaitingRoom) => {
     try {
@@ -119,6 +137,9 @@ export function useNeoTeamWaitingRoom() {
           ...patient,
           status: 'arrived',
           priority: patient.priority || 'normal',
+          triage: patient.triage || 'em_espera',
+          mood: patient.mood || 'calmo',
+          branch: patient.branch || 'matriz',
         }])
         .select()
         .single();
@@ -127,7 +148,7 @@ export function useNeoTeamWaitingRoom() {
 
       toast({
         title: 'Paciente Adicionado',
-        description: `${patient.patient_name} foi adicionado à sala de espera`,
+        description: `${patient.patient_name} foi adicionado à fila de espera`,
       });
 
       return data as WaitingPatient;
@@ -142,6 +163,41 @@ export function useNeoTeamWaitingRoom() {
     }
   };
 
+  const updatePatient = async (id: string, updates: Partial<WaitingPatient>) => {
+    try {
+      const { error } = await supabase
+        .from('neoteam_waiting_room')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating patient:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const updateTriage = async (id: string, triage: TriageStatus) => {
+    return updatePatient(id, { triage });
+  };
+
+  const updateMood = async (id: string, mood: MoodStatus) => {
+    return updatePatient(id, { mood });
+  };
+
+  const updateObservations = async (id: string, observations: string) => {
+    return updatePatient(id, { observations });
+  };
+
+  const updateType = async (id: string, type: string) => {
+    return updatePatient(id, { type });
+  };
+
   const callPatient = async (id: string, room?: string) => {
     try {
       const { error } = await supabase
@@ -154,12 +210,6 @@ export function useNeoTeamWaitingRoom() {
         .eq('id', id);
 
       if (error) throw error;
-
-      // Play notification sound
-      try {
-        const audio = new Audio('/sounds/notification.mp3');
-        audio.play().catch(() => {});
-      } catch {}
 
       toast({
         title: 'Paciente Chamado',
@@ -195,11 +245,6 @@ export function useNeoTeamWaitingRoom() {
       });
     } catch (error) {
       console.error('Error starting service:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível iniciar o atendimento',
-        variant: 'destructive',
-      });
       throw error;
     }
   };
@@ -222,11 +267,6 @@ export function useNeoTeamWaitingRoom() {
       });
     } catch (error) {
       console.error('Error completing service:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível finalizar o atendimento',
-        variant: 'destructive',
-      });
       throw error;
     }
   };
@@ -246,35 +286,6 @@ export function useNeoTeamWaitingRoom() {
       });
     } catch (error) {
       console.error('Error removing from waiting room:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível remover o paciente',
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  };
-
-  const updatePriority = async (id: string, priority: 'normal' | 'high' | 'urgent') => {
-    try {
-      const { error } = await supabase
-        .from('neoteam_waiting_room')
-        .update({ priority })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Prioridade Atualizada',
-        description: `Prioridade alterada para ${priority === 'urgent' ? 'urgente' : priority === 'high' ? 'alta' : 'normal'}`,
-      });
-    } catch (error) {
-      console.error('Error updating priority:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível atualizar a prioridade',
-        variant: 'destructive',
-      });
       throw error;
     }
   };
@@ -286,11 +297,11 @@ export function useNeoTeamWaitingRoom() {
     inService: patients.filter(p => p.status === 'in_service').length,
     avgWaitTime: Math.round(
       patients
-        .filter(p => ['waiting', 'called'].includes(p.status))
+        .filter(p => ['arrived', 'waiting', 'called'].includes(p.status))
         .reduce((acc, p) => {
           const wait = (Date.now() - new Date(p.arrival_time).getTime()) / 60000;
           return acc + wait;
-        }, 0) / Math.max(1, patients.filter(p => ['waiting', 'called'].includes(p.status)).length)
+        }, 0) / Math.max(1, patients.filter(p => ['arrived', 'waiting', 'called'].includes(p.status)).length)
     ),
   };
 
@@ -299,11 +310,15 @@ export function useNeoTeamWaitingRoom() {
     isLoading,
     stats,
     addToWaitingRoom,
+    updatePatient,
+    updateTriage,
+    updateMood,
+    updateObservations,
+    updateType,
     callPatient,
     startService,
     completeService,
     removeFromWaitingRoom,
-    updatePriority,
     refetch: fetchPatients,
   };
 }

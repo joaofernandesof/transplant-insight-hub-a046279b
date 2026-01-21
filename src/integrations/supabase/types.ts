@@ -1823,13 +1823,17 @@ export type Database = {
           created_at: string
           doctor_name: string | null
           id: string
+          mood: string | null
+          observations: string | null
           patient_id: string | null
           patient_name: string
           priority: string
           room: string | null
+          scheduled_time: string | null
           service_ended_at: string | null
           service_started_at: string | null
           status: string
+          triage: string | null
           type: string
           updated_at: string
         }
@@ -1842,13 +1846,17 @@ export type Database = {
           created_at?: string
           doctor_name?: string | null
           id?: string
+          mood?: string | null
+          observations?: string | null
           patient_id?: string | null
           patient_name: string
           priority?: string
           room?: string | null
+          scheduled_time?: string | null
           service_ended_at?: string | null
           service_started_at?: string | null
           status?: string
+          triage?: string | null
           type?: string
           updated_at?: string
         }
@@ -1861,13 +1869,17 @@ export type Database = {
           created_at?: string
           doctor_name?: string | null
           id?: string
+          mood?: string | null
+          observations?: string | null
           patient_id?: string | null
           patient_name?: string
           priority?: string
           room?: string | null
+          scheduled_time?: string | null
           service_ended_at?: string | null
           service_started_at?: string | null
           status?: string
+          triage?: string | null
           type?: string
           updated_at?: string
         }
