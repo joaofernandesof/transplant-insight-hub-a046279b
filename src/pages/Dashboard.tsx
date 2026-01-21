@@ -7,6 +7,7 @@ import { ModuleLayout } from '@/components/ModuleLayout';
 import { HorizontalMetricsTable } from '@/components/HorizontalMetricsTable';
 import { AllMetricsTable } from '@/components/AllMetricsTable';
 import { InsightsPanel } from '@/components/InsightsPanel';
+import { KeyDailyMetrics } from '@/components/KeyDailyMetrics';
 import { WeekData, isWeekAvailable, formatDate, getLastAvailableWeek, generateWeeks2026 } from '@/data/metricsData';
 import { calculateMetrics } from '@/utils/metricCalculations';
 import { 
@@ -284,14 +285,26 @@ export default function Dashboard() {
         {/* Tab Content */}
         <div className="animate-fade-in">
           {activeTab === 'indicators' && (
-            <HorizontalMetricsTable
-              weeks={weeks}
-              currentWeekNumber={currentWeekNumber}
-              onValueChange={handleValueChange}
-              getWeekValues={getWeekValues}
-              getCalculatedMetrics={getCalculatedMetricsForWeek}
-              isAdmin={isAdmin}
-            />
+            <>
+              {/* Key Daily Metrics - Highlighted Section */}
+              <KeyDailyMetrics
+                weeks={weeks}
+                currentWeekNumber={currentWeekNumber}
+                onValueChange={handleValueChange}
+                getWeekValues={getWeekValues}
+                isAdmin={isAdmin}
+              />
+              
+              {/* Full Metrics Table */}
+              <HorizontalMetricsTable
+                weeks={weeks}
+                currentWeekNumber={currentWeekNumber}
+                onValueChange={handleValueChange}
+                getWeekValues={getWeekValues}
+                getCalculatedMetrics={getCalculatedMetricsForWeek}
+                isAdmin={isAdmin}
+              />
+            </>
           )}
           
           {activeTab === 'summary' && (
