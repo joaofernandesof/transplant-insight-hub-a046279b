@@ -243,7 +243,7 @@ function NeoTeamRoutes() {
           <Route path="waiting-room" element={<NeoTeamWaitingRoom />} />
           <Route path="patients" element={<NeoTeamPatients />} />
           <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
-          <Route path="documents" element={<PlaceholderPage title="Documentos" />} />
+          <Route path="documents" element={<NeoTeamDocuments />} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>

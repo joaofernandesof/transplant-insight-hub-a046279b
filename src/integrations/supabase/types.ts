@@ -1689,6 +1689,205 @@ export type Database = {
         }
         Relationships: []
       }
+      neoteam_appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          branch: string | null
+          created_at: string
+          created_by: string | null
+          doctor_id: string | null
+          doctor_name: string | null
+          duration_minutes: number
+          id: string
+          notes: string | null
+          patient_email: string | null
+          patient_id: string | null
+          patient_name: string
+          patient_phone: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          branch?: string | null
+          created_at?: string
+          created_by?: string | null
+          doctor_id?: string | null
+          doctor_name?: string | null
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          patient_email?: string | null
+          patient_id?: string | null
+          patient_name: string
+          patient_phone?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          branch?: string | null
+          created_at?: string
+          created_by?: string | null
+          doctor_id?: string | null
+          doctor_name?: string | null
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          patient_email?: string | null
+          patient_id?: string | null
+          patient_name?: string
+          patient_phone?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_patient_documents: {
+        Row: {
+          branch: string | null
+          category: string
+          created_at: string
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          patient_id: string | null
+          patient_name: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          branch?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          patient_id?: string | null
+          patient_name?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          branch?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          patient_id?: string | null
+          patient_name?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_patient_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neoteam_waiting_room: {
+        Row: {
+          appointment_id: string | null
+          appointment_time: string | null
+          arrival_time: string
+          branch: string | null
+          called_at: string | null
+          created_at: string
+          doctor_name: string | null
+          id: string
+          patient_id: string | null
+          patient_name: string
+          priority: string
+          room: string | null
+          service_ended_at: string | null
+          service_started_at: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          appointment_time?: string | null
+          arrival_time?: string
+          branch?: string | null
+          called_at?: string | null
+          created_at?: string
+          doctor_name?: string | null
+          id?: string
+          patient_id?: string | null
+          patient_name: string
+          priority?: string
+          room?: string | null
+          service_ended_at?: string | null
+          service_started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          appointment_time?: string | null
+          arrival_time?: string
+          branch?: string | null
+          called_at?: string | null
+          created_at?: string
+          doctor_name?: string | null
+          id?: string
+          patient_id?: string | null
+          patient_name?: string
+          priority?: string
+          room?: string | null
+          service_ended_at?: string | null
+          service_started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_waiting_room_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoteam_waiting_room_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_recipients: {
         Row: {
           created_at: string
