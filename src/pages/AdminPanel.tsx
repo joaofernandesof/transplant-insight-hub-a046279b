@@ -96,9 +96,11 @@ interface UserProfile {
   created_at: string;
 }
 
+type AppRole = 'admin' | 'licensee' | 'colaborador' | 'aluno' | 'paciente';
+
 interface UserRole {
   user_id: string;
-  role: 'admin' | 'licensee';
+  role: AppRole;
 }
 
 type SortField = 'name' | 'email' | 'clinic_name' | 'created_at' | 'role';
@@ -137,8 +139,11 @@ const SYSTEM_MODULES = [
 
 // Permission profiles
 const ACCESS_PROFILES = [
-  { id: 'admin', name: 'Administrador', icon: Crown, color: 'text-amber-600 bg-amber-100' },
-  { id: 'licensee', name: 'Licenciado', icon: Shield, color: 'text-blue-600 bg-blue-100' },
+  { id: 'admin' as AppRole, name: 'Administrador', icon: Crown, color: 'text-amber-600 bg-amber-100' },
+  { id: 'licensee' as AppRole, name: 'Licenciado', icon: Shield, color: 'text-blue-600 bg-blue-100' },
+  { id: 'colaborador' as AppRole, name: 'Colaborador', icon: Building2, color: 'text-green-600 bg-green-100' },
+  { id: 'aluno' as AppRole, name: 'Aluno', icon: GraduationCap, color: 'text-purple-600 bg-purple-100' },
+  { id: 'paciente' as AppRole, name: 'Paciente', icon: Heart, color: 'text-rose-600 bg-rose-100' },
 ];
 
 const pageLabels: Record<keyof PageVisibility, string> = {
@@ -168,7 +173,7 @@ export default function AdminPanel() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'licensee'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | AppRole>('all');
   
   // Edit user dialog state
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -266,7 +271,7 @@ export default function AdminPanel() {
     }
   };
 
-  const getUserRole = (userId: string): 'admin' | 'licensee' => {
+  const getUserRole = (userId: string): AppRole => {
     return userRoles.find(r => r.user_id === userId)?.role || 'licensee';
   };
 
@@ -359,8 +364,8 @@ export default function AdminPanel() {
     }
   };
 
-  const toggleUserRole = async (userId: string, currentRole: 'admin' | 'licensee') => {
-    const newRole = currentRole === 'admin' ? 'licensee' : 'admin';
+  const toggleUserRole = async (userId: string, currentRole: AppRole) => {
+    const newRole: AppRole = currentRole === 'admin' ? 'licensee' : 'admin';
     
     try {
       const { error } = await supabase
@@ -557,6 +562,9 @@ export default function AdminPanel() {
                         <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="licensee">Licenciado</SelectItem>
+                        <SelectItem value="colaborador">Colaborador</SelectItem>
+                        <SelectItem value="aluno">Aluno</SelectItem>
+                        <SelectItem value="paciente">Paciente</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
