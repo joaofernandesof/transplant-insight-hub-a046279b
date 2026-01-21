@@ -7,14 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { 
   Calendar as CalendarIcon, Clock, ArrowLeft, ArrowRight, 
-  Check, Loader2, AlertCircle 
+  Check, Loader2, User
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
+import { useDoctors, useAvailableSlots } from '@/neohub/hooks/useDoctors';
 
 interface AppointmentType {
   id: string;
@@ -25,15 +27,10 @@ interface AppointmentType {
 }
 
 const appointmentTypes: AppointmentType[] = [
-  { id: '1', name: 'Consulta Inicial', description: 'Primeira avaliação e diagnóstico', duration_minutes: 60, color: '#3b82f6' },
-  { id: '2', name: 'Retorno', description: 'Consulta de acompanhamento', duration_minutes: 30, color: '#10b981' },
-  { id: '3', name: 'Procedimento', description: 'Realização de procedimento', duration_minutes: 120, color: '#f59e0b' },
-  { id: '4', name: 'Avaliação Pré-Operatória', description: 'Avaliação antes do procedimento', duration_minutes: 45, color: '#8b5cf6' },
-];
-
-const timeSlots = [
-  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-  '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
+  { id: '1', name: 'Consulta Inicial', description: 'Primeira avaliação e diagnóstico', duration_minutes: 60, color: 'hsl(var(--primary))' },
+  { id: '2', name: 'Retorno', description: 'Consulta de acompanhamento', duration_minutes: 30, color: 'hsl(var(--accent))' },
+  { id: '3', name: 'Procedimento', description: 'Realização de procedimento', duration_minutes: 120, color: 'hsl(var(--warning))' },
+  { id: '4', name: 'Avaliação Pré-Operatória', description: 'Avaliação antes do procedimento', duration_minutes: 45, color: 'hsl(var(--secondary))' },
 ];
 
 export default function NeoCareNewAppointment() {
