@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useNeoHubAuth, NeoHubProfile, PROFILE_NAMES, PROFILE_ROUTES } from '../contexts/NeoHubAuthContext';
+import { useUnifiedAuth, NeoHubProfile, PROFILE_NAMES, PROFILE_ROUTES } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,7 +39,7 @@ const PROFILE_OPTIONS: { value: NeoHubProfile; label: string; icon: React.Elemen
 
 export default function NeoHubRegister() {
   const navigate = useNavigate();
-  const { signup, user, isLoading: authLoading } = useNeoHubAuth();
+  const { signup, user, isLoading: authLoading } = useUnifiedAuth();
   
   const [formData, setFormData] = useState({
     email: '',

@@ -1,12 +1,17 @@
+// ====================================
+// NeoHubLayout - Layouts e Guards para NeoHub
+// ====================================
+// Usa UnifiedAuthContext via wrapper de compatibilidade
+
 import React from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { 
-  useNeoHubAuth, 
+  useUnifiedAuth,
   NeoHubProfile, 
   Portal,
   PROFILE_ROUTES,
   canAccessPortal,
-} from '../contexts/NeoHubAuthContext';
+} from '@/contexts/UnifiedAuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface NeoHubLayoutProps {
@@ -14,7 +19,7 @@ interface NeoHubLayoutProps {
 }
 
 export function NeoHubLayout({ children }: NeoHubLayoutProps) {
-  const { user, isLoading, activeProfile, setActiveProfile } = useNeoHubAuth();
+  const { user, isLoading, activeProfile, setActiveProfile } = useUnifiedAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -51,7 +56,7 @@ interface ProfileGuardProps {
 }
 
 export function ProfileGuard({ allowedProfiles, children }: ProfileGuardProps) {
-  const { user, activeProfile, isLoading } = useNeoHubAuth();
+  const { user, activeProfile, isLoading } = useUnifiedAuth();
 
   if (isLoading) {
     return (
@@ -92,7 +97,7 @@ interface PortalGuardProps {
 }
 
 export function PortalGuard({ portal, children }: PortalGuardProps) {
-  const { user, activeProfile, isLoading } = useNeoHubAuth();
+  const { user, activeProfile, isLoading } = useUnifiedAuth();
 
   if (isLoading) {
     return (

@@ -8,14 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Lock, Palette, ArrowLeft, Loader2, Save, Moon, Sun, Monitor } from 'lucide-react';
-import { useNeoHubAuth } from '@/neohub/contexts/NeoHubAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 
 export default function NeoCareSettings() {
   const navigate = useNavigate();
-  const { user, refreshUser } = useNeoHubAuth();
+  const { user, refreshUser } = useUnifiedAuth();
   const { theme, setTheme } = useTheme();
   
   const [isLoading, setIsLoading] = useState(false);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNeoHubAuth, NeoHubProfile, PROFILE_NAMES, PROFILE_ROUTES } from '../contexts/NeoHubAuthContext';
+import { useUnifiedAuth, NeoHubProfile, PROFILE_NAMES, PROFILE_ROUTES } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,7 +36,7 @@ const PROFILE_DESCRIPTIONS: Record<NeoHubProfile, string> = {
 
 export default function ProfileSelector() {
   const navigate = useNavigate();
-  const { user, setActiveProfile, logout } = useNeoHubAuth();
+  const { user, setActiveProfile, logout } = useUnifiedAuth();
 
   if (!user) {
     navigate('/login');

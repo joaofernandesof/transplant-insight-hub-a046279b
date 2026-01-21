@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useNeoHubAuth, PROFILE_ROUTES } from '../contexts/NeoHubAuthContext';
+import { useUnifiedAuth, PROFILE_ROUTES } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,7 +51,7 @@ const modules = [
 
 export default function NeoHubLogin() {
   const navigate = useNavigate();
-  const { login, user, activeProfile, isLoading: authLoading } = useNeoHubAuth();
+  const { login, user, activeProfile, isLoading: authLoading } = useUnifiedAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

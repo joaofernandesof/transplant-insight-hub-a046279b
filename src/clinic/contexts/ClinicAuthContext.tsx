@@ -1,7 +1,22 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+// ====================================
+// ClinicAuthContext - Wrapper de Compatibilidade
+// ====================================
+// Este arquivo mantém compatibilidade com código Clinic existente.
+// Internamente, usa o UnifiedAuthContext.
+//
+// NOTA: Para novo código, use diretamente:
+// import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+
+import React, { ReactNode, useMemo, useCallback, useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  UnifiedAuthProvider as RealProvider, 
+  useUnifiedAuth,
+  UnifiedUser,
+} from '@/contexts/UnifiedAuthContext';
 
+// Tipos legados para Clinic
 export type ClinicStaffRole = 'admin' | 'gestao' | 'comercial' | 'operacao' | 'recepcao';
 
 export interface StaffProfile {
@@ -15,188 +30,127 @@ export interface StaffProfile {
   isActive: boolean;
 }
 
-interface ClinicAuthContextType {
-  user: StaffProfile | null;
-  session: Session | null;
-  isLoading: boolean;
-  currentBranch: string;
-  availableBranches: string[];
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => Promise<void>;
-  switchBranch: (branch: string) => void;
-  canAccessBranch: (branch: string) => boolean;
-  hasRole: (role: ClinicStaffRole) => boolean;
-  isAdmin: boolean;
-  isGestao: boolean;
-  canCreateSales: boolean;
-  canCreateSurgeries: boolean;
-  canCreatePatients: boolean;
-}
-
-const ClinicAuthContext = createContext<ClinicAuthContextType | undefined>(undefined);
-
-export function ClinicAuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<StaffProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Hook de compatibilidade
+export function useClinicAuth() {
+  const unified = useUnifiedAuth();
+  const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
   const [currentBranch, setCurrentBranch] = useState<string>('');
+  const [staffLoading, setStaffLoading] = useState(true);
 
-  const fetchStaffProfile = useCallback(async (userId: string): Promise<StaffProfile | null> => {
-    const { data, error } = await supabase
-      .from('staff_profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .single();
-
-    if (error || !data) {
-      console.error('Error fetching staff profile:', error);
-      return null;
-    }
-
-    return {
-      id: data.id,
-      userId: data.user_id,
-      name: data.name,
-      email: data.email,
-      role: data.role as ClinicStaffRole,
-      branch: data.branch,
-      additionalBranches: data.additional_branches || [],
-      isActive: data.is_active,
-    };
-  }, []);
-
+  // Buscar perfil de staff quando usuário mudar
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      
-      if (session?.user) {
-        const profile = await fetchStaffProfile(session.user.id);
-        setUser(profile);
-        if (profile) {
-          const savedBranch = localStorage.getItem('clinic_current_branch');
-          const validBranch = savedBranch && (
-            profile.branch === savedBranch || 
-            profile.additionalBranches.includes(savedBranch) ||
-            ['admin', 'gestao'].includes(profile.role)
-          );
-          setCurrentBranch(validBranch ? savedBranch : profile.branch);
-        }
-      } else {
-        setUser(null);
+    async function fetchStaffProfile() {
+      if (!unified.user) {
+        setStaffProfile(null);
         setCurrentBranch('');
+        setStaffLoading(false);
+        return;
       }
-      
-      setIsLoading(false);
-    });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        const profile = await fetchStaffProfile(session.user.id);
-        setUser(profile);
-        if (profile) {
-          const savedBranch = localStorage.getItem('clinic_current_branch');
-          const validBranch = savedBranch && (
-            profile.branch === savedBranch || 
-            profile.additionalBranches.includes(savedBranch) ||
-            ['admin', 'gestao'].includes(profile.role)
-          );
-          setCurrentBranch(validBranch ? savedBranch : profile.branch);
+      try {
+        const { data, error } = await supabase
+          .from('staff_profiles')
+          .select('*')
+          .eq('user_id', unified.user.authUserId)
+          .eq('is_active', true)
+          .single();
+
+        if (error || !data) {
+          // Usuário não é staff de clínica
+          setStaffProfile(null);
+          setStaffLoading(false);
+          return;
         }
+
+        const profile: StaffProfile = {
+          id: data.id,
+          userId: data.user_id,
+          name: data.name,
+          email: data.email,
+          role: data.role as ClinicStaffRole,
+          branch: data.branch,
+          additionalBranches: data.additional_branches || [],
+          isActive: data.is_active,
+        };
+
+        setStaffProfile(profile);
+
+        // Restaurar branch salva ou usar padrão
+        const savedBranch = localStorage.getItem('clinic_current_branch');
+        const validBranch = savedBranch && (
+          profile.branch === savedBranch || 
+          profile.additionalBranches.includes(savedBranch) ||
+          ['admin', 'gestao'].includes(profile.role)
+        );
+        setCurrentBranch(validBranch ? savedBranch : profile.branch);
+      } catch (error) {
+        console.error('[ClinicAuth] Error fetching staff profile:', error);
+        setStaffProfile(null);
       }
-      setIsLoading(false);
-    });
 
-    return () => subscription.unsubscribe();
-  }, [fetchStaffProfile]);
-
-  const login = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      if (data.user) {
-        const profile = await fetchStaffProfile(data.user.id);
-        if (!profile) {
-          await supabase.auth.signOut();
-          return { success: false, error: 'Perfil de funcionário não encontrado' };
-        }
-      }
-
-      return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+      setStaffLoading(false);
     }
-  };
 
-  const logout = async () => {
-    localStorage.removeItem('clinic_current_branch');
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setCurrentBranch('');
-  };
+    fetchStaffProfile();
+  }, [unified.user]);
 
-  const switchBranch = (branch: string) => {
+  const switchBranch = useCallback((branch: string) => {
     if (canAccessBranch(branch)) {
       setCurrentBranch(branch);
       localStorage.setItem('clinic_current_branch', branch);
     }
-  };
+  }, [staffProfile]);
 
   const canAccessBranch = useCallback((branch: string): boolean => {
-    if (!user) return false;
-    if (['admin', 'gestao'].includes(user.role)) return true;
-    return user.branch === branch || user.additionalBranches.includes(branch);
-  }, [user]);
+    if (!staffProfile) return false;
+    if (['admin', 'gestao'].includes(staffProfile.role)) return true;
+    return staffProfile.branch === branch || staffProfile.additionalBranches.includes(branch);
+  }, [staffProfile]);
 
   const hasRole = useCallback((role: ClinicStaffRole): boolean => {
-    return user?.role === role;
-  }, [user]);
+    return staffProfile?.role === role;
+  }, [staffProfile]);
 
-  const availableBranches = user ? 
-    ['admin', 'gestao'].includes(user.role) 
-      ? [] // Admin/Gestao can see all - we'll fetch dynamically
-      : [user.branch, ...user.additionalBranches]
+  const availableBranches = staffProfile ? 
+    ['admin', 'gestao'].includes(staffProfile.role) 
+      ? [] // Admin/Gestao can see all
+      : [staffProfile.branch, ...staffProfile.additionalBranches]
     : [];
 
-  const isAdmin = user?.role === 'admin';
-  const isGestao = user?.role === 'gestao';
-  const canCreateSales = user ? ['admin', 'gestao', 'comercial'].includes(user.role) : false;
-  const canCreateSurgeries = user ? ['admin', 'gestao', 'operacao', 'comercial'].includes(user.role) : false;
-  const canCreatePatients = user ? ['admin', 'gestao', 'comercial', 'operacao', 'recepcao'].includes(user.role) : false;
+  const isAdmin = staffProfile?.role === 'admin';
+  const isGestao = staffProfile?.role === 'gestao';
+  const canCreateSales = staffProfile ? ['admin', 'gestao', 'comercial'].includes(staffProfile.role) : false;
+  const canCreateSurgeries = staffProfile ? ['admin', 'gestao', 'operacao', 'comercial'].includes(staffProfile.role) : false;
+  const canCreatePatients = staffProfile ? ['admin', 'gestao', 'comercial', 'operacao', 'recepcao'].includes(staffProfile.role) : false;
 
-  return (
-    <ClinicAuthContext.Provider value={{
-      user,
-      session,
-      isLoading,
-      currentBranch,
-      availableBranches,
-      login,
-      logout,
-      switchBranch,
-      canAccessBranch,
-      hasRole,
-      isAdmin,
-      isGestao,
-      canCreateSales,
-      canCreateSurgeries,
-      canCreatePatients,
-    }}>
-      {children}
-    </ClinicAuthContext.Provider>
-  );
+  // Logout que limpa dados de clínica
+  const logout = useCallback(async () => {
+    localStorage.removeItem('clinic_current_branch');
+    setStaffProfile(null);
+    setCurrentBranch('');
+    await unified.logout();
+  }, [unified]);
+
+  return {
+    user: staffProfile,
+    session: unified.session,
+    isLoading: unified.isLoading || staffLoading,
+    currentBranch,
+    availableBranches,
+    login: unified.login,
+    logout,
+    switchBranch,
+    canAccessBranch,
+    hasRole,
+    isAdmin,
+    isGestao,
+    canCreateSales,
+    canCreateSurgeries,
+    canCreatePatients,
+  };
 }
 
-export function useClinicAuth() {
-  const context = useContext(ClinicAuthContext);
-  if (!context) {
-    throw new Error('useClinicAuth must be used within a ClinicAuthProvider');
-  }
-  return context;
+// Provider de compatibilidade
+export function ClinicAuthProvider({ children }: { children: ReactNode }) {
+  return <RealProvider>{children}</RealProvider>;
 }
