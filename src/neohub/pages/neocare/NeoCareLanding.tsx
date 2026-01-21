@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,10 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Calendar, FileText, Bell, MessageSquare, Shield, 
   Clock, Smartphone, Heart, CheckCircle2, ArrowRight,
-  Play, Star, Users, Award
+  Play, Star, Users, Award, Film
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
+import { useVideos, Video } from '@/hooks/useVideos';
+import { VideoPlayer } from '@/components/VideoPlayer';
 
 const features = [
   {
@@ -70,6 +72,11 @@ const testimonials = [
 
 export default function NeoCareLanding() {
   const navigate = useNavigate();
+  const { videos } = useVideos('apresentacao');
+  const [showVideo, setShowVideo] = useState(false);
+  
+  // Get the first "apresentacao" video for the landing page
+  const featuredVideo = videos.find(v => v.tags?.includes('neocare')) || videos[0];
 
   return (
     <div className="min-h-screen bg-background">
@@ -136,7 +143,8 @@ export default function NeoCareLanding() {
                   size="lg" 
                   variant="outline" 
                   className="text-lg h-14 px-8"
-                  onClick={() => navigate('/login')}
+                  onClick={() => setShowVideo(true)}
+                  disabled={!featuredVideo}
                 >
                   <Play className="mr-2 h-5 w-5" />
                   Ver Como Funciona
@@ -211,6 +219,34 @@ export default function NeoCareLanding() {
           </div>
         </div>
       </section>
+
+      {/* Video Section - Only show if there's a featured video and user clicked */}
+      {showVideo && featuredVideo && (
+        <section className="py-12 px-4 bg-muted/50">
+          <div className="container mx-auto max-w-4xl">
+            <div className="text-center mb-8">
+              <Badge className="mb-4">
+                <Film className="h-3 w-3 mr-1" />
+                Vídeo de Apresentação
+              </Badge>
+              <h2 className="text-2xl lg:text-3xl font-bold mb-2">
+                {featuredVideo.title}
+              </h2>
+              {featuredVideo.description && (
+                <p className="text-muted-foreground">{featuredVideo.description}</p>
+              )}
+            </div>
+            <Card className="overflow-hidden">
+              <VideoPlayer video={featuredVideo} autoPlay className="w-full" />
+            </Card>
+            <div className="text-center mt-6">
+              <Button variant="ghost" onClick={() => setShowVideo(false)}>
+                Fechar vídeo
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Features Section */}
       <section className="py-20 px-4 bg-muted/50">
