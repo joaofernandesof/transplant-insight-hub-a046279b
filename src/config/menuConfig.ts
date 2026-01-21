@@ -78,10 +78,18 @@ export interface MenuCategory {
 // ====================================
 
 export const MAIN_MENU_ITEMS: MenuItem[] = [
-  // Início
-  { id: 'home', code: 'home', title: 'Início', icon: Home, route: '/' },
+  // Início - apenas para não-admins
+  { 
+    id: 'home', 
+    code: 'home', 
+    title: 'Início', 
+    icon: Home, 
+    route: '/',
+    // Admins não veem "Início" pois o Dashboard Admin é a home deles
+    requiredProfiles: ['licenciado', 'aluno', 'paciente', 'colaborador', 'cliente_avivar'],
+  },
   
-  // Admin Dashboard
+  // Admin Dashboard - é a home do admin
   { 
     id: 'admin-dashboard', 
     code: 'admin_dashboard', 
