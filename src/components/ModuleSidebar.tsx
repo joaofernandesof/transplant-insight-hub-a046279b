@@ -37,7 +37,7 @@ import {
   LogOut,
   CalendarDays
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
+
 import { useState, useEffect } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -86,6 +86,16 @@ const menuItems = [
   { id: 'community', title: 'Comunidade', icon: Users, route: '/community' },
   { id: 'referral', title: 'Indique e Ganhe', icon: Gift, route: '/indique-e-ganhe' },
 ];
+
+// Mapeamento de rotas para nomes de módulos/portais
+const getPortalNameByRoute = (pathname: string): string => {
+  if (pathname.startsWith('/neocare')) return 'NeoCare';
+  if (pathname.startsWith('/marketplace')) return 'Avivar';
+  if (pathname.startsWith('/clinic')) return 'Operação Clínica';
+  if (pathname.startsWith('/admin')) return 'Administração';
+  // Default para rotas do licenciado
+  return 'Licença ByNeofolic';
+};
 
 const getLicenseeTier = (userId: string): LicenseeTier => {
   const tierMap: Record<string, LicenseeTier> = {
@@ -157,13 +167,15 @@ export function ModuleSidebar({ children }: ModuleSidebarProps) {
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo */}
+        {/* Header - Nome do Módulo/Portal */}
         <div className={cn(
           "p-4 border-b flex items-center",
           isCollapsed ? "justify-center" : "justify-between"
         )}>
           {!isCollapsed && (
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-8 object-contain" />
+            <span className="text-lg font-semibold text-foreground">
+              {getPortalNameByRoute(location.pathname)}
+            </span>
           )}
           <Button
             variant="ghost"

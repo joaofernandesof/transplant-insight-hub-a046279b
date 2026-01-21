@@ -354,12 +354,9 @@ export default function LicenseeHome() {
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <img 
-                src={logoByNeofolic} 
-                alt="Licença ByNeofolic" 
-                className="h-8 object-contain cursor-pointer flex-shrink-0"
-                onClick={() => navigate('/home')}
-              />
+              <span className="text-lg font-semibold text-foreground">
+                Licença ByNeofolic
+              </span>
             </div>
             
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
