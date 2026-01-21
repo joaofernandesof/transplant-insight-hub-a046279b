@@ -305,6 +305,36 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        {/* Profile Quick Access - View as different profiles */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Visualizar como Perfil
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-xs text-muted-foreground mb-3">
+              Acesse rapidamente a visão de cada perfil do sistema sem precisar trocar de conta.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {profileAccess.map((profile) => (
+                <Button
+                  key={profile.profile}
+                  variant="outline"
+                  onClick={() => navigate(profile.path)}
+                  className="h-auto py-3 flex flex-col items-center gap-2 hover:border-primary"
+                >
+                  <div className={`p-2 rounded-full ${profile.color} text-white`}>
+                    <profile.icon className="h-4 w-4" />
+                  </div>
+                  <span className="text-xs font-medium">{profile.title}</span>
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* System Health Status */}
         <Card className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-slate-200 dark:border-slate-700">
           <CardContent className="p-4">
