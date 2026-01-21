@@ -44,7 +44,9 @@ function toAppUser(user: UnifiedUser | null): AppUser | null {
   if (!user) return null;
   
   return {
-    id: user.id,
+    // IMPORTANTE: Usar authUserId (auth.users.id) para compatibilidade
+    // com clinics.user_id que referencia auth.users.id
+    id: user.authUserId,
     name: user.fullName,
     email: user.email,
     role: user.isAdmin ? 'admin' : 'licensee',
