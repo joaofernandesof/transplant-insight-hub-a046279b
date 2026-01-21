@@ -133,15 +133,8 @@ export function KeyDailyMetrics({
   isAdmin,
   clinicName
 }: KeyDailyMetricsProps) {
-  // Get last 7 days/weeks for display
+  // All weeks for the year (same as HorizontalMetricsTable)
   const allWeeks = useMemo(() => generateWeeks2026(), []);
-  
-  // Show current week and previous 6 weeks for trend
-  const displayWeeks = useMemo(() => {
-    const startIndex = Math.max(0, currentWeekNumber - 7);
-    const endIndex = currentWeekNumber;
-    return allWeeks.slice(startIndex, endIndex + 1);
-  }, [allWeeks, currentWeekNumber]);
 
   const handleInputChange = (weekNumber: number, metricId: string, value: string) => {
     if (value === '') {
@@ -190,31 +183,32 @@ export function KeyDailyMetrics({
           <thead className="bg-muted sticky top-0 z-20">
             <tr className="border-b border-border">
               {/* Fixed column - Indicator */}
-              <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-30 min-w-[180px] sm:min-w-[220px] border-r border-border">
+              <th className="text-left px-2 sm:px-3 py-2 sm:py-2.5 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-30 min-w-[140px] sm:min-w-[180px] border-r border-border">
                 <span className="text-xs sm:text-sm">Indicador</span>
               </th>
               
-              {/* Week columns */}
-              {displayWeeks.map((week) => (
+              {/* All week columns - thin like HorizontalMetricsTable */}
+              {allWeeks.map((week) => (
                 <th 
                   key={week.weekNumber}
+                  data-week={week.weekNumber}
                   className={cn(
-                    "text-center px-2 sm:px-3 py-2 sm:py-2.5 font-semibold whitespace-nowrap min-w-[70px] sm:min-w-[85px] border-l border-border transition-colors",
+                    "text-center px-1 sm:px-1.5 py-2 sm:py-2.5 font-semibold whitespace-nowrap min-w-[52px] sm:min-w-[65px] border-l border-border transition-colors bg-muted",
                     week.weekNumber === currentWeekNumber && "bg-primary/20 ring-2 ring-primary ring-inset"
                   )}
                 >
-                  <div className="flex flex-col items-center gap-0.5">
+                  <div className="flex flex-col items-center gap-0">
                     <span className={cn(
-                      "text-xs sm:text-sm font-bold",
+                      "text-[10px] sm:text-xs font-bold",
                       week.weekNumber === currentWeekNumber ? "text-primary" : "text-foreground"
                     )}>
                       S{week.weekNumber}
                     </span>
-                    <span className="text-[9px] sm:text-[10px] text-muted-foreground">
+                    <span className="text-[8px] sm:text-[9px] text-muted-foreground">
                       {formatDate(week.startDate).split('/').slice(0, 2).join('/')}
                     </span>
                     {week.weekNumber === currentWeekNumber && (
-                      <span className="text-[8px] sm:text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full font-bold">
+                      <span className="text-[7px] sm:text-[8px] bg-primary text-primary-foreground px-1 py-0.5 rounded-full font-bold mt-0.5">
                         ATUAL
                       </span>
                     )}
@@ -235,23 +229,21 @@ export function KeyDailyMetrics({
                     idx % 2 === 0 && 'bg-muted/10'
                   )}
                 >
-                  {/* Indicator Name */}
+                  {/* Indicator Name - compact */}
                   <td className={cn(
-                    "px-3 sm:px-4 py-2.5 sm:py-3 sticky left-0 z-10 border-r border-border",
+                    "px-2 sm:px-3 py-1.5 sm:py-2 sticky left-0 z-10 border-r border-border",
                     metric.bgColor
                   )}>
-                    <div className="flex items-center gap-2">
-                      <div className={cn("p-1.5 rounded", metric.bgColor)}>
-                        <Icon className={cn("w-4 h-4", metric.color)} />
-                      </div>
-                      <span className="font-medium text-foreground text-xs sm:text-sm whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Icon className={cn("w-3.5 h-3.5 flex-shrink-0", metric.color)} />
+                      <span className="font-medium text-foreground text-[10px] sm:text-xs whitespace-nowrap truncate">
                         {metric.nome}
                       </span>
                     </div>
                   </td>
                   
-                  {/* Week Values */}
-                  {displayWeeks.map((week) => {
+                  {/* Week Values - all weeks, thin inputs */}
+                  {allWeeks.map((week) => {
                     const weekValues = getWeekValues(week.weekNumber);
                     const value = weekValues[metric.id] ?? null;
                     const editable = isWeekEditable(week.weekNumber);
@@ -261,7 +253,7 @@ export function KeyDailyMetrics({
                       <td 
                         key={week.weekNumber}
                         className={cn(
-                          "text-center px-1.5 sm:px-2 py-2 border-l border-border",
+                          "text-center px-0.5 sm:px-1 py-1 border-l border-border",
                           isCurrent && "bg-primary/5"
                         )}
                       >
@@ -272,17 +264,17 @@ export function KeyDailyMetrics({
                             onChange={(e) => handleInputChange(week.weekNumber, metric.id, e.target.value)}
                             placeholder="-"
                             className={cn(
-                              "w-full text-center font-semibold rounded px-1 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all",
-                              "bg-white dark:bg-gray-800 border",
+                              "w-full text-center font-semibold rounded px-0.5 py-1 text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all",
+                              "bg-background border",
                               isCurrent 
-                                ? "border-primary/50 shadow-sm" 
+                                ? "border-primary/50" 
                                 : "border-border hover:border-primary/30",
-                              value !== null && "bg-amber-50 dark:bg-amber-950/30"
+                              value !== null && value !== '' && "bg-accent/30"
                             )}
                           />
                         ) : (
                           <span className={cn(
-                            "font-semibold text-xs sm:text-sm",
+                            "font-semibold text-[10px] sm:text-xs",
                             value !== null ? "text-foreground" : "text-muted-foreground"
                           )}>
                             {value !== null ? String(value) : '-'}
