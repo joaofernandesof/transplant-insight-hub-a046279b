@@ -3891,6 +3891,245 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_system_access: {
+        Row: {
+          access_beeviral: string | null
+          access_bling: string | null
+          access_bubble: string | null
+          access_canva: string | null
+          access_capcut: string | null
+          access_chip_corp: string | null
+          access_clicksign: string | null
+          access_clickup: string | null
+          access_cloudflare: string | null
+          access_conecta_capilar: string | null
+          access_conta_azul: string | null
+          access_feegow: string | null
+          access_fireflies: string | null
+          access_gmail_corp: string | null
+          access_gmail_domain: string | null
+          access_godaddy: string | null
+          access_google_drive: string | null
+          access_instagram_hygor: string | null
+          access_instagram_ibramec: string | null
+          access_instagram_neofolic: string | null
+          access_instagram_patrick: string | null
+          access_kommo: string | null
+          access_linkedin_ibramec: string | null
+          access_linkedin_neofolic: string | null
+          access_mailchimp: string | null
+          access_make: string | null
+          access_manychat: string | null
+          access_notion: string | null
+          access_nuvem_hospedagem: string | null
+          access_panda_video: string | null
+          access_pluga: string | null
+          access_pluxee: string | null
+          access_reclame_aqui: string | null
+          access_registro_br: string | null
+          access_reportei: string | null
+          access_saude_service: string | null
+          access_shosp: string | null
+          access_stripe: string | null
+          access_tiktok_ibramec: string | null
+          access_tiktok_neofolic: string | null
+          access_twilio: string | null
+          access_vivo_empresa: string | null
+          access_whatsapp_groups: string | null
+          access_wordpress_ibramec: string | null
+          access_wordpress_neofolic: string | null
+          access_zapier: string | null
+          address_cep: string | null
+          address_city: string | null
+          address_neighborhood: string | null
+          address_street: string | null
+          birth_date: string | null
+          city: string | null
+          cnpj: string | null
+          company_name: string | null
+          contract_days: number | null
+          contract_end: string | null
+          contract_start: string | null
+          contract_type: string | null
+          corporate_email_domain: string | null
+          corporate_email_gmail: string | null
+          corporate_phone: string | null
+          council_document: string | null
+          cpf_hash: string | null
+          created_at: string
+          department: string | null
+          has_contract: boolean | null
+          has_health_plan: boolean | null
+          health_plan_deadline: string | null
+          id: string
+          job_title: string | null
+          neohub_user_id: string
+          personal_email: string | null
+          personal_phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_beeviral?: string | null
+          access_bling?: string | null
+          access_bubble?: string | null
+          access_canva?: string | null
+          access_capcut?: string | null
+          access_chip_corp?: string | null
+          access_clicksign?: string | null
+          access_clickup?: string | null
+          access_cloudflare?: string | null
+          access_conecta_capilar?: string | null
+          access_conta_azul?: string | null
+          access_feegow?: string | null
+          access_fireflies?: string | null
+          access_gmail_corp?: string | null
+          access_gmail_domain?: string | null
+          access_godaddy?: string | null
+          access_google_drive?: string | null
+          access_instagram_hygor?: string | null
+          access_instagram_ibramec?: string | null
+          access_instagram_neofolic?: string | null
+          access_instagram_patrick?: string | null
+          access_kommo?: string | null
+          access_linkedin_ibramec?: string | null
+          access_linkedin_neofolic?: string | null
+          access_mailchimp?: string | null
+          access_make?: string | null
+          access_manychat?: string | null
+          access_notion?: string | null
+          access_nuvem_hospedagem?: string | null
+          access_panda_video?: string | null
+          access_pluga?: string | null
+          access_pluxee?: string | null
+          access_reclame_aqui?: string | null
+          access_registro_br?: string | null
+          access_reportei?: string | null
+          access_saude_service?: string | null
+          access_shosp?: string | null
+          access_stripe?: string | null
+          access_tiktok_ibramec?: string | null
+          access_tiktok_neofolic?: string | null
+          access_twilio?: string | null
+          access_vivo_empresa?: string | null
+          access_whatsapp_groups?: string | null
+          access_wordpress_ibramec?: string | null
+          access_wordpress_neofolic?: string | null
+          access_zapier?: string | null
+          address_cep?: string | null
+          address_city?: string | null
+          address_neighborhood?: string | null
+          address_street?: string | null
+          birth_date?: string | null
+          city?: string | null
+          cnpj?: string | null
+          company_name?: string | null
+          contract_days?: number | null
+          contract_end?: string | null
+          contract_start?: string | null
+          contract_type?: string | null
+          corporate_email_domain?: string | null
+          corporate_email_gmail?: string | null
+          corporate_phone?: string | null
+          council_document?: string | null
+          cpf_hash?: string | null
+          created_at?: string
+          department?: string | null
+          has_contract?: boolean | null
+          has_health_plan?: boolean | null
+          health_plan_deadline?: string | null
+          id?: string
+          job_title?: string | null
+          neohub_user_id: string
+          personal_email?: string | null
+          personal_phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_beeviral?: string | null
+          access_bling?: string | null
+          access_bubble?: string | null
+          access_canva?: string | null
+          access_capcut?: string | null
+          access_chip_corp?: string | null
+          access_clicksign?: string | null
+          access_clickup?: string | null
+          access_cloudflare?: string | null
+          access_conecta_capilar?: string | null
+          access_conta_azul?: string | null
+          access_feegow?: string | null
+          access_fireflies?: string | null
+          access_gmail_corp?: string | null
+          access_gmail_domain?: string | null
+          access_godaddy?: string | null
+          access_google_drive?: string | null
+          access_instagram_hygor?: string | null
+          access_instagram_ibramec?: string | null
+          access_instagram_neofolic?: string | null
+          access_instagram_patrick?: string | null
+          access_kommo?: string | null
+          access_linkedin_ibramec?: string | null
+          access_linkedin_neofolic?: string | null
+          access_mailchimp?: string | null
+          access_make?: string | null
+          access_manychat?: string | null
+          access_notion?: string | null
+          access_nuvem_hospedagem?: string | null
+          access_panda_video?: string | null
+          access_pluga?: string | null
+          access_pluxee?: string | null
+          access_reclame_aqui?: string | null
+          access_registro_br?: string | null
+          access_reportei?: string | null
+          access_saude_service?: string | null
+          access_shosp?: string | null
+          access_stripe?: string | null
+          access_tiktok_ibramec?: string | null
+          access_tiktok_neofolic?: string | null
+          access_twilio?: string | null
+          access_vivo_empresa?: string | null
+          access_whatsapp_groups?: string | null
+          access_wordpress_ibramec?: string | null
+          access_wordpress_neofolic?: string | null
+          access_zapier?: string | null
+          address_cep?: string | null
+          address_city?: string | null
+          address_neighborhood?: string | null
+          address_street?: string | null
+          birth_date?: string | null
+          city?: string | null
+          cnpj?: string | null
+          company_name?: string | null
+          contract_days?: number | null
+          contract_end?: string | null
+          contract_start?: string | null
+          contract_type?: string | null
+          corporate_email_domain?: string | null
+          corporate_email_gmail?: string | null
+          corporate_phone?: string | null
+          council_document?: string | null
+          cpf_hash?: string | null
+          created_at?: string
+          department?: string | null
+          has_contract?: boolean | null
+          has_health_plan?: boolean | null
+          health_plan_deadline?: string | null
+          id?: string
+          job_title?: string | null
+          neohub_user_id?: string
+          personal_email?: string | null
+          personal_phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_system_access_neohub_user_id_fkey"
+            columns: ["neohub_user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       surgery_schedule: {
         Row: {
           balance_due: number | null
