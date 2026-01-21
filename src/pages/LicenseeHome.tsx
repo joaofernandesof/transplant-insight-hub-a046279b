@@ -416,26 +416,28 @@ export default function LicenseeHome() {
         {/* Thursday Sala Técnica Notification */}
         <SalaTecnicaNotification className="mb-6" />
 
-        {/* First Steps, Achievements, Monthly Goals & Surgery Submissions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="space-y-6">
+        {/* First Steps + Monthly Goals & Surgeries (row 1) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
+          {/* First Steps - spans 7 cols on large screens */}
+          <div className="lg:col-span-7">
             <FirstStepsChecklist />
-            <AchievementsPanel compact />
           </div>
-          <div className="space-y-6">
+          {/* Monthly Goals + Surgery side by side on right - spans 5 cols */}
+          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
             <MonthlyGoals />
             <SurgerySubmissions />
           </div>
         </div>
 
-        {/* Sala Técnica & Leaderboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <SalaTecnicaUpcoming />
+        {/* Achievements + Leaderboard (row 2) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <AchievementsPanel compact />
           <Leaderboard limit={10} />
         </div>
 
-        {/* Timeline */}
-        <div className="mb-8">
+        {/* Sala Técnica + Timeline (row 3) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <SalaTecnicaUpcoming />
           <AchievementTimeline />
         </div>
 
