@@ -38,6 +38,30 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [userClinicId, setUserClinicId] = useState<string | null>(null);
   const { user, isAdmin } = useAuth();
 
+  // Log admin access to clinic data for audit purposes
+  const logAdminAccess = useCallback(async (action: string, resourceType: string, resourceId?: string, metadata?: Record<string, unknown>) => {
+    if (!user || !isAdmin) return;
+    
+    try {
+      const { error } = await supabase
+        .from('admin_audit_log' as 'profiles')
+        .insert({
+          admin_user_id: user.id,
+          action,
+          resource_type: resourceType,
+          resource_id: resourceId || null,
+          metadata: metadata || null,
+        } as never);
+      
+      if (error) {
+        console.error('Error logging admin access:', error);
+      }
+    } catch (error) {
+      console.error('Error logging admin access:', error);
+      // Don't throw - audit logging should not block functionality
+    }
+  }, [user, isAdmin]);
+
   // Fetch user's clinic and metrics from database
   const fetchUserData = useCallback(async () => {
     if (!user) {
@@ -51,6 +75,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     try {
       if (isAdmin) {
+        // Log admin access to all clinics data
+        logAdminAccess('view_all_clinics', 'clinics', undefined, { context: 'dashboard_load' });
+        
         // Admin: fetch all clinics and their metrics
         const { data: clinics, error: clinicsError } = await supabase
           .from('clinics')
