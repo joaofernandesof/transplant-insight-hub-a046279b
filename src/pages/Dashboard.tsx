@@ -5,13 +5,13 @@ import { Header } from '@/components/Header';
 import { AdminLayout } from '@/components/AdminLayout';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { HorizontalMetricsTable } from '@/components/HorizontalMetricsTable';
-import { AllMetricsTable } from '@/components/AllMetricsTable';
+import { MetricsDashboard } from '@/components/MetricsDashboard';
 import { InsightsPanel } from '@/components/InsightsPanel';
 import { KeyDailyMetrics } from '@/components/KeyDailyMetrics';
 import { WeekData, isWeekAvailable, formatDate, getLastAvailableWeek, generateWeeks2026 } from '@/data/metricsData';
 import { calculateMetrics } from '@/utils/metricCalculations';
 import { 
-  BarChart3, 
+  LayoutDashboard, 
   Lightbulb, 
   Save, 
   Building2,
@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-type TabType = 'indicators' | 'summary' | 'insights';
+type TabType = 'indicators' | 'dashboard' | 'insights';
 
 export default function Dashboard() {
   const { user, isAdmin } = useAuth();
@@ -258,16 +258,16 @@ export default function Dashboard() {
               <span>Indicadores</span>
             </button>
             <button
-              onClick={() => setActiveTab('summary')}
+              onClick={() => setActiveTab('dashboard')}
               className={cn(
                 'flex items-center justify-center gap-1 px-2 sm:px-5 py-1.5 sm:py-2.5 rounded-md sm:rounded-lg font-semibold text-[11px] sm:text-sm transition-all flex-1 sm:flex-none whitespace-nowrap',
-                activeTab === 'summary' 
+                activeTab === 'dashboard' 
                   ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
             >
-              <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span>Resumo</span>
+              <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Dashboard</span>
             </button>
             <button
               onClick={() => setActiveTab('insights')}
@@ -310,12 +310,12 @@ export default function Dashboard() {
             </>
           )}
           
-          {activeTab === 'summary' && (
-            <AllMetricsTable
-              calculatedValues={calculatedMetrics}
-              manualValues={currentWeekValues}
-              onManualChange={isEditable ? (key, val) => handleValueChange(currentWeekNumber, key, val) : undefined}
-              isEditable={isEditable}
+          {activeTab === 'dashboard' && (
+            <MetricsDashboard
+              weeks={weeks}
+              currentWeekNumber={currentWeekNumber}
+              getWeekValues={getWeekValues}
+              clinicName={selectedClinicName}
             />
           )}
           
