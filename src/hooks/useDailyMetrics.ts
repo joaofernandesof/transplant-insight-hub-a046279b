@@ -18,6 +18,7 @@ export interface DailyMetric {
   agendamentos: number;
   vendas_realizadas: number;
   leads_descartados: number;
+  investimento_trafego: number;
   created_at: string;
   updated_at: string;
 }

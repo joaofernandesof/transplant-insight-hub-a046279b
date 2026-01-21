@@ -653,6 +653,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          investimento_trafego: number | null
           leads_descartados: number | null
           leads_novos: number | null
           mensagens_enviadas_atendente: number | null
@@ -673,6 +674,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          investimento_trafego?: number | null
           leads_descartados?: number | null
           leads_novos?: number | null
           mensagens_enviadas_atendente?: number | null
@@ -693,6 +695,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          investimento_trafego?: number | null
           leads_descartados?: number | null
           leads_novos?: number | null
           mensagens_enviadas_atendente?: number | null

@@ -56,6 +56,26 @@ interface MetricConfig {
 
 const metricsConfig: MetricConfig[] = [
   { 
+    id: 'investimento_trafego', 
+    nome: 'Invest. Tráfego', 
+    icon: TrendingUp,
+    color: 'text-violet-600',
+    goodDirection: 'up',
+    benchmark: { ruim: '<R$50', medio: 'R$50–99', bom: 'R$100–199', otimo: '≥R$200' },
+    getDiagnosisFromAvg: (avg: number) => {
+      if (avg < 50) return { status: 'danger', text: 'Investimento baixo.' };
+      if (avg < 100) return { status: 'warning', text: 'Investimento moderado.' };
+      if (avg < 200) return { status: 'neutral', text: 'Investimento adequado.' };
+      return { status: 'success', text: 'Alto investimento!' };
+    },
+    getOrientation: (status: string) => {
+      if (status === 'danger') return 'Aumentar verba de tráfego para gerar mais leads.';
+      if (status === 'warning') return 'Considerar incremento gradual no investimento.';
+      if (status === 'success') return 'Monitorar ROI e otimizar campanhas.';
+      return 'Manter investimento e acompanhar CPL.';
+    }
+  },
+  { 
     id: 'leads_novos', 
     nome: 'Leads Novos', 
     icon: Users,
