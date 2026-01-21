@@ -124,8 +124,10 @@ export default function Dashboard() {
   // For admin: list of clinics from database
   const clinicsList = Object.entries(clinicsData).map(([id, data]) => ({
     id,
-    name: `Clínica ${id.slice(0, 8)}...`
+    name: (data as any).name || `Clínica ${id.slice(0, 8)}...`
   }));
+  
+  const selectedClinicName = clinicsList.find(c => c.id === selectedClinicId)?.name || 'Clínica';
 
   const Layout = isAdmin ? AdminLayout : ModuleLayout;
 
@@ -293,6 +295,7 @@ export default function Dashboard() {
                 onValueChange={handleValueChange}
                 getWeekValues={getWeekValues}
                 isAdmin={isAdmin}
+                clinicName={selectedClinicName}
               />
               
               {/* Full Metrics Table */}
