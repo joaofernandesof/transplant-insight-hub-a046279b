@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO } from 'date-fns';
+import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, getDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { 
@@ -95,7 +95,7 @@ export function DailyMetricsTable({ clinicId, clinicName, isAdmin, onValueChange
 
   const { dailyMetrics, isLoading, saveDailyMetric, isSaving } = useDailyMetrics(clinicId, dateFilter);
 
-  // Generate all dates in the range (in chronological order: oldest to newest)
+  // Generate all dates in the range (in chronological order: oldest to newest, weekdays only)
   const datesInRange = useMemo(() => {
     const dates: string[] = [];
     const start = parseISO(dateFilter.startDate);
@@ -105,7 +105,15 @@ export function DailyMetricsTable({ clinicId, clinicName, isAdmin, onValueChange
     let current = start < minDate ? minDate : start;
     
     while (current <= end) {
-      dates.push(format(current, 'yyyy-MM-dd'));
+      // getDay() returns 0 for Sunday, 6 for Saturday
+      const dayOfWeek = getDay(current);
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      
+      // Only include weekdays (Monday-Friday)
+      if (!isWeekend) {
+        dates.push(format(current, 'yyyy-MM-dd'));
+      }
+      
       // Add one day
       current = new Date(current.getTime() + 24 * 60 * 60 * 1000);
     }
@@ -158,8 +166,8 @@ export function DailyMetricsTable({ clinicId, clinicName, isAdmin, onValueChange
               </div>
               <div>
                 <h3 className="font-bold text-foreground text-base sm:text-lg">Histórico de Métricas Diárias</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Dados desde 30/09/2025 • {datesInRange.length} dias no período
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                  Dados desde 30/09/2025 • {datesInRange.length} dias úteis no período
                 </p>
               </div>
             </div>
