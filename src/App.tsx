@@ -58,6 +58,7 @@ import ReferralProgram from "./pages/ReferralProgram";
 import Achievements from "./pages/Achievements";
 import UserMonitoring from "./pages/UserMonitoring";
 import SystemMetrics from "./pages/SystemMetrics";
+import SystemSentinel from "./pages/admin/SystemSentinel";
 import WeeklyReports from "./pages/WeeklyReports";
 import SurgerySchedule from "./pages/SurgerySchedule";
 import SalaTecnica from "./pages/SalaTecnica";
@@ -383,6 +384,7 @@ function AppRoutes() {
       <Route path="/indique-e-ganhe" element={<ProtectedRoute><ReferralProgram /></ProtectedRoute>} />
       <Route path="/monitoring" element={<ProtectedRoute><UserMonitoring /></ProtectedRoute>} />
       <Route path="/system-metrics" element={<ProtectedRoute><SystemMetrics /></ProtectedRoute>} />
+      <Route path="/admin/sentinel" element={<AdminRoute><SystemSentinel /></AdminRoute>} />
       <Route path="/weekly-reports" element={<ProtectedRoute><WeeklyReports /></ProtectedRoute>} />
       <Route path="/surgery-schedule" element={<ProtectedRoute><SurgerySchedule /></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SalaTecnica /></ProtectedRoute>} />

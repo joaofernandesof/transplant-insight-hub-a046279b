@@ -29,7 +29,8 @@ import {
   Send,
   FileText,
   Gift,
-  LayoutDashboard
+  LayoutDashboard,
+  Activity
 } from 'lucide-react';
 
 interface ModuleCard {
@@ -87,6 +88,15 @@ const adminModules: ModuleCard[] = [
     icon: <GitCompare className="h-6 w-6" />,
     path: '/comparison',
     color: 'from-purple-500 to-purple-600',
+    category: 'management'
+  },
+  {
+    id: 'sentinel',
+    title: 'System Sentinel',
+    description: 'Monitoramento de sistemas e alertas WhatsApp',
+    icon: <Activity className="h-6 w-6" />,
+    path: '/admin/sentinel',
+    color: 'from-green-500 to-emerald-600',
     category: 'management'
   },
   {
