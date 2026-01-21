@@ -25,44 +25,105 @@ import {
   Zap,
   Send,
   ChevronRight,
+  ChevronDown,
   Settings,
   BarChart3,
   Flame,
   GraduationCap,
   Building2,
   FileText,
-  GitCompare
+  GitCompare,
+  Calendar,
+  Clock,
+  Heart
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SystemAlertsWidget } from '@/components/admin/SystemAlertsWidget';
 import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
 
-// Quick access modules for admin
-const quickModules = [
-  { id: 'licensees', title: 'Licenciados', icon: Users, path: '/licensees', color: 'bg-blue-500' },
-  { id: 'monitoring', title: 'Monitoramento', icon: Eye, path: '/monitoring', color: 'bg-cyan-500' },
-  { id: 'comparison', title: 'Comparar Clínicas', icon: GitCompare, path: '/comparison', color: 'bg-purple-500' },
-  { id: 'sentinel', title: 'Sentinel', icon: Activity, path: '/admin/sentinel', color: 'bg-green-500' },
-  { id: 'dashboard', title: 'Indicadores', icon: BarChart3, path: '/dashboard', color: 'bg-emerald-500' },
-  { id: 'surgery', title: 'Cirurgias', icon: Building2, path: '/surgery-schedule', color: 'bg-teal-500' },
-  { id: 'reports', title: 'Relatórios', icon: FileText, path: '/weekly-reports', color: 'bg-rose-500' },
-  { id: 'settings', title: 'Configurações', icon: Settings, path: '/admin', color: 'bg-slate-500' },
-];
-
-const contentModules = [
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, path: '/hotleads', color: 'bg-orange-500' },
-  { id: 'university', title: 'Universidade', icon: GraduationCap, path: '/university', color: 'bg-indigo-500' },
-  { id: 'crm', title: 'CRM & Vendas', icon: DollarSign, path: '/crm', color: 'bg-green-500' },
-  { id: 'consolidated', title: 'Resultados', icon: BarChart3, path: '/consolidated-results', color: 'bg-amber-500' },
+// Hierarchical module structure for clear understanding
+const moduleCategories = [
+  {
+    id: 'admin',
+    title: 'Administração',
+    description: 'Gestão de usuários, permissões e configurações globais',
+    color: 'bg-blue-600',
+    icon: Shield,
+    modules: [
+      { id: 'licensees', title: 'Licenciados', description: 'Gerenciar franqueados', icon: Users, path: '/licensees' },
+      { id: 'monitoring', title: 'Monitoramento', description: 'Atividade de usuários', icon: Eye, path: '/monitoring' },
+      { id: 'permissions', title: 'Permissões', description: 'Matriz de acessos', icon: Shield, path: '/admin' },
+      { id: 'settings', title: 'Configurações', description: 'Parâmetros do sistema', icon: Settings, path: '/admin' },
+    ]
+  },
+  {
+    id: 'operations',
+    title: 'Operação Clínica',
+    description: 'Agenda, cirurgias e gestão do dia-a-dia',
+    color: 'bg-teal-600',
+    icon: Building2,
+    modules: [
+      { id: 'surgery', title: 'Agenda de Cirurgias', description: 'Calendário cirúrgico', icon: Calendar, path: '/surgery-schedule' },
+      { id: 'neoteam', title: 'NeoTeam', description: 'Painel colaboradores', icon: Users, path: '/neoteam' },
+      { id: 'waiting', title: 'Sala de Espera', description: 'Fila de atendimento', icon: Clock, path: '/neoteam/waiting-room' },
+    ]
+  },
+  {
+    id: 'commercial',
+    title: 'Comercial & Vendas',
+    description: 'CRM, leads e funil de vendas',
+    color: 'bg-green-600',
+    icon: DollarSign,
+    modules: [
+      { id: 'crm', title: 'CRM Vendas', description: 'Gestão comercial', icon: DollarSign, path: '/crm' },
+      { id: 'hotleads', title: 'HotLeads', description: 'Leads quentes', icon: Flame, path: '/hotleads' },
+      { id: 'consolidated', title: 'Resultados', description: 'VGV e métricas', icon: BarChart3, path: '/consolidated-results' },
+    ]
+  },
+  {
+    id: 'analytics',
+    title: 'Análises & Relatórios',
+    description: 'Dashboards, indicadores e exportações',
+    color: 'bg-purple-600',
+    icon: BarChart3,
+    modules: [
+      { id: 'dashboard', title: 'Indicadores', description: 'Métricas diárias', icon: BarChart3, path: '/dashboard' },
+      { id: 'comparison', title: 'Comparar Clínicas', description: 'Benchmark unidades', icon: GitCompare, path: '/comparison' },
+      { id: 'reports', title: 'Relatórios Semanais', description: 'PDF por licenciado', icon: FileText, path: '/weekly-reports' },
+    ]
+  },
+  {
+    id: 'education',
+    title: 'Educação & Conteúdo',
+    description: 'Cursos, materiais e certificações',
+    color: 'bg-indigo-600',
+    icon: GraduationCap,
+    modules: [
+      { id: 'university', title: 'Universidade', description: 'Cursos e aulas', icon: GraduationCap, path: '/university' },
+      { id: 'materials', title: 'Central de Materiais', description: 'POPs e scripts', icon: FileText, path: '/materials' },
+      { id: 'exams', title: 'Provas', description: 'Avaliações alunos', icon: BookOpen, path: '/exams' },
+    ]
+  },
+  {
+    id: 'infrastructure',
+    title: 'Infraestrutura',
+    description: 'Monitoramento técnico e integrações',
+    color: 'bg-slate-600',
+    icon: Server,
+    modules: [
+      { id: 'sentinel', title: 'System Sentinel', description: 'Uptime e alertas', icon: Activity, path: '/admin/sentinel' },
+      { id: 'api', title: 'API Docs', description: 'Documentação', icon: Zap, path: '/api-docs' },
+    ]
+  },
 ];
 
 // Profile quick access for admin to view system as different profiles
 const profileAccess = [
-  { profile: 'licenciado', title: 'Licenciado', icon: Award, path: '/home', color: 'bg-amber-500' },
-  { profile: 'colaborador', title: 'Colaborador', icon: Users, path: '/neoteam', color: 'bg-blue-500' },
-  { profile: 'aluno', title: 'Aluno', icon: GraduationCap, path: '/university', color: 'bg-indigo-500' },
-  { profile: 'paciente', title: 'Paciente', icon: Users, path: '/neocare', color: 'bg-green-500' },
+  { profile: 'licenciado', title: 'Licenciado', description: 'Dono de clínica', icon: Award, path: '/home', color: 'bg-amber-500' },
+  { profile: 'colaborador', title: 'Colaborador', description: 'Equipe clínica', icon: Users, path: '/neoteam', color: 'bg-blue-500' },
+  { profile: 'aluno', title: 'Aluno', description: 'IBRAMEC', icon: GraduationCap, path: '/university', color: 'bg-indigo-500' },
+  { profile: 'paciente', title: 'Paciente', description: 'NeoCare', icon: Heart, path: '/neocare', color: 'bg-emerald-500' },
 ];
 
 interface SystemStats {
@@ -267,69 +328,68 @@ export default function AdminDashboard() {
           onOpenChange={setIsNotificationDialogOpen}
         />
 
-        {/* Quick Navigation - Gestão */}
-        <div>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Gestão do Sistema</h3>
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
-            {quickModules.map((module) => (
-              <button
-                key={module.id}
-                onClick={() => navigate(module.path)}
-                className="group flex flex-col items-center gap-1.5 p-2 rounded-lg border border-border bg-card hover:bg-muted/50 transition-all"
-              >
-                <div className={`p-2 rounded-lg ${module.color} text-white`}>
-                  <module.icon className="h-4 w-4" />
+        {/* Hierarchical Module Navigation */}
+        <div className="space-y-3">
+          {moduleCategories.map((category) => (
+            <Card key={category.id} className="overflow-hidden">
+              <div className={`h-1 ${category.color}`} />
+              <CardContent className="p-3">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`p-2 rounded-lg ${category.color} text-white`}>
+                    <category.icon className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold">{category.title}</h3>
+                    <p className="text-[10px] text-muted-foreground">{category.description}</p>
+                  </div>
                 </div>
-                <span className="text-[10px] font-medium text-center leading-tight">{module.title}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Content Modules */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {contentModules.map((module) => (
-            <button
-              key={module.id}
-              onClick={() => navigate(module.path)}
-              className="group flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-all text-left"
-            >
-              <div className={`p-2 rounded-lg ${module.color} text-white`}>
-                <module.icon className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{module.title}</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </button>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 pl-11">
+                  {category.modules.map((mod) => (
+                    <button
+                      key={mod.id}
+                      onClick={() => navigate(mod.path)}
+                      className="group flex items-center gap-2 p-2 rounded-md hover:bg-muted/60 transition-all text-left"
+                    >
+                      <mod.icon className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate group-hover:text-primary">{mod.title}</p>
+                        <p className="text-[9px] text-muted-foreground truncate">{mod.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
         {/* Profile Quick Access - View as different profiles */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
               <Eye className="h-4 w-4" />
-              Visualizar como Perfil
+              Simular Perfil
             </CardTitle>
+            <p className="text-[10px] text-muted-foreground">
+              Visualize o sistema como outros perfis
+            </p>
           </CardHeader>
           <CardContent className="pt-0">
-            <p className="text-xs text-muted-foreground mb-3">
-              Acesse rapidamente a visão de cada perfil do sistema sem precisar trocar de conta.
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {profileAccess.map((profile) => (
-                <Button
+                <button
                   key={profile.profile}
-                  variant="outline"
                   onClick={() => navigate(profile.path)}
-                  className="h-auto py-3 flex flex-col items-center gap-2 hover:border-primary"
+                  className="group flex flex-col items-center gap-1.5 p-2 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all"
                 >
                   <div className={`p-2 rounded-full ${profile.color} text-white`}>
-                    <profile.icon className="h-4 w-4" />
+                    <profile.icon className="h-3.5 w-3.5" />
                   </div>
-                  <span className="text-xs font-medium">{profile.title}</span>
-                </Button>
+                  <div className="text-center">
+                    <p className="text-[10px] font-medium">{profile.title}</p>
+                    <p className="text-[8px] text-muted-foreground">{profile.description}</p>
+                  </div>
+                </button>
               ))}
             </div>
           </CardContent>
