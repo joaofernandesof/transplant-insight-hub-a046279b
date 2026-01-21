@@ -101,7 +101,7 @@ export function MarketplaceHome() {
   return (
     <MarketplaceLayout>
       <MarketplaceHeader
-        title="Marketplace Neo Folic"
+        title="Marketplace IBRAMEC"
         subtitle="Atração e Conversão de Pacientes"
         showBack={true}
         backTo="/home"
