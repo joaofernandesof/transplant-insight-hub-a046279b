@@ -297,57 +297,57 @@ export function HorizontalMetricsTable({
         </div>
       </div>
       
-      <div ref={tableRef} className="overflow-x-auto scrollbar-hide">
+      <div ref={tableRef} className="overflow-x-auto scrollbar-hide relative">
         <table className="w-full text-sm border-collapse font-['-apple-system',BlinkMacSystemFont,'SF_Pro_Display','Inter',sans-serif]">
-          <thead className="bg-muted sticky top-0 z-20">
+          <thead className="bg-muted sticky top-0 z-40">
             <tr className="border-b border-border">
               {/* Fixed columns - Desktop: all info columns | Mobile: only Etapa, Resp, Sigla, Indicador */}
-              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-30 min-w-[52px] sm:min-w-[100px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-50 w-[60px] sm:w-[100px] min-w-[60px] sm:min-w-[100px] max-w-[60px] sm:max-w-[100px] border-r border-border/50">
                 <span className="text-xs sm:text-sm">Etapa</span>
               </th>
-              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[52px] sm:left-[100px] bg-muted z-30 min-w-[40px] sm:min-w-[85px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[60px] sm:left-[100px] bg-muted z-50 w-[50px] sm:w-[85px] min-w-[50px] sm:min-w-[85px] max-w-[50px] sm:max-w-[85px] border-r border-border/50">
                 <span className="text-xs sm:text-sm">Resp</span>
               </th>
-              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[92px] sm:left-[185px] bg-muted z-30 min-w-[55px] sm:min-w-[70px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[110px] sm:left-[185px] bg-muted z-50 w-[50px] sm:w-[65px] min-w-[50px] sm:min-w-[65px] max-w-[50px] sm:max-w-[65px] border-r border-border/50">
                 <span className="text-xs sm:text-sm">Sigla</span>
               </th>
               {/* Indicador - Fixed on all devices */}
-              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[147px] sm:left-[255px] bg-muted z-30 min-w-[100px] sm:min-w-[170px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[160px] sm:left-[250px] bg-muted z-50 w-[110px] sm:w-[160px] min-w-[110px] sm:min-w-[160px] max-w-[110px] sm:max-w-[160px] border-r border-border shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)] lg:shadow-none lg:border-r-border/50">
                 <div className="flex items-center gap-1.5">
                   <BarChart3 className="w-3.5 h-3.5 text-primary hidden sm:block" />
                   <span className="text-xs sm:text-sm">Indicador</span>
                 </div>
               </th>
               {/* O que mede - Fixed on desktop only (lg+) */}
-              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[425px] bg-muted z-30 min-w-[150px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[410px] bg-muted z-50 w-[140px] min-w-[140px] max-w-[140px] border-r border-border/50">
                 <div className="flex items-center gap-1.5">
                   <Search className="w-3.5 h-3.5 text-primary" />
                   <span className="text-sm">O que mede</span>
                 </div>
               </th>
               {/* Fórmula - Fixed on desktop only (lg+) */}
-              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[575px] bg-muted z-30 min-w-[120px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[550px] bg-muted z-50 w-[110px] min-w-[110px] max-w-[110px] border-r border-border/50">
                 <div className="flex items-center gap-1.5">
                   <Calculator className="w-3.5 h-3.5 text-primary" />
                   <span className="text-sm">Fórmula</span>
                 </div>
               </th>
               {/* Status columns - Fixed on desktop (lg+) */}
-              <th className="hidden lg:table-cell text-center px-1.5 py-2.5 font-semibold whitespace-nowrap sticky left-[695px] bg-muted z-30 min-w-[55px] border-r border-border">
-                <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">Ruim</span>
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[660px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+                <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">Ruim</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1.5 py-2.5 font-semibold whitespace-nowrap sticky left-[750px] bg-muted z-30 min-w-[55px] border-r border-border">
-                <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-medium">Médio</span>
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[712px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+                <span className="px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-medium">Médio</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1.5 py-2.5 font-semibold whitespace-nowrap sticky left-[805px] bg-muted z-30 min-w-[55px] border-r border-border">
-                <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-medium">Bom</span>
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[764px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+                <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-medium">Bom</span>
               </th>
-              <th className="hidden lg:table-cell text-center px-1.5 py-2.5 font-semibold whitespace-nowrap sticky left-[860px] bg-muted z-30 min-w-[55px] border-r border-border">
-                <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium">Ótimo</span>
+              <th className="hidden lg:table-cell text-center px-1 py-2.5 font-semibold whitespace-nowrap sticky left-[816px] bg-muted z-50 w-[52px] min-w-[52px] max-w-[52px] border-r border-border/50">
+                <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium">Ótimo</span>
               </th>
               
               {/* Trend/Evolution Column - Fixed on desktop (lg+) */}
-              <th className="hidden lg:table-cell text-center px-2 py-2.5 font-semibold whitespace-nowrap sticky left-[915px] bg-muted z-30 min-w-[90px] border-r border-border shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
+              <th className="hidden lg:table-cell text-center px-2 py-2.5 font-semibold whitespace-nowrap sticky left-[868px] bg-muted z-50 w-[82px] min-w-[82px] max-w-[82px] border-r border-border shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
                 <div className="flex items-center justify-center gap-1">
                   <TrendingUp className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs">Tendência</span>
@@ -397,7 +397,11 @@ export function HorizontalMetricsTable({
                   )}
                 >
                   {/* Etapa - Fixed */}
-                  <td className="px-2 sm:px-3 py-2 sm:py-2.5 sticky left-0 bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  <td className={cn(
+                    "px-2 sm:px-3 py-2 sm:py-2.5 sticky left-0 z-20 border-r border-border/50 align-middle",
+                    "w-[60px] sm:w-[100px] min-w-[60px] sm:min-w-[100px] max-w-[60px] sm:max-w-[100px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     <span className={cn(
                       "px-1.5 py-1 rounded-md text-[10px] sm:text-xs font-semibold whitespace-nowrap inline-block",
                       etapaBadgeColors[metric.etapa] || 'bg-muted text-gray-900'
@@ -408,7 +412,11 @@ export function HorizontalMetricsTable({
                   </td>
                   
                   {/* Responsável - Fixed */}
-                  <td className="px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[52px] sm:left-[100px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  <td className={cn(
+                    "px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[60px] sm:left-[100px] z-20 border-r border-border/50 align-middle",
+                    "w-[50px] sm:w-[85px] min-w-[50px] sm:min-w-[85px] max-w-[50px] sm:max-w-[85px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     <span className={cn(
                       "px-1.5 py-1 rounded-md text-[10px] sm:text-xs font-semibold whitespace-nowrap inline-block",
                       responsavelBadgeColors[metric.responsavel] || 'bg-muted text-gray-900'
@@ -419,58 +427,95 @@ export function HorizontalMetricsTable({
                   </td>
                   
                   {/* Sigla - Fixed */}
-                  <td className="px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[92px] sm:left-[185px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  <td className={cn(
+                    "px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[110px] sm:left-[185px] z-20 border-r border-border/50 align-middle",
+                    "w-[50px] sm:w-[65px] min-w-[50px] sm:min-w-[65px] max-w-[50px] sm:max-w-[65px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     <span className="font-semibold text-primary text-xs sm:text-sm tracking-tight">
                       {metric.sigla}
                     </span>
                   </td>
                   
                   {/* Indicador - Fixed on all devices */}
-                  <td className="px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[147px] sm:left-[255px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                    <div className="max-w-[90px] sm:max-w-[160px]">
+                  <td className={cn(
+                    "px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[160px] sm:left-[250px] z-20 border-r border-border align-middle",
+                    "w-[110px] sm:w-[160px] min-w-[110px] sm:min-w-[160px] max-w-[110px] sm:max-w-[160px]",
+                    "shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)] lg:shadow-none lg:border-r-border/50",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
+                    <div className="max-w-[100px] sm:max-w-[150px]">
                       <p className="font-semibold text-foreground text-[10px] sm:text-xs leading-tight truncate sm:whitespace-normal">{metric.nome}</p>
                       <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-tight mt-0.5 line-clamp-1 hidden sm:block">{metric.descricao}</p>
                     </div>
                   </td>
                   
                   {/* O que mede - Fixed on desktop (lg+) */}
-                  <td className="hidden lg:table-cell px-3 py-2.5 sticky left-[425px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                    <p className="text-[10px] text-muted-foreground max-w-[140px] line-clamp-2 leading-tight">
+                  <td className={cn(
+                    "hidden lg:table-cell px-3 py-2.5 sticky left-[410px] z-20 border-r border-border/50 align-middle",
+                    "w-[140px] min-w-[140px] max-w-[140px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
+                    <p className="text-[10px] text-muted-foreground max-w-[130px] line-clamp-2 leading-tight">
                       {metric.oQueMede}
                     </p>
                   </td>
                   
                   {/* Fórmula - Fixed on desktop (lg+) */}
-                  <td className="hidden lg:table-cell px-3 py-2.5 sticky left-[575px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  <td className={cn(
+                    "hidden lg:table-cell px-3 py-2.5 sticky left-[550px] z-20 border-r border-border/50 align-middle",
+                    "w-[110px] min-w-[110px] max-w-[110px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     <span className="text-[10px] font-mono text-muted-foreground leading-tight">
                       {metric.formula}
                     </span>
                   </td>
                   
                   {/* Faixas - Fixed on desktop (lg+) */}
-                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[695px] bg-card z-10 border-r border-border text-center align-middle">
+                  <td className={cn(
+                    "hidden lg:table-cell px-1 py-2 sticky left-[660px] z-20 border-r border-border/50 text-center align-middle",
+                    "w-[52px] min-w-[52px] max-w-[52px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-medium">
                       {metric.ruim}
                     </span>
                   </td>
-                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[750px] bg-card z-10 border-r border-border text-center align-middle">
+                  <td className={cn(
+                    "hidden lg:table-cell px-1 py-2 sticky left-[712px] z-20 border-r border-border/50 text-center align-middle",
+                    "w-[52px] min-w-[52px] max-w-[52px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     <span className="px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[9px] font-medium">
                       {metric.medio}
                     </span>
                   </td>
-                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[805px] bg-card z-10 border-r border-border text-center align-middle">
+                  <td className={cn(
+                    "hidden lg:table-cell px-1 py-2 sticky left-[764px] z-20 border-r border-border/50 text-center align-middle",
+                    "w-[52px] min-w-[52px] max-w-[52px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-medium">
                       {metric.bom}
                     </span>
                   </td>
-                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[860px] bg-card z-10 border-r border-border text-center align-middle">
+                  <td className={cn(
+                    "hidden lg:table-cell px-1 py-2 sticky left-[816px] z-20 border-r border-border/50 text-center align-middle",
+                    "w-[52px] min-w-[52px] max-w-[52px]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-medium">
                       {metric.otimo}
                     </span>
                   </td>
                   
                   {/* Sparkline - Fixed on desktop (lg+) */}
-                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[915px] bg-card z-10 border-r border-border text-center align-middle shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
+                  <td className={cn(
+                    "hidden lg:table-cell px-1.5 py-2 sticky left-[868px] z-20 border-r border-border text-center align-middle",
+                    "w-[82px] min-w-[82px] max-w-[82px] shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]",
+                    idx % 2 === 0 ? "bg-muted/10" : "bg-card"
+                  )} style={{ backgroundColor: idx % 2 === 0 ? 'hsl(var(--muted) / 0.1)' : 'hsl(var(--card))' }}>
                     {(() => {
                       // Collect all values for this metric across weeks up to current week
                       const weekNumbers: number[] = [];
