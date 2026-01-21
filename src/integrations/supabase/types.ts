@@ -5207,6 +5207,57 @@ export type Database = {
         }
         Relationships: []
       }
+      videos: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_seconds: number | null
+          external_url: string | null
+          file_url: string | null
+          id: string
+          is_active: boolean
+          is_public: boolean
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          external_url?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean
+          is_public?: boolean
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          external_url?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean
+          is_public?: boolean
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       weekly_metrics: {
         Row: {
           clinic_id: string
