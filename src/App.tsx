@@ -10,6 +10,9 @@ import SupportChat from "@/components/SupportChat";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { queryClient } from "@/lib/queryClient";
+import { ProtectedRoute, AdminRoute } from "@/components/guards";
+
+// Pages
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
@@ -51,8 +54,12 @@ import ExamTaking from "./pages/ExamTaking";
 import ExamResults from "./pages/ExamResults";
 import ExamsAdmin from "./pages/ExamsAdmin";
 import AccessMatrix from "./pages/AccessMatrix";
+
+// External Apps
 import PortalApp from "./portal/PortalApp";
 import NeoHubApp from "./neohub/NeoHubApp";
+
+// Marketplace
 import { MarketplaceHome } from "./marketplace/pages/MarketplaceHome";
 import { MarketplaceProfessionals } from "./marketplace/pages/MarketplaceProfessionals";
 import { MarketplaceUnits } from "./marketplace/pages/MarketplaceUnits";
@@ -68,23 +75,7 @@ function SidebarWrapper({ children }: { children: React.ReactNode }) {
   return <UnifiedSidebar>{children}</UnifiedSidebar>;
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  return <>{children}</>;
-}
+// ProtectedRoute importado de @/components/guards
 
 function AppRoutes() {
   const { user, isAdmin } = useAuth();
