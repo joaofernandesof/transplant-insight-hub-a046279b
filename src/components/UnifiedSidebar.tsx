@@ -74,6 +74,7 @@ const menuItems = [
   { id: 'divider-gestao', title: 'Gestão', isDivider: true, adminOnly: true },
   { id: 'licensees', title: 'Gerenciar Licenciados', icon: Users, route: '/licensees', adminOnly: true },
   { id: 'monitoring', title: 'Monitoramento de Usuários', icon: Crown, route: '/monitoring', adminOnly: true },
+  { id: 'system-metrics', title: 'Métricas do Sistema', icon: TrendingUp, route: '/system-metrics', adminOnly: true },
   { id: 'admin-panel', title: 'Configurações do Sistema', icon: Settings, route: '/admin', adminOnly: true },
   { id: 'comparison', title: 'Comparar Clínicas', icon: GitCompare, route: '/comparison', adminOnly: true },
   { id: 'weekly-reports', title: 'Relatórios Semanais', icon: FileCheck, route: '/weekly-reports', adminOnly: true },

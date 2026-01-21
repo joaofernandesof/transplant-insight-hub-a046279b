@@ -39,6 +39,7 @@ import ReferralProgram from "./pages/ReferralProgram";
 import ReferralLanding from "./pages/ReferralLanding";
 import Achievements from "./pages/Achievements";
 import UserMonitoring from "./pages/UserMonitoring";
+import SystemMetrics from "./pages/SystemMetrics";
 import WeeklyReports from "./pages/WeeklyReports";
 import SurgerySchedule from "./pages/SurgerySchedule";
 import SalaTecnica from "./pages/SalaTecnica";
@@ -347,6 +348,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <UserMonitoring />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/system-metrics" 
+        element={
+          <ProtectedRoute>
+            <SystemMetrics />
           </ProtectedRoute>
         } 
       />
