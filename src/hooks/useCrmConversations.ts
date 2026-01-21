@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { CACHE_TIMES, QUERY_KEYS } from '@/lib/queryClient';
 
 export interface CrmMessage {
   id: string;
@@ -44,9 +45,9 @@ export function useCrmConversations(conversationId?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all conversations
+  // Fetch all conversations with MEDIUM cache
   const { data: conversations = [], isLoading: isLoadingConversations } = useQuery({
-    queryKey: ['crm-conversations'],
+    queryKey: QUERY_KEYS.conversations,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('crm_conversations')
@@ -59,11 +60,14 @@ export function useCrmConversations(conversationId?: string) {
       if (error) throw error;
       return data as CrmConversation[];
     },
+    // Use MEDIUM cache for conversations list
+    staleTime: CACHE_TIMES.MEDIUM.staleTime,
+    gcTime: CACHE_TIMES.MEDIUM.gcTime,
   });
 
-  // Fetch messages for a specific conversation
+  // Fetch messages for a specific conversation with SHORT cache
   const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
-    queryKey: ['crm-messages', conversationId],
+    queryKey: [...QUERY_KEYS.messages, conversationId],
     queryFn: async () => {
       if (!conversationId) return [];
       
@@ -77,6 +81,9 @@ export function useCrmConversations(conversationId?: string) {
       return data as CrmMessage[];
     },
     enabled: !!conversationId,
+    // Use SHORT cache for messages - they change often in active conversations
+    staleTime: CACHE_TIMES.SHORT.staleTime,
+    gcTime: CACHE_TIMES.SHORT.gcTime,
   });
 
   // Realtime subscription for new messages

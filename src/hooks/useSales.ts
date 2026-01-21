@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { CACHE_TIMES, QUERY_KEYS } from '@/lib/queryClient';
 
 export interface Sale {
   id: string;
@@ -84,11 +85,11 @@ export interface SalesStats {
 }
 
 export function useSales(selectedMonth?: string) {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: sales = [], isLoading, error } = useQuery({
-    queryKey: ['sales', selectedMonth],
+    queryKey: [...QUERY_KEYS.sales, selectedMonth],
     queryFn: async () => {
       let query = supabase
         .from('sales')
@@ -105,6 +106,9 @@ export function useSales(selectedMonth?: string) {
       return data as Sale[];
     },
     enabled: !!user,
+    // Use SHORT cache - sales data changes frequently
+    staleTime: CACHE_TIMES.SHORT.staleTime,
+    gcTime: CACHE_TIMES.SHORT.gcTime,
   });
 
   const stats: SalesStats = sales.reduce((acc, sale) => {
@@ -277,5 +281,8 @@ export function useAvailableMonths() {
       return uniqueMonths;
     },
     enabled: !!user,
+    // Use LONG cache - months list rarely changes
+    staleTime: CACHE_TIMES.LONG.staleTime,
+    gcTime: CACHE_TIMES.LONG.gcTime,
   });
 }

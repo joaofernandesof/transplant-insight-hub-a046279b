@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { CACHE_TIMES, QUERY_KEYS } from '@/lib/queryClient';
 
 export interface Material {
   id: string;
@@ -33,42 +35,33 @@ export interface UpdateMaterialData {
 }
 
 export function useMaterials() {
-  const [materials, setMaterials] = useState<Material[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
   const { user, isAdmin } = useAuth();
+  const queryClient = useQueryClient();
 
-  const fetchMaterials = useCallback(async () => {
-    try {
-      setIsLoading(true);
+  // Fetch materials with STATIC cache (rarely changes)
+  const { data: materials = [], isLoading } = useQuery({
+    queryKey: QUERY_KEYS.materials,
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('materials')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMaterials(data || []);
-    } catch (error) {
-      console.error('Error fetching materials:', error);
-      toast.error('Erro ao carregar materiais');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      return data as Material[];
+    },
+    // Use STATIC cache - materials rarely change
+    staleTime: CACHE_TIMES.STATIC.staleTime,
+    gcTime: CACHE_TIMES.STATIC.gcTime,
+  });
 
-  useEffect(() => {
-    fetchMaterials();
-  }, [fetchMaterials]);
+  const refreshMaterials = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.materials });
+  }, [queryClient]);
 
-  const uploadMaterial = async (data: CreateMaterialData): Promise<boolean> => {
-    if (!isAdmin) {
-      toast.error('Apenas administradores podem fazer upload de materiais');
-      return false;
-    }
-
-    try {
-      setIsUploading(true);
-
+  // Upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (data: CreateMaterialData) => {
       // Generate unique file path
       const fileExt = data.file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -101,18 +94,50 @@ export function useMaterials() {
         });
 
       if (insertError) throw insertError;
-
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.materials });
       toast.success('Material enviado com sucesso!');
-      await fetchMaterials();
-      return true;
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error uploading material:', error);
       toast.error('Erro ao enviar material');
+    },
+  });
+
+  const uploadMaterial = async (data: CreateMaterialData): Promise<boolean> => {
+    if (!isAdmin) {
+      toast.error('Apenas administradores podem fazer upload de materiais');
       return false;
-    } finally {
-      setIsUploading(false);
+    }
+
+    try {
+      await uploadMutation.mutateAsync(data);
+      return true;
+    } catch {
+      return false;
     }
   };
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateMaterialData }) => {
+      const { error } = await supabase
+        .from('materials')
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.materials });
+      toast.success('Material atualizado!');
+    },
+    onError: (error) => {
+      console.error('Error updating material:', error);
+      toast.error('Erro ao atualizar material');
+    },
+  });
 
   const updateMaterial = async (id: string, data: UpdateMaterialData): Promise<boolean> => {
     if (!isAdmin) {
@@ -121,30 +146,16 @@ export function useMaterials() {
     }
 
     try {
-      const { error } = await supabase
-        .from('materials')
-        .update(data)
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success('Material atualizado!');
-      await fetchMaterials();
+      await updateMutation.mutateAsync({ id, data });
       return true;
-    } catch (error) {
-      console.error('Error updating material:', error);
-      toast.error('Erro ao atualizar material');
+    } catch {
       return false;
     }
   };
 
-  const deleteMaterial = async (id: string): Promise<boolean> => {
-    if (!isAdmin) {
-      toast.error('Apenas administradores podem excluir materiais');
-      return false;
-    }
-
-    try {
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
       // Get material to find file path
       const material = materials.find(m => m.id === id);
       if (!material) throw new Error('Material não encontrado');
@@ -172,13 +183,27 @@ export function useMaterials() {
         .eq('id', id);
 
       if (error) throw error;
-
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.materials });
       toast.success('Material excluído!');
-      await fetchMaterials();
-      return true;
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error deleting material:', error);
       toast.error('Erro ao excluir material');
+    },
+  });
+
+  const deleteMaterial = async (id: string): Promise<boolean> => {
+    if (!isAdmin) {
+      toast.error('Apenas administradores podem excluir materiais');
+      return false;
+    }
+
+    try {
+      await deleteMutation.mutateAsync(id);
+      return true;
+    } catch {
       return false;
     }
   };
@@ -233,13 +258,13 @@ export function useMaterials() {
   return {
     materials,
     isLoading,
-    isUploading,
+    isUploading: uploadMutation.isPending,
     uploadMaterial,
     updateMaterial,
     deleteMaterial,
     downloadMaterial,
     formatFileSize,
     getFileTypeFromName,
-    refreshMaterials: fetchMaterials,
+    refreshMaterials,
   };
 }

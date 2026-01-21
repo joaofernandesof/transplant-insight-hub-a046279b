@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import { DataProvider } from "@/contexts/DataContext";
 import SupportChat from "@/components/SupportChat";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import { useUserPresence } from "@/hooks/useUserPresence";
+import { queryClient } from "@/lib/queryClient";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
@@ -65,8 +66,6 @@ import { MarketplaceDiscovery } from "./marketplace/pages/MarketplaceDiscovery";
 function SidebarWrapper({ children }: { children: React.ReactNode }) {
   return <UnifiedSidebar>{children}</UnifiedSidebar>;
 }
-
-const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
