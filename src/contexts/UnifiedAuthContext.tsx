@@ -2,45 +2,111 @@
 // UnifiedAuthContext - Contexto de Autenticação Único
 // ====================================
 // Fonte única de verdade para autenticação em todo o sistema
+// Integrado com nova arquitetura de permissões (Fase 3)
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  NeoHubProfile, 
-  Portal,
-  PROFILE_ROUTES,
-  PROFILE_NAMES,
-  PROFILE_PORTAL_MAP,
-  isAdminProfile,
-  canAccessPortal,
-  canAccessRoute,
-  getDefaultRouteForProfile,
-} from '@/neohub/lib/permissions';
-
-// Re-exportar tipos e constantes
-export type { NeoHubProfile, Portal };
-export { 
-  PROFILE_ROUTES, 
-  PROFILE_NAMES, 
-  PROFILE_PORTAL_MAP,
-  isAdminProfile,
-  canAccessPortal,
-  canAccessRoute,
-  getDefaultRouteForProfile,
-};
 
 // ====================================
-// Tipos
+// Tipos da Nova Arquitetura
+// ====================================
+
+export type ProfileKey = 'administrador' | 'licenciado' | 'colaborador' | 'medico' | 'aluno' | 'paciente' | 'cliente_avivar';
+
+export interface UserProfile {
+  key: ProfileKey;
+  name: string;
+  tenant_id?: string;
+  clinic_id?: string;
+  unit_id?: string;
+}
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface Module {
+  key: string;
+  name: string;
+  icon?: string;
+}
+
+export interface UserContext {
+  user: {
+    id: string;
+    auth_id: string;
+    email: string;
+    full_name: string;
+    avatar_url?: string;
+    phone?: string;
+  };
+  profiles: UserProfile[];
+  permissions: string[];
+  modules: Module[];
+  tenants: Tenant[];
+}
+
+// Compatibilidade com código legado
+export type NeoHubProfile = ProfileKey;
+export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar';
+
+// Mapeamento perfil -> portais
+export const PROFILE_PORTAL_MAP: Record<ProfileKey, Portal[]> = {
+  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'],
+  licenciado: ['neolicense', 'neoteam'],
+  colaborador: ['neoteam'],
+  medico: ['neoteam'],
+  aluno: ['academy'],
+  paciente: ['neocare'],
+  cliente_avivar: ['avivar'],
+};
+
+export const PROFILE_ROUTES: Record<ProfileKey, string> = {
+  administrador: '/admin-dashboard',
+  licenciado: '/home',
+  colaborador: '/neoteam',
+  medico: '/neoteam',
+  aluno: '/university',
+  paciente: '/neocare',
+  cliente_avivar: '/avivar',
+};
+
+export const PROFILE_NAMES: Record<ProfileKey, string> = {
+  administrador: 'Administrador',
+  licenciado: 'Licenciado',
+  colaborador: 'Colaborador',
+  medico: 'Médico',
+  aluno: 'Aluno',
+  paciente: 'Paciente',
+  cliente_avivar: 'Cliente Avivar',
+};
+
+// Helpers
+export const isAdminProfile = (profile: ProfileKey | null): boolean => profile === 'administrador';
+export const canAccessPortal = (profile: ProfileKey | null, portal: Portal): boolean => {
+  if (!profile) return false;
+  if (profile === 'administrador') return true;
+  return PROFILE_PORTAL_MAP[profile]?.includes(portal) || false;
+};
+export const canAccessRoute = (profile: ProfileKey | null, route: string): boolean => {
+  if (!profile) return false;
+  if (profile === 'administrador') return true;
+  // TODO: Implementar verificação de rota por permissão
+  return true;
+};
+export const getDefaultRouteForProfile = (profile: ProfileKey): string => PROFILE_ROUTES[profile] || '/';
+
+// ====================================
+// Interface do Usuário Unificado
 // ====================================
 
 export interface UnifiedUser {
-  // Identificadores
-  id: string;                    // neohub_users.id
-  authUserId: string;            // auth.users.id
-  userId: string;                // Alias para authUserId (compatibilidade)
-  
-  // Dados pessoais
+  id: string;
+  authUserId: string;
+  userId: string; // Alias para compatibilidade
   email: string;
   fullName: string;
   phone?: string;
@@ -57,15 +123,19 @@ export interface UnifiedUser {
   addressCity?: string;
   addressState?: string;
   
-  // Outros dados
-  maritalStatus?: string;
-  nationality?: string;
+  // Nova estrutura
+  profiles: ProfileKey[];
+  permissions: string[];
+  modules: Module[];
+  tenants: Tenant[];
   
-  // Perfis e permissões
-  profiles: NeoHubProfile[];
+  // Perfil ativo com escopo
+  activeProfileData?: UserProfile;
+  
+  // Atalhos
   isAdmin: boolean;
   
-  // Dados legados (para compatibilidade)
+  // Legado
   legacyRole?: 'admin' | 'licensee';
   clinicName?: string;
   city?: string;
@@ -79,7 +149,7 @@ interface SignupData {
   fullName: string;
   cpf?: string;
   phone?: string;
-  profile?: NeoHubProfile;
+  profile?: ProfileKey;
 }
 
 interface UnifiedAuthContextType {
@@ -89,22 +159,26 @@ interface UnifiedAuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   
-  // Perfil ativo (para usuários com múltiplos perfis)
-  activeProfile: NeoHubProfile | null;
-  setActiveProfile: (profile: NeoHubProfile) => void;
+  // Perfil ativo
+  activeProfile: ProfileKey | null;
+  setActiveProfile: (profile: ProfileKey) => void;
   
-  // Ações de autenticação
+  // Tenant ativo
+  activeTenant: Tenant | null;
+  setActiveTenant: (tenant: Tenant) => void;
+  
+  // Ações
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (data: SignupData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   
-  // Verificações de permissão
-  hasProfile: (profile: NeoHubProfile) => boolean;
+  // Verificações de permissão (nova arquitetura)
+  hasProfile: (profile: ProfileKey) => boolean;
+  hasPermission: (permissionKey: string) => boolean;
+  hasModule: (moduleKey: string) => boolean;
   canAccess: (portal: Portal) => boolean;
   canAccessCurrentRoute: (route: string) => boolean;
-  hasPermission: (moduleCode: string) => boolean;
-  hasModule: (moduleCode: string) => boolean;
   
   // Atalhos
   isAdmin: boolean;
@@ -112,9 +186,8 @@ interface UnifiedAuthContextType {
 
 const UnifiedAuthContext = createContext<UnifiedAuthContextType | undefined>(undefined);
 
-// Lista de perfis válidos
-const VALID_PROFILES: NeoHubProfile[] = [
-  'administrador', 'licenciado', 'colaborador', 'aluno', 'paciente', 'cliente_avivar'
+const VALID_PROFILES: ProfileKey[] = [
+  'administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar'
 ];
 
 // ====================================
@@ -125,18 +198,25 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
   const [user, setUser] = useState<UnifiedUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeProfile, setActiveProfileState] = useState<NeoHubProfile | null>(null);
+  const [activeProfile, setActiveProfileState] = useState<ProfileKey | null>(null);
+  const [activeTenant, setActiveTenantState] = useState<Tenant | null>(null);
 
   // Carregar perfil ativo do localStorage
   useEffect(() => {
-    const stored = localStorage.getItem('neohub_active_profile');
-    if (stored && VALID_PROFILES.includes(stored as NeoHubProfile)) {
-      setActiveProfileState(stored as NeoHubProfile);
+    const storedProfile = localStorage.getItem('neohub_active_profile');
+    if (storedProfile && VALID_PROFILES.includes(storedProfile as ProfileKey)) {
+      setActiveProfileState(storedProfile as ProfileKey);
+    }
+    const storedTenant = localStorage.getItem('neohub_active_tenant');
+    if (storedTenant) {
+      try {
+        setActiveTenantState(JSON.parse(storedTenant));
+      } catch (e) {}
     }
   }, []);
 
   // Atualizar perfil ativo
-  const setActiveProfile = useCallback((profile: NeoHubProfile) => {
+  const setActiveProfile = useCallback((profile: ProfileKey) => {
     if (user && !user.profiles.includes(profile) && !user.isAdmin) {
       console.warn('[UnifiedAuth] User does not have this profile:', profile);
       return;
@@ -145,18 +225,68 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
     localStorage.setItem('neohub_active_profile', profile);
   }, [user]);
 
-  // Buscar dados do usuário
+  // Atualizar tenant ativo
+  const setActiveTenant = useCallback((tenant: Tenant) => {
+    setActiveTenantState(tenant);
+    localStorage.setItem('neohub_active_tenant', JSON.stringify(tenant));
+  }, []);
+
+  // Buscar dados do usuário usando a nova função get_user_context()
   const fetchUserData = useCallback(async (authUser: User): Promise<UnifiedUser | null> => {
     try {
-      // 1. Tentar buscar em neohub_users (tabela principal)
-      const { data: neoHubData, error: neoHubError } = await supabase
+      // 1. Tentar usar a nova função get_user_context()
+      const { data: contextData, error: contextError } = await supabase.rpc('get_user_context');
+
+      if (contextData && !contextError && typeof contextData === 'object') {
+        const ctx = contextData as unknown as UserContext;
+        
+        if (ctx.user) {
+          const profiles = (ctx.profiles || []).map(p => p.key).filter(k => VALID_PROFILES.includes(k));
+          const isAdmin = profiles.includes('administrador');
+          
+          // Definir perfil ativo se ainda não definido
+          if (!activeProfile && profiles.length > 0) {
+            const defaultProfile = profiles[0];
+            setActiveProfileState(defaultProfile);
+            localStorage.setItem('neohub_active_profile', defaultProfile);
+          }
+          
+          // Definir tenant ativo se ainda não definido
+          if (!activeTenant && ctx.tenants && ctx.tenants.length > 0) {
+            setActiveTenantState(ctx.tenants[0]);
+            localStorage.setItem('neohub_active_tenant', JSON.stringify(ctx.tenants[0]));
+          }
+
+          return {
+            id: ctx.user.id,
+            authUserId: ctx.user.auth_id,
+            userId: ctx.user.auth_id,
+            email: ctx.user.email,
+            fullName: ctx.user.full_name,
+            phone: ctx.user.phone,
+            avatarUrl: ctx.user.avatar_url,
+            profiles,
+            permissions: ctx.permissions || [],
+            modules: ctx.modules || [],
+            tenants: ctx.tenants || [],
+            activeProfileData: ctx.profiles?.[0],
+            isAdmin,
+            legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
+          };
+        }
+      }
+
+      // 2. Fallback: buscar dados antigos
+      console.log('[UnifiedAuth] get_user_context failed, using fallback...');
+      
+      const { data: neoHubData } = await supabase
         .from('neohub_users')
         .select('*')
         .eq('user_id', authUser.id)
         .single();
 
       if (neoHubData) {
-        // Buscar perfis do usuário
+        // Buscar perfis antigos
         const { data: profilesData } = await supabase
           .from('neohub_user_profiles')
           .select('profile')
@@ -164,13 +294,11 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           .eq('is_active', true);
 
         const profiles = (profilesData || [])
-          .map(p => p.profile as NeoHubProfile)
+          .map(p => p.profile as ProfileKey)
           .filter(p => VALID_PROFILES.includes(p));
 
-        // Verificar se é admin (via tabela user_roles OU perfil administrador)
         const isAdminByProfile = profiles.includes('administrador');
         
-        let isAdminByRole = false;
         const { data: roleData } = await supabase
           .from('user_roles')
           .select('role')
@@ -178,10 +306,9 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           .eq('role', 'admin')
           .single();
         
-        isAdminByRole = !!roleData;
+        const isAdminByRole = !!roleData;
         const isAdmin = isAdminByProfile || isAdminByRole;
 
-        // Se for admin por role mas não tem perfil administrador, adicionar
         if (isAdminByRole && !isAdminByProfile) {
           profiles.unshift('administrador');
         }
@@ -189,32 +316,22 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         return {
           id: neoHubData.id,
           authUserId: neoHubData.user_id,
-          userId: neoHubData.user_id, // Alias
+          userId: neoHubData.user_id,
           email: neoHubData.email,
           fullName: neoHubData.full_name,
-          cpf: neoHubData.cpf,
-          birthDate: neoHubData.birth_date,
           phone: neoHubData.phone,
           avatarUrl: neoHubData.avatar_url,
-          addressCep: neoHubData.address_cep,
-          addressStreet: neoHubData.address_street,
-          addressNumber: neoHubData.address_number,
-          addressComplement: neoHubData.address_complement,
-          addressNeighborhood: neoHubData.address_neighborhood,
-          addressCity: neoHubData.address_city,
-          addressState: neoHubData.address_state,
-          maritalStatus: neoHubData.marital_status,
-          nationality: neoHubData.nationality,
           profiles,
+          permissions: [], // Fallback não tem permissões granulares
+          modules: [],
+          tenants: [],
           isAdmin,
-          // Mapear para legado se for licenciado
           legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
+          clinicName: neoHubData.clinic_name,
         };
       }
 
-      // 2. Fallback: buscar em profiles (tabela legada)
-      console.log('[UnifiedAuth] NeoHub user not found, checking legacy profiles...');
-      
+      // 3. Fallback final: tabela profiles legada
       const { data: legacyProfile } = await supabase
         .from('profiles')
         .select('*')
@@ -222,33 +339,23 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         .single();
 
       if (legacyProfile) {
-        // Buscar role legado
-        const { data: roleData } = await supabase
-          .rpc('get_user_role', { _user_id: authUser.id });
-
+        const { data: roleData } = await supabase.rpc('get_user_role', { _user_id: authUser.id });
         const legacyRole = (roleData as 'admin' | 'licensee') || 'licensee';
         const isAdmin = legacyRole === 'admin';
-
-        // Mapear role legado para perfil NeoHub
-        const profiles: NeoHubProfile[] = [];
-        if (isAdmin) {
-          profiles.push('administrador');
-        }
-        if (legacyRole === 'licensee' || !legacyRole) {
-          profiles.push('licenciado');
-        }
+        const profiles: ProfileKey[] = isAdmin ? ['administrador'] : ['licenciado'];
 
         return {
           id: legacyProfile.id || authUser.id,
           authUserId: authUser.id,
-          userId: authUser.id, // Alias
+          userId: authUser.id,
           email: legacyProfile.email,
           fullName: legacyProfile.name,
           phone: legacyProfile.phone,
           avatarUrl: legacyProfile.avatar_url,
-          addressCity: legacyProfile.city,
-          addressState: legacyProfile.state,
           profiles,
+          permissions: [],
+          modules: [],
+          tenants: [],
           isAdmin,
           legacyRole,
           clinicName: legacyProfile.clinic_name,
@@ -264,7 +371,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
       console.error('[UnifiedAuth] Error fetching user:', error);
       return null;
     }
-  }, []);
+  }, [activeProfile, activeTenant]);
 
   // Refresh user data
   const refreshUser = useCallback(async () => {
@@ -280,7 +387,6 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         setSession(currentSession);
 
         if (currentSession?.user) {
-          // Defer to avoid deadlock
           setTimeout(async () => {
             const userData = await fetchUserData(currentSession.user);
             setUser(userData);
@@ -289,13 +395,14 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         } else {
           setUser(null);
           setActiveProfileState(null);
+          setActiveTenantState(null);
           localStorage.removeItem('neohub_active_profile');
+          localStorage.removeItem('neohub_active_tenant');
           setIsLoading(false);
         }
       }
     );
 
-    // Check existing session
     supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
       setSession(existingSession);
       if (existingSession?.user) {
@@ -330,7 +437,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
     }
   }, []);
 
-  // Signup
+  // Signup com nova arquitetura
   const signup = useCallback(async (data: SignupData) => {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -338,9 +445,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         password: data.password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: {
-            full_name: data.fullName,
-          },
+          data: { full_name: data.fullName },
         },
       });
 
@@ -355,7 +460,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         return { success: false, error: 'Erro ao criar usuário' };
       }
 
-      // Criar registro em neohub_users
+      // Criar em neohub_users
       const { data: neoHubUser, error: userError } = await supabase
         .from('neohub_users')
         .insert({
@@ -373,18 +478,34 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         return { success: false, error: 'Erro ao criar perfil de usuário' };
       }
 
-      // Atribuir perfil
-      const profile = data.profile || 'paciente'; // Padrão: paciente
-      const { error: profileError } = await supabase
-        .from('neohub_user_profiles')
-        .insert({
-          neohub_user_id: neoHubUser.id,
-          profile,
-        });
+      // Atribuir perfil na nova estrutura
+      const profileKey = data.profile || 'paciente';
+      
+      // Buscar ID do perfil
+      const { data: profileDef } = await supabase
+        .from('profile_definitions')
+        .select('id')
+        .eq('key', profileKey)
+        .single();
 
-      if (profileError) {
-        console.error('[UnifiedAuth] Error assigning profile:', profileError);
+      if (profileDef) {
+        // Inserir na nova tabela
+        await supabase
+          .from('user_profile_assignments')
+          .insert({
+            user_id: neoHubUser.id,
+            profile_id: profileDef.id,
+            tenant_id: '00000000-0000-0000-0000-000000000001', // Neo Group default
+          });
       }
+
+      // Também inserir na tabela antiga para compatibilidade
+      await supabase
+        .from('neohub_user_profiles')
+        .insert([{
+          neohub_user_id: neoHubUser.id,
+          profile: profileKey as any,
+        }]);
 
       return { success: true };
     } catch (error: any) {
@@ -398,13 +519,30 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
     setUser(null);
     setSession(null);
     setActiveProfileState(null);
+    setActiveTenantState(null);
     localStorage.removeItem('neohub_active_profile');
+    localStorage.removeItem('neohub_active_tenant');
   }, []);
 
-  // Permission checks
-  const hasProfile = useCallback((profile: NeoHubProfile): boolean => {
+  // ====================================
+  // Verificações de Permissão (Nova Arquitetura)
+  // ====================================
+
+  const hasProfile = useCallback((profile: ProfileKey): boolean => {
     if (user?.isAdmin) return true;
     return user?.profiles.includes(profile) || false;
+  }, [user]);
+
+  // Nova: verifica permissão atômica
+  const hasPermission = useCallback((permissionKey: string): boolean => {
+    if (user?.isAdmin) return true;
+    return user?.permissions.includes(permissionKey) || false;
+  }, [user]);
+
+  // Nova: verifica módulo
+  const hasModule = useCallback((moduleKey: string): boolean => {
+    if (user?.isAdmin) return true;
+    return user?.modules.some(m => m.key === moduleKey) || false;
   }, [user]);
 
   const canAccess = useCallback((portal: Portal): boolean => {
@@ -417,19 +555,6 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
     return canAccessRoute(activeProfile, route);
   }, [user, activeProfile]);
 
-  // TODO: Implementar verificação granular de módulos
-  const hasPermission = useCallback((moduleCode: string): boolean => {
-    if (user?.isAdmin) return true;
-    // Por enquanto, apenas verifica se usuário está autenticado
-    return !!user;
-  }, [user]);
-
-  const hasModule = useCallback((moduleCode: string): boolean => {
-    if (user?.isAdmin) return true;
-    // Por enquanto, apenas verifica se usuário está autenticado
-    return !!user;
-  }, [user]);
-
   return (
     <UnifiedAuthContext.Provider
       value={{
@@ -439,15 +564,17 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         isAuthenticated: !!user,
         activeProfile,
         setActiveProfile,
+        activeTenant,
+        setActiveTenant,
         login,
         signup,
         logout,
         refreshUser,
         hasProfile,
-        canAccess,
-        canAccessCurrentRoute,
         hasPermission,
         hasModule,
+        canAccess,
+        canAccessCurrentRoute,
         isAdmin: user?.isAdmin || false,
       }}
     >
@@ -472,12 +599,7 @@ export function useUnifiedAuth() {
 // Aliases para compatibilidade
 // ====================================
 
-// Alias para código legado que usa useAuth
 export const useAuth = useUnifiedAuth;
-
-// Alias para código NeoHub que usa useNeoHubAuth
 export const useNeoHubAuth = useUnifiedAuth;
-
-// Provider aliases
 export const AuthProvider = UnifiedAuthProvider;
 export const NeoHubAuthProvider = UnifiedAuthProvider;

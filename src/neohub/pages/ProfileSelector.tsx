@@ -1,34 +1,37 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUnifiedAuth, NeoHubProfile, PROFILE_NAMES, PROFILE_ROUTES } from '@/contexts/UnifiedAuthContext';
+import { useUnifiedAuth, ProfileKey, PROFILE_NAMES, PROFILE_ROUTES } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, Briefcase, GraduationCap, User, ChevronRight, LogOut, Shield, TrendingUp } from 'lucide-react';
+import { Heart, Briefcase, GraduationCap, User, ChevronRight, LogOut, Shield, TrendingUp, Stethoscope } from 'lucide-react';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
 
-const PROFILE_ICONS: Record<NeoHubProfile, React.ElementType> = {
+const PROFILE_ICONS: Partial<Record<ProfileKey, React.ElementType>> = {
   administrador: Shield,
   paciente: Heart,
   colaborador: Briefcase,
+  medico: Stethoscope,
   aluno: GraduationCap,
   licenciado: User,
   cliente_avivar: TrendingUp,
 };
 
-const PROFILE_COLORS: Record<NeoHubProfile, string> = {
+const PROFILE_COLORS: Partial<Record<ProfileKey, string>> = {
   administrador: 'bg-red-500',
   paciente: 'bg-rose-500',
   colaborador: 'bg-blue-500',
-  aluno: 'bg-emerald-500', // Verde para IBRAMEC
-  licenciado: 'bg-amber-500', // Dourado para Licença ByNeoFolic
+  medico: 'bg-teal-500',
+  aluno: 'bg-emerald-500',
+  licenciado: 'bg-amber-500',
   cliente_avivar: 'bg-orange-500',
 };
 
-const PROFILE_DESCRIPTIONS: Record<NeoHubProfile, string> = {
+const PROFILE_DESCRIPTIONS: Partial<Record<ProfileKey, string>> = {
   administrador: 'Acesso total ao sistema e configurações',
   paciente: 'Acesse seus agendamentos, histórico e documentos médicos',
   colaborador: 'Gerencie pacientes, agenda e operações da clínica',
+  medico: 'Acesse prontuários, agenda médica e cirurgias',
   aluno: 'Cursos, materiais e certificados do IBRAMEC',
   licenciado: 'Dashboard completo da sua Licença ByNeoFolic',
   cliente_avivar: 'Marketing, leads e crescimento do seu negócio',
@@ -43,9 +46,9 @@ export default function ProfileSelector() {
     return null;
   }
 
-  const handleSelectProfile = (profile: NeoHubProfile) => {
+  const handleSelectProfile = (profile: ProfileKey) => {
     setActiveProfile(profile);
-    navigate(PROFILE_ROUTES[profile]);
+    navigate(PROFILE_ROUTES[profile] || '/');
   };
 
   const handleLogout = async () => {
@@ -88,14 +91,16 @@ export default function ProfileSelector() {
 
           <CardContent className="space-y-3">
             {user.profiles.map(profile => {
-              const Icon = PROFILE_ICONS[profile];
+              const Icon = PROFILE_ICONS[profile] || User;
+              const color = PROFILE_COLORS[profile] || 'bg-gray-500';
+              const description = PROFILE_DESCRIPTIONS[profile] || '';
               return (
                 <button
                   key={profile}
                   onClick={() => handleSelectProfile(profile)}
                   className="w-full p-4 rounded-xl border-2 border-border hover:border-primary transition-all flex items-center gap-4 text-left group hover:bg-muted/50"
                 >
-                  <div className={`p-3 rounded-lg ${PROFILE_COLORS[profile]} text-white`}>
+                  <div className={`p-3 rounded-lg ${color} text-white`}>
                     <Icon className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
@@ -103,7 +108,7 @@ export default function ProfileSelector() {
                       {PROFILE_NAMES[profile]}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {PROFILE_DESCRIPTIONS[profile]}
+                      {description}
                     </p>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
