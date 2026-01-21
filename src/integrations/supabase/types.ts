@@ -1364,6 +1364,39 @@ export type Database = {
         }
         Relationships: []
       }
+      module_definitions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          key: string
+          name: string
+          order_index: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          key: string
+          name: string
+          order_index?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          key?: string
+          name?: string
+          order_index?: number | null
+        }
+        Relationships: []
+      }
       module_lessons: {
         Row: {
           content_html: string | null
@@ -2154,6 +2187,33 @@ export type Database = {
           id?: string
           token?: string
           used_at?: string | null
+        }
+        Relationships: []
+      }
+      permission_definitions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          module: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          module: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          module?: string
+          name?: string
         }
         Relationships: []
       }
@@ -3393,6 +3453,69 @@ export type Database = {
           },
         ]
       }
+      profile_definitions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_system: boolean | null
+          key: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          key: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          key?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      profile_permission_mappings: {
+        Row: {
+          created_at: string | null
+          id: string
+          permission_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permission_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permission_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_permission_mappings_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permission_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_permission_mappings_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -4441,6 +4564,78 @@ export type Database = {
           },
         ]
       }
+      tenant_module_activations: {
+        Row: {
+          activated_at: string | null
+          id: string
+          is_active: boolean | null
+          module_id: string
+          tenant_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id: string
+          tenant_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_module_activations_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "module_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_module_activations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          settings: Json | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          settings?: Json | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          settings?: Json | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -4578,6 +4773,119 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "module_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_permission_overrides: {
+        Row: {
+          clinic_id: string | null
+          created_at: string | null
+          id: string
+          is_granted: boolean | null
+          permission_id: string
+          tenant_id: string | null
+          unit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          clinic_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_granted?: boolean | null
+          permission_id: string
+          tenant_id?: string | null
+          unit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          clinic_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_granted?: boolean | null
+          permission_id?: string
+          tenant_id?: string | null
+          unit_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permission_overrides_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permission_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permission_overrides_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permission_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profile_assignments: {
+        Row: {
+          clinic_id: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          is_active: boolean | null
+          profile_id: string
+          tenant_id: string | null
+          unit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          clinic_id?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          profile_id: string
+          tenant_id?: string | null
+          unit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          clinic_id?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          profile_id?: string
+          tenant_id?: string | null
+          unit_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profile_assignments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_profile_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_profile_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
             referencedColumns: ["id"]
           },
         ]
@@ -4744,6 +5052,7 @@ export type Database = {
           role: Database["public"]["Enums"]["clinic_staff_role"]
         }[]
       }
+      get_user_context: { Args: never; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -4778,6 +5087,11 @@ export type Database = {
       }
       is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
+      user_has_permission: {
+        Args: { _permission_key: string }
+        Returns: boolean
+      }
+      user_has_profile: { Args: { _profile_key: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "licensee" | "colaborador" | "aluno" | "paciente"
