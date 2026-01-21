@@ -298,67 +298,69 @@ export function HorizontalMetricsTable({
       </div>
       
       <div ref={tableRef} className="overflow-x-auto scrollbar-hide">
-        <table className="w-full text-sm border-collapse">
+        <table className="w-full text-sm border-collapse font-['-apple-system',BlinkMacSystemFont,'SF_Pro_Display','Inter',sans-serif]">
           <thead className="bg-muted sticky top-0 z-20">
             <tr className="border-b border-border">
-              {/* Fixed columns */}
-              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-30 min-w-[52px] sm:min-w-[110px] border-r border-border">
+              {/* Fixed columns - Desktop: all info columns | Mobile: only Etapa, Resp, Sigla, Indicador */}
+              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-0 bg-muted z-30 min-w-[52px] sm:min-w-[100px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                 <span className="text-xs sm:text-sm">Etapa</span>
               </th>
-              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[52px] sm:left-[110px] bg-muted z-30 min-w-[40px] sm:min-w-[90px] border-r border-border">
+              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[52px] sm:left-[100px] bg-muted z-30 min-w-[40px] sm:min-w-[85px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                 <span className="text-xs sm:text-sm">Resp</span>
               </th>
-              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[92px] sm:left-[200px] bg-muted z-30 min-w-[65px] sm:min-w-[80px] border-r border-border">
+              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[92px] sm:left-[185px] bg-muted z-30 min-w-[55px] sm:min-w-[70px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                 <span className="text-xs sm:text-sm">Sigla</span>
               </th>
-              {/* Hidden on mobile */}
-              <th className="hidden sm:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[180px] bg-muted">
+              {/* Indicador - Fixed on all devices */}
+              <th className="text-left px-2 sm:px-3 py-2.5 sm:py-3 font-semibold text-foreground whitespace-nowrap sticky left-[147px] sm:left-[255px] bg-muted z-30 min-w-[100px] sm:min-w-[170px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                 <div className="flex items-center gap-1.5">
-                  <BarChart3 className="w-3.5 h-3.5 text-primary" />
-                  <span>Indicador</span>
+                  <BarChart3 className="w-3.5 h-3.5 text-primary hidden sm:block" />
+                  <span className="text-xs sm:text-sm">Indicador</span>
                 </div>
               </th>
-              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[160px] bg-muted">
+              {/* O que mede - Fixed on desktop only (lg+) */}
+              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[425px] bg-muted z-30 min-w-[150px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                 <div className="flex items-center gap-1.5">
                   <Search className="w-3.5 h-3.5 text-primary" />
-                  <span>O que mede</span>
+                  <span className="text-sm">O que mede</span>
                 </div>
               </th>
-              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap min-w-[130px] bg-muted">
+              {/* Fórmula - Fixed on desktop only (lg+) */}
+              <th className="hidden lg:table-cell text-left px-3 py-3 font-semibold text-foreground whitespace-nowrap sticky left-[575px] bg-muted z-30 min-w-[120px] border-r border-border shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                 <div className="flex items-center gap-1.5">
                   <Calculator className="w-3.5 h-3.5 text-primary" />
-                  <span>Fórmula</span>
+                  <span className="text-sm">Fórmula</span>
                 </div>
               </th>
-              {/* Status columns - Hidden on mobile */}
-              <th className="hidden sm:table-cell text-center px-1 sm:px-2 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[50px] sm:min-w-[70px] bg-muted">
-                <span className="px-1.5 py-0.5 rounded bg-red-200 text-gray-900 text-[9px] sm:text-[10px]">Ruim</span>
+              {/* Status columns - Fixed on desktop (lg+) */}
+              <th className="hidden lg:table-cell text-center px-1.5 py-2.5 font-semibold whitespace-nowrap sticky left-[695px] bg-muted z-30 min-w-[55px] border-r border-border">
+                <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-medium">Ruim</span>
               </th>
-              <th className="hidden sm:table-cell text-center px-1 sm:px-2 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[50px] sm:min-w-[70px] bg-muted">
-                <span className="px-1.5 py-0.5 rounded bg-yellow-200 text-gray-900 text-[9px] sm:text-[10px]">Médio</span>
+              <th className="hidden lg:table-cell text-center px-1.5 py-2.5 font-semibold whitespace-nowrap sticky left-[750px] bg-muted z-30 min-w-[55px] border-r border-border">
+                <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-medium">Médio</span>
               </th>
-              <th className="hidden sm:table-cell text-center px-1 sm:px-2 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[50px] sm:min-w-[70px] bg-muted">
-                <span className="px-1.5 py-0.5 rounded bg-blue-200 text-gray-900 text-[9px] sm:text-[10px]">Bom</span>
+              <th className="hidden lg:table-cell text-center px-1.5 py-2.5 font-semibold whitespace-nowrap sticky left-[805px] bg-muted z-30 min-w-[55px] border-r border-border">
+                <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-medium">Bom</span>
               </th>
-              <th className="hidden sm:table-cell text-center px-1 sm:px-2 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[50px] sm:min-w-[70px] bg-muted">
-                <span className="px-1.5 py-0.5 rounded bg-green-200 text-gray-900 text-[9px] sm:text-[10px]">Ótimo</span>
+              <th className="hidden lg:table-cell text-center px-1.5 py-2.5 font-semibold whitespace-nowrap sticky left-[860px] bg-muted z-30 min-w-[55px] border-r border-border">
+                <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium">Ótimo</span>
               </th>
               
-              {/* Trend/Evolution Column - Hidden on mobile */}
-              <th className="hidden md:table-cell text-center px-2 sm:px-3 py-2 sm:py-3 font-semibold whitespace-nowrap min-w-[90px] sm:min-w-[110px] border-r border-border bg-muted">
+              {/* Trend/Evolution Column - Fixed on desktop (lg+) */}
+              <th className="hidden lg:table-cell text-center px-2 py-2.5 font-semibold whitespace-nowrap sticky left-[915px] bg-muted z-30 min-w-[90px] border-r border-border shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
                 <div className="flex items-center justify-center gap-1">
-                  <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  <span className="text-[10px] sm:text-xs">Tendência</span>
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs">Tendência</span>
                 </div>
               </th>
               
-              {/* All weeks */}
+              {/* All weeks - scrollable */}
               {allWeeks.map((week) => (
                 <th 
                   key={week.weekNumber}
                   data-week={week.weekNumber}
                   className={cn(
-                    "text-center px-1 sm:px-2 py-2 sm:py-2.5 font-semibold whitespace-nowrap min-w-[56px] sm:min-w-[75px] border-l border-border transition-colors bg-muted",
+                    "text-center px-1.5 sm:px-2 py-2 sm:py-2.5 font-semibold whitespace-nowrap min-w-[60px] sm:min-w-[75px] border-l border-border transition-colors bg-muted",
                     week.weekNumber === currentWeekNumber && "bg-primary/20 ring-2 ring-primary ring-inset"
                   )}
                 >
@@ -369,7 +371,7 @@ export function HorizontalMetricsTable({
                     )}>
                       S{week.weekNumber}
                     </span>
-                    <span className="text-[9px] sm:text-[10px] text-muted-foreground hidden sm:block">
+                    <span className="text-[9px] sm:text-[10px] text-muted-foreground">
                       {formatDate(week.startDate).split('/').slice(0, 2).join('/')}
                     </span>
                     {week.weekNumber === currentWeekNumber && (
@@ -394,10 +396,10 @@ export function HorizontalMetricsTable({
                     idx % 2 === 0 && 'bg-muted/10'
                   )}
                 >
-                  {/* Etapa */}
-                  <td className="px-2 sm:px-3 py-2.5 sm:py-3 sticky left-0 bg-card z-10 border-r border-border align-middle">
+                  {/* Etapa - Fixed */}
+                  <td className="px-2 sm:px-3 py-2 sm:py-2.5 sticky left-0 bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     <span className={cn(
-                      "px-1.5 py-1 rounded text-[10px] sm:text-xs font-semibold whitespace-nowrap inline-block",
+                      "px-1.5 py-1 rounded-md text-[10px] sm:text-xs font-semibold whitespace-nowrap inline-block",
                       etapaBadgeColors[metric.etapa] || 'bg-muted text-gray-900'
                     )}>
                       <span className="hidden sm:inline">{metric.etapa}</span>
@@ -405,10 +407,10 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   
-                  {/* Responsável */}
-                  <td className="px-2 sm:px-3 py-2.5 sm:py-3 sticky left-[52px] sm:left-[110px] bg-card z-10 border-r border-border align-middle">
+                  {/* Responsável - Fixed */}
+                  <td className="px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[52px] sm:left-[100px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     <span className={cn(
-                      "px-1.5 py-1 rounded text-[10px] sm:text-xs font-semibold whitespace-nowrap inline-block",
+                      "px-1.5 py-1 rounded-md text-[10px] sm:text-xs font-semibold whitespace-nowrap inline-block",
                       responsavelBadgeColors[metric.responsavel] || 'bg-muted text-gray-900'
                     )}>
                       <span className="hidden sm:inline">{metric.responsavel}</span>
@@ -416,59 +418,59 @@ export function HorizontalMetricsTable({
                     </span>
                   </td>
                   
-                  {/* Sigla */}
-                  <td className="px-2 sm:px-3 py-2.5 sm:py-3 sticky left-[92px] sm:left-[200px] bg-card z-10 border-r border-border align-middle">
-                    <span className="font-mono font-bold text-primary text-xs sm:text-sm">
+                  {/* Sigla - Fixed */}
+                  <td className="px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[92px] sm:left-[185px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <span className="font-semibold text-primary text-xs sm:text-sm tracking-tight">
                       {metric.sigla}
                     </span>
                   </td>
                   
-                  {/* Indicador, descrição - Hidden on mobile */}
-                  <td className="hidden sm:table-cell px-3 py-2.5 align-middle">
-                    <div className="max-w-[180px]">
-                      <p className="font-semibold text-foreground text-xs leading-tight">{metric.nome}</p>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 line-clamp-1">{metric.descricao}</p>
+                  {/* Indicador - Fixed on all devices */}
+                  <td className="px-2 sm:px-3 py-2 sm:py-2.5 sticky left-[147px] sm:left-[255px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <div className="max-w-[90px] sm:max-w-[160px]">
+                      <p className="font-semibold text-foreground text-[10px] sm:text-xs leading-tight truncate sm:whitespace-normal">{metric.nome}</p>
+                      <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-tight mt-0.5 line-clamp-1 hidden sm:block">{metric.descricao}</p>
                     </div>
                   </td>
                   
-                  {/* O que mede - Hidden on mobile/tablet */}
-                  <td className="hidden lg:table-cell px-3 py-2.5 align-middle">
-                    <p className="text-[10px] text-muted-foreground max-w-[160px] line-clamp-2 leading-tight">
+                  {/* O que mede - Fixed on desktop (lg+) */}
+                  <td className="hidden lg:table-cell px-3 py-2.5 sticky left-[425px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <p className="text-[10px] text-muted-foreground max-w-[140px] line-clamp-2 leading-tight">
                       {metric.oQueMede}
                     </p>
                   </td>
                   
-                  {/* Fórmula - Hidden on mobile/tablet */}
-                  <td className="hidden lg:table-cell px-3 py-2.5 align-middle">
+                  {/* Fórmula - Fixed on desktop (lg+) */}
+                  <td className="hidden lg:table-cell px-3 py-2.5 sticky left-[575px] bg-card z-10 border-r border-border align-middle shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     <span className="text-[10px] font-mono text-muted-foreground leading-tight">
                       {metric.formula}
                     </span>
                   </td>
                   
-                  {/* Faixas - Hidden on mobile */}
-                  <td className="hidden sm:table-cell px-1 sm:px-2 py-1.5 sm:py-2.5 text-center align-middle">
-                    <span className="px-1 py-0.5 rounded bg-red-200 text-gray-900 text-[8px] sm:text-[9px] font-medium">
+                  {/* Faixas - Fixed on desktop (lg+) */}
+                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[695px] bg-card z-10 border-r border-border text-center align-middle">
+                    <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-medium">
                       {metric.ruim}
                     </span>
                   </td>
-                  <td className="hidden sm:table-cell px-1 sm:px-2 py-1.5 sm:py-2.5 text-center align-middle">
-                    <span className="px-1 py-0.5 rounded bg-yellow-200 text-gray-900 text-[8px] sm:text-[9px] font-medium">
+                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[750px] bg-card z-10 border-r border-border text-center align-middle">
+                    <span className="px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[9px] font-medium">
                       {metric.medio}
                     </span>
                   </td>
-                  <td className="hidden sm:table-cell px-1 sm:px-2 py-1.5 sm:py-2.5 text-center align-middle">
-                    <span className="px-1 py-0.5 rounded bg-blue-200 text-gray-900 text-[8px] sm:text-[9px] font-medium">
+                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[805px] bg-card z-10 border-r border-border text-center align-middle">
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-medium">
                       {metric.bom}
                     </span>
                   </td>
-                  <td className="hidden sm:table-cell px-1 sm:px-2 py-1.5 sm:py-2.5 text-center align-middle">
-                    <span className="px-1 py-0.5 rounded bg-green-200 text-gray-900 text-[8px] sm:text-[9px] font-medium">
+                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[860px] bg-card z-10 border-r border-border text-center align-middle">
+                    <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-medium">
                       {metric.otimo}
                     </span>
                   </td>
                   
-                  {/* Sparkline - Hidden on mobile */}
-                  <td className="hidden md:table-cell px-1.5 sm:px-2 py-1.5 sm:py-2.5 text-center align-middle border-r border-border">
+                  {/* Sparkline - Fixed on desktop (lg+) */}
+                  <td className="hidden lg:table-cell px-1.5 py-2 sticky left-[915px] bg-card z-10 border-r border-border text-center align-middle shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
                     {(() => {
                       // Collect all values for this metric across weeks up to current week
                       const weekNumbers: number[] = [];
