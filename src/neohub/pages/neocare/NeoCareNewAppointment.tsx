@@ -41,9 +41,19 @@ export default function NeoCareNewAppointment() {
   
   // Form state
   const [selectedType, setSelectedType] = useState<AppointmentType | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+
+  // Fetch doctors
+  const { data: doctors = [], isLoading: loadingDoctors } = useDoctors();
+  
+  // Fetch available slots for selected doctor and date
+  const { data: availableSlots = [], isLoading: loadingSlots } = useAvailableSlots(
+    selectedDoctor || '', 
+    selectedDate || new Date()
+  );
 
   const isDateDisabled = (date: Date) => {
     const today = new Date();
@@ -53,6 +63,8 @@ export default function NeoCareNewAppointment() {
     if (date.getDay() === 0) return true;
     return false;
   };
+
+  const selectedDoctorData = doctors.find(d => d.id === selectedDoctor);
 
   const handleSubmit = async () => {
     if (!selectedType || !selectedDate || !selectedTime || !user) return;
@@ -119,6 +131,7 @@ export default function NeoCareNewAppointment() {
       .from('portal_appointments')
       .insert({
         patient_id: patient.id,
+        doctor_id: selectedDoctor || null,
         appointment_type: selectedType.name,
         scheduled_at: scheduledAt.toISOString(),
         duration_minutes: selectedType.duration_minutes,
@@ -153,7 +166,7 @@ export default function NeoCareNewAppointment() {
 
       {/* Progress Steps */}
       <div className="flex items-center justify-center mb-8">
-        {[1, 2, 3, 4].map((s) => (
+        {[1, 2, 3, 4, 5].map((s) => (
           <React.Fragment key={s}>
             <div 
               className={cn(
@@ -165,9 +178,9 @@ export default function NeoCareNewAppointment() {
             >
               {step > s ? <Check className="h-5 w-5" /> : s}
             </div>
-            {s < 4 && (
+            {s < 5 && (
               <div className={cn(
-                "w-12 h-1 mx-1",
+                "w-8 h-1 mx-1",
                 step > s ? "bg-primary" : "bg-muted"
               )} />
             )}
@@ -217,8 +230,70 @@ export default function NeoCareNewAppointment() {
         </Card>
       )}
 
-      {/* Step 2: Select Date */}
+      {/* Step 2: Select Doctor */}
       {step === 2 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Escolha o Profissional
+            </CardTitle>
+            <CardDescription>Selecione o médico para sua consulta</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loadingDoctors ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : doctors.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum profissional disponível
+              </p>
+            ) : (
+              doctors.map((doctor) => (
+                <Button
+                  key={doctor.id}
+                  variant={selectedDoctor === doctor.id ? "default" : "outline"}
+                  className={cn(
+                    "w-full h-auto p-4 justify-start text-left",
+                    selectedDoctor === doctor.id && "ring-2 ring-primary"
+                  )}
+                  onClick={() => {
+                    setSelectedDoctor(doctor.id);
+                    setSelectedTime(null);
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{doctor.full_name}</p>
+                      <p className="text-sm opacity-80">{doctor.specialty}</p>
+                      {doctor.crm && (
+                        <p className="text-xs opacity-60">CRM: {doctor.crm}/{doctor.crm_state}</p>
+                      )}
+                    </div>
+                  </div>
+                </Button>
+              ))
+            )}
+          </CardContent>
+          <CardContent className="flex justify-between border-t pt-4">
+            <Button variant="outline" onClick={() => setStep(1)}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <Button onClick={() => setStep(3)} disabled={!selectedDoctor}>
+              Próximo
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 3: Select Date */}
+      {step === 3 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -241,11 +316,11 @@ export default function NeoCareNewAppointment() {
             />
           </CardContent>
           <CardContent className="flex justify-between border-t pt-4">
-            <Button variant="outline" onClick={() => setStep(1)}>
+            <Button variant="outline" onClick={() => setStep(2)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
-            <Button onClick={() => setStep(3)} disabled={!selectedDate}>
+            <Button onClick={() => setStep(4)} disabled={!selectedDate}>
               Próximo
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -253,8 +328,8 @@ export default function NeoCareNewAppointment() {
         </Card>
       )}
 
-      {/* Step 3: Select Time */}
-      {step === 3 && (
+      {/* Step 4: Select Time */}
+      {step === 4 && selectedDate && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -262,29 +337,40 @@ export default function NeoCareNewAppointment() {
               Escolha o Horário
             </CardTitle>
             <CardDescription>
-              Horários disponíveis para {selectedDate && format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+              Horários disponíveis para {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+              {selectedDoctorData && ` com ${selectedDoctorData.full_name}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-              {timeSlots.map((slot) => (
-                <Button
-                  key={slot}
-                  variant={selectedTime === slot ? "default" : "outline"}
-                  onClick={() => setSelectedTime(slot)}
-                  className="h-12"
-                >
-                  {slot}
-                </Button>
-              ))}
-            </div>
+            {loadingSlots ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : availableSlots.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum horário disponível para esta data
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                {availableSlots.map((slot) => (
+                  <Button
+                    key={slot}
+                    variant={selectedTime === slot ? "default" : "outline"}
+                    onClick={() => setSelectedTime(slot)}
+                    className="h-12"
+                  >
+                    {slot}
+                  </Button>
+                ))}
+              </div>
+            )}
           </CardContent>
           <CardContent className="flex justify-between border-t pt-4">
-            <Button variant="outline" onClick={() => setStep(2)}>
+            <Button variant="outline" onClick={() => setStep(3)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
-            <Button onClick={() => setStep(4)} disabled={!selectedTime}>
+            <Button onClick={() => setStep(5)} disabled={!selectedTime}>
               Próximo
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -292,8 +378,8 @@ export default function NeoCareNewAppointment() {
         </Card>
       )}
 
-      {/* Step 4: Confirmation */}
-      {step === 4 && selectedType && selectedDate && selectedTime && (
+      {/* Step 5: Confirmation */}
+      {step === 5 && selectedType && selectedDate && selectedTime && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -308,6 +394,12 @@ export default function NeoCareNewAppointment() {
                 <span className="text-muted-foreground">Tipo:</span>
                 <span className="font-medium">{selectedType.name}</span>
               </div>
+              {selectedDoctorData && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Profissional:</span>
+                  <span className="font-medium">{selectedDoctorData.full_name}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Data:</span>
                 <span className="font-medium">
@@ -336,7 +428,7 @@ export default function NeoCareNewAppointment() {
             </div>
           </CardContent>
           <CardContent className="flex justify-between border-t pt-4">
-            <Button variant="outline" onClick={() => setStep(3)}>
+            <Button variant="outline" onClick={() => setStep(4)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
