@@ -1846,6 +1846,36 @@ export type Database = {
           },
         ]
       }
+      neoteam_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json | null
+          updated_at: string
+          whatsapp_api_token: string | null
+          whatsapp_instance_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json | null
+          updated_at?: string
+          whatsapp_api_token?: string | null
+          whatsapp_instance_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json | null
+          updated_at?: string
+          whatsapp_api_token?: string | null
+          whatsapp_instance_url?: string | null
+        }
+        Relationships: []
+      }
       neoteam_tasks: {
         Row: {
           assignee_id: string | null
@@ -1920,6 +1950,7 @@ export type Database = {
           observations: string | null
           patient_id: string | null
           patient_name: string
+          patient_phone: string | null
           priority: string
           room: string | null
           scheduled_time: string | null
@@ -1943,6 +1974,7 @@ export type Database = {
           observations?: string | null
           patient_id?: string | null
           patient_name: string
+          patient_phone?: string | null
           priority?: string
           room?: string | null
           scheduled_time?: string | null
@@ -1966,6 +1998,7 @@ export type Database = {
           observations?: string | null
           patient_id?: string | null
           patient_name?: string
+          patient_phone?: string | null
           priority?: string
           room?: string | null
           scheduled_time?: string | null
@@ -1992,6 +2025,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      neoteam_whatsapp_logs: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          message: string | null
+          patient_name: string | null
+          patient_phone: string | null
+          success: boolean | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          message?: string | null
+          patient_name?: string | null
+          patient_phone?: string | null
+          success?: boolean | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          message?: string | null
+          patient_name?: string | null
+          patient_phone?: string | null
+          success?: boolean | null
+          type?: string
+        }
+        Relationships: []
       }
       notification_recipients: {
         Row: {

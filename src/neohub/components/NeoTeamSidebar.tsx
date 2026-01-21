@@ -9,7 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   Home, Calendar, Clock, Users, FileText,
   Settings, LogOut, Menu, X, ChevronLeft,
-  Bell, Folder, Stethoscope
+  Bell, Folder, Stethoscope, BarChart3, CheckSquare
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
@@ -22,8 +22,9 @@ const menuItems = [
   { id: 'home', title: 'Início', icon: Home, route: '/neoteam' },
   { id: 'schedule', title: 'Agenda', icon: Calendar, route: '/neoteam/schedule' },
   { id: 'waiting-room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
+  { id: 'waiting-reports', title: 'Relatórios Espera', icon: BarChart3, route: '/neoteam/waiting-room/reports' },
   { id: 'doctor-view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view' },
-  { id: 'tasks', title: 'Tarefas', icon: FileText, route: '/neoteam/tasks' },
+  { id: 'tasks', title: 'Tarefas', icon: CheckSquare, route: '/neoteam/tasks' },
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
