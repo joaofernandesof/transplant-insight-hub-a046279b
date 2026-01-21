@@ -1,4 +1,4 @@
-import { ModuleSidebar } from "@/components/ModuleSidebar";
+import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 
 interface ModuleLayoutProps {
   children: React.ReactNode;
@@ -6,10 +6,10 @@ interface ModuleLayoutProps {
 
 export function ModuleLayout({ children }: ModuleLayoutProps) {
   return (
-    <ModuleSidebar>
+    <UnifiedSidebar>
       <div className="min-h-screen bg-background">
         {children}
       </div>
-    </ModuleSidebar>
+    </UnifiedSidebar>
   );
 }

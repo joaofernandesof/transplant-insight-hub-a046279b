@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import NotificationDialog from '@/components/NotificationDialog';
@@ -302,97 +301,92 @@ export default function AdminHome() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AdminLayout>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
-      <div className="p-6 pt-16 lg:pt-8 lg:p-8 max-w-7xl mx-auto overflow-x-hidden w-full">
-        {/* Welcome Section */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Bem-vindo, {user?.name?.split(' ')[0]}! 👋
-            </h1>
-            <p className="text-muted-foreground">
-              Gerencie todos os aspectos do sistema ByNeofolic a partir deste painel.
-            </p>
-          </div>
-          <Button
-            onClick={() => setIsNotificationDialogOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Send className="h-4 w-4" />
-            Enviar Notificação
-          </Button>
-        </div>
-
-        <NotificationDialog
-          open={isNotificationDialogOpen}
-          onOpenChange={setIsNotificationDialogOpen}
-        />
-
-
-        {/* Management Section - Compact Horizontal Buttons */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Settings className="h-5 w-5 text-primary" />
-            Gestão do Sistema
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {[...managementModules, ...analyticsModules].map((module) => (
-              <button 
-                key={module.id}
-                className="group flex items-center gap-2 p-2.5 rounded-lg border border-border bg-card hover:bg-muted/50 transition-all duration-200 text-left"
-                onClick={() => navigate(module.path)}
-              >
-                <div className={`p-1.5 rounded-md bg-gradient-to-br ${module.color} text-white shrink-0`}>
-                  <span className="[&>svg]:h-4 [&>svg]:w-4">{module.icon}</span>
-                </div>
-                <span className="text-xs font-medium text-foreground leading-tight line-clamp-2 flex-1">{module.title}</span>
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Licensee Modules Section */}
+    <div className="p-6 pt-16 lg:pt-8 lg:p-8 max-w-7xl mx-auto overflow-x-hidden w-full">
+      {/* Welcome Section */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Eye className="h-5 w-5 text-primary" />
-            Módulos dos Licenciados (Editar Conteúdo)
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {licenseeModules.map((module) => (
-              <Card 
-                key={module.id}
-                className="group cursor-pointer hover:shadow-md transition-all duration-300 overflow-hidden border-border/50"
-                onClick={() => navigate(module.path)}
-              >
-                <CardContent className="p-3">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2 rounded-lg bg-gradient-to-br ${module.color} text-white`}>
-                        <span className="[&>svg]:h-4 [&>svg]:w-4">{module.icon}</span>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-foreground text-xs leading-tight line-clamp-2">{module.title}</h3>
-                      <p className="text-[10px] text-muted-foreground line-clamp-2">{module.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Bem-vindo, {user?.name?.split(' ')[0]}! 👋
+          </h1>
+          <p className="text-muted-foreground">
+            Gerencie todos os aspectos do sistema ByNeofolic a partir deste painel.
+          </p>
+        </div>
+        <Button
+          onClick={() => setIsNotificationDialogOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Send className="h-4 w-4" />
+          Enviar Notificação
+        </Button>
+      </div>
+
+      <NotificationDialog
+        open={isNotificationDialogOpen}
+        onOpenChange={setIsNotificationDialogOpen}
+      />
+
+      {/* Management Section - Compact Horizontal Buttons */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+          <Settings className="h-5 w-5 text-primary" />
+          Gestão do Sistema
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {[...managementModules, ...analyticsModules].map((module) => (
+            <button 
+              key={module.id}
+              className="group flex items-center gap-2 p-2.5 rounded-lg border border-border bg-card hover:bg-muted/50 transition-all duration-200 text-left"
+              onClick={() => navigate(module.path)}
+            >
+              <div className={`p-1.5 rounded-md bg-gradient-to-br ${module.color} text-white shrink-0`}>
+                <span className="[&>svg]:h-4 [&>svg]:w-4">{module.icon}</span>
+              </div>
+              <span className="text-xs font-medium text-foreground leading-tight line-clamp-2 flex-1">{module.title}</span>
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+            </button>
+          ))}
         </div>
       </div>
-    </AdminLayout>
+
+      {/* Licensee Modules Section */}
+      <div>
+        <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+          <Eye className="h-5 w-5 text-primary" />
+          Módulos dos Licenciados (Editar Conteúdo)
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {licenseeModules.map((module) => (
+            <Card 
+              key={module.id}
+              className="group cursor-pointer hover:shadow-md transition-all duration-300 overflow-hidden border-border/50"
+              onClick={() => navigate(module.path)}
+            >
+              <CardContent className="p-3">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <div className={`p-2 rounded-lg bg-gradient-to-br ${module.color} text-white`}>
+                      <span className="[&>svg]:h-4 [&>svg]:w-4">{module.icon}</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-foreground text-xs leading-tight line-clamp-2">{module.title}</h3>
+                    <p className="text-[10px] text-muted-foreground line-clamp-2">{module.description}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

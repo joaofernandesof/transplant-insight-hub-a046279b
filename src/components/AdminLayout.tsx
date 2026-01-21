@@ -1,4 +1,4 @@
-import { AdminSidebar } from "@/components/AdminSidebar";
+import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -6,10 +6,10 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   return (
-    <AdminSidebar>
+    <UnifiedSidebar>
       <div className="min-h-screen bg-background">
         {children}
       </div>
-    </AdminSidebar>
+    </UnifiedSidebar>
   );
 }

@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import SupportChat from "@/components/SupportChat";
-import { ModuleSidebar } from "@/components/ModuleSidebar";
+import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
@@ -61,9 +61,9 @@ import { MarketplaceCampaigns } from "./marketplace/pages/MarketplaceCampaigns";
 import { MarketplaceDashboard } from "./marketplace/pages/MarketplaceDashboard";
 import { MarketplaceDiscovery } from "./marketplace/pages/MarketplaceDiscovery";
 
-// Wrapper para páginas do licenciado com sidebar
-function LicenseeSidebarWrapper({ children }: { children: React.ReactNode }) {
-  return <ModuleSidebar>{children}</ModuleSidebar>;
+// Wrapper para páginas protegidas com sidebar unificado
+function SidebarWrapper({ children }: { children: React.ReactNode }) {
+  return <UnifiedSidebar>{children}</UnifiedSidebar>;
 }
 
 const queryClient = new QueryClient();
@@ -103,11 +103,9 @@ function AppRoutes() {
         path="/" 
         element={
           <ProtectedRoute>
-            {isAdmin ? <AdminHome /> : (
-              <LicenseeSidebarWrapper>
-                <LicenseeHome />
-              </LicenseeSidebarWrapper>
-            )}
+            <SidebarWrapper>
+              {isAdmin ? <AdminHome /> : <LicenseeHome />}
+            </SidebarWrapper>
           </ProtectedRoute>
         } 
       />
@@ -115,9 +113,9 @@ function AppRoutes() {
         path="/home" 
         element={
           <ProtectedRoute>
-            <LicenseeSidebarWrapper>
+            <SidebarWrapper>
               <LicenseeHome />
-            </LicenseeSidebarWrapper>
+            </SidebarWrapper>
           </ProtectedRoute>
         } 
       />
