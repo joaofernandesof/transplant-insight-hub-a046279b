@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Header } from '@/components/Header';
-import { AdminLayout } from '@/components/AdminLayout';
-import { ModuleLayout } from '@/components/ModuleLayout';
+import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { HorizontalMetricsTable } from '@/components/HorizontalMetricsTable';
 import { DailyMetricsTable } from '@/components/DailyMetricsTable';
 import { MetricsDashboard } from '@/components/MetricsDashboard';
@@ -129,24 +128,22 @@ export default function Dashboard() {
   
   const selectedClinicName = clinicsList.find(c => c.id === selectedClinicId)?.name || 'Clínica';
 
-  const Layout = isAdmin ? AdminLayout : ModuleLayout;
-
   if (dataLoading) {
     return (
-      <Layout>
+      <UnifiedSidebar>
         <div className="flex items-center justify-center h-[60vh]">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <p className="text-muted-foreground">Carregando dados...</p>
           </div>
         </div>
-      </Layout>
+      </UnifiedSidebar>
     );
   }
 
   if (!selectedClinicId && !isAdmin) {
     return (
-      <Layout>
+      <UnifiedSidebar>
         <div className="flex items-center justify-center h-[60vh]">
           <div className="text-center">
             <Building2 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
@@ -154,12 +151,12 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Sua clínica será criada automaticamente.</p>
           </div>
         </div>
-      </Layout>
+      </UnifiedSidebar>
     );
   }
   
   return (
-    <Layout>
+    <UnifiedSidebar>
       <div className="p-2 sm:p-4 lg:p-6 pt-14 sm:pt-4 max-w-[1920px] mx-auto overflow-x-hidden w-full">
         {/* Top Bar - Mobile optimized */}
         <div className="flex flex-col gap-2 sm:gap-3 mb-3 sm:mb-6">
@@ -325,6 +322,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-    </Layout>
+    </UnifiedSidebar>
   );
 }
