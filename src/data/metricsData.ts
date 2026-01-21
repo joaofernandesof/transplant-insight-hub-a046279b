@@ -27,6 +27,28 @@ export interface MetricDefinition {
 
 export const metrics: MetricDefinition[] = [
   {
+    id: "0",
+    sigla: "InvTraf",
+    nome: "Investimento em Tráfego",
+    descricao: "Valor investido em anúncios pagos",
+    comoEncontrar: "Some todos os gastos com Meta Ads, Google Ads e outras plataformas de tráfego pago.",
+    oQueMede: "Capital alocado para aquisição de leads",
+    tipo: "manual",
+    formula: "Soma dos gastos em ads",
+    unidade: "R$",
+    formato: "currency",
+    etapa: "Tráfego",
+    responsavel: "Marketing",
+    ruim: "<R$500",
+    medio: "R$500–999",
+    bom: "R$1.000–2.999",
+    otimo: "≥R$3.000",
+    seBom: "Base sólida para escala, volume de leads, dados para otimização",
+    seRuim: "Pouco volume, difícil testar, funil com fome, escala travada",
+    possiveisErros: "Orçamento insuficiente, distribuição errada entre campanhas, falta de controle de gastos",
+    acoesCorretivas: "Aumentar investimento gradualmente, redistribuir para campanhas que performam, monitorar ROI"
+  },
+  {
     id: "1",
     sigla: "ICPFit",
     nome: "Fit com ICP",

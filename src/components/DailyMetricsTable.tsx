@@ -35,6 +35,7 @@ interface DailyMetricsTableProps {
 type FilterType = 'week' | 'month' | 'year' | 'custom' | 'all';
 
 const keyMetrics = [
+  { id: 'investimento_trafego', nome: 'Invest. Tráfego (R$)', icon: Activity, color: 'text-violet-600', bgColor: 'bg-violet-50 dark:bg-violet-950/30', isCurrency: true },
   { id: 'leads_novos', nome: 'Leads Novos', icon: Users, color: 'text-blue-600', bgColor: 'bg-blue-50 dark:bg-blue-950/30' },
   { id: 'tempo_uso_atendente', nome: 'Tempo de Uso (Atendente)', icon: Clock, color: 'text-purple-600', bgColor: 'bg-purple-50 dark:bg-purple-950/30' },
   { id: 'atividades_atendente', nome: 'Atividades (Atendente)', icon: Activity, color: 'text-cyan-600', bgColor: 'bg-cyan-50 dark:bg-cyan-950/30' },
