@@ -119,6 +119,47 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_history: {
+        Row: {
+          alert_id: string | null
+          emails_sent_to: string[] | null
+          id: string
+          metric_key: string
+          metric_value: number
+          severity: string
+          threshold_value: number
+          triggered_at: string
+        }
+        Insert: {
+          alert_id?: string | null
+          emails_sent_to?: string[] | null
+          id?: string
+          metric_key: string
+          metric_value: number
+          severity: string
+          threshold_value: number
+          triggered_at?: string
+        }
+        Update: {
+          alert_id?: string | null
+          emails_sent_to?: string[] | null
+          id?: string
+          metric_key?: string
+          metric_value?: number
+          severity?: string
+          threshold_value?: number
+          triggered_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_history_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "metric_alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -1251,6 +1292,78 @@ export type Database = {
         }
         Relationships: []
       }
+      metric_alerts: {
+        Row: {
+          comparison_operator: string
+          cooldown_minutes: number | null
+          created_at: string
+          created_by: string | null
+          email_recipients: string[] | null
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          metric_key: string
+          metric_name: string
+          severity: string
+          threshold_value: number
+          updated_at: string
+        }
+        Insert: {
+          comparison_operator?: string
+          cooldown_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          email_recipients?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          metric_key: string
+          metric_name: string
+          severity?: string
+          threshold_value: number
+          updated_at?: string
+        }
+        Update: {
+          comparison_operator?: string
+          cooldown_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          email_recipients?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          metric_key?: string
+          metric_name?: string
+          severity?: string
+          threshold_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      metric_history: {
+        Row: {
+          id: string
+          metadata: Json | null
+          metric_key: string
+          metric_value: number
+          recorded_at: string
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          metric_key: string
+          metric_value: number
+          recorded_at?: string
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          metric_key?: string
+          metric_value?: number
+          recorded_at?: string
+        }
+        Relationships: []
+      }
       module_lessons: {
         Row: {
           content_html: string | null
@@ -1303,6 +1416,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      module_permissions: {
+        Row: {
+          can_delete: boolean | null
+          can_read: boolean | null
+          can_write: boolean | null
+          created_at: string
+          id: string
+          module_category: string
+          module_code: string
+          module_name: string
+          profile: string
+          updated_at: string
+        }
+        Insert: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          created_at?: string
+          id?: string
+          module_category: string
+          module_code: string
+          module_name: string
+          profile: string
+          updated_at?: string
+        }
+        Update: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          created_at?: string
+          id?: string
+          module_category?: string
+          module_code?: string
+          module_name?: string
+          profile?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       neohub_module_permissions: {
         Row: {
@@ -3701,7 +3853,7 @@ export type Database = {
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "licensee"
+      app_role: "admin" | "licensee" | "colaborador" | "aluno" | "paciente"
       clinic_staff_role:
         | "admin"
         | "gestao"
@@ -3856,7 +4008,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "licensee"],
+      app_role: ["admin", "licensee", "colaborador", "aluno", "paciente"],
       clinic_staff_role: [
         "admin",
         "gestao",

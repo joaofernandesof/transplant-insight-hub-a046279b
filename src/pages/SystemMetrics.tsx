@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { useSystemMetrics, formatDurationShort } from '@/hooks/useSystemMetrics';
 import { queryClient, CACHE_TIMES } from '@/lib/queryClient';
+import { MetricHistoryCharts } from '@/components/MetricHistoryCharts';
+import { AlertsConfigPanel } from '@/components/AlertsConfigPanel';
 import { 
   Database, 
   Cpu, 
@@ -23,7 +25,9 @@ import {
   Server,
   Layers,
   BarChart3,
-  Trash2
+  Trash2,
+  Bell,
+  LineChart
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

@@ -39,3 +39,6 @@ verify_jwt = false
 
 [functions.reset-password]
 verify_jwt = false
+
+[functions.check-metric-alerts]
+verify_jwt = false
