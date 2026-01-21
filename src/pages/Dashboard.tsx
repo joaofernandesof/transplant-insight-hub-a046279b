@@ -313,6 +313,7 @@ export default function Dashboard() {
               currentWeekNumber={currentWeekNumber}
               getWeekValues={getWeekValues}
               clinicName={selectedClinicName}
+              clinicId={selectedClinicId}
             />
           )}
           
