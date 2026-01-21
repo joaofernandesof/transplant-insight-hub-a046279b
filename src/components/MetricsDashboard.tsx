@@ -291,12 +291,12 @@ export function MetricsDashboard({
     return format(date, 'EEE', { locale: ptBR });
   };
 
-  const getDiagnosisColor = (status: string) => {
+const getDiagnosisBadge = (status: string) => {
     switch (status) {
-      case 'success': return 'text-emerald-600 dark:text-emerald-400';
-      case 'warning': return 'text-amber-600 dark:text-amber-400';
-      case 'danger': return 'text-red-600 dark:text-red-400';
-      default: return 'text-muted-foreground';
+      case 'success': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400';
+      case 'warning': return 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400';
+      case 'danger': return 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -489,7 +489,6 @@ export function MetricsDashboard({
                       </th>
                     );
                   })}
-                  <th className="text-center px-2 py-2.5 font-semibold text-foreground min-w-[60px] bg-muted">Total</th>
                   <th className="text-center px-3 sm:px-4 py-2.5 font-semibold text-foreground min-w-[140px]">Diagnóstico</th>
                   <th className="text-left px-3 sm:px-4 py-2.5 font-semibold text-foreground min-w-[180px]">Orientações</th>
                 </tr>
@@ -497,7 +496,7 @@ export function MetricsDashboard({
               <tbody>
                 {dailyMetricsData.length === 0 ? (
                   <tr>
-                    <td colSpan={last5DaysData.length + 4} className="text-center py-8 text-muted-foreground">
+                    <td colSpan={last5DaysData.length + 3} className="text-center py-8 text-muted-foreground">
                       <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p>Nenhum dado diário registrado ainda.</p>
                     </td>
@@ -540,13 +539,10 @@ export function MetricsDashboard({
                             </td>
                           );
                         })}
-                        <td className="text-center px-2 py-2.5 font-bold text-foreground bg-muted/20">
-                          {metric.total}
-                        </td>
                         <td className="text-center px-3 sm:px-4 py-2.5">
                           <span className={cn(
-                            "text-xs sm:text-sm font-medium",
-                            getDiagnosisColor(metric.diagnosis.status)
+                            "inline-block px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap",
+                            getDiagnosisBadge(metric.diagnosis.status)
                           )}>
                             {metric.diagnosis.text}
                           </span>
