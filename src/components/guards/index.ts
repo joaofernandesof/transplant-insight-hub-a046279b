@@ -1,3 +1,19 @@
-// Guards - Componentes de proteção de acesso
-export { RouteGuard, ProtectedRoute, AdminRoute } from './RouteGuard';
-export { ComponentGuard, AdminOnly, IfCanRead, IfCanWrite, IfCanDelete } from './ComponentGuard';
+// ====================================
+// Guards - Exportações Centralizadas
+// ====================================
+
+// Guards unificados (principal)
+export {
+  ProtectedRoute,
+  RouteGuard,
+  ProfileGuard,
+  PortalGuard,
+  AdminRoute,
+  ComponentGuard,
+} from './UnifiedGuards';
+
+// Re-export types
+export type { NeoHubProfile, Portal } from '@/contexts/UnifiedAuthContext';
+
+// Legacy exports for compatibility
+export { AdminOnly, IfCanRead, IfCanWrite, IfCanDelete } from './ComponentGuard';

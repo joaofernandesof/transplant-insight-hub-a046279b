@@ -4,7 +4,7 @@
 // Menu derivado de menuConfig.ts - fonte única de verdade
 
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +60,7 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
 };
 
 export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout } = useUnifiedAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -162,11 +162,11 @@ export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
               <Avatar className="h-10 w-10 ring-2 ring-primary/20">
                 <AvatarImage src={user?.avatarUrl} />
                 <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                  {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  {user?.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user?.name}</p>
+                <p className="text-sm font-medium truncate">{user?.fullName}</p>
                 {isAdmin ? (
                   <Badge className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary">
                     <Crown className="h-3 w-3" />
@@ -191,7 +191,7 @@ export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
             >
               <AvatarImage src={user?.avatarUrl} />
               <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                {user?.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </div>

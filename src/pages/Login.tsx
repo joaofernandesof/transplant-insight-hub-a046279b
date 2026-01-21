@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles } from 'lucide-react';
 import { z } from 'zod';
@@ -55,7 +55,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   
-  const { login, signup } = useAuth();
+  const { login, signup } = useUnifiedAuth();
   const navigate = useNavigate();
 
   // Load remembered email on mount
@@ -134,7 +134,11 @@ export default function Login() {
           return;
         }
 
-        const { success, error: signupError } = await signup(email, password, name);
+        const { success, error: signupError } = await signup({
+          email,
+          password,
+          fullName: name,
+        });
         
         if (success) {
           setSuccessMessage('Conta criada com sucesso! Você já pode fazer login.');
