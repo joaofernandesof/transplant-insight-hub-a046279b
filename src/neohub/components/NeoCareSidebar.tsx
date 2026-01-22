@@ -52,15 +52,18 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo */}
+      {/* Header with Patient Photo */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[hsl(var(--neocare-primary))] flex items-center justify-center overflow-hidden">
-            <img src={neofolicIcon} alt="NeoFolic" className="w-full h-full object-cover scale-150" />
-          </div>
+          <Avatar className="w-10 h-10 border-2 border-[hsl(var(--neocare-primary))]">
+            <AvatarImage src={user?.avatarUrl || ''} alt={user?.fullName || 'Paciente'} />
+            <AvatarFallback className="bg-[hsl(var(--neocare-primary-light))] text-[hsl(var(--neocare-primary))]">
+              <User className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
           <div>
             <span className="font-bold text-[hsl(var(--neocare-primary))]">Portal do Paciente</span>
-            <p className="text-xs text-muted-foreground">Clínica de Transplante Capilar</p>
+            <p className="text-xs text-muted-foreground">Neo Folic Saúde Capilar</p>
           </div>
         </div>
       </div>
