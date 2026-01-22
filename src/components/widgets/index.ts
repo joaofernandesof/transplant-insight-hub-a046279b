@@ -8,3 +8,4 @@ export { TeamActivityWidget } from './TeamActivityWidget';
 export { ConversionRateWidget } from './ConversionRateWidget';
 export { DashboardPeriodSelector } from './DashboardPeriodSelector';
 export { TrendIndicator } from './TrendIndicator';
+export { HomeBannerCarousel } from './HomeBannerCarousel';
