@@ -43,7 +43,7 @@ import { ptBR } from 'date-fns/locale';
 import { SystemAlertsWidget } from '@/components/admin/SystemAlertsWidget';
 import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
 
-// Hierarchical module structure for clear understanding
+// Hierarchical module structure with individual colors per module
 const moduleCategories = [
   {
     id: 'admin',
@@ -52,10 +52,10 @@ const moduleCategories = [
     color: 'bg-blue-600',
     icon: Shield,
     modules: [
-      { id: 'licensees', title: 'Licenciados', description: 'Gerenciar franqueados', icon: Users, path: '/licensees' },
-      { id: 'monitoring', title: 'Monitoramento', description: 'Atividade de usuários', icon: Eye, path: '/monitoring' },
-      { id: 'permissions', title: 'Permissões', description: 'Matriz de acessos', icon: Shield, path: '/admin' },
-      { id: 'settings', title: 'Configurações', description: 'Parâmetros do sistema', icon: Settings, path: '/admin' },
+      { id: 'licensees', title: 'Licenciados', description: 'Gerenciar franqueados', icon: Users, path: '/licensees', color: 'bg-blue-500' },
+      { id: 'monitoring', title: 'Monitoramento', description: 'Atividade de usuários', icon: Eye, path: '/monitoring', color: 'bg-teal-500' },
+      { id: 'permissions', title: 'Permissões', description: 'Matriz de acessos', icon: Shield, path: '/admin', color: 'bg-violet-500' },
+      { id: 'settings', title: 'Configurações', description: 'Parâmetros do sistema', icon: Settings, path: '/admin', color: 'bg-purple-500' },
     ]
   },
   {
@@ -65,9 +65,9 @@ const moduleCategories = [
     color: 'bg-teal-600',
     icon: Building2,
     modules: [
-      { id: 'surgery', title: 'Agenda de Cirurgias', description: 'Calendário cirúrgico', icon: Calendar, path: '/surgery-schedule' },
-      { id: 'neoteam', title: 'NeoTeam', description: 'Painel colaboradores', icon: Users, path: '/neoteam' },
-      { id: 'waiting', title: 'Sala de Espera', description: 'Fila de atendimento', icon: Clock, path: '/neoteam/waiting-room' },
+      { id: 'surgery', title: 'Agenda de Cirurgias', description: 'Calendário cirúrgico', icon: Calendar, path: '/surgery-schedule', color: 'bg-rose-500' },
+      { id: 'neoteam', title: 'NeoTeam', description: 'Painel colaboradores', icon: Users, path: '/neoteam', color: 'bg-cyan-500' },
+      { id: 'waiting', title: 'Sala de Espera', description: 'Fila de atendimento', icon: Clock, path: '/neoteam/waiting-room', color: 'bg-amber-500' },
     ]
   },
   {
@@ -77,9 +77,9 @@ const moduleCategories = [
     color: 'bg-green-600',
     icon: DollarSign,
     modules: [
-      { id: 'crm', title: 'CRM Vendas', description: 'Gestão comercial', icon: DollarSign, path: '/crm' },
-      { id: 'hotleads', title: 'HotLeads', description: 'Leads quentes', icon: Flame, path: '/hotleads' },
-      { id: 'consolidated', title: 'Resultados', description: 'VGV e métricas', icon: BarChart3, path: '/consolidated-results' },
+      { id: 'crm', title: 'CRM Vendas', description: 'Gestão comercial', icon: DollarSign, path: '/crm', color: 'bg-emerald-500' },
+      { id: 'hotleads', title: 'HotLeads', description: 'Leads quentes', icon: Flame, path: '/hotleads', color: 'bg-orange-500' },
+      { id: 'consolidated', title: 'Resultados', description: 'VGV e métricas', icon: BarChart3, path: '/consolidated-results', color: 'bg-indigo-500' },
     ]
   },
   {
@@ -89,9 +89,9 @@ const moduleCategories = [
     color: 'bg-purple-600',
     icon: BarChart3,
     modules: [
-      { id: 'dashboard', title: 'Indicadores', description: 'Métricas diárias', icon: BarChart3, path: '/dashboard' },
-      { id: 'comparison', title: 'Comparar Clínicas', description: 'Benchmark unidades', icon: GitCompare, path: '/comparison' },
-      { id: 'reports', title: 'Relatórios Semanais', description: 'PDF por licenciado', icon: FileText, path: '/weekly-reports' },
+      { id: 'dashboard', title: 'Indicadores', description: 'Métricas diárias', icon: BarChart3, path: '/dashboard', color: 'bg-sky-500' },
+      { id: 'comparison', title: 'Comparar Clínicas', description: 'Benchmark unidades', icon: GitCompare, path: '/comparison', color: 'bg-pink-500' },
+      { id: 'reports', title: 'Relatórios Semanais', description: 'PDF por licenciado', icon: FileText, path: '/weekly-reports', color: 'bg-lime-500' },
     ]
   },
   {
@@ -101,9 +101,9 @@ const moduleCategories = [
     color: 'bg-indigo-600',
     icon: GraduationCap,
     modules: [
-      { id: 'university', title: 'Universidade', description: 'Cursos e aulas', icon: GraduationCap, path: '/university' },
-      { id: 'materials', title: 'Central de Materiais', description: 'POPs e scripts', icon: FileText, path: '/materials' },
-      { id: 'exams', title: 'Provas', description: 'Avaliações alunos', icon: BookOpen, path: '/exams' },
+      { id: 'university', title: 'Universidade', description: 'Cursos e aulas', icon: GraduationCap, path: '/university', color: 'bg-fuchsia-500' },
+      { id: 'materials', title: 'Central de Materiais', description: 'POPs e scripts', icon: FileText, path: '/materials', color: 'bg-teal-500' },
+      { id: 'exams', title: 'Provas', description: 'Avaliações alunos', icon: BookOpen, path: '/exams', color: 'bg-blue-500' },
     ]
   },
   {
@@ -113,12 +113,11 @@ const moduleCategories = [
     color: 'bg-slate-600',
     icon: Server,
     modules: [
-      { id: 'sentinel', title: 'System Sentinel', description: 'Uptime e alertas', icon: Activity, path: '/admin/sentinel' },
-      { id: 'api', title: 'API Docs', description: 'Documentação', icon: Zap, path: '/api-docs' },
+      { id: 'sentinel', title: 'System Sentinel', description: 'Uptime e alertas', icon: Activity, path: '/admin/sentinel', color: 'bg-gray-500' },
+      { id: 'api', title: 'API Docs', description: 'Documentação', icon: Zap, path: '/api-docs', color: 'bg-yellow-500' },
     ]
   },
 ];
-
 // Profile quick access for admin to view system as different profiles
 const profileAccess = [
   { profile: 'licenciado', title: 'Licenciado', description: 'Dono de clínica', icon: Award, path: '/home', color: 'bg-amber-500' },
@@ -341,7 +340,7 @@ export default function AdminDashboard() {
                     onClick={() => navigate(mod.path)}
                     className="group flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all bg-muted/30"
                   >
-                    <div className={`p-2.5 rounded-xl ${cat.color} text-white shadow-sm`}>
+                    <div className={`p-2.5 rounded-xl ${mod.color} text-white shadow-sm`}>
                       <mod.icon className="h-5 w-5" />
                     </div>
                     <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{mod.title}</span>
