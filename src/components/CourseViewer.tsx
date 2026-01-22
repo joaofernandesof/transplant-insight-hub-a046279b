@@ -17,6 +17,7 @@ import {
   Lock
 } from "lucide-react";
 import { CourseWithProgress, ModuleLessonWithProgress } from "@/hooks/useUniversity";
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 
 interface CourseViewerProps {
   course: CourseWithProgress;
@@ -196,7 +197,7 @@ export function CourseViewer({
                   ) : selectedLesson.content_html ? (
                     <div 
                       className="prose prose-sm max-w-none p-6 bg-background rounded-lg w-full h-full overflow-auto"
-                      dangerouslySetInnerHTML={{ __html: selectedLesson.content_html }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedLesson.content_html) }}
                     />
                   ) : (
                     <div className="text-center text-muted-foreground">
