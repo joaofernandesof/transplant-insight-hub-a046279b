@@ -46,13 +46,12 @@ import {
   SalaTecnicaCompact, 
   SalesOverviewWidget, 
   LeadsFunnelWidget, 
-  QuickStatsWidget,
   MonthlyRevenueChartWidget,
   SurgeriesOverviewWidget,
-  TeamActivityWidget,
   ConversionRateWidget,
   DashboardPeriodSelector
 } from "@/components/widgets";
+import { HomeBannerCarousel } from "@/components/widgets/HomeBannerCarousel";
 import { DashboardPeriodProvider } from "@/contexts/DashboardPeriodContext";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
@@ -441,32 +440,29 @@ export default function LicenseeHome() {
           </h1>
         </div>
 
+        {/* Banner Promocional */}
+        <HomeBannerCarousel />
+
         {/* Journey Roadmap - Sua Jornada */}
         <div data-tour="journey-roadmap">
           <JourneyRoadmap currentTier={tier} />
         </div>
 
-        {/* Dashboard Global - 8 Widgets */}
+        {/* Dashboard Global - 6 Widgets */}
         <DashboardPeriodProvider>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h2 className="text-lg font-semibold text-foreground">Visão Geral da Operação</h2>
             <DashboardPeriodSelector />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            {/* Row 1 - Faturamento e Vendas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {/* Row 1 */}
             <MonthlyRevenueChartWidget />
             <SalesOverviewWidget />
-            
-            {/* Row 2 - Leads e Conversão */}
             <LeadsFunnelWidget />
+            
+            {/* Row 2 */}
             <ConversionRateWidget />
-            
-            {/* Row 3 - Cirurgias e Performance */}
             <SurgeriesOverviewWidget />
-            <QuickStatsWidget />
-            
-            {/* Row 4 - Equipe e Sala Técnica */}
-            <TeamActivityWidget />
             <SalaTecnicaCompact />
           </div>
         </DashboardPeriodProvider>
