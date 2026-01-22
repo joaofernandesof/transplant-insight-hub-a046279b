@@ -450,7 +450,10 @@ export default function NeoCareOrientations() {
                       )}
                     />
                     {isOverdue && !isChecked && (
-                      <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+                      <div className="flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 rounded text-red-600 dark:text-red-400">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        <span className="text-[10px] font-semibold uppercase">Atrasado</span>
+                      </div>
                     )}
                     <Icon className={cn(
                       "h-4 w-4 shrink-0",
@@ -545,7 +548,10 @@ export default function NeoCareOrientations() {
                       )}
                     />
                     {isOverdue && !isChecked && (
-                      <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+                      <div className="flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 rounded text-red-600 dark:text-red-400">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        <span className="text-[10px] font-semibold uppercase">Atrasado</span>
+                      </div>
                     )}
                     <Icon className={cn(
                       "h-4 w-4 shrink-0",
