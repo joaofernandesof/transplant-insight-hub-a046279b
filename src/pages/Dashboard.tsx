@@ -157,7 +157,7 @@ export default function Dashboard() {
   
   return (
     <UnifiedSidebar>
-      <div className="p-4 lg:p-6 pt-16 lg:pt-6 max-w-[1920px] mx-auto overflow-x-hidden w-full">
+      <div className="p-4 lg:p-6 pt-16 lg:pt-6 overflow-x-hidden w-full">
         {/* Top Bar - Mobile optimized */}
         <div className="flex flex-col gap-3 mb-6">
           {/* Admin Controls - Stack on mobile */}
@@ -282,7 +282,7 @@ export default function Dashboard() {
         </div>
         
         {/* Tab Content */}
-        <div className="animate-fade-in">
+        <div className="animate-fade-in w-full max-w-full overflow-hidden">
           {activeTab === 'indicators' && (
             <>
               {/* Daily Metrics History with Filters */}
