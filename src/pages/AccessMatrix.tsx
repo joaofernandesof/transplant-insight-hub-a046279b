@@ -111,7 +111,7 @@ export default function AccessMatrix() {
     <ModuleLayout>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
+        <div className="px-4 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2 text-[#2C3E50] dark:text-white">
@@ -133,7 +133,7 @@ export default function AccessMatrix() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
+      <main className="px-4 py-6 w-full overflow-x-hidden">
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
           <TabsList className="grid w-full max-w-2xl grid-cols-4">

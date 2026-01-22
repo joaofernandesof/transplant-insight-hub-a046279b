@@ -305,7 +305,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-7xl mx-auto overflow-x-hidden w-full space-y-6">
+    <div className="p-4 lg:p-6 overflow-x-hidden w-full space-y-6">
         {/* Breadcrumb */}
         <GlobalBreadcrumb />
         

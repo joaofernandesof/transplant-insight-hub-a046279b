@@ -60,7 +60,7 @@ export default function ExamsList() {
     <ModuleLayout>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
+        <div className="px-4 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => navigate('/university')}>
@@ -103,7 +103,7 @@ export default function ExamsList() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
+      <main className="px-4 py-6 w-full overflow-x-hidden">
         {/* Active Classes */}
         {classes && classes.filter(c => c.status === 'active').length > 0 && (
           <div className="mb-6">

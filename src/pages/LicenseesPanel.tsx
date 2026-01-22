@@ -298,7 +298,7 @@ export default function LicenseesPanel() {
 
   return (
     <AdminLayout>
-      <div className="p-6 pt-16 lg:pt-8 lg:p-8 max-w-7xl mx-auto overflow-x-hidden w-full">
+      <div className="p-6 pt-16 lg:pt-8 lg:p-8 overflow-x-hidden w-full">
         {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Painel de Licenciados</h1>

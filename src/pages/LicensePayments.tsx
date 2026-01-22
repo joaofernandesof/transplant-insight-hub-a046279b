@@ -113,7 +113,7 @@ export default function LicensePayments() {
     <ModuleLayout>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
+        <div className="px-4 py-4">
           <div className="flex items-center gap-4 pl-12 lg:pl-0">
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
@@ -126,7 +126,7 @@ export default function LicensePayments() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-6xl overflow-x-hidden">
+      <main className="px-4 py-6 overflow-x-hidden w-full">
         {/* ROI Panel */}
         <Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-emerald-50">
           <CardHeader>

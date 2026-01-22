@@ -17,7 +17,7 @@ export default function SalaTecnica() {
 
   return (
     <ModuleSidebar>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-6 space-y-6 w-full overflow-x-hidden">
         {/* Header */}
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">

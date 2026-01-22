@@ -108,7 +108,7 @@ export default function ExamsAdmin() {
     <ModuleLayout>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
+        <div className="px-4 py-4">
           <div className="flex items-center gap-4 pl-12 lg:pl-0">
             <Button variant="ghost" size="icon" onClick={() => navigate('/university/exams')}>
               <ArrowLeft className="h-5 w-5" />
@@ -126,7 +126,7 @@ export default function ExamsAdmin() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
+      <main className="px-4 py-6 w-full overflow-x-hidden">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
