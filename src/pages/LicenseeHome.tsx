@@ -50,6 +50,7 @@ import AchievementTimeline from "@/components/AchievementTimeline";
 import Leaderboard from "@/components/Leaderboard";
 import { SalaTecnicaNotification } from "@/components/SalaTecnicaNotification";
 import { SalaTecnicaUpcoming } from "@/components/SalaTecnicaUpcoming";
+import { JourneyRoadmap } from "@/components/JourneyRoadmap";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -420,6 +421,8 @@ export default function LicenseeHome() {
           </div>
         </div>
 
+        {/* Journey Roadmap - Primeiro elemento após welcome */}
+        <JourneyRoadmap currentTier={tier} />
 
         {/* Thursday Sala Técnica Notification */}
         <SalaTecnicaNotification className="mb-6" />
@@ -471,75 +474,6 @@ export default function LicenseeHome() {
             </Card>
           ))}
         </div>
-
-        {/* Jornada ByNeofolic - Compacta */}
-        <Card className="border-2 border-primary/20 dark:border-primary/10 bg-gradient-to-br from-primary/5 via-background to-background dark:from-primary/10 mb-8">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary/10">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    Sua Jornada
-                    <Badge variant="secondary" className="text-xs">
-                      {Object.keys(tierConfig).indexOf(tier) + 1}/{Object.keys(tierConfig).length}
-                    </Badge>
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Nível {tierInfo.name} • {tierInfo.threshold}
-                  </p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/career")} className="gap-1">
-                Ver detalhes
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Progress */}
-            <div className="space-y-2">
-              <Progress value={((Object.keys(tierConfig).indexOf(tier) + 1) / Object.keys(tierConfig).length) * 100} className="h-2" />
-              <p className="text-xs text-muted-foreground text-right">
-                {Math.round(((Object.keys(tierConfig).indexOf(tier) + 1) / Object.keys(tierConfig).length) * 100)}% da jornada
-              </p>
-            </div>
-
-            {/* Current level highlight */}
-            <div className={`flex items-center gap-3 p-3 rounded-lg border-2 ${tierInfo.bgColor} ${tierInfo.borderColor}`}>
-              <div className={`p-2 rounded-lg bg-white/50 dark:bg-black/20 ${tierInfo.color}`}>
-                {tierInfo.icon}
-              </div>
-              <div className="flex-1">
-                <p className={`font-bold ${tierInfo.color}`}>Nível {tierInfo.name}</p>
-                <p className="text-xs text-muted-foreground">{tierInfo.description}</p>
-              </div>
-              <Badge className="bg-primary/10 text-primary border-0">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Atual
-              </Badge>
-            </div>
-
-            {/* Next level preview */}
-            {tier !== 'legacy' && (
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-                  {tierConfig[(Object.keys(tierConfig) as LicenseeTier[])[Object.keys(tierConfig).indexOf(tier) + 1]]?.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    Próximo: {tierConfig[(Object.keys(tierConfig) as LicenseeTier[])[Object.keys(tierConfig).indexOf(tier) + 1]]?.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Meta: {tierConfig[(Object.keys(tierConfig) as LicenseeTier[])[Object.keys(tierConfig).indexOf(tier) + 1]]?.threshold}
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Footer Logo */}
         <div className="mt-12 text-center opacity-40">
