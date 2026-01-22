@@ -93,7 +93,14 @@ export function JourneyRoadmap({ currentTier }: JourneyRoadmapProps) {
                     className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all z-10",
                       isCompleted && "bg-primary border-primary text-primary-foreground",
-                      isCurrent && `${step.bgColor} border-primary ${step.color} ring-2 ring-primary/20`,
+                      isCurrent && `${step.bgColor} border-2 ${step.color} ring-4 ring-offset-2 shadow-lg`,
+                      isCurrent && step.key === 'basic' && "border-slate-400 ring-slate-200",
+                      isCurrent && step.key === 'pro' && "border-blue-400 ring-blue-200",
+                      isCurrent && step.key === 'expert' && "border-purple-400 ring-purple-200",
+                      isCurrent && step.key === 'master' && "border-amber-400 ring-amber-200",
+                      isCurrent && step.key === 'elite' && "border-rose-400 ring-rose-200",
+                      isCurrent && step.key === 'titan' && "border-emerald-400 ring-emerald-200",
+                      isCurrent && step.key === 'legacy' && "border-amber-500 ring-amber-200",
                       isFuture && "bg-muted border-muted-foreground/30 text-muted-foreground"
                     )}
                   >
@@ -104,7 +111,7 @@ export function JourneyRoadmap({ currentTier }: JourneyRoadmapProps) {
                   <div className="mt-2 text-center">
                     <p className={cn(
                       "text-xs font-medium",
-                      isCurrent && "text-primary",
+                      isCurrent && `${step.color} font-bold`,
                       isFuture && "text-muted-foreground",
                       isCompleted && "text-foreground"
                     )}>
@@ -112,7 +119,7 @@ export function JourneyRoadmap({ currentTier }: JourneyRoadmapProps) {
                     </p>
                     <p className={cn(
                       "text-[10px]",
-                      isCurrent ? "text-primary/80" : "text-muted-foreground"
+                      isCurrent ? step.color : "text-muted-foreground"
                     )}>
                       {step.threshold}
                     </p>
@@ -120,7 +127,16 @@ export function JourneyRoadmap({ currentTier }: JourneyRoadmapProps) {
 
                   {/* Current Badge */}
                   {isCurrent && (
-                    <Badge className="mt-1 text-[10px] h-4 bg-primary/10 text-primary border-0 gap-0.5">
+                    <Badge className={cn(
+                      "mt-1 text-[10px] h-4 border-0 gap-0.5",
+                      step.key === 'basic' && "bg-slate-200 text-slate-700",
+                      step.key === 'pro' && "bg-blue-200 text-blue-700",
+                      step.key === 'expert' && "bg-purple-200 text-purple-700",
+                      step.key === 'master' && "bg-amber-200 text-amber-700",
+                      step.key === 'elite' && "bg-rose-200 text-rose-700",
+                      step.key === 'titan' && "bg-emerald-200 text-emerald-700",
+                      step.key === 'legacy' && "bg-gradient-to-r from-amber-200 to-yellow-200 text-amber-700"
+                    )}>
                       <Sparkles className="h-2.5 w-2.5" />
                       Atual
                     </Badge>
