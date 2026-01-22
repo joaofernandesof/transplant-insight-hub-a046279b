@@ -1,6 +1,7 @@
 import React, { useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { 
   Bold, 
   Italic, 
@@ -40,7 +41,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const handleInput = useCallback(() => {
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML, editorRef.current.innerText);
+      const sanitized = sanitizeHtml(editorRef.current.innerHTML);
+      onChange(sanitized, editorRef.current.innerText);
     }
   }, [onChange]);
 

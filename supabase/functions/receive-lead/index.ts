@@ -18,6 +18,47 @@ interface LeadData {
   interest_level?: string;
 }
 
+// Simple in-memory rate limiting (resets on function cold start)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 leads per IP per hour
+
+function isRateLimited(clientIp: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(clientIp);
+  
+  if (!entry || now >= entry.resetTime) {
+    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+  
+  entry.count++;
+  return false;
+}
+
+// Input validation helpers
+function validatePhone(phone: string): { valid: boolean; sanitized: string } {
+  const digits = phone.replace(/\D/g, '');
+  // Brazilian phone: 10-11 digits (with area code)
+  if (digits.length < 10 || digits.length > 11) {
+    return { valid: false, sanitized: '' };
+  }
+  return { valid: true, sanitized: digits };
+}
+
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+}
+
+function sanitizeString(str: string, maxLength: number): string {
+  return str.trim().slice(0, maxLength).replace(/[<>]/g, '');
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -33,6 +74,19 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Rate limiting by IP
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+    
+    if (isRateLimited(clientIp)) {
+      console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
@@ -48,22 +102,48 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Receiving new lead:", leadData.name, leadData.phone);
+    // Validate and sanitize name
+    const sanitizedName = sanitizeString(leadData.name, 100);
+    if (sanitizedName.length < 2) {
+      return new Response(
+        JSON.stringify({ error: "Name must be at least 2 characters" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Insert lead into database
+    // Validate phone format
+    const phoneValidation = validatePhone(leadData.phone);
+    if (!phoneValidation.valid) {
+      return new Response(
+        JSON.stringify({ error: "Invalid phone format. Must be 10 or 11 digits." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate email if provided
+    if (leadData.email && !validateEmail(leadData.email)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Receiving new lead:", sanitizedName);
+
+    // Insert lead into database with sanitized data
     const { data: lead, error: insertError } = await supabase
       .from("leads")
       .insert({
-        name: leadData.name,
-        phone: leadData.phone,
-        email: leadData.email || null,
-        city: leadData.city || null,
-        state: leadData.state || null,
-        source: leadData.source || "landing_page",
-        utm_source: leadData.utm_source || null,
-        utm_medium: leadData.utm_medium || null,
-        utm_campaign: leadData.utm_campaign || null,
-        interest_level: leadData.interest_level || "warm",
+        name: sanitizedName,
+        phone: phoneValidation.sanitized,
+        email: leadData.email ? leadData.email.trim().slice(0, 255) : null,
+        city: leadData.city ? sanitizeString(leadData.city, 100) : null,
+        state: leadData.state ? sanitizeString(leadData.state, 2).toUpperCase() : null,
+        source: leadData.source ? sanitizeString(leadData.source, 50) : "landing_page",
+        utm_source: leadData.utm_source ? sanitizeString(leadData.utm_source, 100) : null,
+        utm_medium: leadData.utm_medium ? sanitizeString(leadData.utm_medium, 100) : null,
+        utm_campaign: leadData.utm_campaign ? sanitizeString(leadData.utm_campaign, 100) : null,
+        interest_level: leadData.interest_level ? sanitizeString(leadData.interest_level, 20) : "warm",
         status: "new",
         available_at: new Date().toISOString(),
       })
