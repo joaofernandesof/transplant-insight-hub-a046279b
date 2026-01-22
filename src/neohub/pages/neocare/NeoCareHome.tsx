@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, FileText, Video, Bell, Clock, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, FileText, ClipboardCheck, Bell, Clock, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -87,7 +87,7 @@ export default function NeoCareHome() {
   const quickActions = [
     { icon: Calendar, label: 'Agendar Consulta', path: '/neocare/appointments/new', color: 'bg-[hsl(var(--neocare-primary))]' },
     { icon: FileText, label: 'Meus Documentos', path: '/neocare/my-records', color: 'bg-emerald-500' },
-    { icon: Video, label: 'Orientações', path: '/neocare/orientations', color: 'bg-purple-500' },
+    { icon: ClipboardCheck, label: 'Orientações', path: '/neocare/orientations', color: 'bg-purple-500' },
     { icon: Bell, label: 'Notícias', path: '/neocare/news', color: 'bg-orange-500' },
   ];
 
