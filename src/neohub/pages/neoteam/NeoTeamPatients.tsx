@@ -43,6 +43,7 @@ import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 interface Patient {
   id: string;
+  sequenceId: number; // Unique sequence ID based on creation order
   name: string;
   email: string;
   phone: string;
@@ -69,7 +70,7 @@ interface Patient {
   seller?: string;
 }
 
-type SortField = 'name' | 'email' | 'phone' | 'branch' | 'category' | 'baldnessGrade' | 'createdAt' | 'city' | 'surgeryDate' | 'consultant' | 'seller' | 'status';
+type SortField = 'sequenceId' | 'name' | 'email' | 'phone' | 'branch' | 'category' | 'baldnessGrade' | 'createdAt' | 'city' | 'surgeryDate' | 'consultant' | 'seller' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 // Helper to parse notes field with all data
@@ -144,8 +145,8 @@ export default function NeoTeamPatients() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
   
-  // Sort states
-  const [sortField, setSortField] = useState<SortField>('name');
+  // Sort states - default to sequenceId (creation order)
+  const [sortField, setSortField] = useState<SortField>('sequenceId');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   
   // Pagination states
@@ -184,15 +185,16 @@ export default function NeoTeamPatients() {
         const { data, error } = await supabase
           .from('clinic_patients')
           .select('*')
-          .order('full_name', { ascending: true })
+          .order('created_at', { ascending: true })
           .limit(1000);
 
         if (error) throw error;
 
-        const mappedPatients: Patient[] = (data || []).map(p => {
+        const mappedPatients: Patient[] = (data || []).map((p, index) => {
           const parsed = parseNotes(p.notes);
           return {
             id: p.id,
+            sequenceId: index + 1, // Sequential ID based on creation order
             name: p.full_name,
             email: p.email || '',
             phone: p.phone || '',
@@ -274,6 +276,9 @@ export default function NeoTeamPatients() {
     result.sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
+        case 'sequenceId':
+          comparison = a.sequenceId - b.sequenceId;
+          break;
         case 'name':
           comparison = a.name.localeCompare(b.name);
           break;
@@ -490,18 +495,36 @@ export default function NeoTeamPatients() {
         )}
 
         <CardContent className="p-0 overflow-x-auto">
-          <Table className="table-fixed min-w-[1800px]">
+          <Table className="table-fixed min-w-[2200px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[240px] cursor-pointer" onClick={() => handleSort('name')}>
+                <TableHead className="w-[70px] cursor-pointer text-center" onClick={() => handleSort('sequenceId')}>
+                  <div className="flex items-center justify-center gap-1">
+                    ID
+                    <SortIcon field="sequenceId" />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort('createdAt')}>
+                  <div className="flex items-center gap-2">
+                    Cadastro
+                    <SortIcon field="createdAt" />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[220px] cursor-pointer" onClick={() => handleSort('name')}>
                   <div className="flex items-center gap-2">
                     Paciente
                     <SortIcon field="name" />
                   </div>
                 </TableHead>
+                <TableHead className="w-[140px] cursor-pointer" onClick={() => handleSort('phone')}>
+                  <div className="flex items-center gap-2">
+                    Telefone
+                    <SortIcon field="phone" />
+                  </div>
+                </TableHead>
                 <TableHead className="w-[200px] cursor-pointer" onClick={() => handleSort('email')}>
                   <div className="flex items-center gap-2">
-                    Contato
+                    Email
                     <SortIcon field="email" />
                   </div>
                 </TableHead>
@@ -518,7 +541,7 @@ export default function NeoTeamPatients() {
                   </div>
                 </TableHead>
                 <TableHead className="w-[80px] cursor-pointer text-center" onClick={() => handleSort('baldnessGrade')}>
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-1">
                     Grau
                     <SortIcon field="baldnessGrade" />
                   </div>
@@ -559,56 +582,81 @@ export default function NeoTeamPatients() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center py-8">
+                  <TableCell colSpan={14} className="text-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ) : paginatedPatients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
                     Nenhum paciente encontrado
                   </TableCell>
                 </TableRow>
               ) : paginatedPatients.map((patient) => (
                 <TableRow key={patient.id} className="hover:bg-muted/50">
+                  {/* ID */}
+                  <TableCell className="text-center">
+                    <span className="font-mono text-sm text-muted-foreground">
+                      #{patient.sequenceId.toString().padStart(4, '0')}
+                    </span>
+                  </TableCell>
+                  
+                  {/* Cadastro (data criação) */}
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
+                    {patient.createdAt ? (
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(patient.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </TableCell>
+                  
+                  {/* Paciente (nome + cpf) */}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-primary/10 text-primary text-xs">
                           {patient.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
                         <p className="font-medium text-sm truncate">{patient.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{patient.cpf}</p>
+                        {patient.cpf && <p className="text-xs text-muted-foreground truncate">{patient.cpf}</p>}
                       </div>
                     </div>
                   </TableCell>
+                  
+                  {/* Telefone */}
                   <TableCell>
-                    <div className="space-y-1">
-                      {patient.email && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                          <Mail className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{patient.email}</span>
-                        </p>
-                      )}
-                      {patient.phone && (
-                        <div className="flex items-center gap-1">
-                          <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          <span className="text-sm">{patient.phone}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={() => openWhatsApp(patient.phone)}
-                            title="Abrir WhatsApp"
-                          >
-                            <MessageCircle className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
+                    {patient.phone ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">{patient.phone}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                          onClick={() => openWhatsApp(patient.phone)}
+                          title="Abrir WhatsApp"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
                   </TableCell>
+                  
+                  {/* Email */}
+                  <TableCell>
+                    {patient.email ? (
+                      <span className="text-sm truncate">{patient.email}</span>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </TableCell>
+                  
+                  {/* Filial */}
                   <TableCell>
                     {patient.branch ? (
                       <Badge className={`text-xs ${getBranchColor(patient.branch)}`}>
@@ -618,6 +666,8 @@ export default function NeoTeamPatients() {
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
+                  
+                  {/* Categoria */}
                   <TableCell>
                     {patient.category ? (
                       <Badge className={`text-xs ${getCategoryColor(patient.category)}`}>
@@ -627,6 +677,8 @@ export default function NeoTeamPatients() {
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
+                  
+                  {/* Grau */}
                   <TableCell className="text-center">
                     {patient.baldnessGrade ? (
                       <Badge className={`text-xs ${getGradeColor(patient.baldnessGrade)}`}>
@@ -636,15 +688,23 @@ export default function NeoTeamPatients() {
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
+                  
+                  {/* Cidade */}
                   <TableCell>
                     <span className="text-sm truncate">{patient.city || '—'}</span>
                   </TableCell>
+                  
+                  {/* Consultor */}
                   <TableCell>
                     <span className="text-sm truncate">{patient.consultant || '—'}</span>
                   </TableCell>
+                  
+                  {/* Vendedor */}
                   <TableCell>
                     <span className="text-sm truncate">{patient.seller || '—'}</span>
                   </TableCell>
+                  
+                  {/* Data Cirurgia */}
                   <TableCell>
                     {patient.surgeryDate ? (
                       <div className="flex items-center gap-1 text-xs">
@@ -655,11 +715,15 @@ export default function NeoTeamPatients() {
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
+                  
+                  {/* Status */}
                   <TableCell className="text-center">
-                    <Badge variant="default" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                    <Badge variant="outline" className="border-emerald-500/30 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
                       Ativo
                     </Badge>
                   </TableCell>
+                  
+                  {/* Ações */}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
