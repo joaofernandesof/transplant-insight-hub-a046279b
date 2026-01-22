@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import NotificationDialog from '@/components/NotificationDialog';
+import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import {
   Users,
   Activity,
@@ -306,11 +307,14 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <div className="p-4 pt-16 lg:pt-6 lg:p-6 max-w-7xl mx-auto overflow-x-hidden w-full space-y-6">
+        {/* Breadcrumb */}
+        <GlobalBreadcrumb />
+        
         {/* Header with Welcome */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
-              Olá, {user?.name?.split(' ')[0]}! 👋
+              Dashboard Administrativo
             </h1>
             <p className="text-sm text-muted-foreground">Acesso rápido a todos os módulos do sistema</p>
           </div>
