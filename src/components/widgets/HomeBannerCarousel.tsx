@@ -1,50 +1,56 @@
 import { useEffect, useCallback, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { ChevronRight, Sparkles, GraduationCap, Gift, ChevronLeft } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useEmblaCarousel from 'embla-carousel-react';
 import { cn } from '@/lib/utils';
 
 interface BannerSlide {
   id: string;
-  title: string;
-  highlight: string;
-  icon: React.ElementType;
-  bgClass: string;
+  title?: string;
+  subtitle?: string;
+  highlight?: string;
+  bgColor?: string;
+  bgImage?: string;
+  textPosition?: 'left' | 'center' | 'right';
   route: string;
 }
 
+// Banners configuráveis - adicione imagens de banner aqui
 const bannerSlides: BannerSlide[] = [
   {
     id: 'university',
-    title: 'Aprenda a escalar sua clínica com a',
+    title: 'Aprenda a escalar sua clínica',
+    subtitle: 'Conheça a',
     highlight: 'Universidade ByNeofolic',
-    icon: GraduationCap,
-    bgClass: 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a87]',
+    bgColor: 'bg-gradient-to-r from-[#1e3a5f] via-[#2d5a87] to-[#1e3a5f]',
+    textPosition: 'left',
     route: '/university'
   },
   {
     id: 'referral',
     title: 'Indique colegas e ganhe',
+    subtitle: 'Programa de indicação',
     highlight: '5% de comissão',
-    icon: Gift,
-    bgClass: 'bg-gradient-to-r from-orange-500 to-amber-500',
+    bgColor: 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600',
+    textPosition: 'left',
     route: '/indique-e-ganhe'
   },
   {
-    id: 'mentorship',
-    title: 'Participe da próxima',
-    highlight: 'Sala Técnica',
-    icon: Sparkles,
-    bgClass: 'bg-gradient-to-r from-violet-600 to-purple-600',
+    id: 'sala-tecnica',
+    title: 'Participe das mentorias',
+    subtitle: 'Toda quinta-feira às 19h',
+    highlight: 'Sala Técnica IBRAMEC',
+    bgColor: 'bg-gradient-to-r from-violet-600 via-purple-600 to-violet-700',
+    textPosition: 'left',
     route: '/sala-tecnica'
   },
   {
     id: 'hotleads',
-    title: 'Acompanhe seus leads quentes no',
+    title: 'Leads qualificados para você',
+    subtitle: 'Acompanhe em tempo real',
     highlight: 'HotLeads',
-    icon: Sparkles,
-    bgClass: 'bg-gradient-to-r from-rose-500 to-pink-600',
+    bgColor: 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600',
+    textPosition: 'left',
     route: '/hotleads'
   }
 ];
@@ -53,13 +59,11 @@ export function HomeBannerCarousel() {
   const navigate = useNavigate();
   const [selectedIndex, setSelectedIndex] = useState(0);
   
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { 
-      loop: true,
-      align: 'start',
-      skipSnaps: false
-    }
-  );
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true,
+    align: 'start',
+    skipSnaps: false
+  });
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -80,7 +84,7 @@ export function HomeBannerCarousel() {
 
     const autoplay = setInterval(() => {
       emblaApi.scrollNext();
-    }, 5000);
+    }, 6000);
 
     emblaApi.on('select', onSelect);
     onSelect();
@@ -94,30 +98,65 @@ export function HomeBannerCarousel() {
   return (
     <div className="relative mb-6 group">
       {/* Main Carousel */}
-      <div className="overflow-hidden rounded-xl" ref={emblaRef}>
+      <div className="overflow-hidden rounded-2xl shadow-lg" ref={emblaRef}>
         <div className="flex">
           {bannerSlides.map((slide) => (
             <div 
               key={slide.id} 
-              className="flex-[0_0_100%] min-w-0 pl-0"
+              className="flex-[0_0_100%] min-w-0"
             >
-              <Card
-                className={`${slide.bgClass} text-white border-0 cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-xl`}
+              <div
+                className={cn(
+                  "relative h-40 sm:h-48 md:h-56 lg:h-64 cursor-pointer overflow-hidden transition-all duration-500",
+                  slide.bgColor,
+                  !slide.bgImage && "text-white"
+                )}
+                style={slide.bgImage ? { 
+                  backgroundImage: `url(${slide.bgImage})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                } : undefined}
                 onClick={() => navigate(slide.route)}
               >
-                <div className="p-5 flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm shrink-0">
-                    <slide.icon className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm opacity-90 leading-tight mb-0.5">
+                {/* Overlay para imagens de fundo */}
+                {slide.bgImage && (
+                  <div className="absolute inset-0 bg-black/30" />
+                )}
+                
+                {/* Conteúdo do Banner */}
+                <div className={cn(
+                  "relative h-full flex flex-col justify-center px-6 sm:px-10 md:px-16",
+                  slide.textPosition === 'center' && "items-center text-center",
+                  slide.textPosition === 'right' && "items-end text-right"
+                )}>
+                  {slide.subtitle && (
+                    <p className="text-sm sm:text-base opacity-90 mb-1">
+                      {slide.subtitle}
+                    </p>
+                  )}
+                  {slide.highlight && (
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
+                      {slide.highlight}
+                    </h2>
+                  )}
+                  {slide.title && (
+                    <p className="text-base sm:text-lg opacity-90 max-w-xl">
                       {slide.title}
                     </p>
-                    <p className="font-bold text-lg">{slide.highlight}</p>
+                  )}
+                  
+                  {/* CTA Arrow */}
+                  <div className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2">
+                    <div className="p-2 sm:p-3 rounded-full bg-white/20 backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+                      <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                    </div>
                   </div>
-                  <ChevronRight className="h-6 w-6 opacity-60 group-hover:opacity-100 transition-opacity shrink-0" />
                 </div>
-              </Card>
+
+                {/* Decorative elements */}
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+                <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-white/5 blur-xl" />
+              </div>
             </div>
           ))}
         </div>
@@ -126,30 +165,30 @@ export function HomeBannerCarousel() {
       {/* Navigation Arrows */}
       <button
         onClick={scrollPrev}
-        className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:scale-110"
         aria-label="Anterior"
       >
-        <ChevronLeft className="h-4 w-4 text-foreground" />
+        <ChevronLeft className="h-5 w-5 text-foreground" />
       </button>
       <button
         onClick={scrollNext}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:scale-110"
         aria-label="Próximo"
       >
-        <ChevronRight className="h-4 w-4 text-foreground" />
+        <ChevronRight className="h-5 w-5 text-foreground" />
       </button>
 
       {/* Dots Indicator */}
-      <div className="flex justify-center gap-1.5 mt-3">
+      <div className="flex justify-center gap-2 mt-4">
         {bannerSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => emblaApi?.scrollTo(index)}
             className={cn(
-              "h-1.5 rounded-full transition-all duration-300",
+              "h-2 rounded-full transition-all duration-300",
               selectedIndex === index 
-                ? "w-6 bg-primary" 
-                : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                ? "w-8 bg-primary" 
+                : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
             )}
             aria-label={`Ir para slide ${index + 1}`}
           />
