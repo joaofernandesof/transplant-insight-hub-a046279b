@@ -2328,6 +2328,51 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_followup_tasks: {
+        Row: {
+          created_at: string | null
+          id: string
+          neoteam_task_id: string | null
+          patient_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          task_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          neoteam_task_id?: string | null
+          patient_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          task_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          neoteam_task_id?: string | null
+          patient_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_followup_tasks_neoteam_task_id_fkey"
+            columns: ["neoteam_task_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_followup_tasks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_notification_preferences: {
         Row: {
           created_at: string
@@ -2408,6 +2453,91 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      patient_orientation_notifications: {
+        Row: {
+          channel: string
+          id: string
+          notification_type: string
+          patient_id: string
+          sent_at: string | null
+          status: string | null
+          task_id: string
+        }
+        Insert: {
+          channel?: string
+          id?: string
+          notification_type: string
+          patient_id: string
+          sent_at?: string | null
+          status?: string | null
+          task_id: string
+        }
+        Update: {
+          channel?: string
+          id?: string
+          notification_type?: string
+          patient_id?: string
+          sent_at?: string | null
+          status?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_orientation_notifications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_orientation_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          is_overdue: boolean | null
+          overdue_at: string | null
+          patient_id: string
+          task_day: number
+          task_id: string
+          task_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_overdue?: boolean | null
+          overdue_at?: string | null
+          patient_id: string
+          task_day: number
+          task_id: string
+          task_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_overdue?: boolean | null
+          overdue_at?: string | null
+          patient_id?: string
+          task_day?: number
+          task_id?: string
+          task_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_orientation_progress_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permission_definitions: {
         Row: {

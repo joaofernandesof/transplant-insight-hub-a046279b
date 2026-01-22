@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { usePatientSurgeryDate } from '@/neohub/hooks/usePatientSurgeryDate';
+import { usePatientOrientationProgress } from '@/neohub/hooks/usePatientOrientationProgress';
 
 // Pre-transplant checklist
 const preTransplantChecklist = [
@@ -208,6 +209,15 @@ export default function NeoCareOrientations() {
   // Fetch real surgery date from database
   const { surgeryDate: dbSurgeryDate, isLoading: surgeryLoading } = usePatientSurgeryDate();
   
+  // Fetch orientation progress from database
+  const { 
+    isTaskCompleted, 
+    getCompletedAt, 
+    toggleTask, 
+    isToggling,
+    isLoading: progressLoading 
+  } = usePatientOrientationProgress();
+  
   // Use database date if available, otherwise fallback
   const surgeryDate = dbSurgeryDate || addDays(new Date(), -5);
   
@@ -218,70 +228,38 @@ export default function NeoCareOrientations() {
   
   const [selectedDay, setSelectedDay] = useState(currentDay > 0 ? currentDay : (currentDay < 0 ? -3 : 0));
   
-  const [preChecked, setPreChecked] = useState<Record<string, boolean>>(() => {
-    const saved = localStorage.getItem('neocare_pre_checklist');
-    return saved ? JSON.parse(saved) : {};
-  });
-  
-  const [postChecked, setPostChecked] = useState<Record<string, { done: boolean; doneAt?: string }>>(() => {
-    const saved = localStorage.getItem('neocare_post_checklist_v2');
-    return saved ? JSON.parse(saved) : {};
-  });
-
-  useEffect(() => {
-    localStorage.setItem('neocare_pre_checklist', JSON.stringify(preChecked));
-  }, [preChecked]);
-
-  useEffect(() => {
-    localStorage.setItem('neocare_post_checklist_v2', JSON.stringify(postChecked));
-  }, [postChecked]);
-
-  const togglePre = (id: string) => {
-    const newState = !preChecked[id];
-    setPreChecked(prev => ({ ...prev, [id]: newState }));
-    if (newState) toast.success('Item concluído! 🎉');
+  // Helper functions that use the database
+  const togglePre = (id: string, daysBeforeD0: number) => {
+    toggleTask({ taskId: id, taskType: 'pre', taskDay: -daysBeforeD0 });
   };
 
   const togglePost = (id: string, taskDay: number) => {
-    const isChecked = postChecked[id]?.done;
-    const newState = !isChecked;
-    
-    setPostChecked(prev => ({
-      ...prev,
-      [id]: {
-        done: newState,
-        doneAt: newState ? new Date().toISOString() : undefined
-      }
-    }));
-    
-    if (newState) toast.success('Ótimo trabalho! 💪');
+    toggleTask({ taskId: id, taskType: 'post', taskDay });
   };
 
   // Check if task is overdue (not completed and past its day)
   const isTaskOverdue = (taskId: string, taskDay: number) => {
-    const taskData = postChecked[taskId];
-    if (taskData?.done) return false;
+    if (isTaskCompleted(taskId)) return false;
     return currentDay > taskDay;
   };
 
   // Check if task is for today and not done
   const isTaskDueToday = (taskId: string, taskDay: number) => {
-    const taskData = postChecked[taskId];
-    if (taskData?.done) return false;
+    if (isTaskCompleted(taskId)) return false;
     return currentDay === taskDay;
   };
 
   // Progress calculations
-  const preProgress = Math.round(
-    (Object.values(preChecked).filter(Boolean).length / preTransplantChecklist.length) * 100
-  );
+  const completedPreCount = preTransplantChecklist.filter(t => isTaskCompleted(t.id)).length;
+  const preProgress = Math.round((completedPreCount / preTransplantChecklist.length) * 100);
   
   const relevantPostTasks = postTransplantChecklist
     .filter(day => day.day <= Math.max(currentDay, 1))
     .flatMap(day => day.tasks);
   
+  const completedPostCount = relevantPostTasks.filter(t => isTaskCompleted(t.id)).length;
   const postProgress = relevantPostTasks.length > 0 
-    ? Math.round((Object.values(postChecked).filter(t => t?.done).length / relevantPostTasks.length) * 100)
+    ? Math.round((completedPostCount / relevantPostTasks.length) * 100)
     : 0;
 
   const isPrePhase = selectedDay < 0;
@@ -297,7 +275,7 @@ export default function NeoCareOrientations() {
   const overdueTasks = postTransplantChecklist
     .filter(day => day.day < currentDay)
     .flatMap(day => day.tasks)
-    .filter(task => !postChecked[task.id]?.done);
+    .filter(task => !isTaskCompleted(task.id));
 
   // Handle calendar sync
   const handleCalendarSync = () => {
@@ -445,9 +423,9 @@ export default function NeoCareOrientations() {
               // Check completion for post days
               const postDayData = postTransplantChecklist.find(d => d.day === item.day);
               const isComplete = postDayData 
-                ? postDayData.tasks.every(t => postChecked[t.id]?.done)
+                ? postDayData.tasks.every(t => isTaskCompleted(t.id))
                 : item.day < 0 
-                  ? preTransplantChecklist.filter(t => t.daysBeforeD0 >= Math.abs(item.day)).every(t => preChecked[t.id])
+                  ? preTransplantChecklist.filter(t => t.daysBeforeD0 >= Math.abs(item.day)).every(t => isTaskCompleted(t.id))
                   : false;
               
               return (
@@ -504,14 +482,14 @@ export default function NeoCareOrientations() {
             <Calendar className="h-4 w-4 text-amber-500" />
             <h2 className="font-semibold text-sm">Checklist Pré-Transplante</h2>
             <Badge variant="secondary" className="ml-auto text-xs">
-              {Object.values(preChecked).filter(Boolean).length}/{preTransplantChecklist.length}
+              {completedPreCount}/{preTransplantChecklist.length}
             </Badge>
           </div>
 
           <div className="space-y-1">
             {preTransplantChecklist.map((item) => {
               const Icon = item.icon;
-              const isChecked = preChecked[item.id];
+              const isChecked = isTaskCompleted(item.id);
               const taskDate = addDays(surgeryDate, -item.daysBeforeD0);
               const isOverdue = !isChecked && isBefore(taskDate, today) && currentDay < 0;
               const isCalendarTask = item.isCalendarSync;
@@ -522,7 +500,7 @@ export default function NeoCareOrientations() {
                     key={item.id}
                     onClick={() => {
                       handleCalendarSync();
-                      togglePre(item.id);
+                      togglePre(item.id, item.daysBeforeD0);
                     }}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
@@ -535,7 +513,7 @@ export default function NeoCareOrientations() {
                       checked={isChecked}
                       onCheckedChange={() => {
                         handleCalendarSync();
-                        togglePre(item.id);
+                        togglePre(item.id, item.daysBeforeD0);
                       }}
                       className={cn(
                         "h-5 w-5 shrink-0 border-2",
@@ -565,7 +543,7 @@ export default function NeoCareOrientations() {
               return (
                 <div
                   key={item.id}
-                  onClick={() => togglePre(item.id)}
+                  onClick={() => togglePre(item.id, item.daysBeforeD0)}
                   className={cn(
                     "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
                     isChecked 
@@ -577,7 +555,7 @@ export default function NeoCareOrientations() {
                 >
                     <Checkbox
                       checked={isChecked}
-                      onCheckedChange={() => togglePre(item.id)}
+                      onCheckedChange={() => togglePre(item.id, item.daysBeforeD0)}
                       className={cn(
                         "h-5 w-5 shrink-0 border-2",
                         isChecked 
@@ -652,8 +630,8 @@ export default function NeoCareOrientations() {
             <div className="space-y-1">
               {selectedDayData.tasks.map((task) => {
                 const Icon = task.icon;
-                const taskState = postChecked[task.id];
-                const isChecked = taskState?.done;
+                const isChecked = isTaskCompleted(task.id);
+                const completedAt = getCompletedAt(task.id);
                 const isOverdue = isTaskOverdue(task.id, selectedDayData.day);
                 const taskDate = addDays(surgeryDate, selectedDayData.day);
                 
