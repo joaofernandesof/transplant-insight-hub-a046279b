@@ -41,7 +41,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import UserNotificationsPopover from "@/components/UserNotificationsPopover";
 import OnboardingTour from "@/components/OnboardingTour";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import FirstStepsChecklist from "@/components/FirstStepsChecklist";
+import FirstStepsDialog from "@/components/FirstStepsDialog";
 import AchievementsPanel from "@/components/AchievementsPanel";
 import { ModuleSidebar } from "@/components/ModuleSidebar";
 import MonthlyGoals from "@/components/MonthlyGoals";
@@ -340,6 +340,9 @@ export default function LicenseeHome() {
     <>
       {/* Onboarding Tour */}
       <OnboardingTour isOpen={showOnboarding} onComplete={completeOnboarding} />
+      
+      {/* First Steps Dialog - appears after login until completed */}
+      <FirstStepsDialog />
 
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 overflow-x-hidden w-full">
       {/* Header */}
@@ -418,17 +421,10 @@ export default function LicenseeHome() {
         {/* Thursday Sala Técnica Notification */}
         <SalaTecnicaNotification className="mb-6" />
 
-        {/* First Steps + Monthly Goals & Surgeries (row 1) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
-          {/* First Steps - spans 7 cols on large screens */}
-          <div className="lg:col-span-7">
-            <FirstStepsChecklist />
-          </div>
-          {/* Monthly Goals + Surgery side by side on right - spans 5 cols */}
-          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-            <MonthlyGoals />
-            <SurgerySubmissions />
-          </div>
+        {/* Monthly Goals & Surgeries (row 1) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <MonthlyGoals />
+          <SurgerySubmissions />
         </div>
 
         {/* Achievements + Leaderboard (row 2) */}
