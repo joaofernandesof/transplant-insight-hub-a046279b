@@ -138,6 +138,7 @@ export interface UnifiedUser {
   // Legado
   legacyRole?: 'admin' | 'licensee';
   clinicName?: string;
+  clinicLogoUrl?: string;
   city?: string;
   state?: string;
   tier?: string;
@@ -328,6 +329,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           isAdmin,
           legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
           clinicName: neoHubData.clinic_name,
+          clinicLogoUrl: neoHubData.clinic_logo_url,
         };
       }
 
@@ -359,6 +361,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           isAdmin,
           legacyRole,
           clinicName: legacyProfile.clinic_name,
+          clinicLogoUrl: legacyProfile.clinic_logo_url,
           city: legacyProfile.city,
           state: legacyProfile.state,
           tier: legacyProfile.tier,
