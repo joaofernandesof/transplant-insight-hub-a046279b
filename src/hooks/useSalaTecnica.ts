@@ -1,11 +1,36 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 
-// Helper to check if user is licensee (not admin)
+// Helper to check if user should see licensee content
+// Returns true for licensees OR admins simulating licensee view
 export function useIsLicensee() {
   const { isAdmin } = useAuth();
+  const { activeProfile } = useUnifiedAuth();
+  
+  // Admin simulating licensee view should see licensee content
+  if (isAdmin && activeProfile === 'licenciado') {
+    return true;
+  }
+  
+  // Admins can always access licensee content for management purposes
+  // (they just won't see the widget on their own dashboard)
+  return !isAdmin;
+}
+
+// Hook to check if current user can access sala tecnica content
+export function useCanAccessSalaTecnica() {
+  const { isAdmin } = useAuth();
+  const { activeProfile } = useUnifiedAuth();
+  
+  // Admins always have access
+  if (isAdmin) return true;
+  
+  // Licensees have access
+  if (activeProfile === 'licenciado') return true;
+  
   return !isAdmin;
 }
 

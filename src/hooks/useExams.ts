@@ -63,16 +63,49 @@ export function useExamQuestions(examId: string) {
   return useQuery({
     queryKey: ['exam-questions', examId],
     queryFn: async () => {
+      // Fetch exam settings first
+      const { data: exam } = await supabase
+        .from('exams')
+        .select('shuffle_questions, shuffle_options')
+        .eq('id', examId)
+        .single();
+      
       const { data, error } = await supabase
         .from('exam_questions')
         .select('*')
         .eq('exam_id', examId)
         .order('order_index');
       if (error) throw error;
-      return data.map(q => ({ ...q, options: q.options as string[] })) as ExamQuestion[];
+      
+      let questions = data.map(q => ({ ...q, options: q.options as string[] })) as ExamQuestion[];
+      
+      // Randomize questions if enabled
+      if (exam?.shuffle_questions) {
+        questions = shuffleArray(questions);
+      }
+      
+      // Randomize options within each question if enabled
+      if (exam?.shuffle_options) {
+        questions = questions.map(q => ({
+          ...q,
+          options: shuffleArray([...q.options])
+        }));
+      }
+      
+      return questions;
     },
     enabled: !!examId,
   });
+}
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 
 export function useExamAttempts(examId?: string) {

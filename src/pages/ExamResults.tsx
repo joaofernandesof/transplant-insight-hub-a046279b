@@ -274,11 +274,40 @@ export default function ExamResults() {
                     ))}
                   </div>
                   
-                  {!answer.is_correct && answer.question.explanation && (
-                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <p className="text-sm text-blue-800 dark:text-blue-200">
-                        <strong>Explicação:</strong> {answer.question.explanation}
-                      </p>
+                  {/* Show explanation for ALL questions, not just wrong ones */}
+                  {answer.question.explanation && (
+                    <div className={cn(
+                      "mt-4 p-4 rounded-lg border",
+                      answer.is_correct 
+                        ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800"
+                        : "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
+                    )}>
+                      <div className="flex items-start gap-2">
+                        <div className={cn(
+                          "p-1 rounded-full shrink-0",
+                          answer.is_correct ? "bg-emerald-200 dark:bg-emerald-800" : "bg-amber-200 dark:bg-amber-800"
+                        )}>
+                          {answer.is_correct ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className={cn(
+                            "text-xs font-semibold mb-1",
+                            answer.is_correct ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"
+                          )}>
+                            {answer.is_correct ? "✓ Você acertou!" : "✗ Resposta incorreta"}
+                          </p>
+                          <p className={cn(
+                            "text-sm leading-relaxed",
+                            answer.is_correct ? "text-emerald-800 dark:text-emerald-200" : "text-amber-800 dark:text-amber-200"
+                          )}>
+                            <strong>Explicação:</strong> {answer.question.explanation}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>
