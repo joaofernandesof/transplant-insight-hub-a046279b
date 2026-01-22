@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 interface MedicalRecord {
   id: string;
@@ -99,6 +100,7 @@ export default function NeoTeamMedicalRecords() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      <NeoTeamBreadcrumb />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

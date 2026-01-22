@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNeoTeamBranches, Branch, NewBranch } from '@/neohub/hooks/useNeoTeamBranches';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 export default function NeoTeamSettings() {
   const { user } = useUnifiedAuth();
@@ -98,6 +99,7 @@ export default function NeoTeamSettings() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-4xl">
+      <NeoTeamBreadcrumb />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">

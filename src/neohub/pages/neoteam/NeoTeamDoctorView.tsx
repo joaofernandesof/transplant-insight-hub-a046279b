@@ -16,6 +16,7 @@ import { format, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNeoTeamWaitingRoom, WaitingPatient } from '@/neohub/hooks/useNeoTeamWaitingRoom';
 import { useNeoTeamBranches } from '@/neohub/hooks/useNeoTeamBranches';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 const rooms = ['Sala 1', 'Sala 2', 'Sala 3', 'Consultório 1', 'Consultório 2'];
 
@@ -63,7 +64,8 @@ export default function NeoTeamDoctorView() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 p-6 space-y-6">
+      <NeoTeamBreadcrumb />
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-emerald-500 text-white px-6 py-4">
         <div className="flex items-center justify-between">

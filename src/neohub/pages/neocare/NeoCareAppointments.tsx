@@ -24,6 +24,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 interface Appointment {
   id: string;
@@ -344,6 +345,8 @@ export default function NeoCareAppointments() {
 
   return (
     <div className="p-4 lg:p-8 space-y-6">
+      <NeoTeamBreadcrumb />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

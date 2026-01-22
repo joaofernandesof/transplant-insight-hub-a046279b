@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 import { useDoctors, useAvailableSlots } from '@/neohub/hooks/useDoctors';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 interface AppointmentType {
   id: string;
@@ -153,6 +154,7 @@ export default function NeoCareNewAppointment() {
 
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto">
+      <NeoTeamBreadcrumb />
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="icon" onClick={() => navigate('/neocare')}>

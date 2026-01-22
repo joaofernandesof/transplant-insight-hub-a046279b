@@ -12,6 +12,7 @@ import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 export default function NeoCareSettings() {
   const navigate = useNavigate();
@@ -128,6 +129,7 @@ export default function NeoCareSettings() {
 
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto space-y-6">
+      <NeoTeamBreadcrumb />
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate('/neocare')}>

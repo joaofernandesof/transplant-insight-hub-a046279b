@@ -78,6 +78,7 @@ export default function NeoTeamTasks() {
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('priority');
   const [newTask, setNewTask] = useState<NewTask>({
     title: '',
@@ -106,6 +107,11 @@ export default function NeoTeamTasks() {
     if (priorityFilter !== 'all') {
       result = result.filter(t => t.priority === priorityFilter);
     }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(t => t.status === statusFilter);
+    }
     
     // Sort
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
@@ -128,7 +134,7 @@ export default function NeoTeamTasks() {
     });
     
     return result;
-  }, [tasks, searchTerm, priorityFilter, sortBy]);
+  }, [tasks, searchTerm, priorityFilter, statusFilter, sortBy]);
 
   const getTasksByStatus = (status: TaskStatus) => filteredTasks.filter(t => t.status === status);
 
@@ -416,18 +422,38 @@ export default function NeoTeamTasks() {
 
       {/* Filters & Stats Bar - ClickUp style */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 bg-muted/30 rounded-lg border">
-        {/* Stats */}
+        {/* Stats - Clickable as filters */}
         <div className="flex items-center gap-4 overflow-x-auto">
           {statusColumns.map((status) => {
-            const count = getTasksByStatus(status).length;
+            const count = tasks.filter(t => t.status === status).length;
             const config = statusConfig[status];
+            const isActive = statusFilter === status;
             return (
-              <div key={status} className="flex items-center gap-2 shrink-0">
+              <button 
+                key={status} 
+                onClick={() => setStatusFilter(isActive ? 'all' : status)}
+                className={`flex items-center gap-2 shrink-0 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  isActive 
+                    ? `${config.headerBg} ring-2 ring-offset-2 ring-offset-background ring-current ${config.color}` 
+                    : 'hover:bg-muted/50'
+                }`}
+              >
                 <span className={`text-xl font-bold ${config.color}`}>{count}</span>
-                <span className="text-sm text-muted-foreground">{config.label}</span>
-              </div>
+                <span className={`text-sm ${isActive ? config.color : 'text-muted-foreground'}`}>{config.label}</span>
+              </button>
             );
           })}
+          {statusFilter !== 'all' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setStatusFilter('all')}
+              className="text-xs"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Limpar
+            </Button>
+          )}
         </div>
 
         {/* Filters */}

@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { useStaffRoles, DEPARTMENT_COLORS } from '@/neohub/hooks/useStaffRoles';
 import { cn } from '@/lib/utils';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 // Icon mapping
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -86,6 +87,7 @@ export default function NeoTeamStaffRoles() {
 
   return (
     <div className="space-y-6 p-6">
+      <NeoTeamBreadcrumb />
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>

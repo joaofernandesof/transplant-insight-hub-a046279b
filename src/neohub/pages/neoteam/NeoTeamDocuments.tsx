@@ -46,6 +46,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNeoTeamDocuments, DocumentCategory, PatientDocument } from '@/neohub/hooks/useNeoTeamDocuments';
 import { Textarea } from '@/components/ui/textarea';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 const categoryConfig: Record<DocumentCategory, { label: string; icon: React.ElementType; color: string }> = {
   exames: { label: 'Exames', icon: FileText, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
@@ -136,6 +137,7 @@ export default function NeoTeamDocuments() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      <NeoTeamBreadcrumb />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

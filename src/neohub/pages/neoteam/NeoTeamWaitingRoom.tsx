@@ -20,10 +20,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  Clock, RefreshCw, Trash2, Settings, Plus, Loader2, Volume2, VolumeX, 
-  Stethoscope, Users, Timer, AlertCircle, UserPlus, BarChart3
+  Clock, RefreshCw, Trash2, Settings, Loader2, Volume2, VolumeX, 
+  Stethoscope, Users, Timer, AlertCircle, UserPlus, BarChart3, Plus
 } from 'lucide-react';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { PatientAutocomplete } from '@/neohub/components/PatientAutocomplete';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -395,10 +396,11 @@ export default function NeoTeamWaitingRoom() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Nome do Paciente</Label>
-              <Input
-                placeholder="Nome completo"
+              <PatientAutocomplete
                 value={newPatient.patient_name}
-                onChange={(e) => setNewPatient({ ...newPatient, patient_name: e.target.value })}
+                onChange={(value) => setNewPatient({ ...newPatient, patient_name: value })}
+                onSelectPatient={(patient) => setNewPatient({ ...newPatient, patient_name: patient.full_name })}
+                placeholder="Buscar paciente..."
               />
             </div>
             <div className="space-y-2">
