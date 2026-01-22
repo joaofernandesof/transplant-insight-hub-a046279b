@@ -258,9 +258,9 @@ export default function NeoCareOrientations() {
         <Progress value={totalProgress} className="h-2 bg-white/20" />
         
         {overdueTasks.length > 0 && (
-          <div className="mt-3 flex items-center gap-2 bg-red-500/30 rounded-lg p-2 text-sm">
-            <AlertTriangle className="h-4 w-4" />
-            <span>{overdueTasks.length} tarefa(s) pendente(s) de dias anteriores!</span>
+          <div className="mt-3 flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 text-sm border border-white/30">
+            <AlertTriangle className="h-4 w-4 text-white" />
+            <span className="text-white/90">{overdueTasks.length} tarefa(s) pendente(s) de dias anteriores!</span>
           </div>
         )}
       </div>
@@ -283,7 +283,7 @@ export default function NeoCareOrientations() {
         {/* Single Unified Timeline */}
         <div className="relative">
           {/* Timeline Track Line */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-300 via-emerald-400 to-blue-400 -translate-y-1/2 z-0" />
+          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2 z-0" />
           
           <div className="flex items-center overflow-x-auto pb-2 pt-1 gap-1 relative z-10">
             {/* Pre-transplant days */}
@@ -294,70 +294,51 @@ export default function NeoCareOrientations() {
               { day: -3, label: 'D-3' },
               { day: -1, label: 'D-1' },
             ].map((item) => {
-              const isSelected = selectedDay === item.day || (selectedDay < 0 && selectedDay === -3 && item.day === -3);
+              const isSelected = selectedDay === item.day;
               const isPast = currentDay > item.day;
               const isToday = currentDay === item.day;
-              const preTasksForDay = preTransplantChecklist.filter(t => -t.daysBeforeD0 <= item.day);
-              const completedPre = preTasksForDay.filter(t => preChecked[t.id]).length;
               
               return (
                 <button
                   key={item.day}
                   onClick={() => setSelectedDay(item.day)}
                   className={cn(
-                    "flex flex-col items-center px-2 py-1.5 rounded-lg min-w-[48px] transition-all border bg-background",
-                    isSelected && "ring-2 ring-amber-400 border-amber-400 bg-amber-50 dark:bg-amber-950/30",
-                    !isSelected && isToday && "border-amber-300 bg-amber-50/50",
-                    !isSelected && !isToday && "border-border hover:border-amber-200",
-                    isPast && !isSelected && "opacity-60"
+                    "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-all border bg-card",
+                    isToday && "ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30",
+                    isSelected && !isToday && "border-foreground/30 bg-muted",
+                    !isSelected && !isToday && "border-border hover:bg-muted/50",
+                    isPast && !isToday && !isSelected && "opacity-50"
                   )}
                 >
                   <span className={cn(
-                    "text-[10px] font-bold",
-                    isSelected ? "text-amber-600" : "text-muted-foreground"
+                    "text-xs font-semibold",
+                    isToday ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
                   )}>
                     {item.label}
                   </span>
                   {isToday && (
-                    <span className="text-[8px] text-amber-500 font-medium">Hoje</span>
+                    <span className="text-[8px] text-emerald-500 font-medium">Hoje</span>
                   )}
                 </button>
               );
             })}
 
-            {/* D0 - Surgery Day */}
+            {/* D0 - Surgery Day - Always highlighted */}
             <button
               onClick={() => setSelectedDay(0)}
               className={cn(
-                "flex flex-col items-center px-3 py-2 rounded-xl min-w-[56px] transition-all border-2 mx-1",
-                selectedDay === 0 
-                  ? "bg-emerald-500 text-white border-emerald-600 ring-2 ring-emerald-300 shadow-lg" 
-                  : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-400 hover:bg-emerald-100",
-                currentDay === 0 && selectedDay !== 0 && "ring-2 ring-emerald-200"
+                "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-all border-2 mx-1",
+                "bg-emerald-500 text-white border-emerald-600 shadow-md",
+                currentDay === 0 && "ring-2 ring-emerald-300"
               )}
             >
-              <Sparkles className={cn(
-                "h-4 w-4 mb-0.5",
-                selectedDay === 0 ? "text-white" : "text-emerald-500"
-              )} />
-              <span className={cn(
-                "text-xs font-bold",
-                selectedDay === 0 ? "text-white" : "text-emerald-600"
-              )}>
-                D0
-              </span>
-              <span className={cn(
-                "text-[8px]",
-                selectedDay === 0 ? "text-emerald-100" : "text-emerald-500"
-              )}>
-                Cirurgia
-              </span>
+              <span className="text-xs font-bold text-white">D0</span>
+              <span className="text-[8px] text-emerald-100">Cirurgia</span>
             </button>
 
             {/* Post-transplant days */}
             {postTransplantChecklist.map((day) => {
               const completedCount = day.tasks.filter(t => postChecked[t.id]?.done).length;
-              const hasOverdue = day.tasks.some(t => isTaskOverdue(t.id, day.day));
               const isCurrent = day.day === currentDay;
               const isSelected = day.day === selectedDay;
               const isFuture = day.day > currentDay;
@@ -368,42 +349,29 @@ export default function NeoCareOrientations() {
                   key={day.day}
                   onClick={() => setSelectedDay(day.day)}
                   className={cn(
-                    "flex flex-col items-center px-2 py-1.5 rounded-lg min-w-[48px] transition-all border relative bg-background",
-                    isSelected && "ring-2 ring-blue-400 border-blue-400 bg-blue-50 dark:bg-blue-950/30",
-                    !isSelected && isCurrent && "border-blue-300 bg-blue-50/50 ring-1 ring-blue-200",
-                    !isSelected && !isCurrent && !isFuture && "border-border",
-                    isFuture && !isSelected && "opacity-40 border-border",
-                    hasOverdue && !isSelected && "border-red-400 bg-red-50 dark:bg-red-950/20",
-                    isComplete && !isSelected && "border-emerald-300 bg-emerald-50/50"
+                    "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-all border bg-card relative",
+                    isCurrent && "ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30",
+                    isSelected && !isCurrent && "border-foreground/30 bg-muted",
+                    !isSelected && !isCurrent && "border-border hover:bg-muted/50",
+                    isFuture && !isCurrent && "opacity-50"
                   )}
                 >
-                  {hasOverdue && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                      <XCircle className="h-2 w-2 text-white" />
-                    </div>
-                  )}
-                  {isComplete && !hasOverdue && (
+                  {isComplete && (
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center">
                       <Check className="h-2 w-2 text-white" />
                     </div>
                   )}
                   <span className={cn(
-                    "text-[10px] font-bold",
-                    isSelected && "text-blue-600",
-                    isCurrent && !isSelected && "text-blue-500",
-                    hasOverdue && !isSelected && "text-red-600",
-                    isComplete && !hasOverdue && !isSelected && "text-emerald-600"
+                    "text-xs font-semibold",
+                    isCurrent ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
                   )}>
                     D{day.day}
                   </span>
-                  <span className={cn(
-                    "text-[8px]",
-                    hasOverdue ? "text-red-500" : isComplete ? "text-emerald-500" : "text-muted-foreground"
-                  )}>
+                  <span className="text-[8px] text-muted-foreground">
                     {completedCount}/{day.tasks.length}
                   </span>
                   {isCurrent && (
-                    <span className="text-[8px] text-blue-500 font-medium">Hoje</span>
+                    <span className="text-[8px] text-emerald-500 font-medium">Hoje</span>
                   )}
                 </button>
               );
