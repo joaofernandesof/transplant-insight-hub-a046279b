@@ -31,12 +31,13 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
   administrador: <Shield className="h-4 w-4" />,
   licenciado: <Building2 className="h-4 w-4" />,
   colaborador: <Users className="h-4 w-4" />,
+  medico: <Users className="h-4 w-4" />,
   aluno: <GraduationCap className="h-4 w-4" />,
   paciente: <Heart className="h-4 w-4" />,
   cliente_avivar: <TrendingUp className="h-4 w-4" />,
 };
 
-const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'aluno', 'paciente', 'cliente_avivar'];
+const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar'];
 const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'];
 
 export function AccessCompareProfiles({

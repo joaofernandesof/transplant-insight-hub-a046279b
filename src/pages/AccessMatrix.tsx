@@ -40,6 +40,7 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
   administrador: <Shield className="h-4 w-4" />,
   licenciado: <Building2 className="h-4 w-4" />,
   colaborador: <Users className="h-4 w-4" />,
+  medico: <Users className="h-4 w-4" />,
   aluno: <GraduationCap className="h-4 w-4" />,
   paciente: <Heart className="h-4 w-4" />,
   cliente_avivar: <TrendingUp className="h-4 w-4" />,

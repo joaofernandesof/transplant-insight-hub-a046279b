@@ -6,6 +6,7 @@ export type NeoHubProfile =
   | 'administrador'
   | 'licenciado'
   | 'colaborador'
+  | 'medico'
   | 'aluno'
   | 'paciente'
   | 'cliente_avivar';
@@ -17,6 +18,7 @@ export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
   administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'],
   licenciado: ['neolicense'],
   colaborador: ['neoteam'],
+  medico: ['neoteam'],
   aluno: ['academy'],
   paciente: ['neocare'],
   cliente_avivar: ['avivar'],
@@ -27,6 +29,7 @@ export const PROFILE_ROUTES: Record<NeoHubProfile, string> = {
   administrador: '/neolicense', // Admin vai para o painel principal por padrão
   licenciado: '/neolicense',
   colaborador: '/neoteam',
+  medico: '/neoteam/doctor-view',
   aluno: '/academy',
   paciente: '/neocare',
   cliente_avivar: '/avivar',
@@ -37,6 +40,7 @@ export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
   administrador: 'Administrador',
   licenciado: 'Licença ByNeoFolic',
   colaborador: 'NeoTeam',
+  medico: 'Médico',
   aluno: 'IBRAMEC',
   paciente: 'NeoCare',
   cliente_avivar: 'Avivar',
@@ -56,6 +60,7 @@ export const PROFILE_ICONS: Record<NeoHubProfile, string> = {
   administrador: 'Shield',
   licenciado: 'Building2',
   colaborador: 'Users',
+  medico: 'Stethoscope',
   aluno: 'GraduationCap',
   paciente: 'Heart',
   cliente_avivar: 'TrendingUp',
@@ -66,6 +71,7 @@ export const PROFILE_COLORS: Record<NeoHubProfile, string> = {
   administrador: 'text-red-500',
   licenciado: 'text-amber-500', // Dourado para Licença ByNeoFolic
   colaborador: 'text-blue-500',
+  medico: 'text-cyan-500',
   aluno: 'text-emerald-500', // Verde para IBRAMEC
   paciente: 'text-pink-500',
   cliente_avivar: 'text-orange-500',
