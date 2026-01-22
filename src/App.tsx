@@ -68,6 +68,7 @@ import ExamTaking from "./pages/ExamTaking";
 import ExamResults from "./pages/ExamResults";
 import ExamsAdmin from "./pages/ExamsAdmin";
 import AccessMatrix from "./pages/AccessMatrix";
+import AnnouncementsAdmin from "./pages/AnnouncementsAdmin";
 
 // ====================================
 // Pages - NeoCare (Portal do Paciente)
@@ -432,6 +433,7 @@ function AppRoutes() {
       <Route path="/monitoring" element={<ProtectedRoute><SidebarWrapper><UserMonitoring /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/system-metrics" element={<ProtectedRoute><SidebarWrapper><SystemMetrics /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/admin/sentinel" element={<AdminRoute><SidebarWrapper><SystemSentinel /></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/announcements" element={<AdminRoute><SidebarWrapper><AnnouncementsAdmin /></SidebarWrapper></AdminRoute>} />
       <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><WeeklyReports /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/surgery-schedule" element={<ProtectedRoute><SidebarWrapper><SurgerySchedule /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><SalaTecnica /></SidebarWrapper></ProtectedRoute>} />
