@@ -3,13 +3,17 @@ import { TrendingUp, DollarSign, ShoppingCart, Target, ChevronRight } from 'luci
 import { useSales } from '@/hooks/useSales';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { TrendIndicator } from './TrendIndicator';
 
 export function SalesOverviewWidget() {
   const navigate = useNavigate();
   const currentMonth = format(new Date(), 'yyyy-MM');
+  const previousMonth = format(subMonths(new Date(), 1), 'yyyy-MM');
+  
   const { stats, isLoading } = useSales(currentMonth);
+  const { stats: prevStats, isLoading: prevLoading } = useSales(previousMonth);
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
@@ -21,7 +25,7 @@ export function SalesOverviewWidget() {
     return `R$ ${value.toLocaleString('pt-BR')}`;
   };
 
-  if (isLoading) {
+  if (isLoading || prevLoading) {
     return (
       <Card className="h-full">
         <CardContent className="p-5">
@@ -42,29 +46,37 @@ export function SalesOverviewWidget() {
       label: 'VGV do Mês',
       value: formatCurrency(stats.totalVgv),
       icon: DollarSign,
-      color: 'text-green-600',
-      bg: 'bg-green-100 dark:bg-green-900/30'
+      color: 'text-emerald-600 dark:text-emerald-500',
+      bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      current: stats.totalVgv,
+      previous: prevStats.totalVgv
     },
     {
       label: 'Vendas Realizadas',
       value: stats.salesCount.toString(),
       icon: ShoppingCart,
-      color: 'text-blue-600',
-      bg: 'bg-blue-100 dark:bg-blue-900/30'
+      color: 'text-primary',
+      bg: 'bg-primary/10',
+      current: stats.salesCount,
+      previous: prevStats.salesCount
     },
     {
       label: 'Ticket Médio',
       value: formatCurrency(stats.avgTicket),
       icon: Target,
-      color: 'text-purple-600',
-      bg: 'bg-purple-100 dark:bg-purple-900/30'
+      color: 'text-purple-600 dark:text-purple-400',
+      bg: 'bg-purple-100 dark:bg-purple-900/30',
+      current: stats.avgTicket,
+      previous: prevStats.avgTicket
     },
     {
       label: 'Entradas',
       value: formatCurrency(stats.totalDeposits),
       icon: TrendingUp,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-100 dark:bg-emerald-900/30'
+      color: 'text-teal-600 dark:text-teal-400',
+      bg: 'bg-teal-100 dark:bg-teal-900/30',
+      current: stats.totalDeposits,
+      previous: prevStats.totalDeposits
     }
   ];
 
@@ -94,7 +106,13 @@ export function SalesOverviewWidget() {
                 <metric.icon className={`h-5 w-5 ${metric.color}`} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-lg font-bold">{metric.value}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-lg font-bold">{metric.value}</p>
+                  <TrendIndicator 
+                    current={metric.current} 
+                    previous={metric.previous} 
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">{metric.label}</p>
               </div>
             </div>

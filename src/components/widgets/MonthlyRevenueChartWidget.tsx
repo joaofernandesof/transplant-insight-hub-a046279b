@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { format, subMonths, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { TrendIndicator } from './TrendIndicator';
 
 export function MonthlyRevenueChartWidget() {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ export function MonthlyRevenueChartWidget() {
         const date = parseISO(`${month}-01`);
         return {
           month: format(date, 'MMM', { locale: ptBR }),
+          fullMonth: format(date, "MMM 'de' yy", { locale: ptBR }),
           vgv: total
         };
       });
@@ -62,6 +64,8 @@ export function MonthlyRevenueChartWidget() {
   }
 
   const totalVGV = chartData?.reduce((sum, d) => sum + d.vgv, 0) || 0;
+  const currentMonthVGV = chartData?.[chartData.length - 1]?.vgv || 0;
+  const previousMonthVGV = chartData?.[chartData.length - 2]?.vgv || 0;
 
   return (
     <Card 
@@ -77,9 +81,16 @@ export function MonthlyRevenueChartWidget() {
           <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
 
-        <p className="text-2xl font-bold text-primary mb-3">
-          R$ {formatCurrency(totalVGV)}
-        </p>
+        <div className="flex items-baseline gap-2 mb-3">
+          <p className="text-2xl font-bold text-primary">
+            R$ {formatCurrency(totalVGV)}
+          </p>
+          <TrendIndicator 
+            current={currentMonthVGV} 
+            previous={previousMonthVGV}
+            size="md"
+          />
+        </div>
         
         <div className="h-28">
           <ResponsiveContainer width="100%" height="100%">
@@ -102,6 +113,7 @@ export function MonthlyRevenueChartWidget() {
                   if (active && payload && payload.length) {
                     return (
                       <div className="bg-popover border rounded-lg shadow-lg p-2 text-xs">
+                        <p className="text-muted-foreground mb-0.5">{payload[0].payload.fullMonth}</p>
                         <p className="font-medium">R$ {formatCurrency(payload[0].value as number)}</p>
                       </div>
                     );

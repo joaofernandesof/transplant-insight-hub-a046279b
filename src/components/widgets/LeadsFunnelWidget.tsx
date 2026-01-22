@@ -4,6 +4,8 @@ import { useLeads } from '@/hooks/useLeads';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { TrendIndicator } from './TrendIndicator';
+import { subDays, parseISO, isAfter } from 'date-fns';
 
 export function LeadsFunnelWidget() {
   const navigate = useNavigate();
@@ -24,15 +26,32 @@ export function LeadsFunnelWidget() {
     );
   }
 
+  // Current period (last 30 days)
+  const thirtyDaysAgo = subDays(new Date(), 30);
+  const sixtyDaysAgo = subDays(new Date(), 60);
+
+  const currentLeads = leads.filter(l => {
+    if (!l.created_at) return false;
+    return isAfter(parseISO(l.created_at), thirtyDaysAgo);
+  });
+
+  const previousLeads = leads.filter(l => {
+    if (!l.created_at) return false;
+    const date = parseISO(l.created_at);
+    return isAfter(date, sixtyDaysAgo) && !isAfter(date, thirtyDaysAgo);
+  });
+
   const funnelStages = [
     {
       status: 'new',
       label: 'Novos',
       icon: Users,
-      color: 'text-blue-600',
-      bg: 'bg-blue-500',
-      lightBg: 'bg-blue-100 dark:bg-blue-900/30',
-      count: leads.filter(l => l.status === 'new').length
+      color: 'text-primary',
+      bg: 'bg-primary',
+      lightBg: 'bg-primary/10',
+      count: leads.filter(l => l.status === 'new').length,
+      currentCount: currentLeads.filter(l => l.status === 'new').length,
+      previousCount: previousLeads.filter(l => l.status === 'new').length
     },
     {
       status: 'contacted',
@@ -41,7 +60,9 @@ export function LeadsFunnelWidget() {
       color: 'text-amber-600',
       bg: 'bg-amber-500',
       lightBg: 'bg-amber-100 dark:bg-amber-900/30',
-      count: leads.filter(l => l.status === 'contacted').length
+      count: leads.filter(l => l.status === 'contacted').length,
+      currentCount: currentLeads.filter(l => l.status === 'contacted').length,
+      previousCount: previousLeads.filter(l => l.status === 'contacted').length
     },
     {
       status: 'scheduled',
@@ -50,16 +71,20 @@ export function LeadsFunnelWidget() {
       color: 'text-purple-600',
       bg: 'bg-purple-500',
       lightBg: 'bg-purple-100 dark:bg-purple-900/30',
-      count: leads.filter(l => l.status === 'scheduled').length
+      count: leads.filter(l => l.status === 'scheduled').length,
+      currentCount: currentLeads.filter(l => l.status === 'scheduled').length,
+      previousCount: previousLeads.filter(l => l.status === 'scheduled').length
     },
     {
       status: 'converted',
       label: 'Convertidos',
       icon: CheckCircle,
-      color: 'text-green-600',
-      bg: 'bg-green-500',
-      lightBg: 'bg-green-100 dark:bg-green-900/30',
-      count: leads.filter(l => l.status === 'converted').length
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-500',
+      lightBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      count: leads.filter(l => l.status === 'converted').length,
+      currentCount: currentLeads.filter(l => l.status === 'converted').length,
+      previousCount: previousLeads.filter(l => l.status === 'converted').length
     }
   ];
 
@@ -102,12 +127,19 @@ export function LeadsFunnelWidget() {
           })}
         </div>
         
-        {/* Labels */}
+        {/* Labels with trends */}
         <div className="grid grid-cols-4 gap-2">
           {funnelStages.map((stage) => (
             <div key={stage.status} className="text-center">
-              <p className="text-lg font-bold">{stage.count}</p>
-              <p className="text-[11px] text-muted-foreground">{stage.label}</p>
+              <div className="flex items-center justify-center gap-1">
+                <p className="text-lg font-bold">{stage.count}</p>
+                <TrendIndicator 
+                  current={stage.currentCount} 
+                  previous={stage.previousCount}
+                  showValue={false}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">{stage.label}</p>
             </div>
           ))}
         </div>
