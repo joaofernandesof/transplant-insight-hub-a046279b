@@ -15,6 +15,8 @@ interface BreadcrumbRoute {
 }
 
 const routeLabels: Record<string, string> = {
+  // Portal root
+  '/neohub': 'NeoHub',
   // NeoTeam routes
   '/neoteam': 'NeoTeam',
   '/neoteam/schedule': 'Agenda',
@@ -63,24 +65,45 @@ export function NeoTeamBreadcrumb({ showOnRoot = false }: NeoTeamBreadcrumbProps
     return null;
   }
   
-  // Determine home path based on current route
+  // Determine portal path based on current route
   const isNeoCare = location.pathname.startsWith('/neocare');
-  const homePath = isNeoCare ? '/neocare' : '/neoteam';
-  const homeLabel = isNeoCare ? 'NeoCare' : 'NeoTeam';
+  const isNeoTeam = location.pathname.startsWith('/neoteam');
+  const portalLabel = isNeoCare ? 'NeoCare' : isNeoTeam ? 'NeoTeam' : 'NeoHub';
+  const portalPath = isNeoCare ? '/neocare' : isNeoTeam ? '/neoteam' : '/neohub';
   
   return (
     <Breadcrumb className="mb-4">
       <BreadcrumbList>
+        {/* NeoHub - Portal root */}
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to={homePath} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+            <Link to="/neohub" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
               <Home className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only">Início</span>
+              <span className="hidden sm:inline">NeoHub</span>
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         
-        {breadcrumbs.filter(b => b.path !== homePath).map((crumb, index, arr) => (
+        {/* Portal (NeoTeam/NeoCare) */}
+        {portalPath !== '/neohub' && (
+          <>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              {breadcrumbs.length <= 1 ? (
+                <BreadcrumbPage>{portalLabel}</BreadcrumbPage>
+              ) : (
+                <BreadcrumbLink asChild>
+                  <Link to={portalPath} className="text-muted-foreground hover:text-foreground">
+                    {portalLabel}
+                  </Link>
+                </BreadcrumbLink>
+              )}
+            </BreadcrumbItem>
+          </>
+        )}
+        
+        {/* Rest of the path */}
+        {breadcrumbs.filter(b => b.path !== portalPath).map((crumb, index, arr) => (
           <div key={crumb.path} className="flex items-center">
             <BreadcrumbSeparator />
             <BreadcrumbItem>
