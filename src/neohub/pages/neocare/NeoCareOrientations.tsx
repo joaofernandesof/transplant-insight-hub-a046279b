@@ -5,7 +5,7 @@ import {
   Dumbbell, Shirt, Coffee, Waves, Cat, Phone,
   Trophy, ChevronRight, Sparkles, Heart,
   Calendar, Clock, AlertCircle, CalendarPlus, Bell,
-  AlertTriangle, XCircle
+  AlertTriangle, XCircle, Loader2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { usePatientSurgeryDate } from '@/neohub/hooks/usePatientSurgeryDate';
 
 // Pre-transplant checklist
 const preTransplantChecklist = [
@@ -130,11 +131,11 @@ function generateGoogleCalendarUrl(task: { title: string; time: string; startTim
 }
 
 export default function NeoCareOrientations() {
-  // Simulate surgery date (D0) - in production this comes from patient data
-  const [surgeryDate] = useState(() => {
-    const stored = localStorage.getItem('neocare_surgery_date');
-    return stored ? new Date(stored) : addDays(new Date(), -5); // Default: 5 days ago
-  });
+  // Fetch real surgery date from database
+  const { surgeryDate: dbSurgeryDate, isLoading: surgeryLoading } = usePatientSurgeryDate();
+  
+  // Use database date if available, otherwise fallback
+  const surgeryDate = dbSurgeryDate || addDays(new Date(), -5);
   
   // Calculate current day relative to surgery
   const today = startOfDay(new Date());
@@ -253,6 +254,46 @@ export default function NeoCareOrientations() {
     { key: 'recuperacao', label: 'Recuperação', icon: Sparkles, days: 'D4 a D15' },
     { key: 'liberado', label: 'Cuidados Contínuos', icon: Heart, days: 'D15+' },
   ];
+
+  // Loading state
+  if (surgeryLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // No surgery date configured
+  if (!dbSurgeryDate) {
+    return (
+      <div className="space-y-4 pb-6 max-w-2xl mx-auto">
+        <div className="bg-card border rounded-xl p-6 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center">
+            <Calendar className="h-8 w-8" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Data da Cirurgia Não Definida</h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              Sua data de cirurgia ainda não foi cadastrada no sistema.
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Entre em contato com a clínica para confirmar sua agenda.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 mt-4">
+            <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+              <Phone className="h-5 w-5" />
+            </div>
+            <div className="text-left">
+              <p className="font-medium text-sm">Dúvidas?</p>
+              <p className="text-xs text-muted-foreground">(85) 98118-1212</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 pb-6 max-w-2xl mx-auto">

@@ -1639,6 +1639,7 @@ export type Database = {
           referral_code: string | null
           rqe: string | null
           services: string[] | null
+          surgery_date: string | null
           tier: string | null
           total_points: number | null
           updated_at: string | null
@@ -1676,6 +1677,7 @@ export type Database = {
           referral_code?: string | null
           rqe?: string | null
           services?: string[] | null
+          surgery_date?: string | null
           tier?: string | null
           total_points?: number | null
           updated_at?: string | null
@@ -1713,6 +1715,7 @@ export type Database = {
           referral_code?: string | null
           rqe?: string | null
           services?: string[] | null
+          surgery_date?: string | null
           tier?: string | null
           total_points?: number | null
           updated_at?: string | null
