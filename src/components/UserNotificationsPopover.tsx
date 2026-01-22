@@ -12,6 +12,7 @@ import { Bell, Check, Image as ImageIcon, Video } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 
 interface NotificationData {
   id: string;
@@ -197,7 +198,7 @@ const UserNotificationsPopover: React.FC = () => {
               {selectedNotification.notifications.content_html ? (
                 <div 
                   className="prose prose-sm max-w-none mb-4"
-                  dangerouslySetInnerHTML={{ __html: selectedNotification.notifications.content_html }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedNotification.notifications.content_html) }}
                 />
               ) : (
                 <p className="text-sm mb-4 whitespace-pre-wrap">

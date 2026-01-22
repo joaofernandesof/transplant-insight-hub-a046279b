@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import jonJobsAvatar from "@/assets/jon-jobs-avatar.png";
+import { sanitizeMessageHtml } from "@/utils/sanitizeHtml";
 
 interface Message {
   id: string;
@@ -313,13 +314,13 @@ export default function SupportChat() {
   // Render markdown-like content
   const renderContent = (content: string) => {
     return content.split('\n').map((line, i) => {
-      // Bold text
-      line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      // Bold text - sanitize after conversion
+      const htmlLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       return (
         <p 
           key={i} 
           className={line.trim() === '' ? 'h-2' : ''}
-          dangerouslySetInnerHTML={{ __html: line }}
+          dangerouslySetInnerHTML={{ __html: sanitizeMessageHtml(htmlLine) }}
         />
       );
     });
