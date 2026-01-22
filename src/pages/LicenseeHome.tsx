@@ -42,6 +42,12 @@ import FirstStepsDialog from "@/components/FirstStepsDialog";
 import { JourneyRoadmap } from "@/components/JourneyRoadmap";
 import { AnnouncementBanner } from "@/components/announcements";
 import { SpotlightTour } from "@/components/tour";
+import { 
+  SalaTecnicaCompact, 
+  SalesOverviewWidget, 
+  LeadsFunnelWidget, 
+  QuickStatsWidget 
+} from "@/components/widgets";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -432,6 +438,14 @@ export default function LicenseeHome() {
         {/* Journey Roadmap - Sua Jornada */}
         <div data-tour="journey-roadmap">
           <JourneyRoadmap currentTier={tier} />
+        </div>
+
+        {/* Quick Widgets Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <SalaTecnicaCompact />
+          <SalesOverviewWidget />
+          <LeadsFunnelWidget />
+          <QuickStatsWidget />
         </div>
 
         {/* Menu Grid - Acesso às funcionalidades */}
