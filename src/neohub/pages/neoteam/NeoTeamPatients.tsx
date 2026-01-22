@@ -69,7 +69,7 @@ interface Patient {
   seller?: string;
 }
 
-type SortField = 'name' | 'branch' | 'category' | 'baldnessGrade' | 'createdAt' | 'city' | 'surgeryDate';
+type SortField = 'name' | 'email' | 'phone' | 'branch' | 'category' | 'baldnessGrade' | 'createdAt' | 'city' | 'surgeryDate' | 'consultant' | 'seller' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 // Helper to parse notes field with all data
@@ -277,6 +277,12 @@ export default function NeoTeamPatients() {
         case 'name':
           comparison = a.name.localeCompare(b.name);
           break;
+        case 'email':
+          comparison = (a.email || '').localeCompare(b.email || '');
+          break;
+        case 'phone':
+          comparison = (a.phone || '').localeCompare(b.phone || '');
+          break;
         case 'branch':
           comparison = (a.branch || '').localeCompare(b.branch || '');
           break;
@@ -289,8 +295,17 @@ export default function NeoTeamPatients() {
         case 'city':
           comparison = (a.city || '').localeCompare(b.city || '');
           break;
+        case 'consultant':
+          comparison = (a.consultant || '').localeCompare(b.consultant || '');
+          break;
+        case 'seller':
+          comparison = (a.seller || '').localeCompare(b.seller || '');
+          break;
         case 'surgeryDate':
           comparison = (a.surgeryDate || '').localeCompare(b.surgeryDate || '');
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
           break;
         case 'createdAt':
           comparison = new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
@@ -484,7 +499,12 @@ export default function NeoTeamPatients() {
                     <SortIcon field="name" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[200px]">Contato</TableHead>
+                <TableHead className="w-[200px] cursor-pointer" onClick={() => handleSort('email')}>
+                  <div className="flex items-center gap-2">
+                    Contato
+                    <SortIcon field="email" />
+                  </div>
+                </TableHead>
                 <TableHead className="w-[140px] cursor-pointer" onClick={() => handleSort('branch')}>
                   <div className="flex items-center gap-2">
                     Filial
@@ -509,15 +529,30 @@ export default function NeoTeamPatients() {
                     <SortIcon field="city" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[120px]">Consultor</TableHead>
-                <TableHead className="w-[120px]">Vendedor</TableHead>
+                <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort('consultant')}>
+                  <div className="flex items-center gap-2">
+                    Consultor
+                    <SortIcon field="consultant" />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort('seller')}>
+                  <div className="flex items-center gap-2">
+                    Vendedor
+                    <SortIcon field="seller" />
+                  </div>
+                </TableHead>
                 <TableHead className="w-[110px] cursor-pointer" onClick={() => handleSort('surgeryDate')}>
                   <div className="flex items-center gap-2">
                     Cirurgia
                     <SortIcon field="surgeryDate" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[90px] text-center">Status</TableHead>
+                <TableHead className="w-[90px] cursor-pointer text-center" onClick={() => handleSort('status')}>
+                  <div className="flex items-center justify-center gap-2">
+                    Status
+                    <SortIcon field="status" />
+                  </div>
+                </TableHead>
                 <TableHead className="w-[80px] text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
