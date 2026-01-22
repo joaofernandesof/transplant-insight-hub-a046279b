@@ -93,31 +93,6 @@ export default function SalaTecnica() {
           </Card>
         </div>
 
-        {/* Mentors */}
-        <Card className="border-primary/10">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Equipe de Mentores</CardTitle>
-            <CardDescription>
-              Especialistas do IBRAMEC que conduzem as mentorias semanais
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="px-3 py-1.5 text-sm">
-                👨‍⚕️ Dr. Hygor
-              </Badge>
-              <Badge variant="secondary" className="px-3 py-1.5 text-sm">
-                👩‍💼 Larissa
-              </Badge>
-              <Badge variant="secondary" className="px-3 py-1.5 text-sm">
-                👨‍💻 João
-              </Badge>
-              <Badge variant="secondary" className="px-3 py-1.5 text-sm">
-                👩‍🔬 Edith
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Calendar */}
         <SalaTecnicaCalendar />
