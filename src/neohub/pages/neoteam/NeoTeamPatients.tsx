@@ -556,9 +556,9 @@ export default function NeoTeamPatients() {
           </div>
         )}
 
-        <CardContent className="p-0 overflow-x-auto">
+        <CardContent className="p-0 overflow-auto max-h-[70vh]">
           <Table className="table-fixed min-w-[2200px]">
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
               <TableRow>
                 <TableHead className="w-[70px] cursor-pointer text-center" onClick={() => handleSort('sequenceId')}>
                   <div className="flex items-center justify-center gap-1">
