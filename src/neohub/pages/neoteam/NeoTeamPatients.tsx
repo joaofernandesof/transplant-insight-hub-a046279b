@@ -16,8 +16,15 @@ import {
 import { 
   Users, Search, Plus, Filter, MoreVertical,
   Phone, Mail, Calendar, FileText, Eye, Edit,
-  Download, Upload, Loader2
+  Download, Upload, Loader2, X, Building, Tag
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +60,27 @@ interface Patient {
   status: 'active' | 'inactive' | 'pending';
   tags: string[];
   portalUserId?: string;
+  branch?: string;
+  category?: string;
+  baldnessGrade?: string;
 }
+
+// Helper to parse notes field
+const parseNotes = (notes: string | null): { branch?: string; category?: string; baldnessGrade?: string } => {
+  if (!notes) return {};
+  const result: { branch?: string; category?: string; baldnessGrade?: string } = {};
+  
+  const branchMatch = notes.match(/Filial:\s*([^|]+)/i);
+  if (branchMatch) result.branch = branchMatch[1].trim();
+  
+  const categoryMatch = notes.match(/Categoria:\s*([^|]+)/i);
+  if (categoryMatch) result.category = categoryMatch[1].trim();
+  
+  const gradeMatch = notes.match(/Grau:\s*(\d+)/i);
+  if (gradeMatch) result.baldnessGrade = gradeMatch[1].trim();
+  
+  return result;
+};
 
 export default function NeoTeamPatients() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +92,9 @@ export default function NeoTeamPatients() {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [uploadPatientId, setUploadPatientId] = useState<string | undefined>();
   const [uploadPatientName, setUploadPatientName] = useState<string | undefined>();
+  const [selectedBranch, setSelectedBranch] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchPatients = async () => {
     setIsLoading(true);
@@ -78,21 +108,27 @@ export default function NeoTeamPatients() {
 
       if (error) throw error;
 
-      const formattedPatients: Patient[] = (patientsData || []).map(p => ({
-        id: p.id,
-        name: p.full_name || 'Sem nome',
-        email: p.email || '',
-        phone: p.phone || '',
-        cpf: p.cpf || '',
-        birthDate: '',
-        gender: 'O' as const,
-        lastVisit: undefined,
-        nextAppointment: undefined,
-        totalVisits: 0,
-        status: 'active' as const,
-        tags: [],
-        portalUserId: undefined,
-      }));
+      const formattedPatients: Patient[] = (patientsData || []).map(p => {
+        const parsed = parseNotes(p.notes);
+        return {
+          id: p.id,
+          name: p.full_name || 'Sem nome',
+          email: p.email || '',
+          phone: p.phone || '',
+          cpf: p.cpf || '',
+          birthDate: '',
+          gender: 'O' as const,
+          lastVisit: undefined,
+          nextAppointment: undefined,
+          totalVisits: 0,
+          status: 'active' as const,
+          tags: [],
+          portalUserId: undefined,
+          branch: parsed.branch,
+          category: parsed.category,
+          baldnessGrade: parsed.baldnessGrade,
+        };
+      });
 
       setPatients(formattedPatients);
     } catch (error) {
@@ -112,13 +148,23 @@ export default function NeoTeamPatients() {
     setShowUploadDialog(true);
   };
 
+  // Get unique branches and categories for filter dropdowns
+  const branches = [...new Set(patients.map(p => p.branch).filter(Boolean))] as string[];
+  const categories = [...new Set(patients.map(p => p.category).filter(Boolean))] as string[];
+
   // Filtered patients
-  const filteredPatients = patients.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.phone.includes(searchTerm) ||
-    p.cpf.includes(searchTerm)
-  );
+  const filteredPatients = patients.filter(p => {
+    const matchesSearch = 
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.phone.includes(searchTerm) ||
+      p.cpf.includes(searchTerm);
+    
+    const matchesBranch = selectedBranch === 'all' || p.branch === selectedBranch;
+    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+    
+    return matchesSearch && matchesBranch && matchesCategory;
+  });
 
   const stats = {
     total: patients.length,
@@ -208,26 +254,102 @@ export default function NeoTeamPatients() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, email, telefone ou CPF..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome, email, telefone ou CPF..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant={showFilters ? "default" : "outline"} 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4" />
+              Filtros
+              {(selectedBranch !== 'all' || selectedCategory !== 'all') && (
+                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 justify-center">
+                  {(selectedBranch !== 'all' ? 1 : 0) + (selectedCategory !== 'all' ? 1 : 0)}
+                </Badge>
+              )}
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filtros
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Download className="h-4 w-4" />
-            Exportar
-          </Button>
-        </div>
+
+        {/* Filter Panel */}
+        {showFilters && (
+          <Card className="border-dashed">
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-4 items-end">
+                <div className="space-y-2 min-w-[180px]">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    Filial
+                  </label>
+                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as filiais" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as filiais</SelectItem>
+                      {branches.sort().map(branch => (
+                        <SelectItem key={branch} value={branch}>{branch}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 min-w-[180px]">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    Categoria
+                  </label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as categorias" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as categorias</SelectItem>
+                      {categories.sort().map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {(selectedBranch !== 'all' || selectedCategory !== 'all') && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="gap-2 text-muted-foreground"
+                    onClick={() => {
+                      setSelectedBranch('all');
+                      setSelectedCategory('all');
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    Limpar filtros
+                  </Button>
+                )}
+
+                <div className="ml-auto text-sm text-muted-foreground">
+                  {filteredPatients.length} de {patients.length} pacientes
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Table */}
