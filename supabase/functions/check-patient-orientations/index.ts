@@ -57,6 +57,18 @@ const postTransplantTasks = [
   ]},
 ];
 
+// Get WhatsApp credentials from environment variables
+function getWhatsAppCredentials(): { instanceUrl: string; apiToken: string } | null {
+  const instanceUrl = Deno.env.get("WHATSAPP_INSTANCE_URL");
+  const apiToken = Deno.env.get("WHATSAPP_API_TOKEN");
+  
+  if (!instanceUrl || !apiToken) {
+    return null;
+  }
+  
+  return { instanceUrl, apiToken };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -227,6 +239,13 @@ async function sendReminders(
   let sent = 0;
   const now = new Date();
 
+  // Get WhatsApp credentials from environment
+  const credentials = getWhatsAppCredentials();
+  if (!credentials) {
+    console.log('WhatsApp not configured - skipping reminders');
+    return 0;
+  }
+
   // Get tasks for current day
   let todayTasks: { id: string; title: string; time?: string }[] = [];
   
@@ -266,7 +285,7 @@ async function sendReminders(
 
         if (now >= taskDate) {
           // Send WhatsApp notification
-          await sendWhatsAppNotification(supabase, patient, task, schedule.type);
+          await sendWhatsAppNotification(credentials, patient, task, schedule.type);
           
           // Record notification sent
           await supabase.from('patient_orientation_notifications').insert({
@@ -287,24 +306,12 @@ async function sendReminders(
 }
 
 async function sendWhatsAppNotification(
-  supabase: any,
+  credentials: { instanceUrl: string; apiToken: string },
   patient: any,
   task: { id: string; title: string },
   notificationType: string
 ) {
   if (!patient.phone) return;
-
-  // Get WhatsApp settings
-  const { data: settings } = await supabase
-    .from('neoteam_settings')
-    .select('whatsapp_instance_url, whatsapp_api_token')
-    .limit(1)
-    .single();
-
-  if (!settings?.whatsapp_instance_url || !settings?.whatsapp_api_token) {
-    console.log('WhatsApp not configured');
-    return;
-  }
 
   const messages: Record<string, string> = {
     'on_time': `🏥 Olá ${patient.full_name}! Hora de: *${task.title}*\n\nAcesse o app NeoCare para ver detalhes.`,
@@ -317,11 +324,11 @@ async function sendWhatsAppNotification(
 
   try {
     const phone = patient.phone.replace(/\D/g, '');
-    const response = await fetch(`${settings.whatsapp_instance_url}/message/sendText`, {
+    const response = await fetch(`${credentials.instanceUrl}/message/sendText`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': settings.whatsapp_api_token,
+        'Authorization': `Bearer ${credentials.apiToken}`,
       },
       body: JSON.stringify({
         number: phone,

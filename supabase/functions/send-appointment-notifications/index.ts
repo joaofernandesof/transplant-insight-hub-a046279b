@@ -11,6 +11,18 @@ interface NotificationRequest {
   channels?: ('email' | 'whatsapp')[];
 }
 
+// Get WhatsApp credentials from environment variables
+function getWhatsAppCredentials(): { instanceUrl: string; apiToken: string } | null {
+  const instanceUrl = Deno.env.get("WHATSAPP_INSTANCE_URL");
+  const apiToken = Deno.env.get("WHATSAPP_API_TOKEN");
+  
+  if (!instanceUrl || !apiToken) {
+    return null;
+  }
+  
+  return { instanceUrl, apiToken };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -86,6 +98,9 @@ Deno.serve(async (req) => {
 
       appointments = apts || [];
     }
+
+    // Get WhatsApp credentials from environment
+    const whatsappCredentials = getWhatsAppCredentials();
 
     for (const apt of appointments) {
       const patientEmail = apt.patient?.portal_user?.email;
@@ -175,37 +190,29 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Send WhatsApp (using existing sentinel config)
-      if (channels.includes('whatsapp') && patientPhone) {
+      // Send WhatsApp using environment credentials
+      if (channels.includes('whatsapp') && patientPhone && whatsappCredentials) {
         try {
-          const { data: whatsappConfig } = await supabaseAdmin
-            .from("sentinel_whatsapp_config")
-            .select("instance_url, api_token")
-            .eq("is_active", true)
-            .single();
+          const normalizedPhone = patientPhone.replace(/\D/g, '');
+          const fullPhone = normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`;
 
-          if (whatsappConfig) {
-            const normalizedPhone = patientPhone.replace(/\D/g, '');
-            const fullPhone = normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`;
+          const whatsappResponse = await fetch(`${whatsappCredentials.instanceUrl}/message/sendText`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${whatsappCredentials.apiToken}`,
+            },
+            body: JSON.stringify({
+              number: fullPhone,
+              text: `*${template.title}* 🏥\n\n${template.message}\n\n📅 ${formattedDate}\n⏰ ${formattedTime}\n👨‍⚕️ ${doctorName}\n\nAcesse: https://transplant-insight-hub.lovable.app/neocare`,
+            }),
+          });
 
-            const whatsappResponse = await fetch(`${whatsappConfig.instance_url}/message/sendText`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "apiToken": whatsappConfig.api_token,
-              },
-              body: JSON.stringify({
-                number: fullPhone,
-                text: `*${template.title}* 🏥\n\n${template.message}\n\n📅 ${formattedDate}\n⏰ ${formattedTime}\n👨‍⚕️ ${doctorName}\n\nAcesse: https://transplant-insight-hub.lovable.app/neocare`,
-              }),
-            });
-
-            results.push({ 
-              channel: 'whatsapp', 
-              success: whatsappResponse.ok,
-              error: whatsappResponse.ok ? undefined : await whatsappResponse.text()
-            });
-          }
+          results.push({ 
+            channel: 'whatsapp', 
+            success: whatsappResponse.ok,
+            error: whatsappResponse.ok ? undefined : await whatsappResponse.text()
+          });
         } catch (e) {
           results.push({ channel: 'whatsapp', success: false, error: String(e) });
         }

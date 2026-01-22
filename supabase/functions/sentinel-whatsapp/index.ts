@@ -6,12 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface WhatsAppConfig {
-  instance_url: string;
-  api_token: string;
-  phone_number: string;
-}
-
 interface AlertPayload {
   systemName: string;
   severity: 'high' | 'medium' | 'low';
@@ -19,18 +13,31 @@ interface AlertPayload {
   message: string;
 }
 
+// Get WhatsApp config from environment variables (secure) or fallback to config table for non-sensitive data
+function getWhatsAppCredentials(): { instanceUrl: string; apiToken: string } | null {
+  const instanceUrl = Deno.env.get("WHATSAPP_INSTANCE_URL");
+  const apiToken = Deno.env.get("WHATSAPP_API_TOKEN");
+  
+  if (!instanceUrl || !apiToken) {
+    return null;
+  }
+  
+  return { instanceUrl, apiToken };
+}
+
 // Send WhatsApp message via Uazapi
 async function sendUazapiMessage(
-  config: WhatsAppConfig,
+  instanceUrl: string,
+  apiToken: string,
   phone: string,
   message: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const response = await fetch(`${config.instance_url}/message/sendText`, {
+    const response = await fetch(`${instanceUrl}/message/sendText`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.api_token}`,
+        'Authorization': `Bearer ${apiToken}`,
       },
       body: JSON.stringify({
         number: phone.replace(/\D/g, ''),
@@ -130,16 +137,25 @@ serve(async (req) => {
     const body = await req.json();
     const { action, alert, stats } = body;
 
-    // Get WhatsApp config
-    const { data: config, error: configError } = await supabase
+    // Get WhatsApp credentials from environment variables
+    const credentials = getWhatsAppCredentials();
+    if (!credentials) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'WhatsApp não configurado. Configure WHATSAPP_INSTANCE_URL e WHATSAPP_API_TOKEN nas variáveis de ambiente.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get config for notification preferences (non-sensitive data)
+    const { data: config } = await supabase
       .from('sentinel_whatsapp_config')
-      .select('*')
+      .select('id, phone_number, notify_high, notify_medium, notify_low, notify_daily_summary, is_active')
       .limit(1)
       .single();
 
-    if (configError || !config) {
+    if (!config) {
       return new Response(
-        JSON.stringify({ success: false, error: 'WhatsApp não configurado' }),
+        JSON.stringify({ success: false, error: 'Configuração de notificação não encontrada' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -163,7 +179,7 @@ serve(async (req) => {
       case 'test':
         message = formatTestMessage();
         // Only send to main phone for test
-        const testResult = await sendUazapiMessage(config, config.phone_number, message);
+        const testResult = await sendUazapiMessage(credentials.instanceUrl, credentials.apiToken, config.phone_number, message);
         results.push({ phone: config.phone_number, ...testResult });
         
         // Update last_test_at
@@ -206,7 +222,7 @@ serve(async (req) => {
 
         // Send to all recipients
         for (const phone of targetPhones as string[]) {
-          const result = await sendUazapiMessage(config, phone, message);
+          const result = await sendUazapiMessage(credentials.instanceUrl, credentials.apiToken, phone, message);
           results.push({ phone, ...result });
         }
         break;
@@ -230,7 +246,7 @@ serve(async (req) => {
         
         // Send to all active recipients
         for (const phone of phones as string[]) {
-          const result = await sendUazapiMessage(config, phone, message);
+          const result = await sendUazapiMessage(credentials.instanceUrl, credentials.apiToken, phone, message);
           results.push({ phone, ...result });
         }
         break;
