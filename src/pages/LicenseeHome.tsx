@@ -33,7 +33,7 @@ import {
   Stethoscope,
   RotateCcw
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
+import { ThemedLogo } from "@/components/ThemedLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import UserNotificationsPopover from "@/components/UserNotificationsPopover";
 import OnboardingTour from "@/components/OnboardingTour";
@@ -473,11 +473,7 @@ export default function LicenseeHome() {
 
         {/* Footer Logo */}
         <div className="mt-12 text-center opacity-40">
-          <img 
-            src={logoByNeofolic} 
-            alt="Licença ByNeofolic" 
-            className="h-8 mx-auto object-contain grayscale"
-          />
+          <ThemedLogo className="h-8 mx-auto object-contain grayscale" alt="Licença ByNeofolic" />
           <p className="text-xs mt-2">Portal Exclusivo do Licenciado</p>
         </div>
       </main>
