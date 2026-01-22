@@ -35,7 +35,8 @@ import {
   GitCompare,
   Calendar,
   Clock,
-  Heart
+  Heart,
+  Stethoscope
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -122,6 +123,7 @@ const moduleCategories = [
 const profileAccess = [
   { profile: 'licenciado', title: 'Licenciado', description: 'Dono de clínica', icon: Award, path: '/home', color: 'bg-amber-500' },
   { profile: 'colaborador', title: 'Colaborador', description: 'Equipe clínica', icon: Users, path: '/neoteam', color: 'bg-blue-500' },
+  { profile: 'medico', title: 'Médico', description: 'Visão clínica', icon: Stethoscope, path: '/neoteam/doctor-view', color: 'bg-cyan-500' },
   { profile: 'aluno', title: 'Aluno', description: 'IBRAMEC', icon: GraduationCap, path: '/university', color: 'bg-indigo-500' },
   { profile: 'paciente', title: 'Paciente', description: 'NeoCare', icon: Heart, path: '/neocare', color: 'bg-emerald-500' },
 ];
