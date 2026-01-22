@@ -98,7 +98,8 @@ import {
   NeoTeamMedicalRecords, 
   NeoTeamDocuments,
   NeoTeamTasks,
-  NeoTeamSettings 
+  NeoTeamSettings,
+  NeoTeamStaffRoles
 } from "./neohub/pages/neoteam";
 
 // ====================================
@@ -241,7 +242,7 @@ function NeoCareRoutes() {
 // ====================================
 function NeoTeamRoutes() {
   return (
-    <ProfileGuard allowedProfiles={['colaborador', 'administrador']}>
+    <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
       <NeoTeamSidebar>
         <Routes>
           <Route index element={<NeoTeamHome />} />
@@ -253,6 +254,7 @@ function NeoTeamRoutes() {
           <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
           <Route path="documents" element={<NeoTeamDocuments />} />
           <Route path="tasks" element={<NeoTeamTasks />} />
+          <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>
