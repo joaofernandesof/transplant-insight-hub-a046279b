@@ -5,95 +5,123 @@ import {
   Dumbbell, Shirt, Coffee, Waves, Cat,
   Trophy, ChevronRight, Sparkles, Heart,
   Calendar, Clock, AlertCircle, Bell,
-  AlertTriangle, Loader2, MessageSquare
+  AlertTriangle, Loader2, MessageSquare, CalendarDays
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import { format, addDays, isBefore, startOfDay } from 'date-fns';
+import { format, addDays, isBefore, startOfDay, isToday as isDateToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { usePatientSurgeryDate } from '@/neohub/hooks/usePatientSurgeryDate';
 import { usePatientOrientationProgress } from '@/neohub/hooks/usePatientOrientationProgress';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 
-// Pre-transplant checklist
-const preTransplantChecklist = [
-  { id: 'exames', icon: FileCheck, title: 'Exames solicitados', desc: 'Hemograma, coagulograma, glicemia', daysBeforeD0: 7 },
-  { id: 'consulta', icon: Stethoscope, title: 'Consulta pré-operatória', desc: 'Avaliação médica', daysBeforeD0: 3 },
-  { id: 'minoxidil', icon: Pill, title: 'Parar Minoxidil', desc: '7 dias antes', daysBeforeD0: 7 },
-  { id: 'aspirina', icon: Pill, title: 'Parar AAS/Aspirina', desc: '7 dias antes', daysBeforeD0: 7 },
-  { id: 'vitaminas', icon: Pill, title: 'Parar vitamina E', desc: '7 dias antes', daysBeforeD0: 7 },
-  { id: 'alcool', icon: Wine, title: 'Evitar álcool', desc: '5 dias antes', daysBeforeD0: 5 },
-  { id: 'cigarro', icon: Cigarette, title: 'Parar de fumar', desc: '7 dias antes', daysBeforeD0: 7 },
-  { id: 'cabelo', icon: ShowerHead, title: 'Lavar o cabelo', desc: 'Manhã do procedimento', daysBeforeD0: 0 },
+// Pre-transplant checklist grouped by day before D0
+const preTransplantByDay = [
+  { 
+    daysBeforeD0: 7, 
+    label: 'D-7',
+    tasks: [
+      { id: 'exames', icon: FileCheck, title: 'Exames solicitados', desc: 'Hemograma, coagulograma, glicemia' },
+      { id: 'minoxidil', icon: Pill, title: 'Parar Minoxidil', desc: 'Suspender uso' },
+      { id: 'aspirina', icon: Pill, title: 'Parar AAS/Aspirina', desc: 'Suspender uso' },
+      { id: 'vitaminas', icon: Pill, title: 'Parar vitamina E', desc: 'Suspender uso' },
+      { id: 'cigarro', icon: Cigarette, title: 'Parar de fumar', desc: 'Iniciar abstinência' },
+    ]
+  },
+  { 
+    daysBeforeD0: 5, 
+    label: 'D-5',
+    tasks: [
+      { id: 'alcool', icon: Wine, title: 'Evitar álcool', desc: 'Abstinência total' },
+    ]
+  },
+  { 
+    daysBeforeD0: 3, 
+    label: 'D-3',
+    tasks: [
+      { id: 'consulta', icon: Stethoscope, title: 'Consulta pré-operatória', desc: 'Avaliação médica' },
+    ]
+  },
+  { 
+    daysBeforeD0: 0, 
+    label: 'D0',
+    tasks: [
+      { id: 'cabelo', icon: ShowerHead, title: 'Lavar o cabelo', desc: 'Manhã do procedimento' },
+    ]
+  },
 ];
 
 // Post-transplant checklist by day with times
-const postTransplantChecklist = [
+const postTransplantByDay = [
   {
     day: 1,
     label: 'D+1',
     tasks: [
-      { id: 'd1_soro', icon: Droplets, title: 'Borrifar soro', time: 'A cada 1h', startTime: '08:00', endTime: '22:00' },
-      { id: 'd1_dormir', icon: Bed, title: 'Dormir de barriga para cima', time: 'Noite toda', startTime: '22:00' },
-      { id: 'd1_gelo', icon: Heart, title: 'Aplicar gelo na testa', time: '20min 3x/dia', startTime: '10:00' },
+      { id: 'd1_soro', icon: Droplets, title: 'Borrifar soro', time: 'A cada 1h' },
+      { id: 'd1_dormir', icon: Bed, title: 'Dormir de barriga para cima', time: 'Noite toda' },
+      { id: 'd1_gelo', icon: Heart, title: 'Aplicar gelo na testa', time: '20min 3x/dia' },
     ]
   },
   {
     day: 2,
     label: 'D+2',
     tasks: [
-      { id: 'd2_soro', icon: Droplets, title: 'Continuar soro', time: 'A cada 1h', startTime: '08:00', endTime: '22:00' },
-      { id: 'd2_medicacao', icon: Pill, title: 'Tomar medicação', time: '8h e 20h', startTime: '08:00' },
-      { id: 'd2_repouso', icon: Bed, title: 'Manter repouso', time: 'Dia todo', startTime: '08:00' },
+      { id: 'd2_soro', icon: Droplets, title: 'Continuar soro', time: 'A cada 1h' },
+      { id: 'd2_medicacao', icon: Pill, title: 'Tomar medicação', time: '8h e 20h' },
+      { id: 'd2_repouso', icon: Bed, title: 'Manter repouso', time: 'Dia todo' },
     ]
   },
   {
     day: 3,
     label: 'D+3',
     tasks: [
-      { id: 'd3_lavar', icon: ShowerHead, title: 'Primeira lavagem suave', time: 'Manhã', startTime: '09:00' },
-      { id: 'd3_doadora', icon: Droplets, title: 'Esfregar área doadora', time: 'Durante banho', startTime: '09:00' },
-      { id: 'd3_secar', icon: Sun, title: 'Secar ao vento', time: 'Após lavar', startTime: '09:30' },
+      { id: 'd3_lavar', icon: ShowerHead, title: 'Primeira lavagem suave', time: 'Manhã' },
+      { id: 'd3_doadora', icon: Droplets, title: 'Esfregar área doadora', time: 'Durante banho' },
+      { id: 'd3_secar', icon: Sun, title: 'Secar ao vento', time: 'Após lavar' },
     ]
   },
   {
     day: 5,
     label: 'D+5',
     tasks: [
-      { id: 'd5_lavagem', icon: ShowerHead, title: 'Lavagem cuidadosa', time: 'Manhã', startTime: '09:00' },
-      { id: 'd5_espuma', icon: Droplets, title: 'Aplicar espuma suave', time: 'Durante lavagem', startTime: '09:00' },
-      { id: 'd5_cafe', icon: Coffee, title: 'Pode voltar café moderado', time: '1-2 xícaras', startTime: '08:00' },
+      { id: 'd5_lavagem', icon: ShowerHead, title: 'Lavagem cuidadosa', time: 'Manhã' },
+      { id: 'd5_espuma', icon: Droplets, title: 'Aplicar espuma suave', time: 'Durante lavagem' },
+      { id: 'd5_cafe', icon: Coffee, title: 'Pode voltar café moderado', time: '1-2 xícaras' },
     ]
   },
   {
     day: 8,
     label: 'D+8',
     tasks: [
-      { id: 'd8_circular', icon: ShowerHead, title: 'Movimentos circulares', time: 'Durante lavagem', startTime: '09:00' },
-      { id: 'd8_lado', icon: Bed, title: 'Pode dormir de lado', time: 'Liberado', startTime: '22:00' },
-      { id: 'd8_camisa', icon: Shirt, title: 'Camisas com botão', time: 'Até D+14', startTime: '08:00' },
+      { id: 'd8_circular', icon: ShowerHead, title: 'Movimentos circulares', time: 'Durante lavagem' },
+      { id: 'd8_lado', icon: Bed, title: 'Pode dormir de lado', time: 'Liberado' },
+      { id: 'd8_camisa', icon: Shirt, title: 'Camisas com botão', time: 'Até D+14' },
     ]
   },
   {
     day: 10,
     label: 'D+10',
     tasks: [
-      { id: 'd10_oleo', icon: Sparkles, title: 'Iniciar óleo de girassol', time: 'Noite', startTime: '21:00' },
-      { id: 'd10_academia', icon: Dumbbell, title: 'Academia leve liberada', time: 'Sem esforço', startTime: '10:00' },
-      { id: 'd10_crostas', icon: Heart, title: 'Crostas soltando', time: 'Naturalmente', startTime: '08:00' },
+      { id: 'd10_oleo', icon: Sparkles, title: 'Iniciar óleo de girassol', time: 'Noite' },
+      { id: 'd10_academia', icon: Dumbbell, title: 'Academia leve liberada', time: 'Sem esforço' },
+      { id: 'd10_crostas', icon: Heart, title: 'Crostas soltando', time: 'Naturalmente' },
     ]
   },
   {
     day: 15,
     label: 'D+15',
     tasks: [
-      { id: 'd15_chuveiro', icon: ShowerHead, title: 'Chuveiro normal liberado', time: 'Liberado', startTime: '08:00' },
-      { id: 'd15_shampoo', icon: Droplets, title: 'Shampoo regular', time: 'Liberado', startTime: '08:00' },
-      { id: 'd15_massagem', icon: Heart, title: 'Massagens liberadas', time: 'Liberado', startTime: '08:00' },
+      { id: 'd15_chuveiro', icon: ShowerHead, title: 'Chuveiro normal liberado', time: 'Liberado' },
+      { id: 'd15_shampoo', icon: Droplets, title: 'Shampoo regular', time: 'Liberado' },
+      { id: 'd15_massagem', icon: Heart, title: 'Massagens liberadas', time: 'Liberado' },
     ]
   },
 ];
@@ -110,16 +138,7 @@ const restrictions = [
   { icon: Cat, title: 'Pets afastados', until: 5 },
 ];
 
-// Day selector data
-const daySelectors = [
-  { day: -15, label: 'D-15' },
-  { day: -7, label: 'D-7' },
-  { day: -5, label: 'D-5' },
-  { day: -3, label: 'D-3' },
-  { day: -1, label: 'D-1' },
-  { day: 0, label: 'D0', isD0: true },
-  ...postTransplantChecklist.map(d => ({ day: d.day, label: `D+${d.day}` }))
-];
+type Phase = 'pre' | 'd0' | 'pos';
 
 export default function NeoCareOrientations() {
   // Fetch real surgery date from database
@@ -130,8 +149,6 @@ export default function NeoCareOrientations() {
     isTaskCompleted, 
     getCompletedAt, 
     toggleTask, 
-    isToggling,
-    isLoading: progressLoading 
   } = usePatientOrientationProgress();
   
   // Use database date if available, otherwise fallback
@@ -142,9 +159,17 @@ export default function NeoCareOrientations() {
   const surgeryDay = startOfDay(surgeryDate);
   const currentDay = Math.floor((today.getTime() - surgeryDay.getTime()) / (1000 * 60 * 60 * 24));
   
-  const [selectedDay, setSelectedDay] = useState(currentDay > 0 ? currentDay : (currentDay < 0 ? -3 : 0));
+  // Determine initial phase based on current day
+  const getInitialPhase = (): Phase => {
+    if (currentDay < 0) return 'pre';
+    if (currentDay === 0) return 'd0';
+    return 'pos';
+  };
   
-  // Helper functions that use the database
+  const [selectedPhase, setSelectedPhase] = useState<Phase>(getInitialPhase());
+  const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
+  
+  // Helper functions
   const togglePre = (id: string, daysBeforeD0: number) => {
     toggleTask({ taskId: id, taskType: 'pre', taskDay: -daysBeforeD0 });
   };
@@ -153,69 +178,30 @@ export default function NeoCareOrientations() {
     toggleTask({ taskId: id, taskType: 'post', taskDay });
   };
 
-  // Check if task is overdue (not completed and past its day)
-  const isTaskOverdue = (taskId: string, taskDay: number) => {
-    if (isTaskCompleted(taskId)) return false;
-    return currentDay > taskDay;
-  };
-
-  // Check if task is for today and not done
-  const isTaskDueToday = (taskId: string, taskDay: number) => {
-    if (isTaskCompleted(taskId)) return false;
-    return currentDay === taskDay;
-  };
-
-  // Progress calculations
-  const completedPreCount = preTransplantChecklist.filter(t => isTaskCompleted(t.id)).length;
-  const preProgress = Math.round((completedPreCount / preTransplantChecklist.length) * 100);
-  
-  const relevantPostTasks = postTransplantChecklist
-    .filter(day => day.day <= Math.max(currentDay, 1))
-    .flatMap(day => day.tasks);
-  
-  const completedPostCount = relevantPostTasks.filter(t => isTaskCompleted(t.id)).length;
-  const postProgress = relevantPostTasks.length > 0 
-    ? Math.round((completedPostCount / relevantPostTasks.length) * 100)
-    : 0;
-
-  const isPrePhase = selectedDay < 0;
-  const isD0 = selectedDay === 0;
-  const totalProgress = isPrePhase ? preProgress : postProgress;
-
-  const activeRestrictions = restrictions.filter(r => currentDay < r.until);
-  
-  // Get tasks for selected day
-  const selectedDayData = postTransplantChecklist.find(d => d.day === selectedDay);
-  
-  // Count overdue tasks
-  const overdueTasks = postTransplantChecklist
-    .filter(day => day.day < currentDay)
-    .flatMap(day => day.tasks)
-    .filter(task => !isTaskCompleted(task.id));
-
-
-  // Phase calculation
-  const getCurrentPhase = () => {
-    if (currentDay < 0) return 'pre';
-    if (currentDay === 0) return 'd0';
-    if (currentDay <= 3) return 'inicial';
-    if (currentDay <= 15) return 'recuperacao';
-    return 'liberado';
-  };
-  
-  const phase = getCurrentPhase();
-  const phases = [
-    { key: 'pre', label: 'Pré-operatório', icon: Calendar, days: 'D-15 a D-1' },
-    { key: 'd0', label: 'Cirurgia', icon: Heart, days: 'D0' },
-    { key: 'inicial', label: 'Cuidado Intensivo', icon: Droplets, days: 'D1 a D3' },
-    { key: 'recuperacao', label: 'Recuperação', icon: Sparkles, days: 'D4 a D15' },
-    { key: 'liberado', label: 'Cuidados Contínuos', icon: Heart, days: 'D15+' },
-  ];
-
   // Get real date for a day offset
   const getRealDate = (dayOffset: number) => {
     return addDays(surgeryDate, dayOffset);
   };
+
+  // Progress calculations
+  const allPreTasks = preTransplantByDay.flatMap(d => d.tasks);
+  const completedPreCount = allPreTasks.filter(t => isTaskCompleted(t.id)).length;
+  const preProgress = Math.round((completedPreCount / allPreTasks.length) * 100);
+  
+  const allPostTasks = postTransplantByDay.flatMap(d => d.tasks);
+  const completedPostCount = allPostTasks.filter(t => isTaskCompleted(t.id)).length;
+  const postProgress = Math.round((completedPostCount / allPostTasks.length) * 100);
+  
+  const totalProgress = selectedPhase === 'pre' ? preProgress : selectedPhase === 'pos' ? postProgress : 100;
+
+  const activeRestrictions = restrictions.filter(r => currentDay < r.until);
+
+  // Phase definitions
+  const phases = [
+    { key: 'pre' as Phase, label: 'Pré-operatório', icon: Calendar },
+    { key: 'd0' as Phase, label: 'Cirurgia', icon: Heart },
+    { key: 'pos' as Phase, label: 'Pós-operatório', icon: Droplets },
+  ];
 
   // Loading state
   if (surgeryLoading) {
@@ -239,9 +225,6 @@ export default function NeoCareOrientations() {
             <p className="text-muted-foreground text-sm mt-1">
               Sua data de cirurgia ainda não foi cadastrada no sistema.
             </p>
-            <p className="text-muted-foreground text-sm">
-              Entre em contato com a clínica para confirmar sua agenda.
-            </p>
           </div>
           <button 
             onClick={() => window.dispatchEvent(new CustomEvent('open-support-chat'))}
@@ -261,9 +244,22 @@ export default function NeoCareOrientations() {
     );
   }
 
+  // Filter timeline data based on selected date
+  const getFilteredPreData = () => {
+    if (!filterDate) return preTransplantByDay;
+    const filterDayOffset = Math.floor((filterDate.getTime() - surgeryDay.getTime()) / (1000 * 60 * 60 * 24));
+    return preTransplantByDay.filter(d => -d.daysBeforeD0 === filterDayOffset);
+  };
+
+  const getFilteredPostData = () => {
+    if (!filterDate) return postTransplantByDay;
+    const filterDayOffset = Math.floor((filterDate.getTime() - surgeryDay.getTime()) / (1000 * 60 * 60 * 24));
+    return postTransplantByDay.filter(d => d.day === filterDayOffset);
+  };
+
   return (
     <div className="space-y-4 pb-6 max-w-2xl mx-auto">
-      {/* Simple Header Card */}
+      {/* Header Card */}
       <div className="bg-card border rounded-xl p-4 space-y-4">
         {/* Title Row */}
         <div className="flex items-center justify-between">
@@ -283,330 +279,356 @@ export default function NeoCareOrientations() {
           </div>
         </div>
         
-        {/* Phase Progress */}
-        <div className="flex items-center gap-1">
+        {/* Phase Selector - Clickable */}
+        <div className="flex items-stretch gap-1">
           {phases.map((p, idx) => {
             const PhaseIcon = p.icon;
-            const isActive = phase === p.key;
-            const isPast = phases.findIndex(x => x.key === phase) > idx;
+            const isActive = selectedPhase === p.key;
+            const isPast = phases.findIndex(x => x.key === selectedPhase) > idx;
+            const isCurrentPhase = (p.key === 'pre' && currentDay < 0) || 
+                                   (p.key === 'd0' && currentDay === 0) || 
+                                   (p.key === 'pos' && currentDay > 0);
             
             return (
-              <div key={p.key} className="flex-1 flex flex-col items-center">
+              <button
+                key={p.key}
+                onClick={() => {
+                  setSelectedPhase(p.key);
+                  setFilterDate(undefined);
+                }}
+                className={cn(
+                  "flex-1 flex flex-col items-center py-3 px-2 rounded-lg transition-all border-2",
+                  isActive 
+                    ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500" 
+                    : "bg-background border-transparent hover:bg-muted/50"
+                )}
+              >
                 <div className={cn(
-                  "w-full h-2 rounded-full transition-colors",
+                  "w-full h-1.5 rounded-full mb-2",
                   isActive ? "bg-emerald-500" : isPast ? "bg-emerald-300 dark:bg-emerald-700" : "bg-muted"
                 )} />
-                <div className={cn(
-                  "flex flex-col items-center mt-2",
+                <PhaseIcon className={cn(
+                  "h-5 w-5 mb-1",
+                  isActive ? "text-emerald-500" : "text-muted-foreground"
+                )} />
+                <span className={cn(
+                  "text-xs font-medium text-center leading-tight",
                   isActive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
                 )}>
-                  <PhaseIcon className={cn("h-4 w-4", isActive && "text-emerald-500")} />
-                  <span className="text-[10px] font-medium text-center leading-tight mt-0.5 hidden sm:block">{p.label}</span>
+                  {p.label}
+                </span>
+                {isCurrentPhase && (
+                  <Badge variant="secondary" className="mt-1 text-[10px] px-1.5 py-0">
+                    Atual
+                  </Badge>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Filter Row */}
+      {selectedPhase !== 'd0' && (
+        <div className="flex items-center gap-2 px-1">
+          <span className="text-sm text-muted-foreground">Filtrar por dia:</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <CalendarDays className="h-4 w-4" />
+                {filterDate ? format(filterDate, "dd/MM", { locale: ptBR }) : "Todos"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarPicker
+                mode="single"
+                selected={filterDate}
+                onSelect={(date) => setFilterDate(date)}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+          {filterDate && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setFilterDate(undefined)}
+              className="text-xs"
+            >
+              Limpar
+            </Button>
+          )}
+        </div>
+      )}
+
+      <Separator />
+
+      {/* PRE-OPERATÓRIO - Vertical Timeline */}
+      {selectedPhase === 'pre' && (
+        <div className="space-y-0 relative">
+          {/* Vertical line */}
+          <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-border" />
+          
+          {getFilteredPreData().map((dayGroup, idx) => {
+            const realDate = getRealDate(-dayGroup.daysBeforeD0);
+            const isDayToday = isDateToday(realDate);
+            const isPast = isBefore(realDate, today);
+            const allCompleted = dayGroup.tasks.every(t => isTaskCompleted(t.id));
+            
+            return (
+              <div key={dayGroup.label} className="relative pl-12 pb-6">
+                {/* Timeline dot */}
+                <div className={cn(
+                  "absolute left-3 top-1 w-4 h-4 rounded-full border-2 bg-background z-10",
+                  allCompleted 
+                    ? "border-emerald-500 bg-emerald-500" 
+                    : isDayToday 
+                      ? "border-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-900" 
+                      : isPast && !allCompleted
+                        ? "border-red-400"
+                        : "border-muted-foreground"
+                )}>
+                  {allCompleted && <Check className="h-2.5 w-2.5 text-white absolute top-0.5 left-0.5" />}
+                </div>
+                
+                {/* Day header */}
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant={isDayToday ? "default" : "outline"} className={cn(
+                    "font-semibold",
+                    isDayToday && "bg-emerald-500"
+                  )}>
+                    {dayGroup.label}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {format(realDate, "EEEE, dd 'de' MMM", { locale: ptBR })}
+                  </span>
+                  {isDayToday && (
+                    <Badge variant="secondary" className="text-[10px]">HOJE</Badge>
+                  )}
+                </div>
+                
+                {/* Tasks */}
+                <div className="space-y-2">
+                  {dayGroup.tasks.map((task) => {
+                    const Icon = task.icon;
+                    const isChecked = isTaskCompleted(task.id);
+                    const isOverdue = !isChecked && isPast && !isDayToday;
+                    
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() => togglePre(task.id, dayGroup.daysBeforeD0)}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
+                          isChecked 
+                            ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800" 
+                            : isOverdue
+                              ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-800"
+                              : "bg-background border-border hover:bg-muted/50"
+                        )}
+                      >
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={() => togglePre(task.id, dayGroup.daysBeforeD0)}
+                          className={cn(
+                            "h-5 w-5 shrink-0 border-2",
+                            isChecked 
+                              ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500" 
+                              : isOverdue 
+                                ? "border-red-400" 
+                                : "border-muted-foreground/50"
+                          )}
+                        />
+                        {isOverdue && (
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 rounded text-red-600 dark:text-red-400">
+                            <AlertTriangle className="h-3 w-3" />
+                            <span className="text-[10px] font-semibold uppercase">Atrasado</span>
+                          </div>
+                        )}
+                        <Icon className={cn(
+                          "h-4 w-4 shrink-0",
+                          isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
+                        )} />
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm font-medium",
+                            isChecked && "line-through text-muted-foreground"
+                          )}>
+                            {task.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{task.desc}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
           })}
         </div>
-
-        {/* Overdue Tasks Alert */}
-        {overdueTasks.length > 0 && (
-          <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2 text-sm">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            <span className="text-amber-700 dark:text-amber-300">{overdueTasks.length} tarefa(s) pendente(s) de dias anteriores</span>
-          </div>
-        )}
-      </div>
-
-      {/* Day Selector */}
-      <div className="space-y-2">
-        <h2 className="font-semibold text-sm px-1">Selecione o Dia</h2>
-        
-        {/* Horizontal scroll container */}
-        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-          <div className="flex items-start gap-2 pb-2 min-w-max">
-            {daySelectors.map((item) => {
-              const realDate = getRealDate(item.day);
-              const isSelected = selectedDay === item.day;
-              const isToday = currentDay === item.day;
-              const isD0Item = item.isD0;
-              
-              // Check completion for post days
-              const postDayData = postTransplantChecklist.find(d => d.day === item.day);
-              const isComplete = postDayData 
-                ? postDayData.tasks.every(t => isTaskCompleted(t.id))
-                : item.day < 0 
-                  ? preTransplantChecklist.filter(t => t.daysBeforeD0 >= Math.abs(item.day)).every(t => isTaskCompleted(t.id))
-                  : false;
-              
-              return (
-                <button
-                  key={item.day}
-                  onClick={() => setSelectedDay(item.day)}
-                  className={cn(
-                    "flex flex-col items-center gap-0.5 min-w-[70px] transition-all",
-                  )}
-                >
-                  {/* HOJE label above */}
-                  {isToday && (
-                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
-                      HOJE
-                    </span>
-                  )}
-                  
-                  {/* D0 special label */}
-                  {isD0Item && !isToday && (
-                    <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide leading-tight text-center">
-                      Transplante
-                    </span>
-                  )}
-                  
-                  {/* Spacer for non-labeled items */}
-                  {!isToday && !isD0Item && (
-                    <span className="h-[14px]"></span>
-                  )}
-                  
-                  {/* Day pill */}
-                  <div className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium transition-all border relative flex items-center gap-1",
-                    isD0Item
-                      ? isToday
-                        ? "bg-emerald-500 text-white border-emerald-600 ring-2 ring-emerald-300 dark:ring-emerald-700"
-                        : isSelected
-                          ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-500 border-2"
-                          : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-400 dark:border-emerald-600 border-2"
-                      : isToday 
-                        ? "bg-emerald-500 text-white border-emerald-500 ring-2 ring-emerald-300 dark:ring-emerald-700"
-                        : isSelected 
-                          ? "bg-foreground text-background border-foreground"
-                          : isComplete
-                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
-                            : "bg-card border-border hover:bg-muted text-muted-foreground"
-                  )}>
-                    {item.label}
-                    {isComplete && !isToday && !isSelected && !isD0Item && (
-                      <Check className="h-3 w-3" />
-                    )}
-                  </div>
-                  
-                  {/* Real date below */}
-                  <span className={cn(
-                    "text-[10px] font-medium transition-colors",
-                    isD0Item 
-                      ? "text-emerald-600 dark:text-emerald-400 font-semibold"
-                      : isSelected || isToday 
-                        ? "text-foreground" 
-                        : "text-muted-foreground"
-                  )}>
-                    {format(realDate, 'dd MMM', { locale: ptBR })}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* PRE-TRANSPLANT */}
-      {selectedDay < 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-amber-500" />
-            <h2 className="font-semibold text-sm">Checklist Pré-Transplante</h2>
-            <Badge variant="secondary" className="ml-auto text-xs">
-              {completedPreCount}/{preTransplantChecklist.length}
-            </Badge>
-          </div>
-
-          <div className="space-y-1">
-            {preTransplantChecklist.map((item) => {
-              const Icon = item.icon;
-              const isChecked = isTaskCompleted(item.id);
-              const taskDate = addDays(surgeryDate, -item.daysBeforeD0);
-              const isOverdue = !isChecked && isBefore(taskDate, today) && currentDay < 0;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => togglePre(item.id, item.daysBeforeD0)}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
-                    isChecked 
-                      ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800" 
-                      : isOverdue
-                        ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-800"
-                        : "bg-background border-border hover:bg-muted/50"
-                  )}
-                >
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => togglePre(item.id, item.daysBeforeD0)}
-                      className={cn(
-                        "h-5 w-5 shrink-0 border-2",
-                        isChecked 
-                          ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500" 
-                          : isOverdue 
-                            ? "border-red-400" 
-                            : "border-muted-foreground/50"
-                      )}
-                    />
-                    {isOverdue && !isChecked && (
-                      <div className="flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 rounded text-red-600 dark:text-red-400">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        <span className="text-[10px] font-semibold uppercase">Atrasado</span>
-                      </div>
-                    )}
-                    <Icon className={cn(
-                      "h-4 w-4 shrink-0",
-                      isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
-                    )} />
-                  <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      "text-sm font-medium",
-                      isChecked && "line-through text-muted-foreground"
-                    )}>
-                      {item.title}
-                    </p>
-                    {isOverdue && !isChecked && (
-                      <p className="text-xs text-red-500 font-medium">Pendente!</p>
-                    )}
-                  </div>
-                  <span className="text-xs text-muted-foreground">{item.desc}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       )}
 
-      {/* D0 - TRANSPLANT DAY */}
-      {isD0 && (
-        <div className="text-center py-8">
-          <div className="w-20 h-20 rounded-full bg-emerald-500 text-white mx-auto mb-4 flex items-center justify-center">
-            <Sparkles className="h-10 w-10" />
+      {/* D0 - CIRURGIA */}
+      {selectedPhase === 'd0' && (
+        <div className="text-center py-12">
+          <div className="w-24 h-24 rounded-full bg-emerald-500 text-white mx-auto mb-6 flex items-center justify-center">
+            <Sparkles className="h-12 w-12" />
           </div>
-          <h2 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+          <h2 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-3">
             Dia do Transplante
           </h2>
-          <p className="text-muted-foreground">
-            Relaxe e confie na nossa equipe, sua transformação será incrível!
+          <p className="text-muted-foreground text-lg mb-2">
+            {format(surgeryDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </p>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            Relaxe e confie na nossa equipe. Sua transformação será incrível! 🌟
+          </p>
+          
+          {currentDay === 0 && (
+            <div className="mt-8 p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-800 max-w-sm mx-auto">
+              <p className="text-emerald-700 dark:text-emerald-300 font-medium">
+                🎉 Hoje é o grande dia!
+              </p>
+            </div>
+          )}
         </div>
       )}
 
-      {/* POST-TRANSPLANT */}
-      {selectedDay > 0 && selectedDayData && (
-        <div className="space-y-4">
-          {/* Selected Day Tasks */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-blue-500" />
-              <h2 className="font-semibold text-sm">
-                Tarefas do {selectedDayData.label}
-                {selectedDay === currentDay && (
-                  <Badge className="ml-2 bg-emerald-500 text-white">Hoje</Badge>
-                )}
-                {selectedDay < currentDay && (
-                  <Badge className="ml-2" variant="outline">Passado</Badge>
-                )}
-              </h2>
-            </div>
-
-            <div className="space-y-1">
-              {selectedDayData.tasks.map((task) => {
-                const Icon = task.icon;
-                const isChecked = isTaskCompleted(task.id);
-                const completedAt = getCompletedAt(task.id);
-                const isOverdue = isTaskOverdue(task.id, selectedDayData.day);
-                const taskDate = addDays(surgeryDate, selectedDayData.day);
+      {/* PÓS-OPERATÓRIO - Vertical Timeline */}
+      {selectedPhase === 'pos' && (
+        <div className="space-y-0 relative">
+          {/* Vertical line */}
+          <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-border" />
+          
+          {getFilteredPostData().map((dayGroup) => {
+            const realDate = getRealDate(dayGroup.day);
+            const isDayToday = isDateToday(realDate);
+            const isPast = isBefore(realDate, today);
+            const allCompleted = dayGroup.tasks.every(t => isTaskCompleted(t.id));
+            
+            return (
+              <div key={dayGroup.label} className="relative pl-12 pb-6">
+                {/* Timeline dot */}
+                <div className={cn(
+                  "absolute left-3 top-1 w-4 h-4 rounded-full border-2 bg-background z-10",
+                  allCompleted 
+                    ? "border-emerald-500 bg-emerald-500" 
+                    : isDayToday 
+                      ? "border-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-900" 
+                      : isPast && !allCompleted
+                        ? "border-red-400"
+                        : "border-muted-foreground"
+                )}>
+                  {allCompleted && <Check className="h-2.5 w-2.5 text-white absolute top-0.5 left-0.5" />}
+                </div>
                 
-                return (
-                  <div
-                    key={task.id}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg transition-all border",
-                      isChecked 
-                        ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" 
-                        : isOverdue
-                          ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-800"
-                          : "bg-background border-border"
-                    )}
-                  >
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => togglePost(task.id, selectedDayData.day)}
-                      className={cn(
-                        "h-5 w-5 shrink-0 border-2",
-                        isChecked 
-                          ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500" 
-                          : isOverdue 
-                            ? "border-red-400" 
-                            : "border-muted-foreground/50"
-                      )}
-                    />
-                    {isOverdue && !isChecked && (
-                      <div className="flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 rounded text-red-600 dark:text-red-400">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        <span className="text-[10px] font-semibold uppercase">Atrasado</span>
+                {/* Day header */}
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant={isDayToday ? "default" : "outline"} className={cn(
+                    "font-semibold",
+                    isDayToday && "bg-emerald-500"
+                  )}>
+                    {dayGroup.label}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {format(realDate, "EEEE, dd 'de' MMM", { locale: ptBR })}
+                  </span>
+                  {isDayToday && (
+                    <Badge variant="secondary" className="text-[10px]">HOJE</Badge>
+                  )}
+                </div>
+                
+                {/* Tasks */}
+                <div className="space-y-2">
+                  {dayGroup.tasks.map((task) => {
+                    const Icon = task.icon;
+                    const isChecked = isTaskCompleted(task.id);
+                    const completedAt = getCompletedAt(task.id);
+                    const isOverdue = !isChecked && isPast && !isDayToday;
+                    
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() => togglePost(task.id, dayGroup.day)}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
+                          isChecked 
+                            ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800" 
+                            : isOverdue
+                              ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-800"
+                              : "bg-background border-border hover:bg-muted/50"
+                        )}
+                      >
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={() => togglePost(task.id, dayGroup.day)}
+                          className={cn(
+                            "h-5 w-5 shrink-0 border-2",
+                            isChecked 
+                              ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500" 
+                              : isOverdue 
+                                ? "border-red-400" 
+                                : "border-muted-foreground/50"
+                          )}
+                        />
+                        {isOverdue && (
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 rounded text-red-600 dark:text-red-400">
+                            <AlertTriangle className="h-3 w-3" />
+                            <span className="text-[10px] font-semibold uppercase">Atrasado</span>
+                          </div>
+                        )}
+                        <Icon className={cn(
+                          "h-4 w-4 shrink-0",
+                          isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
+                        )} />
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm font-medium",
+                            isChecked && "line-through text-muted-foreground"
+                          )}>
+                            {task.title}
+                          </p>
+                          {completedAt && (
+                            <p className="text-xs text-muted-foreground">
+                              ✓ {format(new Date(completedAt), "dd/MM 'às' HH:mm")}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {task.time}
+                        </Badge>
                       </div>
-                    )}
-                    <Icon className={cn(
-                      "h-4 w-4 shrink-0",
-                      isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
-                    )} />
-                    <div 
-                      className="flex-1 min-w-0 cursor-pointer"
-                      onClick={() => togglePost(task.id, selectedDayData.day)}
-                    >
-                      <p className={cn(
-                        "text-sm font-medium",
-                        isChecked && "line-through text-muted-foreground"
-                      )}>
-                        {task.title}
-                      </p>
-                      {isOverdue && !isChecked && (
-                        <p className="text-xs text-red-500 font-medium">Não cumprida!</p>
-                      )}
-                      {completedAt && (
-                        <p className="text-xs text-muted-foreground">
-                          ✓ Feito em {format(new Date(completedAt), "dd/MM 'às' HH:mm")}
-                        </p>
-                      )}
-                    </div>
-                    <Badge variant="outline" className="text-xs shrink-0">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {task.time}
-                    </Badge>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
 
-          {selectedDay === currentDay && (
+          {/* Restrictions - only show in pos phase */}
+          {activeRestrictions.length > 0 && !filterDate && (
             <>
-              <Separator />
-              
-              {/* Active Restrictions */}
-              <div className="space-y-3">
+              <Separator className="my-4" />
+              <div className="pl-12 space-y-3">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-orange-500" />
                   <h2 className="font-semibold text-sm">Restrições Ativas</h2>
                 </div>
-
                 <div className="grid grid-cols-2 gap-2">
-                  {activeRestrictions.map((r, idx) => {
+                  {activeRestrictions.slice(0, 4).map((r, idx) => {
                     const Icon = r.icon;
                     const daysLeft = r.until - currentDay;
                     return (
                       <div 
                         key={idx} 
-                        className="flex items-center gap-3 p-3 rounded-lg border bg-background"
+                        className="flex items-center gap-2 p-2 rounded-lg border bg-background"
                       >
                         <Icon className="h-4 w-4 text-orange-500 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{r.title}</p>
-                          <p className="text-[10px] text-muted-foreground">{daysLeft}d restantes</p>
+                          <p className="text-[10px] text-muted-foreground">{daysLeft}d</p>
                         </div>
                       </div>
                     );
@@ -627,7 +649,7 @@ export default function NeoCareOrientations() {
         </div>
         <div className="flex-1">
           <p className="font-medium text-sm">Ative as notificações</p>
-          <p className="text-xs text-muted-foreground">Receba lembretes por WhatsApp e e-mail</p>
+          <p className="text-xs text-muted-foreground">Receba lembretes por WhatsApp</p>
         </div>
         <Button size="sm" variant="outline">
           Configurar
