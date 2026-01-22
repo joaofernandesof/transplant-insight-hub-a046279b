@@ -157,9 +157,9 @@ export default function Dashboard() {
   
   return (
     <UnifiedSidebar>
-      <div className="p-2 sm:p-4 lg:p-6 pt-14 sm:pt-4 max-w-[1920px] mx-auto overflow-x-hidden w-full">
+      <div className="p-4 lg:p-6 pt-16 lg:pt-6 max-w-[1920px] mx-auto overflow-x-hidden w-full">
         {/* Top Bar - Mobile optimized */}
-        <div className="flex flex-col gap-2 sm:gap-3 mb-3 sm:mb-6">
+        <div className="flex flex-col gap-3 mb-6">
           {/* Admin Controls - Stack on mobile */}
           {isAdmin && (
             <div className="flex flex-col sm:flex-row gap-2">

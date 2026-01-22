@@ -1,14 +1,15 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Flame, TrendingUp, Award } from 'lucide-react';
+import { Trophy, Flame, TrendingUp, Award, ChevronRight } from 'lucide-react';
 import { useAchievements } from '@/hooks/useAchievements';
 import { useSales } from '@/hooks/useSales';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { format, subMonths } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export function QuickStatsWidget() {
   const navigate = useNavigate();
-  const { achievements, totalPoints, unlockedCount, isLoading: achievementsLoading } = useAchievements();
+  const { totalPoints, unlockedCount, isLoading: achievementsLoading } = useAchievements();
   
   const currentMonth = format(new Date(), 'yyyy-MM');
   const lastMonth = format(subMonths(new Date(), 1), 'yyyy-MM');
@@ -21,11 +22,13 @@ export function QuickStatsWidget() {
   if (isLoading) {
     return (
       <Card className="h-full">
-        <CardContent className="p-4">
-          <Skeleton className="h-4 w-28 mb-3" />
-          <div className="space-y-2">
-            <Skeleton className="h-10" />
-            <Skeleton className="h-10" />
+        <CardContent className="p-5">
+          <Skeleton className="h-5 w-32 mb-4" />
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
           </div>
         </CardContent>
       </Card>
@@ -55,7 +58,7 @@ export function QuickStatsWidget() {
       route: '/achievements'
     },
     {
-      label: 'Crescimento Mês',
+      label: 'Crescimento Mensal',
       value: `${growthPercent >= 0 ? '+' : ''}${growthPercent.toFixed(0)}%`,
       icon: TrendingUp,
       color: growthPercent >= 0 ? 'text-green-600' : 'text-red-600',
@@ -63,7 +66,7 @@ export function QuickStatsWidget() {
       route: '/dashboard'
     },
     {
-      label: 'Transplantes',
+      label: 'Transplantes do Mês',
       value: currentStats.transplantsSold.toString(),
       icon: Flame,
       color: 'text-orange-600',
@@ -74,27 +77,32 @@ export function QuickStatsWidget() {
 
   return (
     <Card className="h-full">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-medium text-sm">Performance</span>
-          <span className="text-[10px] text-muted-foreground uppercase">
-            {format(new Date(), 'MMM yyyy')}
-          </span>
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-base">Performance</h3>
+            <p className="text-xs text-muted-foreground">
+              {format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}
+            </p>
+          </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {stats.map((stat) => (
             <div 
               key={stat.label}
-              className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
-              onClick={() => navigate(stat.route)}
+              className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(stat.route);
+              }}
             >
-              <div className={`p-1.5 rounded-md ${stat.bg}`}>
-                <stat.icon className={`h-3 w-3 ${stat.color}`} />
+              <div className={`p-2.5 rounded-lg ${stat.bg}`}>
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold truncate">{stat.value}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{stat.label}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-bold">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
               </div>
             </div>
           ))}

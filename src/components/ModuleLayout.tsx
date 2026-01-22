@@ -12,7 +12,7 @@ export function ModuleLayout({ children, hideBreadcrumb = false }: ModuleLayoutP
     <UnifiedSidebar>
       <div className="min-h-screen bg-background">
         {!hideBreadcrumb && (
-          <div className="p-4 lg:p-6 pb-0 lg:pb-0">
+          <div className="p-4 lg:p-6 pb-0 lg:pb-0 pt-14 lg:pt-6">
             <GlobalBreadcrumb />
           </div>
         )}
