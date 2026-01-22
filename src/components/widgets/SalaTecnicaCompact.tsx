@@ -60,8 +60,8 @@ export function SalaTecnicaCompact() {
               <Video className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-base">Sala Técnica</h3>
-              <p className="text-xs text-muted-foreground">Mentorias semanais</p>
+              <h3 className="font-semibold text-base">Agenda do Licenciado</h3>
+              <p className="text-xs text-muted-foreground">Eventos e Mentorias</p>
             </div>
           </div>
           <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />

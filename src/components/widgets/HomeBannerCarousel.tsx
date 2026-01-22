@@ -37,9 +37,9 @@ const bannerSlides: BannerSlide[] = [
   },
   {
     id: 'sala-tecnica',
-    title: 'Participe das mentorias',
-    subtitle: 'Toda quinta-feira às 19h',
-    highlight: 'Sala Técnica IBRAMEC',
+    title: 'Participe dos eventos exclusivos',
+    subtitle: 'Mentorias, workshops e encontros',
+    highlight: 'Agenda do Licenciado',
     bgColor: 'bg-gradient-to-r from-violet-600 via-purple-600 to-violet-700',
     textPosition: 'left',
     route: '/sala-tecnica'

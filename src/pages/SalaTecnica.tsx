@@ -31,10 +31,10 @@ export default function SalaTecnica() {
             <div className="p-2 rounded-xl bg-amber-500/10">
               <Video className="h-7 w-7 text-amber-500" />
             </div>
-            Sala Técnica
+            Agenda do Licenciado
           </h1>
           <p className="text-muted-foreground">
-            Mentoria semanal com os especialistas do IBRAMEC para licenciados ByNeoFolic
+            Eventos, mentorias e encontros exclusivos para licenciados ByNeoFolic
           </p>
         </div>
 

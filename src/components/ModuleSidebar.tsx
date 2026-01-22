@@ -64,7 +64,7 @@ const menuItems = [
   { id: 'metrics', title: 'Dashboard de Métricas', icon: BarChart3, route: '/dashboard' },
   { id: 'achievements', title: 'Conquistas', icon: Trophy, route: '/achievements' },
   { id: 'surgery-schedule', title: 'Agenda de Cirurgias', icon: Building2, route: '/surgery-schedule' },
-  { id: 'sala-tecnica', title: 'Sala Técnica', icon: CalendarDays, route: '/sala-tecnica' },
+  { id: 'sala-tecnica', title: 'Agenda do Licenciado', icon: CalendarDays, route: '/sala-tecnica' },
   { id: 'divider-2', title: 'Formação', isDivider: true },
   { id: 'university', title: 'Universidade ByNeofolic', icon: Video, route: '/university' },
   { id: 'certificates', title: 'Certificados', icon: GraduationCap, route: '/certificates' },
