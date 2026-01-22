@@ -40,7 +40,8 @@ import {
 import { 
   Plus, List, Kanban, Calendar, Flag, Clock, User, 
   MoreVertical, Trash2, Edit, CheckCircle2, Loader2,
-  AlertCircle, ArrowUp, ArrowRight, ArrowDown
+  AlertCircle, ArrowUp, ArrowRight, ArrowDown, ChevronLeft,
+  ChevronRight, MessageCircle, Phone
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -122,34 +123,76 @@ export default function NeoTeamTasks() {
 
   const getTasksByStatus = (status: TaskStatus) => tasks.filter(t => t.status === status);
 
+  // Extract patient info from description
+  const extractPatientInfo = (description: string | null): { name?: string; phone?: string } => {
+    if (!description) return {};
+    const phoneMatch = description.match(/Contato:\s*(\d+)/);
+    const nameMatch = description.match(/paciente\s+([^não]+?)\s+não/i) || 
+                     description.match(/Paciente:\s*([^\n|]+)/i);
+    return {
+      name: nameMatch ? nameMatch[1].trim() : undefined,
+      phone: phoneMatch ? phoneMatch[1].trim() : undefined,
+    };
+  };
+
+  const openWhatsApp = (phone: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const formattedPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+    window.open(`https://wa.me/${formattedPhone}`, '_blank');
+  };
+
   const TaskCard = ({ task }: { task: Task }) => {
     const PriorityIcon = priorityConfig[task.priority].icon;
     const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+    const patientInfo = extractPatientInfo(task.description);
+
+    // Get next status for quick move
+    const getNextStatus = (): TaskStatus | null => {
+      const currentIndex = statusColumns.indexOf(task.status);
+      if (currentIndex < statusColumns.length - 1) {
+        return statusColumns[currentIndex + 1];
+      }
+      return null;
+    };
+
+    const getPrevStatus = (): TaskStatus | null => {
+      const currentIndex = statusColumns.indexOf(task.status);
+      if (currentIndex > 0) {
+        return statusColumns[currentIndex - 1];
+      }
+      return null;
+    };
+
+    const nextStatus = getNextStatus();
+    const prevStatus = getPrevStatus();
 
     return (
-      <Card className={`hover:shadow-md transition-shadow ${task.status === 'done' ? 'opacity-70' : ''}`}>
-        <CardContent className="p-3">
+      <Card className={`hover:shadow-lg transition-all border-l-4 ${
+        task.priority === 'urgent' ? 'border-l-red-500' :
+        task.priority === 'high' ? 'border-l-orange-500' :
+        task.priority === 'medium' ? 'border-l-blue-500' :
+        'border-l-slate-300'
+      } ${task.status === 'done' ? 'opacity-60' : ''}`}>
+        <CardContent className="p-4">
+          {/* Header with priority and menu */}
           <div className="flex items-start justify-between gap-2 mb-2">
-            <p className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
-              {task.title}
-            </p>
+            <div className="flex items-center gap-2">
+              <PriorityIcon className={`h-4 w-4 ${priorityConfig[task.priority].color}`} />
+              <Badge variant="outline" className={`text-[10px] ${priorityConfig[task.priority].color}`}>
+                {priorityConfig[task.priority].label}
+              </Badge>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
                   <MoreVertical className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-popover">
                 <DropdownMenuItem onClick={() => handleEditTask(task)}>
                   <Edit className="h-4 w-4 mr-2" />
                   Editar
                 </DropdownMenuItem>
-                {task.status !== 'done' && (
-                  <DropdownMenuItem onClick={() => moveTask(task.id, 'done')}>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Concluir
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem 
                   className="text-destructive"
                   onClick={() => setDeletingTask(task)}
@@ -161,24 +204,105 @@ export default function NeoTeamTasks() {
             </DropdownMenu>
           </div>
 
-          {task.description && (
+          {/* Title */}
+          <p className={`font-semibold text-sm mb-2 ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+            {task.title}
+          </p>
+
+          {/* Patient Info */}
+          {patientInfo.name && (
+            <div className="flex items-center gap-2 mb-2 p-2 bg-muted/50 rounded-md">
+              <User className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">{patientInfo.name}</span>
+            </div>
+          )}
+
+          {/* Description */}
+          {task.description && !patientInfo.name && (
             <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
           )}
 
-          <div className="flex items-center justify-between gap-2">
+          {/* Meta info */}
+          <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
-              <PriorityIcon className={`h-3 w-3 ${priorityConfig[task.priority].color}`} />
               {task.due_date && (
-                <span className={`text-xs flex items-center gap-1 ${isOverdue ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                <span className={`text-xs flex items-center gap-1 px-2 py-0.5 rounded-full ${
+                  isOverdue 
+                    ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
+                    : 'bg-muted text-muted-foreground'
+                }`}>
                   <Calendar className="h-3 w-3" />
                   {format(new Date(task.due_date), 'dd/MM')}
                 </span>
               )}
             </div>
             {task.assignee_name && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+              <Badge variant="secondary" className="text-[10px]">
                 {task.assignee_name.split(' ')[0]}
               </Badge>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 pt-2 border-t">
+            {/* Move buttons */}
+            {prevStatus && task.status !== 'done' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs gap-1"
+                onClick={() => moveTask(task.id, prevStatus)}
+                title={`Mover para ${statusConfig[prevStatus].label}`}
+              >
+                <ChevronLeft className="h-3 w-3" />
+              </Button>
+            )}
+            
+            {/* Complete button */}
+            {task.status !== 'done' ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 flex-1 text-xs gap-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+                onClick={() => moveTask(task.id, 'done')}
+              >
+                <CheckCircle2 className="h-3 w-3" />
+                Concluir
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 flex-1 text-xs gap-1"
+                onClick={() => moveTask(task.id, 'todo')}
+              >
+                Reabrir
+              </Button>
+            )}
+
+            {nextStatus && task.status !== 'done' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs gap-1"
+                onClick={() => moveTask(task.id, nextStatus)}
+                title={`Mover para ${statusConfig[nextStatus].label}`}
+              >
+                <ChevronRight className="h-3 w-3" />
+              </Button>
+            )}
+
+            {/* WhatsApp button */}
+            {patientInfo.phone && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+                onClick={() => openWhatsApp(patientInfo.phone!)}
+                title="Falar no WhatsApp"
+              >
+                <MessageCircle className="h-4 w-4" />
+              </Button>
             )}
           </div>
         </CardContent>
