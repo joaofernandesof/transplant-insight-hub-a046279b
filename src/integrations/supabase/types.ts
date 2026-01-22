@@ -951,6 +951,13 @@ export type Database = {
             referencedRelation: "exam_questions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "exam_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "exam_questions_student"
+            referencedColumns: ["id"]
+          },
         ]
       }
       exam_attempts: {
@@ -6012,7 +6019,50 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      exam_questions_student: {
+        Row: {
+          created_at: string | null
+          exam_id: string | null
+          explanation: string | null
+          id: string | null
+          options: Json | null
+          order_index: number | null
+          points: number | null
+          question_text: string | null
+          question_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          exam_id?: string | null
+          explanation?: string | null
+          id?: string | null
+          options?: Json | null
+          order_index?: number | null
+          points?: number | null
+          question_text?: string | null
+          question_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          exam_id?: string | null
+          explanation?: string | null
+          id?: string | null
+          options?: Json | null
+          order_index?: number | null
+          points?: number | null
+          question_text?: string | null
+          question_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_questions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_access_branch: {
