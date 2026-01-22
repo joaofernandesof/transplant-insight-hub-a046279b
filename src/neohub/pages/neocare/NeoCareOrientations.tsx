@@ -366,7 +366,7 @@ export default function NeoCareOrientations() {
                   : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
             )}
           >
-            D0
+            D0 (Cirurgia)
           </button>
 
           {/* Post-transplant days */}
