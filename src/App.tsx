@@ -122,7 +122,7 @@ import { MarketplaceDashboard } from "./marketplace/pages/MarketplaceDashboard";
 import { MarketplaceDiscovery } from "./marketplace/pages/MarketplaceDiscovery";
 
 // ====================================
-// Pós-Venda (CAPYS)
+// Pós-Venda
 // ====================================
 import { PostVendaHome, ChamadoListPage } from "./postvenda/pages";
 import { PostVendaSidebar } from "./postvenda/components";

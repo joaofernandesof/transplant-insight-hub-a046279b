@@ -1,4 +1,4 @@
-// Permissões do módulo Pós-Venda CAPYS
+// Permissões do módulo Pós-Venda
 export const POSTVENDA_PERMISSIONS = {
   admin: {
     canViewAll: true,
@@ -80,16 +80,16 @@ export const PRIORIDADE_LABELS: Record<string, string> = {
 };
 
 export const TIPO_DEMANDA_OPTIONS = [
-  { value: 'duvida', label: 'Dúvida' },
-  { value: 'reclamacao', label: 'Reclamação' },
-  { value: 'elogio', label: 'Elogio' },
-  { value: 'sugestao', label: 'Sugestão' },
-  { value: 'retorno', label: 'Retorno Médico' },
-  { value: 'urgencia_medica', label: 'Urgência Médica' },
+  { value: 'duvida_pre_operatorio', label: 'Dúvida Pré-Operatório' },
+  { value: 'duvida_pos_operatorio', label: 'Dúvida Pós-Operatório' },
+  { value: 'reclamacao_atendimento', label: 'Reclamação - Atendimento' },
+  { value: 'reclamacao_resultado', label: 'Reclamação - Resultado' },
   { value: 'reagendamento', label: 'Reagendamento' },
   { value: 'cancelamento', label: 'Cancelamento' },
+  { value: 'retorno_medico', label: 'Retorno Médico' },
+  { value: 'urgencia_medica', label: 'Urgência Médica' },
   { value: 'financeiro', label: 'Financeiro' },
-  { value: 'documentos', label: 'Documentos' },
+  { value: 'documentos', label: 'Documentos e Laudos' },
 ];
 
 export const CANAL_ORIGEM_OPTIONS = [
