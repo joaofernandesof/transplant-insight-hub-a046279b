@@ -1,10 +1,9 @@
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import { 
   BarChart3, 
   FileCheck, 
@@ -28,13 +27,11 @@ import {
   GraduationCap,
   Store,
   CreditCard,
-  ArrowRight,
-  CheckCircle,
   Building2,
   Gift,
   Menu,
-  ChevronRight,
-  Stethoscope
+  Stethoscope,
+  RotateCcw
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -42,16 +39,9 @@ import UserNotificationsPopover from "@/components/UserNotificationsPopover";
 import OnboardingTour from "@/components/OnboardingTour";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import FirstStepsDialog from "@/components/FirstStepsDialog";
-import AchievementsPanel from "@/components/AchievementsPanel";
-import { ModuleSidebar } from "@/components/ModuleSidebar";
-import MonthlyGoals from "@/components/MonthlyGoals";
-import SurgerySubmissions from "@/components/SurgerySubmissions";
-import AchievementTimeline from "@/components/AchievementTimeline";
-import Leaderboard from "@/components/Leaderboard";
-import { SalaTecnicaNotification } from "@/components/SalaTecnicaNotification";
-import { SalaTecnicaUpcoming } from "@/components/SalaTecnicaUpcoming";
 import { JourneyRoadmap } from "@/components/JourneyRoadmap";
 import { AnnouncementBanner } from "@/components/announcements";
+import { SpotlightTour } from "@/components/tour";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -319,9 +309,9 @@ export default function LicenseeHome() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { showOnboarding, completeOnboarding } = useOnboarding();
+  const [showSpotlightTour, setShowSpotlightTour] = useState(false);
   
   const tier = user ? getLicenseeTier(user.id) : 'basic';
-  const tierInfo = tierConfig[tier];
 
   const handleNavigate = (route: string) => {
     navigate(route);
@@ -337,6 +327,10 @@ export default function LicenseeHome() {
     window.dispatchEvent(new CustomEvent('openSidebar'));
   };
 
+  const handleRestartTour = () => {
+    setShowSpotlightTour(true);
+  };
+
   return (
     <>
       {/* Onboarding Tour */}
@@ -344,6 +338,12 @@ export default function LicenseeHome() {
       
       {/* First Steps Dialog - appears after login until completed */}
       <FirstStepsDialog />
+
+      {/* Spotlight Tour */}
+      <SpotlightTour 
+        isOpen={showSpotlightTour} 
+        onComplete={() => setShowSpotlightTour(false)} 
+      />
 
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 overflow-x-hidden w-full">
       {/* Header */}
@@ -373,6 +373,15 @@ export default function LicenseeHome() {
             </div>
             
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleRestartTour}
+                className="h-9 w-9"
+                title="Reiniciar Tour"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
               <ThemeToggle />
               <UserNotificationsPopover />
               <Button variant="ghost" size="icon" onClick={() => navigate('/profile')} className="h-9 w-9">
@@ -420,35 +429,14 @@ export default function LicenseeHome() {
           </h1>
         </div>
 
-        {/* Journey Roadmap - Primeiro elemento após welcome */}
+        {/* Journey Roadmap - Sua Jornada */}
         <div data-tour="journey-roadmap">
           <JourneyRoadmap currentTier={tier} />
         </div>
 
-        {/* Thursday Sala Técnica Notification */}
-        <SalaTecnicaNotification className="mb-6" />
-
-        {/* Monthly Goals & Surgeries (row 1) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          <MonthlyGoals />
-          <SurgerySubmissions />
-        </div>
-
-        {/* Achievements + Leaderboard (row 2) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <AchievementsPanel compact />
-          <Leaderboard limit={10} />
-        </div>
-
-        {/* Sala Técnica + Timeline (row 3) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <SalaTecnicaUpcoming />
-          <AchievementTimeline />
-        </div>
-
-        {/* Menu Grid - 2 colunas no mobile para melhor usabilidade */}
+        {/* Menu Grid - Acesso às funcionalidades */}
         <div data-tour="menu-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-12">
-          {mainSections.map((section, index) => (
+          {mainSections.map((section) => (
             <Card 
               key={section.id}
               data-tour={`menu-${section.id}`}
