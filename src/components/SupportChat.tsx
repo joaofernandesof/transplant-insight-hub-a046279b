@@ -49,6 +49,17 @@ export default function SupportChat() {
   const hasLoadedHistory = useRef(false);
   const lastSeenMessageCount = useRef(1); // Start with welcome message
 
+  // Listen for external open requests
+  useEffect(() => {
+    const handleOpenChat = () => {
+      setIsOpen(true);
+      setHasUnread(false);
+    };
+    
+    window.addEventListener('open-support-chat', handleOpenChat);
+    return () => window.removeEventListener('open-support-chat', handleOpenChat);
+  }, []);
+
   // Load chat history when component mounts or user changes
   useEffect(() => {
     if (user && !hasLoadedHistory.current) {
