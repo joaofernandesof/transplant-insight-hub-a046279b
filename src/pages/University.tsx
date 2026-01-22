@@ -106,7 +106,7 @@ export default function University() {
     <ModuleLayout>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between gap-4 pl-12 lg:pl-0">
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
@@ -123,7 +123,7 @@ export default function University() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-7xl overflow-x-hidden">
+      <main className="px-4 py-6 overflow-x-hidden w-full">
         {/* Progress Overview */}
         <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
           <CardContent className="pt-6">

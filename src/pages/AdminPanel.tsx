@@ -464,7 +464,7 @@ export default function AdminPanel() {
 
   return (
     <AdminLayout>
-      <div className="p-6 lg:p-8 max-w-7xl mx-auto overflow-x-hidden w-full">
+      <div className="p-6 lg:p-8 overflow-x-hidden w-full">
         <div className="flex items-center gap-3 mb-6">
           <Settings className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold text-foreground">Configurações do Sistema</h1>

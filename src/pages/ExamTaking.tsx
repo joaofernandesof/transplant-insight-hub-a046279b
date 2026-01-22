@@ -152,7 +152,7 @@ export default function ExamTaking() {
     return (
       <ModuleLayout>
         <div className="p-4 pt-16 lg:pt-4 lg:p-6">
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="space-y-6 w-full">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-64 w-full" />
             <Skeleton className="h-12 w-full" />
@@ -167,7 +167,7 @@ export default function ExamTaking() {
       <div className="min-h-screen bg-background">
         {/* Header fixo */}
         <header className="sticky top-0 z-20 bg-card border-b shadow-sm">
-          <div className="container mx-auto px-4 py-3">
+          <div className="px-4 py-3">
             <div className="flex items-center justify-between gap-4 pl-12 lg:pl-0">
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-primary" />
@@ -200,7 +200,7 @@ export default function ExamTaking() {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-6 max-w-4xl">
+        <main className="px-4 py-6 w-full overflow-x-hidden">
           {/* Question Card */}
           <Card className="mb-6">
             <CardHeader>

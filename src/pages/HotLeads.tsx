@@ -423,7 +423,7 @@ export default function HotLeads() {
     <Layout>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold flex items-center gap-2 pl-12 lg:pl-0">
               <Flame className="h-6 w-6 text-orange-500" />
@@ -464,7 +464,7 @@ export default function HotLeads() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-7xl overflow-x-hidden">
+      <main className="px-4 py-6 overflow-x-hidden w-full">
         {/* CRM Tab Contents */}
         {activeTab === 'inbox' && <CrmInbox />}
         {activeTab === 'tasks' && <CrmTasksPanel />}

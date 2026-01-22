@@ -8,7 +8,7 @@ export default function AnnouncementsAdmin() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <div className="px-4 py-8 w-full overflow-x-hidden">
         {/* Back button */}
         <Button
           variant="ghost"

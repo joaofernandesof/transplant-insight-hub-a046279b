@@ -114,7 +114,7 @@ export default function ExamResults() {
     return (
       <ModuleLayout>
         <div className="p-4 pt-16 lg:pt-4 lg:p-6">
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="space-y-6 w-full">
             <Skeleton className="h-48 w-full" />
             <Skeleton className="h-64 w-full" />
           </div>
@@ -144,7 +144,7 @@ export default function ExamResults() {
     <ModuleLayout>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
-        <div className="container mx-auto px-4 py-4">
+        <div className="px-4 py-4">
           <div className="flex items-center gap-4 pl-12 lg:pl-0">
             <Button variant="ghost" size="icon" onClick={() => navigate('/university/exams')}>
               <ArrowLeft className="h-5 w-5" />
@@ -160,7 +160,7 @@ export default function ExamResults() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
+      <main className="px-4 py-6 w-full overflow-x-hidden">
         {/* Score Card */}
         <Card className={cn(
           "mb-6 overflow-hidden",
