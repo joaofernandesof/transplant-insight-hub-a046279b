@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNeoTeamBranches } from '@/neohub/hooks/useNeoTeamBranches';
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 type DateRange = {
   from: Date;
@@ -197,6 +198,9 @@ export default function NeoTeamWaitingRoomReports() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Breadcrumb */}
+      <NeoTeamBreadcrumb />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>

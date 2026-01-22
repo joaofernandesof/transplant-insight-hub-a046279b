@@ -20,7 +20,7 @@ const routeLabels: Record<string, string> = {
   '/neoteam': 'Início',
   '/neoteam/schedule': 'Agenda',
   '/neoteam/waiting-room': 'Sala de Espera',
-  '/neoteam/waiting-room/reports': 'Relatórios',
+  '/neoteam/waiting-room/reports': 'Relatórios de Tempo de Espera',
   '/neoteam/doctor-view': 'Visão do Médico',
   '/neoteam/tasks': 'Tarefas',
   '/neoteam/patients': 'Pacientes',
@@ -38,6 +38,23 @@ const routeLabels: Record<string, string> = {
   '/neocare/settings': 'Configurações',
   '/neocare/news': 'Notícias',
 };
+
+// Rotas dinâmicas (com parâmetros)
+interface DynamicRoute {
+  pattern: RegExp;
+  getLabel: () => string;
+  parentPath: string;
+  parentLabel: string;
+}
+
+const dynamicRoutes: DynamicRoute[] = [
+  {
+    pattern: /^\/neoteam\/patients\/[^/]+$/,
+    getLabel: () => 'Detalhes do Paciente',
+    parentPath: '/neoteam/patients',
+    parentLabel: 'Pacientes'
+  }
+];
 
 // Mapeamento de módulos (portais)
 const moduleLabels: Record<string, string> = {
@@ -63,24 +80,32 @@ export function NeoTeamBreadcrumb({ showOnRoot = true }: NeoTeamBreadcrumbProps)
   const moduleLabel = moduleLabels[modulePrefix];
   const isModuleRoot = pathname === modulePrefix;
   
-  // Build breadcrumb items from path (excluindo o módulo base)
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const breadcrumbs: BreadcrumbRoute[] = [];
-  let currentPath = '';
+  // Verificar se é uma rota dinâmica
+  const dynamicRoute = dynamicRoutes.find(route => route.pattern.test(pathname));
   
-  for (const segment of pathSegments) {
-    currentPath += `/${segment}`;
-    // Pular o primeiro segmento (módulo) pois será tratado separadamente
-    if (currentPath !== modulePrefix) {
-      const label = routeLabels[currentPath];
-      if (label) {
-        breadcrumbs.push({ path: currentPath, label });
+  // Build breadcrumb items from path
+  const breadcrumbs: BreadcrumbRoute[] = [];
+  
+  if (dynamicRoute) {
+    // Rota dinâmica: adicionar parent e label dinâmico
+    breadcrumbs.push({ path: dynamicRoute.parentPath, label: dynamicRoute.parentLabel });
+    breadcrumbs.push({ path: pathname, label: dynamicRoute.getLabel() });
+  } else {
+    // Rota estática: construir a partir do path
+    const pathSegments = pathname.split('/').filter(Boolean);
+    let currentPath = '';
+    
+    for (const segment of pathSegments) {
+      currentPath += `/${segment}`;
+      // Pular o primeiro segmento (módulo) pois será tratado separadamente
+      if (currentPath !== modulePrefix) {
+        const label = routeLabels[currentPath];
+        if (label) {
+          breadcrumbs.push({ path: currentPath, label });
+        }
       }
     }
   }
-  
-  // Se estamos na raiz do módulo, mostrar: Módulo > Início
-  // Se estamos em uma sub-aba, mostrar: Módulo > Aba > Sub-aba
   
   return (
     <Breadcrumb className="mb-4">
