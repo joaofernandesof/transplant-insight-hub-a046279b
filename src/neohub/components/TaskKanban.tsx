@@ -221,7 +221,7 @@ function SortableTaskCard({ task, onEditTask, onDeleteTask, onOpenDetail }: Sort
 
 function DroppableColumn({ 
   status, 
-  tasks, 
+  tasks: columnTasks, 
   onEditTask, 
   onDeleteTask, 
   onOpenDetail,
@@ -250,17 +250,20 @@ function DroppableColumn({
             {config.label}
           </h3>
           <Badge variant="secondary" className={`text-xs ${config.color}`}>
-            {tasks.length}
+            {columnTasks.length}
           </Badge>
         </div>
       </div>
       
-      {/* Column Content */}
-      <div className={`flex-1 rounded-b-lg ${config.bg} p-2`}>
+      {/* Column Content - droppable area */}
+      <div 
+        className={`flex-1 rounded-b-lg ${config.bg} p-2`}
+        data-status={status}
+      >
         <ScrollArea className="h-[calc(100vh-380px)] min-h-[400px]">
-          <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={columnTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2 pr-2">
-              {tasks.map((task) => (
+              {columnTasks.map((task) => (
                 <SortableTaskCard 
                   key={task.id} 
                   task={task} 
@@ -269,8 +272,8 @@ function DroppableColumn({
                   onOpenDetail={onOpenDetail}
                 />
               ))}
-              {tasks.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground text-sm border-2 border-dashed border-muted rounded-lg">
+              {columnTasks.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground text-sm border-2 border-dashed border-muted rounded-lg min-h-[100px] flex items-center justify-center">
                   Arraste tarefas aqui
                 </div>
               )}
@@ -315,6 +318,11 @@ export function TaskKanban({
   const getTasksByStatus = (status: TaskStatus) => tasks.filter(t => t.status === status);
 
   const findContainer = (id: string): TaskStatus | undefined => {
+    // Check if ID is a status column
+    if (statusColumns.includes(id as TaskStatus)) {
+      return id as TaskStatus;
+    }
+    // Otherwise find the task
     const task = tasks.find(t => t.id === id);
     return task?.status;
   };
@@ -325,23 +333,8 @@ export function TaskKanban({
     if (task) setActiveTask(task);
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    const activeContainer = findContainer(activeId);
-    const overContainer = statusColumns.includes(overId as TaskStatus) 
-      ? overId as TaskStatus 
-      : findContainer(overId);
-
-    if (!activeContainer || !overContainer || activeContainer === overContainer) {
-      return;
-    }
-
-    // Will be updated on drag end
+  const handleDragOver = (_event: DragOverEvent) => {
+    // No-op: we handle movement on drag end
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -353,20 +346,35 @@ export function TaskKanban({
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    const activeContainer = findContainer(activeId);
+    // Get the original status of the dragged task
+    const task = tasks.find(t => t.id === activeId);
+    if (!task) return;
     
-    // Check if dropped on a column header or empty area
+    const activeContainer = task.status;
+    
+    // Determine target container
     let targetContainer: TaskStatus | undefined;
+    
+    // Check if dropped directly on a column (column ID matches status)
     if (statusColumns.includes(overId as TaskStatus)) {
       targetContainer = overId as TaskStatus;
     } else {
-      targetContainer = findContainer(overId);
+      // Dropped on another task - get that task's status
+      const overTask = tasks.find(t => t.id === overId);
+      if (overTask) {
+        targetContainer = overTask.status;
+      }
     }
 
-    if (!activeContainer || !targetContainer) return;
+    if (!targetContainer) return;
 
+    // Only call onMoveTask if status changed
     if (activeContainer !== targetContainer) {
-      await onMoveTask(activeId, targetContainer);
+      try {
+        await onMoveTask(activeId, targetContainer);
+      } catch (error) {
+        console.error('Error moving task:', error);
+      }
     }
   };
 
