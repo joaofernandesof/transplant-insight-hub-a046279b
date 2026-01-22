@@ -24,7 +24,7 @@ import {
   X,
   LogOut,
 } from "lucide-react";
-import logoByNeofolic from "@/assets/logo-byneofolic.png";
+import { ThemedLogo } from "@/components/ThemedLogo";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
@@ -161,7 +161,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           isCollapsed ? "justify-center" : "justify-between"
         )}>
           {!isCollapsed && (
-            <img src={logoByNeofolic} alt="ByNeofolic" className="h-8 object-contain" />
+            <ThemedLogo className="h-8 object-contain" />
           )}
           <Button
             variant="ghost"
