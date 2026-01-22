@@ -440,12 +440,12 @@ export default function LicenseeHome() {
           <JourneyRoadmap currentTier={tier} />
         </div>
 
-        {/* Quick Widgets Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <SalaTecnicaCompact />
+        {/* Quick Widgets Grid - 2 colunas para dados legíveis */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <SalesOverviewWidget />
           <LeadsFunnelWidget />
           <QuickStatsWidget />
+          <SalaTecnicaCompact />
         </div>
 
         {/* Menu Grid - Acesso às funcionalidades */}

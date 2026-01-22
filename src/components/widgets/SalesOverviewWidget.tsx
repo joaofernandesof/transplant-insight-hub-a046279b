@@ -1,9 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, DollarSign, ShoppingCart, Target } from 'lucide-react';
+import { TrendingUp, DollarSign, ShoppingCart, Target, ChevronRight } from 'lucide-react';
 import { useSales } from '@/hooks/useSales';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export function SalesOverviewWidget() {
   const navigate = useNavigate();
@@ -17,17 +18,19 @@ export function SalesOverviewWidget() {
     if (value >= 1000) {
       return `R$ ${(value / 1000).toFixed(0)}k`;
     }
-    return `R$ ${value.toFixed(0)}`;
+    return `R$ ${value.toLocaleString('pt-BR')}`;
   };
 
   if (isLoading) {
     return (
       <Card className="h-full">
-        <CardContent className="p-4">
-          <Skeleton className="h-4 w-32 mb-3" />
-          <div className="grid grid-cols-2 gap-3">
-            <Skeleton className="h-12" />
-            <Skeleton className="h-12" />
+        <CardContent className="p-5">
+          <Skeleton className="h-5 w-40 mb-4" />
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
           </div>
         </CardContent>
       </Card>
@@ -36,14 +39,14 @@ export function SalesOverviewWidget() {
 
   const metrics = [
     {
-      label: 'VGV Mês',
+      label: 'VGV do Mês',
       value: formatCurrency(stats.totalVgv),
       icon: DollarSign,
       color: 'text-green-600',
       bg: 'bg-green-100 dark:bg-green-900/30'
     },
     {
-      label: 'Vendas',
+      label: 'Vendas Realizadas',
       value: stats.salesCount.toString(),
       icon: ShoppingCart,
       color: 'text-blue-600',
@@ -67,29 +70,32 @@ export function SalesOverviewWidget() {
 
   return (
     <Card 
-      className="h-full cursor-pointer transition-all hover:shadow-md"
+      className="h-full cursor-pointer transition-all hover:shadow-md group"
       onClick={() => navigate('/dashboard')}
     >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-medium text-sm">Resumo Comercial</span>
-          <span className="text-[10px] text-muted-foreground uppercase">
-            {format(new Date(), 'MMM yyyy')}
-          </span>
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-base">Resumo Comercial</h3>
+            <p className="text-xs text-muted-foreground">
+              {format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}
+            </p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {metrics.map((metric) => (
             <div 
               key={metric.label}
-              className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
+              className="flex items-center gap-3 p-3 rounded-xl bg-muted/50"
             >
-              <div className={`p-1.5 rounded-md ${metric.bg}`}>
-                <metric.icon className={`h-3 w-3 ${metric.color}`} />
+              <div className={`p-2.5 rounded-lg ${metric.bg}`}>
+                <metric.icon className={`h-5 w-5 ${metric.color}`} />
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold truncate">{metric.value}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{metric.label}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-bold">{metric.value}</p>
+                <p className="text-xs text-muted-foreground">{metric.label}</p>
               </div>
             </div>
           ))}
