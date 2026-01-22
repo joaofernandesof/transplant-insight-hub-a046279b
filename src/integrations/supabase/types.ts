@@ -160,6 +160,69 @@ export type Database = {
           },
         ]
       }
+      announcements: {
+        Row: {
+          accent_color: string | null
+          background_color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          link_text: string | null
+          link_url: string | null
+          priority: number | null
+          starts_at: string | null
+          target_modules: string[] | null
+          target_profiles: string[] | null
+          text_color: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          background_color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link_text?: string | null
+          link_url?: string | null
+          priority?: number | null
+          starts_at?: string | null
+          target_modules?: string[] | null
+          target_profiles?: string[] | null
+          text_color?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          background_color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link_text?: string | null
+          link_url?: string | null
+          priority?: number | null
+          starts_at?: string | null
+          target_modules?: string[] | null
+          target_profiles?: string[] | null
+          text_color?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string

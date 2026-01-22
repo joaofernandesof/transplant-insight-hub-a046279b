@@ -51,6 +51,7 @@ import Leaderboard from "@/components/Leaderboard";
 import { SalaTecnicaNotification } from "@/components/SalaTecnicaNotification";
 import { SalaTecnicaUpcoming } from "@/components/SalaTecnicaUpcoming";
 import { JourneyRoadmap } from "@/components/JourneyRoadmap";
+import { AnnouncementBanner } from "@/components/announcements";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -395,6 +396,9 @@ export default function LicenseeHome() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Announcement Banner */}
+        <AnnouncementBanner moduleKey="home" />
+
         {/* Profile Photo & Welcome Section */}
         <div className="text-center mb-6">
           {/* Profile Avatar */}
