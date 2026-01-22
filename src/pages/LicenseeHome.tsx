@@ -354,6 +354,14 @@ export default function LicenseeHome() {
               >
                 <Menu className="h-5 w-5" />
               </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate('/')}
+                className="flex-shrink-0 h-9 w-9"
+              >
+                <Building2 className="h-5 w-5" />
+              </Button>
               <span className="text-lg font-semibold text-foreground">
                 Licença ByNeofolic
               </span>

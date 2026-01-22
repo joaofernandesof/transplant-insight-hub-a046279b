@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Ticket, Clock, AlertCircle, CheckCircle2, Star, TrendingUp } from 'lucide-react';
-import { PostVendaBreadcrumb } from '../components/PostVendaBreadcrumb';
+import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { usePostVenda } from '../hooks/usePostVenda';
 import { ETAPA_LABELS } from '../lib/permissions';
 
@@ -13,7 +13,7 @@ export default function PostVendaHome() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      <PostVendaBreadcrumb />
+      <GlobalBreadcrumb />
 
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
