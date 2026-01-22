@@ -90,7 +90,15 @@ export default function FirstStepsChecklist() {
           {steps.map((step) => (
             <button
               key={step.id}
-              onClick={() => !step.isCompleted && handleStepClick(step.route)}
+              onClick={() => {
+                if (!step.isCompleted) {
+                  if (step.action) {
+                    step.action();
+                  } else {
+                    handleStepClick(step.route);
+                  }
+                }
+              }}
               disabled={step.isCompleted}
               className={`w-full flex items-center gap-2 p-2 rounded-md transition-all text-left ${
                 step.isCompleted 
