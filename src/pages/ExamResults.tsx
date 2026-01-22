@@ -248,66 +248,65 @@ export default function ExamResults() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {/* Options with letters A, B, C... */}
                   <div className="space-y-2">
-                    {answer.question.options?.map((option, optIdx) => (
-                      <div
-                        key={optIdx}
-                        className={cn(
-                          "p-3 rounded-lg text-sm",
-                          option === answer.question.correct_answer
-                            ? "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700"
-                            : option === answer.selected_answer && !answer.is_correct
-                            ? "bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700"
-                            : "bg-muted"
-                        )}
-                      >
-                        <div className="flex items-center gap-2">
-                          {option === answer.question.correct_answer && (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    {answer.question.options?.map((option, optIdx) => {
+                      const letter = String.fromCharCode(65 + optIdx); // A, B, C, D...
+                      const isCorrectOption = option === answer.question.correct_answer;
+                      
+                      return (
+                        <div
+                          key={optIdx}
+                          className={cn(
+                            "p-3 rounded-lg text-sm",
+                            isCorrectOption
+                              ? "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700"
+                              : "bg-muted"
                           )}
-                          {option === answer.selected_answer && !answer.is_correct && (
-                            <XCircle className="h-4 w-4 text-red-600" />
-                          )}
-                          <span>{option}</span>
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "font-semibold min-w-[24px]",
+                              isCorrectOption ? "text-emerald-700 dark:text-emerald-300" : "text-muted-foreground"
+                            )}>
+                              {letter})
+                            </span>
+                            {isCorrectOption && (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                            )}
+                            <span>{option}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   
-                  {/* Show explanation for ALL questions, not just wrong ones */}
-                  {answer.question.explanation && (
-                    <div className={cn(
-                      "mt-4 p-4 rounded-lg border",
-                      answer.is_correct 
-                        ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800"
-                        : "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
-                    )}>
-                      <div className="flex items-start gap-2">
-                        <div className={cn(
-                          "p-1 rounded-full shrink-0",
-                          answer.is_correct ? "bg-emerald-200 dark:bg-emerald-800" : "bg-amber-200 dark:bg-amber-800"
-                        )}>
-                          {answer.is_correct ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-amber-700 dark:text-amber-300" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p className={cn(
-                            "text-xs font-semibold mb-1",
-                            answer.is_correct ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"
-                          )}>
-                            {answer.is_correct ? "✓ Você acertou!" : "✗ Resposta incorreta"}
-                          </p>
-                          <p className={cn(
-                            "text-sm leading-relaxed",
-                            answer.is_correct ? "text-emerald-800 dark:text-emerald-200" : "text-amber-800 dark:text-amber-200"
-                          )}>
-                            <strong>Explicação:</strong> {answer.question.explanation}
-                          </p>
-                        </div>
+                  {/* Always show correct answer indicator */}
+                  {(() => {
+                    const correctIndex = answer.question.options?.findIndex(
+                      opt => opt === answer.question.correct_answer
+                    );
+                    const correctLetter = correctIndex !== undefined && correctIndex >= 0 
+                      ? String.fromCharCode(65 + correctIndex) 
+                      : '';
+                    
+                    return (
+                      <div className="mt-3 p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg border border-emerald-300 dark:border-emerald-700">
+                        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Resposta correta: {correctLetter}
+                        </p>
                       </div>
+                    );
+                  })()}
+                  
+                  {/* Explanation in yellow - only explains the correct answer */}
+                  {answer.question.explanation && (
+                    <div className="mt-4 p-4 rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700">
+                      <p className="text-sm leading-relaxed text-amber-800 dark:text-amber-200">
+                        <strong className="text-amber-900 dark:text-amber-100">Explicação:</strong>{' '}
+                        {answer.question.explanation}
+                      </p>
                     </div>
                   )}
                 </CardContent>
