@@ -235,150 +235,173 @@ export default function NeoCareOrientations() {
     toast.success('Abrindo Google Agenda para adicionar tarefas...');
   };
 
+  // Phase calculation
+  const getCurrentPhase = () => {
+    if (currentDay < 0) return 'pre';
+    if (currentDay === 0) return 'd0';
+    if (currentDay <= 3) return 'inicial';
+    if (currentDay <= 15) return 'recuperacao';
+    return 'liberado';
+  };
+  
+  const phase = getCurrentPhase();
+  const phases = [
+    { key: 'pre', label: 'Pré-operatório', icon: Calendar, days: 'D-15 a D-1' },
+    { key: 'd0', label: 'Cirurgia', icon: Heart, days: 'D0' },
+    { key: 'inicial', label: 'Cuidado Intensivo', icon: Droplets, days: 'D1 a D3' },
+    { key: 'recuperacao', label: 'Recuperação', icon: Sparkles, days: 'D4 a D15' },
+    { key: 'liberado', label: 'Liberado', icon: Check, days: 'D15+' },
+  ];
+
   return (
     <div className="space-y-4 pb-6 max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-4 text-white">
-        <div className="flex items-center justify-between mb-3">
+      {/* Simple Header Card */}
+      <div className="bg-card border rounded-xl p-4 space-y-4">
+        {/* Title Row */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold">Sua Jornada</h1>
-            <p className="text-emerald-100 text-sm">
+            <h1 className="text-lg font-bold text-foreground">Suas Orientações</h1>
+            <p className="text-muted-foreground text-sm">
               {currentDay < 0 
-                ? `${Math.abs(currentDay)} dias para o transplante` 
+                ? `Faltam ${Math.abs(currentDay)} dias para o transplante` 
                 : currentDay === 0 
-                  ? 'Hoje é o grande dia!' 
+                  ? '🎉 Hoje é o grande dia!' 
                   : `Dia ${currentDay} pós-transplante`}
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1.5">
+          <div className="flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full px-3 py-1.5">
             <Trophy className="h-4 w-4" />
             <span className="font-bold text-sm">{totalProgress}%</span>
           </div>
         </div>
-        <Progress value={totalProgress} className="h-2 bg-white/20" />
         
+        {/* Phase Progress */}
+        <div className="flex items-center gap-1">
+          {phases.map((p, idx) => {
+            const PhaseIcon = p.icon;
+            const isActive = phase === p.key;
+            const isPast = phases.findIndex(x => x.key === phase) > idx;
+            
+            return (
+              <div key={p.key} className="flex-1 flex flex-col items-center">
+                <div className={cn(
+                  "w-full h-2 rounded-full transition-colors",
+                  isActive ? "bg-emerald-500" : isPast ? "bg-emerald-300 dark:bg-emerald-700" : "bg-muted"
+                )} />
+                <div className={cn(
+                  "flex flex-col items-center mt-2",
+                  isActive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
+                )}>
+                  <PhaseIcon className={cn("h-4 w-4", isActive && "text-emerald-500")} />
+                  <span className="text-[10px] font-medium text-center leading-tight mt-0.5 hidden sm:block">{p.label}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Overdue Tasks Alert */}
         {overdueTasks.length > 0 && (
-          <div className="mt-3 flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 text-sm border border-white/30">
-            <AlertTriangle className="h-4 w-4 text-white" />
-            <span className="text-white/90">{overdueTasks.length} tarefa(s) pendente(s) de dias anteriores!</span>
+          <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2 text-sm">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <span className="text-amber-700 dark:text-amber-300">{overdueTasks.length} tarefa(s) pendente(s) de dias anteriores</span>
           </div>
         )}
       </div>
 
-      {/* Unified Horizontal Timeline */}
-      <div className="space-y-3">
+      {/* Day Selector */}
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-sm">Linha do Tempo</h2>
+          <h2 className="font-semibold text-sm">Selecione o Dia</h2>
           <Button
             size="sm"
             variant="outline"
             onClick={addAllToCalendar}
-            className="h-8 text-xs gap-1"
+            className="h-7 text-xs gap-1"
           >
             <CalendarPlus className="h-3 w-3" />
-            Adicionar ao Google Agenda
+            Google Agenda
           </Button>
         </div>
         
-        {/* Single Unified Timeline */}
-        <div className="relative">
-          {/* Timeline Track Line */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2 z-0" />
-          
-          <div className="flex items-center overflow-x-auto pb-2 pt-1 gap-1 relative z-10">
-            {/* Pre-transplant days */}
-            {[
-              { day: -15, label: 'D-15' },
-              { day: -7, label: 'D-7' },
-              { day: -5, label: 'D-5' },
-              { day: -3, label: 'D-3' },
-              { day: -1, label: 'D-1' },
-            ].map((item) => {
-              const isSelected = selectedDay === item.day;
-              const isPast = currentDay > item.day;
-              const isToday = currentDay === item.day;
-              
-              return (
-                <button
-                  key={item.day}
-                  onClick={() => setSelectedDay(item.day)}
-                  className={cn(
-                    "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-all border bg-card",
-                    isToday && "ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30",
-                    isSelected && !isToday && "border-foreground/30 bg-muted",
-                    !isSelected && !isToday && "border-border hover:bg-muted/50",
-                    isPast && !isToday && !isSelected && "opacity-50"
-                  )}
-                >
-                  <span className={cn(
-                    "text-xs font-semibold",
-                    isToday ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
-                  )}>
-                    {item.label}
-                  </span>
-                  {isToday && (
-                    <span className="text-[8px] text-emerald-500 font-medium">Hoje</span>
-                  )}
-                </button>
-              );
-            })}
+        <div className="flex items-center overflow-x-auto pb-1 gap-1.5">
+          {/* Pre-transplant days */}
+          {[
+            { day: -15, label: 'D-15' },
+            { day: -7, label: 'D-7' },
+            { day: -5, label: 'D-5' },
+            { day: -3, label: 'D-3' },
+            { day: -1, label: 'D-1' },
+          ].map((item) => {
+            const isSelected = selectedDay === item.day;
+            const isToday = currentDay === item.day;
+            
+            return (
+              <button
+                key={item.day}
+                onClick={() => setSelectedDay(item.day)}
+                className={cn(
+                  "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border",
+                  isToday 
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : isSelected 
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-card border-border hover:bg-muted text-muted-foreground"
+                )}
+              >
+                {item.label}
+              </button>
+            );
+          })}
 
-            {/* D0 - Surgery Day - Always highlighted */}
-            <button
-              onClick={() => setSelectedDay(0)}
-              className={cn(
-                "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-all border-2 mx-1",
-                "bg-emerald-500 text-white border-emerald-600 shadow-md",
-                currentDay === 0 && "ring-2 ring-emerald-300"
-              )}
-            >
-              <span className="text-xs font-bold text-white">D0</span>
-              <span className="text-[8px] text-emerald-100">Cirurgia</span>
-            </button>
+          {/* D0 - Always visible as special */}
+          <button
+            onClick={() => setSelectedDay(0)}
+            className={cn(
+              "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all border-2",
+              currentDay === 0
+                ? "bg-emerald-500 text-white border-emerald-600"
+                : selectedDay === 0
+                  ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-500"
+                  : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
+            )}
+          >
+            D0
+          </button>
 
-            {/* Post-transplant days */}
-            {postTransplantChecklist.map((day) => {
-              const completedCount = day.tasks.filter(t => postChecked[t.id]?.done).length;
-              const isCurrent = day.day === currentDay;
-              const isSelected = day.day === selectedDay;
-              const isFuture = day.day > currentDay;
-              const isComplete = completedCount === day.tasks.length;
+          {/* Post-transplant days */}
+          {postTransplantChecklist.map((day) => {
+            const completedCount = day.tasks.filter(t => postChecked[t.id]?.done).length;
+            const isComplete = completedCount === day.tasks.length;
+            const isToday = day.day === currentDay;
+            const isSelected = day.day === selectedDay;
 
-              return (
-                <button
-                  key={day.day}
-                  onClick={() => setSelectedDay(day.day)}
-                  className={cn(
-                    "flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-all border bg-card relative",
-                    isCurrent && "ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30",
-                    isSelected && !isCurrent && "border-foreground/30 bg-muted",
-                    !isSelected && !isCurrent && "border-border hover:bg-muted/50",
-                    isFuture && !isCurrent && "opacity-50"
-                  )}
-                >
-                  {isComplete && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center">
-                      <Check className="h-2 w-2 text-white" />
-                    </div>
-                  )}
-                  <span className={cn(
-                    "text-xs font-semibold",
-                    isCurrent ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
-                  )}>
-                    D{day.day}
-                  </span>
-                  <span className="text-[8px] text-muted-foreground">
-                    {completedCount}/{day.tasks.length}
-                  </span>
-                  {isCurrent && (
-                    <span className="text-[8px] text-emerald-500 font-medium">Hoje</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+            return (
+              <button
+                key={day.day}
+                onClick={() => setSelectedDay(day.day)}
+                className={cn(
+                  "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border relative",
+                  isToday 
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : isSelected 
+                      ? "bg-foreground text-background border-foreground"
+                      : isComplete
+                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
+                        : "bg-card border-border hover:bg-muted text-muted-foreground"
+                )}
+              >
+                D{day.day}
+                {isComplete && !isToday && !isSelected && (
+                  <Check className="inline-block h-3 w-3 ml-0.5" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      <Separator />
 
       <Separator />
 
