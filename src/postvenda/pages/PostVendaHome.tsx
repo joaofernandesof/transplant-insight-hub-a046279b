@@ -20,7 +20,7 @@ export default function PostVendaHome() {
           <Ticket className="h-6 w-6 text-primary" />
           Dashboard Pós-Venda
         </h1>
-        <p className="text-muted-foreground">Visão geral do atendimento CAPYS</p>
+        <p className="text-muted-foreground">Gestão de atendimento e suporte ao paciente</p>
       </div>
 
       {/* KPIs */}
