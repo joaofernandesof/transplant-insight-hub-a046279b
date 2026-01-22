@@ -27,7 +27,8 @@ export function SalaTecnicaCompact() {
   const { data: confirmations } = useMeetingConfirmations(nextMeeting?.id || '');
   const confirmMeeting = useConfirmMeeting();
 
-  if (!isLicensee) return null;
+  // Admins can still see the widget when viewing dashboard for management purposes
+  // The useIsLicensee now properly handles admin profile simulation
 
   if (isLoading) {
     return (
