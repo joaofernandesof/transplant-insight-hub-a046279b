@@ -59,84 +59,80 @@ const preTransplantByDay = [
   },
 ];
 
-// Post-transplant checklist by day with times
-const postTransplantByDay = [
-  {
-    day: 1,
-    label: 'D+1',
-    tasks: [
-      { id: 'd1_soro', icon: Droplets, title: 'Borrifar soro', time: 'A cada 1h' },
-      { id: 'd1_dormir', icon: Bed, title: 'Dormir de barriga para cima', time: 'Noite toda' },
-      { id: 'd1_gelo', icon: Heart, title: 'Aplicar gelo na testa', time: '20min 3x/dia' },
-    ]
-  },
-  {
-    day: 2,
-    label: 'D+2',
-    tasks: [
-      { id: 'd2_soro', icon: Droplets, title: 'Continuar soro', time: 'A cada 1h' },
-      { id: 'd2_medicacao', icon: Pill, title: 'Tomar medicação', time: '8h e 20h' },
-      { id: 'd2_repouso', icon: Bed, title: 'Manter repouso', time: 'Dia todo' },
-    ]
-  },
-  {
-    day: 3,
-    label: 'D+3',
-    tasks: [
-      { id: 'd3_lavar', icon: ShowerHead, title: 'Primeira lavagem suave', time: 'Manhã' },
-      { id: 'd3_doadora', icon: Droplets, title: 'Esfregar área doadora', time: 'Durante banho' },
-      { id: 'd3_secar', icon: Sun, title: 'Secar ao vento', time: 'Após lavar' },
-    ]
-  },
-  {
-    day: 5,
-    label: 'D+5',
-    tasks: [
-      { id: 'd5_lavagem', icon: ShowerHead, title: 'Lavagem cuidadosa', time: 'Manhã' },
-      { id: 'd5_espuma', icon: Droplets, title: 'Aplicar espuma suave', time: 'Durante lavagem' },
-      { id: 'd5_cafe', icon: Coffee, title: 'Pode voltar café moderado', time: '1-2 xícaras' },
-    ]
-  },
-  {
-    day: 8,
-    label: 'D+8',
-    tasks: [
-      { id: 'd8_circular', icon: ShowerHead, title: 'Movimentos circulares', time: 'Durante lavagem' },
-      { id: 'd8_lado', icon: Bed, title: 'Pode dormir de lado', time: 'Liberado' },
-      { id: 'd8_camisa', icon: Shirt, title: 'Camisas com botão', time: 'Até D+14' },
-    ]
-  },
-  {
-    day: 10,
-    label: 'D+10',
-    tasks: [
-      { id: 'd10_oleo', icon: Sparkles, title: 'Iniciar óleo de girassol', time: 'Noite' },
-      { id: 'd10_academia', icon: Dumbbell, title: 'Academia leve liberada', time: 'Sem esforço' },
-      { id: 'd10_crostas', icon: Heart, title: 'Crostas soltando', time: 'Naturalmente' },
-    ]
-  },
-  {
-    day: 15,
-    label: 'D+15',
-    tasks: [
-      { id: 'd15_chuveiro', icon: ShowerHead, title: 'Chuveiro normal liberado', time: 'Liberado' },
-      { id: 'd15_shampoo', icon: Droplets, title: 'Shampoo regular', time: 'Liberado' },
-      { id: 'd15_massagem', icon: Heart, title: 'Massagens liberadas', time: 'Liberado' },
-    ]
-  },
+// Restrictions that apply until certain days - these will be added as daily tasks
+const restrictions = [
+  { id: 'dormir_barriga', icon: Bed, title: 'Dormir de barriga para cima', time: 'Noite toda', until: 8 },
+  { id: 'evitar_cafe', icon: Coffee, title: 'Evitar café', time: 'Dia todo', until: 5 },
+  { id: 'sem_alcool', icon: Wine, title: 'Sem álcool', time: 'Dia todo', until: 5 },
+  { id: 'sem_academia', icon: Dumbbell, title: 'Sem academia/esforço', time: 'Dia todo', until: 10 },
+  { id: 'camisas_botao', icon: Shirt, title: 'Usar camisas com botão', time: 'Dia todo', until: 14 },
+  { id: 'evitar_sol', icon: Sun, title: 'Evitar exposição ao sol', time: 'Dia todo', until: 60 },
+  { id: 'sem_piscina', icon: Waves, title: 'Sem piscina/mar', time: 'Dia todo', until: 60 },
+  { id: 'pets_afastados', icon: Cat, title: 'Manter pets afastados', time: 'Dia todo', until: 5 },
 ];
 
-// Restrictions timeline
-const restrictions = [
-  { icon: Bed, title: 'Dormir de barriga ↑', until: 8 },
-  { icon: Coffee, title: 'Evitar café', until: 5 },
-  { icon: Wine, title: 'Sem álcool', until: 5 },
-  { icon: Dumbbell, title: 'Sem academia', until: 10 },
-  { icon: Shirt, title: 'Camisas com botão', until: 14 },
-  { icon: Sun, title: 'Evitar sol', until: 60 },
-  { icon: Waves, title: 'Sem piscina/mar', until: 60 },
-  { icon: Cat, title: 'Pets afastados', until: 5 },
-];
+// Base post-transplant tasks (specific tasks for certain days)
+const basePostTransplantTasks: Record<number, Array<{ id: string; icon: typeof Droplets; title: string; time: string }>> = {
+  1: [
+    { id: 'd1_soro', icon: Droplets, title: 'Borrifar soro', time: 'A cada 1h' },
+    { id: 'd1_gelo', icon: Heart, title: 'Aplicar gelo na testa', time: '20min 3x/dia' },
+  ],
+  2: [
+    { id: 'd2_soro', icon: Droplets, title: 'Continuar soro', time: 'A cada 1h' },
+    { id: 'd2_medicacao', icon: Pill, title: 'Tomar medicação', time: '8h e 20h' },
+    { id: 'd2_repouso', icon: Bed, title: 'Manter repouso', time: 'Dia todo' },
+  ],
+  3: [
+    { id: 'd3_lavar', icon: ShowerHead, title: 'Primeira lavagem suave', time: 'Manhã' },
+    { id: 'd3_doadora', icon: Droplets, title: 'Esfregar área doadora', time: 'Durante banho' },
+    { id: 'd3_secar', icon: Sun, title: 'Secar ao vento', time: 'Após lavar' },
+  ],
+  5: [
+    { id: 'd5_lavagem', icon: ShowerHead, title: 'Lavagem cuidadosa', time: 'Manhã' },
+    { id: 'd5_espuma', icon: Droplets, title: 'Aplicar espuma suave', time: 'Durante lavagem' },
+  ],
+  8: [
+    { id: 'd8_circular', icon: ShowerHead, title: 'Movimentos circulares', time: 'Durante lavagem' },
+  ],
+  10: [
+    { id: 'd10_oleo', icon: Sparkles, title: 'Iniciar óleo de girassol', time: 'Noite' },
+    { id: 'd10_crostas', icon: Heart, title: 'Crostas soltando', time: 'Naturalmente' },
+  ],
+  15: [
+    { id: 'd15_chuveiro', icon: ShowerHead, title: 'Chuveiro normal liberado', time: 'Liberado' },
+    { id: 'd15_shampoo', icon: Droplets, title: 'Shampoo regular', time: 'Liberado' },
+    { id: 'd15_massagem', icon: Heart, title: 'Massagens liberadas', time: 'Liberado' },
+  ],
+};
+
+// Generate post-transplant days with restrictions included as daily tasks
+const generatePostTransplantByDay = () => {
+  const days = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  
+  return days.map(day => {
+    // Get base tasks for this day (if any)
+    const baseTasks = basePostTransplantTasks[day] || [];
+    
+    // Get applicable restrictions for this day
+    const applicableRestrictions = restrictions
+      .filter(r => day <= r.until)
+      .map(r => ({
+        id: `${r.id}_d${day}`,
+        icon: r.icon,
+        title: r.title,
+        time: r.time,
+        isRestriction: true,
+      }));
+    
+    return {
+      day,
+      label: `D+${day}`,
+      tasks: [...baseTasks.map(t => ({ ...t, isRestriction: false })), ...applicableRestrictions],
+    };
+  });
+};
+
+const postTransplantByDay = generatePostTransplantByDay();
 
 type Phase = 'pre' | 'd0' | 'pos';
 
@@ -194,7 +190,7 @@ export default function NeoCareOrientations() {
   
   const totalProgress = selectedPhase === 'pre' ? preProgress : selectedPhase === 'pos' ? postProgress : 100;
 
-  const activeRestrictions = restrictions.filter(r => currentDay < r.until);
+  // activeRestrictions removed - restrictions are now included as daily tasks
 
   // Phase definitions - Custom hair follicle SVG for surgery
   const HairFollicleIcon = ({ className }: { className?: string }) => (
@@ -569,6 +565,7 @@ export default function NeoCareOrientations() {
                     const isChecked = isTaskCompleted(task.id);
                     const completedAt = getCompletedAt(task.id);
                     const isOverdue = !isChecked && isPast && !isDayToday;
+                    const isRestriction = 'isRestriction' in task && task.isRestriction;
                     
                     return (
                       <div
@@ -580,7 +577,9 @@ export default function NeoCareOrientations() {
                             ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800" 
                             : isOverdue
                               ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-800"
-                              : "bg-background border-border hover:bg-muted/50"
+                              : isRestriction
+                                ? "bg-orange-50/50 dark:bg-orange-950/10 border-orange-200 dark:border-orange-900"
+                                : "bg-background border-border hover:bg-muted/50"
                         )}
                       >
                         <Checkbox
@@ -592,7 +591,9 @@ export default function NeoCareOrientations() {
                               ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500" 
                               : isOverdue 
                                 ? "border-red-400" 
-                                : "border-muted-foreground/50"
+                                : isRestriction
+                                  ? "border-orange-400"
+                                  : "border-muted-foreground/50"
                           )}
                         />
                         {isOverdue && (
@@ -601,9 +602,21 @@ export default function NeoCareOrientations() {
                             <span className="text-[10px] font-semibold uppercase">Atrasado</span>
                           </div>
                         )}
+                        {isRestriction && !isOverdue && !isChecked && (
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/50 rounded text-orange-600 dark:text-orange-400">
+                            <AlertCircle className="h-3 w-3" />
+                            <span className="text-[10px] font-semibold uppercase">Restrição</span>
+                          </div>
+                        )}
                         <Icon className={cn(
                           "h-4 w-4 shrink-0",
-                          isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
+                          isChecked 
+                            ? "text-emerald-500" 
+                            : isOverdue 
+                              ? "text-red-500" 
+                              : isRestriction
+                                ? "text-orange-500"
+                                : "text-muted-foreground"
                         )} />
                         <div className="flex-1 min-w-0">
                           <p className={cn(
@@ -618,7 +631,10 @@ export default function NeoCareOrientations() {
                             </p>
                           )}
                         </div>
-                        <Badge variant="outline" className="text-xs shrink-0">
+                        <Badge variant="outline" className={cn(
+                          "text-xs shrink-0",
+                          isRestriction && !isChecked && "border-orange-300 text-orange-600 dark:border-orange-700 dark:text-orange-400"
+                        )}>
                           <Clock className="h-3 w-3 mr-1" />
                           {task.time}
                         </Badge>
@@ -630,36 +646,7 @@ export default function NeoCareOrientations() {
             );
           })}
 
-          {/* Restrictions - only show in pos phase */}
-          {activeRestrictions.length > 0 && !filterDate && (
-            <>
-              <Separator className="my-4" />
-              <div className="pl-12 space-y-3">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-orange-500" />
-                  <h2 className="font-semibold text-sm">Restrições Ativas</h2>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {activeRestrictions.slice(0, 4).map((r, idx) => {
-                    const Icon = r.icon;
-                    const daysLeft = r.until - currentDay;
-                    return (
-                      <div 
-                        key={idx} 
-                        className="flex items-center gap-2 p-2 rounded-lg border bg-background"
-                      >
-                        <Icon className="h-4 w-4 text-orange-500 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{r.title}</p>
-                          <p className="text-[10px] text-muted-foreground">{daysLeft}d</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
+          {/* Restrictions are now included as daily tasks in each day */}
         </div>
       )}
 
