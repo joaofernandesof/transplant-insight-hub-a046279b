@@ -59,33 +59,35 @@ export default function FirstStepsDialog() {
   };
 
   const handleStepClick = (step: typeof steps[0]) => {
+    console.log("Step clicked:", step.id, step.isCompleted);
     if (step.isCompleted) return;
     
     // Handle tour step
     if (step.id === "tour") {
+      console.log("Opening tour...");
       setIsOpen(false);
-      setShowTour(true);
+      setTimeout(() => setShowTour(true), 100);
       return;
     }
     
     // Handle notifications step - navigate to profile notifications section
     if (step.id === "notifications") {
-      navigate("/profile?tab=notifications");
       markNotificationsConfigured();
       setIsOpen(false);
+      navigate("/profile?tab=notifications");
       return;
     }
     
     // Handle profile step
     if (step.id === "profile") {
-      navigate("/profile");
       setIsOpen(false);
+      navigate("/profile");
       return;
     }
     
     // Default: navigate to route
-    navigate(step.route);
     setIsOpen(false);
+    navigate(step.route);
   };
 
   const handleTourComplete = () => {
@@ -150,43 +152,46 @@ export default function FirstStepsDialog() {
             </div>
 
             {/* Steps List */}
-            <div className="space-y-2">
-              {steps.map((step) => (
-                <button
-                  key={step.id}
-                  onClick={() => handleStepClick(step)}
-                  disabled={step.isCompleted}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left ${
-                    step.isCompleted 
-                      ? "bg-primary/5 cursor-default" 
-                      : "bg-muted/50 hover:bg-muted cursor-pointer hover:shadow-sm"
-                  }`}
-                >
-                  {/* Icon */}
-                  <div className={`flex-shrink-0 ${step.isCompleted ? "text-primary" : "text-muted-foreground"}`}>
-                    {step.isCompleted ? (
-                      <CheckCircle2 className="h-5 w-5" />
-                    ) : (
-                      <Circle className="h-5 w-5" />
+            <div className="space-y-2" role="list">
+              {steps.map((step) => {
+                const isDisabled = step.isCompleted || step.isLoading;
+                return (
+                  <div
+                    key={step.id}
+                    role="listitem"
+                    onClick={() => !isDisabled && handleStepClick(step)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left select-none ${
+                      isDisabled 
+                        ? "bg-primary/5 cursor-default opacity-70" 
+                        : "bg-muted/50 hover:bg-muted cursor-pointer hover:shadow-sm active:scale-[0.98]"
+                    }`}
+                  >
+                    {/* Icon */}
+                    <div className={`flex-shrink-0 pointer-events-none ${step.isCompleted ? "text-primary" : "text-muted-foreground"}`}>
+                      {step.isCompleted ? (
+                        <CheckCircle2 className="h-5 w-5" />
+                      ) : (
+                        <Circle className="h-5 w-5" />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 pointer-events-none">
+                      <p className={`font-medium text-sm ${step.isCompleted ? "line-through text-muted-foreground" : ""}`}>
+                        {step.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {step.description}
+                      </p>
+                    </div>
+
+                    {/* Arrow for incomplete steps */}
+                    {!step.isCompleted && (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 pointer-events-none" />
                     )}
                   </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-medium text-sm ${step.isCompleted ? "line-through text-muted-foreground" : ""}`}>
-                      {step.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {step.description}
-                    </p>
-                  </div>
-
-                  {/* Arrow for incomplete steps */}
-                  {!step.isCompleted && (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  )}
-                </button>
-              ))}
+                );
+              })}
             </div>
 
             {/* Celebration when almost done */}
