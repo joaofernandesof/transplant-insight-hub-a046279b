@@ -201,7 +201,7 @@ export default function Partners() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredPartners.filter(p => p.featured).map((partner) => (
-                <Card key={partner.id} className="border-2 border-emerald-200 bg-emerald-50/50">
+                <Card key={partner.id} className="border-2 border-emerald-500/30 bg-emerald-500/10 dark:bg-emerald-900/20">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -220,7 +220,7 @@ export default function Partners() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border flex-1">
+                          <div className="flex items-center gap-2 bg-background rounded-lg px-3 py-2 border flex-1">
                             <Tag className="h-4 w-4 text-muted-foreground" />
                             <span className="font-mono font-bold">{partner.couponCode}</span>
                           </div>
