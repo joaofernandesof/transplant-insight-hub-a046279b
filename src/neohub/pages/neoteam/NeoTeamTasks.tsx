@@ -681,19 +681,24 @@ export default function NeoTeamTasks() {
             <div className="space-y-4">
               {/* Título */}
               <div>
-                <h3 className="font-semibold text-lg">{selectedTask.title}</h3>
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  {selectedTask.status !== 'done' && new Date(selectedTask.due_date || '') < new Date() && (
+                    <AlertCircle className="h-5 w-5 text-orange-500" />
+                  )}
+                  {selectedTask.title}
+                </h3>
               </div>
 
               {/* Dados do Paciente em Tópicos */}
-              {selectedTask.patient && (
-                <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+              {selectedTask.patient ? (
+                <div className="p-3 bg-muted/50 rounded-lg space-y-2 border-l-4 border-l-primary">
                   <Label className="text-xs text-muted-foreground uppercase tracking-wide">Dados do Paciente</Label>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 text-sm">
+                  <ul className="space-y-2 list-none">
+                    <li className="flex items-center gap-2 text-sm">
                       <User className="h-4 w-4 text-primary shrink-0" />
-                      <span className="font-medium">Nome:</span>
+                      <span className="font-medium min-w-[70px]">Nome:</span>
                       <span 
-                        className="text-primary cursor-pointer hover:underline truncate"
+                        className="text-primary cursor-pointer hover:underline truncate font-medium"
                         onClick={() => {
                           setDetailDialogOpen(false);
                           navigate(`/neoteam/patients/${selectedTask.patient?.id}`);
@@ -701,48 +706,63 @@ export default function NeoTeamTasks() {
                       >
                         {selectedTask.patient.full_name}
                       </span>
-                    </div>
-                    {selectedTask.patient.phone && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-medium">Telefone:</span>
-                        <span>{selectedTask.patient.phone}</span>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="h-6 px-2 text-xs gap-1"
-                          onClick={() => openWhatsApp(selectedTask.patient!.phone!)}
-                        >
-                          <MessageCircle className="h-3 w-3" />
-                          WhatsApp
-                        </Button>
-                      </div>
-                    )}
-                    {selectedTask.patient.email && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-medium">Email:</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="font-medium min-w-[70px]">Telefone:</span>
+                      {selectedTask.patient.phone ? (
+                        <>
+                          <span>{selectedTask.patient.phone}</span>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="h-6 px-2 text-xs gap-1 ml-auto"
+                            onClick={() => openWhatsApp(selectedTask.patient!.phone!)}
+                          >
+                            <MessageCircle className="h-3 w-3" />
+                            WhatsApp
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground italic">Não informado</span>
+                      )}
+                    </li>
+                    <li className="flex items-center gap-2 text-sm">
+                      <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="font-medium min-w-[70px]">Email:</span>
+                      {selectedTask.patient.email ? (
                         <span className="truncate">{selectedTask.patient.email}</span>
-                      </div>
-                    )}
-                    {(selectedTask.patient.address_city || selectedTask.patient.address_state) && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-medium">Cidade:</span>
-                        <span>{[selectedTask.patient.address_city, selectedTask.patient.address_state].filter(Boolean).join('/')}</span>
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <span className="text-muted-foreground italic">Não informado</span>
+                      )}
+                    </li>
+                    <li className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="font-medium min-w-[70px]">Cidade:</span>
+                      {selectedTask.patient.address_city || selectedTask.patient.address_state ? (
+                        <span>{[selectedTask.patient.address_city, selectedTask.patient.address_state].filter(Boolean).join(' / ')}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic">Não informado</span>
+                      )}
+                    </li>
+                  </ul>
+                </div>
+              ) : (
+                <div className="p-3 bg-muted/30 rounded-lg border-l-4 border-l-muted-foreground/30">
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Paciente</Label>
+                  <p className="text-sm text-muted-foreground mt-1 italic">Nenhum paciente vinculado a esta tarefa</p>
                 </div>
               )}
 
               {/* Descrição da Tarefa */}
-              {selectedTask.description && (
-                <div>
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Descrição</Label>
-                  <p className="text-sm mt-1">{selectedTask.description}</p>
-                </div>
-              )}
+              <div>
+                <Label className="text-xs text-muted-foreground uppercase tracking-wide">Descrição</Label>
+                {selectedTask.description ? (
+                  <p className="text-sm mt-1 whitespace-pre-wrap">{selectedTask.description}</p>
+                ) : (
+                  <p className="text-sm mt-1 text-muted-foreground italic">Sem descrição</p>
+                )}
+              </div>
               
               {/* Status, Prioridade, Prazo */}
               <div className="grid grid-cols-2 gap-4 p-3 bg-muted/30 rounded-lg">
