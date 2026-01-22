@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Loader2, Eye, EyeOff, Heart, Users, GraduationCap, Building2, Sparkles, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
-import logoNeofolic from '@/assets/logo-byneofolic.png';
+
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -332,14 +332,6 @@ export default function NeoHubLogin() {
               </Link>
             </p>
 
-            {/* Logo footer */}
-            <div className="pt-4 border-t w-full flex justify-center">
-              <img 
-                src={logoNeofolic} 
-                alt="ByNeofolic" 
-                className="h-6 opacity-50 dark:invert"
-              />
-            </div>
           </CardFooter>
         </Card>
       </div>
