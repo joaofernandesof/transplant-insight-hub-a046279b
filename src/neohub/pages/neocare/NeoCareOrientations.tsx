@@ -251,7 +251,7 @@ export default function NeoCareOrientations() {
     { key: 'd0', label: 'Cirurgia', icon: Heart, days: 'D0' },
     { key: 'inicial', label: 'Cuidado Intensivo', icon: Droplets, days: 'D1 a D3' },
     { key: 'recuperacao', label: 'Recuperação', icon: Sparkles, days: 'D4 a D15' },
-    { key: 'liberado', label: 'Liberado', icon: Check, days: 'D15+' },
+    { key: 'liberado', label: 'Cuidados Contínuos', icon: Heart, days: 'D15+' },
   ];
 
   return (
@@ -487,13 +487,9 @@ export default function NeoCareOrientations() {
           <h2 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
             Dia do Transplante
           </h2>
-          <p className="text-muted-foreground mb-4">
-            Relaxe e confie na equipe médica
+          <p className="text-muted-foreground">
+            Relaxe e confie na nossa equipe, sua transformação será incrível!
           </p>
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>Duração média: 6-8 horas</span>
-          </div>
         </div>
       )}
 
