@@ -4,45 +4,47 @@ import {
   Users, AlertTriangle, ChevronRight, Star, Phone,
   MessageSquare, BarChart3, Lock, Calendar,
   Stethoscope, Scissors, Syringe, Heart, ArrowRight,
-  CheckCircle2, XCircle, Scale, FileCheck, Building2
+  CheckCircle2, XCircle, Scale, FileCheck, Building2,
+  Play
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import skorynLogo from '@/assets/skoryn-logo.jpg';
 
 const plans = [
   {
-    name: 'Protect Basic',
+    name: 'Starter',
     price: 'R$ 549',
     period: '/mês',
     features: [
-      'Pós-operatório automatizado',
-      'Check-in diário',
-      'Fotos obrigatórias',
+      'Pós-procedimento automatizado',
+      'Check-in diário do paciente',
+      'Fotos obrigatórias por protocolo',
       'Relatório jurídico final',
     ],
     popular: false,
   },
   {
-    name: 'Protect Pro',
+    name: 'Professional',
     price: 'R$ 1.199',
     period: '/mês',
     features: [
-      'Tudo do Basic',
+      'Tudo do Starter',
       'Protocolos customizados',
-      'Score de risco',
+      'Score de risco em tempo real',
       'Alertas avançados',
       'Histórico completo',
     ],
     popular: true,
   },
   {
-    name: 'Protect Clinic',
+    name: 'Clinic',
     price: 'R$ 1.899',
     period: '/mês',
     features: [
-      'Tudo do Pro',
+      'Tudo do Professional',
       'Equipe multiusuário',
       'Clínicas de médio porte',
       'Suporte prioritário',
@@ -61,7 +63,7 @@ const howItWorks = [
   {
     step: 2,
     title: 'Acompanhamento automático',
-    desc: 'Do D+1 ao D+10 (ou mais, se quiser)',
+    desc: 'Do D+1 ao D+10 (ou mais, configurável)',
     icon: Calendar,
   },
   {
@@ -78,8 +80,8 @@ const howItWorks = [
   },
   {
     step: 5,
-    title: 'Relatório jurídico',
-    desc: 'Dossiê completo para auditoria e defesa',
+    title: 'Dossiê jurídico',
+    desc: 'Relatório completo para auditoria e defesa',
     icon: Scale,
   },
 ];
@@ -88,8 +90,8 @@ const segments = [
   { icon: Scissors, name: 'Transplante capilar' },
   { icon: Heart, name: 'Cirurgia plástica' },
   { icon: Stethoscope, name: 'Dermatologia' },
-  { icon: Building2, name: 'Dentistas' },
-  { icon: Syringe, name: 'Biomédicos / Injetores' },
+  { icon: Building2, name: 'Odontologia' },
+  { icon: Syringe, name: 'Biomédicos / Harmonização' },
   { icon: Building2, name: 'Clínicas ambulatoriais' },
 ];
 
@@ -100,49 +102,81 @@ export default function NeoCareProductLanding() {
     document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const scrollToHowItWorks = () => {
+    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <img src={skorynLogo} alt="SKORYN" className="h-10 object-contain" />
+          <div className="hidden md:flex items-center gap-6 text-slate-300 text-sm">
+            <button onClick={scrollToHowItWorks} className="hover:text-white transition">Como funciona</button>
+            <button onClick={scrollToPlans} className="hover:text-white transition">Planos</button>
+          </div>
+          <Button 
+            size="sm" 
+            className="bg-emerald-500 hover:bg-emerald-600"
+            onClick={scrollToPlans}
+          >
+            Começar agora
+          </Button>
+        </div>
+      </header>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white pt-28">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyem0wLTRWMjhIMjR2Mmgxem0tMi00VjI0SDI0djJoMTB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50" />
         
-        <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-32">
-          <div className="flex items-center gap-2 mb-6">
-            <Shield className="h-6 w-6 text-emerald-400" />
-            <span className="text-emerald-400 font-semibold">NeoCare Protect</span>
+        <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-28">
+          <div className="max-w-3xl">
+            <Badge className="mb-6 bg-slate-700/50 text-slate-300 border-slate-600">
+              Plataforma de Governança Pós-Procedimento
+            </Badge>
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight tracking-tight">
+              A clínica faz o procedimento.<br />
+              <span className="text-emerald-400">A SKORYN garante o que acontece depois.</span>
+            </h1>
+            
+            <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl leading-relaxed">
+              SaaS que padroniza, automatiza e documenta todo o pós-procedimento médico e estético, 
+              garantindo <strong className="text-white">orientação contínua ao paciente</strong> e 
+              <strong className="text-white"> segurança clínica, jurídica e operacional</strong> para a clínica.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                size="lg" 
+                className="bg-emerald-500 hover:bg-emerald-600 text-lg h-14 px-8"
+                onClick={scrollToPlans}
+              >
+                <Shield className="mr-2 h-5 w-5" />
+                Proteger minha clínica
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-slate-500 text-slate-300 hover:bg-slate-800 text-lg h-14 px-8"
+                onClick={scrollToHowItWorks}
+              >
+                <Play className="mr-2 h-5 w-5" />
+                Ver como funciona
+              </Button>
+            </div>
           </div>
-          
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            Documente todo o<br />
-            <span className="text-emerald-400">pós-operatório.</span><br />
-            Reduza riscos jurídicos.<br />
-            <span className="text-slate-400">Proteja sua clínica.</span>
-          </h1>
-          
-          <p className="text-xl text-slate-300 mb-8 max-w-2xl">
-            A plataforma de compliance pós-procedimento que registra orientações, 
-            adesão do paciente, fotos diárias e gera um <strong className="text-white">dossiê jurídico automático</strong>, 
-            do D+1 ao D+10.
+        </div>
+      </section>
+
+      {/* One-liner Value Prop */}
+      <section className="py-8 bg-slate-800 border-y border-slate-700">
+        <div className="max-w-6xl mx-auto px-4">
+          <p className="text-center text-slate-300 text-lg md:text-xl">
+            <span className="text-emerald-400 font-semibold">SKORYN</span> — 
+            Padroniza conduta. Documenta adesão. Gera prova. Reduz conflito.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
-              size="lg" 
-              className="bg-emerald-500 hover:bg-emerald-600 text-lg h-14 px-8"
-              onClick={scrollToPlans}
-            >
-              <Shield className="mr-2 h-5 w-5" />
-              Quero proteger minha clínica
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-slate-500 text-slate-300 hover:bg-slate-800 text-lg h-14 px-8"
-            >
-              Ver como funciona
-              <ChevronRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -152,7 +186,7 @@ export default function NeoCareProductLanding() {
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
               <AlertTriangle className="h-3 w-3 mr-1" />
-              A verdade que ninguém fala
+              O problema que ninguém resolve
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               O problema não é o procedimento
@@ -175,7 +209,7 @@ export default function NeoCareProductLanding() {
               <CardContent className="pt-6 text-center">
                 <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2">WhatsApp solto</h3>
-                <p className="text-muted-foreground">Não protege juridicamente</p>
+                <p className="text-muted-foreground">Não tem rastreabilidade jurídica</p>
               </CardContent>
             </Card>
             
@@ -183,14 +217,14 @@ export default function NeoCareProductLanding() {
               <CardContent className="pt-6 text-center">
                 <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2">Prontuário genérico</h3>
-                <p className="text-muted-foreground">Não sustenta defesa</p>
+                <p className="text-muted-foreground">Não documenta o dia a dia</p>
               </CardContent>
             </Card>
           </div>
           
-          <div className="text-center">
-            <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-              👉 Sem prova, a clínica perde.
+          <div className="text-center bg-red-100 dark:bg-red-950/30 rounded-xl p-6 max-w-2xl mx-auto">
+            <p className="text-xl font-bold text-red-600 dark:text-red-400">
+              👉 Sem prova de acompanhamento, a clínica perde.
             </p>
           </div>
         </div>
@@ -202,62 +236,62 @@ export default function NeoCareProductLanding() {
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
               <Shield className="h-3 w-3 mr-1" />
-              A solução
+              A solução SKORYN
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              O que a plataforma faz
+              Infraestrutura completa de governança pós-procedimento
             </h2>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {[
-              { icon: Bell, title: 'Orientações diárias automáticas', desc: 'Enviadas no momento certo' },
-              { icon: CheckCircle2, title: 'Declaração objetiva', desc: 'O paciente confirma adesão' },
-              { icon: Camera, title: 'Fotos padronizadas', desc: 'Obrigatórias por protocolo' },
-              { icon: FileText, title: 'Registro de sintomas', desc: 'Queixas documentadas' },
-              { icon: MessageSquare, title: 'Tentativas de contato', desc: 'Tudo registrado' },
-              { icon: Scale, title: 'Relatório jurídico final', desc: 'Dossiê completo' },
+              { icon: Bell, title: 'Orientações diárias automáticas', desc: 'Enviadas no momento certo, por protocolo' },
+              { icon: CheckCircle2, title: 'Declaração de adesão', desc: 'O paciente confirma que seguiu as instruções' },
+              { icon: Camera, title: 'Fotos padronizadas', desc: 'Registro visual obrigatório por dia' },
+              { icon: FileText, title: 'Registro de sintomas', desc: 'Queixas e intercorrências documentadas' },
+              { icon: MessageSquare, title: 'Tentativas de contato', desc: 'Toda comunicação registrada' },
+              { icon: Scale, title: 'Dossiê jurídico final', desc: 'Relatório completo pronto para auditoria' },
             ].map((item, idx) => (
-              <Card key={idx} className="border-emerald-200 dark:border-emerald-800/50">
+              <Card key={idx} className="border-emerald-200 dark:border-emerald-800/50 hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
-                  <item.icon className="h-8 w-8 text-emerald-500 mb-3" />
-                  <h3 className="font-semibold mb-1">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  <item.icon className="h-10 w-10 text-emerald-500 mb-4" />
+                  <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground">{item.desc}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
           
           <div className="text-center">
-            <Badge className="bg-emerald-500 text-white text-sm px-4 py-2">
+            <Badge className="bg-slate-900 dark:bg-slate-700 text-white text-sm px-6 py-3">
               <Lock className="h-4 w-4 mr-2" />
-              Tudo registrado, organizado e imutável
+              Tudo registrado, organizado e com validade jurídica
             </Badge>
           </div>
         </div>
       </section>
 
       {/* How it Works */}
-      <section className="py-16 md:py-24 bg-slate-50 dark:bg-slate-900">
+      <section id="how-it-works" className="py-16 md:py-24 bg-slate-50 dark:bg-slate-900">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Como funciona
+              Como a SKORYN funciona
             </h2>
-            <p className="text-muted-foreground">Simples, automatizado e seguro</p>
+            <p className="text-muted-foreground text-lg">Simples de implementar. Automático de operar.</p>
           </div>
           
           <div className="grid md:grid-cols-5 gap-4">
             {howItWorks.map((step, idx) => (
               <div key={idx} className="relative">
-                <Card className="h-full">
+                <Card className="h-full hover:shadow-lg transition-shadow">
                   <CardContent className="pt-6 text-center">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center mx-auto mb-4 text-lg">
                       {step.step}
                     </div>
-                    <step.icon className="h-8 w-8 text-emerald-500 mx-auto mb-3" />
-                    <h3 className="font-semibold text-sm mb-1">{step.title}</h3>
-                    <p className="text-xs text-muted-foreground">{step.desc}</p>
+                    <step.icon className="h-8 w-8 text-slate-600 dark:text-slate-400 mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground">{step.desc}</p>
                   </CardContent>
                 </Card>
                 {idx < howItWorks.length - 1 && (
@@ -270,35 +304,38 @@ export default function NeoCareProductLanding() {
       </section>
 
       {/* Legal Differentiator */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-emerald-600 to-teal-700 text-white">
+      <section className="py-16 md:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <Scale className="h-12 w-12 mx-auto mb-4 text-emerald-200" />
+            <Scale className="h-16 w-16 mx-auto mb-6 text-emerald-400" />
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Isso NÃO é um app de paciente
             </h2>
-            <p className="text-xl text-emerald-100">
-              É uma <strong>infraestrutura de prova</strong>
+            <p className="text-xl text-slate-300">
+              É uma <strong className="text-emerald-400">infraestrutura de prova e governança</strong>
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {[
-              'Prova de orientação',
+              'Prova de orientação enviada',
               'Prova de tentativa de contato',
               'Prova de adesão ou não adesão',
               'Prova de acompanhamento ativo',
             ].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3 bg-white/10 rounded-lg p-4">
-                <CheckCircle2 className="h-5 w-5 text-emerald-300 shrink-0" />
+              <div key={idx} className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
                 <span className="font-medium">{item}</span>
               </div>
             ))}
           </div>
           
-          <div className="text-center mt-8">
-            <p className="text-lg text-emerald-100">
-              👉 A clínica fez a parte dela. Se o paciente não seguiu, <strong>está documentado</strong>.
+          <div className="text-center bg-slate-800/50 rounded-xl p-8 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-200 mb-4">
+              A clínica fez a parte dela.
+            </p>
+            <p className="text-2xl font-bold text-emerald-400">
+              Se o paciente não seguiu, está documentado.
             </p>
           </div>
         </div>
@@ -310,26 +347,28 @@ export default function NeoCareProductLanding() {
           <div className="text-center mb-12">
             <Badge className="mb-4">
               <BarChart3 className="h-3 w-3 mr-1" />
-              Dashboard
+              Painel de Controle
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tudo em um lugar
+              Gestão completa em um único lugar
             </h2>
-            <p className="text-muted-foreground">Sem planilha. Sem bagunça.</p>
+            <p className="text-muted-foreground text-lg">Sem planilha. Sem bagunça. Sem perda de informação.</p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { icon: Users, title: 'Lista de pacientes por risco' },
-              { icon: BarChart3, title: 'Score de adesão' },
+              { icon: BarChart3, title: 'Score de adesão em tempo real' },
               { icon: AlertTriangle, title: 'Alertas de intercorrência' },
-              { icon: Camera, title: 'Fotos organizadas por dia' },
-              { icon: Clock, title: 'Histórico completo' },
+              { icon: Camera, title: 'Galeria de fotos por dia' },
+              { icon: Clock, title: 'Timeline completa do paciente' },
               { icon: FileText, title: 'Notas internas da equipe' },
             ].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-4 border rounded-lg">
-                <item.icon className="h-5 w-5 text-emerald-500 shrink-0" />
-                <span className="font-medium">{item.title}</span>
+              <div key={idx} className="flex items-center gap-4 p-5 border rounded-xl hover:shadow-md transition-shadow">
+                <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                  <item.icon className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <span className="font-medium text-lg">{item.title}</span>
               </div>
             ))}
           </div>
@@ -341,18 +380,20 @@ export default function NeoCareProductLanding() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Para quem é
+              Para quem é a SKORYN
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-lg">
               Se existe pós-procedimento, existe risco. Se existe risco, isso é para você.
             </p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {segments.map((seg, idx) => (
-              <Card key={idx} className="text-center">
-                <CardContent className="pt-6">
-                  <seg.icon className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+              <Card key={idx} className="text-center hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6 pb-6">
+                  <div className="p-4 bg-emerald-100 dark:bg-emerald-900/30 rounded-full w-fit mx-auto mb-3">
+                    <seg.icon className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                  </div>
                   <p className="text-sm font-medium">{seg.name}</p>
                 </CardContent>
               </Card>
@@ -369,7 +410,7 @@ export default function NeoCareProductLanding() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Não cobramos por paciente
             </h2>
-            <p className="text-xl text-muted-foreground">Cobramos por proteção.</p>
+            <p className="text-xl text-muted-foreground">Cobramos por proteção. Uso ilimitado.</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -378,12 +419,12 @@ export default function NeoCareProductLanding() {
                 key={idx} 
                 className={cn(
                   "relative",
-                  plan.popular && "border-emerald-500 ring-2 ring-emerald-500/20"
+                  plan.popular && "border-emerald-500 ring-2 ring-emerald-500/20 scale-105"
                 )}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-emerald-500">
+                    <Badge className="bg-emerald-500 text-white">
                       <Star className="h-3 w-3 mr-1" />
                       Mais popular
                     </Badge>
@@ -408,7 +449,7 @@ export default function NeoCareProductLanding() {
                       "w-full",
                       plan.popular 
                         ? "bg-emerald-500 hover:bg-emerald-600" 
-                        : "bg-slate-900 hover:bg-slate-800"
+                        : "bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600"
                     )}
                   >
                     Começar agora
@@ -422,7 +463,7 @@ export default function NeoCareProductLanding() {
             <p>👉 Sem taxa de implantação. Sem custo por paciente.</p>
             <p>
               <strong>Enterprise:</strong> Multiunidades, contrato anual, SLA e customizações — 
-              <Button variant="link" className="text-emerald-600 p-0 h-auto">
+              <Button variant="link" className="text-emerald-600 p-0 h-auto ml-1">
                 Fale conosco
               </Button>
             </p>
@@ -435,7 +476,7 @@ export default function NeoCareProductLanding() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Por que funciona
+              Por que a SKORYN funciona
             </h2>
           </div>
           
@@ -443,12 +484,12 @@ export default function NeoCareProductLanding() {
             {[
               'Automatiza o que ninguém faz bem',
               'Remove falha humana',
-              'Padroniza conduta',
-              'Cria prova',
-              'Reduz conflito',
-              'Protege reputação',
+              'Padroniza conduta clínica',
+              'Cria prova jurídica',
+              'Reduz conflito com paciente',
+              'Protege reputação da clínica',
             ].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-4 bg-background rounded-lg border">
+              <div key={idx} className="flex items-center gap-3 p-4 bg-background rounded-lg border hover:shadow-md transition-shadow">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
                 <span className="font-medium">{item}</span>
               </div>
@@ -461,14 +502,14 @@ export default function NeoCareProductLanding() {
       <section className="py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <Lock className="h-12 w-12 mx-auto mb-4 text-slate-400" />
-          <h2 className="text-2xl font-bold mb-6">Recorrência e Segurança</h2>
+          <h2 className="text-2xl font-bold mb-6">Segurança e Conformidade</h2>
           
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             {[
-              'Histórico salvo na plataforma',
-              'Relatórios com assinatura ativa',
-              'Dados protegidos',
-              'Auditoria completa de ações',
+              'Dados protegidos e criptografados',
+              'Histórico imutável e auditável',
+              'Relatórios com validade jurídica',
+              'Backup automático diário',
             ].map((item, idx) => (
               <div key={idx} className="flex items-center gap-3 p-4 border rounded-lg text-left">
                 <Shield className="h-5 w-5 text-emerald-500 shrink-0" />
@@ -480,13 +521,15 @@ export default function NeoCareProductLanding() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white">
+      <section className="py-16 md:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
+          <img src={skorynLogo} alt="SKORYN" className="h-16 mx-auto mb-8 object-contain" />
+          
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Sua clínica já faz procedimentos.
+            A clínica faz o procedimento.
           </h2>
-          <p className="text-xl text-slate-300 mb-8">
-            Agora precisa provar que acompanhou o pós.
+          <p className="text-2xl text-emerald-400 font-semibold mb-8">
+            A SKORYN garante o que acontece depois.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -508,7 +551,7 @@ export default function NeoCareProductLanding() {
           </div>
           
           <div className="border-t border-slate-700 pt-8">
-            <blockquote className="text-2xl md:text-3xl font-medium italic text-slate-300">
+            <blockquote className="text-xl md:text-2xl font-medium italic text-slate-300">
               "Você não perde processos pelo que fez.<br />
               <span className="text-emerald-400">Perde pelo que não consegue provar."</span>
             </blockquote>
@@ -517,13 +560,13 @@ export default function NeoCareProductLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 border-t">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Shield className="h-5 w-5 text-emerald-500" />
-            <span className="font-semibold text-foreground">NeoCare Protect</span>
+      <footer className="py-8 bg-slate-900 text-slate-400">
+        <div className="max-w-6xl mx-auto px-4 text-center text-sm">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <img src={skorynLogo} alt="SKORYN" className="h-8 object-contain" />
           </div>
-          <p>© 2025 NeoCare. Todos os direitos reservados.</p>
+          <p className="mb-2">Plataforma de Governança Pós-Procedimento</p>
+          <p>© 2025 SKORYN. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>
