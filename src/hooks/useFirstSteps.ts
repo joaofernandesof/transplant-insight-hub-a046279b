@@ -9,14 +9,14 @@ export interface FirstStep {
   route: string;
   isCompleted: boolean;
   isLoading: boolean;
+  action?: () => void;
 }
 
 export function useFirstSteps() {
   const { user } = useAuth();
   const [profileComplete, setProfileComplete] = useState(false);
-  const [hasWatchedLesson, setHasWatchedLesson] = useState(false);
-  const [hasViewedMaterials, setHasViewedMaterials] = useState(false);
-  const [hasEnrolledCourse, setHasEnrolledCourse] = useState(false);
+  const [hasTakenTour, setHasTakenTour] = useState(false);
+  const [hasConfiguredNotifications, setHasConfiguredNotifications] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,30 +37,16 @@ export function useFirstSteps() {
         if (profile) {
           const requiredFields = [profile.name, profile.email, profile.phone, profile.clinic_name, profile.city, profile.state];
           const filledFields = requiredFields.filter(field => field && field.trim() !== "");
-          setProfileComplete(filledFields.length >= 5); // At least 5 of 6 required fields
+          setProfileComplete(filledFields.length >= 5);
         }
 
-        // Check if user has watched any lesson
-        const { data: lessonProgress } = await supabase
-          .from("user_lesson_progress")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
+        // Check if user has taken the tour
+        const tourCompleted = localStorage.getItem(`tour_completed_${user.id}`);
+        setHasTakenTour(tourCompleted === "true");
 
-        setHasWatchedLesson(lessonProgress && lessonProgress.length > 0);
-
-        // Check if user has enrolled in any course
-        const { data: enrollments } = await supabase
-          .from("user_course_enrollments")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
-
-        setHasEnrolledCourse(enrollments && enrollments.length > 0);
-
-        // For materials, we'll use localStorage to track if user visited the page
-        const viewedMaterials = localStorage.getItem(`materials_viewed_${user.id}`);
-        setHasViewedMaterials(viewedMaterials === "true");
+        // Check if user has configured notifications
+        const notificationsConfigured = localStorage.getItem(`notifications_configured_${user.id}`);
+        setHasConfiguredNotifications(notificationsConfigured === "true");
 
       } catch (error) {
         console.error("Error checking first steps progress:", error);
@@ -72,10 +58,17 @@ export function useFirstSteps() {
     checkProgress();
   }, [user?.id]);
 
-  const markMaterialsViewed = () => {
+  const markTourCompleted = () => {
     if (user?.id) {
-      localStorage.setItem(`materials_viewed_${user.id}`, "true");
-      setHasViewedMaterials(true);
+      localStorage.setItem(`tour_completed_${user.id}`, "true");
+      setHasTakenTour(true);
+    }
+  };
+
+  const markNotificationsConfigured = () => {
+    if (user?.id) {
+      localStorage.setItem(`notifications_configured_${user.id}`, "true");
+      setHasConfiguredNotifications(true);
     }
   };
 
@@ -89,30 +82,25 @@ export function useFirstSteps() {
       isLoading
     },
     {
-      id: "course",
-      title: "Iniciar um curso",
-      description: "Matricule-se em um curso da Universidade",
-      route: "/university",
-      isCompleted: hasEnrolledCourse,
-      isLoading
+      id: "tour",
+      title: "Fazer tour no sistema",
+      description: "Conheça todos os módulos e funcionalidades",
+      route: "/home",
+      isCompleted: hasTakenTour,
+      isLoading,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('startOnboardingTour'));
+      }
     },
     {
-      id: "lesson",
-      title: "Assistir primeira aula",
-      description: "Complete sua primeira lição",
-      route: "/university",
-      isCompleted: hasWatchedLesson,
-      isLoading
-    },
-    {
-      id: "materials",
-      title: "Explorar materiais",
-      description: "Conheça POPs, scripts e documentos",
-      route: "/materials",
-      isCompleted: hasViewedMaterials,
+      id: "notifications",
+      title: "Configurar notificações",
+      description: "Escolha como deseja receber avisos",
+      route: "/profile",
+      isCompleted: hasConfiguredNotifications,
       isLoading
     }
-  ], [profileComplete, hasEnrolledCourse, hasWatchedLesson, hasViewedMaterials, isLoading]);
+  ], [profileComplete, hasTakenTour, hasConfiguredNotifications, isLoading]);
 
   const completedCount = steps.filter(s => s.isCompleted).length;
   const totalSteps = steps.length;
@@ -126,6 +114,7 @@ export function useFirstSteps() {
     progressPercent,
     allCompleted,
     isLoading,
-    markMaterialsViewed
+    markTourCompleted,
+    markNotificationsConfigured
   };
 }
