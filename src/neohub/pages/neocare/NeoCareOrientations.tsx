@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
-  Check, Square, CheckSquare, Droplets, Pill, Wine, Cigarette,
+  Check, Droplets, Pill, Wine, Cigarette,
   FileCheck, Stethoscope, ShowerHead, Bed, Sun,
-  Dumbbell, Shirt, Coffee, Waves, Cat, Phone,
+  Dumbbell, Shirt, Coffee, Waves, Cat,
   Trophy, ChevronRight, Sparkles, Heart,
-  Calendar, Clock, AlertCircle, CalendarPlus, Bell,
-  AlertTriangle, XCircle, Loader2, MessageSquare, ExternalLink
+  Calendar, Clock, AlertCircle, Bell,
+  AlertTriangle, Loader2, MessageSquare
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -21,7 +21,6 @@ import { usePatientOrientationProgress } from '@/neohub/hooks/usePatientOrientat
 
 // Pre-transplant checklist
 const preTransplantChecklist = [
-  { id: 'sync_calendar', icon: CalendarPlus, title: 'Sincronizar com Google Agenda', desc: 'Adicione todas as tarefas ao seu calendário', daysBeforeD0: 15, isCalendarSync: true },
   { id: 'exames', icon: FileCheck, title: 'Exames solicitados', desc: 'Hemograma, coagulograma, glicemia', daysBeforeD0: 7 },
   { id: 'consulta', icon: Stethoscope, title: 'Consulta pré-operatória', desc: 'Avaliação médica', daysBeforeD0: 3 },
   { id: 'minoxidil', icon: Pill, title: 'Parar Minoxidil', desc: '7 dias antes', daysBeforeD0: 7 },
@@ -111,111 +110,6 @@ const restrictions = [
   { icon: Cat, title: 'Pets afastados', until: 5 },
 ];
 
-// Generate Google Calendar URL for individual task
-function generateSingleEventUrl(task: { title: string; time?: string; startTime?: string; desc?: string }, date: Date, isAllDay = false) {
-  const formatDate = (d: Date) => d.toISOString().replace(/-|:|\.\d{3}/g, '');
-  
-  if (isAllDay) {
-    // All-day event format: YYYYMMDD/YYYYMMDD (next day)
-    const startStr = format(date, 'yyyyMMdd');
-    const nextDay = addDays(date, 1);
-    const endStr = format(nextDay, 'yyyyMMdd');
-    
-    const params = new URLSearchParams({
-      action: 'TEMPLATE',
-      text: task.title,
-      details: `📱 Orientação do NeoCare`,
-      dates: `${startStr}/${endStr}`,
-    });
-    
-    return `https://calendar.google.com/calendar/render?${params.toString()}`;
-  }
-  
-  const startDate = new Date(date);
-  const [hours, minutes] = (task.startTime || '09:00').split(':').map(Number);
-  startDate.setHours(hours, minutes, 0);
-  
-  const endDate = new Date(startDate);
-  endDate.setHours(endDate.getHours() + 1);
-  
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: task.title,
-    details: `Orientação pós-transplante: ${task.title}\n${task.time ? `Horário: ${task.time}` : ''}\n\n📱 NeoCare`,
-    dates: `${formatDate(startDate)}/${formatDate(endDate)}`,
-  });
-  
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
-
-// Generate ALL events as individual calendar links
-function generateAllEventsAsLinks(surgeryDate: Date) {
-  const events: { title: string; date: Date; url: string }[] = [];
-  
-  // Pre-transplant events (individual)
-  preTransplantChecklist.filter(t => !t.isCalendarSync).forEach(task => {
-    const taskDate = addDays(surgeryDate, -task.daysBeforeD0);
-    events.push({
-      title: task.title,
-      date: taskDate,
-      url: generateSingleEventUrl({ title: `📋 ${task.title}`, desc: task.desc, startTime: '09:00' }, taskDate)
-    });
-  });
-  
-  // D0 - Surgery day (all-day event)
-  events.push({
-    title: '🏥 Dia do Transplante Capilar',
-    date: surgeryDate,
-    url: generateSingleEventUrl({ title: '🏥 Dia do Transplante Capilar' }, surgeryDate, true)
-  });
-  
-  // Post-transplant events (individual)
-  postTransplantChecklist.forEach(day => {
-    const taskDate = addDays(surgeryDate, day.day);
-    day.tasks.forEach(task => {
-      events.push({
-        title: task.title,
-        date: taskDate,
-        url: generateSingleEventUrl({ title: `🏥 ${task.title}`, time: task.time, startTime: task.startTime }, taskDate)
-      });
-    });
-  });
-  
-  return events;
-}
-
-// Open all calendar events sequentially (user adds each one)
-function openAllCalendarEvents(surgeryDate: Date) {
-  const events = generateAllEventsAsLinks(surgeryDate);
-  // Open first event immediately
-  if (events.length > 0) {
-    window.open(events[0].url, '_blank');
-  }
-  // Return events for UI to show remaining
-  return events;
-}
-
-// Generate Google Calendar URL for individual task
-function generateGoogleCalendarUrl(task: { title: string; time: string; startTime?: string }, date: Date) {
-  const startDate = new Date(date);
-  const [hours, minutes] = (task.startTime || '09:00').split(':').map(Number);
-  startDate.setHours(hours, minutes, 0);
-  
-  const endDate = new Date(startDate);
-  endDate.setHours(endDate.getHours() + 1);
-  
-  const formatDate = (d: Date) => d.toISOString().replace(/-|:|\.\d{3}/g, '');
-  
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: `🏥 ${task.title}`,
-    details: `Orientação pós-transplante: ${task.title}\nHorário: ${task.time}`,
-    dates: `${formatDate(startDate)}/${formatDate(endDate)}`,
-  });
-  
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
-
 // Day selector data
 const daySelectors = [
   { day: -15, label: 'D-15' },
@@ -299,31 +193,6 @@ export default function NeoCareOrientations() {
     .flatMap(day => day.tasks)
     .filter(task => !isTaskCompleted(task.id));
 
-  // State for calendar events modal
-  const [calendarEvents, setCalendarEvents] = useState<{ title: string; date: Date; url: string }[] | null>(null);
-  const [currentEventIndex, setCurrentEventIndex] = useState(0);
-
-  // Handle calendar sync - opens events one by one
-  const handleCalendarSync = () => {
-    const events = generateAllEventsAsLinks(surgeryDate);
-    setCalendarEvents(events);
-    setCurrentEventIndex(0);
-    if (events.length > 0) {
-      window.open(events[0].url, '_blank');
-    }
-    toast.success(`Adicionando ${events.length} eventos ao Google Agenda...`);
-  };
-
-  const handleNextEvent = () => {
-    if (calendarEvents && currentEventIndex < calendarEvents.length - 1) {
-      const nextIndex = currentEventIndex + 1;
-      setCurrentEventIndex(nextIndex);
-      window.open(calendarEvents[nextIndex].url, '_blank');
-    } else {
-      setCalendarEvents(null);
-      toast.success('Todos os eventos foram adicionados!');
-    }
-  };
 
   // Phase calculation
   const getCurrentPhase = () => {
@@ -556,54 +425,6 @@ export default function NeoCareOrientations() {
               const isChecked = isTaskCompleted(item.id);
               const taskDate = addDays(surgeryDate, -item.daysBeforeD0);
               const isOverdue = !isChecked && isBefore(taskDate, today) && currentDay < 0;
-              const isCalendarTask = item.isCalendarSync;
-              
-              if (isCalendarTask) {
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      handleCalendarSync();
-                      togglePre(item.id, item.daysBeforeD0);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
-                      isChecked 
-                        ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" 
-                        : "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-700 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/40 dark:hover:to-indigo-900/40"
-                    )}
-                  >
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => {
-                        handleCalendarSync();
-                        togglePre(item.id, item.daysBeforeD0);
-                      }}
-                      className={cn(
-                        "h-5 w-5 shrink-0 border-2",
-                        isChecked 
-                          ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500" 
-                          : "border-blue-400"
-                      )}
-                    />
-                    <Icon className={cn(
-                      "h-5 w-5 shrink-0",
-                      isChecked ? "text-emerald-500" : "text-blue-500"
-                    )} />
-                    <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        "text-sm font-medium",
-                        isChecked && "line-through text-muted-foreground"
-                      )}>
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{item.desc}</p>
-                    </div>
-                    <ExternalLink className="h-4 w-4 text-blue-500 shrink-0" />
-                  </div>
-                );
-              }
-              
               return (
                 <div
                   key={item.id}
