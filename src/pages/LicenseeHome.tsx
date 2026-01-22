@@ -367,7 +367,7 @@ export default function LicenseeHome() {
                 <Building2 className="h-5 w-5" />
               </Button>
               <span className="text-lg font-semibold text-foreground">
-                Licença ByNeofolic
+                Escritório Virtual
               </span>
             </div>
             
