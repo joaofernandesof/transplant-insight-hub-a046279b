@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { 
   Clock, RefreshCw, Trash2, Settings, Plus, Loader2, Volume2, VolumeX, 
-  Stethoscope, Users, Timer, AlertCircle, UserPlus
+  Stethoscope, Users, Timer, AlertCircle, UserPlus, BarChart3
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -259,6 +259,15 @@ export default function NeoTeamWaitingRoom() {
               title={soundEnabled ? 'Desativar alertas sonoros' : 'Ativar alertas sonoros'}
             >
               {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => navigate('/neoteam/waiting-room/reports')}
+              title="Relatórios"
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Relatórios</span>
             </Button>
             <Button 
               variant="outline" 
