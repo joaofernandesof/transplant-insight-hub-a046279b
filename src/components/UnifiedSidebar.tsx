@@ -25,7 +25,7 @@ import {
   LogOut,
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
-import { useState, useEffect, useMemo } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   MAIN_MENU_CATEGORIES, 
@@ -59,7 +59,24 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
   return tierMap[userId] || 'basic';
 };
 
+// Prevent nested sidebars (causes doubled left offset and large blank space)
+const UnifiedSidebarNestingContext = createContext(false);
+
 export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
+  const isNested = useContext(UnifiedSidebarNestingContext);
+
+  if (isNested) {
+    return <>{children}</>;
+  }
+
+  return (
+    <UnifiedSidebarNestingContext.Provider value={true}>
+      <UnifiedSidebarLayout>{children}</UnifiedSidebarLayout>
+    </UnifiedSidebarNestingContext.Provider>
+  );
+}
+
+function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
   const { user, isAdmin, logout } = useUnifiedAuth();
   const navigate = useNavigate();
   const location = useLocation();
