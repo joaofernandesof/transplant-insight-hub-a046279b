@@ -2180,8 +2180,6 @@ export type Database = {
           setting_key: string
           setting_value: Json | null
           updated_at: string
-          whatsapp_api_token: string | null
-          whatsapp_instance_url: string | null
         }
         Insert: {
           created_at?: string
@@ -2189,8 +2187,6 @@ export type Database = {
           setting_key: string
           setting_value?: Json | null
           updated_at?: string
-          whatsapp_api_token?: string | null
-          whatsapp_instance_url?: string | null
         }
         Update: {
           created_at?: string
@@ -2198,8 +2194,6 @@ export type Database = {
           setting_key?: string
           setting_value?: Json | null
           updated_at?: string
-          whatsapp_api_token?: string | null
-          whatsapp_instance_url?: string | null
         }
         Relationships: []
       }
@@ -4737,12 +4731,10 @@ export type Database = {
       }
       sentinel_whatsapp_config: {
         Row: {
-          api_token: string
           created_at: string
           created_by: string | null
           daily_summary_hour: number | null
           id: string
-          instance_url: string
           is_connected: boolean | null
           last_test_at: string | null
           notify_daily_summary: boolean | null
@@ -4753,12 +4745,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          api_token: string
           created_at?: string
           created_by?: string | null
           daily_summary_hour?: number | null
           id?: string
-          instance_url: string
           is_connected?: boolean | null
           last_test_at?: string | null
           notify_daily_summary?: boolean | null
@@ -4769,12 +4759,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          api_token?: string
           created_at?: string
           created_by?: string | null
           daily_summary_hour?: number | null
           id?: string
-          instance_url?: string
           is_connected?: boolean | null
           last_test_at?: string | null
           notify_daily_summary?: boolean | null

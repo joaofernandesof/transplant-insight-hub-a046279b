@@ -43,8 +43,6 @@ export interface SystemAlert {
 
 export interface WhatsAppConfig {
   id: string;
-  instance_url: string;
-  api_token: string;
   phone_number: string;
   is_connected: boolean;
   last_test_at: string | null;

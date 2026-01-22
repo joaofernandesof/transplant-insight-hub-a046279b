@@ -115,8 +115,6 @@ export default function SystemSentinel() {
 
   // Local state
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [whatsappUrl, setWhatsappUrl] = useState(whatsappConfig?.instance_url || '');
-  const [whatsappToken, setWhatsappToken] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState(whatsappConfig?.phone_number || '');
   const [notifyHigh, setNotifyHigh] = useState(whatsappConfig?.notify_high ?? true);
   const [notifyMedium, setNotifyMedium] = useState(whatsappConfig?.notify_medium ?? true);
@@ -151,8 +149,6 @@ export default function SystemSentinel() {
 
   const handleSaveWhatsApp = () => {
     mutations.saveWhatsAppConfig.mutate({
-      instance_url: whatsappUrl,
-      api_token: whatsappToken,
       phone_number: whatsappNumber,
       notify_high: notifyHigh,
       notify_medium: notifyMedium,
@@ -594,27 +590,23 @@ export default function SystemSentinel() {
                   </div>
                 </div>
 
+                {/* Security Notice */}
+                <div className="p-4 rounded-lg border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30">
+                  <div className="flex items-start gap-3">
+                    <Shield className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-amber-800 dark:text-amber-200">Credenciais Seguras</p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                        As credenciais do WhatsApp (URL da instância e token de acesso) são armazenadas de forma segura 
+                        nas variáveis de ambiente do backend. Configure <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">WHATSAPP_INSTANCE_URL</code> e{' '}
+                        <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">WHATSAPP_API_TOKEN</code> nas Configurações → Segredos.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Configuration */}
                 <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="uazapi-url">URL da Instância Uazapi</Label>
-                    <Input 
-                      id="uazapi-url" 
-                      placeholder="https://sua-instancia.uazapi.com" 
-                      value={whatsappUrl}
-                      onChange={(e) => setWhatsappUrl(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="uazapi-token">Token de Acesso</Label>
-                    <Input 
-                      id="uazapi-token" 
-                      type="password"
-                      placeholder="Seu token de autenticação"
-                      value={whatsappToken}
-                      onChange={(e) => setWhatsappToken(e.target.value)}
-                    />
-                  </div>
                   <div className="grid gap-2">
                     <Label htmlFor="whatsapp-number">Número para Alertas</Label>
                     <Input 
@@ -666,7 +658,7 @@ export default function SystemSentinel() {
                   <Button 
                     onClick={handleTestWhatsApp} 
                     className="gap-2"
-                    disabled={mutations.testWhatsApp.isPending || !whatsappConfig?.instance_url}
+                    disabled={mutations.testWhatsApp.isPending || !whatsappConfig?.is_connected}
                   >
                     <Send className="h-4 w-4" />
                     {mutations.testWhatsApp.isPending ? 'Enviando...' : 'Enviar Teste'}
