@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { ModuleSidebar } from "@/components/ModuleSidebar";
 
 interface MarketplaceLayoutProps {
   children: ReactNode;
@@ -7,10 +6,8 @@ interface MarketplaceLayoutProps {
 
 export function MarketplaceLayout({ children }: MarketplaceLayoutProps) {
   return (
-    <ModuleSidebar>
-      <div className="min-h-screen bg-marketplace-background">
-        {children}
-      </div>
-    </ModuleSidebar>
+    <div className="min-h-screen w-full min-w-0 bg-marketplace-background overflow-x-hidden">
+      {children}
+    </div>
   );
 }
