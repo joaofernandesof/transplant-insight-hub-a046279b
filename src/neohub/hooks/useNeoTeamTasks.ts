@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
-export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done' | 'blocked';
+// Status: A Fazer, Em Andamento, Concluído, Cancelado
+export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'cancelled';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Task {

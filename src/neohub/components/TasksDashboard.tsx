@@ -42,35 +42,36 @@ export function TasksDashboard({ tasks, isManager = false }: TasksDashboardProps
     return tasks.filter(t => t.assignee_name === selectedAssignee);
   }, [tasks, selectedAssignee]);
 
-  // Calculate stats
+  // Calculate stats - Updated for 4 statuses
   const stats = useMemo(() => {
     const total = filteredTasks.length;
     const done = filteredTasks.filter(t => t.status === 'done').length;
     const inProgress = filteredTasks.filter(t => t.status === 'in_progress').length;
     const todo = filteredTasks.filter(t => t.status === 'todo').length;
+    const cancelled = filteredTasks.filter(t => t.status === 'cancelled').length;
     const overdue = filteredTasks.filter(t => 
-      t.due_date && isPast(new Date(t.due_date)) && t.status !== 'done'
+      t.due_date && isPast(new Date(t.due_date)) && t.status !== 'done' && t.status !== 'cancelled'
     ).length;
     const urgent = filteredTasks.filter(t => 
-      t.priority === 'urgent' && t.status !== 'done'
+      t.priority === 'urgent' && t.status !== 'done' && t.status !== 'cancelled'
     ).length;
     const dueToday = filteredTasks.filter(t => 
-      t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done'
+      t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done' && t.status !== 'cancelled'
     ).length;
     const dueTomorrow = filteredTasks.filter(t => 
-      t.due_date && isTomorrow(new Date(t.due_date)) && t.status !== 'done'
+      t.due_date && isTomorrow(new Date(t.due_date)) && t.status !== 'done' && t.status !== 'cancelled'
     ).length;
     
     const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
     
     return {
-      total, done, inProgress, todo, overdue, urgent, dueToday, dueTomorrow, completionRate
+      total, done, inProgress, todo, cancelled, overdue, urgent, dueToday, dueTomorrow, completionRate
     };
   }, [filteredTasks]);
 
-  // Get priority breakdown
+  // Get priority breakdown - exclude cancelled
   const priorityBreakdown = useMemo(() => {
-    const pending = filteredTasks.filter(t => t.status !== 'done');
+    const pending = filteredTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled');
     return {
       urgent: pending.filter(t => t.priority === 'urgent').length,
       high: pending.filter(t => t.priority === 'high').length,
@@ -79,10 +80,10 @@ export function TasksDashboard({ tasks, isManager = false }: TasksDashboardProps
     };
   }, [filteredTasks]);
 
-  // Get upcoming deadlines
+  // Get upcoming deadlines - exclude cancelled
   const upcomingDeadlines = useMemo(() => {
     return filteredTasks
-      .filter(t => t.due_date && t.status !== 'done')
+      .filter(t => t.due_date && t.status !== 'done' && t.status !== 'cancelled')
       .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())
       .slice(0, 5);
   }, [filteredTasks]);
@@ -91,14 +92,15 @@ export function TasksDashboard({ tasks, isManager = false }: TasksDashboardProps
   const assigneePerformance = useMemo(() => {
     if (!isManager) return [];
     
-    const perfMap = new Map<string, { total: number; done: number; overdue: number }>();
+    const perfMap = new Map<string, { total: number; done: number; overdue: number; cancelled: number }>();
     
     tasks.forEach(task => {
       const name = task.assignee_name || 'Não atribuído';
-      const current = perfMap.get(name) || { total: 0, done: 0, overdue: 0 };
+      const current = perfMap.get(name) || { total: 0, done: 0, overdue: 0, cancelled: 0 };
       current.total++;
       if (task.status === 'done') current.done++;
-      if (task.due_date && isPast(new Date(task.due_date)) && task.status !== 'done') {
+      if (task.status === 'cancelled') current.cancelled++;
+      if (task.due_date && isPast(new Date(task.due_date)) && task.status !== 'done' && task.status !== 'cancelled') {
         current.overdue++;
       }
       perfMap.set(name, current);
@@ -213,7 +215,7 @@ export function TasksDashboard({ tasks, isManager = false }: TasksDashboardProps
               <Progress value={stats.completionRate} className="h-3" />
             </div>
             
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+            <div className="grid grid-cols-4 gap-4 pt-4 border-t">
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-600">{stats.todo}</p>
                 <p className="text-xs text-muted-foreground">A Fazer</p>
@@ -225,6 +227,10 @@ export function TasksDashboard({ tasks, isManager = false }: TasksDashboardProps
               <div className="text-center">
                 <p className="text-2xl font-bold text-emerald-600">{stats.done}</p>
                 <p className="text-xs text-muted-foreground">Concluído</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p>
+                <p className="text-xs text-muted-foreground">Cancelados</p>
               </div>
             </div>
           </CardContent>

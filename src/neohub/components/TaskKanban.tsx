@@ -42,9 +42,8 @@ import { Task, TaskStatus, TaskPriority } from '@/neohub/hooks/useNeoTeamTasks';
 const statusConfig: Record<TaskStatus, { label: string; color: string; bg: string; headerBg: string }> = {
   todo: { label: 'A Fazer', color: 'text-slate-600', bg: 'bg-slate-50 dark:bg-slate-900/50', headerBg: 'bg-slate-100 dark:bg-slate-800' },
   in_progress: { label: 'Em Andamento', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20', headerBg: 'bg-amber-100 dark:bg-amber-900/40' },
-  review: { label: 'Em Revisão', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20', headerBg: 'bg-purple-100 dark:bg-purple-900/40' },
   done: { label: 'Concluído', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', headerBg: 'bg-emerald-100 dark:bg-emerald-900/40' },
-  blocked: { label: 'Bloqueado', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20', headerBg: 'bg-red-100 dark:bg-red-900/40' },
+  cancelled: { label: 'Cancelados', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20', headerBg: 'bg-red-100 dark:bg-red-900/40' },
 };
 
 const priorityConfig: Record<TaskPriority, { label: string; icon: React.ElementType; color: string }> = {
@@ -54,7 +53,7 @@ const priorityConfig: Record<TaskPriority, { label: string; icon: React.ElementT
   urgent: { label: 'Urgente', icon: AlertCircle, color: 'text-red-500' },
 };
 
-const statusColumns: TaskStatus[] = ['todo', 'in_progress', 'review', 'done'];
+const statusColumns: TaskStatus[] = ['todo', 'in_progress', 'done', 'cancelled'];
 
 interface TaskKanbanProps {
   tasks: Task[];
@@ -243,8 +242,8 @@ function DroppableColumn({
       <div className={`p-3 rounded-t-lg ${config.headerBg} border-b-2 ${
         status === 'todo' ? 'border-slate-400' :
         status === 'in_progress' ? 'border-amber-400' :
-        status === 'review' ? 'border-purple-400' :
-        'border-emerald-400'
+        status === 'done' ? 'border-emerald-400' :
+        'border-red-400'
       }`}>
         <div className="flex items-center justify-between">
           <h3 className={`font-semibold text-sm ${config.color}`}>

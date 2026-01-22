@@ -54,13 +54,12 @@ import { TasksDashboard } from '@/neohub/components/TasksDashboard';
 import { useNeoTeamTasks, Task, TaskStatus, TaskPriority, NewTask } from '@/neohub/hooks/useNeoTeamTasks';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
-// Updated status config with correct colors
+// Status: A Fazer, Em Andamento, Concluído, Cancelados
 const statusConfig: Record<TaskStatus, { label: string; color: string; bg: string; headerBg: string }> = {
   todo: { label: 'A Fazer', color: 'text-slate-600', bg: 'bg-slate-50 dark:bg-slate-900/50', headerBg: 'bg-slate-100 dark:bg-slate-800' },
   in_progress: { label: 'Em Andamento', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20', headerBg: 'bg-amber-100 dark:bg-amber-900/40' },
-  review: { label: 'Em Revisão', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20', headerBg: 'bg-purple-100 dark:bg-purple-900/40' },
   done: { label: 'Concluído', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', headerBg: 'bg-emerald-100 dark:bg-emerald-900/40' },
-  blocked: { label: 'Bloqueado', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20', headerBg: 'bg-red-100 dark:bg-red-900/40' },
+  cancelled: { label: 'Cancelados', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20', headerBg: 'bg-red-100 dark:bg-red-900/40' },
 };
 
 const priorityConfig: Record<TaskPriority, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {
@@ -70,7 +69,7 @@ const priorityConfig: Record<TaskPriority, { label: string; icon: React.ElementT
   urgent: { label: 'Urgente', icon: AlertCircle, color: 'text-red-500', bgColor: 'bg-red-100 dark:bg-red-900/30' },
 };
 
-const statusColumns: TaskStatus[] = ['todo', 'in_progress', 'review', 'done'];
+const statusColumns: TaskStatus[] = ['todo', 'in_progress', 'done', 'cancelled'];
 
 type SortOption = 'priority' | 'due_date' | 'created_at' | 'title';
 
@@ -680,18 +679,77 @@ export default function NeoTeamTasks() {
           </DialogHeader>
           {selectedTask && (
             <div className="space-y-4">
+              {/* Título */}
               <div>
                 <h3 className="font-semibold text-lg">{selectedTask.title}</h3>
-                {selectedTask.description && (
-                  <p className="text-muted-foreground mt-2">{selectedTask.description}</p>
-                )}
               </div>
+
+              {/* Dados do Paciente em Tópicos */}
+              {selectedTask.patient && (
+                <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Dados do Paciente</Label>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-primary shrink-0" />
+                      <span className="font-medium">Nome:</span>
+                      <span 
+                        className="text-primary cursor-pointer hover:underline truncate"
+                        onClick={() => {
+                          setDetailDialogOpen(false);
+                          navigate(`/neoteam/patients/${selectedTask.patient?.id}`);
+                        }}
+                      >
+                        {selectedTask.patient.full_name}
+                      </span>
+                    </div>
+                    {selectedTask.patient.phone && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="font-medium">Telefone:</span>
+                        <span>{selectedTask.patient.phone}</span>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          className="h-6 px-2 text-xs gap-1"
+                          onClick={() => openWhatsApp(selectedTask.patient!.phone!)}
+                        >
+                          <MessageCircle className="h-3 w-3" />
+                          WhatsApp
+                        </Button>
+                      </div>
+                    )}
+                    {selectedTask.patient.email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="font-medium">Email:</span>
+                        <span className="truncate">{selectedTask.patient.email}</span>
+                      </div>
+                    )}
+                    {(selectedTask.patient.address_city || selectedTask.patient.address_state) && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="font-medium">Cidade:</span>
+                        <span>{[selectedTask.patient.address_city, selectedTask.patient.address_state].filter(Boolean).join('/')}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Descrição da Tarefa */}
+              {selectedTask.description && (
+                <div>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Descrição</Label>
+                  <p className="text-sm mt-1">{selectedTask.description}</p>
+                </div>
+              )}
               
-              <div className="grid grid-cols-2 gap-4">
+              {/* Status, Prioridade, Prazo */}
+              <div className="grid grid-cols-2 gap-4 p-3 bg-muted/30 rounded-lg">
                 <div>
                   <Label className="text-xs text-muted-foreground">Status</Label>
-                  <Badge className={`mt-1 ${statusConfig[selectedTask.status].bg} ${statusConfig[selectedTask.status].color}`}>
-                    {statusConfig[selectedTask.status].label}
+                  <Badge className={`mt-1 ${statusConfig[selectedTask.status]?.bg || ''} ${statusConfig[selectedTask.status]?.color || ''}`}>
+                    {statusConfig[selectedTask.status]?.label || selectedTask.status}
                   </Badge>
                 </div>
                 <div>
@@ -721,25 +779,6 @@ export default function NeoTeamTasks() {
                 )}
               </div>
 
-              {/* Patient Info */}
-              {extractPatientInfo(selectedTask.description).phone && (
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <Label className="text-xs text-muted-foreground">Contato do Paciente</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm">{extractPatientInfo(selectedTask.description).phone}</span>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="gap-1 text-emerald-600"
-                      onClick={() => openWhatsApp(extractPatientInfo(selectedTask.description).phone!)}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      WhatsApp
-                    </Button>
-                  </div>
-                </div>
-              )}
-
               {/* Actions */}
               <div className="flex gap-2 pt-2">
                 <Button 
@@ -755,7 +794,8 @@ export default function NeoTeamTasks() {
                 </Button>
                 {selectedTask.status !== 'done' ? (
                   <Button 
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                    className="flex-1"
+                    variant="default"
                     onClick={() => {
                       moveTask(selectedTask.id, 'done');
                       setDetailDialogOpen(false);
