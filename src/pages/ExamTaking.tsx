@@ -125,11 +125,10 @@ export default function ExamTaking() {
     
     setIsSubmitting(true);
     try {
+      // Server-side validation - no correct_answer on client
       const formattedAnswers = questions.map(q => ({
         questionId: q.id,
-        answer: answers[q.id] || '',
-        isCorrect: answers[q.id] === q.correct_answer,
-        points: q.points || 1
+        answer: answers[q.id] || ''
       }));
       
       await submitExamMutation.mutateAsync({
