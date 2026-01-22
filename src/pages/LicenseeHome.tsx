@@ -419,26 +419,6 @@ export default function LicenseeHome() {
         {/* Announcement Banner */}
         <AnnouncementBanner moduleKey="home" />
 
-        {/* Profile Photo & Welcome Section */}
-        <div className="text-center mb-6">
-          {/* Profile Avatar */}
-          <div 
-            data-tour="profile-avatar"
-            className="mx-auto mb-3 cursor-pointer group"
-            onClick={() => navigate('/profile')}
-          >
-            <Avatar className="h-20 w-20 mx-auto ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-lg">
-              <AvatarImage src={user?.avatarUrl} className="object-cover" />
-              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xl font-bold">
-                {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-          
-          <h1 className="text-2xl font-bold">
-            Olá, {user?.name?.split(' ')[0]}!
-          </h1>
-        </div>
 
         {/* Banner Promocional */}
         <HomeBannerCarousel />
