@@ -73,6 +73,11 @@ interface Patient {
 type SortField = 'sequenceId' | 'name' | 'email' | 'phone' | 'branch' | 'category' | 'baldnessGrade' | 'createdAt' | 'city' | 'surgeryDate' | 'consultant' | 'seller' | 'status';
 type SortDirection = 'asc' | 'desc';
 
+type ColumnFilters = Partial<Record<SortField, string>>;
+
+const normalizeText = (value: unknown) => String(value ?? '').toLowerCase().trim();
+const normalizeDigits = (value: unknown) => String(value ?? '').replace(/\D/g, '');
+
 // Helper to parse notes field with all data
 const parseNotes = (notes: string | null): Record<string, string> => {
   if (!notes) return {};
@@ -139,6 +144,9 @@ const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100, 200];
 export default function NeoTeamPatients() {
   // Search state - single unified search
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Column-level search/filter (per column)
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   
   // Filter states
   const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
@@ -269,8 +277,62 @@ export default function NeoTeamPatients() {
       const matchesBranch = selectedBranches.length === 0 || (p.branch && selectedBranches.includes(p.branch));
       const matchesCategory = selectedCategories.length === 0 || (p.category && selectedCategories.includes(p.category));
       const matchesGrade = selectedGrades.length === 0 || (p.baldnessGrade && selectedGrades.includes(p.baldnessGrade));
-      
-      return matchesSearch && matchesBranch && matchesCategory && matchesGrade;
+
+      // Column filters (AND)
+      const cf = columnFilters;
+      const matchesColumnFilters = ((): boolean => {
+        const idFilter = normalizeDigits(cf.sequenceId);
+        if (idFilter) {
+          const pid = String(p.sequenceId);
+          if (!pid.includes(idFilter)) return false;
+        }
+
+        const createdFilter = normalizeText(cf.createdAt);
+        if (createdFilter) {
+          const created = p.createdAt ? format(new Date(p.createdAt), 'dd/MM/yyyy', { locale: ptBR }) : '';
+          if (!normalizeText(created).includes(createdFilter)) return false;
+        }
+
+        const nameFilter = normalizeText(cf.name);
+        if (nameFilter && !normalizeText(p.name).includes(nameFilter)) return false;
+
+        const phoneFilter = normalizeDigits(cf.phone);
+        if (phoneFilter) {
+          const phone = normalizeDigits(p.phone);
+          if (!phone.includes(phoneFilter)) return false;
+        }
+
+        const emailFilter = normalizeText(cf.email);
+        if (emailFilter && !normalizeText(p.email).includes(emailFilter)) return false;
+
+        const branchFilter = normalizeText(cf.branch);
+        if (branchFilter && !normalizeText(p.branch).includes(branchFilter)) return false;
+
+        const categoryFilter = normalizeText(cf.category);
+        if (categoryFilter && !normalizeText(p.category).includes(categoryFilter)) return false;
+
+        const gradeFilter = normalizeText(cf.baldnessGrade);
+        if (gradeFilter && !normalizeText(p.baldnessGrade).includes(gradeFilter)) return false;
+
+        const cityFilter = normalizeText(cf.city);
+        if (cityFilter && !normalizeText(p.city).includes(cityFilter)) return false;
+
+        const consultantFilter = normalizeText(cf.consultant);
+        if (consultantFilter && !normalizeText(p.consultant).includes(consultantFilter)) return false;
+
+        const sellerFilter = normalizeText(cf.seller);
+        if (sellerFilter && !normalizeText(p.seller).includes(sellerFilter)) return false;
+
+        const surgeryFilter = normalizeText(cf.surgeryDate);
+        if (surgeryFilter && !normalizeText(p.surgeryDate).includes(surgeryFilter)) return false;
+
+        const statusFilter = normalizeText(cf.status);
+        if (statusFilter && !normalizeText(p.status).includes(statusFilter)) return false;
+
+        return true;
+      })();
+
+      return matchesSearch && matchesBranch && matchesCategory && matchesGrade && matchesColumnFilters;
     });
 
     result.sort((a, b) => {
@@ -320,7 +382,7 @@ export default function NeoTeamPatients() {
     });
 
     return result;
-  }, [patients, searchTerm, selectedBranches, selectedCategories, selectedGrades, sortField, sortDirection]);
+  }, [patients, searchTerm, selectedBranches, selectedCategories, selectedGrades, sortField, sortDirection, columnFilters]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedPatients.length / itemsPerPage);
@@ -331,7 +393,7 @@ export default function NeoTeamPatients() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedBranches, selectedCategories, selectedGrades]);
+  }, [searchTerm, selectedBranches, selectedCategories, selectedGrades, columnFilters]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -577,6 +639,72 @@ export default function NeoTeamPatients() {
                   </div>
                 </TableHead>
                 <TableHead className="w-[80px] text-center">Ações</TableHead>
+              </TableRow>
+
+              {/* Column search/filter row */}
+              <TableRow className="bg-muted/20">
+                {([
+                  { key: 'sequenceId' as const, placeholder: '#', type: 'digits' as const },
+                  { key: 'createdAt' as const, placeholder: 'dd/mm/aaaa', type: 'text' as const },
+                  { key: 'name' as const, placeholder: 'Nome/CPF', type: 'text' as const },
+                  { key: 'phone' as const, placeholder: 'Telefone', type: 'digits' as const },
+                  { key: 'email' as const, placeholder: 'Email', type: 'text' as const },
+                  { key: 'branch' as const, placeholder: 'Filial', type: 'text' as const },
+                  { key: 'category' as const, placeholder: 'Categoria', type: 'text' as const },
+                  { key: 'baldnessGrade' as const, placeholder: 'Grau', type: 'digits' as const },
+                  { key: 'city' as const, placeholder: 'Cidade', type: 'text' as const },
+                  { key: 'consultant' as const, placeholder: 'Consultor', type: 'text' as const },
+                  { key: 'seller' as const, placeholder: 'Vendedor', type: 'text' as const },
+                  { key: 'surgeryDate' as const, placeholder: 'Cirurgia', type: 'text' as const },
+                  { key: 'status' as const, placeholder: 'Status', type: 'text' as const },
+                  { key: 'actions' as const, placeholder: '', type: 'none' as const },
+                ] as const).map((col) => {
+                  if (col.key === 'actions') {
+                    return <TableHead key="actions" className="w-[80px]" />;
+                  }
+
+                  const value = (columnFilters[col.key as SortField] ?? '') as string;
+
+                  return (
+                    <TableHead
+                      key={col.key}
+                      className="py-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="relative">
+                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                        <Input
+                          value={value}
+                          onChange={(e) =>
+                            setColumnFilters((prev) => ({
+                              ...prev,
+                              [col.key as SortField]: e.target.value,
+                            }))
+                          }
+                          placeholder={col.placeholder}
+                          inputMode={col.type === 'digits' ? 'numeric' : undefined}
+                          className="h-8 pl-7 pr-7"
+                        />
+                        {value && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                            onClick={() =>
+                              setColumnFilters((prev) => ({
+                                ...prev,
+                                [col.key as SortField]: '',
+                              }))
+                            }
+                            title="Limpar"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             </TableHeader>
             <TableBody>
