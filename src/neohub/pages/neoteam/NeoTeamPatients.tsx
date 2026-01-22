@@ -104,7 +104,7 @@ export default function NeoTeamPatients() {
         .from('clinic_patients')
         .select('*')
         .order('full_name', { ascending: true })
-        .limit(200);
+        .limit(1000);
 
       if (error) throw error;
 
