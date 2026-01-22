@@ -42,3 +42,6 @@ verify_jwt = false
 
 [functions.check-metric-alerts]
 verify_jwt = false
+
+[functions.check-patient-orientations]
+verify_jwt = false
