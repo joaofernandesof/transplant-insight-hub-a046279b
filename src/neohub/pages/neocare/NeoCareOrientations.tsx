@@ -5,7 +5,7 @@ import {
   Dumbbell, Shirt, Coffee, Waves, Cat, Phone,
   Trophy, ChevronRight, Sparkles, Heart,
   Calendar, Clock, AlertCircle, CalendarPlus, Bell,
-  AlertTriangle, XCircle, Loader2, MessageSquare
+  AlertTriangle, XCircle, Loader2, MessageSquare, ExternalLink
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -20,6 +20,7 @@ import { usePatientSurgeryDate } from '@/neohub/hooks/usePatientSurgeryDate';
 
 // Pre-transplant checklist
 const preTransplantChecklist = [
+  { id: 'sync_calendar', icon: CalendarPlus, title: 'Sincronizar com Google Agenda', desc: 'Adicione todas as tarefas ao seu calendário', daysBeforeD0: 15, isCalendarSync: true },
   { id: 'exames', icon: FileCheck, title: 'Exames solicitados', desc: 'Hemograma, coagulograma, glicemia', daysBeforeD0: 7 },
   { id: 'consulta', icon: Stethoscope, title: 'Consulta pré-operatória', desc: 'Avaliação médica', daysBeforeD0: 3 },
   { id: 'minoxidil', icon: Pill, title: 'Parar Minoxidil', desc: '7 dias antes', daysBeforeD0: 7 },
@@ -109,7 +110,69 @@ const restrictions = [
   { icon: Cat, title: 'Pets afastados', until: 5 },
 ];
 
-// Generate Google Calendar URL
+// Generate Google Calendar URL for all tasks
+function generateBatchCalendarUrl(surgeryDate: Date) {
+  // Create an array of all events
+  const allEvents: { title: string; date: Date; time: string; startTime: string }[] = [];
+  
+  // Pre-transplant events
+  preTransplantChecklist.filter(t => !t.isCalendarSync).forEach(task => {
+    const taskDate = addDays(surgeryDate, -task.daysBeforeD0);
+    allEvents.push({
+      title: `📋 ${task.title}`,
+      date: taskDate,
+      time: task.desc,
+      startTime: '09:00'
+    });
+  });
+  
+  // D0 - Surgery day
+  allEvents.push({
+    title: '🏥 Dia do Transplante Capilar',
+    date: surgeryDate,
+    time: 'Dia inteiro',
+    startTime: '08:00'
+  });
+  
+  // Post-transplant events
+  postTransplantChecklist.forEach(day => {
+    const taskDate = addDays(surgeryDate, day.day);
+    day.tasks.forEach(task => {
+      allEvents.push({
+        title: `🏥 ${task.title}`,
+        date: taskDate,
+        time: task.time,
+        startTime: task.startTime || '09:00'
+      });
+    });
+  });
+  
+  // Open the first event (user will need to add each one)
+  // For batch, we'll create one comprehensive event for D0
+  const d0 = surgeryDate;
+  const d0Start = new Date(d0);
+  d0Start.setHours(8, 0, 0);
+  const d0End = new Date(d0);
+  d0End.setHours(17, 0, 0);
+  
+  const formatDate = (d: Date) => d.toISOString().replace(/-|:|\.\d{3}/g, '');
+  
+  // Generate event list text
+  const eventList = allEvents.map(e => 
+    `• ${format(e.date, 'dd/MM')} - ${e.title}`
+  ).join('\n');
+  
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `🏥 Transplante Capilar - Neo Folic`,
+    details: `Seu cronograma de transplante capilar:\n\n${eventList}\n\n📱 Acompanhe suas tarefas diárias no app NeoCare`,
+    dates: `${formatDate(d0Start)}/${formatDate(d0End)}`,
+  });
+  
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+// Generate Google Calendar URL for individual task
 function generateGoogleCalendarUrl(task: { title: string; time: string; startTime?: string }, date: Date) {
   const startDate = new Date(date);
   const [hours, minutes] = (task.startTime || '09:00').split(':').map(Number);
@@ -129,6 +192,17 @@ function generateGoogleCalendarUrl(task: { title: string; time: string; startTim
   
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
+
+// Day selector data
+const daySelectors = [
+  { day: -15, label: 'D-15' },
+  { day: -7, label: 'D-7' },
+  { day: -5, label: 'D-5' },
+  { day: -3, label: 'D-3' },
+  { day: -1, label: 'D-1' },
+  { day: 0, label: 'D0', isD0: true },
+  ...postTransplantChecklist.map(d => ({ day: d.day, label: `D${d.day}` }))
+];
 
 export default function NeoCareOrientations() {
   // Fetch real surgery date from database
@@ -225,16 +299,11 @@ export default function NeoCareOrientations() {
     .flatMap(day => day.tasks)
     .filter(task => !postChecked[task.id]?.done);
 
-  // Add all tasks to Google Calendar
-  const addAllToCalendar = () => {
-    postTransplantChecklist.forEach(day => {
-      const taskDate = addDays(surgeryDate, day.day);
-      day.tasks.forEach(task => {
-        const url = generateGoogleCalendarUrl(task, taskDate);
-        window.open(url, '_blank');
-      });
-    });
-    toast.success('Abrindo Google Agenda para adicionar tarefas...');
+  // Handle calendar sync
+  const handleCalendarSync = () => {
+    const url = generateBatchCalendarUrl(surgeryDate);
+    window.open(url, '_blank');
+    toast.success('Abrindo Google Agenda...');
   };
 
   // Phase calculation
@@ -254,6 +323,11 @@ export default function NeoCareOrientations() {
     { key: 'recuperacao', label: 'Recuperação', icon: Sparkles, days: 'D4 a D15' },
     { key: 'liberado', label: 'Cuidados Contínuos', icon: Heart, days: 'D15+' },
   ];
+
+  // Get real date for a day offset
+  const getRealDate = (dayOffset: number) => {
+    return addDays(surgeryDate, dayOffset);
+  };
 
   // Loading state
   if (surgeryLoading) {
@@ -357,97 +431,69 @@ export default function NeoCareOrientations() {
 
       {/* Day Selector */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-sm">Selecione o Dia</h2>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={addAllToCalendar}
-            className="h-7 text-xs gap-1"
-          >
-            <CalendarPlus className="h-3 w-3" />
-            Google Agenda
-          </Button>
-        </div>
+        <h2 className="font-semibold text-sm px-1">Selecione o Dia</h2>
         
-        <div className="flex items-center overflow-x-auto pb-1 gap-1.5">
-          {/* Pre-transplant days */}
-          {[
-            { day: -15, label: 'D-15' },
-            { day: -7, label: 'D-7' },
-            { day: -5, label: 'D-5' },
-            { day: -3, label: 'D-3' },
-            { day: -1, label: 'D-1' },
-          ].map((item) => {
-            const isSelected = selectedDay === item.day;
-            const isToday = currentDay === item.day;
-            
-            return (
-              <button
-                key={item.day}
-                onClick={() => setSelectedDay(item.day)}
-                className={cn(
-                  "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border",
-                  isToday 
-                    ? "bg-emerald-500 text-white border-emerald-500"
-                    : isSelected 
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-card border-border hover:bg-muted text-muted-foreground"
-                )}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-
-          {/* D0 - Always visible as special */}
-          <button
-            onClick={() => setSelectedDay(0)}
-            className={cn(
-              "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all border-2",
-              currentDay === 0
-                ? "bg-emerald-500 text-white border-emerald-600"
-                : selectedDay === 0
-                  ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-500"
-                  : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
-            )}
-          >
-            D0 (Cirurgia)
-          </button>
-
-          {/* Post-transplant days */}
-          {postTransplantChecklist.map((day) => {
-            const completedCount = day.tasks.filter(t => postChecked[t.id]?.done).length;
-            const isComplete = completedCount === day.tasks.length;
-            const isToday = day.day === currentDay;
-            const isSelected = day.day === selectedDay;
-
-            return (
-              <button
-                key={day.day}
-                onClick={() => setSelectedDay(day.day)}
-                className={cn(
-                  "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border relative",
-                  isToday 
-                    ? "bg-emerald-500 text-white border-emerald-500"
-                    : isSelected 
-                      ? "bg-foreground text-background border-foreground"
-                      : isComplete
-                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
-                        : "bg-card border-border hover:bg-muted text-muted-foreground"
-                )}
-              >
-                D{day.day}
-                {isComplete && !isToday && !isSelected && (
-                  <Check className="inline-block h-3 w-3 ml-0.5" />
-                )}
-              </button>
-            );
-          })}
+        {/* Horizontal scroll container */}
+        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+          <div className="flex items-start gap-2 pb-2 min-w-max">
+            {daySelectors.map((item) => {
+              const realDate = getRealDate(item.day);
+              const isSelected = selectedDay === item.day;
+              const isToday = currentDay === item.day;
+              const isD0Item = item.isD0;
+              
+              // Check completion for post days
+              const postDayData = postTransplantChecklist.find(d => d.day === item.day);
+              const isComplete = postDayData 
+                ? postDayData.tasks.every(t => postChecked[t.id]?.done)
+                : item.day < 0 
+                  ? preTransplantChecklist.filter(t => t.daysBeforeD0 >= Math.abs(item.day)).every(t => preChecked[t.id])
+                  : false;
+              
+              return (
+                <button
+                  key={item.day}
+                  onClick={() => setSelectedDay(item.day)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 min-w-[60px] transition-all",
+                  )}
+                >
+                  {/* Day pill */}
+                  <div className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium transition-all border relative flex items-center gap-1",
+                    isD0Item
+                      ? isToday
+                        ? "bg-emerald-500 text-white border-emerald-600"
+                        : isSelected
+                          ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-500 border-2"
+                          : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
+                      : isToday 
+                        ? "bg-emerald-500 text-white border-emerald-500"
+                        : isSelected 
+                          ? "bg-foreground text-background border-foreground"
+                          : isComplete
+                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
+                            : "bg-card border-border hover:bg-muted text-muted-foreground"
+                  )}>
+                    {item.label}
+                    {isComplete && !isToday && !isSelected && !isD0Item && (
+                      <Check className="h-3 w-3" />
+                    )}
+                  </div>
+                  
+                  {/* Real date below */}
+                  <span className={cn(
+                    "text-[10px] font-medium transition-colors",
+                    isSelected || isToday ? "text-foreground" : "text-muted-foreground"
+                  )}>
+                    {format(realDate, 'dd MMM', { locale: ptBR })}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
-
-      <Separator />
 
       <Separator />
 
@@ -468,6 +514,53 @@ export default function NeoCareOrientations() {
               const isChecked = preChecked[item.id];
               const taskDate = addDays(surgeryDate, -item.daysBeforeD0);
               const isOverdue = !isChecked && isBefore(taskDate, today) && currentDay < 0;
+              const isCalendarTask = item.isCalendarSync;
+              
+              if (isCalendarTask) {
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      handleCalendarSync();
+                      togglePre(item.id);
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border",
+                      isChecked 
+                        ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" 
+                        : "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-700 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/40 dark:hover:to-indigo-900/40"
+                    )}
+                  >
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => {
+                        handleCalendarSync();
+                        togglePre(item.id);
+                      }}
+                      className={cn(
+                        "h-5 w-5 shrink-0 border-2",
+                        isChecked 
+                          ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500" 
+                          : "border-blue-400"
+                      )}
+                    />
+                    <Icon className={cn(
+                      "h-5 w-5 shrink-0",
+                      isChecked ? "text-emerald-500" : "text-blue-500"
+                    )} />
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-sm font-medium",
+                        isChecked && "line-through text-muted-foreground"
+                      )}>
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-blue-500 shrink-0" />
+                  </div>
+                );
+              }
               
               return (
                 <div
@@ -617,23 +710,10 @@ export default function NeoCareOrientations() {
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs shrink-0">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {task.time}
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        onClick={() => {
-                          const url = generateGoogleCalendarUrl(task, taskDate);
-                          window.open(url, '_blank');
-                        }}
-                      >
-                        <CalendarPlus className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </div>
+                    <Badge variant="outline" className="text-xs shrink-0">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {task.time}
+                    </Badge>
                   </div>
                 );
               })}
