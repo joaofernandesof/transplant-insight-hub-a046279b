@@ -80,10 +80,10 @@ export function useExamQuestions(examId: string) {
         .eq('id', examId)
         .single();
       
-      // Query directly using type assertion - use exam_questions but only select safe fields
+      // Use secure view that excludes correct_answer - students can access this
       const { data, error } = await supabase
-        .from('exam_questions' as any)
-        .select('id, exam_id, question_text, question_type, options, points, order_index')
+        .from('exam_questions_student' as any)
+        .select('*')
         .eq('exam_id', examId)
         .order('order_index');
       
