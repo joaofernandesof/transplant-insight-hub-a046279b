@@ -564,8 +564,8 @@ export default function NeoCareOrientations() {
                     const Icon = task.icon;
                     const isChecked = isTaskCompleted(task.id);
                     const completedAt = getCompletedAt(task.id);
+                    // Overdue if day has passed (not today) and task not completed
                     const isOverdue = !isChecked && isPast && !isDayToday;
-                    const isRestriction = 'isRestriction' in task && task.isRestriction;
                     
                     return (
                       <div
@@ -577,9 +577,7 @@ export default function NeoCareOrientations() {
                             ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800" 
                             : isOverdue
                               ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-800"
-                              : isRestriction
-                                ? "bg-orange-50/50 dark:bg-orange-950/10 border-orange-200 dark:border-orange-900"
-                                : "bg-background border-border hover:bg-muted/50"
+                              : "bg-background border-border hover:bg-muted/50"
                         )}
                       >
                         <Checkbox
@@ -591,9 +589,7 @@ export default function NeoCareOrientations() {
                               ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500" 
                               : isOverdue 
                                 ? "border-red-400" 
-                                : isRestriction
-                                  ? "border-orange-400"
-                                  : "border-muted-foreground/50"
+                                : "border-muted-foreground/50"
                           )}
                         />
                         {isOverdue && (
@@ -602,21 +598,9 @@ export default function NeoCareOrientations() {
                             <span className="text-[10px] font-semibold uppercase">Atrasado</span>
                           </div>
                         )}
-                        {isRestriction && !isOverdue && !isChecked && (
-                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/50 rounded text-orange-600 dark:text-orange-400">
-                            <AlertCircle className="h-3 w-3" />
-                            <span className="text-[10px] font-semibold uppercase">Restrição</span>
-                          </div>
-                        )}
                         <Icon className={cn(
                           "h-4 w-4 shrink-0",
-                          isChecked 
-                            ? "text-emerald-500" 
-                            : isOverdue 
-                              ? "text-red-500" 
-                              : isRestriction
-                                ? "text-orange-500"
-                                : "text-muted-foreground"
+                          isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
                         )} />
                         <div className="flex-1 min-w-0">
                           <p className={cn(
@@ -631,10 +615,7 @@ export default function NeoCareOrientations() {
                             </p>
                           )}
                         </div>
-                        <Badge variant="outline" className={cn(
-                          "text-xs shrink-0",
-                          isRestriction && !isChecked && "border-orange-300 text-orange-600 dark:border-orange-700 dark:text-orange-400"
-                        )}>
+                        <Badge variant="outline" className="text-xs shrink-0">
                           <Clock className="h-3 w-3 mr-1" />
                           {task.time}
                         </Badge>
