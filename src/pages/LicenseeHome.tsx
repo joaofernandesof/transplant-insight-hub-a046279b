@@ -46,7 +46,11 @@ import {
   SalaTecnicaCompact, 
   SalesOverviewWidget, 
   LeadsFunnelWidget, 
-  QuickStatsWidget 
+  QuickStatsWidget,
+  MonthlyRevenueChartWidget,
+  SurgeriesOverviewWidget,
+  TeamActivityWidget,
+  ConversionRateWidget
 } from "@/components/widgets";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
@@ -440,11 +444,23 @@ export default function LicenseeHome() {
           <JourneyRoadmap currentTier={tier} />
         </div>
 
-        {/* Quick Widgets Grid - 2 colunas para dados legíveis */}
+        {/* Dashboard Global - 8 Widgets */}
+        <h2 className="text-lg font-semibold mb-4 text-foreground">Visão Geral da Operação</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* Row 1 - Faturamento e Vendas */}
+          <MonthlyRevenueChartWidget />
           <SalesOverviewWidget />
+          
+          {/* Row 2 - Leads e Conversão */}
           <LeadsFunnelWidget />
+          <ConversionRateWidget />
+          
+          {/* Row 3 - Cirurgias e Performance */}
+          <SurgeriesOverviewWidget />
           <QuickStatsWidget />
+          
+          {/* Row 4 - Equipe e Sala Técnica */}
+          <TeamActivityWidget />
           <SalaTecnicaCompact />
         </div>
 
