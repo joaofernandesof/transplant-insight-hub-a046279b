@@ -11,7 +11,13 @@ import {
   ExternalLink,
   Search,
   Percent,
-  Tag
+  Tag,
+  Eye,
+  Award,
+  Users,
+  Stethoscope,
+  GraduationCap,
+  Heart
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -115,10 +121,19 @@ const categoryColors: Record<string, string> = {
   'Educação': 'bg-indigo-100 text-indigo-700'
 };
 
+const profileFilters = [
+  { key: 'licenciado', label: 'Licenciado', icon: Award },
+  { key: 'colaborador', label: 'Colaborador', icon: Users },
+  { key: 'medico', label: 'Médico', icon: Stethoscope },
+  { key: 'aluno', label: 'Aluno', icon: GraduationCap },
+  { key: 'paciente', label: 'Paciente', icon: Heart },
+];
+
 export default function Partners() {
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<string>('licenciado');
 
   const categories = [...new Set(mockPartners.map(p => p.category))];
 
@@ -158,6 +173,38 @@ export default function Partners() {
       </header>
 
       <main className="px-4 py-6 overflow-x-hidden w-full">
+        {/* Profile Filter - Prominent Section */}
+        <div className="mb-6 p-4 rounded-xl border-2 border-primary/20 bg-primary/5 dark:bg-primary/10">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Eye className="h-4 w-4" />
+              <span>Ver como:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {profileFilters.map((profile) => {
+                const Icon = profile.icon;
+                const isSelected = selectedProfile === profile.key;
+                return (
+                  <Button
+                    key={profile.key}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedProfile(profile.key)}
+                    className={`gap-2 transition-all ${
+                      isSelected 
+                        ? "shadow-md ring-2 ring-primary/30" 
+                        : "hover:bg-accent"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {profile.label}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
