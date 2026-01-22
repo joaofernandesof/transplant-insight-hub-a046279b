@@ -223,6 +223,92 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_clicks: {
+        Row: {
+          banner_id: string
+          clicked_at: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          banner_id: string
+          clicked_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          banner_id?: string
+          clicked_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_clicks_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "carousel_banners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carousel_banners: {
+        Row: {
+          bg_color: string | null
+          bg_image_url: string | null
+          click_count: number | null
+          created_at: string
+          created_by: string | null
+          display_order: number | null
+          highlight: string | null
+          id: string
+          is_active: boolean | null
+          route: string
+          subtitle: string | null
+          text_position: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          bg_color?: string | null
+          bg_image_url?: string | null
+          click_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          highlight?: string | null
+          id?: string
+          is_active?: boolean | null
+          route: string
+          subtitle?: string | null
+          text_position?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bg_color?: string | null
+          bg_image_url?: string | null
+          click_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          highlight?: string | null
+          id?: string
+          is_active?: boolean | null
+          route?: string
+          subtitle?: string | null
+          text_position?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -5998,6 +6084,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_banner_click: {
+        Args: { banner_uuid: string }
+        Returns: undefined
       }
       is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }

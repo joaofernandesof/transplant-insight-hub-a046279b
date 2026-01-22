@@ -48,6 +48,7 @@ const menuItems = [
   { id: 'licensees', title: 'Gerenciar Licenciados', icon: Users, route: '/licensees' },
   { id: 'monitoring', title: 'Monitoramento de Usuários', icon: Crown, route: '/monitoring' },
   { id: 'admin-panel', title: 'Configurações do Sistema', icon: Settings, route: '/admin' },
+  { id: 'admin-banners', title: 'Gerenciar Banners', icon: Megaphone, route: '/admin/banners' },
   { id: 'comparison', title: 'Comparar Clínicas', icon: GitCompare, route: '/comparison' },
   { id: 'weekly-reports', title: 'Relatórios Semanais', icon: FileCheck, route: '/weekly-reports' },
   { id: 'divider-2', title: 'Dados & Indicadores', isDivider: true },
