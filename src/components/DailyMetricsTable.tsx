@@ -156,7 +156,7 @@ export function DailyMetricsTable({ clinicId, clinicName, isAdmin, onValueChange
   const years = [2025, 2026, 2027];
 
   return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm mb-4">
+    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm mb-4 w-full max-w-full">
       {/* Header with Filters */}
       <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-4 sm:px-6 py-3 sm:py-4 border-b border-border">
         <div className="flex flex-col gap-3">
@@ -308,7 +308,7 @@ export function DailyMetricsTable({ clinicId, clinicName, isAdmin, onValueChange
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="overflow-x-auto scrollbar-hide">
+        <div className="overflow-x-auto scrollbar-hide max-w-full">
           <table className="w-full text-sm border-collapse">
             <thead className="bg-muted sticky top-0 z-20">
               <tr className="border-b border-border">

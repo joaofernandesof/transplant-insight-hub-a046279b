@@ -236,7 +236,7 @@ export function HorizontalMetricsTable({
   }, [orderedMetrics, allWeeks, currentWeekNumber, getValue]);
 
   return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm w-full max-w-full">
       {/* Header */}
       <div className="bg-gradient-to-r from-primary/10 to-accent/10 px-4 sm:px-6 py-3 sm:py-4 border-b border-border">
         <div className="flex items-center justify-between gap-3">
@@ -297,7 +297,7 @@ export function HorizontalMetricsTable({
         </div>
       </div>
       
-      <div ref={tableRef} className="overflow-x-auto scrollbar-hide relative">
+      <div ref={tableRef} className="overflow-x-auto scrollbar-hide relative max-w-full">
         <table className="w-full text-sm border-collapse font-['-apple-system',BlinkMacSystemFont,'SF_Pro_Display','Inter',sans-serif]">
           <thead className="bg-muted sticky top-0 z-40">
             <tr className="border-b border-border">
