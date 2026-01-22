@@ -10,16 +10,33 @@ import {
   Home, Calendar, Clock, Users, FileText,
   Settings, LogOut, Menu, X, ChevronLeft,
   Bell, Folder, Stethoscope, BarChart3, CheckSquare,
-  UserCog, Building2
+  UserCog, Building2, ChevronDown, ChevronRight,
+  List, Ticket
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 interface NeoTeamSidebarProps {
   children: React.ReactNode;
 }
 
-const menuItems = [
+interface MenuItem {
+  id: string;
+  title: string;
+  icon: React.ElementType;
+  route: string;
+  adminOnly?: boolean;
+  doctorOnly?: boolean;
+  postvendaOnly?: boolean;
+  children?: MenuItem[];
+}
+
+const menuItems: MenuItem[] = [
   { id: 'home', title: 'Início', icon: Home, route: '/neoteam' },
   { id: 'schedule', title: 'Agenda', icon: Calendar, route: '/neoteam/schedule' },
   { id: 'waiting-room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
@@ -28,7 +45,18 @@ const menuItems = [
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
-  { id: 'postvenda', title: 'Pós-Venda', icon: Bell, route: '/neoteam/postvenda', postvendaOnly: true },
+  { 
+    id: 'postvenda', 
+    title: 'Pós-Venda', 
+    icon: Ticket, 
+    route: '/neoteam/postvenda', 
+    postvendaOnly: true,
+    children: [
+      { id: 'postvenda-dashboard', title: 'Dashboard', icon: BarChart3, route: '/neoteam/postvenda' },
+      { id: 'postvenda-chamados', title: 'Chamados', icon: List, route: '/neoteam/postvenda/chamados' },
+      { id: 'postvenda-sla', title: 'Config. SLA', icon: Clock, route: '/neoteam/postvenda/sla' },
+    ]
+  },
   { id: 'staff-roles', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/staff-roles', adminOnly: true },
   { id: 'settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
 ];
@@ -162,23 +190,66 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
           {/* Navigation */}
           <ScrollArea className="flex-1 p-2">
             <nav className="space-y-1">
-              {filteredMenuItems.map((item) => (
-                <Button
-                  key={item.id}
-                  variant={isActive(item.route) ? "secondary" : "ghost"}
-                  className={cn(
-                    "w-full justify-start gap-3 h-11",
-                    isCollapsed && "justify-center px-2",
-                    isActive(item.route) && "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                  )}
-                  onClick={() => navigate(item.route)}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!isCollapsed && (
-                    <span className="flex-1 text-left">{item.title}</span>
-                  )}
-                </Button>
-              ))}
+              {filteredMenuItems.map((item) => {
+                const hasChildren = item.children && item.children.length > 0;
+                const isItemActive = isActive(item.route);
+                const isChildActive = hasChildren && item.children?.some(child => isActive(child.route));
+                const showExpanded = isChildActive || location.pathname.startsWith(item.route);
+
+                if (hasChildren && !isCollapsed) {
+                  return (
+                    <Collapsible key={item.id} defaultOpen={showExpanded}>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant={isItemActive || isChildActive ? "secondary" : "ghost"}
+                          className={cn(
+                            "w-full justify-start gap-3 h-11",
+                            (isItemActive || isChildActive) && "bg-primary/10 text-primary"
+                          )}
+                        >
+                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <span className="flex-1 text-left">{item.title}</span>
+                          <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                        {item.children?.map((child) => (
+                          <Button
+                            key={child.id}
+                            variant={isActive(child.route) ? "secondary" : "ghost"}
+                            className={cn(
+                              "w-full justify-start gap-3 h-10 text-sm",
+                              isActive(child.route) && "bg-primary/10 text-primary"
+                            )}
+                            onClick={() => navigate(child.route)}
+                          >
+                            <child.icon className="h-4 w-4 flex-shrink-0" />
+                            <span className="flex-1 text-left">{child.title}</span>
+                          </Button>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                }
+
+                return (
+                  <Button
+                    key={item.id}
+                    variant={isItemActive ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start gap-3 h-11",
+                      isCollapsed && "justify-center px-2",
+                      isItemActive && "bg-primary/10 text-primary"
+                    )}
+                    onClick={() => navigate(item.route)}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {!isCollapsed && (
+                      <span className="flex-1 text-left">{item.title}</span>
+                    )}
+                  </Button>
+                );
+              })}
             </nav>
           </ScrollArea>
 
