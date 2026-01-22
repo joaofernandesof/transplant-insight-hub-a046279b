@@ -23,6 +23,7 @@ import {
   Clock, RefreshCw, Trash2, Settings, Plus, Loader2, Volume2, VolumeX, 
   Stethoscope, Users, Timer, AlertCircle, UserPlus, BarChart3
 } from 'lucide-react';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -225,6 +226,9 @@ export default function NeoTeamWaitingRoom() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      {/* Breadcrumb */}
+      <NeoTeamBreadcrumb />
+
       {/* Audio element for alerts */}
       <audio ref={audioRef} preload="auto">
         <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2JgYB/g4yTlI+Nh4N9dG9tb3N5gIaJiYmIiIeFg4B8d3NxcXN2eX2AgoSFhoaFhIKAfXp3dHJxcXN2eX2AgoWHiImIh4WCf3x4dXJwcHJ1eH2AhIeJioqJh4WAe3h1cnBvcXR4fIGEh4qLi4mGg395dnNwb3BzdnuAg4eKjIyKiIR/enZzb29wc3Z7gIWIi4yLioeDfnl1cm9vcHN3fIGFiYyNjIqHg355dXJvbnBzdnyBhomMjY2Lh4N+eXVyb29wc3d8gYWJjI2Ni4eDfnl1cm9vcHN3fIGFiYyNjYuIg355dXJvb3Bzd3yBhYmMjY2LiIN+eXVyb29wc3d8gYWJjI2Ni4iDfnl1cm9vcHN3fIGFiYyNjYuIg355dXJvb3BzdnyBhYmMjY2LiIN+eXVyb29wc3d8gYWJjI2Ni4eDfnl1cm9vcHN3fIGFiYyNjYuHg355dXJvb3Bzd3yBhYmMjY2Lh4N+eXVyb29wc3d8gYWJjI2Ni4eDfnl1cm9vcHN3fIGFiIuNjYuIg355dXJvb3Bzd3yBhYiLjY2LiIN+eXVyb29wc3d8gYWIi42Ni4eDfnl1cm9vcHN3fIGFiIuNjYuHg355dXJvb3Bzd3yBhYiLjY2Lh4N+eXVyb29wc3d8gYWIi42Ni4eDfnl1cW9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN2fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gYWIi42Ni4eDfnl0cm9vcHN3fIGFiIuNjYuHg355dHJvb3Bzd3yBhYiLjY2Lh4N+eXRyb29wc3d8gQ==" type="audio/wav" />

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 type AppointmentStatus = 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
 
@@ -71,6 +72,9 @@ export default function NeoTeamSchedule() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      {/* Breadcrumb */}
+      <NeoTeamBreadcrumb />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

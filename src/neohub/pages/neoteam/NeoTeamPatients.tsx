@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -17,9 +15,9 @@ import {
 import { 
   Users, Search, Plus, MoreVertical,
   Phone, Mail, Eye, Edit,
-  Download, Loader2, X, Building, Tag,
+  Download, Loader2, X,
   ArrowUpDown, ArrowUp, ArrowDown,
-  BarChart3, ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, MessageCircle, Calendar
 } from 'lucide-react';
 import {
   Select,
@@ -40,6 +38,8 @@ import { ptBR } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { PatientRegistrationDialog } from '@/neohub/components/PatientRegistrationDialog';
 import { DocumentUploadDialog } from '@/neohub/components/DocumentUploadDialog';
+import { PatientFiltersDropdown } from '@/neohub/components/PatientFiltersDropdown';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 interface Patient {
   id: string;
@@ -48,6 +48,11 @@ interface Patient {
   phone: string;
   cpf: string;
   birthDate: string;
+  maritalStatus: string;
+  nationality: string;
+  address: string;
+  city: string;
+  state: string;
   gender: 'M' | 'F' | 'O';
   lastVisit?: string;
   nextAppointment?: string;
@@ -59,50 +64,64 @@ interface Patient {
   category?: string;
   baldnessGrade?: string;
   createdAt?: string;
+  surgeryDate?: string;
+  consultant?: string;
+  seller?: string;
 }
 
-type SortField = 'name' | 'branch' | 'category' | 'baldnessGrade' | 'createdAt';
+type SortField = 'name' | 'branch' | 'category' | 'baldnessGrade' | 'createdAt' | 'city' | 'surgeryDate';
 type SortDirection = 'asc' | 'desc';
 
-// Helper to parse notes field
-const parseNotes = (notes: string | null): { branch?: string; category?: string; baldnessGrade?: string } => {
+// Helper to parse notes field with all data
+const parseNotes = (notes: string | null): Record<string, string> => {
   if (!notes) return {};
-  const result: { branch?: string; category?: string; baldnessGrade?: string } = {};
+  const result: Record<string, string> = {};
   
-  const branchMatch = notes.match(/Filial:\s*([^|]+)/i);
-  if (branchMatch) result.branch = branchMatch[1].trim();
-  
-  const categoryMatch = notes.match(/Categoria:\s*([^|]+)/i);
-  if (categoryMatch) result.category = categoryMatch[1].trim();
-  
-  const gradeMatch = notes.match(/Grau:\s*(\d+)/i);
-  if (gradeMatch) result.baldnessGrade = gradeMatch[1].trim();
+  // Parse pipe-separated values
+  const pairs = notes.split('|');
+  for (const pair of pairs) {
+    const match = pair.match(/([^:]+):\s*(.+)/);
+    if (match) {
+      const key = match[1].trim().toLowerCase();
+      result[key] = match[2].trim();
+    }
+  }
   
   return result;
 };
 
 // Category colors
 const getCategoryColor = (category: string) => {
-  const colors: Record<string, string> = {
-    'CATEGORIA A': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    'CATEGORIA B': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    'CATEGORIA C': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    'CATEGORIA D': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    'CATEGORIA E': 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
-  };
-  return colors[category] || 'bg-muted text-muted-foreground';
+  if (!category) return 'bg-muted text-muted-foreground';
+  const upper = category.toUpperCase();
+  if (upper.includes('CATEGORIA A')) return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+  if (upper.includes('CATEGORIA B')) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+  if (upper.includes('CATEGORIA C')) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+  if (upper.includes('CATEGORIA D')) return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+  if (upper.includes('CATEGORIA E')) return 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400';
+  return 'bg-muted text-muted-foreground';
 };
 
 // Branch colors
 const getBranchColor = (branch: string) => {
-  const colors: Record<string, string> = {
-    'BELO HORIZONTE': 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
-    'SAO PAULO': 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
-    'RIO DE JANEIRO': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
-    'FORTALEZA': 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
-    'JUAZEIRO': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  };
-  return colors[branch] || 'bg-muted text-muted-foreground';
+  if (!branch) return 'bg-muted text-muted-foreground';
+  const upper = branch.toUpperCase();
+  if (upper.includes('BELO HORIZONTE')) return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400';
+  if (upper.includes('SAO PAULO') || upper.includes('SÃO PAULO')) return 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400';
+  if (upper.includes('RIO DE JANEIRO')) return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400';
+  if (upper.includes('FORTALEZA')) return 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400';
+  if (upper.includes('JUAZEIRO')) return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+  if (upper.includes('BRASILIA') || upper.includes('BRASÍLIA')) return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400';
+  if (upper.includes('RECIFE')) return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
+  if (upper.includes('SALVADOR')) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+  if (upper.includes('CURITIBA')) return 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-400';
+  if (upper.includes('CAMPINAS')) return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+  if (upper.includes('PORTO ALEGRE')) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+  if (upper.includes('GOIANIA') || upper.includes('GOIÂNIA')) return 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400';
+  if (upper.includes('MANAUS')) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+  if (upper.includes('VITORIA') || upper.includes('VITÓRIA')) return 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400';
+  if (upper.includes('FLORIANOPOLIS') || upper.includes('FLORIANÓPOLIS')) return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+  return 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400';
 };
 
 // Grade colors
@@ -178,15 +197,23 @@ export default function NeoTeamPatients() {
             email: p.email || '',
             phone: p.phone || '',
             cpf: p.cpf || '',
-            birthDate: '',
+            birthDate: parsed['nascimento'] || parsed['data nascimento'] || '',
+            maritalStatus: parsed['estado civil'] || '',
+            nationality: parsed['nacionalidade'] || '',
+            address: parsed['endereço'] || parsed['endereco'] || '',
+            city: parsed['cidade'] || '',
+            state: parsed['estado'] || parsed['uf'] || '',
             gender: 'O' as const,
             totalVisits: 0,
             status: 'active' as const,
             tags: [],
-            branch: parsed.branch,
-            category: parsed.category,
-            baldnessGrade: parsed.baldnessGrade,
+            branch: parsed['filial'] || '',
+            category: parsed['categoria'] || '',
+            baldnessGrade: parsed['grau'] || '',
             createdAt: p.created_at,
+            surgeryDate: parsed['data cirurgia'] || parsed['cirurgia'] || '',
+            consultant: parsed['consultor'] || '',
+            seller: parsed['vendedor'] || '',
           };
         });
 
@@ -201,10 +228,26 @@ export default function NeoTeamPatients() {
     fetchPatients();
   }, []);
 
+  // Stats for filters
+  const stats = useMemo(() => ({
+    total: patients.length,
+    byBranch: branches.reduce((acc, b) => {
+      acc[b] = patients.filter(p => p.branch === b).length;
+      return acc;
+    }, {} as Record<string, number>),
+    byCategory: categories.reduce((acc, c) => {
+      acc[c] = patients.filter(p => p.category === c).length;
+      return acc;
+    }, {} as Record<string, number>),
+    byGrade: grades.reduce((acc, g) => {
+      acc[g] = patients.filter(p => p.baldnessGrade === g).length;
+      return acc;
+    }, {} as Record<string, number>),
+  }), [patients, branches, categories, grades]);
+
   // Unified search across all fields
   const filteredAndSortedPatients = useMemo(() => {
     let result = patients.filter(p => {
-      // Search filter - searches all fields
       const searchLower = searchTerm.toLowerCase();
       let matchesSearch = true;
       
@@ -215,10 +258,12 @@ export default function NeoTeamPatients() {
           p.phone.includes(searchTerm) ||
           p.cpf.includes(searchTerm) ||
           (p.branch?.toLowerCase().includes(searchLower) ?? false) ||
-          (p.category?.toLowerCase().includes(searchLower) ?? false);
+          (p.category?.toLowerCase().includes(searchLower) ?? false) ||
+          (p.city?.toLowerCase().includes(searchLower) ?? false) ||
+          (p.consultant?.toLowerCase().includes(searchLower) ?? false) ||
+          (p.seller?.toLowerCase().includes(searchLower) ?? false);
       }
       
-      // Multi-select filters
       const matchesBranch = selectedBranches.length === 0 || (p.branch && selectedBranches.includes(p.branch));
       const matchesCategory = selectedCategories.length === 0 || (p.category && selectedCategories.includes(p.category));
       const matchesGrade = selectedGrades.length === 0 || (p.baldnessGrade && selectedGrades.includes(p.baldnessGrade));
@@ -226,7 +271,6 @@ export default function NeoTeamPatients() {
       return matchesSearch && matchesBranch && matchesCategory && matchesGrade;
     });
 
-    // Sort
     result.sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
@@ -241,6 +285,12 @@ export default function NeoTeamPatients() {
           break;
         case 'baldnessGrade':
           comparison = Number(a.baldnessGrade || 0) - Number(b.baldnessGrade || 0);
+          break;
+        case 'city':
+          comparison = (a.city || '').localeCompare(b.city || '');
+          break;
+        case 'surgeryDate':
+          comparison = (a.surgeryDate || '').localeCompare(b.surgeryDate || '');
           break;
         case 'createdAt':
           comparison = new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
@@ -259,33 +309,9 @@ export default function NeoTeamPatients() {
     return filteredAndSortedPatients.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredAndSortedPatients, currentPage, itemsPerPage]);
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedBranches, selectedCategories, selectedGrades]);
-
-  // Stats
-  const stats = useMemo(() => ({
-    total: patients.length,
-    filtered: filteredAndSortedPatients.length,
-    byBranch: branches.reduce((acc, b) => {
-      acc[b] = patients.filter(p => p.branch === b).length;
-      return acc;
-    }, {} as Record<string, number>),
-    byCategory: categories.reduce((acc, c) => {
-      acc[c] = patients.filter(p => p.category === c).length;
-      return acc;
-    }, {} as Record<string, number>),
-  }), [patients, filteredAndSortedPatients, branches, categories]);
-
-  const activeFiltersCount = selectedBranches.length + selectedCategories.length + selectedGrades.length;
-
-  const clearAllFilters = () => {
-    setSelectedBranches([]);
-    setSelectedCategories([]);
-    setSelectedGrades([]);
-    setSearchTerm('');
-  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -303,26 +329,17 @@ export default function NeoTeamPatients() {
       <ArrowDown className="h-4 w-4" />;
   };
 
-  const toggleBranch = (branch: string) => {
-    setSelectedBranches(prev => 
-      prev.includes(branch) ? prev.filter(b => b !== branch) : [...prev, branch]
-    );
-  };
-
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
-    );
-  };
-
-  const toggleGrade = (grade: string) => {
-    setSelectedGrades(prev => 
-      prev.includes(grade) ? prev.filter(g => g !== grade) : [...prev, grade]
-    );
+  const openWhatsApp = (phone: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const formattedPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+    window.open(`https://wa.me/${formattedPhone}`, '_blank');
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-4">
+      {/* Breadcrumb */}
+      <NeoTeamBreadcrumb />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -352,7 +369,7 @@ export default function NeoTeamPatients() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome, email, telefone, CPF, filial ou categoria..."
+              placeholder="Buscar por nome, email, telefone, CPF, filial, categoria, cidade..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-10"
@@ -371,152 +388,22 @@ export default function NeoTeamPatients() {
         </CardContent>
       </Card>
 
-      {/* Filter Cards - Separated */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Branch Filter Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Building className="h-4 w-4 text-primary" />
-              Filial
-              {selectedBranches.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">{selectedBranches.length}</Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex flex-wrap gap-2">
-              {branches.map(branch => (
-                <Button
-                  key={branch}
-                  variant={selectedBranches.includes(branch) ? "default" : "outline"}
-                  size="sm"
-                  className={`text-xs ${selectedBranches.includes(branch) ? '' : getBranchColor(branch)}`}
-                  onClick={() => toggleBranch(branch)}
-                >
-                  {branch}
-                  <span className="ml-1 opacity-70">({stats.byBranch[branch]})</span>
-                </Button>
-              ))}
-              {branches.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhuma filial</p>
-              )}
-            </div>
-            {selectedBranches.length > 0 && (
-              <Button variant="ghost" size="sm" className="mt-2 h-7 text-xs text-muted-foreground" onClick={() => setSelectedBranches([])}>
-                Limpar seleção
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Category Filter Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Tag className="h-4 w-4 text-primary" />
-              Categoria
-              {selectedCategories.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">{selectedCategories.length}</Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex flex-wrap gap-2">
-              {categories.map(cat => (
-                <Button
-                  key={cat}
-                  variant={selectedCategories.includes(cat) ? "default" : "outline"}
-                  size="sm"
-                  className={`text-xs ${selectedCategories.includes(cat) ? '' : getCategoryColor(cat)}`}
-                  onClick={() => toggleCategory(cat)}
-                >
-                  {cat}
-                  <span className="ml-1 opacity-70">({stats.byCategory[cat]})</span>
-                </Button>
-              ))}
-              {categories.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhuma categoria</p>
-              )}
-            </div>
-            {selectedCategories.length > 0 && (
-              <Button variant="ghost" size="sm" className="mt-2 h-7 text-xs text-muted-foreground" onClick={() => setSelectedCategories([])}>
-                Limpar seleção
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Grade Filter Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-primary" />
-              Grau de Calvície
-              {selectedGrades.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">{selectedGrades.length}</Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex flex-wrap gap-2">
-              {grades.map(grade => (
-                <Button
-                  key={grade}
-                  variant={selectedGrades.includes(grade) ? "default" : "outline"}
-                  size="sm"
-                  className={`h-9 w-11 ${selectedGrades.includes(grade) ? '' : getGradeColor(grade)}`}
-                  onClick={() => toggleGrade(grade)}
-                >
-                  {grade}
-                </Button>
-              ))}
-              {grades.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhum grau</p>
-              )}
-            </div>
-            {selectedGrades.length > 0 && (
-              <Button variant="ghost" size="sm" className="mt-2 h-7 text-xs text-muted-foreground" onClick={() => setSelectedGrades([])}>
-                Limpar seleção
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Active Filters Summary */}
-      {(activeFiltersCount > 0 || searchTerm) && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-muted-foreground">Filtros ativos:</span>
-          {searchTerm && (
-            <Badge variant="secondary" className="gap-1">
-              Busca: "{searchTerm}"
-              <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchTerm('')} />
-            </Badge>
-          )}
-          {selectedBranches.map(b => (
-            <Badge key={b} variant="secondary" className={`gap-1 ${getBranchColor(b)}`}>
-              {b}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => toggleBranch(b)} />
-            </Badge>
-          ))}
-          {selectedCategories.map(c => (
-            <Badge key={c} variant="secondary" className={`gap-1 ${getCategoryColor(c)}`}>
-              {c}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => toggleCategory(c)} />
-            </Badge>
-          ))}
-          {selectedGrades.map(g => (
-            <Badge key={g} variant="secondary" className={`gap-1 ${getGradeColor(g)}`}>
-              Grau {g}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => toggleGrade(g)} />
-            </Badge>
-          ))}
-          <Button variant="ghost" size="sm" className="h-7 text-destructive" onClick={clearAllFilters}>
-            Limpar todos
-          </Button>
-        </div>
-      )}
+      {/* Filters - Dropdown Style */}
+      <PatientFiltersDropdown
+        branches={branches}
+        categories={categories}
+        grades={grades}
+        selectedBranches={selectedBranches}
+        selectedCategories={selectedCategories}
+        selectedGrades={selectedGrades}
+        onBranchChange={setSelectedBranches}
+        onCategoryChange={setSelectedCategories}
+        onGradeChange={setSelectedGrades}
+        stats={stats}
+        getCategoryColor={getCategoryColor}
+        getBranchColor={getBranchColor}
+        getGradeColor={getGradeColor}
+      />
 
       {/* Table */}
       <Card>
@@ -532,7 +419,7 @@ export default function NeoTeamPatients() {
                 <SelectTrigger className="w-20 h-8">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   {ITEMS_PER_PAGE_OPTIONS.map(opt => (
                     <SelectItem key={opt} value={String(opt)}>{opt}</SelectItem>
                   ))}
@@ -548,7 +435,6 @@ export default function NeoTeamPatients() {
                 Anterior
               </Button>
               
-              {/* Page numbers */}
               <div className="flex gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
@@ -589,23 +475,23 @@ export default function NeoTeamPatients() {
         )}
 
         <CardContent className="p-0 overflow-x-auto">
-          <Table className="table-fixed min-w-[1200px]">
+          <Table className="table-fixed min-w-[1800px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[260px] cursor-pointer" onClick={() => handleSort('name')}>
+                <TableHead className="w-[240px] cursor-pointer" onClick={() => handleSort('name')}>
                   <div className="flex items-center gap-2">
                     Paciente
                     <SortIcon field="name" />
                   </div>
                 </TableHead>
                 <TableHead className="w-[200px]">Contato</TableHead>
-                <TableHead className="w-[160px] cursor-pointer" onClick={() => handleSort('branch')}>
+                <TableHead className="w-[140px] cursor-pointer" onClick={() => handleSort('branch')}>
                   <div className="flex items-center gap-2">
                     Filial
                     <SortIcon field="branch" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[140px] cursor-pointer" onClick={() => handleSort('category')}>
+                <TableHead className="w-[160px] cursor-pointer" onClick={() => handleSort('category')}>
                   <div className="flex items-center gap-2">
                     Categoria
                     <SortIcon field="category" />
@@ -617,20 +503,34 @@ export default function NeoTeamPatients() {
                     <SortIcon field="baldnessGrade" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[100px] text-center">Status</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort('city')}>
+                  <div className="flex items-center gap-2">
+                    Cidade
+                    <SortIcon field="city" />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[120px]">Consultor</TableHead>
+                <TableHead className="w-[120px]">Vendedor</TableHead>
+                <TableHead className="w-[110px] cursor-pointer" onClick={() => handleSort('surgeryDate')}>
+                  <div className="flex items-center gap-2">
+                    Cirurgia
+                    <SortIcon field="surgeryDate" />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[90px] text-center">Status</TableHead>
+                <TableHead className="w-[80px] text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={11} className="text-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ) : paginatedPatients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                     Nenhum paciente encontrado
                   </TableCell>
                 </TableRow>
@@ -658,10 +558,19 @@ export default function NeoTeamPatients() {
                         </p>
                       )}
                       {patient.phone && (
-                        <p className="text-sm flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                           <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          {patient.phone}
-                        </p>
+                          <span className="text-sm">{patient.phone}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => openWhatsApp(patient.phone)}
+                            title="Abrir WhatsApp"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </TableCell>
@@ -688,6 +597,25 @@ export default function NeoTeamPatients() {
                       <Badge className={`text-xs ${getGradeColor(patient.baldnessGrade)}`}>
                         {patient.baldnessGrade}
                       </Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm truncate">{patient.city || '—'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm truncate">{patient.consultant || '—'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm truncate">{patient.seller || '—'}</span>
+                  </TableCell>
+                  <TableCell>
+                    {patient.surgeryDate ? (
+                      <div className="flex items-center gap-1 text-xs">
+                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        {patient.surgeryDate}
+                      </div>
                     ) : (
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
