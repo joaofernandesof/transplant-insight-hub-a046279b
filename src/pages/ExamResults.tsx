@@ -253,6 +253,7 @@ export default function ExamResults() {
                     {answer.question.options?.map((option, optIdx) => {
                       const letter = String.fromCharCode(65 + optIdx); // A, B, C, D...
                       const isCorrectOption = option === answer.question.correct_answer;
+                      const isSelectedWrong = option === answer.selected_answer && !answer.is_correct;
                       
                       return (
                         <div
@@ -261,44 +262,36 @@ export default function ExamResults() {
                             "p-3 rounded-lg text-sm",
                             isCorrectOption
                               ? "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700"
+                              : isSelectedWrong
+                              ? "bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700"
                               : "bg-muted"
                           )}
                         >
                           <div className="flex items-center gap-2">
                             <span className={cn(
                               "font-semibold min-w-[24px]",
-                              isCorrectOption ? "text-emerald-700 dark:text-emerald-300" : "text-muted-foreground"
+                              isCorrectOption 
+                                ? "text-emerald-700 dark:text-emerald-300" 
+                                : isSelectedWrong
+                                ? "text-red-700 dark:text-red-300"
+                                : "text-muted-foreground"
                             )}>
                               {letter})
                             </span>
-                            {isCorrectOption && (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                            )}
-                            <span>{option}</span>
+                            <span className={cn(
+                              isCorrectOption 
+                                ? "text-emerald-800 dark:text-emerald-200" 
+                                : isSelectedWrong
+                                ? "text-red-800 dark:text-red-200"
+                                : ""
+                            )}>
+                              {option}
+                            </span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                  
-                  {/* Always show correct answer indicator */}
-                  {(() => {
-                    const correctIndex = answer.question.options?.findIndex(
-                      opt => opt === answer.question.correct_answer
-                    );
-                    const correctLetter = correctIndex !== undefined && correctIndex >= 0 
-                      ? String.fromCharCode(65 + correctIndex) 
-                      : '';
-                    
-                    return (
-                      <div className="mt-3 p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg border border-emerald-300 dark:border-emerald-700">
-                        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4" />
-                          Resposta correta: {correctLetter}
-                        </p>
-                      </div>
-                    );
-                  })()}
                   
                   {/* Explanation in yellow - only explains the correct answer */}
                   {answer.question.explanation && (
