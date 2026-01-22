@@ -393,32 +393,23 @@ export default function LicenseeHome() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Profile Photo & Welcome Section */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6">
           {/* Profile Avatar */}
           <div 
-            className="mx-auto mb-4 cursor-pointer group"
+            className="mx-auto mb-3 cursor-pointer group"
             onClick={() => navigate('/profile')}
           >
-            <Avatar className="h-24 w-24 mx-auto ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-lg">
+            <Avatar className="h-20 w-20 mx-auto ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-lg">
               <AvatarImage src={user?.avatarUrl} className="object-cover" />
-              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-2xl font-bold">
+              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xl font-bold">
                 {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </div>
           
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-2xl font-bold">
             Olá, {user?.name?.split(' ')[0]}!
           </h1>
-          <p className="text-muted-foreground mb-6">
-            {user?.clinicName}
-          </p>
-          
-          {/* Licensee Badge */}
-          <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full border-2 ${tierInfo.bgColor} ${tierInfo.borderColor} ${tierInfo.color} shadow-sm`}>
-            {tierInfo.icon}
-            <p className="font-bold text-lg">Nível {tierInfo.name}</p>
-          </div>
         </div>
 
         {/* Journey Roadmap - Primeiro elemento após welcome */}
