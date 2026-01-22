@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Loader2 } from 'lucide-react';
-import { PostVendaBreadcrumb } from '../components/PostVendaBreadcrumb';
+import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { ChamadoCard, NovoChamadoDialog } from '../components';
 import { usePostVenda } from '../hooks/usePostVenda';
 import { ETAPA_LABELS } from '../lib/permissions';
@@ -24,7 +24,7 @@ export default function ChamadoListPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-4">
-      <PostVendaBreadcrumb />
+      <GlobalBreadcrumb />
 
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Chamados</h1>

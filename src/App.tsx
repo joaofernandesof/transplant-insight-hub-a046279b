@@ -122,6 +122,12 @@ import { MarketplaceDashboard } from "./marketplace/pages/MarketplaceDashboard";
 import { MarketplaceDiscovery } from "./marketplace/pages/MarketplaceDiscovery";
 
 // ====================================
+// Pós-Venda (CAPYS)
+// ====================================
+import { PostVendaHome, ChamadoListPage } from "./postvenda/pages";
+import { PostVendaSidebar } from "./postvenda/components";
+
+// ====================================
 // External Apps (temporário - serão migrados)
 // ====================================
 import PortalApp from "./portal/PortalApp";
@@ -390,54 +396,72 @@ function AppRoutes() {
           Rotas Legadas (compatibilidade)
           ==================================== */}
       <Route path="/home" element={<ProtectedRoute><SidebarWrapper><LicenseeHome /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/licensees" element={<ProtectedRoute><LicenseesPanel /></ProtectedRoute>} />
-      <Route path="/comparison" element={<ProtectedRoute><ClinicComparison /></ProtectedRoute>} />
-      <Route path="/university" element={<ProtectedRoute><University /></ProtectedRoute>} />
-      <Route path="/university/exams" element={<ProtectedRoute><ExamsList /></ProtectedRoute>} />
-      <Route path="/university/exams/:examId/take" element={<ProtectedRoute><ExamTaking /></ProtectedRoute>} />
-      <Route path="/university/exams/:examId/results/:attemptId" element={<ProtectedRoute><ExamResults /></ProtectedRoute>} />
-      <Route path="/university/exams/admin" element={<ProtectedRoute><ExamsAdmin /></ProtectedRoute>} />
-      <Route path="/regularization" element={<ProtectedRoute><Regularization /></ProtectedRoute>} />
-      <Route path="/materials" element={<ProtectedRoute><Materials /></ProtectedRoute>} />
-      <Route path="/marketing" element={<ProtectedRoute><Marketing /></ProtectedRoute>} />
-      <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
-      <Route path="/financial" element={<ProtectedRoute><Financial /></ProtectedRoute>} />
-      <Route path="/mentorship" element={<ProtectedRoute><Mentorship /></ProtectedRoute>} />
-      <Route path="/systems" element={<ProtectedRoute><Systems /></ProtectedRoute>} />
-      <Route path="/career" element={<ProtectedRoute><Career /></ProtectedRoute>} />
-      <Route path="/hotleads" element={<ProtectedRoute><HotLeads /></ProtectedRoute>} />
-      <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
-      <Route path="/access-matrix" element={<ProtectedRoute><AccessMatrix /></ProtectedRoute>} />
-      <Route path="/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
-      <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
-      <Route path="/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
-      <Route path="/license-payments" element={<ProtectedRoute><LicensePayments /></ProtectedRoute>} />
-      <Route path="/estrutura-neo" element={<ProtectedRoute><EstruturaNeo /></ProtectedRoute>} />
-      <Route path="/indique-e-ganhe" element={<ProtectedRoute><ReferralProgram /></ProtectedRoute>} />
-      <Route path="/monitoring" element={<ProtectedRoute><UserMonitoring /></ProtectedRoute>} />
-      <Route path="/system-metrics" element={<ProtectedRoute><SystemMetrics /></ProtectedRoute>} />
-      <Route path="/admin/sentinel" element={<AdminRoute><SystemSentinel /></AdminRoute>} />
-      <Route path="/weekly-reports" element={<ProtectedRoute><WeeklyReports /></ProtectedRoute>} />
-      <Route path="/surgery-schedule" element={<ProtectedRoute><SurgerySchedule /></ProtectedRoute>} />
-      <Route path="/sala-tecnica" element={<ProtectedRoute><SalaTecnica /></ProtectedRoute>} />
-      <Route path="/consolidated-results" element={<ProtectedRoute><ConsolidatedResults /></ProtectedRoute>} />
+      <Route path="/admin-dashboard" element={<ProtectedRoute><SidebarWrapper><AdminDashboard /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><SidebarWrapper><Dashboard /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/licensees" element={<ProtectedRoute><SidebarWrapper><LicenseesPanel /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><ClinicComparison /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/university" element={<ProtectedRoute><SidebarWrapper><University /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/university/exams" element={<ProtectedRoute><SidebarWrapper><ExamsList /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/university/exams/:examId/take" element={<ProtectedRoute><SidebarWrapper><ExamTaking /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/university/exams/:examId/results/:attemptId" element={<ProtectedRoute><SidebarWrapper><ExamResults /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/university/exams/admin" element={<ProtectedRoute><SidebarWrapper><ExamsAdmin /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/regularization" element={<ProtectedRoute><SidebarWrapper><Regularization /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/materials" element={<ProtectedRoute><SidebarWrapper><Materials /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketing" element={<ProtectedRoute><SidebarWrapper><Marketing /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/store" element={<ProtectedRoute><SidebarWrapper><Store /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/financial" element={<ProtectedRoute><SidebarWrapper><Financial /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/mentorship" element={<ProtectedRoute><SidebarWrapper><Mentorship /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/systems" element={<ProtectedRoute><SidebarWrapper><Systems /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/career" element={<ProtectedRoute><SidebarWrapper><Career /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/hotleads" element={<ProtectedRoute><SidebarWrapper><HotLeads /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/community" element={<ProtectedRoute><SidebarWrapper><Community /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><SidebarWrapper><Profile /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute><SidebarWrapper><AdminPanel /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/access-matrix" element={<ProtectedRoute><SidebarWrapper><AccessMatrix /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/certificates" element={<ProtectedRoute><SidebarWrapper><Certificates /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/achievements" element={<ProtectedRoute><SidebarWrapper><Achievements /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/partners" element={<ProtectedRoute><SidebarWrapper><Partners /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/license-payments" element={<ProtectedRoute><SidebarWrapper><LicensePayments /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/estrutura-neo" element={<ProtectedRoute><SidebarWrapper><EstruturaNeo /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/indique-e-ganhe" element={<ProtectedRoute><SidebarWrapper><ReferralProgram /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/monitoring" element={<ProtectedRoute><SidebarWrapper><UserMonitoring /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/system-metrics" element={<ProtectedRoute><SidebarWrapper><SystemMetrics /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/admin/sentinel" element={<AdminRoute><SidebarWrapper><SystemSentinel /></SidebarWrapper></AdminRoute>} />
+      <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><WeeklyReports /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/surgery-schedule" element={<ProtectedRoute><SidebarWrapper><SurgerySchedule /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><SalaTecnica /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><ConsolidatedResults /></SidebarWrapper></ProtectedRoute>} />
 
       {/* ====================================
           Marketplace
           ==================================== */}
-      <Route path="/marketplace" element={<ProtectedRoute><MarketplaceHome /></ProtectedRoute>} />
-      <Route path="/marketplace/professionals" element={<ProtectedRoute><MarketplaceProfessionals /></ProtectedRoute>} />
-      <Route path="/marketplace/units" element={<ProtectedRoute><MarketplaceUnits /></ProtectedRoute>} />
-      <Route path="/marketplace/leads" element={<ProtectedRoute><MarketplaceLeads /></ProtectedRoute>} />
-      <Route path="/marketplace/schedule" element={<ProtectedRoute><MarketplaceSchedule /></ProtectedRoute>} />
-      <Route path="/marketplace/reviews" element={<ProtectedRoute><MarketplaceReviews /></ProtectedRoute>} />
-      <Route path="/marketplace/campaigns" element={<ProtectedRoute><MarketplaceCampaigns /></ProtectedRoute>} />
-      <Route path="/marketplace/dashboard" element={<ProtectedRoute><MarketplaceDashboard /></ProtectedRoute>} />
-      <Route path="/marketplace/discovery" element={<ProtectedRoute><MarketplaceDiscovery /></ProtectedRoute>} />
+      <Route path="/marketplace" element={<ProtectedRoute><SidebarWrapper><MarketplaceHome /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace/professionals" element={<ProtectedRoute><SidebarWrapper><MarketplaceProfessionals /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace/units" element={<ProtectedRoute><SidebarWrapper><MarketplaceUnits /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace/leads" element={<ProtectedRoute><SidebarWrapper><MarketplaceLeads /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace/schedule" element={<ProtectedRoute><SidebarWrapper><MarketplaceSchedule /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace/reviews" element={<ProtectedRoute><SidebarWrapper><MarketplaceReviews /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace/campaigns" element={<ProtectedRoute><SidebarWrapper><MarketplaceCampaigns /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace/dashboard" element={<ProtectedRoute><SidebarWrapper><MarketplaceDashboard /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketplace/discovery" element={<ProtectedRoute><SidebarWrapper><MarketplaceDiscovery /></SidebarWrapper></ProtectedRoute>} />
+
+      {/* ====================================
+          Pós-Venda (CAPYS)
+          ==================================== */}
+      <Route path="/postvenda" element={
+        <ProtectedRoute>
+          <PostVendaSidebar>
+            <PostVendaHome />
+          </PostVendaSidebar>
+        </ProtectedRoute>
+      } />
+      <Route path="/postvenda/chamados" element={
+        <ProtectedRoute>
+          <PostVendaSidebar>
+            <ChamadoListPage />
+          </PostVendaSidebar>
+        </ProtectedRoute>
+      } />
 
       {/* ====================================
           Apps Externos (temporário - serão migrados)

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +23,11 @@ import {
   MessageSquare,
   DollarSign,
   Scissors,
-  BarChart3
+  BarChart3,
+  Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import logoWhite from "@/assets/logo-byneofolic-white.png";
-import logo from "@/assets/logo-byneofolic.png";
+import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 
 const API_BASE_URL = "https://tubzywibnielhcjeswww.supabase.co/functions/v1";
 
@@ -884,15 +885,23 @@ const EndpointCard = ({ endpoint }: { endpoint: Endpoint }) => {
 
 const ApiDocs = () => {
   const [activeSection, setActiveSection] = useState("leads");
+  const navigate = useNavigate();
 
   return (
+    <UnifiedSidebar>
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Neofolic" className="h-8 dark:hidden" />
-            <img src={logoWhite} alt="Neofolic" className="h-8 hidden dark:block" />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate('/admin-dashboard')}
+              className="h-9 w-9"
+            >
+              <Home className="h-5 w-5" />
+            </Button>
             <Separator orientation="vertical" className="h-6" />
             <div className="flex items-center gap-2">
               <Book className="h-5 w-5 text-primary" />
@@ -1050,6 +1059,7 @@ const ApiDocs = () => {
         </div>
       </footer>
     </div>
+    </UnifiedSidebar>
   );
 };
 

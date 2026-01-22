@@ -296,17 +296,14 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AdminLayout>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
-      <div className="p-4 pt-16 lg:pt-6 lg:p-6 max-w-7xl mx-auto overflow-x-hidden w-full space-y-6">
+    <div className="p-4 lg:p-6 max-w-7xl mx-auto overflow-x-hidden w-full space-y-6">
         {/* Breadcrumb */}
         <GlobalBreadcrumb />
         
@@ -648,6 +645,5 @@ export default function AdminDashboard() {
         <SystemAlertsWidget />
 
       </div>
-    </AdminLayout>
   );
 }
