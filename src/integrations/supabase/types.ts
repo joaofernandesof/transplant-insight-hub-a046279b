@@ -4239,6 +4239,86 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_role_permissions: {
+        Row: {
+          can_delete: boolean | null
+          can_read: boolean | null
+          can_write: boolean | null
+          created_at: string | null
+          id: string
+          module_code: string
+          role_id: string
+        }
+        Insert: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          created_at?: string | null
+          id?: string
+          module_code: string
+          role_id: string
+        }
+        Update: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          created_at?: string | null
+          id?: string
+          module_code?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "staff_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_roles: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string | null
+          default_route: string | null
+          department: Database["public"]["Enums"]["staff_department"]
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string | null
+          default_route?: string | null
+          department: Database["public"]["Enums"]["staff_department"]
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          default_route?: string | null
+          department?: Database["public"]["Enums"]["staff_department"]
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       staff_system_access: {
         Row: {
           access_beeviral: string | null
@@ -4474,6 +4554,58 @@ export type Database = {
             columns: ["neohub_user_id"]
             isOneToOne: false
             referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_user_roles: {
+        Row: {
+          branch_id: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          is_active: boolean | null
+          neohub_user_id: string
+          role_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          neohub_user_id: string
+          role_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          neohub_user_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_user_roles_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_user_roles_neohub_user_id_fkey"
+            columns: ["neohub_user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "staff_roles"
             referencedColumns: ["id"]
           },
         ]
@@ -5333,6 +5465,19 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_user_staff_roles: {
+        Args: { p_user_id: string }
+        Returns: {
+          branch_id: string
+          branch_name: string
+          color: string
+          default_route: string
+          department: Database["public"]["Enums"]["staff_department"]
+          icon: string
+          role_code: string
+          role_name: string
+        }[]
+      }
       has_neohub_profile: {
         Args: {
           _profile: Database["public"]["Enums"]["neohub_profile"]
@@ -5399,6 +5544,16 @@ export type Database = {
         | "confirmado"
         | "realizado"
         | "cancelado"
+      staff_department:
+        | "clinico"
+        | "operacoes"
+        | "comercial"
+        | "sucesso_paciente"
+        | "marketing"
+        | "financeiro"
+        | "ti_dados"
+        | "gestao"
+        | "executivo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5558,6 +5713,17 @@ export const Constants = {
         "confirmado",
         "realizado",
         "cancelado",
+      ],
+      staff_department: [
+        "clinico",
+        "operacoes",
+        "comercial",
+        "sucesso_paciente",
+        "marketing",
+        "financeiro",
+        "ti_dados",
+        "gestao",
+        "executivo",
       ],
     },
   },

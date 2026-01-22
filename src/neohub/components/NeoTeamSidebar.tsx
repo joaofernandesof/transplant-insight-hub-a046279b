@@ -9,7 +9,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   Home, Calendar, Clock, Users, FileText,
   Settings, LogOut, Menu, X, ChevronLeft,
-  Bell, Folder, Stethoscope, BarChart3, CheckSquare
+  Bell, Folder, Stethoscope, BarChart3, CheckSquare,
+  UserCog
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
@@ -28,15 +29,21 @@ const menuItems = [
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
+  { id: 'staff-roles', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/staff-roles', adminOnly: true },
   { id: 'settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
 ];
 
 export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { user, logout } = useUnifiedAuth();
+  const { user, logout, isAdmin, activeProfile } = useUnifiedAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Filter menu items based on admin status
+  const filteredMenuItems = menuItems.filter(item => 
+    !item.adminOnly || isAdmin
+  );
 
   useEffect(() => {
     setIsMobileOpen(false);
@@ -124,8 +131,17 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{user?.fullName}</p>
-                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                    Colaborador
+                  <Badge 
+                    variant="secondary" 
+                    className={cn(
+                      "text-xs",
+                      activeProfile === 'medico' 
+                        ? "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400"
+                        : "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                    )}
+                  >
+                    {activeProfile === 'medico' ? 'Médico' : 
+                     activeProfile === 'administrador' ? 'Administrador' : 'Colaborador'}
                   </Badge>
                 </div>
               )}
@@ -135,7 +151,7 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
           {/* Navigation */}
           <ScrollArea className="flex-1 p-2">
             <nav className="space-y-1">
-              {menuItems.map((item) => (
+              {filteredMenuItems.map((item) => (
                 <Button
                   key={item.id}
                   variant={isActive(item.route) ? "secondary" : "ghost"}
