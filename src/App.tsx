@@ -262,6 +262,8 @@ function NeoTeamRoutes() {
           <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
           <Route path="documents" element={<NeoTeamDocuments />} />
           <Route path="tasks" element={<NeoTeamTasks />} />
+          <Route path="postvenda" element={<PostVendaHome />} />
+          <Route path="postvenda/chamados" element={<ChamadoListPage />} />
           <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
@@ -446,22 +448,10 @@ function AppRoutes() {
       <Route path="/marketplace/discovery" element={<ProtectedRoute><SidebarWrapper><MarketplaceDiscovery /></SidebarWrapper></ProtectedRoute>} />
 
       {/* ====================================
-          Pós-Venda (CAPYS)
+          Pós-Venda (Redirect para NeoTeam)
           ==================================== */}
-      <Route path="/postvenda" element={
-        <ProtectedRoute>
-          <PostVendaSidebar>
-            <PostVendaHome />
-          </PostVendaSidebar>
-        </ProtectedRoute>
-      } />
-      <Route path="/postvenda/chamados" element={
-        <ProtectedRoute>
-          <PostVendaSidebar>
-            <ChamadoListPage />
-          </PostVendaSidebar>
-        </ProtectedRoute>
-      } />
+      <Route path="/postvenda" element={<Navigate to="/neoteam/postvenda" replace />} />
+      <Route path="/postvenda/*" element={<Navigate to="/neoteam/postvenda" replace />} />
 
       {/* ====================================
           Apps Externos (temporário - serão migrados)

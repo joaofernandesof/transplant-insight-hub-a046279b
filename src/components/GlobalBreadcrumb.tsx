@@ -24,6 +24,8 @@ const routeLabels: Record<string, string> = {
   '/neoteam/documents': 'Documentos',
   '/neoteam/staff-roles': 'Cargos & Funções',
   '/neoteam/settings': 'Configurações',
+  '/neoteam/postvenda': 'Pós-Venda',
+  '/neoteam/postvenda/chamados': 'Chamados',
   
   // ====================================
   // NeoCare (Portal do Paciente)
@@ -132,10 +134,9 @@ const routeLabels: Record<string, string> = {
   '/marketplace/discovery': 'Descobrir',
   
   // ====================================
-  // Pós-Venda
+  // Rotas antigas - redirect
   // ====================================
-  '/postvenda': 'Início',
-  '/postvenda/chamados': 'Chamados',
+  '/postvenda': 'Pós-Venda',
 };
 
 // Rotas dinâmicas (com parâmetros)
@@ -166,9 +167,9 @@ const dynamicRoutes: DynamicRoute[] = [
     parentLabel: 'Provas'
   },
   {
-    pattern: /^\/postvenda\/chamados\/[^/]+$/,
+    pattern: /^\/neoteam\/postvenda\/chamados\/[^/]+$/,
     getLabel: () => 'Detalhes do Chamado',
-    parentPath: '/postvenda/chamados',
+    parentPath: '/neoteam/postvenda/chamados',
     parentLabel: 'Chamados'
   },
 ];
@@ -181,7 +182,6 @@ const moduleLabels: Record<string, string> = {
   '/neolicense': 'Licença',
   '/avivar': 'Avivar',
   '/marketplace': 'Marketplace',
-  '/postvenda': 'Pós-Venda',
   '/admin-dashboard': 'Admin',
   '/admin-home': 'Admin',
 };
