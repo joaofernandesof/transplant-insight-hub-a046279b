@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -16,11 +15,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { 
-  Users, Search, Plus, Filter, MoreVertical,
-  Phone, Mail, Calendar, FileText, Eye, Edit,
-  Download, Upload, Loader2, X, Building, Tag,
-  ArrowUpDown, ArrowUp, ArrowDown, SlidersHorizontal,
-  BarChart3, Hash, ChevronLeft, ChevronRight
+  Users, Search, Plus, MoreVertical,
+  Phone, Mail, Eye, Edit,
+  Download, Loader2, X, Building, Tag,
+  ArrowUpDown, ArrowUp, ArrowDown,
+  BarChart3, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import {
   Select,
@@ -35,22 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,7 +63,6 @@ interface Patient {
 
 type SortField = 'name' | 'branch' | 'category' | 'baldnessGrade' | 'createdAt';
 type SortDirection = 'asc' | 'desc';
-type SearchField = 'all' | 'name' | 'email' | 'cpf' | 'phone';
 
 // Helper to parse notes field
 const parseNotes = (notes: string | null): { branch?: string; category?: string; baldnessGrade?: string } => {
@@ -98,18 +81,49 @@ const parseNotes = (notes: string | null): { branch?: string; category?: string;
   return result;
 };
 
+// Category colors
+const getCategoryColor = (category: string) => {
+  const colors: Record<string, string> = {
+    'CATEGORIA A': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    'CATEGORIA B': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    'CATEGORIA C': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    'CATEGORIA D': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    'CATEGORIA E': 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+  };
+  return colors[category] || 'bg-muted text-muted-foreground';
+};
+
+// Branch colors
+const getBranchColor = (branch: string) => {
+  const colors: Record<string, string> = {
+    'BELO HORIZONTE': 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+    'SAO PAULO': 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+    'RIO DE JANEIRO': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+    'FORTALEZA': 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+    'JUAZEIRO': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  };
+  return colors[branch] || 'bg-muted text-muted-foreground';
+};
+
+// Grade colors
+const getGradeColor = (grade: string) => {
+  const num = Number(grade);
+  if (num <= 2) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+  if (num <= 4) return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+  if (num <= 5) return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+  return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+};
+
 const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100, 200];
 
 export default function NeoTeamPatients() {
-  // Search states
+  // Search state - single unified search
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchField, setSearchField] = useState<SearchField>('all');
   
   // Filter states
   const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
   
   // Sort states
   const [sortField, setSortField] = useState<SortField>('name');
@@ -119,109 +133,89 @@ export default function NeoTeamPatients() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(100);
   
-  // UI states
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Data states
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [showRegistrationDialog, setShowRegistrationDialog] = useState(false);
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [uploadPatientId, setUploadPatientId] = useState<string | undefined>();
-  const [uploadPatientName, setUploadPatientName] = useState<string | undefined>();
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchPatients = async () => {
-    setIsLoading(true);
-    try {
-      const { data: patientsData, error } = await supabase
-        .from('clinic_patients')
-        .select('*')
-        .order('full_name', { ascending: true })
-        .limit(1000);
+  // Dialog states
+  const [showNewPatient, setShowNewPatient] = useState(false);
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
-      if (error) throw error;
+  // Derived filter options
+  const branches = useMemo(() => {
+    const set = new Set(patients.map(p => p.branch).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [patients]);
 
-      const formattedPatients: Patient[] = (patientsData || []).map(p => {
-        const parsed = parseNotes(p.notes);
-        return {
-          id: p.id,
-          name: p.full_name || 'Sem nome',
-          email: p.email || '',
-          phone: p.phone || '',
-          cpf: p.cpf || '',
-          birthDate: '',
-          gender: 'O' as const,
-          lastVisit: undefined,
-          nextAppointment: undefined,
-          totalVisits: 0,
-          status: 'active' as const,
-          tags: [],
-          portalUserId: undefined,
-          branch: parsed.branch,
-          category: parsed.category,
-          baldnessGrade: parsed.baldnessGrade,
-          createdAt: p.created_at,
-        };
-      });
+  const categories = useMemo(() => {
+    const set = new Set(patients.map(p => p.category).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [patients]);
 
-      setPatients(formattedPatients);
-    } catch (error) {
-      console.error('Error fetching patients:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const grades = useMemo(() => {
+    const set = new Set(patients.map(p => p.baldnessGrade).filter(Boolean) as string[]);
+    return Array.from(set).sort((a, b) => Number(a) - Number(b));
+  }, [patients]);
 
   useEffect(() => {
+    const fetchPatients = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('clinic_patients')
+          .select('*')
+          .order('full_name', { ascending: true })
+          .limit(1000);
+
+        if (error) throw error;
+
+        const mappedPatients: Patient[] = (data || []).map(p => {
+          const parsed = parseNotes(p.notes);
+          return {
+            id: p.id,
+            name: p.full_name,
+            email: p.email || '',
+            phone: p.phone || '',
+            cpf: p.cpf || '',
+            birthDate: '',
+            gender: 'O' as const,
+            totalVisits: 0,
+            status: 'active' as const,
+            tags: [],
+            branch: parsed.branch,
+            category: parsed.category,
+            baldnessGrade: parsed.baldnessGrade,
+            createdAt: p.created_at,
+          };
+        });
+
+        setPatients(mappedPatients);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchPatients();
   }, []);
 
-  const handleUploadDocument = (patient: Patient) => {
-    setUploadPatientId(patient.id);
-    setUploadPatientName(patient.name);
-    setShowUploadDialog(true);
-  };
-
-  // Get unique values for filter dropdowns
-  const branches = useMemo(() => 
-    [...new Set(patients.map(p => p.branch).filter(Boolean))].sort() as string[], 
-    [patients]
-  );
-  const categories = useMemo(() => 
-    [...new Set(patients.map(p => p.category).filter(Boolean))].sort() as string[], 
-    [patients]
-  );
-  const grades = useMemo(() => 
-    [...new Set(patients.map(p => p.baldnessGrade).filter(Boolean))].sort((a, b) => Number(a) - Number(b)) as string[], 
-    [patients]
-  );
-
-  // Filtered and sorted patients
+  // Unified search across all fields
   const filteredAndSortedPatients = useMemo(() => {
     let result = patients.filter(p => {
-      // Search filter
+      // Search filter - searches all fields
       const searchLower = searchTerm.toLowerCase();
       let matchesSearch = true;
       
       if (searchTerm) {
-        switch (searchField) {
-          case 'name':
-            matchesSearch = p.name.toLowerCase().includes(searchLower);
-            break;
-          case 'email':
-            matchesSearch = p.email.toLowerCase().includes(searchLower);
-            break;
-          case 'cpf':
-            matchesSearch = p.cpf.includes(searchTerm);
-            break;
-          case 'phone':
-            matchesSearch = p.phone.includes(searchTerm);
-            break;
-          default:
-            matchesSearch = 
-              p.name.toLowerCase().includes(searchLower) ||
-              p.email.toLowerCase().includes(searchLower) ||
-              p.phone.includes(searchTerm) ||
-              p.cpf.includes(searchTerm);
-        }
+        matchesSearch = 
+          p.name.toLowerCase().includes(searchLower) ||
+          p.email.toLowerCase().includes(searchLower) ||
+          p.phone.includes(searchTerm) ||
+          p.cpf.includes(searchTerm) ||
+          (p.branch?.toLowerCase().includes(searchLower) ?? false) ||
+          (p.category?.toLowerCase().includes(searchLower) ?? false);
       }
       
       // Multi-select filters
@@ -256,7 +250,7 @@ export default function NeoTeamPatients() {
     });
 
     return result;
-  }, [patients, searchTerm, searchField, selectedBranches, selectedCategories, selectedGrades, sortField, sortDirection]);
+  }, [patients, searchTerm, selectedBranches, selectedCategories, selectedGrades, sortField, sortDirection]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedPatients.length / itemsPerPage);
@@ -268,7 +262,7 @@ export default function NeoTeamPatients() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, searchField, selectedBranches, selectedCategories, selectedGrades]);
+  }, [searchTerm, selectedBranches, selectedCategories, selectedGrades]);
 
   // Stats
   const stats = useMemo(() => ({
@@ -291,7 +285,6 @@ export default function NeoTeamPatients() {
     setSelectedCategories([]);
     setSelectedGrades([]);
     setSearchTerm('');
-    setSearchField('all');
   };
 
   const handleSort = (field: SortField) => {
@@ -308,20 +301,6 @@ export default function NeoTeamPatients() {
     return sortDirection === 'asc' ? 
       <ArrowUp className="h-4 w-4" /> : 
       <ArrowDown className="h-4 w-4" />;
-  };
-
-  const getStatusBadge = (status: Patient['status']) => {
-    const config = {
-      active: { label: 'Ativo', variant: 'default' as const },
-      inactive: { label: 'Inativo', variant: 'secondary' as const },
-      pending: { label: 'Pendente', variant: 'outline' as const },
-    };
-    return config[status];
-  };
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '-';
-    return format(new Date(dateStr), 'dd/MM/yyyy', { locale: ptBR });
   };
 
   const toggleBranch = (branch: string) => {
@@ -351,342 +330,193 @@ export default function NeoTeamPatients() {
             <Users className="h-6 w-6 text-primary" />
             Pacientes
           </h1>
-          <p className="text-muted-foreground">Gerencie o cadastro de pacientes</p>
+          <p className="text-muted-foreground">
+            {stats.total} pacientes cadastrados
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Importar
+            <Download className="h-4 w-4" />
+            Exportar
           </Button>
-          <Button className="gap-2" onClick={() => setShowRegistrationDialog(true)}>
+          <Button className="gap-2" onClick={() => setShowNewPatient(true)}>
             <Plus className="h-4 w-4" />
             Novo Paciente
           </Button>
         </div>
       </div>
 
-      {/* Dialogs */}
-      <PatientRegistrationDialog 
-        open={showRegistrationDialog} 
-        onOpenChange={setShowRegistrationDialog}
-        onSuccess={fetchPatients}
-      />
-      <DocumentUploadDialog
-        open={showUploadDialog}
-        onOpenChange={setShowUploadDialog}
-        patientId={uploadPatientId}
-        patientName={uploadPatientName}
-      />
+      {/* Search Bar */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome, email, telefone, CPF, filial ou categoria..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-10"
+            />
+            {searchTerm && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                onClick={() => setSearchTerm('')}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Filter Cards - Separated */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Branch Filter Card */}
         <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-sm text-muted-foreground">Total de Pacientes</p>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Building className="h-4 w-4 text-primary" />
+              Filial
+              {selectedBranches.length > 0 && (
+                <Badge variant="secondary" className="ml-auto">{selectedBranches.length}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex flex-wrap gap-2">
+              {branches.map(branch => (
+                <Button
+                  key={branch}
+                  variant={selectedBranches.includes(branch) ? "default" : "outline"}
+                  size="sm"
+                  className={`text-xs ${selectedBranches.includes(branch) ? '' : getBranchColor(branch)}`}
+                  onClick={() => toggleBranch(branch)}
+                >
+                  {branch}
+                  <span className="ml-1 opacity-70">({stats.byBranch[branch]})</span>
+                </Button>
+              ))}
+              {branches.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhuma filial</p>
+              )}
+            </div>
+            {selectedBranches.length > 0 && (
+              <Button variant="ghost" size="sm" className="mt-2 h-7 text-xs text-muted-foreground" onClick={() => setSelectedBranches([])}>
+                Limpar seleção
+              </Button>
+            )}
           </CardContent>
         </Card>
+
+        {/* Category Filter Card */}
         <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-primary">{stats.filtered}</p>
-            <p className="text-sm text-muted-foreground">
-              {activeFiltersCount > 0 || searchTerm ? 'Filtrados' : 'Ativos'}
-            </p>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Tag className="h-4 w-4 text-primary" />
+              Categoria
+              {selectedCategories.length > 0 && (
+                <Badge variant="secondary" className="ml-auto">{selectedCategories.length}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <Button
+                  key={cat}
+                  variant={selectedCategories.includes(cat) ? "default" : "outline"}
+                  size="sm"
+                  className={`text-xs ${selectedCategories.includes(cat) ? '' : getCategoryColor(cat)}`}
+                  onClick={() => toggleCategory(cat)}
+                >
+                  {cat}
+                  <span className="ml-1 opacity-70">({stats.byCategory[cat]})</span>
+                </Button>
+              ))}
+              {categories.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhuma categoria</p>
+              )}
+            </div>
+            {selectedCategories.length > 0 && (
+              <Button variant="ghost" size="sm" className="mt-2 h-7 text-xs text-muted-foreground" onClick={() => setSelectedCategories([])}>
+                Limpar seleção
+              </Button>
+            )}
           </CardContent>
         </Card>
+
+        {/* Grade Filter Card */}
         <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold">{branches.length}</p>
-            <p className="text-sm text-muted-foreground">Filiais</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold">{categories.length}</p>
-            <p className="text-sm text-muted-foreground">Categorias</p>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              Grau de Calvície
+              {selectedGrades.length > 0 && (
+                <Badge variant="secondary" className="ml-auto">{selectedGrades.length}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex flex-wrap gap-2">
+              {grades.map(grade => (
+                <Button
+                  key={grade}
+                  variant={selectedGrades.includes(grade) ? "default" : "outline"}
+                  size="sm"
+                  className={`h-9 w-11 ${selectedGrades.includes(grade) ? '' : getGradeColor(grade)}`}
+                  onClick={() => toggleGrade(grade)}
+                >
+                  {grade}
+                </Button>
+              ))}
+              {grades.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhum grau</p>
+              )}
+            </div>
+            {selectedGrades.length > 0 && (
+              <Button variant="ghost" size="sm" className="mt-2 h-7 text-xs text-muted-foreground" onClick={() => setSelectedGrades([])}>
+                Limpar seleção
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Search and Filter Bar */}
-      <Card>
-        <CardContent className="p-4 space-y-4">
-          {/* Main Search Row */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search Input with Field Selector */}
-            <div className="flex-1 flex gap-2">
-              <Select value={searchField} onValueChange={(v) => setSearchField(v as SearchField)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Buscar em..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos campos</SelectItem>
-                  <SelectItem value="name">Nome</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="cpf">CPF</SelectItem>
-                  <SelectItem value="phone">Telefone</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={
-                    searchField === 'all' ? 'Buscar por nome, email, telefone ou CPF...' :
-                    searchField === 'name' ? 'Buscar por nome...' :
-                    searchField === 'email' ? 'Buscar por email...' :
-                    searchField === 'cpf' ? 'Buscar por CPF...' :
-                    'Buscar por telefone...'
-                  }
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-                {searchTerm && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                    onClick={() => setSearchTerm('')}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button 
-                variant={showFilters ? "default" : "outline"} 
-                className="gap-2"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                Filtros Avançados
-                {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="ml-1">
-                    {activeFiltersCount}
-                  </Badge>
-                )}
-              </Button>
-              
-              {/* Sort Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <ArrowUpDown className="h-4 w-4" />
-                    Ordenar
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem 
-                    checked={sortField === 'name'}
-                    onCheckedChange={() => handleSort('name')}
-                  >
-                    Nome {sortField === 'name' && (sortDirection === 'asc' ? '(A-Z)' : '(Z-A)')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem 
-                    checked={sortField === 'branch'}
-                    onCheckedChange={() => handleSort('branch')}
-                  >
-                    Filial {sortField === 'branch' && (sortDirection === 'asc' ? '(A-Z)' : '(Z-A)')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem 
-                    checked={sortField === 'category'}
-                    onCheckedChange={() => handleSort('category')}
-                  >
-                    Categoria {sortField === 'category' && (sortDirection === 'asc' ? '(A-Z)' : '(Z-A)')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem 
-                    checked={sortField === 'baldnessGrade'}
-                    onCheckedChange={() => handleSort('baldnessGrade')}
-                  >
-                    Grau {sortField === 'baldnessGrade' && (sortDirection === 'asc' ? '(1-7)' : '(7-1)')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem 
-                    checked={sortField === 'createdAt'}
-                    onCheckedChange={() => handleSort('createdAt')}
-                  >
-                    Data Cadastro {sortField === 'createdAt' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
-            </div>
-          </div>
-
-          {/* Advanced Filters Panel */}
-          {showFilters && (
-            <>
-              <Separator />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Branch Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
-                      <Building className="h-4 w-4" />
-                      Filial ({selectedBranches.length}/{branches.length})
-                    </Label>
-                    {selectedBranches.length > 0 && (
-                      <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setSelectedBranches([])}>
-                        Limpar
-                      </Button>
-                    )}
-                  </div>
-                  <div className="max-h-48 overflow-y-auto space-y-2 border rounded-md p-3 bg-muted/30">
-                    {branches.map(branch => (
-                      <div key={branch} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`branch-${branch}`}
-                          checked={selectedBranches.includes(branch)}
-                          onCheckedChange={() => toggleBranch(branch)}
-                        />
-                        <label 
-                          htmlFor={`branch-${branch}`}
-                          className="text-sm flex-1 cursor-pointer flex justify-between"
-                        >
-                          <span>{branch}</span>
-                          <span className="text-muted-foreground">({stats.byBranch[branch]})</span>
-                        </label>
-                      </div>
-                    ))}
-                    {branches.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-2">Nenhuma filial</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Category Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
-                      <Tag className="h-4 w-4" />
-                      Categoria ({selectedCategories.length}/{categories.length})
-                    </Label>
-                    {selectedCategories.length > 0 && (
-                      <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setSelectedCategories([])}>
-                        Limpar
-                      </Button>
-                    )}
-                  </div>
-                  <div className="max-h-48 overflow-y-auto space-y-2 border rounded-md p-3 bg-muted/30">
-                    {categories.map(cat => (
-                      <div key={cat} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`cat-${cat}`}
-                          checked={selectedCategories.includes(cat)}
-                          onCheckedChange={() => toggleCategory(cat)}
-                        />
-                        <label 
-                          htmlFor={`cat-${cat}`}
-                          className="text-sm flex-1 cursor-pointer flex justify-between"
-                        >
-                          <span>{cat}</span>
-                          <span className="text-muted-foreground">({stats.byCategory[cat]})</span>
-                        </label>
-                      </div>
-                    ))}
-                    {categories.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-2">Nenhuma categoria</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Grade Filter */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
-                      <BarChart3 className="h-4 w-4" />
-                      Grau de Calvície ({selectedGrades.length}/{grades.length})
-                    </Label>
-                    {selectedGrades.length > 0 && (
-                      <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setSelectedGrades([])}>
-                        Limpar
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {grades.map(grade => (
-                      <Button
-                        key={grade}
-                        variant={selectedGrades.includes(grade) ? "default" : "outline"}
-                        size="sm"
-                        className="h-8 w-10"
-                        onClick={() => toggleGrade(grade)}
-                      >
-                        {grade}
-                      </Button>
-                    ))}
-                    {grades.length === 0 && (
-                      <p className="text-sm text-muted-foreground">Nenhum grau definido</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Active Filters Summary */}
-              {activeFiltersCount > 0 && (
-                <>
-                  <Separator />
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-muted-foreground">Filtros ativos:</span>
-                    {selectedBranches.map(b => (
-                      <Badge key={b} variant="secondary" className="gap-1">
-                        <Building className="h-3 w-3" />
-                        {b}
-                        <X className="h-3 w-3 cursor-pointer" onClick={() => toggleBranch(b)} />
-                      </Badge>
-                    ))}
-                    {selectedCategories.map(c => (
-                      <Badge key={c} variant="secondary" className="gap-1">
-                        <Tag className="h-3 w-3" />
-                        {c}
-                        <X className="h-3 w-3 cursor-pointer" onClick={() => toggleCategory(c)} />
-                      </Badge>
-                    ))}
-                    {selectedGrades.map(g => (
-                      <Badge key={g} variant="secondary" className="gap-1">
-                        Grau {g}
-                        <X className="h-3 w-3 cursor-pointer" onClick={() => toggleGrade(g)} />
-                      </Badge>
-                    ))}
-                    <Button variant="ghost" size="sm" className="h-7 text-destructive" onClick={clearAllFilters}>
-                      Limpar todos
-                    </Button>
-                  </div>
-                </>
-              )}
-            </>
+      {/* Active Filters Summary */}
+      {(activeFiltersCount > 0 || searchTerm) && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+          {searchTerm && (
+            <Badge variant="secondary" className="gap-1">
+              Busca: "{searchTerm}"
+              <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchTerm('')} />
+            </Badge>
           )}
-
-          {/* Results Summary */}
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>
-              Exibindo {paginatedPatients.length} de {filteredAndSortedPatients.length} pacientes
-              {activeFiltersCount > 0 || searchTerm ? ` (filtrado de ${stats.total})` : ''}
-            </span>
-            <div className="flex items-center gap-2">
-              <span>Itens por página:</span>
-              <Select value={String(itemsPerPage)} onValueChange={(v) => setItemsPerPage(Number(v))}>
-                <SelectTrigger className="w-20 h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ITEMS_PER_PAGE_OPTIONS.map(n => (
-                    <SelectItem key={n} value={String(n)}>{n}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          {selectedBranches.map(b => (
+            <Badge key={b} variant="secondary" className={`gap-1 ${getBranchColor(b)}`}>
+              {b}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => toggleBranch(b)} />
+            </Badge>
+          ))}
+          {selectedCategories.map(c => (
+            <Badge key={c} variant="secondary" className={`gap-1 ${getCategoryColor(c)}`}>
+              {c}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => toggleCategory(c)} />
+            </Badge>
+          ))}
+          {selectedGrades.map(g => (
+            <Badge key={g} variant="secondary" className={`gap-1 ${getGradeColor(g)}`}>
+              Grau {g}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => toggleGrade(g)} />
+            </Badge>
+          ))}
+          <Button variant="ghost" size="sm" className="h-7 text-destructive" onClick={clearAllFilters}>
+            Limpar todos
+          </Button>
+        </div>
+      )}
 
       {/* Table */}
       <Card>
@@ -697,6 +527,17 @@ export default function NeoTeamPatients() {
               Página {currentPage} de {totalPages} • {filteredAndSortedPatients.length} pacientes
             </p>
             <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Por página:</span>
+              <Select value={String(itemsPerPage)} onValueChange={(v) => setItemsPerPage(Number(v))}>
+                <SelectTrigger className="w-20 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ITEMS_PER_PAGE_OPTIONS.map(opt => (
+                    <SelectItem key={opt} value={String(opt)}>{opt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 variant="outline"
                 size="sm"
@@ -748,16 +589,16 @@ export default function NeoTeamPatients() {
         )}
 
         <CardContent className="p-0 overflow-x-auto">
-          <Table className="table-fixed min-w-[1100px]">
+          <Table className="table-fixed min-w-[1200px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[280px] cursor-pointer" onClick={() => handleSort('name')}>
+                <TableHead className="w-[260px] cursor-pointer" onClick={() => handleSort('name')}>
                   <div className="flex items-center gap-2">
                     Paciente
                     <SortIcon field="name" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[220px]">Contato</TableHead>
+                <TableHead className="w-[200px]">Contato</TableHead>
                 <TableHead className="w-[160px] cursor-pointer" onClick={() => handleSort('branch')}>
                   <div className="flex items-center gap-2">
                     Filial
@@ -770,7 +611,7 @@ export default function NeoTeamPatients() {
                     <SortIcon field="category" />
                   </div>
                 </TableHead>
-                <TableHead className="w-[100px] cursor-pointer text-center" onClick={() => handleSort('baldnessGrade')}>
+                <TableHead className="w-[80px] cursor-pointer text-center" onClick={() => handleSort('baldnessGrade')}>
                   <div className="flex items-center justify-center gap-2">
                     Grau
                     <SortIcon field="baldnessGrade" />
@@ -794,7 +635,7 @@ export default function NeoTeamPatients() {
                   </TableCell>
                 </TableRow>
               ) : paginatedPatients.map((patient) => (
-                <TableRow key={patient.id} className="cursor-pointer hover:bg-muted/50">
+                <TableRow key={patient.id} className="hover:bg-muted/50">
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -802,92 +643,86 @@ export default function NeoTeamPatients() {
                           {patient.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <p className="font-medium text-sm">{patient.name}</p>
-                        <p className="text-xs text-muted-foreground">{patient.cpf}</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">{patient.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{patient.cpf}</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {patient.phone && (
-                        <p className="text-sm flex items-center gap-1">
-                          <Phone className="h-3 w-3 text-muted-foreground" />
-                          {patient.phone}
+                      {patient.email && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                          <Mail className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{patient.email}</span>
                         </p>
                       )}
-                      {patient.email && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 truncate max-w-[200px]">
-                          <Mail className="h-3 w-3" />
-                          {patient.email}
+                      {patient.phone && (
+                        <p className="text-sm flex items-center gap-1">
+                          <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          {patient.phone}
                         </p>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     {patient.branch ? (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge className={`text-xs ${getBranchColor(patient.branch)}`}>
                         {patient.branch}
                       </Badge>
                     ) : (
-                      <span className="text-muted-foreground">-</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
                   <TableCell>
                     {patient.category ? (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge className={`text-xs ${getCategoryColor(patient.category)}`}>
                         {patient.category}
                       </Badge>
                     ) : (
-                      <span className="text-muted-foreground">-</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     {patient.baldnessGrade ? (
-                      <Badge variant="outline" className="text-xs font-mono">
+                      <Badge className={`text-xs ${getGradeColor(patient.baldnessGrade)}`}>
                         {patient.baldnessGrade}
                       </Badge>
                     ) : (
-                      <span className="text-muted-foreground">-</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadge(patient.status).variant}>
-                      {getStatusBadge(patient.status).label}
+                  <TableCell className="text-center">
+                    <Badge variant="default" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                      Ativo
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Detalhes
+                      <DropdownMenuContent align="end" className="bg-popover">
+                        <DropdownMenuItem className="gap-2">
+                          <Eye className="h-4 w-4" />
+                          Ver detalhes
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
+                        <DropdownMenuItem className="gap-2">
+                          <Edit className="h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleUploadDocument(patient)}>
-                          <Upload className="h-4 w-4 mr-2" />
-                          Enviar Documento
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Prontuário
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Agendar
-                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Phone className="h-4 w-4 mr-2" />
-                          Ligar
+                        <DropdownMenuItem 
+                          className="gap-2"
+                          onClick={() => {
+                            setSelectedPatientId(patient.id);
+                            setShowDocumentUpload(true);
+                          }}
+                        >
+                          <Download className="h-4 w-4" />
+                          Documentos
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -897,8 +732,22 @@ export default function NeoTeamPatients() {
             </TableBody>
           </Table>
         </CardContent>
-
       </Card>
+
+      {/* Dialogs */}
+      <PatientRegistrationDialog
+        open={showNewPatient}
+        onOpenChange={setShowNewPatient}
+        onSuccess={() => {
+          setShowNewPatient(false);
+        }}
+      />
+
+      <DocumentUploadDialog
+        open={showDocumentUpload}
+        onOpenChange={setShowDocumentUpload}
+        patientId={selectedPatientId}
+      />
     </div>
   );
 }
