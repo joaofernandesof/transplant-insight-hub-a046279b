@@ -6,3 +6,4 @@ export { default as NeoCareSettings } from './NeoCareSettings';
 export { default as NeoCareDocuments } from './NeoCareDocuments';
 export { default as NeoCareOrientations } from './NeoCareOrientations';
 export { default as NeoCareLanding } from './NeoCareLanding';
+export { default as NeoCareProductLanding } from './NeoCareProductLanding';
