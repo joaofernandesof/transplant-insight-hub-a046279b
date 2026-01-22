@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, parseISO, isAfter, isBefore, startOfToday } from 'date-fns';
+import { format, parseISO, isAfter, isBefore, startOfToday, isToday as isDateToday, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { 
   Calendar, Clock, Plus, Loader2, CalendarX, 
-  CheckCircle2, XCircle, AlertCircle 
+  CheckCircle2, XCircle, AlertCircle, LayoutList, GitBranch
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -44,12 +44,13 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 
 export default function NeoCareAppointments() {
   const navigate = useNavigate();
-  const { user, session } = useUnifiedAuth();
+  const { user } = useUnifiedAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
 
   useEffect(() => {
     if (user) {
@@ -62,13 +63,6 @@ export default function NeoCareAppointments() {
     
     setIsLoading(true);
     
-    // Buscar paciente pelo neohub_user
-    const { data: patientData } = await supabase
-      .from('portal_patients')
-      .select('id, portal_user_id')
-      .limit(100);
-
-    // Match pelo email ou criar lógica de vinculação
     const { data: portalUser } = await supabase
       .from('portal_users')
       .select('id')
@@ -131,29 +125,56 @@ export default function NeoCareAppointments() {
   };
 
   const today = startOfToday();
+  
+  // Filter: upcoming excludes cancelled
   const upcomingAppointments = appointments.filter(
-    apt => isAfter(parseISO(apt.scheduled_at), today) || 
-           (format(parseISO(apt.scheduled_at), 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd') && apt.status !== 'cancelled')
+    apt => (isAfter(parseISO(apt.scheduled_at), today) || 
+           format(parseISO(apt.scheduled_at), 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')) 
+           && apt.status !== 'cancelled'
   );
+  
+  // Past appointments (history) - includes cancelled
   const pastAppointments = appointments.filter(
-    apt => isBefore(parseISO(apt.scheduled_at), today) && 
-           format(parseISO(apt.scheduled_at), 'yyyy-MM-dd') !== format(today, 'yyyy-MM-dd')
+    apt => (isBefore(parseISO(apt.scheduled_at), today) && 
+           format(parseISO(apt.scheduled_at), 'yyyy-MM-dd') !== format(today, 'yyyy-MM-dd'))
+           || apt.status === 'cancelled'
   );
+
+  // Group appointments by date for timeline view
+  const getTimelineData = (appointmentsList: Appointment[]) => {
+    const grouped: Record<string, Appointment[]> = {};
+    appointmentsList.forEach(apt => {
+      const dateKey = format(parseISO(apt.scheduled_at), 'yyyy-MM-dd');
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(apt);
+    });
+    return Object.entries(grouped)
+      .map(([date, apts]) => ({ date, appointments: apts }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  };
 
   const AppointmentCard = ({ appointment, isPast = false }: { appointment: Appointment; isPast?: boolean }) => {
     const status = statusConfig[appointment.status] || statusConfig.scheduled;
     const StatusIcon = status.icon;
     const canCancel = !isPast && ['scheduled', 'confirmed'].includes(appointment.status);
     const scheduledDate = parseISO(appointment.scheduled_at);
+    const isCancelled = appointment.status === 'cancelled';
 
     return (
-      <Card className={cn("transition-all", isPast && "opacity-75")}>
+      <Card className={cn("transition-all", (isPast || isCancelled) && "opacity-50")}>
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex gap-4">
-              <div className="w-1 rounded-full self-stretch bg-primary" />
+              <div className={cn(
+                "w-1 rounded-full self-stretch",
+                isCancelled ? "bg-destructive/50" : "bg-primary"
+              )} />
               <div className="space-y-1">
-                <p className="font-medium">{appointment.appointment_type}</p>
+                <p className={cn("font-medium", isCancelled && "line-through text-muted-foreground")}>
+                  {appointment.appointment_type}
+                </p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>
@@ -199,6 +220,117 @@ export default function NeoCareAppointments() {
     );
   };
 
+  const TimelineView = ({ appointmentsList, isPast = false }: { appointmentsList: Appointment[]; isPast?: boolean }) => {
+    const timelineData = getTimelineData(appointmentsList);
+
+    if (timelineData.length === 0) {
+      return <EmptyState message={isPast ? "Nenhum histórico de consultas" : "Você não tem consultas agendadas"} />;
+    }
+
+    return (
+      <div className="space-y-0 relative">
+        {/* Vertical line */}
+        <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-border" />
+        
+        {timelineData.map(({ date, appointments: dayAppointments }) => {
+          const realDate = parseISO(date);
+          const isDayToday = isDateToday(realDate);
+          
+          return (
+            <div key={date} className="relative pl-12 pb-6">
+              {/* Timeline dot */}
+              <div className={cn(
+                "absolute left-3 top-1 w-4 h-4 rounded-full border-2 bg-background z-10",
+                isDayToday 
+                  ? "border-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-900" 
+                  : "border-muted-foreground"
+              )} />
+              
+              {/* Day header */}
+              <div className="flex items-center gap-2 mb-3">
+                <Badge variant={isDayToday ? "default" : "outline"} className={cn(
+                  "font-semibold",
+                  isDayToday && "bg-emerald-500"
+                )}>
+                  {format(realDate, "dd/MM")}
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  {format(realDate, "EEEE", { locale: ptBR })}
+                </span>
+                {isDayToday && (
+                  <Badge variant="secondary" className="text-[10px]">HOJE</Badge>
+                )}
+              </div>
+              
+              {/* Appointments */}
+              <div className="space-y-2">
+                {dayAppointments.map(apt => {
+                  const status = statusConfig[apt.status] || statusConfig.scheduled;
+                  const StatusIcon = status.icon;
+                  const scheduledDate = parseISO(apt.scheduled_at);
+                  const isCancelled = apt.status === 'cancelled';
+                  const canCancel = !isPast && ['scheduled', 'confirmed'].includes(apt.status);
+                  
+                  return (
+                    <div
+                      key={apt.id}
+                      className={cn(
+                        "flex items-center justify-between gap-3 p-3 rounded-lg border bg-card",
+                        isCancelled && "opacity-50"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                          isCancelled 
+                            ? "bg-destructive/10 text-destructive" 
+                            : "bg-primary/10 text-primary"
+                        )}>
+                          <Clock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className={cn(
+                            "font-medium text-sm",
+                            isCancelled && "line-through text-muted-foreground"
+                          )}>
+                            {apt.appointment_type}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(scheduledDate, "HH:mm")}
+                            {apt.duration_minutes && ` • ${apt.duration_minutes} min`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={status.variant} className="gap-1 text-xs">
+                          <StatusIcon className="h-3 w-3" />
+                          {status.label}
+                        </Badge>
+                        {canCancel && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-destructive hover:text-destructive h-8 px-2"
+                            onClick={() => {
+                              setAppointmentToCancel(apt.id);
+                              setCancelDialogOpen(true);
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const EmptyState = ({ message }: { message: string }) => (
     <div className="text-center py-12 text-muted-foreground">
       <CalendarX className="h-16 w-16 mx-auto mb-4 opacity-50" />
@@ -224,6 +356,31 @@ export default function NeoCareAppointments() {
         </Button>
       </div>
 
+      {/* View Toggle */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Visualização:</span>
+        <div className="flex border rounded-lg overflow-hidden">
+          <Button 
+            variant={viewMode === 'list' ? 'default' : 'ghost'} 
+            size="sm" 
+            className="rounded-none gap-1.5"
+            onClick={() => setViewMode('list')}
+          >
+            <LayoutList className="h-4 w-4" />
+            Lista
+          </Button>
+          <Button 
+            variant={viewMode === 'timeline' ? 'default' : 'ghost'} 
+            size="sm" 
+            className="rounded-none gap-1.5"
+            onClick={() => setViewMode('timeline')}
+          >
+            <GitBranch className="h-4 w-4" />
+            Timeline
+          </Button>
+        </div>
+      </div>
+
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -243,22 +400,30 @@ export default function NeoCareAppointments() {
           </TabsList>
 
           <TabsContent value="upcoming" className="space-y-4">
-            {upcomingAppointments.length === 0 ? (
-              <EmptyState message="Você não tem consultas agendadas" />
+            {viewMode === 'list' ? (
+              upcomingAppointments.length === 0 ? (
+                <EmptyState message="Você não tem consultas agendadas" />
+              ) : (
+                upcomingAppointments.map(apt => (
+                  <AppointmentCard key={apt.id} appointment={apt} />
+                ))
+              )
             ) : (
-              upcomingAppointments.map(apt => (
-                <AppointmentCard key={apt.id} appointment={apt} />
-              ))
+              <TimelineView appointmentsList={upcomingAppointments} />
             )}
           </TabsContent>
 
           <TabsContent value="past" className="space-y-4">
-            {pastAppointments.length === 0 ? (
-              <EmptyState message="Nenhum histórico de consultas" />
+            {viewMode === 'list' ? (
+              pastAppointments.length === 0 ? (
+                <EmptyState message="Nenhum histórico de consultas" />
+              ) : (
+                pastAppointments.map(apt => (
+                  <AppointmentCard key={apt.id} appointment={apt} isPast />
+                ))
+              )
             ) : (
-              pastAppointments.map(apt => (
-                <AppointmentCard key={apt.id} appointment={apt} isPast />
-              ))
+              <TimelineView appointmentsList={pastAppointments} isPast />
             )}
           </TabsContent>
         </Tabs>
