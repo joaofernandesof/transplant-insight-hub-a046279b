@@ -3822,6 +3822,292 @@ export type Database = {
           },
         ]
       }
+      postvenda_anexos: {
+        Row: {
+          chamado_id: string
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          historico_id: string | null
+          id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          chamado_id: string
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          historico_id?: string | null
+          id?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          chamado_id?: string
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          historico_id?: string | null
+          id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "postvenda_anexos_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "postvenda_chamados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "postvenda_anexos_historico_id_fkey"
+            columns: ["historico_id"]
+            isOneToOne: false
+            referencedRelation: "postvenda_chamado_historico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      postvenda_chamado_historico: {
+        Row: {
+          acao: string
+          chamado_id: string
+          data_evento: string | null
+          descricao: string | null
+          etapa: Database["public"]["Enums"]["chamado_etapa"]
+          evidencias: Json | null
+          id: string
+          metadata: Json | null
+          usuario_id: string | null
+          usuario_nome: string | null
+        }
+        Insert: {
+          acao: string
+          chamado_id: string
+          data_evento?: string | null
+          descricao?: string | null
+          etapa: Database["public"]["Enums"]["chamado_etapa"]
+          evidencias?: Json | null
+          id?: string
+          metadata?: Json | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Update: {
+          acao?: string
+          chamado_id?: string
+          data_evento?: string | null
+          descricao?: string | null
+          etapa?: Database["public"]["Enums"]["chamado_etapa"]
+          evidencias?: Json | null
+          id?: string
+          metadata?: Json | null
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "postvenda_chamado_historico_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "postvenda_chamados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "postvenda_chamado_historico_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      postvenda_chamados: {
+        Row: {
+          branch: string | null
+          canal_origem: string | null
+          created_at: string | null
+          created_by: string | null
+          etapa_atual: Database["public"]["Enums"]["chamado_etapa"]
+          id: string
+          motivo_abertura: string | null
+          numero_chamado: number
+          paciente_email: string | null
+          paciente_id: string | null
+          paciente_nome: string
+          paciente_telefone: string | null
+          prioridade: Database["public"]["Enums"]["chamado_prioridade"]
+          procedimento_id: string | null
+          resolucao: string | null
+          responsavel_id: string | null
+          responsavel_nome: string | null
+          sla_estourado: boolean | null
+          sla_id: string | null
+          sla_prazo_fim: string | null
+          status: Database["public"]["Enums"]["chamado_status"]
+          tipo_demanda: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch?: string | null
+          canal_origem?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          etapa_atual?: Database["public"]["Enums"]["chamado_etapa"]
+          id?: string
+          motivo_abertura?: string | null
+          numero_chamado?: number
+          paciente_email?: string | null
+          paciente_id?: string | null
+          paciente_nome: string
+          paciente_telefone?: string | null
+          prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          procedimento_id?: string | null
+          resolucao?: string | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          sla_estourado?: boolean | null
+          sla_id?: string | null
+          sla_prazo_fim?: string | null
+          status?: Database["public"]["Enums"]["chamado_status"]
+          tipo_demanda: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch?: string | null
+          canal_origem?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          etapa_atual?: Database["public"]["Enums"]["chamado_etapa"]
+          id?: string
+          motivo_abertura?: string | null
+          numero_chamado?: number
+          paciente_email?: string | null
+          paciente_id?: string | null
+          paciente_nome?: string
+          paciente_telefone?: string | null
+          prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          procedimento_id?: string | null
+          resolucao?: string | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          sla_estourado?: boolean | null
+          sla_id?: string | null
+          sla_prazo_fim?: string | null
+          status?: Database["public"]["Enums"]["chamado_status"]
+          tipo_demanda?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "postvenda_chamados_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "postvenda_chamados_procedimento_id_fkey"
+            columns: ["procedimento_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_surgeries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "postvenda_chamados_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "postvenda_chamados_sla_id_fkey"
+            columns: ["sla_id"]
+            isOneToOne: false
+            referencedRelation: "postvenda_sla_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      postvenda_nps: {
+        Row: {
+          canal_envio: string | null
+          chamado_id: string
+          comentario: string | null
+          enviado_em: string | null
+          id: string
+          nota: number | null
+          respondido_em: string | null
+        }
+        Insert: {
+          canal_envio?: string | null
+          chamado_id: string
+          comentario?: string | null
+          enviado_em?: string | null
+          id?: string
+          nota?: number | null
+          respondido_em?: string | null
+        }
+        Update: {
+          canal_envio?: string | null
+          chamado_id?: string
+          comentario?: string | null
+          enviado_em?: string | null
+          id?: string
+          nota?: number | null
+          respondido_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "postvenda_nps_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "postvenda_chamados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      postvenda_sla_config: {
+        Row: {
+          alerta_previo_min: number
+          created_at: string | null
+          escalonamento_auto: boolean | null
+          etapa: Database["public"]["Enums"]["chamado_etapa"]
+          id: string
+          prioridade: Database["public"]["Enums"]["chamado_prioridade"]
+          tempo_limite_horas: number
+          tipo_demanda: string
+          updated_at: string | null
+        }
+        Insert: {
+          alerta_previo_min?: number
+          created_at?: string | null
+          escalonamento_auto?: boolean | null
+          etapa: Database["public"]["Enums"]["chamado_etapa"]
+          id?: string
+          prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          tempo_limite_horas?: number
+          tipo_demanda: string
+          updated_at?: string | null
+        }
+        Update: {
+          alerta_previo_min?: number
+          created_at?: string | null
+          escalonamento_auto?: boolean | null
+          etapa?: Database["public"]["Enums"]["chamado_etapa"]
+          id?: string
+          prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          tempo_limite_horas?: number
+          tipo_demanda?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profile_definitions: {
         Row: {
           created_at: string | null
@@ -5660,6 +5946,22 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "licensee" | "colaborador" | "aluno" | "paciente"
+      chamado_etapa:
+        | "triagem"
+        | "atendimento"
+        | "resolucao"
+        | "validacao_paciente"
+        | "nps"
+        | "encerrado"
+      chamado_prioridade: "baixa" | "normal" | "alta" | "urgente"
+      chamado_status:
+        | "aberto"
+        | "em_andamento"
+        | "aguardando_paciente"
+        | "resolvido"
+        | "fechado"
+        | "reaberto"
+        | "cancelado"
       clinic_staff_role:
         | "admin"
         | "gestao"
@@ -5826,6 +6128,24 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "licensee", "colaborador", "aluno", "paciente"],
+      chamado_etapa: [
+        "triagem",
+        "atendimento",
+        "resolucao",
+        "validacao_paciente",
+        "nps",
+        "encerrado",
+      ],
+      chamado_prioridade: ["baixa", "normal", "alta", "urgente"],
+      chamado_status: [
+        "aberto",
+        "em_andamento",
+        "aguardando_paciente",
+        "resolvido",
+        "fechado",
+        "reaberto",
+        "cancelado",
+      ],
       clinic_staff_role: [
         "admin",
         "gestao",
