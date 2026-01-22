@@ -42,10 +42,12 @@ import {
   Plus, List, Kanban, Calendar, Flag, Clock, User, 
   MoreVertical, Trash2, Edit, CheckCircle2, Loader2,
   AlertCircle, ArrowUp, ArrowRight, ArrowDown, 
-  MessageCircle, Filter, ArrowUpDown, Search, X, Eye
+  MessageCircle, Filter, ArrowUpDown, Search, X, Eye,
+  Phone, Mail, MapPin, ExternalLink
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import { useNeoTeamTasks, Task, TaskStatus, TaskPriority, NewTask } from '@/neohub/hooks/useNeoTeamTasks';
 
@@ -70,6 +72,7 @@ const statusColumns: TaskStatus[] = ['todo', 'in_progress', 'review', 'done'];
 type SortOption = 'priority' | 'due_date' | 'created_at' | 'title';
 
 export default function NeoTeamTasks() {
+  const navigate = useNavigate();
   const [view, setView] = useState<'list' | 'kanban'>('kanban');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -208,15 +211,22 @@ export default function NeoTeamTasks() {
   const TaskCard = ({ task }: { task: Task }) => {
     const PriorityIcon = priorityConfig[task.priority].icon;
     const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
-    const patientInfo = extractPatientInfo(task.description);
+    const patient = task.patient;
+
+    const handlePatientClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (patient?.id) {
+        navigate(`/neoteam/patients/${patient.id}`);
+      }
+    };
 
     return (
       <Card 
         className={`group cursor-pointer hover:shadow-md transition-all border-l-4 ${
-          task.priority === 'urgent' ? 'border-l-red-500' :
+          task.priority === 'urgent' ? 'border-l-destructive' :
           task.priority === 'high' ? 'border-l-orange-500' :
-          task.priority === 'medium' ? 'border-l-blue-500' :
-          'border-l-slate-300'
+          task.priority === 'medium' ? 'border-l-primary' :
+          'border-l-muted-foreground/30'
         } ${task.status === 'done' ? 'opacity-60' : ''}`}
         onClick={() => openTaskDetail(task)}
       >
@@ -226,11 +236,39 @@ export default function NeoTeamTasks() {
             {task.title}
           </p>
 
-          {/* Patient Name if available */}
-          {patientInfo.name && (
-            <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
-              <User className="h-3 w-3" />
-              <span className="truncate">{patientInfo.name}</span>
+          {/* Patient Info - from join */}
+          {patient && (
+            <div 
+              className="mb-2 p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+              onClick={handlePatientClick}
+            >
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-sm font-medium truncate">{patient.full_name}</span>
+                </div>
+                <ExternalLink className="h-3 w-3 text-muted-foreground" />
+              </div>
+              <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
+                {patient.phone && (
+                  <div className="flex items-center gap-1 truncate">
+                    <Phone className="h-2.5 w-2.5" />
+                    <span>{patient.phone}</span>
+                  </div>
+                )}
+                {patient.email && (
+                  <div className="flex items-center gap-1 truncate">
+                    <Mail className="h-2.5 w-2.5" />
+                    <span>{patient.email}</span>
+                  </div>
+                )}
+                {(patient.address_city || patient.address_state) && (
+                  <div className="flex items-center gap-1 col-span-2 truncate">
+                    <MapPin className="h-2.5 w-2.5" />
+                    <span>{[patient.address_city, patient.address_state].filter(Boolean).join('/')}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -241,7 +279,7 @@ export default function NeoTeamTasks() {
               {task.due_date && (
                 <span className={`text-[11px] flex items-center gap-1 px-1.5 py-0.5 rounded ${
                   isOverdue 
-                    ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
+                    ? 'bg-destructive/10 text-destructive' 
                     : 'bg-muted text-muted-foreground'
                 }`}>
                   <Calendar className="h-3 w-3" />

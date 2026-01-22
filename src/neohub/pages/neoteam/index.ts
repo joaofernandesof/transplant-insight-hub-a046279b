@@ -4,6 +4,7 @@ export { default as NeoTeamWaitingRoom } from './NeoTeamWaitingRoom';
 export { default as NeoTeamWaitingRoomReports } from './NeoTeamWaitingRoomReports';
 export { default as NeoTeamDoctorView } from './NeoTeamDoctorView';
 export { default as NeoTeamPatients } from './NeoTeamPatients';
+export { default as NeoTeamPatientDetail } from './NeoTeamPatientDetail';
 export { default as NeoTeamMedicalRecords } from './NeoTeamMedicalRecords';
 export { default as NeoTeamDocuments } from './NeoTeamDocuments';
 export { default as NeoTeamTasks } from './NeoTeamTasks';

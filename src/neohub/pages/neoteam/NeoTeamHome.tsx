@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNeoTeamWaitingRoom } from '@/neohub/hooks/useNeoTeamWaitingRoom';
 import { useNeoTeamTasks } from '@/neohub/hooks/useNeoTeamTasks';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import { format, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -101,6 +102,9 @@ export default function NeoTeamHome() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
+      {/* Breadcrumb */}
+      <NeoTeamBreadcrumb />
+
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground">
         <div className="flex items-center justify-between">
