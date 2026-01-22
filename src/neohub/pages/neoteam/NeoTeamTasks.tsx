@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -43,13 +43,16 @@ import {
   MoreVertical, Trash2, Edit, CheckCircle2, Loader2,
   AlertCircle, ArrowUp, ArrowRight, ArrowDown, 
   MessageCircle, Filter, ArrowUpDown, Search, X, Eye,
-  Phone, Mail, MapPin, ExternalLink
+  Phone, Mail, MapPin, ExternalLink, BarChart3
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { TaskKanban } from '@/neohub/components/TaskKanban';
+import { TasksDashboard } from '@/neohub/components/TasksDashboard';
 import { useNeoTeamTasks, Task, TaskStatus, TaskPriority, NewTask } from '@/neohub/hooks/useNeoTeamTasks';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
 // Updated status config with correct colors
 const statusConfig: Record<TaskStatus, { label: string; color: string; bg: string; headerBg: string }> = {
@@ -73,7 +76,8 @@ type SortOption = 'priority' | 'due_date' | 'created_at' | 'title';
 
 export default function NeoTeamTasks() {
   const navigate = useNavigate();
-  const [view, setView] = useState<'list' | 'kanban'>('kanban');
+  const { isAdmin } = useUnifiedAuth();
+  const [view, setView] = useState<'kanban' | 'list' | 'dashboard'>('kanban');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -351,7 +355,7 @@ export default function NeoTeamTasks() {
           <p className="text-muted-foreground">Gerencie as tarefas da equipe</p>
         </div>
         <div className="flex items-center gap-3">
-          <Tabs value={view} onValueChange={(v) => setView(v as 'list' | 'kanban')}>
+          <Tabs value={view} onValueChange={(v) => setView(v as 'kanban' | 'list' | 'dashboard')}>
             <TabsList>
               <TabsTrigger value="kanban" className="gap-2">
                 <Kanban className="h-4 w-4" />
@@ -360,6 +364,10 @@ export default function NeoTeamTasks() {
               <TabsTrigger value="list" className="gap-2">
                 <List className="h-4 w-4" />
                 Lista
+              </TabsTrigger>
+              <TabsTrigger value="dashboard" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Dashboard
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -548,64 +556,24 @@ export default function NeoTeamTasks() {
         </div>
       </div>
 
-      {/* Kanban View */}
-      {view === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {statusColumns.map((status) => {
-            const columnTasks = getTasksByStatus(status);
-            const config = statusConfig[status];
+      {/* Dashboard View */}
+      {view === 'dashboard' && (
+        <TasksDashboard tasks={filteredTasks} isManager={isAdmin} />
+      )}
 
-            return (
-              <div key={status} className="flex flex-col">
-                {/* Column Header */}
-                <div className={`p-3 rounded-t-lg ${config.headerBg} border-b-2 ${
-                  status === 'todo' ? 'border-slate-400' :
-                  status === 'in_progress' ? 'border-amber-400' :
-                  status === 'review' ? 'border-purple-400' :
-                  'border-emerald-400'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <h3 className={`font-semibold text-sm ${config.color}`}>
-                      {config.label}
-                    </h3>
-                    <Badge variant="secondary" className={`text-xs ${config.color}`}>
-                      {columnTasks.length}
-                    </Badge>
-                  </div>
-                </div>
-                
-                {/* Column Content - Fixed height showing ~5 cards */}
-                <div className={`flex-1 rounded-b-lg ${config.bg} p-2`}>
-                  <ScrollArea className="h-[calc(100vh-380px)] min-h-[400px]">
-                    <div className="space-y-2 pr-2">
-                      {columnTasks.map((task) => (
-                        <TaskCard key={task.id} task={task} />
-                      ))}
-                      {columnTasks.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground text-sm">
-                          Nenhuma tarefa
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                  
-                  {/* Add Task Button */}
-                  <Button 
-                    variant="ghost" 
-                    className="w-full mt-2 gap-2 text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setNewTask({ ...newTask, status });
-                      openNewTaskDialog();
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Adicionar Tarefa
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* Kanban View with Drag and Drop */}
+      {view === 'kanban' && (
+        <TaskKanban
+          tasks={filteredTasks}
+          onMoveTask={moveTask}
+          onEditTask={handleEditTask}
+          onDeleteTask={(task) => setDeletingTask(task)}
+          onOpenDetail={openTaskDetail}
+          onAddTask={(status) => {
+            setNewTask({ ...newTask, status });
+            openNewTaskDialog();
+          }}
+        />
       )}
 
       {/* List View */}

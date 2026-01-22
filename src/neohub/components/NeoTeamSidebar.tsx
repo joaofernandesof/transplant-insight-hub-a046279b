@@ -23,7 +23,7 @@ const menuItems = [
   { id: 'home', title: 'Início', icon: Home, route: '/neoteam' },
   { id: 'schedule', title: 'Agenda', icon: Calendar, route: '/neoteam/schedule' },
   { id: 'waiting-room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
-  { id: 'doctor-view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view' },
+  { id: 'doctor-view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view', doctorOnly: true },
   { id: 'tasks', title: 'Tarefas', icon: CheckSquare, route: '/neoteam/tasks' },
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
@@ -39,10 +39,15 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Filter menu items based on admin status
-  const filteredMenuItems = menuItems.filter(item => 
-    !item.adminOnly || isAdmin
-  );
+  // Filter menu items based on profile and admin status
+  const isDoctor = activeProfile === 'medico';
+  const filteredMenuItems = menuItems.filter(item => {
+    // Admin-only items
+    if (item.adminOnly && !isAdmin) return false;
+    // Doctor-only items - show for medico and administrador profiles
+    if (item.doctorOnly && !isDoctor && !isAdmin) return false;
+    return true;
+  });
 
   useEffect(() => {
     setIsMobileOpen(false);
