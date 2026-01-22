@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
+  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -235,6 +235,11 @@ function DroppableColumn({
   onAddTask: (status: TaskStatus) => void;
 }) {
   const config = statusConfig[status];
+  
+  // Use useDroppable to make the column a valid drop target
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+  });
 
   return (
     <div className="flex flex-col">
@@ -257,8 +262,10 @@ function DroppableColumn({
       
       {/* Column Content - droppable area */}
       <div 
-        className={`flex-1 rounded-b-lg ${config.bg} p-2`}
-        data-status={status}
+        ref={setNodeRef}
+        className={`flex-1 rounded-b-lg ${config.bg} p-2 transition-all ${
+          isOver ? 'ring-2 ring-primary ring-inset bg-primary/5' : ''
+        }`}
       >
         <ScrollArea className="h-[calc(100vh-380px)] min-h-[400px]">
           <SortableContext items={columnTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
@@ -273,7 +280,9 @@ function DroppableColumn({
                 />
               ))}
               {columnTasks.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground text-sm border-2 border-dashed border-muted rounded-lg min-h-[100px] flex items-center justify-center">
+                <div className={`text-center py-8 text-muted-foreground text-sm border-2 border-dashed rounded-lg min-h-[100px] flex items-center justify-center ${
+                  isOver ? 'border-primary bg-primary/10' : 'border-muted'
+                }`}>
                   Arraste tarefas aqui
                 </div>
               )}
@@ -333,10 +342,6 @@ export function TaskKanban({
     if (task) setActiveTask(task);
   };
 
-  const handleDragOver = (_event: DragOverEvent) => {
-    // No-op: we handle movement on drag end
-  };
-
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveTask(null);
@@ -381,9 +386,8 @@ export function TaskKanban({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

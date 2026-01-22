@@ -28,6 +28,7 @@ const menuItems = [
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
+  { id: 'postvenda', title: 'Pós-Venda', icon: Bell, route: '/neoteam/postvenda', postvendaOnly: true },
   { id: 'staff-roles', title: 'Cargos & Funções', icon: UserCog, route: '/neoteam/staff-roles', adminOnly: true },
   { id: 'settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
 ];
@@ -41,11 +42,17 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
 
   // Filter menu items based on profile and admin status
   const isDoctor = activeProfile === 'medico';
+  
+  // TODO: Check if user has postvenda role (for now, show for admin and colaborador)
+  const hasPostvendaAccess = isAdmin || activeProfile === 'colaborador';
+  
   const filteredMenuItems = menuItems.filter(item => {
     // Admin-only items
     if (item.adminOnly && !isAdmin) return false;
     // Doctor-only items - show for medico and administrador profiles
     if (item.doctorOnly && !isDoctor && !isAdmin) return false;
+    // Postvenda items - show for users with postvenda access
+    if ((item as any).postvendaOnly && !hasPostvendaAccess) return false;
     return true;
   });
 
