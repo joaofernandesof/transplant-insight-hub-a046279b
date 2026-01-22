@@ -69,62 +69,29 @@ export default function NeoTeamPatients() {
   const fetchPatients = async () => {
     setIsLoading(true);
     try {
-      // Fetch portal_patients with user data and appointments
+      // Fetch from clinic_patients (unified patient table)
       const { data: patientsData, error } = await supabase
-        .from('portal_patients')
-        .select(`
-          id,
-          blood_type,
-          health_insurance,
-          portal_user:portal_users!inner(
-            id,
-            email,
-            full_name,
-            phone,
-            cpf
-          )
-        `)
-        .limit(100);
+        .from('clinic_patients')
+        .select('*')
+        .order('full_name', { ascending: true })
+        .limit(200);
 
       if (error) throw error;
 
-      // Get appointment counts
-      const patientIds = patientsData?.map(p => p.id) || [];
-      const { data: appointmentsData } = await supabase
-        .from('portal_appointments')
-        .select('patient_id, scheduled_at, status')
-        .in('patient_id', patientIds);
-
-      const appointmentsByPatient: Record<string, { count: number; last?: string; next?: string }> = {};
-      appointmentsData?.forEach(apt => {
-        if (!appointmentsByPatient[apt.patient_id]) {
-          appointmentsByPatient[apt.patient_id] = { count: 0 };
-        }
-        appointmentsByPatient[apt.patient_id].count++;
-        const aptDate = new Date(apt.scheduled_at);
-        const now = new Date();
-        if (aptDate < now && (!appointmentsByPatient[apt.patient_id].last || aptDate > new Date(appointmentsByPatient[apt.patient_id].last!))) {
-          appointmentsByPatient[apt.patient_id].last = apt.scheduled_at;
-        }
-        if (aptDate > now && apt.status !== 'cancelled' && (!appointmentsByPatient[apt.patient_id].next || aptDate < new Date(appointmentsByPatient[apt.patient_id].next!))) {
-          appointmentsByPatient[apt.patient_id].next = apt.scheduled_at;
-        }
-      });
-
       const formattedPatients: Patient[] = (patientsData || []).map(p => ({
         id: p.id,
-        name: p.portal_user?.full_name || 'Sem nome',
-        email: p.portal_user?.email || '',
-        phone: p.portal_user?.phone || '',
-        cpf: p.portal_user?.cpf || '',
+        name: p.full_name || 'Sem nome',
+        email: p.email || '',
+        phone: p.phone || '',
+        cpf: p.cpf || '',
         birthDate: '',
         gender: 'O' as const,
-        lastVisit: appointmentsByPatient[p.id]?.last,
-        nextAppointment: appointmentsByPatient[p.id]?.next,
-        totalVisits: appointmentsByPatient[p.id]?.count || 0,
+        lastVisit: undefined,
+        nextAppointment: undefined,
+        totalVisits: 0,
         status: 'active' as const,
         tags: [],
-        portalUserId: p.portal_user?.id,
+        portalUserId: undefined,
       }));
 
       setPatients(formattedPatients);
