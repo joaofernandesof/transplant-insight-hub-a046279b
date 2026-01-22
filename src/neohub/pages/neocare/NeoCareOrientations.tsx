@@ -5,7 +5,7 @@ import {
   Dumbbell, Shirt, Coffee, Waves, Cat, Phone,
   Trophy, ChevronRight, Sparkles, Heart,
   Calendar, Clock, AlertCircle, CalendarPlus, Bell,
-  AlertTriangle, XCircle, Loader2
+  AlertTriangle, XCircle, Loader2, MessageSquare
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -281,15 +281,19 @@ export default function NeoCareOrientations() {
               Entre em contato com a clínica para confirmar sua agenda.
             </p>
           </div>
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 mt-4">
+          <button 
+            onClick={() => window.dispatchEvent(new CustomEvent('open-support-chat'))}
+            className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 mt-4 w-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors text-left"
+          >
             <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-              <Phone className="h-5 w-5" />
+              <MessageSquare className="h-5 w-5" />
             </div>
-            <div className="text-left">
+            <div className="flex-1">
               <p className="font-medium text-sm">Dúvidas?</p>
-              <p className="text-xs text-muted-foreground">(85) 98118-1212</p>
+              <p className="text-xs text-muted-foreground">Fale com nosso assistente IA</p>
             </div>
-          </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </button>
         </div>
       </div>
     );
@@ -687,16 +691,20 @@ export default function NeoCareOrientations() {
         </Button>
       </div>
 
-      {/* Contact */}
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+      {/* Contact - AI Support */}
+      <button 
+        onClick={() => window.dispatchEvent(new CustomEvent('open-support-chat'))}
+        className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 w-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors text-left"
+      >
         <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-          <Phone className="h-5 w-5" />
+          <MessageSquare className="h-5 w-5" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="font-medium text-sm">Dúvidas?</p>
-          <p className="text-xs text-muted-foreground">(85) 98118-1212</p>
+          <p className="text-xs text-muted-foreground">Fale com nosso assistente IA</p>
         </div>
-      </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </button>
     </div>
   );
 }
