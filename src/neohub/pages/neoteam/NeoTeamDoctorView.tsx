@@ -95,12 +95,12 @@ export default function NeoTeamDoctorView() {
         {/* Room Filter */}
         <div className="flex items-center gap-4">
           <span className="font-medium">Filtrar por Sala:</span>
-          <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+          <Select value={selectedRoom || 'all'} onValueChange={(value) => setSelectedRoom(value === 'all' ? '' : value)}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Todas as salas" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as salas</SelectItem>
+              <SelectItem value="all">Todas as salas</SelectItem>
               {rooms.map((room) => (
                 <SelectItem key={room} value={room}>
                   {room}
