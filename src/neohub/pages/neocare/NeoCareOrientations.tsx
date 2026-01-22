@@ -265,7 +265,7 @@ export default function NeoCareOrientations() {
         )}
       </div>
 
-      {/* Timeline Navigation - MOVED TO TOP */}
+      {/* Unified Horizontal Timeline */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-sm">Linha do Tempo</h2>
@@ -280,60 +280,101 @@ export default function NeoCareOrientations() {
           </Button>
         </div>
         
-        {/* Phase Selector */}
-        <div className="flex items-center justify-center gap-1 py-2">
-          <button
-            onClick={() => setSelectedDay(-3)}
-            className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-medium transition-all",
-              selectedDay < 0 ? "bg-amber-500 text-white" : "bg-muted hover:bg-muted/80"
-            )}
-          >
-            PRÉ
-          </button>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          <button
-            onClick={() => setSelectedDay(0)}
-            className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-bold transition-all",
-              selectedDay === 0 ? "bg-emerald-500 text-white" : "bg-muted hover:bg-muted/80"
-            )}
-          >
-            D0
-          </button>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          <button
-            onClick={() => setSelectedDay(currentDay > 0 ? currentDay : 1)}
-            className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-medium transition-all",
-              selectedDay > 0 ? "bg-blue-500 text-white" : "bg-muted hover:bg-muted/80"
-            )}
-          >
-            PÓS
-          </button>
-        </div>
+        {/* Single Unified Timeline */}
+        <div className="relative">
+          {/* Timeline Track Line */}
+          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-300 via-emerald-400 to-blue-400 -translate-y-1/2 z-0" />
+          
+          <div className="flex items-center overflow-x-auto pb-2 pt-1 gap-1 relative z-10">
+            {/* Pre-transplant days */}
+            {[
+              { day: -15, label: 'D-15' },
+              { day: -7, label: 'D-7' },
+              { day: -5, label: 'D-5' },
+              { day: -3, label: 'D-3' },
+              { day: -1, label: 'D-1' },
+            ].map((item) => {
+              const isSelected = selectedDay === item.day || (selectedDay < 0 && selectedDay === -3 && item.day === -3);
+              const isPast = currentDay > item.day;
+              const isToday = currentDay === item.day;
+              const preTasksForDay = preTransplantChecklist.filter(t => -t.daysBeforeD0 <= item.day);
+              const completedPre = preTasksForDay.filter(t => preChecked[t.id]).length;
+              
+              return (
+                <button
+                  key={item.day}
+                  onClick={() => setSelectedDay(item.day)}
+                  className={cn(
+                    "flex flex-col items-center px-2 py-1.5 rounded-lg min-w-[48px] transition-all border bg-background",
+                    isSelected && "ring-2 ring-amber-400 border-amber-400 bg-amber-50 dark:bg-amber-950/30",
+                    !isSelected && isToday && "border-amber-300 bg-amber-50/50",
+                    !isSelected && !isToday && "border-border hover:border-amber-200",
+                    isPast && !isSelected && "opacity-60"
+                  )}
+                >
+                  <span className={cn(
+                    "text-[10px] font-bold",
+                    isSelected ? "text-amber-600" : "text-muted-foreground"
+                  )}>
+                    {item.label}
+                  </span>
+                  {isToday && (
+                    <span className="text-[8px] text-amber-500 font-medium">Hoje</span>
+                  )}
+                </button>
+              );
+            })}
 
-        {/* Day Timeline - POST ONLY */}
-        {selectedDay >= 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-2">
+            {/* D0 - Surgery Day */}
+            <button
+              onClick={() => setSelectedDay(0)}
+              className={cn(
+                "flex flex-col items-center px-3 py-2 rounded-xl min-w-[56px] transition-all border-2 mx-1",
+                selectedDay === 0 
+                  ? "bg-emerald-500 text-white border-emerald-600 ring-2 ring-emerald-300 shadow-lg" 
+                  : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-400 hover:bg-emerald-100",
+                currentDay === 0 && selectedDay !== 0 && "ring-2 ring-emerald-200"
+              )}
+            >
+              <Sparkles className={cn(
+                "h-4 w-4 mb-0.5",
+                selectedDay === 0 ? "text-white" : "text-emerald-500"
+              )} />
+              <span className={cn(
+                "text-xs font-bold",
+                selectedDay === 0 ? "text-white" : "text-emerald-600"
+              )}>
+                D0
+              </span>
+              <span className={cn(
+                "text-[8px]",
+                selectedDay === 0 ? "text-emerald-100" : "text-emerald-500"
+              )}>
+                Cirurgia
+              </span>
+            </button>
+
+            {/* Post-transplant days */}
             {postTransplantChecklist.map((day) => {
               const completedCount = day.tasks.filter(t => postChecked[t.id]?.done).length;
               const hasOverdue = day.tasks.some(t => isTaskOverdue(t.id, day.day));
               const isCurrent = day.day === currentDay;
               const isSelected = day.day === selectedDay;
               const isFuture = day.day > currentDay;
+              const isComplete = completedCount === day.tasks.length;
 
               return (
                 <button
                   key={day.day}
                   onClick={() => setSelectedDay(day.day)}
                   className={cn(
-                    "flex flex-col items-center px-3 py-2 rounded-lg min-w-[56px] transition-all border relative",
-                    isSelected && "bg-blue-50 dark:bg-blue-950/30 border-blue-400 ring-2 ring-blue-200",
-                    !isSelected && isCurrent && "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/20",
+                    "flex flex-col items-center px-2 py-1.5 rounded-lg min-w-[48px] transition-all border relative bg-background",
+                    isSelected && "ring-2 ring-blue-400 border-blue-400 bg-blue-50 dark:bg-blue-950/30",
+                    !isSelected && isCurrent && "border-blue-300 bg-blue-50/50 ring-1 ring-blue-200",
                     !isSelected && !isCurrent && !isFuture && "border-border",
-                    isFuture && "opacity-50 border-border",
-                    hasOverdue && "border-red-400 bg-red-50 dark:bg-red-950/20"
+                    isFuture && !isSelected && "opacity-40 border-border",
+                    hasOverdue && !isSelected && "border-red-400 bg-red-50 dark:bg-red-950/20",
+                    isComplete && !isSelected && "border-emerald-300 bg-emerald-50/50"
                   )}
                 >
                   {hasOverdue && (
@@ -341,22 +382,34 @@ export default function NeoCareOrientations() {
                       <XCircle className="h-2 w-2 text-white" />
                     </div>
                   )}
+                  {isComplete && !hasOverdue && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center">
+                      <Check className="h-2 w-2 text-white" />
+                    </div>
+                  )}
                   <span className={cn(
-                    "text-xs font-bold",
-                    isSelected && "text-blue-600 dark:text-blue-400",
-                    isCurrent && !isSelected && "text-emerald-600",
-                    hasOverdue && "text-red-600"
+                    "text-[10px] font-bold",
+                    isSelected && "text-blue-600",
+                    isCurrent && !isSelected && "text-blue-500",
+                    hasOverdue && !isSelected && "text-red-600",
+                    isComplete && !hasOverdue && !isSelected && "text-emerald-600"
                   )}>
-                    {day.label}
+                    D{day.day}
                   </span>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className={cn(
+                    "text-[8px]",
+                    hasOverdue ? "text-red-500" : isComplete ? "text-emerald-500" : "text-muted-foreground"
+                  )}>
                     {completedCount}/{day.tasks.length}
                   </span>
+                  {isCurrent && (
+                    <span className="text-[8px] text-blue-500 font-medium">Hoje</span>
+                  )}
                 </button>
               );
             })}
           </div>
-        )}
+        </div>
       </div>
 
       <Separator />
