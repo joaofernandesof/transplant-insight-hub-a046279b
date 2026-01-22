@@ -1,7 +1,7 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import logoByNeofolicLight from "@/assets/logo-byneofolic.png";
-import logoByNeofolicDark from "@/assets/logo-byneofolic-white.png";
+import logoByNeofolicDark from "@/assets/logo-byneofolic-dark.png";
 
 interface ThemedLogoProps {
   className?: string;
