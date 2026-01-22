@@ -124,7 +124,7 @@ import { MarketplaceDiscovery } from "./marketplace/pages/MarketplaceDiscovery";
 // ====================================
 // Pós-Venda
 // ====================================
-import { PostVendaHome, ChamadoListPage } from "./postvenda/pages";
+import { PostVendaHome, ChamadoListPage, ChamadoDetailPage } from "./postvenda/pages";
 import { PostVendaSidebar } from "./postvenda/components";
 
 // ====================================
@@ -264,6 +264,7 @@ function NeoTeamRoutes() {
           <Route path="tasks" element={<NeoTeamTasks />} />
           <Route path="postvenda" element={<PostVendaHome />} />
           <Route path="postvenda/chamados" element={<ChamadoListPage />} />
+          <Route path="postvenda/chamados/:id" element={<ChamadoDetailPage />} />
           <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
