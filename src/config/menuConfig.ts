@@ -89,12 +89,12 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
     requiredProfiles: ['licenciado', 'aluno', 'paciente', 'colaborador', 'cliente_avivar'],
   },
   
-  // Admin Dashboard - é a home do admin
+  // Admin Dashboard - é a home do admin (renomeado para "Início")
   { 
     id: 'admin-dashboard', 
     code: 'admin_dashboard', 
-    title: 'Dashboard Admin', 
-    icon: LayoutDashboard, 
+    title: 'Início', 
+    icon: Home, 
     route: '/admin-dashboard',
     adminOnly: true,
     requiredProfiles: ['administrador'],
