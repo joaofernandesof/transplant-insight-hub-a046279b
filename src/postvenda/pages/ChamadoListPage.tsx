@@ -1,13 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Loader2, Filter, X } from 'lucide-react';
+import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
-import { ChamadoCard, NovoChamadoDialog } from '../components';
-import { usePostVenda } from '../hooks/usePostVenda';
-import { ETAPA_LABELS, TIPO_DEMANDA_OPTIONS, PRIORIDADE_LABELS } from '../lib/permissions';
+import { NovoChamadoDialog } from '../components';
+import { Chamado, usePostVenda } from '../hooks/usePostVenda';
+import { ETAPA_LABELS, PRIORIDADE_LABELS, STATUS_LABELS, TIPO_DEMANDA_OPTIONS } from '../lib/permissions';
 import {
   Select,
   SelectContent,
@@ -16,13 +17,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function ChamadoListPage() {
   const { chamados, isLoading, stats } = usePostVenda();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   
@@ -30,6 +37,18 @@ export default function ChamadoListPage() {
   const [tipoDemandaFilter, setTipoDemandaFilter] = useState<string>('all');
   const [prioridadeFilter, setPrioridadeFilter] = useState<string>('all');
   const [responsavelFilter, setResponsavelFilter] = useState<string>('all');
+  const [etapaFilter, setEtapaFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Sorting
+  type SortField = 'created_at' | 'paciente_nome' | 'tipo_demanda' | 'prioridade' | 'etapa_atual' | 'status' | 'responsavel_nome' | 'sla';
+  type SortDir = 'asc' | 'desc';
+  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   // Get unique responsaveis
   const responsaveis = useMemo(() => {
@@ -38,11 +57,11 @@ export default function ChamadoListPage() {
   }, [chamados]);
 
   // Active filters count
-  const activeFiltersCount = [tipoDemandaFilter, prioridadeFilter, responsavelFilter]
+  const activeFiltersCount = [tipoDemandaFilter, prioridadeFilter, responsavelFilter, etapaFilter, statusFilter]
     .filter(f => f !== 'all').length;
 
   const filteredChamados = useMemo(() => {
-    return chamados.filter(c => {
+    const res = chamados.filter(c => {
       // Text search
       const matchesSearch = !search || 
         c.paciente_nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -53,18 +72,87 @@ export default function ChamadoListPage() {
       const matchesTipo = tipoDemandaFilter === 'all' || c.tipo_demanda === tipoDemandaFilter;
       const matchesPrioridade = prioridadeFilter === 'all' || c.prioridade === prioridadeFilter;
       const matchesResponsavel = responsavelFilter === 'all' || c.responsavel_nome === responsavelFilter;
+      const matchesEtapa = etapaFilter === 'all' || c.etapa_atual === etapaFilter;
+      const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
 
-      return matchesSearch && matchesTipo && matchesPrioridade && matchesResponsavel;
+      return matchesSearch && matchesTipo && matchesPrioridade && matchesResponsavel && matchesEtapa && matchesStatus;
     });
-  }, [chamados, search, tipoDemandaFilter, prioridadeFilter, responsavelFilter]);
+
+    const sorted = [...res].sort((a, b) => {
+      const dir = sortDir === 'asc' ? 1 : -1;
+      const getSlaValue = (c: Chamado) => {
+        if (!c.sla_prazo_fim) return Number.POSITIVE_INFINITY;
+        return new Date(c.sla_prazo_fim).getTime();
+      };
+
+      let cmp = 0;
+      switch (sortField) {
+        case 'created_at':
+          cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case 'paciente_nome':
+          cmp = (a.paciente_nome || '').localeCompare(b.paciente_nome || '');
+          break;
+        case 'tipo_demanda':
+          cmp = (a.tipo_demanda || '').localeCompare(b.tipo_demanda || '');
+          break;
+        case 'prioridade': {
+          const order = { urgente: 0, alta: 1, normal: 2, baixa: 3 } as const;
+          cmp = (order[a.prioridade] ?? 99) - (order[b.prioridade] ?? 99);
+          break;
+        }
+        case 'etapa_atual':
+          cmp = (a.etapa_atual || '').localeCompare(b.etapa_atual || '');
+          break;
+        case 'status':
+          cmp = (a.status || '').localeCompare(b.status || '');
+          break;
+        case 'responsavel_nome':
+          cmp = (a.responsavel_nome || '').localeCompare(b.responsavel_nome || '');
+          break;
+        case 'sla':
+          cmp = getSlaValue(a) - getSlaValue(b);
+          break;
+      }
+      return cmp * dir;
+    });
+
+    return sorted;
+  }, [chamados, etapaFilter, prioridadeFilter, responsavelFilter, search, sortDir, sortField, statusFilter, tipoDemandaFilter]);
 
   const clearFilters = () => {
     setTipoDemandaFilter('all');
     setPrioridadeFilter('all');
     setResponsavelFilter('all');
+    setEtapaFilter('all');
+    setStatusFilter('all');
   };
 
-  const etapas = ['triagem', 'atendimento', 'resolucao', 'validacao_paciente', 'nps'] as const;
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-4 w-4 opacity-60" />;
+    return sortDir === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
+  };
+
+  const pageCount = Math.max(1, Math.ceil(filteredChamados.length / pageSize));
+  const safePage = Math.min(page, pageCount);
+  const paginatedChamados = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filteredChamados.slice(start, start + pageSize);
+  }, [filteredChamados, pageSize, safePage]);
+
+  // reset page on filter/sort changes
+  useEffect(() => {
+    setPage(1);
+  }, [search, tipoDemandaFilter, prioridadeFilter, responsavelFilter, etapaFilter, statusFilter, pageSize, sortField, sortDir]);
 
   return (
     <div className="p-4 lg:p-6 space-y-4">
@@ -95,6 +183,18 @@ export default function ChamadoListPage() {
 
             {/* Filters */}
             <div className="flex flex-wrap gap-2">
+              <Select value={etapaFilter} onValueChange={setEtapaFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Etapa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as etapas</SelectItem>
+                  {Object.entries(ETAPA_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <Select value={tipoDemandaFilter} onValueChange={setTipoDemandaFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Tipo de Demanda" />
@@ -114,6 +214,18 @@ export default function ChamadoListPage() {
                 <SelectContent>
                   <SelectItem value="all">Todas</SelectItem>
                   {Object.entries(PRIORIDADE_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
                     <SelectItem key={value} value={value}>{label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -144,6 +256,12 @@ export default function ChamadoListPage() {
           {activeFiltersCount > 0 && (
             <div className="flex items-center gap-2 mt-3 pt-3 border-t">
               <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+              {etapaFilter !== 'all' && (
+                <Badge variant="secondary" className="gap-1">
+                  Etapa: {ETAPA_LABELS[etapaFilter]}
+                  <X className="h-3 w-3 cursor-pointer" onClick={() => setEtapaFilter('all')} />
+                </Badge>
+              )}
               {tipoDemandaFilter !== 'all' && (
                 <Badge variant="secondary" className="gap-1">
                   Tipo: {TIPO_DEMANDA_OPTIONS.find(o => o.value === tipoDemandaFilter)?.label}
@@ -160,6 +278,12 @@ export default function ChamadoListPage() {
                     className="h-3 w-3 cursor-pointer" 
                     onClick={() => setPrioridadeFilter('all')} 
                   />
+                </Badge>
+              )}
+              {statusFilter !== 'all' && (
+                <Badge variant="secondary" className="gap-1">
+                  Status: {STATUS_LABELS[statusFilter]}
+                  <X className="h-3 w-3 cursor-pointer" onClick={() => setStatusFilter('all')} />
                 </Badge>
               )}
               {responsavelFilter !== 'all' && (
@@ -182,29 +306,124 @@ export default function ChamadoListPage() {
         {activeFiltersCount > 0 && ` (de ${chamados.length} total)`}
       </div>
 
-      {/* Kanban por Etapa */}
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <div className="grid grid-cols-5 gap-4">
-          {etapas.map(etapa => {
-            const etapaChamados = filteredChamados.filter(c => c.etapa_atual === etapa);
-            return (
-              <div key={etapa} className="space-y-3">
-                <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
-                  <span className="font-medium text-sm">{ETAPA_LABELS[etapa]}</span>
-                  <Badge variant="secondary">{etapaChamados.length}</Badge>
-                </div>
-                <div className="space-y-2 min-h-[200px]">
-                  {etapaChamados.map(chamado => (
-                    <ChamadoCard key={chamado.id} chamado={chamado} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('created_at')}>
+                    <div className="flex items-center gap-2">Criado <SortIcon field="created_at" /></div>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('paciente_nome')}>
+                    <div className="flex items-center gap-2">Paciente <SortIcon field="paciente_nome" /></div>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('tipo_demanda')}>
+                    <div className="flex items-center gap-2">Tipo <SortIcon field="tipo_demanda" /></div>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('prioridade')}>
+                    <div className="flex items-center gap-2">Prioridade <SortIcon field="prioridade" /></div>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('etapa_atual')}>
+                    <div className="flex items-center gap-2">Etapa <SortIcon field="etapa_atual" /></div>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('status')}>
+                    <div className="flex items-center gap-2">Status <SortIcon field="status" /></div>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('responsavel_nome')}>
+                    <div className="flex items-center gap-2">Responsável <SortIcon field="responsavel_nome" /></div>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('sla')}>
+                    <div className="flex items-center gap-2">SLA <SortIcon field="sla" /></div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedChamados.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
+                      Nenhum chamado encontrado.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedChamados.map((c) => (
+                    <TableRow
+                      key={c.id}
+                      className="cursor-pointer"
+                      onClick={() => navigate(`/neoteam/postvenda/chamados/${c.id}`)}
+                    >
+                      <TableCell className="whitespace-nowrap">
+                        <div className="text-sm">
+                          {formatDistanceToNow(new Date(c.created_at), { locale: ptBR, addSuffix: true })}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-mono">#{String(c.numero_chamado ?? '').padStart(5, '0')}</div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <div className="font-medium">{c.paciente_nome}</div>
+                        <div className="text-xs text-muted-foreground">{c.paciente_telefone || ''}</div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {TIPO_DEMANDA_OPTIONS.find(o => o.value === c.tipo_demanda)?.label || c.tipo_demanda}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge variant="outline">{PRIORIDADE_LABELS[c.prioridade]}</Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge variant="secondary">{ETAPA_LABELS[c.etapa_atual]}</Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge variant="outline">{STATUS_LABELS[c.status]}</Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {c.responsavel_nome || <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {c.sla_prazo_fim ? (
+                          <span className={c.sla_estourado ? 'text-destructive' : ''}>
+                            {new Date(c.sla_prazo_fim) < new Date() ? 'Estourado' : formatDistanceToNow(new Date(c.sla_prazo_fim), { locale: ptBR, addSuffix: true })}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Sem SLA</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {!isLoading && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Por página</span>
+            <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+              <SelectTrigger className="w-[110px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[25, 50, 100].map((n) => (
+                  <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage === 1}>
+              Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">Página {safePage} de {pageCount}</span>
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={safePage === pageCount}>
+              Próxima
+            </Button>
+          </div>
         </div>
       )}
 
