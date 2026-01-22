@@ -36,7 +36,7 @@ const preTransplantChecklist = [
 const postTransplantChecklist = [
   {
     day: 1,
-    label: 'D1',
+    label: 'D+1',
     tasks: [
       { id: 'd1_soro', icon: Droplets, title: 'Borrifar soro', time: 'A cada 1h', startTime: '08:00', endTime: '22:00' },
       { id: 'd1_dormir', icon: Bed, title: 'Dormir de barriga para cima', time: 'Noite toda', startTime: '22:00' },
@@ -45,7 +45,7 @@ const postTransplantChecklist = [
   },
   {
     day: 2,
-    label: 'D2',
+    label: 'D+2',
     tasks: [
       { id: 'd2_soro', icon: Droplets, title: 'Continuar soro', time: 'A cada 1h', startTime: '08:00', endTime: '22:00' },
       { id: 'd2_medicacao', icon: Pill, title: 'Tomar medicação', time: '8h e 20h', startTime: '08:00' },
@@ -54,7 +54,7 @@ const postTransplantChecklist = [
   },
   {
     day: 3,
-    label: 'D3',
+    label: 'D+3',
     tasks: [
       { id: 'd3_lavar', icon: ShowerHead, title: 'Primeira lavagem suave', time: 'Manhã', startTime: '09:00' },
       { id: 'd3_doadora', icon: Droplets, title: 'Esfregar área doadora', time: 'Durante banho', startTime: '09:00' },
@@ -63,7 +63,7 @@ const postTransplantChecklist = [
   },
   {
     day: 5,
-    label: 'D5',
+    label: 'D+5',
     tasks: [
       { id: 'd5_lavagem', icon: ShowerHead, title: 'Lavagem cuidadosa', time: 'Manhã', startTime: '09:00' },
       { id: 'd5_espuma', icon: Droplets, title: 'Aplicar espuma suave', time: 'Durante lavagem', startTime: '09:00' },
@@ -72,16 +72,16 @@ const postTransplantChecklist = [
   },
   {
     day: 8,
-    label: 'D8',
+    label: 'D+8',
     tasks: [
       { id: 'd8_circular', icon: ShowerHead, title: 'Movimentos circulares', time: 'Durante lavagem', startTime: '09:00' },
       { id: 'd8_lado', icon: Bed, title: 'Pode dormir de lado', time: 'Liberado', startTime: '22:00' },
-      { id: 'd8_camisa', icon: Shirt, title: 'Camisas com botão', time: 'Até D14', startTime: '08:00' },
+      { id: 'd8_camisa', icon: Shirt, title: 'Camisas com botão', time: 'Até D+14', startTime: '08:00' },
     ]
   },
   {
     day: 10,
-    label: 'D10',
+    label: 'D+10',
     tasks: [
       { id: 'd10_oleo', icon: Sparkles, title: 'Iniciar óleo de girassol', time: 'Noite', startTime: '21:00' },
       { id: 'd10_academia', icon: Dumbbell, title: 'Academia leve liberada', time: 'Sem esforço', startTime: '10:00' },
@@ -90,7 +90,7 @@ const postTransplantChecklist = [
   },
   {
     day: 15,
-    label: 'D15',
+    label: 'D+15',
     tasks: [
       { id: 'd15_chuveiro', icon: ShowerHead, title: 'Chuveiro normal liberado', time: 'Liberado', startTime: '08:00' },
       { id: 'd15_shampoo', icon: Droplets, title: 'Shampoo regular', time: 'Liberado', startTime: '08:00' },
@@ -111,66 +111,88 @@ const restrictions = [
   { icon: Cat, title: 'Pets afastados', until: 5 },
 ];
 
-// Generate Google Calendar URL for all tasks
-function generateBatchCalendarUrl(surgeryDate: Date) {
-  // Create an array of all events
-  const allEvents: { title: string; date: Date; time: string; startTime: string }[] = [];
+// Generate Google Calendar URL for individual task
+function generateSingleEventUrl(task: { title: string; time?: string; startTime?: string; desc?: string }, date: Date, isAllDay = false) {
+  const formatDate = (d: Date) => d.toISOString().replace(/-|:|\.\d{3}/g, '');
   
-  // Pre-transplant events
+  if (isAllDay) {
+    // All-day event format: YYYYMMDD/YYYYMMDD (next day)
+    const startStr = format(date, 'yyyyMMdd');
+    const nextDay = addDays(date, 1);
+    const endStr = format(nextDay, 'yyyyMMdd');
+    
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: task.title,
+      details: `📱 Orientação do NeoCare`,
+      dates: `${startStr}/${endStr}`,
+    });
+    
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  }
+  
+  const startDate = new Date(date);
+  const [hours, minutes] = (task.startTime || '09:00').split(':').map(Number);
+  startDate.setHours(hours, minutes, 0);
+  
+  const endDate = new Date(startDate);
+  endDate.setHours(endDate.getHours() + 1);
+  
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: task.title,
+    details: `Orientação pós-transplante: ${task.title}\n${task.time ? `Horário: ${task.time}` : ''}\n\n📱 NeoCare`,
+    dates: `${formatDate(startDate)}/${formatDate(endDate)}`,
+  });
+  
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+// Generate ALL events as individual calendar links
+function generateAllEventsAsLinks(surgeryDate: Date) {
+  const events: { title: string; date: Date; url: string }[] = [];
+  
+  // Pre-transplant events (individual)
   preTransplantChecklist.filter(t => !t.isCalendarSync).forEach(task => {
     const taskDate = addDays(surgeryDate, -task.daysBeforeD0);
-    allEvents.push({
-      title: `📋 ${task.title}`,
+    events.push({
+      title: task.title,
       date: taskDate,
-      time: task.desc,
-      startTime: '09:00'
+      url: generateSingleEventUrl({ title: `📋 ${task.title}`, desc: task.desc, startTime: '09:00' }, taskDate)
     });
   });
   
-  // D0 - Surgery day
-  allEvents.push({
+  // D0 - Surgery day (all-day event)
+  events.push({
     title: '🏥 Dia do Transplante Capilar',
     date: surgeryDate,
-    time: 'Dia inteiro',
-    startTime: '08:00'
+    url: generateSingleEventUrl({ title: '🏥 Dia do Transplante Capilar' }, surgeryDate, true)
   });
   
-  // Post-transplant events
+  // Post-transplant events (individual)
   postTransplantChecklist.forEach(day => {
     const taskDate = addDays(surgeryDate, day.day);
     day.tasks.forEach(task => {
-      allEvents.push({
-        title: `🏥 ${task.title}`,
+      events.push({
+        title: task.title,
         date: taskDate,
-        time: task.time,
-        startTime: task.startTime || '09:00'
+        url: generateSingleEventUrl({ title: `🏥 ${task.title}`, time: task.time, startTime: task.startTime }, taskDate)
       });
     });
   });
   
-  // Open the first event (user will need to add each one)
-  // For batch, we'll create one comprehensive event for D0
-  const d0 = surgeryDate;
-  const d0Start = new Date(d0);
-  d0Start.setHours(8, 0, 0);
-  const d0End = new Date(d0);
-  d0End.setHours(17, 0, 0);
-  
-  const formatDate = (d: Date) => d.toISOString().replace(/-|:|\.\d{3}/g, '');
-  
-  // Generate event list text
-  const eventList = allEvents.map(e => 
-    `• ${format(e.date, 'dd/MM')} - ${e.title}`
-  ).join('\n');
-  
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: `🏥 Transplante Capilar - Neo Folic`,
-    details: `Seu cronograma de transplante capilar:\n\n${eventList}\n\n📱 Acompanhe suas tarefas diárias no app NeoCare`,
-    dates: `${formatDate(d0Start)}/${formatDate(d0End)}`,
-  });
-  
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  return events;
+}
+
+// Open all calendar events sequentially (user adds each one)
+function openAllCalendarEvents(surgeryDate: Date) {
+  const events = generateAllEventsAsLinks(surgeryDate);
+  // Open first event immediately
+  if (events.length > 0) {
+    window.open(events[0].url, '_blank');
+  }
+  // Return events for UI to show remaining
+  return events;
 }
 
 // Generate Google Calendar URL for individual task
@@ -202,7 +224,7 @@ const daySelectors = [
   { day: -3, label: 'D-3' },
   { day: -1, label: 'D-1' },
   { day: 0, label: 'D0', isD0: true },
-  ...postTransplantChecklist.map(d => ({ day: d.day, label: `D${d.day}` }))
+  ...postTransplantChecklist.map(d => ({ day: d.day, label: `D+${d.day}` }))
 ];
 
 export default function NeoCareOrientations() {
@@ -277,11 +299,30 @@ export default function NeoCareOrientations() {
     .flatMap(day => day.tasks)
     .filter(task => !isTaskCompleted(task.id));
 
-  // Handle calendar sync
+  // State for calendar events modal
+  const [calendarEvents, setCalendarEvents] = useState<{ title: string; date: Date; url: string }[] | null>(null);
+  const [currentEventIndex, setCurrentEventIndex] = useState(0);
+
+  // Handle calendar sync - opens events one by one
   const handleCalendarSync = () => {
-    const url = generateBatchCalendarUrl(surgeryDate);
-    window.open(url, '_blank');
-    toast.success('Abrindo Google Agenda...');
+    const events = generateAllEventsAsLinks(surgeryDate);
+    setCalendarEvents(events);
+    setCurrentEventIndex(0);
+    if (events.length > 0) {
+      window.open(events[0].url, '_blank');
+    }
+    toast.success(`Adicionando ${events.length} eventos ao Google Agenda...`);
+  };
+
+  const handleNextEvent = () => {
+    if (calendarEvents && currentEventIndex < calendarEvents.length - 1) {
+      const nextIndex = currentEventIndex + 1;
+      setCurrentEventIndex(nextIndex);
+      window.open(calendarEvents[nextIndex].url, '_blank');
+    } else {
+      setCalendarEvents(null);
+      toast.success('Todos os eventos foram adicionados!');
+    }
   };
 
   // Phase calculation
@@ -433,20 +474,39 @@ export default function NeoCareOrientations() {
                   key={item.day}
                   onClick={() => setSelectedDay(item.day)}
                   className={cn(
-                    "flex flex-col items-center gap-1 min-w-[60px] transition-all",
+                    "flex flex-col items-center gap-0.5 min-w-[70px] transition-all",
                   )}
                 >
+                  {/* HOJE label above */}
+                  {isToday && (
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
+                      HOJE
+                    </span>
+                  )}
+                  
+                  {/* D0 special label */}
+                  {isD0Item && !isToday && (
+                    <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide leading-tight text-center">
+                      Transplante
+                    </span>
+                  )}
+                  
+                  {/* Spacer for non-labeled items */}
+                  {!isToday && !isD0Item && (
+                    <span className="h-[14px]"></span>
+                  )}
+                  
                   {/* Day pill */}
                   <div className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-medium transition-all border relative flex items-center gap-1",
                     isD0Item
                       ? isToday
-                        ? "bg-emerald-500 text-white border-emerald-600"
+                        ? "bg-emerald-500 text-white border-emerald-600 ring-2 ring-emerald-300 dark:ring-emerald-700"
                         : isSelected
                           ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-500 border-2"
-                          : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
+                          : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-400 dark:border-emerald-600 border-2"
                       : isToday 
-                        ? "bg-emerald-500 text-white border-emerald-500"
+                        ? "bg-emerald-500 text-white border-emerald-500 ring-2 ring-emerald-300 dark:ring-emerald-700"
                         : isSelected 
                           ? "bg-foreground text-background border-foreground"
                           : isComplete
@@ -462,7 +522,11 @@ export default function NeoCareOrientations() {
                   {/* Real date below */}
                   <span className={cn(
                     "text-[10px] font-medium transition-colors",
-                    isSelected || isToday ? "text-foreground" : "text-muted-foreground"
+                    isD0Item 
+                      ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                      : isSelected || isToday 
+                        ? "text-foreground" 
+                        : "text-muted-foreground"
                   )}>
                     {format(realDate, 'dd MMM', { locale: ptBR })}
                   </span>
@@ -682,9 +746,9 @@ export default function NeoCareOrientations() {
                       {isOverdue && !isChecked && (
                         <p className="text-xs text-red-500 font-medium">Não cumprida!</p>
                       )}
-                      {taskState?.doneAt && (
+                      {completedAt && (
                         <p className="text-xs text-muted-foreground">
-                          ✓ Feito em {format(new Date(taskState.doneAt), "dd/MM 'às' HH:mm")}
+                          ✓ Feito em {format(new Date(completedAt), "dd/MM 'às' HH:mm")}
                         </p>
                       )}
                     </div>
