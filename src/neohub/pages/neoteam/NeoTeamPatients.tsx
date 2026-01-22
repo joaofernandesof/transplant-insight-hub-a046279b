@@ -747,36 +747,36 @@ export default function NeoTeamPatients() {
           </div>
         )}
 
-        <CardContent className="p-0">
-          <Table>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table className="table-fixed min-w-[1100px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
+                <TableHead className="w-[280px] cursor-pointer" onClick={() => handleSort('name')}>
                   <div className="flex items-center gap-2">
                     Paciente
                     <SortIcon field="name" />
                   </div>
                 </TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('branch')}>
+                <TableHead className="w-[220px]">Contato</TableHead>
+                <TableHead className="w-[160px] cursor-pointer" onClick={() => handleSort('branch')}>
                   <div className="flex items-center gap-2">
                     Filial
                     <SortIcon field="branch" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('category')}>
+                <TableHead className="w-[140px] cursor-pointer" onClick={() => handleSort('category')}>
                   <div className="flex items-center gap-2">
                     Categoria
                     <SortIcon field="category" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('baldnessGrade')}>
-                  <div className="flex items-center gap-2">
+                <TableHead className="w-[100px] cursor-pointer text-center" onClick={() => handleSort('baldnessGrade')}>
+                  <div className="flex items-center justify-center gap-2">
                     Grau
                     <SortIcon field="baldnessGrade" />
                   </div>
                 </TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className="w-[100px] text-center">Status</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>

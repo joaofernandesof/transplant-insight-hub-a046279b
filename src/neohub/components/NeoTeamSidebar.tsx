@@ -10,7 +10,7 @@ import {
   Home, Calendar, Clock, Users, FileText,
   Settings, LogOut, Menu, X, ChevronLeft,
   Bell, Folder, Stethoscope, BarChart3, CheckSquare,
-  UserCog
+  UserCog, Building2
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
@@ -171,12 +171,40 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
             </nav>
           </ScrollArea>
 
+          {/* Clinic Branding */}
+          <div className={cn(
+            "px-3 py-4 border-t",
+            isCollapsed && "flex justify-center"
+          )}>
+            <div className={cn(
+              "w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/50",
+              isCollapsed && "px-0 justify-center"
+            )}>
+              {user?.clinicLogoUrl ? (
+                <img 
+                  src={user.clinicLogoUrl} 
+                  alt="Logo da Clínica"
+                  className="h-8 w-8 rounded-md object-cover"
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Building2 className="h-4 w-4 text-primary" />
+                </div>
+              )}
+              {!isCollapsed && (
+                <span className="text-sm font-medium text-muted-foreground truncate">
+                  {user?.clinicName || 'Clínica Ativa'}
+                </span>
+              )}
+            </div>
+          </div>
+
           {/* Footer */}
           <div className="p-2 border-t space-y-1">
             <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start gap-3 h-11 text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30",
+                "w-full justify-start gap-3 h-11 text-destructive hover:text-destructive hover:bg-destructive/10",
                 isCollapsed && "justify-center px-2"
               )}
               onClick={handleLogout}
