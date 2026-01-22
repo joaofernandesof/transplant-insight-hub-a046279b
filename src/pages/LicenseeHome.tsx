@@ -50,8 +50,10 @@ import {
   MonthlyRevenueChartWidget,
   SurgeriesOverviewWidget,
   TeamActivityWidget,
-  ConversionRateWidget
+  ConversionRateWidget,
+  DashboardPeriodSelector
 } from "@/components/widgets";
+import { DashboardPeriodProvider } from "@/contexts/DashboardPeriodContext";
 
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 
@@ -445,24 +447,29 @@ export default function LicenseeHome() {
         </div>
 
         {/* Dashboard Global - 8 Widgets */}
-        <h2 className="text-lg font-semibold mb-4 text-foreground">Visão Geral da Operação</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* Row 1 - Faturamento e Vendas */}
-          <MonthlyRevenueChartWidget />
-          <SalesOverviewWidget />
-          
-          {/* Row 2 - Leads e Conversão */}
-          <LeadsFunnelWidget />
-          <ConversionRateWidget />
-          
-          {/* Row 3 - Cirurgias e Performance */}
-          <SurgeriesOverviewWidget />
-          <QuickStatsWidget />
-          
-          {/* Row 4 - Equipe e Sala Técnica */}
-          <TeamActivityWidget />
-          <SalaTecnicaCompact />
-        </div>
+        <DashboardPeriodProvider>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-foreground">Visão Geral da Operação</h2>
+            <DashboardPeriodSelector />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            {/* Row 1 - Faturamento e Vendas */}
+            <MonthlyRevenueChartWidget />
+            <SalesOverviewWidget />
+            
+            {/* Row 2 - Leads e Conversão */}
+            <LeadsFunnelWidget />
+            <ConversionRateWidget />
+            
+            {/* Row 3 - Cirurgias e Performance */}
+            <SurgeriesOverviewWidget />
+            <QuickStatsWidget />
+            
+            {/* Row 4 - Equipe e Sala Técnica */}
+            <TeamActivityWidget />
+            <SalaTecnicaCompact />
+          </div>
+        </DashboardPeriodProvider>
 
         {/* Menu Grid - Acesso às funcionalidades */}
         <div data-tour="menu-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-12">

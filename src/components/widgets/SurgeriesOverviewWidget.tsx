@@ -3,8 +3,9 @@ import { ChevronRight, Scissors, Calendar, Clock, CheckCircle } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSurgerySchedule } from '@/hooks/useSurgerySchedule';
-import { format, isThisMonth, isFuture, isPast, parseISO } from 'date-fns';
+import { format, isThisMonth, isFuture, parseISO, subMonths, isWithinInterval, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { TrendIndicator } from './TrendIndicator';
 
 export function SurgeriesOverviewWidget() {
   const navigate = useNavigate();
@@ -31,12 +32,21 @@ export function SurgeriesOverviewWidget() {
     return isThisMonth(parseISO(s.surgery_date));
   }) || [];
 
+  const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
+  const lastMonthEnd = endOfMonth(subMonths(new Date(), 1));
+  const lastMonthSurgeries = surgeries?.filter(s => {
+    if (!s.surgery_date) return false;
+    const date = parseISO(s.surgery_date);
+    return isWithinInterval(date, { start: lastMonthStart, end: lastMonthEnd });
+  }) || [];
+
   const upcomingSurgeries = surgeries?.filter(s => {
     if (!s.surgery_date) return false;
     return isFuture(parseISO(s.surgery_date));
   }) || [];
 
   const confirmedThisMonth = thisMonth.filter(s => s.confirmed).length;
+  const confirmedLastMonth = lastMonthSurgeries.filter(s => s.confirmed).length;
   const pendingThisMonth = thisMonth.filter(s => !s.confirmed).length;
 
   const nextSurgery = upcomingSurgeries[0];
@@ -46,29 +56,37 @@ export function SurgeriesOverviewWidget() {
       label: 'Este Mês',
       value: thisMonth.length.toString(),
       icon: Calendar,
-      color: 'text-blue-600',
-      bg: 'bg-blue-100 dark:bg-blue-900/30'
+      color: 'text-primary',
+      bg: 'bg-primary/10',
+      current: thisMonth.length,
+      previous: lastMonthSurgeries.length
     },
     {
       label: 'Confirmadas',
       value: confirmedThisMonth.toString(),
       icon: CheckCircle,
-      color: 'text-green-600',
-      bg: 'bg-green-100 dark:bg-green-900/30'
+      color: 'text-emerald-600 dark:text-emerald-400',
+      bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      current: confirmedThisMonth,
+      previous: confirmedLastMonth
     },
     {
       label: 'Pendentes',
       value: pendingThisMonth.toString(),
       icon: Clock,
-      color: 'text-amber-600',
-      bg: 'bg-amber-100 dark:bg-amber-900/30'
+      color: 'text-amber-600 dark:text-amber-400',
+      bg: 'bg-amber-100 dark:bg-amber-900/30',
+      current: pendingThisMonth,
+      previous: lastMonthSurgeries.filter(s => !s.confirmed).length
     },
     {
       label: 'Agendadas',
       value: upcomingSurgeries.length.toString(),
       icon: Scissors,
-      color: 'text-purple-600',
-      bg: 'bg-purple-100 dark:bg-purple-900/30'
+      color: 'text-purple-600 dark:text-purple-400',
+      bg: 'bg-purple-100 dark:bg-purple-900/30',
+      current: upcomingSurgeries.length,
+      previous: upcomingSurgeries.length // No comparison for future surgeries
     }
   ];
 
@@ -98,7 +116,16 @@ export function SurgeriesOverviewWidget() {
                 <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-lg font-bold">{stat.value}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-lg font-bold">{stat.value}</p>
+                  {stat.label !== 'Agendadas' && (
+                    <TrendIndicator 
+                      current={stat.current} 
+                      previous={stat.previous}
+                      invertColors={stat.label === 'Pendentes'}
+                    />
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </div>
             </div>

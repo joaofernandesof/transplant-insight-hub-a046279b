@@ -6,3 +6,5 @@ export { MonthlyRevenueChartWidget } from './MonthlyRevenueChartWidget';
 export { SurgeriesOverviewWidget } from './SurgeriesOverviewWidget';
 export { TeamActivityWidget } from './TeamActivityWidget';
 export { ConversionRateWidget } from './ConversionRateWidget';
+export { DashboardPeriodSelector } from './DashboardPeriodSelector';
+export { TrendIndicator } from './TrendIndicator';
