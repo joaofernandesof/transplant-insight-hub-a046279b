@@ -196,11 +196,21 @@ export default function NeoCareOrientations() {
 
   const activeRestrictions = restrictions.filter(r => currentDay < r.until);
 
-  // Phase definitions
+  // Phase definitions - Custom hair follicle SVG for surgery
+  const HairFollicleIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <ellipse cx="12" cy="18" rx="4" ry="3" />
+      <path d="M12 15 C12 10, 8 6, 12 2" />
+      <path d="M12 15 C12 10, 16 6, 12 2" />
+      <path d="M10 14 C8 12, 7 8, 9 4" />
+      <path d="M14 14 C16 12, 17 8, 15 4" />
+    </svg>
+  );
+
   const phases = [
     { key: 'pre' as Phase, label: 'Pré-operatório', icon: Calendar },
-    { key: 'd0' as Phase, label: 'Cirurgia', icon: Heart },
-    { key: 'pos' as Phase, label: 'Pós-operatório', icon: Droplets },
+    { key: 'd0' as Phase, label: 'Cirurgia', icon: null, customIcon: HairFollicleIcon },
+    { key: 'pos' as Phase, label: 'Cuidados Contínuos', icon: Droplets },
   ];
 
   // Loading state
@@ -307,10 +317,17 @@ export default function NeoCareOrientations() {
                   "w-full h-1.5 rounded-full mb-2",
                   isActive ? "bg-emerald-500" : isPast ? "bg-emerald-300 dark:bg-emerald-700" : "bg-muted"
                 )} />
-                <PhaseIcon className={cn(
-                  "h-5 w-5 mb-1",
-                  isActive ? "text-emerald-500" : "text-muted-foreground"
-                )} />
+                {p.customIcon ? (
+                  <p.customIcon className={cn(
+                    "h-5 w-5 mb-1",
+                    isActive ? "text-emerald-500" : "text-muted-foreground"
+                  )} />
+                ) : (
+                  <PhaseIcon className={cn(
+                    "h-5 w-5 mb-1",
+                    isActive ? "text-emerald-500" : "text-muted-foreground"
+                  )} />
+                )}
                 <span className={cn(
                   "text-xs font-medium text-center leading-tight",
                   isActive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
@@ -473,7 +490,13 @@ export default function NeoCareOrientations() {
       {selectedPhase === 'd0' && (
         <div className="text-center py-12">
           <div className="w-24 h-24 rounded-full bg-emerald-500 text-white mx-auto mb-6 flex items-center justify-center">
-            <Sparkles className="h-12 w-12" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-12 w-12">
+              <ellipse cx="12" cy="18" rx="4" ry="3" />
+              <path d="M12 15 C12 10, 8 6, 12 2" />
+              <path d="M12 15 C12 10, 16 6, 12 2" />
+              <path d="M10 14 C8 12, 7 8, 9 4" />
+              <path d="M14 14 C16 12, 17 8, 15 4" />
+            </svg>
           </div>
           <h2 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-3">
             Dia do Transplante
