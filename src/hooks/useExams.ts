@@ -59,6 +59,16 @@ export function useExams(courseId?: string) {
   });
 }
 
+// Type for student-facing questions (no correct_answer)
+export interface ExamQuestionStudent {
+  id: string;
+  exam_id: string;
+  question_text: string;
+  options: string[];
+  points: number;
+  order_index: number;
+}
+
 export function useExamQuestions(examId: string) {
   return useQuery({
     queryKey: ['exam-questions', examId],
@@ -70,14 +80,55 @@ export function useExamQuestions(examId: string) {
         .eq('id', examId)
         .single();
       
+      // Use raw SQL query to select from the secure view
       const { data, error } = await supabase
-        .from('exam_questions')
-        .select('*')
-        .eq('exam_id', examId)
-        .order('order_index');
+        .rpc('get_exam_questions_for_student', { p_exam_id: examId });
+
+      // Fallback to direct query if RPC doesn't exist
+      if (error && error.code === 'PGRST202') {
+        // Fallback - query the view directly using type assertion
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('exam_questions' as any)
+          .select('id, exam_id, question_text, question_type, options, points, order_index')
+          .eq('exam_id', examId)
+          .order('order_index');
+        if (fallbackError) throw fallbackError;
+        
+        let questions = (fallbackData || []).map((q: any) => ({ 
+          id: q.id,
+          exam_id: q.exam_id,
+          question_text: q.question_text,
+          options: q.options as string[],
+          points: q.points || 1,
+          order_index: q.order_index
+        })) as ExamQuestionStudent[];
+        
+        // Randomize questions if enabled
+        if (exam?.shuffle_questions) {
+          questions = shuffleArray(questions);
+        }
+        
+        // Randomize options within each question if enabled
+        if (exam?.shuffle_options) {
+          questions = questions.map(q => ({
+            ...q,
+            options: shuffleArray([...q.options])
+          }));
+        }
+        
+        return questions;
+      }
+      
       if (error) throw error;
       
-      let questions = data.map(q => ({ ...q, options: q.options as string[] })) as ExamQuestion[];
+      let questions = (data || []).map((q: any) => ({ 
+        id: q.id,
+        exam_id: q.exam_id,
+        question_text: q.question_text,
+        options: q.options as string[],
+        points: q.points || 1,
+        order_index: q.order_index
+      })) as ExamQuestionStudent[];
       
       // Randomize questions if enabled
       if (exam?.shuffle_questions) {

@@ -6073,6 +6073,18 @@ export type Database = {
         Args: { _module_code: string; _user_id: string }
         Returns: boolean
       }
+      get_exam_results_with_answers: {
+        Args: { p_attempt_id: string }
+        Returns: {
+          correct_answer: string
+          explanation: string
+          is_correct: boolean
+          points_earned: number
+          question_id: string
+          question_text: string
+          selected_answer: string
+        }[]
+      }
       get_neohub_user_id: { Args: { _auth_user_id: string }; Returns: string }
       get_neohub_user_profiles: {
         Args: { _user_id: string }
@@ -6146,6 +6158,18 @@ export type Database = {
         Returns: boolean
       }
       user_has_profile: { Args: { _profile_key: string }; Returns: boolean }
+      validate_exam_answer: {
+        Args: {
+          p_attempt_id: string
+          p_question_id: string
+          p_selected_answer: string
+        }
+        Returns: {
+          is_correct: boolean
+          points_earned: number
+          points_total: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "licensee" | "colaborador" | "aluno" | "paciente"
