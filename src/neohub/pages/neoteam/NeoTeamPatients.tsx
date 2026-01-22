@@ -556,10 +556,11 @@ export default function NeoTeamPatients() {
           </div>
         )}
 
-        <CardContent className="p-0 overflow-auto max-h-[70vh]">
-          <Table className="table-fixed min-w-[2200px]">
-            <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
-              <TableRow>
+        <CardContent className="p-0 overflow-x-auto">
+          <div className="overflow-y-auto max-h-[70vh]">
+            <Table className="table-fixed min-w-[2200px]">
+              <TableHeader className="sticky top-0 z-20 bg-background shadow-sm">
+                <TableRow className="bg-background">
                 <TableHead className="w-[70px] cursor-pointer text-center" onClick={() => handleSort('sequenceId')}>
                   <div className="flex items-center justify-center gap-1">
                     ID
@@ -886,6 +887,7 @@ export default function NeoTeamPatients() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 
