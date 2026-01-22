@@ -24,6 +24,16 @@ export interface Task {
   created_at: string;
   updated_at: string;
   completed_at?: string;
+  patient_id?: string;
+  // Dados do paciente (join)
+  patient?: {
+    id: string;
+    full_name: string;
+    email?: string;
+    phone?: string;
+    address_city?: string;
+    address_state?: string;
+  };
 }
 
 export interface NewTask {
@@ -37,6 +47,7 @@ export interface NewTask {
   branch?: string;
   category?: string;
   tags?: string[];
+  patient_id?: string;
 }
 
 export function useNeoTeamTasks(branch?: string) {
@@ -50,7 +61,17 @@ export function useNeoTeamTasks(branch?: string) {
       setIsLoading(true);
       let query = supabase
         .from('neoteam_tasks')
-        .select('*')
+        .select(`
+          *,
+          patient:neohub_users!patient_id(
+            id,
+            full_name,
+            email,
+            phone,
+            address_city,
+            address_state
+          )
+        `)
         .order('order_index', { ascending: true })
         .order('created_at', { ascending: false });
 

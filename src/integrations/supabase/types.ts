@@ -2061,6 +2061,7 @@ export type Database = {
           due_time: string | null
           id: string
           order_index: number
+          patient_id: string | null
           priority: string
           status: string
           tags: string[] | null
@@ -2080,6 +2081,7 @@ export type Database = {
           due_time?: string | null
           id?: string
           order_index?: number
+          patient_id?: string | null
           priority?: string
           status?: string
           tags?: string[] | null
@@ -2099,13 +2101,22 @@ export type Database = {
           due_time?: string | null
           id?: string
           order_index?: number
+          patient_id?: string | null
           priority?: string
           status?: string
           tags?: string[] | null
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_tasks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       neoteam_waiting_room: {
         Row: {

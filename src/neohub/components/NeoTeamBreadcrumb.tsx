@@ -7,18 +7,17 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Home } from 'lucide-react';
 
 interface BreadcrumbRoute {
   path: string;
   label: string;
 }
 
+// Hierarquia do Sistema:
+// Módulo (NeoTeam, NeoCare, Academy, etc.) > Aba (Início, Pacientes, Agenda, etc.) > Sub-aba (se houver)
 const routeLabels: Record<string, string> = {
-  // Portal root
-  '/neohub': 'NeoHub',
-  // NeoTeam routes
-  '/neoteam': 'NeoTeam',
+  // NeoTeam routes (Portal do Colaborador)
+  '/neoteam': 'Início',
   '/neoteam/schedule': 'Agenda',
   '/neoteam/waiting-room': 'Sala de Espera',
   '/neoteam/waiting-room/reports': 'Relatórios',
@@ -29,8 +28,8 @@ const routeLabels: Record<string, string> = {
   '/neoteam/documents': 'Documentos',
   '/neoteam/staff-roles': 'Cargos & Funções',
   '/neoteam/settings': 'Configurações',
-  // NeoCare routes
-  '/neocare': 'NeoCare',
+  // NeoCare routes (Portal do Paciente)
+  '/neocare': 'Início',
   '/neocare/appointments': 'Meus Agendamentos',
   '/neocare/appointments/new': 'Novo Agendamento',
   '/neocare/my-records': 'Meus Documentos',
@@ -40,70 +39,77 @@ const routeLabels: Record<string, string> = {
   '/neocare/news': 'Notícias',
 };
 
+// Mapeamento de módulos (portais)
+const moduleLabels: Record<string, string> = {
+  '/neoteam': 'NeoTeam',
+  '/neocare': 'NeoCare',
+  '/academy': 'IBRAMEC',
+  '/neolicense': 'NeoLicense',
+  '/avivar': 'Avivar',
+};
+
 interface NeoTeamBreadcrumbProps {
   showOnRoot?: boolean;
 }
 
-export function NeoTeamBreadcrumb({ showOnRoot = false }: NeoTeamBreadcrumbProps) {
+export function NeoTeamBreadcrumb({ showOnRoot = true }: NeoTeamBreadcrumbProps) {
   const location = useLocation();
-  const pathSegments = location.pathname.split('/').filter(Boolean);
+  const pathname = location.pathname;
   
-  // Build breadcrumb items from path
+  // Determinar qual módulo está sendo acessado
+  const modulePrefix = Object.keys(moduleLabels).find(prefix => pathname.startsWith(prefix));
+  if (!modulePrefix) return null;
+  
+  const moduleLabel = moduleLabels[modulePrefix];
+  const isModuleRoot = pathname === modulePrefix;
+  
+  // Build breadcrumb items from path (excluindo o módulo base)
+  const pathSegments = pathname.split('/').filter(Boolean);
   const breadcrumbs: BreadcrumbRoute[] = [];
   let currentPath = '';
   
   for (const segment of pathSegments) {
     currentPath += `/${segment}`;
-    const label = routeLabels[currentPath];
-    if (label) {
-      breadcrumbs.push({ path: currentPath, label });
+    // Pular o primeiro segmento (módulo) pois será tratado separadamente
+    if (currentPath !== modulePrefix) {
+      const label = routeLabels[currentPath];
+      if (label) {
+        breadcrumbs.push({ path: currentPath, label });
+      }
     }
   }
   
-  // Don't show breadcrumb on root pages unless explicitly requested
-  if (breadcrumbs.length <= 1 && !showOnRoot) {
-    return null;
-  }
-  
-  // Determine portal path based on current route
-  const isNeoCare = location.pathname.startsWith('/neocare');
-  const isNeoTeam = location.pathname.startsWith('/neoteam');
-  const portalLabel = isNeoCare ? 'NeoCare' : isNeoTeam ? 'NeoTeam' : 'NeoHub';
-  const portalPath = isNeoCare ? '/neocare' : isNeoTeam ? '/neoteam' : '/neohub';
+  // Se estamos na raiz do módulo, mostrar: Módulo > Início
+  // Se estamos em uma sub-aba, mostrar: Módulo > Aba > Sub-aba
   
   return (
     <Breadcrumb className="mb-4">
       <BreadcrumbList>
-        {/* NeoHub - Portal root */}
+        {/* Módulo (sempre como link para a home do módulo) */}
         <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link to="/neohub" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-              <Home className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">NeoHub</span>
-            </Link>
-          </BreadcrumbLink>
+          {isModuleRoot ? (
+            <BreadcrumbPage className="font-medium">{moduleLabel}</BreadcrumbPage>
+          ) : (
+            <BreadcrumbLink asChild>
+              <Link to={modulePrefix} className="text-muted-foreground hover:text-foreground font-medium">
+                {moduleLabel}
+              </Link>
+            </BreadcrumbLink>
+          )}
         </BreadcrumbItem>
         
-        {/* Portal (NeoTeam/NeoCare) */}
-        {portalPath !== '/neohub' && (
+        {/* Se estamos na raiz, mostrar "Início" como página atual */}
+        {isModuleRoot && (
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              {breadcrumbs.length <= 1 ? (
-                <BreadcrumbPage>{portalLabel}</BreadcrumbPage>
-              ) : (
-                <BreadcrumbLink asChild>
-                  <Link to={portalPath} className="text-muted-foreground hover:text-foreground">
-                    {portalLabel}
-                  </Link>
-                </BreadcrumbLink>
-              )}
+              <BreadcrumbPage>Início</BreadcrumbPage>
             </BreadcrumbItem>
           </>
         )}
         
-        {/* Rest of the path */}
-        {breadcrumbs.filter(b => b.path !== portalPath).map((crumb, index, arr) => (
+        {/* Restante do caminho */}
+        {breadcrumbs.map((crumb, index, arr) => (
           <div key={crumb.path} className="flex items-center">
             <BreadcrumbSeparator />
             <BreadcrumbItem>
