@@ -1,56 +1,56 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Ticket, Clock, AlertCircle, CheckCircle2, Star, 
-  List, Settings, BarChart3, ArrowRight, Plus
+  ArrowRight, Plus
 } from 'lucide-react';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { usePostVenda } from '../hooks/usePostVenda';
 import { ETAPA_LABELS } from '../lib/permissions';
 
-// Quick access modules
-const modules = [
-  {
-    id: 'chamados',
-    title: 'Chamados',
-    description: 'Kanban de chamados ativos',
-    icon: List,
-    route: '/neoteam/postvenda/chamados',
-    color: 'bg-blue-500',
-    stats: (s: any) => `${s.total} chamados`,
-  },
-  {
-    id: 'sla',
-    title: 'Configuração SLA',
-    description: 'Tempos e alertas por tipo',
-    icon: Clock,
-    route: '/neoteam/postvenda/sla',
-    color: 'bg-amber-500',
-    stats: () => 'Configurar',
-    disabled: true,
-  },
-  {
-    id: 'nps',
-    title: 'Relatórios NPS',
-    description: 'Satisfação dos pacientes',
-    icon: BarChart3,
-    route: '/neoteam/postvenda/nps',
-    color: 'bg-emerald-500',
-    stats: () => 'Ver relatórios',
-    disabled: true,
-  },
-];
+type NpsRow = { nota: number | null; respondido_em: string | null; created_at: string | null };
+
+function calcNpsScore(scores: number[]) {
+  if (!scores.length) return 0;
+  const promoters = scores.filter((s) => s >= 9).length;
+  const detractors = scores.filter((s) => s <= 6).length;
+  return Math.round(((promoters - detractors) / scores.length) * 100);
+}
 
 export default function PostVendaHome() {
   const navigate = useNavigate();
-  const { chamados, stats, isLoading } = usePostVenda();
+  const { chamados, stats } = usePostVenda();
+  const [npsRows, setNpsRows] = useState<NpsRow[]>([]);
+  const [isLoadingNps, setIsLoadingNps] = useState(true);
 
   const etapas = ['triagem', 'atendimento', 'resolucao', 'validacao_paciente', 'nps'] as const;
 
   // Recent tickets for quick access
   const recentChamados = chamados.slice(0, 5);
+
+  useEffect(() => {
+    const fetchNps = async () => {
+      setIsLoadingNps(true);
+      const { data } = await supabase
+        .from('postvenda_nps')
+        .select('nota, respondido_em, created_at')
+        .order('created_at', { ascending: false })
+        .limit(1000);
+      setNpsRows((data as unknown as NpsRow[]) || []);
+      setIsLoadingNps(false);
+    };
+    fetchNps();
+  }, []);
+
+  const npsKpis = useMemo(() => {
+    const scores = npsRows.map((r) => (typeof r.nota === 'number' ? r.nota : null)).filter((n): n is number => n !== null);
+    const avg = scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : 0;
+    const nps = calcNpsScore(scores);
+    return { nps, avg, answered: scores.length };
+  }, [npsRows]);
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -73,14 +73,11 @@ export default function PostVendaHome() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate('/neoteam/postvenda/chamados')}
-        >
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/neoteam/postvenda/chamados')}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                <Ticket className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Ticket className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.total}</p>
@@ -90,11 +87,11 @@ export default function PostVendaHome() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/neoteam/postvenda/chamados?filter=sla_ok')}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.slaOk}</p>
@@ -104,25 +101,25 @@ export default function PostVendaHome() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/neoteam/postvenda/chamados?filter=sla_warning')}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Clock className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.slaWarning}</p>
-                <p className="text-xs text-muted-foreground">Atenção</p>
+                <p className="text-xs text-muted-foreground">SLA Atenção</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/neoteam/postvenda/chamados?filter=sla_danger')}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
-                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <AlertCircle className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.slaEstourados}</p>
@@ -132,14 +129,14 @@ export default function PostVendaHome() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/neoteam/postvenda/nps')}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30">
-                <Star className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Star className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">--</p>
+                <p className="text-2xl font-bold">{isLoadingNps ? '—' : npsKpis.avg}</p>
                 <p className="text-xs text-muted-foreground">NPS Médio</p>
               </div>
             </div>
@@ -147,38 +144,26 @@ export default function PostVendaHome() {
         </Card>
       </div>
 
-      {/* Quick Access Modules */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {modules.map((module) => (
-          <Card 
-            key={module.id}
-            className={`cursor-pointer hover:shadow-md transition-all ${
-              module.disabled ? 'opacity-60' : ''
-            }`}
-            onClick={() => !module.disabled && navigate(module.route)}
-          >
-            <CardContent className="p-5">
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-xl ${module.color} text-white`}>
-                  <module.icon className="h-6 w-6" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-semibold">{module.title}</h3>
-                    {module.disabled && (
-                      <Badge variant="secondary" className="text-xs">Em breve</Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">{module.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-primary">{module.stats(stats)}</span>
-                    {!module.disabled && <ArrowRight className="h-4 w-4 text-muted-foreground" />}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Acessos rápidos */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/neoteam/postvenda/sla')}>
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold">Configuração SLA</p>
+              <p className="text-sm text-muted-foreground">Definir prazos por tipo e prioridade</p>
+            </div>
+            <ArrowRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/neoteam/postvenda/nps')}>
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold">Relatórios NPS</p>
+              <p className="text-sm text-muted-foreground">Tendências e comentários</p>
+            </div>
+            <ArrowRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Chamados por Etapa - Clickable */}
