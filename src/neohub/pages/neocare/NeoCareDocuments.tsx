@@ -23,6 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 import {
   Dialog,
   DialogContent,
@@ -267,6 +268,7 @@ export default function NeoCareDocuments() {
 
   return (
     <div className="p-4 lg:p-8 space-y-6">
+      <NeoTeamBreadcrumb />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Meus Documentos</h1>

@@ -15,6 +15,7 @@ interface BreadcrumbRoute {
 }
 
 const routeLabels: Record<string, string> = {
+  // NeoTeam routes
   '/neoteam': 'NeoTeam',
   '/neoteam/schedule': 'Agenda',
   '/neoteam/waiting-room': 'Sala de Espera',
@@ -26,15 +27,22 @@ const routeLabels: Record<string, string> = {
   '/neoteam/documents': 'Documentos',
   '/neoteam/staff-roles': 'Cargos & Funções',
   '/neoteam/settings': 'Configurações',
+  // NeoCare routes
   '/neocare': 'NeoCare',
-  '/neocare/appointments': 'Agendamentos',
-  '/neocare/new-appointment': 'Novo Agendamento',
+  '/neocare/appointments': 'Meus Agendamentos',
+  '/neocare/appointments/new': 'Novo Agendamento',
+  '/neocare/my-records': 'Meus Documentos',
   '/neocare/documents': 'Documentos',
   '/neocare/orientations': 'Orientações',
   '/neocare/settings': 'Configurações',
+  '/neocare/news': 'Notícias',
 };
 
-export function NeoTeamBreadcrumb() {
+interface NeoTeamBreadcrumbProps {
+  showOnRoot?: boolean;
+}
+
+export function NeoTeamBreadcrumb({ showOnRoot = false }: NeoTeamBreadcrumbProps) {
   const location = useLocation();
   const pathSegments = location.pathname.split('/').filter(Boolean);
   
@@ -50,28 +58,33 @@ export function NeoTeamBreadcrumb() {
     }
   }
   
-  // Don't show breadcrumb on root NeoTeam page
-  if (breadcrumbs.length <= 1) {
+  // Don't show breadcrumb on root pages unless explicitly requested
+  if (breadcrumbs.length <= 1 && !showOnRoot) {
     return null;
   }
+  
+  // Determine home path based on current route
+  const isNeoCare = location.pathname.startsWith('/neocare');
+  const homePath = isNeoCare ? '/neocare' : '/neoteam';
+  const homeLabel = isNeoCare ? 'NeoCare' : 'NeoTeam';
   
   return (
     <Breadcrumb className="mb-4">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to="/neoteam" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+            <Link to={homePath} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
               <Home className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only">Início</span>
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         
-        {breadcrumbs.map((crumb, index) => (
+        {breadcrumbs.filter(b => b.path !== homePath).map((crumb, index, arr) => (
           <div key={crumb.path} className="flex items-center">
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              {index === breadcrumbs.length - 1 ? (
+              {index === arr.length - 1 ? (
                 <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink asChild>

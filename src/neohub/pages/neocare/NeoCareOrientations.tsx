@@ -22,6 +22,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
 
 // Pre-transplant checklist grouped by day before D0
 const preTransplantByDay = [
@@ -264,7 +265,8 @@ export default function NeoCareOrientations() {
   };
 
   return (
-    <div className="space-y-4 pb-6 max-w-2xl mx-auto">
+    <div className="space-y-4 pb-6 max-w-2xl mx-auto p-4 lg:p-6">
+      <NeoTeamBreadcrumb />
       {/* Header Card */}
       <div className="bg-card border rounded-xl p-4 space-y-4">
         {/* Title Row */}
