@@ -399,6 +399,7 @@ export default function LicenseeHome() {
         <div className="text-center mb-6">
           {/* Profile Avatar */}
           <div 
+            data-tour="profile-avatar"
             className="mx-auto mb-3 cursor-pointer group"
             onClick={() => navigate('/profile')}
           >
@@ -416,7 +417,9 @@ export default function LicenseeHome() {
         </div>
 
         {/* Journey Roadmap - Primeiro elemento após welcome */}
-        <JourneyRoadmap currentTier={tier} />
+        <div data-tour="journey-roadmap">
+          <JourneyRoadmap currentTier={tier} />
+        </div>
 
         {/* Thursday Sala Técnica Notification */}
         <SalaTecnicaNotification className="mb-6" />
@@ -440,10 +443,11 @@ export default function LicenseeHome() {
         </div>
 
         {/* Menu Grid - 2 colunas no mobile para melhor usabilidade */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-12">
-          {mainSections.map((section) => (
+        <div data-tour="menu-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-12">
+          {mainSections.map((section, index) => (
             <Card 
               key={section.id}
+              data-tour={`menu-${section.id}`}
               className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border hover:border-primary/30"
               onClick={() => handleNavigate(section.route)}
             >

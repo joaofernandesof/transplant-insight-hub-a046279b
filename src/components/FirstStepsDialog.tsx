@@ -20,7 +20,7 @@ import { useFirstSteps } from "@/hooks/useFirstSteps";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import jonJobsAvatar from "@/assets/jon-jobs-avatar.png";
-import GuidedTour from "./GuidedTour";
+import { SpotlightTour } from "./tour";
 
 export default function FirstStepsDialog() {
   const navigate = useNavigate();
@@ -107,8 +107,8 @@ export default function FirstStepsDialog() {
 
   return (
     <>
-      {/* Guided Tour */}
-      <GuidedTour 
+      {/* Spotlight Tour */}
+      <SpotlightTour 
         isOpen={showTour} 
         onComplete={handleTourComplete} 
       />
