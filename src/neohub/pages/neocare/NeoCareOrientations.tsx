@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format, addDays, isBefore, startOfDay } from 'date-fns';
@@ -436,17 +437,25 @@ export default function NeoCareOrientations() {
                         : "bg-background border-border hover:bg-muted/50"
                   )}
                 >
-                  {isChecked ? (
-                    <CheckSquare className="h-5 w-5 text-emerald-500 shrink-0" />
-                  ) : isOverdue ? (
-                    <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
-                  ) : (
-                    <Square className="h-5 w-5 text-muted-foreground shrink-0" />
-                  )}
-                  <Icon className={cn(
-                    "h-4 w-4 shrink-0",
-                    isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
-                  )} />
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => togglePre(item.id)}
+                      className={cn(
+                        "h-5 w-5 shrink-0 border-2",
+                        isChecked 
+                          ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500" 
+                          : isOverdue 
+                            ? "border-red-400" 
+                            : "border-muted-foreground/50"
+                      )}
+                    />
+                    {isOverdue && !isChecked && (
+                      <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+                    )}
+                    <Icon className={cn(
+                      "h-4 w-4 shrink-0",
+                      isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
+                    )} />
                   <div className="flex-1 min-w-0">
                     <p className={cn(
                       "text-sm font-medium",
@@ -523,21 +532,24 @@ export default function NeoCareOrientations() {
                           : "bg-background border-border"
                     )}
                   >
-                    <div
-                      onClick={() => togglePost(task.id, selectedDayData.day)}
-                      className="cursor-pointer"
-                    >
-                      {isChecked ? (
-                        <CheckSquare className="h-5 w-5 text-blue-500 shrink-0" />
-                      ) : isOverdue ? (
-                        <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
-                      ) : (
-                        <Square className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => togglePost(task.id, selectedDayData.day)}
+                      className={cn(
+                        "h-5 w-5 shrink-0 border-2",
+                        isChecked 
+                          ? "border-emerald-500 bg-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500" 
+                          : isOverdue 
+                            ? "border-red-400" 
+                            : "border-muted-foreground/50"
                       )}
-                    </div>
+                    />
+                    {isOverdue && !isChecked && (
+                      <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+                    )}
                     <Icon className={cn(
                       "h-4 w-4 shrink-0",
-                      isChecked ? "text-blue-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
+                      isChecked ? "text-emerald-500" : isOverdue ? "text-red-500" : "text-muted-foreground"
                     )} />
                     <div 
                       className="flex-1 min-w-0 cursor-pointer"
