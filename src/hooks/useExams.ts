@@ -80,48 +80,16 @@ export function useExamQuestions(examId: string) {
         .eq('id', examId)
         .single();
       
-      // Use raw SQL query to select from the secure view
+      // Query directly using type assertion - use exam_questions but only select safe fields
       const { data, error } = await supabase
-        .rpc('get_exam_questions_for_student', { p_exam_id: examId });
-
-      // Fallback to direct query if RPC doesn't exist
-      if (error && error.code === 'PGRST202') {
-        // Fallback - query the view directly using type assertion
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('exam_questions' as any)
-          .select('id, exam_id, question_text, question_type, options, points, order_index')
-          .eq('exam_id', examId)
-          .order('order_index');
-        if (fallbackError) throw fallbackError;
-        
-        let questions = (fallbackData || []).map((q: any) => ({ 
-          id: q.id,
-          exam_id: q.exam_id,
-          question_text: q.question_text,
-          options: q.options as string[],
-          points: q.points || 1,
-          order_index: q.order_index
-        })) as ExamQuestionStudent[];
-        
-        // Randomize questions if enabled
-        if (exam?.shuffle_questions) {
-          questions = shuffleArray(questions);
-        }
-        
-        // Randomize options within each question if enabled
-        if (exam?.shuffle_options) {
-          questions = questions.map(q => ({
-            ...q,
-            options: shuffleArray([...q.options])
-          }));
-        }
-        
-        return questions;
-      }
+        .from('exam_questions' as any)
+        .select('id, exam_id, question_text, question_type, options, points, order_index')
+        .eq('exam_id', examId)
+        .order('order_index');
       
       if (error) throw error;
       
-      let questions = (data || []).map((q: any) => ({ 
+      let questions = ((data as any[]) || []).map((q: any) => ({ 
         id: q.id,
         exam_id: q.exam_id,
         question_text: q.question_text,
@@ -251,23 +219,46 @@ export function useSubmitExam() {
       answers 
     }: { 
       attemptId: string; 
-      answers: { questionId: string; answer: string; isCorrect: boolean; points: number }[] 
+      answers: { questionId: string; answer: string }[] 
     }) => {
-      // Insert answers
-      const answersData = answers.map(a => ({
-        attempt_id: attemptId,
-        question_id: a.questionId,
-        selected_answer: a.answer,
-        is_correct: a.isCorrect,
-        points_earned: a.isCorrect ? a.points : 0,
-      }));
+      // Validate answers server-side using RPC
+      let earnedPoints = 0;
+      let totalPoints = 0;
+      const answersData: { 
+        attempt_id: string; 
+        question_id: string; 
+        selected_answer: string; 
+        is_correct: boolean; 
+        points_earned: number; 
+      }[] = [];
+
+      for (const a of answers) {
+        const { data, error } = await supabase.rpc('validate_exam_answer', {
+          p_question_id: a.questionId,
+          p_selected_answer: a.answer,
+          p_attempt_id: attemptId
+        });
+        
+        if (error) throw error;
+        
+        const resultArray = data as { is_correct: boolean; points_earned: number; points_total: number }[] | null;
+        const result = resultArray?.[0] || { is_correct: false, points_earned: 0, points_total: 1 };
+        
+        earnedPoints += result.points_earned;
+        totalPoints += result.points_total;
+        
+        answersData.push({
+          attempt_id: attemptId,
+          question_id: a.questionId,
+          selected_answer: a.answer,
+          is_correct: result.is_correct,
+          points_earned: result.points_earned,
+        });
+      }
 
       const { error: answersError } = await supabase.from('exam_answers').insert(answersData);
       if (answersError) throw answersError;
 
-      // Calculate score
-      const totalPoints = answers.reduce((sum, a) => sum + a.points, 0);
-      const earnedPoints = answers.filter(a => a.isCorrect).reduce((sum, a) => sum + a.points, 0);
       const score = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
 
       // Update attempt
