@@ -206,9 +206,9 @@ function HomeRouter() {
     return <Navigate to={targetRoute} replace />;
   }
 
-  // Fallback para admins/licenciados legados
+  // Fallback para admins - redirecionar para dashboard
   if (isAdmin) {
-    return <SidebarWrapper><AdminHome /></SidebarWrapper>;
+    return <Navigate to="/admin-dashboard" replace />;
   }
 
   return <SidebarWrapper><LicenseeHome /></SidebarWrapper>;

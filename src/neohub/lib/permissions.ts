@@ -26,7 +26,7 @@ export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
 
 // Mapeamento de perfis para rotas base
 export const PROFILE_ROUTES: Record<NeoHubProfile, string> = {
-  administrador: '/neolicense', // Admin vai para o painel principal por padrão
+  administrador: '/admin-dashboard', // Admin vai direto para o Dashboard Admin (Início)
   licenciado: '/neolicense',
   colaborador: '/neoteam',
   medico: '/neoteam/doctor-view',
@@ -180,7 +180,8 @@ export function getDefaultRouteForProfile(profile: NeoHubProfile): string {
 
 // Obter primeiro portal disponível para lista de perfis
 export function getFirstAvailablePortal(profiles: NeoHubProfile[]): Portal | null {
-  if (profiles.includes('administrador')) return 'neolicense';
+  // Admin vai direto para o dashboard, não precisa de portal específico
+  if (profiles.includes('administrador')) return null;
   
   for (const profile of profiles) {
     const portals = PROFILE_PORTAL_MAP[profile];
