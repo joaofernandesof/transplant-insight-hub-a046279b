@@ -265,6 +265,8 @@ function NeoTeamRoutes() {
           <Route path="postvenda" element={<PostVendaHome />} />
           <Route path="postvenda/chamados" element={<ChamadoListPage />} />
           <Route path="postvenda/chamados/:id" element={<ChamadoDetailPage />} />
+          <Route path="postvenda/sla" element={<PlaceholderPage title="Configuração SLA" />} />
+          <Route path="postvenda/nps" element={<PlaceholderPage title="Relatórios NPS" />} />
           <Route path="staff-roles" element={<NeoTeamStaffRoles />} />
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />

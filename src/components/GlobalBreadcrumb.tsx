@@ -26,6 +26,8 @@ const routeLabels: Record<string, string> = {
   '/neoteam/settings': 'Configurações',
   '/neoteam/postvenda': 'Pós-Venda',
   '/neoteam/postvenda/chamados': 'Chamados',
+  '/neoteam/postvenda/sla': 'Configuração SLA',
+  '/neoteam/postvenda/nps': 'Relatórios NPS',
   
   // ====================================
   // NeoCare (Portal do Paciente)
