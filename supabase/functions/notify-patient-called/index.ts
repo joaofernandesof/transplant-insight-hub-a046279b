@@ -14,6 +14,18 @@ interface NotifyPatientRequest {
   doctor_name?: string;
 }
 
+// Get WhatsApp credentials from environment variables
+function getWhatsAppCredentials(): { instanceUrl: string; apiToken: string } | null {
+  const instanceUrl = Deno.env.get("WHATSAPP_INSTANCE_URL");
+  const apiToken = Deno.env.get("WHATSAPP_API_TOKEN");
+  
+  if (!instanceUrl || !apiToken) {
+    return null;
+  }
+  
+  return { instanceUrl, apiToken };
+}
+
 // Send WhatsApp message via Uazapi
 async function sendWhatsAppMessage(
   instanceUrl: string,
@@ -100,64 +112,24 @@ serve(async (req) => {
       );
     }
 
-    // Get WhatsApp configuration from sentinel_whatsapp_config
-    // This reuses the existing WhatsApp configuration from System Sentinel
-    const { data: config, error: configError } = await supabase
-      .from('sentinel_whatsapp_config')
-      .select('*')
-      .limit(1)
-      .single();
-
-    if (configError || !config) {
-      console.log('No WhatsApp config found, checking for neoteam config...');
-      
-      // Try to get NeoTeam-specific config if sentinel config doesn't exist
-      const { data: neoteamConfig } = await supabase
-        .from('neoteam_settings')
-        .select('whatsapp_instance_url, whatsapp_api_token')
-        .limit(1)
-        .single();
-        
-      if (!neoteamConfig?.whatsapp_instance_url || !neoteamConfig?.whatsapp_api_token) {
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: 'WhatsApp não configurado. Configure nas configurações do sistema.' 
-          }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      // Use neoteam config
-      const message = formatPatientCalledMessage(body);
-      const result = await sendWhatsAppMessage(
-        neoteamConfig.whatsapp_instance_url,
-        neoteamConfig.whatsapp_api_token,
-        body.patient_phone,
-        message
-      );
-      
-      // Log the notification
-      await supabase.from('neoteam_whatsapp_logs').insert([{
-        type: 'patient_called',
-        patient_name: body.patient_name,
-        patient_phone: body.patient_phone,
-        message: message,
-        success: result.success,
-        error: result.error,
-      }]);
-      
+    // Get WhatsApp credentials from environment variables
+    const credentials = getWhatsAppCredentials();
+    
+    if (!credentials) {
       return new Response(
-        JSON.stringify(result),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: false, 
+          error: 'WhatsApp não configurado. Configure WHATSAPP_INSTANCE_URL e WHATSAPP_API_TOKEN nas variáveis de ambiente.' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Use sentinel config
+    // Send message
     const message = formatPatientCalledMessage(body);
     const result = await sendWhatsAppMessage(
-      config.instance_url,
-      config.api_token,
+      credentials.instanceUrl,
+      credentials.apiToken,
       body.patient_phone,
       message
     );
