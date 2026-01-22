@@ -54,6 +54,7 @@ const menuItems = [
   { id: 'dashboard', title: 'Dashboard de Indicadores', icon: BarChart3, route: '/dashboard' },
   { id: 'consolidated', title: 'Resultados Consolidados', icon: PieChart, route: '/consolidated-results' },
   { id: 'surgery-schedule', title: 'Agenda de Cirurgias', icon: CalendarDays, route: '/surgery-schedule' },
+  { id: 'sala-tecnica', title: 'Agenda do Licenciado', icon: CalendarDays, route: '/sala-tecnica' },
   { id: 'divider-3', title: 'Módulos', isDivider: true },
   { id: 'hotleads', title: 'HotLeads', icon: Flame, route: '/hotleads' },
   { id: 'university', title: 'Universidade ByNeofolic', icon: GraduationCap, route: '/university' },

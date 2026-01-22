@@ -120,7 +120,7 @@ export const DATA_MENU_ITEMS: MenuItem[] = [
   { id: 'consolidated', code: 'consolidated', title: 'Resultados Consolidados', icon: PieChart, route: '/consolidated-results' },
   { id: 'achievements', code: 'achievements', title: 'Conquistas', icon: Trophy, route: '/achievements' },
   { id: 'surgery-schedule', code: 'surgery_schedule', title: 'Agenda de Cirurgias', icon: CalendarDays, route: '/surgery-schedule' },
-  { id: 'sala-tecnica', code: 'sala_tecnica', title: 'Sala Técnica', icon: Building2, route: '/sala-tecnica' },
+  { id: 'sala-tecnica', code: 'sala_tecnica', title: 'Agenda do Licenciado', icon: Building2, route: '/sala-tecnica' },
 ];
 
 export const TRAINING_MENU_ITEMS: MenuItem[] = [
