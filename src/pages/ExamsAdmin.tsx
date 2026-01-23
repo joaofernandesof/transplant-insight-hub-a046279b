@@ -43,6 +43,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { ExamUploadDialog } from "@/components/admin/ExamUploadDialog";
+import { ExamManagementTable } from "@/components/admin/ExamManagementTable";
 
 export default function ExamsAdmin() {
   const navigate = useNavigate();
@@ -380,6 +381,11 @@ export default function ExamsAdmin() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Exam Management Table */}
+        <div className="mb-6">
+          <ExamManagementTable />
         </div>
 
         {/* Filters */}

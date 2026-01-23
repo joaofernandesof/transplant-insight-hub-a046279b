@@ -59,6 +59,84 @@ export function useExams(courseId?: string) {
   });
 }
 
+// Hook para admin - busca todas as provas (ativas e inativas)
+export function useAllExams() {
+  return useQuery({
+    queryKey: ['all-exams'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('exams')
+        .select(`
+          *,
+          courses:course_id(id, title)
+        `)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as (Exam & { courses: { id: string; title: string } | null })[];
+    },
+  });
+}
+
+// Hook para buscar cursos disponíveis
+export function useCourses() {
+  return useQuery({
+    queryKey: ['courses-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('id, title')
+        .eq('is_published', true)
+        .order('title');
+      if (error) throw error;
+      return data as { id: string; title: string }[];
+    },
+  });
+}
+
+// Mutation para ativar/desativar prova
+export function useToggleExamStatus() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ examId, isActive }: { examId: string; isActive: boolean }) => {
+      const { data, error } = await supabase
+        .from('exams')
+        .update({ is_active: isActive })
+        .eq('id', examId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-exams'] });
+      queryClient.invalidateQueries({ queryKey: ['exams'] });
+    },
+  });
+}
+
+// Mutation para vincular prova a curso
+export function useUpdateExamCourse() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ examId, courseId }: { examId: string; courseId: string | null }) => {
+      const { data, error } = await supabase
+        .from('exams')
+        .update({ course_id: courseId })
+        .eq('id', examId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-exams'] });
+      queryClient.invalidateQueries({ queryKey: ['exams'] });
+    },
+  });
+}
+
 // Type for student-facing questions (no correct_answer)
 export interface ExamQuestionStudent {
   id: string;
