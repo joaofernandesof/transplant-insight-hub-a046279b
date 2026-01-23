@@ -264,7 +264,10 @@ export function AcademyClassDetail() {
                   <p className="text-muted-foreground max-w-md mx-auto mb-4">
                     Para acessar as fotos do curso, primeiro responda à Pesquisa de Satisfação do Dia 1.
                   </p>
-                  <Button onClick={() => setDay1SurveyDialogOpen(true)}>
+                  <Button 
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => setDay1SurveyDialogOpen(true)}
+                  >
                     <ClipboardList className="h-4 w-4 mr-2" />
                     Responder Pesquisa
                   </Button>
