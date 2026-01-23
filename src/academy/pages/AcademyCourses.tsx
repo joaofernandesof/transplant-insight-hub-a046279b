@@ -25,8 +25,6 @@ import { CourseViewer } from "@/components/CourseViewer";
 import { ConectaCapilarCard } from "../components/ConectaCapilarCard";
 import { PresentialCourseCard, PresentialCourse } from "../components/PresentialCourseCard";
 import { useAcademyEnrollments } from "../hooks/useAcademyEnrollments";
-import { useAcademyCalendar } from "../hooks/useAcademyCalendar";
-import { CalendarTable } from "../components/CalendarTable";
 
 export function AcademyCourses() {
   const navigate = useNavigate();
@@ -172,8 +170,6 @@ export function AcademyCourses() {
           </TabsList>
 
           <TabsContent value="presencial" className="mt-6 space-y-6">
-            {/* Calendar Table */}
-            <CalendarTable />
 
             {/* My Enrollments */}
             {isLoadingPresential ? (
