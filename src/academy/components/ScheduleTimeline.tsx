@@ -422,96 +422,11 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
         )}
       </CardHeader>
       <CardContent className="pb-6">
-        {/* Timeline Grid with All-Day Columns on the Right */}
+        {/* Timeline Grid with All-Day Columns on the LEFT */}
         <div className="relative flex" style={{ minHeight: totalHeight }}>
-          {/* Left section: Hour labels + Regular activities */}
-          <div className="flex-1 relative" style={{ height: totalHeight }}>
-            {/* Hour lines */}
-            {hours.map((hour, index) => (
-              <div 
-                key={hour}
-                className="absolute left-0 right-0 flex items-start"
-                style={{ top: index * HOUR_HEIGHT }}
-              >
-                {/* Hour label - narrower on mobile */}
-                <div className="w-11 sm:w-14 flex-shrink-0 text-[10px] sm:text-xs text-muted-foreground font-medium pr-1 sm:pr-2 text-right -mt-2">
-                  {hour.toString().padStart(2, '0')}:00
-                </div>
-                {/* Hour line */}
-                <div className="flex-1 border-t border-dashed border-muted-foreground/20" />
-              </div>
-            ))}
-
-            {/* Activity blocks */}
-            <div className="absolute left-11 sm:left-14 right-0 top-0" style={{ height: totalHeight }}>
-              {groupedItems.map(({ item, column, totalColumns }) => {
-                const startHour = parseTimeToHours(item.startTime);
-                const endHour = parseTimeToHours(item.endTime);
-                const top = (startHour - hourRange.start) * HOUR_HEIGHT;
-                const height = Math.max((endHour - startHour) * HOUR_HEIGHT - 4, 56);
-                const style = getActivityStyle(item.activity);
-                const isShort = height < 80;
-                
-                // Calculate width and left position for parallel activities
-                const GAP = 4;
-                const width = totalColumns > 1 
-                  ? `calc((100% - ${GAP * (totalColumns - 1)}px) / ${totalColumns})`
-                  : 'calc(100% - 8px)';
-                const left = totalColumns > 1
-                  ? `calc(${column} * ((100% - ${GAP * (totalColumns - 1)}px) / ${totalColumns} + ${GAP}px) + 4px)`
-                  : '4px';
-
-                return (
-                  <div
-                    key={item.id}
-                    className={`absolute rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 sm:p-3 overflow-hidden transition-all hover:shadow-md hover:z-10`}
-                    style={{ 
-                      top: top + 2, 
-                      height: height,
-                      width: width,
-                      left: left,
-                    }}
-                  >
-                    <div className={`flex ${isShort ? 'flex-row items-center gap-2' : 'flex-col gap-1'} h-full`}>
-                      {/* Icon */}
-                      <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor}`}>
-                        {style.icon}
-                      </div>
-                      
-                      {/* Content */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                        <p className="font-medium text-xs sm:text-sm leading-snug">
-                          {item.activity}
-                        </p>
-                        
-                        {/* Location and Group badges */}
-                        <div className="flex flex-wrap items-center gap-1">
-                          {item.location && (
-                            <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium`}>
-                              {item.location}
-                            </span>
-                          )}
-                          {item.notes && parseGroupBadges(item.notes)}
-                        
-                        </div>
-                        
-                        {!isShort && item.instructor && (
-                          <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto pt-0.5">
-                            <User className="h-3 w-3 flex-shrink-0" />
-                            <span>{item.instructor}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Right section: All-Day vertical bars */}
+          {/* LEFT section: All-Day vertical bars */}
           {allDayItems.length > 0 && (
-            <div className="flex gap-2 ml-2 flex-shrink-0">
+            <div className="flex gap-2 mr-3 flex-shrink-0">
               {allDayItems.map((item) => {
                 const style = getActivityStyle(item.activity);
                 return (
@@ -550,6 +465,92 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
               })}
             </div>
           )}
+
+          {/* RIGHT section: Hour labels + Regular activities */}
+          <div className="flex-1 relative" style={{ height: totalHeight }}>
+            {/* Hour lines */}
+            {hours.map((hour, index) => (
+              <div 
+                key={hour}
+                className="absolute left-0 right-0 flex items-start"
+                style={{ top: index * HOUR_HEIGHT }}
+              >
+                {/* Hour label - narrower on mobile */}
+                <div className="w-11 sm:w-14 flex-shrink-0 text-[10px] sm:text-xs text-muted-foreground font-medium pr-1 sm:pr-2 text-right -mt-2">
+                  {hour.toString().padStart(2, '0')}:00
+                </div>
+                {/* Hour line */}
+                <div className="flex-1 border-t border-dashed border-muted-foreground/20" />
+              </div>
+            ))}
+
+            {/* Activity blocks */}
+            <div className="absolute left-11 sm:left-14 right-0 top-0" style={{ height: totalHeight }}>
+              {groupedItems.map(({ item, column, totalColumns }) => {
+                const startHour = parseTimeToHours(item.startTime);
+                const endHour = parseTimeToHours(item.endTime);
+                const top = (startHour - hourRange.start) * HOUR_HEIGHT;
+                const height = (endHour - startHour) * HOUR_HEIGHT;
+                
+                const style = getActivityStyle(item.activity);
+                
+                // Calculate width based on number of parallel items
+                const widthPercent = 100 / totalColumns;
+                const leftPercent = column * widthPercent;
+                
+                // Parse group badges from notes
+                const groupBadges = item.notes ? parseGroupBadges(item.notes) : null;
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`absolute rounded-lg border-2 overflow-hidden ${style.bgColor} ${style.borderColor} p-1.5 sm:p-2`}
+                    style={{
+                      top,
+                      height: Math.max(height, 50),
+                      left: `${leftPercent}%`,
+                      width: `calc(${widthPercent}% - 4px)`,
+                    }}
+                  >
+                    <div className="h-full flex flex-col min-h-0">
+                      {/* Header with icon */}
+                      <div className="flex items-start gap-1 sm:gap-1.5 mb-0.5 sm:mb-1 flex-shrink-0">
+                        <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor} flex-shrink-0`}>
+                          {style.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-xs sm:text-sm leading-tight line-clamp-2">{item.activity}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Details - only show if there's enough height */}
+                      <div className="flex-1 min-h-0 overflow-hidden">
+                        {item.location && height >= 55 && (
+                          <span className={`inline-block text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium`}>
+                            {item.location}
+                          </span>
+                        )}
+                        
+                        {/* Group badges */}
+                        {groupBadges && height >= 70 && (
+                          <div className="flex flex-wrap gap-0.5 mt-0.5">
+                            {groupBadges}
+                          </div>
+                        )}
+                        
+                        {item.instructor && height >= 85 && (
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                            <User className="h-3 w-3 flex-shrink-0" />
+                            <span>{item.instructor}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Legend */}
