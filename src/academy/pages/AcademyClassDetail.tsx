@@ -45,7 +45,7 @@ import { useDay1Survey } from "../hooks/useDay1Survey";
 export function AcademyClassDetail() {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
-  const { user, activeProfile } = useUnifiedAuth();
+  const { user, activeProfile, isAdmin } = useUnifiedAuth();
   const { classDetails, isLoading, refetch } = useClassDetails(classId || null);
   const { data: allExams = [] } = useAllExams();
   const updateExamClass = useUpdateExamClass();
@@ -58,8 +58,6 @@ export function AcademyClassDetail() {
   const [day1SurveyDialogOpen, setDay1SurveyDialogOpen] = useState(false);
   const [surveyTriggeredByPhotos, setSurveyTriggeredByPhotos] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
-
-  const isAdmin = activeProfile === 'administrador';
 
   // Exams not linked to this class (for admin to add)
   const availableExams = allExams.filter(
