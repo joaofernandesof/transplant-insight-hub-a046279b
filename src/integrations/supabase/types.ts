@@ -1199,8 +1199,24 @@ export type Database = {
           q35_monitor_contribution: string | null
           q36_monitor_strength: string | null
           q37_monitor_improve: string | null
+          q38_eder_technical: string | null
+          q39_eder_interest: string | null
           q4_hygor_clarity: string | null
+          q40_eder_engagement: string | null
+          q41_eder_posture: string | null
+          q42_eder_communication: string | null
+          q43_eder_contribution: string | null
+          q44_eder_strength: string | null
+          q45_eder_improve: string | null
+          q46_patrick_m_technical: string | null
+          q47_patrick_m_interest: string | null
+          q48_patrick_m_engagement: string | null
+          q49_patrick_m_posture: string | null
           q5_hygor_time: string | null
+          q50_patrick_m_communication: string | null
+          q51_patrick_m_contribution: string | null
+          q52_patrick_m_strength: string | null
+          q53_patrick_m_improve: string | null
           q6_hygor_liked_most: string | null
           q7_hygor_improve: string | null
           q8_patrick_expectations: string | null
@@ -1245,8 +1261,24 @@ export type Database = {
           q35_monitor_contribution?: string | null
           q36_monitor_strength?: string | null
           q37_monitor_improve?: string | null
+          q38_eder_technical?: string | null
+          q39_eder_interest?: string | null
           q4_hygor_clarity?: string | null
+          q40_eder_engagement?: string | null
+          q41_eder_posture?: string | null
+          q42_eder_communication?: string | null
+          q43_eder_contribution?: string | null
+          q44_eder_strength?: string | null
+          q45_eder_improve?: string | null
+          q46_patrick_m_technical?: string | null
+          q47_patrick_m_interest?: string | null
+          q48_patrick_m_engagement?: string | null
+          q49_patrick_m_posture?: string | null
           q5_hygor_time?: string | null
+          q50_patrick_m_communication?: string | null
+          q51_patrick_m_contribution?: string | null
+          q52_patrick_m_strength?: string | null
+          q53_patrick_m_improve?: string | null
           q6_hygor_liked_most?: string | null
           q7_hygor_improve?: string | null
           q8_patrick_expectations?: string | null
@@ -1291,8 +1323,24 @@ export type Database = {
           q35_monitor_contribution?: string | null
           q36_monitor_strength?: string | null
           q37_monitor_improve?: string | null
+          q38_eder_technical?: string | null
+          q39_eder_interest?: string | null
           q4_hygor_clarity?: string | null
+          q40_eder_engagement?: string | null
+          q41_eder_posture?: string | null
+          q42_eder_communication?: string | null
+          q43_eder_contribution?: string | null
+          q44_eder_strength?: string | null
+          q45_eder_improve?: string | null
+          q46_patrick_m_technical?: string | null
+          q47_patrick_m_interest?: string | null
+          q48_patrick_m_engagement?: string | null
+          q49_patrick_m_posture?: string | null
           q5_hygor_time?: string | null
+          q50_patrick_m_communication?: string | null
+          q51_patrick_m_contribution?: string | null
+          q52_patrick_m_strength?: string | null
+          q53_patrick_m_improve?: string | null
           q6_hygor_liked_most?: string | null
           q7_hygor_improve?: string | null
           q8_patrick_expectations?: string | null
