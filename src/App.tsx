@@ -281,19 +281,32 @@ function NeoTeamRoutes() {
 // ====================================
 // Academy Routes (Portal do Aluno - IBRAMEC)
 // ====================================
+import { 
+  AcademySidebar, 
+  AcademyHome, 
+  AcademyCourses, 
+  AcademyCertificates, 
+  AcademyExams 
+} from './academy';
+
 function AcademyRoutes() {
   return (
     <ProfileGuard allowedProfiles={['aluno', 'administrador']}>
-      <SidebarWrapper>
+      <AcademySidebar>
         <Routes>
-          <Route index element={<PlaceholderPage title="IBRAMEC - Portal do Aluno" />} />
-          <Route path="courses" element={<University />} />
+          <Route index element={<AcademyHome />} />
+          <Route path="courses" element={<AcademyCourses />} />
           <Route path="materials" element={<Materials />} />
-          <Route path="certificates" element={<PlaceholderPage title="Certificados" />} />
+          <Route path="exams" element={<AcademyExams />} />
+          <Route path="exams/:examId/take" element={<ExamTaking />} />
+          <Route path="exams/:examId/results/:attemptId" element={<ExamResults />} />
+          <Route path="certificates" element={<AcademyCertificates />} />
+          <Route path="community" element={<PlaceholderPage title="Comunidade IBRAMEC" />} />
+          <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={<Navigate to="/academy" replace />} />
         </Routes>
-      </SidebarWrapper>
+      </AcademySidebar>
     </ProfileGuard>
   );
 }
