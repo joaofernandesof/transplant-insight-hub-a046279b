@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
-  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera
+  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,6 +31,7 @@ export default function NeoTeamGalleries() {
     uploadPhotos,
     deletePhoto,
     toggleStatus,
+    setCoverPhoto,
     refetch,
   } = useGalleryManagement();
 
@@ -186,9 +187,13 @@ export default function NeoTeamGalleries() {
       {selectedGallery && (
         <GalleryEditDialog
           gallery={selectedGallery}
-          onClose={() => setSelectedGallery(null)}
+          onClose={() => {
+            setSelectedGallery(null);
+            refetch();
+          }}
           onUpload={uploadPhotos}
           onDeletePhoto={(photo) => deletePhoto.mutate(photo)}
+          onSetCover={(photo) => setCoverPhoto.mutate({ galleryId: selectedGallery.id, photoUrl: photo.full_url })}
           isUploading={isUploading}
           canWrite={canWrite}
           canDelete={canDelete}
@@ -431,6 +436,7 @@ interface GalleryEditDialogProps {
   onClose: () => void;
   onUpload: (galleryId: string, files: File[]) => Promise<any[]>;
   onDeletePhoto: (photo: any) => void;
+  onSetCover: (photo: any) => void;
   isUploading: boolean;
   canWrite: boolean;
   canDelete: boolean;
@@ -441,6 +447,7 @@ function GalleryEditDialog({
   onClose,
   onUpload,
   onDeletePhoto,
+  onSetCover,
   isUploading,
   canWrite,
   canDelete,
@@ -532,28 +539,50 @@ function GalleryEditDialog({
                 </div>
               ) : (
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                  {photos.map((photo) => (
-                    <div
-                      key={photo.id}
-                      className="relative aspect-square rounded-lg overflow-hidden group"
-                    >
-                      <img
-                        src={photo.thumbnail_url || photo.full_url}
-                        alt={photo.caption || 'Foto'}
-                        className="w-full h-full object-cover"
-                      />
-                      {canDelete && (
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => onDeletePhoto(photo)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                  {photos.map((photo) => {
+                    const isCover = gallery.cover_photo_url === photo.full_url;
+                    return (
+                      <div
+                        key={photo.id}
+                        className={`relative aspect-square rounded-lg overflow-hidden group cursor-pointer ${
+                          isCover ? 'ring-2 ring-primary ring-offset-2' : ''
+                        }`}
+                        onClick={() => canWrite && onSetCover(photo)}
+                      >
+                        <img
+                          src={photo.thumbnail_url || photo.full_url}
+                          alt={photo.caption || 'Foto'}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Cover badge */}
+                        {isCover && (
+                          <div className="absolute top-1 left-1 bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-current" />
+                            Capa
+                          </div>
+                        )}
+                        {/* Hover overlay for selecting cover */}
+                        {canWrite && !isCover && (
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white text-xs font-medium">Definir como capa</span>
+                          </div>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeletePhoto(photo);
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
