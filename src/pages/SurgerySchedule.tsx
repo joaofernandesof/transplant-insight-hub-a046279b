@@ -11,7 +11,7 @@ import {
   LayoutList,
   Stethoscope,
 } from "lucide-react";
-import { ModuleSidebar } from "@/components/ModuleSidebar";
+
 import { useSurgerySchedule, SurgerySchedule as SurgeryType } from "@/hooks/useSurgerySchedule";
 import { 
   SurgeryTable, 
@@ -193,9 +193,8 @@ export default function SurgerySchedule() {
   };
 
   return (
-    <ModuleSidebar>
-      <div className="min-h-screen bg-background">
-        <div className="px-4 py-6 space-y-6 w-full overflow-x-hidden">
+    <div className="min-h-screen bg-background w-full overflow-x-hidden">
+      <div className="px-4 pt-16 lg:pt-6 pb-6 space-y-6 w-full">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -298,8 +297,7 @@ export default function SurgerySchedule() {
             onSave={handleSave}
             isLoading={createSurgery.isPending || updateSurgery.isPending}
           />
-        </div>
       </div>
-    </ModuleSidebar>
+    </div>
   );
 }
