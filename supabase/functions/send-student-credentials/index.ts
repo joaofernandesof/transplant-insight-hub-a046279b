@@ -36,8 +36,6 @@ const generateEmailHtml = (student: StudentCredential) => `
         <p style="color: rgba(255,255,255,0.9); margin: 16px 0 0; font-size: 16px; font-weight: 500;">Turma Janeiro 2026</p>
       </div>
     </div>
-      </div>
-    </div>
     
     <!-- Content -->
     <div style="background: white; padding: 32px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
