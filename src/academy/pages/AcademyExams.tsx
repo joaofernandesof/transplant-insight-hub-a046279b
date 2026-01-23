@@ -27,11 +27,29 @@ export function AcademyExams() {
   const { data: attempts = [] } = useExamAttempts();
   const [activeTab, setActiveTab] = useState('available');
 
-  // Calculate stats
+  // Calculate stats - count by UNIQUE EXAMS, not attempts
   const completedAttempts = attempts.filter(a => a.status === 'submitted');
-  const passedAttempts = completedAttempts.filter(a => (a.score || 0) >= 70);
-  const averageScore = completedAttempts.length > 0 
-    ? Math.round(completedAttempts.reduce((acc, a) => acc + (a.score || 0), 0) / completedAttempts.length)
+  
+  // Get unique exam IDs that have been attempted
+  const uniqueExamIdsCompleted = [...new Set(completedAttempts.map(a => a.exam_id))];
+  const completedExamsCount = uniqueExamIdsCompleted.length;
+  
+  // For "Aprovações" and "Média", we count unique exams using best score per exam
+  const getBestScoreForExam = (examId: string) => {
+    const examAttempts = completedAttempts.filter(a => a.exam_id === examId);
+    if (examAttempts.length === 0) return null;
+    return Math.max(...examAttempts.map(a => a.score || 0));
+  };
+  
+  // Count unique exams passed (best score >= 70)
+  const passedExamsCount = uniqueExamIdsCompleted.filter(examId => {
+    const best = getBestScoreForExam(examId);
+    return best !== null && best >= 70;
+  }).length;
+  
+  // Average score using best score per exam
+  const averageScore = uniqueExamIdsCompleted.length > 0 
+    ? Math.round(uniqueExamIdsCompleted.reduce((acc, examId) => acc + (getBestScoreForExam(examId) || 0), 0) / uniqueExamIdsCompleted.length)
     : 0;
 
   // Filter exams
@@ -93,7 +111,7 @@ export function AcademyExams() {
                   <CheckCircle2 className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-700 dark:text-green-400">{passedAttempts.length}</p>
+                  <p className="text-2xl font-bold text-green-700 dark:text-green-400">{passedExamsCount}</p>
                   <p className="text-xs text-green-600 dark:text-green-500">Aprovações</p>
                 </div>
               </div>
@@ -121,7 +139,7 @@ export function AcademyExams() {
                   <Trophy className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{completedAttempts.length}</p>
+                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{completedExamsCount}</p>
                   <p className="text-xs text-purple-600 dark:text-purple-500">Provas Realizadas</p>
                 </div>
               </div>
