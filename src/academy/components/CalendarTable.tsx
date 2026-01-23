@@ -1,12 +1,22 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Calendar, MapPin, CheckCircle2, Clock, AlertCircle, GraduationCap, UserPlus, UserCheck, Loader2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAcademyCalendar, CalendarCourse } from "../hooks/useAcademyCalendar";
-
 function getStatusConfig(status: CalendarCourse['status']) {
   switch (status) {
     case 'in_progress':
@@ -109,6 +119,8 @@ function getMonthYear(startDate: string | null, code: string): string {
 
 export function CalendarTable() {
   const { classes, isLoading, enrollInClass, isEnrolling } = useAcademyCalendar();
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<CalendarCourse | null>(null);
 
   if (isLoading) {
     return (
@@ -136,11 +148,57 @@ export function CalendarTable() {
     c.name.toLowerCase().includes('formacao')
   );
 
-  const handleEnroll = (classId: string) => {
-    enrollInClass(classId);
+  const handleEnrollClick = (classItem: CalendarCourse) => {
+    setSelectedClass(classItem);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmEnroll = () => {
+    if (selectedClass) {
+      enrollInClass(selectedClass.id);
+    }
+    setConfirmDialogOpen(false);
+    setSelectedClass(null);
   };
 
   return (
+    <>
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Solicitação de Matrícula</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>Você está solicitando matrícula no curso:</p>
+              <p className="font-medium text-foreground">
+                {selectedClass?.courseName || selectedClass?.name || 'Formação 360°'}
+              </p>
+              {selectedClass?.startDate && (
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Data: </span>
+                  {formatDateRange(selectedClass.startDate, selectedClass.endDate)}
+                  {selectedClass.city && ` • ${selectedClass.city}`}
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground mt-3">
+                Após a confirmação, nossa equipe entrará em contato para finalizar sua matrícula.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmEnroll} disabled={isEnrolling}>
+              {isEnrolling ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Enviando...
+                </>
+              ) : (
+                'Confirmar Matrícula'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
@@ -206,14 +264,10 @@ export function CalendarTable() {
                           size="sm"
                           variant="outline"
                           className="h-7 text-xs gap-1 mx-auto flex"
-                          onClick={() => handleEnroll(classItem.id)}
+                          onClick={() => handleEnrollClick(classItem)}
                           disabled={isEnrolling || classItem.status === 'completed'}
                         >
-                          {isEnrolling ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <UserPlus className="h-3 w-3" />
-                          )}
+                          <UserPlus className="h-3 w-3" />
                           Matricular
                         </Button>
                       )}
@@ -271,14 +325,10 @@ export function CalendarTable() {
                       size="sm"
                       variant="outline"
                       className="h-8 text-xs gap-1 w-full"
-                      onClick={() => handleEnroll(classItem.id)}
+                      onClick={() => handleEnrollClick(classItem)}
                       disabled={isEnrolling || classItem.status === 'completed'}
                     >
-                      {isEnrolling ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <UserPlus className="h-3 w-3" />
-                      )}
+                      <UserPlus className="h-3 w-3" />
                       Solicitar Matrícula
                     </Button>
                   )}
@@ -289,5 +339,6 @@ export function CalendarTable() {
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }
