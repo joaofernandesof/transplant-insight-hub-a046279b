@@ -283,23 +283,24 @@ function getGroupBadgeColors(groupName: string): { bg: string; border: string; t
 
 // Parse notes to extract group badges
 function parseGroupBadges(notes: string): React.ReactNode[] {
-  const groups: string[] = [];
+  const groupColors = ['verde', 'preto', 'azul', 'branco'];
+  const foundGroups: string[] = [];
   
-  // Split by common delimiters and find groups
-  const parts = notes.split(/[,;\/]/).map(p => p.trim());
+  const lower = notes.toLowerCase();
   
-  for (const part of parts) {
-    if (part.toLowerCase().includes('grupo')) {
-      groups.push(part);
+  // Find each color mentioned in the notes
+  for (const color of groupColors) {
+    if (lower.includes(color)) {
+      foundGroups.push(`Grupo ${color.charAt(0).toUpperCase() + color.slice(1)}`);
     }
   }
   
-  // If no split worked, check if it's a single group
-  if (groups.length === 0 && notes.toLowerCase().includes('grupo')) {
-    groups.push(notes.trim());
+  // If no specific colors found but has "grupo", show as-is
+  if (foundGroups.length === 0 && lower.includes('grupo')) {
+    foundGroups.push(notes.trim());
   }
   
-  return groups.map((group, index) => {
+  return foundGroups.map((group, index) => {
     const colors = getGroupBadgeColors(group);
     return (
       <span
