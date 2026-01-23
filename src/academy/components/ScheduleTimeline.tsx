@@ -421,53 +421,44 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
           <p className="text-sm text-muted-foreground mt-2 italic">{day.dayTheme}</p>
         )}
       </CardHeader>
-      <CardContent className="pb-6">
-        {/* Timeline Grid with All-Day Columns on the LEFT */}
-        <div className="relative flex" style={{ minHeight: totalHeight }}>
-          {/* LEFT section: All-Day vertical bars */}
-          {allDayItems.length > 0 && (
-            <div className="flex gap-2 mr-3 flex-shrink-0">
+      <CardContent className="pb-6 space-y-4">
+        {/* All-Day Activities - Horizontal section above timeline */}
+        {allDayItems.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span className="font-medium">Atividades do dia inteiro</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
               {allDayItems.map((item) => {
                 const style = getActivityStyle(item.activity);
                 return (
                   <div
                     key={item.id}
-                    className={`w-20 sm:w-24 rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 flex flex-col items-center`}
-                    style={{ height: totalHeight }}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 ${style.bgColor} ${style.borderColor}`}
                   >
-                    {/* Icon */}
-                    <div className={`w-8 h-8 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor} mb-2`}>
+                    <div className={`w-7 h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor} flex-shrink-0`}>
                       {style.icon}
                     </div>
-                    
-                    {/* Vertical text container */}
-                    <div className="flex-1 flex items-center justify-center">
-                      <p 
-                        className="font-medium text-xs sm:text-sm text-center"
-                        style={{ 
-                          writingMode: 'vertical-rl',
-                          textOrientation: 'mixed',
-                          transform: 'rotate(180deg)'
-                        }}
-                      >
-                        {item.activity}
-                      </p>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm leading-tight">{item.activity}</p>
+                      {item.location && (
+                        <span className={`text-[10px] ${style.textColor} font-medium`}>
+                          {item.location}
+                        </span>
+                      )}
                     </div>
-                    
-                    {/* Location at bottom */}
-                    {item.location && (
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium mt-2 text-center`}>
-                        {item.location}
-                      </span>
-                    )}
                   </div>
                 );
               })}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* RIGHT section: Hour labels + Regular activities */}
-          <div className="flex-1 relative" style={{ height: totalHeight }}>
+        {/* Timeline Grid - Regular Activities */}
+        <div className="relative" style={{ minHeight: totalHeight }}>
+          {/* Hour labels + Regular activities */}
+          <div className="relative" style={{ height: totalHeight }}>
             {/* Hour lines */}
             {hours.map((hour, index) => (
               <div 
