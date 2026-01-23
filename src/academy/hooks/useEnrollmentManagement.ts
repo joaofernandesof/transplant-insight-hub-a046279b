@@ -54,7 +54,7 @@ export function useEnrollmentManagement() {
           max_students,
           courses (title)
         `)
-        .order("start_date", { ascending: false, nullsFirst: true });
+        .order("start_date", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
 
@@ -70,7 +70,7 @@ export function useEnrollmentManagement() {
         countMap.set(e.class_id, (countMap.get(e.class_id) || 0) + 1);
       });
 
-      return data.map((c): CourseClass => ({
+      const mappedClasses = data.map((c): CourseClass => ({
         id: c.id,
         name: c.name,
         code: c.code,
@@ -81,6 +81,26 @@ export function useEnrollmentManagement() {
         enrolledCount: countMap.get(c.id) || 0,
         maxStudents: c.max_students,
       }));
+
+      // Sort by priority: in_progress first, then confirmed, then pending, then by date
+      const statusPriority: Record<string, number> = {
+        in_progress: 0,
+        active: 1,
+        confirmed: 2,
+        pending: 3,
+        completed: 4,
+      };
+
+      return mappedClasses.sort((a, b) => {
+        const priorityA = statusPriority[a.status] ?? 5;
+        const priorityB = statusPriority[b.status] ?? 5;
+        if (priorityA !== priorityB) return priorityA - priorityB;
+        // Same priority, sort by date (closest first)
+        if (!a.startDate && !b.startDate) return 0;
+        if (!a.startDate) return 1;
+        if (!b.startDate) return -1;
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      });
     },
   });
 
