@@ -201,9 +201,9 @@ export function AcademyClassDetail() {
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Provas</span>
             </TabsTrigger>
-            <TabsTrigger value="students" className="gap-2">
+            <TabsTrigger value="network" className="gap-2">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Alunos</span>
+              <span className="hidden sm:inline">Network</span>
             </TabsTrigger>
             {isAdmin && (
               <TabsTrigger value="admin" className="gap-2">
@@ -353,54 +353,47 @@ export function AcademyClassDetail() {
             )}
           </TabsContent>
 
-          {/* Students Tab */}
-          <TabsContent value="students" className="space-y-4">
+          {/* Network Tab - Classmates */}
+          <TabsContent value="network" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />
-                  Alunos Matriculados ({classDetails.students.length})
+                  Network da Turma ({classDetails.students.length} alunos)
                 </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Conheça seus colegas de turma e amplie sua rede de contatos profissionais
+                </p>
               </CardHeader>
               <CardContent>
                 {classDetails.students.length === 0 ? (
                   <div className="text-center py-8">
                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-lg font-medium">Nenhum aluno matriculado</p>
+                    <p className="text-sm text-muted-foreground">Os alunos aparecerão aqui quando forem matriculados</p>
                   </div>
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {classDetails.students.map((student) => (
                       <div 
                         key={student.id} 
-                        className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                        className="flex items-center gap-3 p-4 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all"
                       >
-                        <Avatar className="h-10 w-10">
+                        <Avatar className="h-12 w-12">
                           <AvatarImage src={student.avatarUrl || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
                             {student.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">{student.name}</p>
-                          {student.city && (
-                            <p className="text-xs text-muted-foreground truncate">
-                              {student.city}{student.state ? `, ${student.state}` : ''}
+                          {(student.city || student.state) && (
+                            <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {student.city}{student.city && student.state ? ', ' : ''}{student.state}
                             </p>
                           )}
                         </div>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${
-                            student.enrollmentStatus === 'enrolled' || student.enrollmentStatus === 'confirmed'
-                              ? 'border-emerald-300 text-emerald-700 dark:text-emerald-400'
-                              : 'border-amber-300 text-amber-700 dark:text-amber-400'
-                          }`}
-                        >
-                          {student.enrollmentStatus === 'enrolled' || student.enrollmentStatus === 'confirmed' 
-                            ? 'Confirmado' 
-                            : 'Pendente'}
-                        </Badge>
                       </div>
                     ))}
                   </div>

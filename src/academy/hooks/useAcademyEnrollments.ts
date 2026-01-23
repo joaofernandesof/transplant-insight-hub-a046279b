@@ -22,10 +22,18 @@ export interface PresentialEnrollment {
 export function useAcademyEnrollments() {
   const { user } = useUnifiedAuth();
   
+  // Use authUserId consistently (maps to auth.uid() for RLS)
+  const userId = user?.authUserId || user?.userId;
+  
   const { data: enrollments = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["academy-enrollments", user?.authUserId],
+    queryKey: ["academy-enrollments", userId],
     queryFn: async () => {
-      if (!user?.authUserId) return [];
+      if (!userId) {
+        console.log("[useAcademyEnrollments] No userId available");
+        return [];
+      }
+      
+      console.log("[useAcademyEnrollments] Fetching enrollments for userId:", userId);
       
       // Get class enrollments with course and class details
       const { data, error } = await supabase
@@ -34,6 +42,7 @@ export function useAcademyEnrollments() {
           id,
           status,
           class_id,
+          user_id,
           course_classes (
             id,
             code,
@@ -51,12 +60,14 @@ export function useAcademyEnrollments() {
             )
           )
         `)
-        .eq("user_id", user.authUserId);
+        .eq("user_id", userId);
       
       if (error) {
-        console.error("Error fetching enrollments:", error);
+        console.error("[useAcademyEnrollments] Error fetching enrollments:", error);
         return [];
       }
+      
+      console.log("[useAcademyEnrollments] Raw data:", data);
       
       // Transform data
       return (data || []).map((enrollment): PresentialEnrollment => {
@@ -80,7 +91,7 @@ export function useAcademyEnrollments() {
         };
       });
     },
-    enabled: !!user?.authUserId,
+    enabled: !!userId,
   });
 
   // Map course title to type

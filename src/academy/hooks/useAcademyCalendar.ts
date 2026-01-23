@@ -23,9 +23,12 @@ export interface CalendarCourse {
 export function useAcademyCalendar() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
+  
+  // Use authUserId consistently (maps to auth.uid() for RLS)
+  const userId = user?.authUserId || user?.userId;
 
   const { data: classes = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["academy-calendar", user?.id],
+    queryKey: ["academy-calendar", userId],
     queryFn: async () => {
       // First get all classes
       const { data: classesData, error: classesError } = await supabase
@@ -55,11 +58,11 @@ export function useAcademyCalendar() {
 
       // Get user enrollments if logged in
       let enrollments: Record<string, string> = {};
-      if (user?.id) {
+      if (userId) {
         const { data: enrollData } = await supabase
           .from("class_enrollments")
           .select("class_id, status")
-          .eq("user_id", user.id);
+          .eq("user_id", userId);
         
         if (enrollData) {
           enrollments = enrollData.reduce((acc, e) => {
@@ -97,13 +100,14 @@ export function useAcademyCalendar() {
 
   const enrollMutation = useMutation({
     mutationFn: async (classId: string) => {
-      if (!user?.id) throw new Error("Usuário não autenticado");
+      const enrollUserId = user?.authUserId || user?.userId;
+      if (!enrollUserId) throw new Error("Usuário não autenticado");
 
       const { error } = await supabase
         .from("class_enrollments")
         .insert({
           class_id: classId,
-          user_id: user.id,
+          user_id: enrollUserId,
           status: "pending"
         });
 

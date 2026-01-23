@@ -38,7 +38,6 @@ export interface ClassExam {
 export interface ClassStudent {
   id: string;
   name: string;
-  email: string;
   avatarUrl: string | null;
   city: string | null;
   state: string | null;
@@ -159,7 +158,8 @@ export function useClassDetails(classId: string | null) {
           batches.map(batch =>
             supabase
               .from("profiles")
-              .select("user_id, name, email, avatar_url, city, state")
+              // Only fetch non-sensitive data: no email/phone for privacy
+              .select("user_id, name, avatar_url, city, state")
               .in("user_id", batch)
           )
         );
@@ -172,7 +172,6 @@ export function useClassDetails(classId: string | null) {
           return {
             id: enrollment.id,
             name: profile?.name || "Aluno",
-            email: profile?.email || "",
             avatarUrl: profile?.avatar_url || null,
             city: profile?.city || null,
             state: profile?.state || null,
