@@ -291,7 +291,8 @@ import {
   AcademyExamTaking,
   AcademyExamResults,
   AcademyEnrollmentsAdmin,
-  AcademyCommunity
+  AcademyCommunity,
+  AcademyStudentsAdmin
 } from './academy';
 
 function AcademyRoutes() {
@@ -311,6 +312,7 @@ function AcademyRoutes() {
           <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />
           <Route path="profile" element={<Profile />} />
           <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
+          <Route path="admin/students" element={<AcademyStudentsAdmin />} />
           <Route path="*" element={<Navigate to="/academy" replace />} />
         </Routes>
       </AcademySidebar>

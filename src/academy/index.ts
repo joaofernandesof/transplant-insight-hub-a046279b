@@ -12,6 +12,7 @@ export {
   AcademyExamTaking,
   AcademyExamResults,
   AcademyEnrollmentsAdmin,
-  AcademyCommunity
+  AcademyCommunity,
+  AcademyStudentsAdmin
 } from './pages';
 export { useAcademyEnrollments } from './hooks/useAcademyEnrollments';
