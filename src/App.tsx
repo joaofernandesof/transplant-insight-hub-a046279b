@@ -106,9 +106,10 @@ import {
 } from "./neohub/pages/neoteam";
 
 // ====================================
-// Pages - ProfileSelector
+// Pages - ProfileSelector / PortalSelector
 // ====================================
 import ProfileSelector from "./neohub/pages/ProfileSelector";
+import PortalSelector from "./pages/PortalSelector";
 
 // ====================================
 // Marketplace
@@ -410,6 +411,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ProfileSelector />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/portal-selector" 
+        element={
+          <ProtectedRoute>
+            <PortalSelector />
           </ProtectedRoute>
         } 
       />

@@ -38,7 +38,8 @@ import {
   Clock,
   Heart,
   Stethoscope,
-  Megaphone
+  Megaphone,
+  TrendingUp
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -382,11 +383,44 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Portals Quick Access Widget */}
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Eye className="h-4 w-4 text-primary" />
+              Portais do NeoHub
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+              {[
+                { id: 'academy', title: 'Aluno IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
+                { id: 'license', title: 'Licenciado', icon: Award, gradient: 'from-amber-400 to-yellow-500', path: '/home' },
+                { id: 'patient', title: 'Paciente', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
+                { id: 'staff', title: 'Colaborador', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
+                { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
+                { id: 'avivar', title: 'Avivar', icon: TrendingUp, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
+              ].map((portal) => (
+                <button
+                  key={portal.id}
+                  onClick={() => navigate(portal.path)}
+                  className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-background/50 transition-all"
+                >
+                  <div className={`p-2 rounded-lg bg-gradient-to-br ${portal.gradient} text-white shadow-sm`}>
+                    <portal.icon className="h-4 w-4" />
+                  </div>
+                  <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{portal.title}</span>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Profile Quick Access - Compact Row */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-muted-foreground flex items-center gap-1.5">
             <Eye className="h-3.5 w-3.5" />
-            Ver como:
+            Simular perfil:
           </span>
           {profileAccess.map((profile) => (
             <Button
