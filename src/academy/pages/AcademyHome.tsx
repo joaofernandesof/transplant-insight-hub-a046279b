@@ -44,74 +44,74 @@ export function AcademyHome() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-        <div className="px-4 py-4">
-          <div className="pl-12 lg:pl-0">
+        <div className="px-3 sm:px-4 py-3 sm:py-4">
+          <div className="pl-10 sm:pl-12 lg:pl-0">
             <GlobalBreadcrumb />
-            <h1 className="text-2xl font-bold mt-2">
+            <h1 className="text-xl sm:text-2xl font-bold mt-2">
               Olá, {user?.fullName?.split(' ')[0] || 'Aluno'}! 👋
             </h1>
-            <p className="text-muted-foreground">Continue sua jornada de aprendizado</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Continue sua jornada de aprendizado</p>
           </div>
         </div>
       </header>
 
-      <main className="p-4 lg:p-6 space-y-6">
+      <main className="px-3 sm:px-4 lg:px-6 py-4 lg:py-6 space-y-4 sm:space-y-6">
         {/* Progress Overview Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/50 dark:to-green-950/50 dark:border-emerald-800">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-                  <BookOpen className="h-5 w-5 text-white" />
+            <CardContent className="p-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{enrolledCourses.length}</p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-500">Cursos Matriculados</p>
+                <div className="min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-400">{enrolledCourses.length}</p>
+                  <p className="text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-500 truncate">Cursos Matriculados</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-950/50 dark:to-indigo-950/50 dark:border-blue-800">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-white" />
+            <CardContent className="p-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{totalProgress}%</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-500">Progresso Geral</p>
+                <div className="min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold text-blue-700 dark:text-blue-400">{totalProgress}%</p>
+                  <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-500 truncate">Progresso Geral</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 dark:from-amber-950/50 dark:to-yellow-950/50 dark:border-amber-800">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center">
-                  <Trophy className="h-5 w-5 text-white" />
+            <CardContent className="p-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500 flex items-center justify-center flex-shrink-0">
+                  <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{completedCourses.length}</p>
-                  <p className="text-xs text-amber-600 dark:text-amber-500">Cursos Concluídos</p>
+                <div className="min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-400">{completedCourses.length}</p>
+                  <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-500 truncate">Cursos Concluídos</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 dark:from-purple-950/50 dark:to-violet-950/50 dark:border-purple-800">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center">
-                  <Award className="h-5 w-5 text-white" />
+            <CardContent className="p-3 sm:pt-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500 flex items-center justify-center flex-shrink-0">
+                  <Award className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{completedCourses.length}</p>
-                  <p className="text-xs text-purple-600 dark:text-purple-500">Certificados</p>
+                <div className="min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-400">{completedCourses.length}</p>
+                  <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-500 truncate">Certificados</p>
                 </div>
               </div>
             </CardContent>
@@ -132,20 +132,20 @@ export function AcademyHome() {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center flex-shrink-0">
-                  <GraduationCap className="h-8 w-8 text-white" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center flex-shrink-0">
+                  <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg truncate">{lastCourse.title}</h3>
-                  <p className="text-sm text-muted-foreground truncate">{lastCourse.description}</p>
-                  <div className="flex items-center gap-4 mt-2">
+                <div className="flex-1 min-w-0 w-full">
+                  <h3 className="font-semibold text-base sm:text-lg truncate">{lastCourse.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{lastCourse.description}</p>
+                  <div className="flex items-center gap-2 sm:gap-4 mt-2">
                     <Progress value={lastCourse.enrollment?.progress_percent || 0} className="flex-1 h-2" />
-                    <span className="text-sm font-medium text-emerald-600">{lastCourse.enrollment?.progress_percent || 0}%</span>
+                    <span className="text-xs sm:text-sm font-medium text-emerald-600">{lastCourse.enrollment?.progress_percent || 0}%</span>
                   </div>
                 </div>
-                <Button onClick={() => navigate('/academy/courses')} className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={() => navigate('/academy/courses')} className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto mt-2 sm:mt-0" size="sm">
                   Continuar
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -155,44 +155,44 @@ export function AcademyHome() {
         )}
 
         {/* Grid Section */}
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Quick Actions */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Acesso Rápido</CardTitle>
+            <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-2">
+              <CardTitle className="text-sm sm:text-base">Acesso Rápido</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3">
+            <CardContent className="grid grid-cols-2 gap-2 sm:gap-3 p-3 sm:p-6 pt-0 sm:pt-0">
               <Button 
                 variant="outline" 
-                className="h-auto py-4 flex flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-300 dark:hover:bg-emerald-950/50"
+                className="h-auto py-3 sm:py-4 flex flex-col gap-1 sm:gap-2 hover:bg-emerald-50 hover:border-emerald-300 dark:hover:bg-emerald-950/50"
                 onClick={() => navigate('/academy/courses')}
               >
-                <BookOpen className="h-6 w-6 text-emerald-600" />
-                <span className="text-sm">Meus Cursos</span>
+                <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+                <span className="text-xs sm:text-sm">Meus Cursos</span>
               </Button>
               <Button 
                 variant="outline" 
-                className="h-auto py-4 flex flex-col gap-2 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950/50"
+                className="h-auto py-3 sm:py-4 flex flex-col gap-1 sm:gap-2 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950/50"
                 onClick={() => navigate('/academy/exams')}
               >
-                <FileText className="h-6 w-6 text-blue-600" />
-                <span className="text-sm">Provas</span>
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                <span className="text-xs sm:text-sm">Provas</span>
               </Button>
               <Button 
                 variant="outline" 
-                className="h-auto py-4 flex flex-col gap-2 hover:bg-amber-50 hover:border-amber-300 dark:hover:bg-amber-950/50"
+                className="h-auto py-3 sm:py-4 flex flex-col gap-1 sm:gap-2 hover:bg-amber-50 hover:border-amber-300 dark:hover:bg-amber-950/50"
                 onClick={() => navigate('/academy/certificates')}
               >
-                <Award className="h-6 w-6 text-amber-600" />
-                <span className="text-sm">Certificados</span>
+                <Award className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+                <span className="text-xs sm:text-sm">Certificados</span>
               </Button>
               <Button 
                 variant="outline" 
-                className="h-auto py-4 flex flex-col gap-2 hover:bg-purple-50 hover:border-purple-300 dark:hover:bg-purple-950/50"
+                className="h-auto py-3 sm:py-4 flex flex-col gap-1 sm:gap-2 hover:bg-purple-50 hover:border-purple-300 dark:hover:bg-purple-950/50"
                 onClick={() => navigate('/academy/community')}
               >
-                <Star className="h-6 w-6 text-purple-600" />
-                <span className="text-sm">Comunidade</span>
+                <Star className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                <span className="text-xs sm:text-sm">Comunidade</span>
               </Button>
             </CardContent>
           </Card>

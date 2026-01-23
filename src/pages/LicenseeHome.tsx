@@ -415,7 +415,7 @@ export default function LicenseeHome() {
       </header>
 
       {/* Main Content */}
-      <main className="px-4 py-8 w-full overflow-x-hidden">
+      <main className="px-3 sm:px-4 py-4 sm:py-8 w-full overflow-x-hidden">
         {/* Announcement Banner */}
         <AnnouncementBanner moduleKey="home" />
 
@@ -430,11 +430,11 @@ export default function LicenseeHome() {
 
         {/* Dashboard Global - 6 Widgets */}
         <DashboardPeriodProvider>
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h2 className="text-lg font-semibold text-foreground">Visão Geral da Operação</h2>
+          <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">Visão Geral da Operação</h2>
             <DashboardPeriodSelector />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {/* Row 1 */}
             <MonthlyRevenueChartWidget />
             <SalesOverviewWidget />
@@ -448,7 +448,7 @@ export default function LicenseeHome() {
         </DashboardPeriodProvider>
 
         {/* Menu Grid - Acesso às funcionalidades */}
-        <div data-tour="menu-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-12">
+        <div data-tour="menu-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 mb-8 sm:mb-12">
           {mainSections.map((section) => (
             <Card 
               key={section.id}
@@ -456,14 +456,14 @@ export default function LicenseeHome() {
               className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border hover:border-primary/30"
               onClick={() => handleNavigate(section.route)}
             >
-              <CardContent className="p-3 sm:p-4">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${section.iconBg} flex items-center justify-center mb-2 sm:mb-3`}>
-                  <section.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${section.iconColor}`} />
+              <CardContent className="p-2.5 sm:p-4">
+                <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl ${section.iconBg} flex items-center justify-center mb-1.5 sm:mb-3`}>
+                  <section.icon className={`h-4 w-4 sm:h-6 sm:w-6 ${section.iconColor}`} />
                 </div>
-                <h3 className="font-semibold text-xs sm:text-sm mb-0.5 sm:mb-1 group-hover:text-primary transition-colors line-clamp-2">
+                <h3 className="font-semibold text-[11px] sm:text-sm mb-0.5 sm:mb-1 group-hover:text-primary transition-colors line-clamp-2">
                   {section.title}
                 </h3>
-                <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2 hidden xs:block">
+                <p className="text-[9px] sm:text-xs text-muted-foreground line-clamp-2 hidden sm:block">
                   {section.description}
                 </p>
               </CardContent>
