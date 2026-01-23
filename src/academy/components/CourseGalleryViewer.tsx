@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import { useStudentGalleries, useGalleryPhotos, CourseGallery, GalleryPhoto } from '../hooks/useCourseGalleries';
+import { useStudentGalleries, useGalleryPhotos, useGalleryManagement, CourseGallery, GalleryPhoto } from '../hooks/useCourseGalleries';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Images, ChevronLeft, ChevronRight, X, Camera, Calendar, Upload, Scan, Loader2, UserSearch } from 'lucide-react';
+import { Images, ChevronLeft, ChevronRight, X, Camera, Calendar, Upload, Loader2, UserSearch, ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { SelfieCaptureDialog } from './SelfieCaptureDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { CoverPhotoCropper } from './CoverPhotoCropper';
 
 interface CourseGalleryViewerProps {
   classId: string;
@@ -139,8 +140,16 @@ interface GalleryLightboxProps {
 
 function GalleryLightbox({ gallery, onClose }: GalleryLightboxProps) {
   const { photos, isLoading } = useGalleryPhotos(gallery.id);
+  const { setCoverPhoto, canWrite } = useGalleryManagement();
+  const { isAdmin, canAccessModule } = useUnifiedAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'grid' | 'single'>('grid');
+  
+  // Cover photo state
+  const [coverCropperOpen, setCoverCropperOpen] = useState(false);
+  const [selectedPhotoForCover, setSelectedPhotoForCover] = useState<string | null>(null);
+  
+  const canSetCover = isAdmin || canWrite || canAccessModule('neoteam_galleries', 'write');
   
   // Face search state
   const [selfieDialogOpen, setSelfieDialogOpen] = useState(false);
@@ -220,6 +229,23 @@ function GalleryLightbox({ gallery, onClose }: GalleryLightboxProps) {
     setCurrentIndex(0);
   };
 
+  const handleSetCoverPhoto = (photoUrl: string) => {
+    setSelectedPhotoForCover(photoUrl);
+    setCoverCropperOpen(true);
+  };
+
+  const handleCoverCropComplete = async (croppedBlob: Blob) => {
+    try {
+      await setCoverPhoto.mutateAsync({ galleryId: gallery.id, croppedBlob });
+      setCoverCropperOpen(false);
+      setSelectedPhotoForCover(null);
+      toast.success('Foto de capa atualizada!');
+    } catch (error) {
+      console.error('Error setting cover photo:', error);
+      toast.error('Erro ao definir foto de capa');
+    }
+  };
+
   return (
     <>
       <Dialog open onOpenChange={() => onClose()}>
@@ -284,7 +310,7 @@ function GalleryLightbox({ gallery, onClose }: GalleryLightboxProps) {
                 {displayPhotos.map((photo, index) => (
                   <div
                     key={photo.id}
-                    className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:ring-2 ring-primary transition-all"
+                    className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:ring-2 ring-primary transition-all relative group"
                     onClick={() => {
                       setCurrentIndex(index);
                       setViewMode('single');
@@ -296,6 +322,21 @@ function GalleryLightbox({ gallery, onClose }: GalleryLightboxProps) {
                       className="w-full h-full object-cover hover:scale-105 transition-transform"
                       loading="lazy"
                     />
+                    {/* Set as cover button for admins */}
+                    {canSetCover && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs h-7 gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSetCoverPhoto(photo.full_url);
+                        }}
+                      >
+                        <ImageIcon className="h-3 w-3" />
+                        Capa
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -370,6 +411,20 @@ function GalleryLightbox({ gallery, onClose }: GalleryLightboxProps) {
         onCapture={handleSelfieCapture}
         isProcessing={isSearching}
       />
+
+      {/* Cover photo cropper */}
+      {selectedPhotoForCover && (
+        <CoverPhotoCropper
+          open={coverCropperOpen}
+          onClose={() => {
+            setCoverCropperOpen(false);
+            setSelectedPhotoForCover(null);
+          }}
+          imageSrc={selectedPhotoForCover}
+          onCropComplete={handleCoverCropComplete}
+          isProcessing={setCoverPhoto.isPending}
+        />
+      )}
     </>
   );
 }
