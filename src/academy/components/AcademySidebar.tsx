@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, BookOpen, Award, FileText, Trophy,
-  Settings, LogOut, User, Users, TrendingUp
+  Settings, LogOut, User, Users, TrendingUp, CalendarDays
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ interface AcademySidebarProps {
 const navItems = [
   { icon: Home, label: 'Início', path: '/academy' },
   { icon: BookOpen, label: 'Meus Cursos', path: '/academy/courses' },
+  { icon: CalendarDays, label: 'Agenda do Aluno', path: '/academy/schedule' },
   { icon: FileText, label: 'Provas', path: '/academy/exams' },
   { icon: Award, label: 'Certificados', path: '/academy/certificates' },
   { icon: Users, label: 'Comunidade', path: '/academy/community' },

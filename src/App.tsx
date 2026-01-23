@@ -286,7 +286,8 @@ import {
   AcademyHome, 
   AcademyCourses, 
   AcademyCertificates, 
-  AcademyExams 
+  AcademyExams,
+  AcademySchedule
 } from './academy';
 
 function AcademyRoutes() {
@@ -296,6 +297,7 @@ function AcademyRoutes() {
         <Routes>
           <Route index element={<AcademyHome />} />
           <Route path="courses" element={<AcademyCourses />} />
+          <Route path="schedule" element={<AcademySchedule />} />
           <Route path="materials" element={<Materials />} />
           <Route path="exams" element={<AcademyExams />} />
           <Route path="exams/:examId/take" element={<ExamTaking />} />

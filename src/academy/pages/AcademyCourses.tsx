@@ -14,12 +14,44 @@ import {
   TrendingUp,
   FileText,
   Clock,
-  Play
+  Play,
+  MapPin,
+  Video
 } from "lucide-react";
 import { useUniversity, CourseWithProgress } from "@/hooks/useUniversity";
 import { CourseCard } from "@/components/CourseCard";
 import { CourseViewer } from "@/components/CourseViewer";
 import { GlobalBreadcrumb } from "@/components/GlobalBreadcrumb";
+import { ConectaCapilarCard } from "../components/ConectaCapilarCard";
+import { PresentialCourseCard, PresentialCourse } from "../components/PresentialCourseCard";
+
+// Mock presential courses - in production would come from database
+const mockPresentialCourses: PresentialCourse[] = [
+  {
+    id: '1',
+    name: 'Formação 360°',
+    description: 'Formação completa em transplante capilar FUE e FUT',
+    duration: '60h',
+    type: 'formacao360',
+    startDate: '2026-01-20',
+    endDate: '2026-01-25',
+    city: 'São Paulo',
+    state: 'SP',
+    status: 'confirmed'
+  },
+  {
+    id: '2',
+    name: 'Fellowship Avançado',
+    description: 'Aprofundamento em técnicas avançadas de transplante capilar',
+    duration: '180h',
+    type: 'fellowship',
+    startDate: null,
+    endDate: null,
+    city: 'Fortaleza',
+    state: 'CE',
+    status: 'pending'
+  }
+];
 
 export function AcademyCourses() {
   const navigate = useNavigate();
@@ -37,7 +69,7 @@ export function AcademyCourses() {
     startLesson,
   } = useUniversity();
 
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('presencial');
 
   // Calculate overall stats
   const enrolledCourses = courses.filter(c => c.enrollment);
@@ -72,6 +104,16 @@ export function AcademyCourses() {
     setSelectedLesson(null);
   };
 
+  const handleViewPresentialDetails = (course: PresentialCourse) => {
+    // Navigate to course details or open modal
+    navigate('/academy/schedule');
+  };
+
+  const handleSelectTrack = (trackId: string) => {
+    // Navigate to specific track within Conecta Capilar
+    console.log('Selected track:', trackId);
+  };
+
   // If viewing a specific course
   if (selectedCourse) {
     return (
@@ -91,13 +133,6 @@ export function AcademyCourses() {
     );
   }
 
-  // Filter courses based on active tab
-  const filteredCourses = activeTab === 'all' 
-    ? courses 
-    : activeTab === 'enrolled' 
-    ? enrolledCourses 
-    : courses.filter(c => !c.enrollment);
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -112,107 +147,139 @@ export function AcademyCourses() {
               </h1>
               <p className="text-sm text-muted-foreground">Trilhas de capacitação e aulas gravadas</p>
             </div>
-            <Button onClick={() => navigate('/academy/exams')} variant="outline" className="gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Provas</span>
+            <Button onClick={() => navigate('/academy/schedule')} variant="outline" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Agenda</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="px-4 py-6 overflow-x-hidden w-full">
+      <main className="px-4 py-6 overflow-x-hidden w-full space-y-6">
         {/* Progress Overview */}
-        <Card className="mb-6 bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/30 dark:to-green-950/30 dark:border-emerald-800">
+        <Card className="bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/30 dark:to-green-950/30 dark:border-emerald-800">
           <CardContent className="pt-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{enrolledCourses.length}</div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-500">Cursos Inscritos</p>
+                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
+                  {mockPresentialCourses.length + (enrolledCourses.length > 0 ? 1 : 0)}
+                </div>
+                <p className="text-sm text-emerald-600 dark:text-emerald-500">Cursos Matriculados</p>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{completedCourses.length}</div>
                 <p className="text-sm text-emerald-600 dark:text-emerald-500">Concluídos</p>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{inProgressCourses.length}</div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-500">Em Andamento</p>
+                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
+                  {mockPresentialCourses.filter(c => c.status === 'confirmed').length}
+                </div>
+                <p className="text-sm text-emerald-600 dark:text-emerald-500">Turmas Confirmadas</p>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{totalProgress}%</div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-500">Progresso Geral</p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-500">Progresso Online</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tabs and Courses */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="bg-emerald-50 dark:bg-emerald-950/30">
-            <TabsTrigger value="all" className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-emerald-900">
-              <BookOpen className="h-4 w-4" />
-              Todos ({courses.length})
-            </TabsTrigger>
-            <TabsTrigger value="enrolled" className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-emerald-900">
-              <TrendingUp className="h-4 w-4" />
-              Meus Cursos ({enrolledCourses.length})
-            </TabsTrigger>
-            <TabsTrigger value="available" className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-emerald-900">
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="bg-emerald-50 dark:bg-emerald-950/30 grid w-full grid-cols-2">
+            <TabsTrigger value="presencial" className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-emerald-900">
               <GraduationCap className="h-4 w-4" />
-              Disponíveis ({courses.length - enrolledCourses.length})
+              Cursos Presenciais
+            </TabsTrigger>
+            <TabsTrigger value="online" className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-emerald-900">
+              <Video className="h-4 w-4" />
+              Trilhas Online
             </TabsTrigger>
           </TabsList>
-        </Tabs>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i}>
-                <Skeleton className="h-40 rounded-t-lg" />
-                <CardHeader>
-                  <Skeleton className="h-4 w-20 mb-2" />
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+          {/* Presential Courses Tab */}
+          <TabsContent value="presencial" className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mockPresentialCourses.map((course) => (
+                <PresentialCourseCard
+                  key={course.id}
+                  course={course}
+                  onViewDetails={handleViewPresentialDetails}
+                />
+              ))}
+            </div>
 
-        {/* Courses Grid */}
-        {!isLoading && (
-          <>
-            {filteredCourses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {filteredCourses.map((course) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    onSelect={handleSelectCourse}
-                    onEnroll={handleEnroll}
-                  />
-                ))}
-              </div>
-            ) : (
+            {mockPresentialCourses.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="text-lg font-medium">
-                  {activeTab === 'enrolled' 
-                    ? 'Você ainda não está inscrito em nenhum curso' 
-                    : 'Nenhum curso disponível'}
-                </p>
-                <p className="text-sm">
-                  {activeTab === 'enrolled' 
-                    ? 'Explore os cursos disponíveis e comece sua jornada!' 
-                    : 'Em breve novos cursos serão adicionados.'}
-                </p>
+                <GraduationCap className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-lg font-medium">Nenhum curso presencial matriculado</p>
+                <p className="text-sm">Entre em contato para se matricular em uma turma.</p>
               </div>
             )}
-          </>
-        )}
+
+            {/* Info Card */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm">Cursos Presenciais IBRAMEC</p>
+                    <p className="text-sm text-muted-foreground">
+                      Os cursos presenciais acontecem em diferentes cidades do Brasil. 
+                      Confira sua <button onClick={() => navigate('/academy/schedule')} className="text-emerald-600 hover:underline font-medium">Agenda do Aluno</button> para ver as datas da sua turma.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Online Courses Tab */}
+          <TabsContent value="online" className="mt-6 space-y-6">
+            {/* Conecta Capilar - Main Online Course */}
+            <ConectaCapilarCard onSelectTrack={handleSelectTrack} />
+
+            {/* Additional Online Courses from Database */}
+            {enrolledCourses.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-emerald-600" />
+                    Outros Cursos Online
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {enrolledCourses.map((course) => (
+                      <CourseCard
+                        key={course.id}
+                        course={course}
+                        onSelect={handleSelectCourse}
+                        onEnroll={handleEnroll}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Info Card */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Video className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm">Conecta Capilar</p>
+                    <p className="text-sm text-muted-foreground">
+                      Confira sua trilha completa no Conecta Capilar. Todas as suas jornadas de aprendizado online 
+                      estão centralizadas aqui: Comercial, Médica, Marketing e muito mais.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Upcoming Events */}
         <Card>
@@ -225,13 +292,14 @@ export function AcademyCourses() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { id: 1, title: 'Imersão Presencial', date: '15-20 Fev 2026', type: 'Presencial' },
-                { id: 2, title: 'Mentoria em Grupo', date: '25 Jan 2026', type: 'Online' },
-                { id: 3, title: 'Webinar: Tendências 2026', date: '30 Jan 2026', type: 'Online' },
+                { id: 1, title: 'Formação 360° - SP', date: '20-25 Jan 2026', type: 'Presencial' },
+                { id: 2, title: 'Mentoria em Grupo', date: '30 Jan 2026', type: 'Online' },
+                { id: 3, title: 'Webinar: Tendências 2026', date: '10 Fev 2026', type: 'Online' },
               ].map((event) => (
                 <div 
                   key={event.id} 
-                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:shadow-md"
+                  onClick={() => navigate('/academy/schedule')}
                 >
                   <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
                     <Calendar className="h-5 w-5 text-emerald-600" />
