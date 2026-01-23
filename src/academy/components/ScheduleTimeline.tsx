@@ -162,6 +162,45 @@ export function ScheduleTimeline({ schedule }: ScheduleTimelineProps) {
   );
 }
 
+// Group overlapping items into columns (for parallel activities)
+function groupParallelActivities(items: ScheduleItem[]): { item: ScheduleItem; column: number; totalColumns: number }[] {
+  if (items.length === 0) return [];
+  
+  // Sort by start time
+  const sorted = [...items].sort((a, b) => parseTimeToHours(a.startTime) - parseTimeToHours(b.startTime));
+  
+  // Find overlapping groups
+  const result: { item: ScheduleItem; column: number; totalColumns: number }[] = [];
+  let currentGroup: ScheduleItem[] = [];
+  let groupEndTime = 0;
+  
+  for (const item of sorted) {
+    const itemStart = parseTimeToHours(item.startTime);
+    const itemEnd = parseTimeToHours(item.endTime);
+    
+    // Check if this item overlaps with current group
+    if (currentGroup.length === 0 || itemStart < groupEndTime) {
+      currentGroup.push(item);
+      groupEndTime = Math.max(groupEndTime, itemEnd);
+    } else {
+      // Finalize current group
+      currentGroup.forEach((groupItem, idx) => {
+        result.push({ item: groupItem, column: idx, totalColumns: currentGroup.length });
+      });
+      // Start new group
+      currentGroup = [item];
+      groupEndTime = itemEnd;
+    }
+  }
+  
+  // Finalize last group
+  currentGroup.forEach((groupItem, idx) => {
+    result.push({ item: groupItem, column: idx, totalColumns: currentGroup.length });
+  });
+  
+  return result;
+}
+
 function DayTimeline({ day }: { day: ScheduleDay }) {
   // Calculate hour range for this day
   const hourRange = useMemo(() => getHourRange(day.items), [day.items]);
@@ -172,6 +211,9 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
     }
     return arr;
   }, [hourRange]);
+  
+  // Group parallel activities
+  const groupedItems = useMemo(() => groupParallelActivities(day.items), [day.items]);
 
   // Calculate pixel height per hour
   const HOUR_HEIGHT = 60; // pixels per hour
@@ -216,21 +258,32 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
 
           {/* Activity blocks */}
           <div className="absolute left-14 right-0 top-0" style={{ height: totalHeight }}>
-            {day.items.map((item) => {
+            {groupedItems.map(({ item, column, totalColumns }) => {
               const startHour = parseTimeToHours(item.startTime);
               const endHour = parseTimeToHours(item.endTime);
               const top = (startHour - hourRange.start) * HOUR_HEIGHT;
               const height = Math.max((endHour - startHour) * HOUR_HEIGHT - 4, 40); // Min 40px height
               const style = getActivityStyle(item.activity);
               const isShort = height < 60;
+              
+              // Calculate width and left position for parallel activities
+              const GAP = 4; // gap between parallel items
+              const width = totalColumns > 1 
+                ? `calc((100% - ${GAP * (totalColumns - 1)}px) / ${totalColumns})`
+                : 'calc(100% - 8px)';
+              const left = totalColumns > 1
+                ? `calc(${column} * ((100% - ${GAP * (totalColumns - 1)}px) / ${totalColumns} + ${GAP}px) + 4px)`
+                : '4px';
 
               return (
                 <div
                   key={item.id}
-                  className={`absolute left-1 right-1 rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 overflow-hidden transition-all hover:shadow-md hover:z-10`}
+                  className={`absolute rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 overflow-hidden transition-all hover:shadow-md hover:z-10`}
                   style={{ 
                     top: top + 2, 
                     height: height,
+                    width: width,
+                    left: left,
                   }}
                 >
                   <div className={`flex ${isShort ? 'flex-row items-center gap-2' : 'flex-col gap-1'}`}>
@@ -242,7 +295,7 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                       <span className="text-xs font-semibold whitespace-nowrap">
                         {formatTime(item.startTime)} - {formatTime(item.endTime)}
                       </span>
-                      {item.location && (
+                      {item.location && totalColumns === 1 && (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
                           {item.location}
                         </Badge>
@@ -253,6 +306,13 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                     <p className={`font-medium text-sm ${isShort ? 'truncate flex-1' : 'line-clamp-2'}`}>
                       {item.activity}
                     </p>
+                    
+                    {/* Location for parallel activities (show below title) */}
+                    {!isShort && item.location && totalColumns > 1 && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 w-fit">
+                        {item.location}
+                      </Badge>
+                    )}
                     
                     {/* Instructor (only for taller blocks) */}
                     {!isShort && item.instructor && (
