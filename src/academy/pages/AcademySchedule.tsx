@@ -109,49 +109,50 @@ function ScheduleCard({ classData, onClick }: { classData: PresentialCourse; onC
       status.label === 'Concluído' ? 'opacity-70' : ''
     }`} onClick={onClick}>
       <CardContent className="p-4">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3 sm:gap-4">
           {/* Icon */}
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-emerald-500 to-green-600">
-            <GraduationCap className="h-6 w-6 text-white" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-emerald-500 to-green-600">
+            <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
           
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div>
-                <h3 className="font-semibold text-base">{classData.name}</h3>
-                <p className="text-sm text-muted-foreground">{classData.description}</p>
+            {/* Header row */}
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h3 className="font-semibold text-sm sm:text-base">{classData.name}</h3>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Badge className={`text-[10px] sm:text-xs ${status.color}`}>
+                  {status.icon}
+                  <span className="ml-1">{status.label}</span>
+                </Badge>
+                {status.label !== 'Concluído' && (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
+                )}
               </div>
-              <Badge className={`flex-shrink-0 ${status.color}`}>
-                {status.icon}
-                <span className="ml-1">{status.label}</span>
-              </Badge>
             </div>
             
-            {/* Details */}
-            <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
+            {/* Description - limited to 2 lines */}
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-2">
+              {classData.description}
+            </p>
+            
+            {/* Details row */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
                 <span>{formatDateRange(classData.startDate, classData.endDate)}</span>
               </div>
               
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <MapPin className="h-4 w-4" />
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5" />
                 <span>{city}</span>
               </div>
               
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-[10px] sm:text-xs">
                 Presencial
               </Badge>
             </div>
           </div>
-          
-          {/* Action */}
-          {status.label !== 'Concluído' && (
-            <Button variant="ghost" size="icon" className="flex-shrink-0">
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>
