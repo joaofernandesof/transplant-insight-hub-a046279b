@@ -254,6 +254,8 @@ function NeoCareRoutes() {
 // NeoTeam Routes (Portal do Colaborador)
 // ====================================
 function NeoTeamRoutes() {
+  const NeoTeamGalleries = React.lazy(() => import('@/neohub/pages/neoteam/NeoTeamGalleries'));
+  
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
       <NeoTeamSidebar>
@@ -269,6 +271,7 @@ function NeoTeamRoutes() {
           <Route path="documents" element={<NeoTeamDocuments />} />
           <Route path="tasks" element={<NeoTeamTasks />} />
           <Route path="events" element={<NeoTeamEvents />} />
+          <Route path="galleries" element={<React.Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamGalleries /></React.Suspense>} />
           <Route path="postvenda" element={<PostVendaHome />} />
           <Route path="postvenda/chamados" element={<ChamadoListPage />} />
           <Route path="postvenda/chamados/:id" element={<ChamadoDetailPage />} />

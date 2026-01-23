@@ -802,6 +802,113 @@ export type Database = {
           },
         ]
       }
+      course_galleries: {
+        Row: {
+          class_id: string | null
+          course_id: string | null
+          cover_photo_url: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          photo_count: number | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          class_id?: string | null
+          course_id?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          photo_count?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          class_id?: string | null
+          course_id?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          photo_count?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_galleries_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_galleries_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_gallery_photos: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          file_size: number | null
+          filename: string | null
+          full_url: string
+          gallery_id: string
+          id: string
+          order_index: number | null
+          storage_path: string
+          thumbnail_url: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          file_size?: number | null
+          filename?: string | null
+          full_url: string
+          gallery_id: string
+          id?: string
+          order_index?: number | null
+          storage_path: string
+          thumbnail_url?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          file_size?: number | null
+          filename?: string | null
+          full_url?: string
+          gallery_id?: string
+          id?: string
+          order_index?: number | null
+          storage_path?: string
+          thumbnail_url?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_gallery_photos_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "course_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_modules: {
         Row: {
           course_id: string
