@@ -355,6 +355,25 @@ export function useGalleryManagement() {
     [updateGallery]
   );
 
+  // Set cover photo for gallery
+  const setCoverPhoto = useMutation({
+    mutationFn: async ({ galleryId, photoUrl }: { galleryId: string; photoUrl: string }) => {
+      const { error } = await supabase
+        .from('course_galleries')
+        .update({ cover_photo_url: photoUrl })
+        .eq('id', galleryId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-galleries'] });
+      toast.success('Foto de capa definida!');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao definir capa: ${error.message}`);
+    },
+  });
+
   return {
     galleries: allGalleries || [],
     isLoading,
@@ -367,6 +386,7 @@ export function useGalleryManagement() {
     uploadPhotos,
     deletePhoto,
     toggleStatus,
+    setCoverPhoto,
     refetch,
   };
 }
