@@ -115,7 +115,7 @@ export function useClassDetails(classId: string | null) {
           .select("id, exam_id, score, status, submitted_at")
           .eq("user_id", user.authUserId)
           .in("exam_id", examIds)
-          .in("status", ["passed", "failed"]) // Only completed attempts
+          .neq("status", "in_progress") // Only completed attempts (submitted, graded)
           .order("submitted_at", { ascending: false });
 
         if (attemptsData) {
