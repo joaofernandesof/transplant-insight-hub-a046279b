@@ -227,10 +227,11 @@ export default function ExamsAdmin() {
     setIsResetting(true);
     try {
       // Deletar todas as respostas primeiro (FK constraint)
+      // Usando 'id' com not.is.null para pegar todos
       const { error: answersError } = await supabase
         .from('exam_answers')
         .delete()
-        .gte('created_at', '1970-01-01'); // Deleta todos os registros
+        .not('id', 'is', null);
 
       if (answersError) throw answersError;
 
@@ -238,7 +239,7 @@ export default function ExamsAdmin() {
       const { error: attemptsError } = await supabase
         .from('exam_attempts')
         .delete()
-        .gte('created_at', '1970-01-01'); // Deleta todos os registros
+        .not('id', 'is', null);
 
       if (attemptsError) throw attemptsError;
 
