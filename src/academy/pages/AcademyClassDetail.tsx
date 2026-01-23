@@ -255,52 +255,19 @@ export function AcademyClassDetail() {
           
           {/* Survey Tab */}
           <TabsContent value="survey" className="space-y-4">
-            {/* Day 1 Survey Card */}
+            {/* Day 1 Survey Card - Single survey */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ClipboardList className="h-5 w-5 text-primary" />
-                  Pesquisa de Satisfação - Dia 1
-                </CardTitle>
-                <CardDescription>
-                  Avaliação do primeiro dia de curso, aulas e monitores
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {hasDay1Completed ? (
-                  <div className="text-center py-4">
-                    <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
-                    <p className="font-medium">Pesquisa do Dia 1 já respondida</p>
-                    <p className="text-sm text-muted-foreground">Obrigado pelo feedback!</p>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                    <p className="font-medium mb-2">Avalie o primeiro dia do curso</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      37 perguntas sobre as aulas, professores, monitores e infraestrutura.
-                    </p>
-                    <Button onClick={() => setDay1SurveyDialogOpen(true)}>
-                      Responder Pesquisa do Dia 1
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* General Survey Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-primary" />
-                  Pesquisa de Satisfação Geral
+                  Pesquisa de Satisfação
                 </CardTitle>
                 <CardDescription>
                   Sua opinião é muito importante para continuarmos evoluindo a formação
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {hasSurveyCompleted ? (
+                {hasDay1Completed ? (
                   <div className="text-center py-4">
                     <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
                     <p className="font-medium">Pesquisa já respondida</p>
@@ -311,13 +278,10 @@ export function AcademyClassDetail() {
                     <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
                     <p className="font-medium mb-2">Responda nossa pesquisa</p>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Leva menos de 8 minutos e nos ajuda a evoluir ainda mais a formação.
+                      37 perguntas sobre as aulas, professores, monitores e infraestrutura.
                     </p>
-                    <Button onClick={() => {
-                      setSurveyTriggeredByPhotos(false);
-                      setSurveyDialogOpen(true);
-                    }}>
-                      Iniciar Pesquisa Geral
+                    <Button onClick={() => setDay1SurveyDialogOpen(true)}>
+                      Responder Pesquisa
                     </Button>
                   </div>
                 )}
