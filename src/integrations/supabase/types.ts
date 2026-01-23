@@ -1160,6 +1160,155 @@ export type Database = {
           },
         ]
       }
+      day1_satisfaction_surveys: {
+        Row: {
+          class_id: string | null
+          completed_at: string | null
+          created_at: string
+          current_section: number | null
+          id: string
+          is_completed: boolean | null
+          q1_satisfaction_level: string | null
+          q10_patrick_time: string | null
+          q11_patrick_liked_most: string | null
+          q12_patrick_improve: string | null
+          q13_organization: string | null
+          q14_content_relevance: string | null
+          q15_teacher_competence: string | null
+          q16_material_quality: string | null
+          q17_punctuality: string | null
+          q18_infrastructure: string | null
+          q19_support_team: string | null
+          q2_first_time_course: boolean | null
+          q20_coffee_break: string | null
+          q21_liked_most_today: string | null
+          q22_suggestions: string | null
+          q23_start_preference: string | null
+          q24_hunger_level: string | null
+          q25_urgency_level: string | null
+          q26_investment_level: string | null
+          q27_weekly_time: string | null
+          q28_current_reality: string | null
+          q29_monitor_name: string | null
+          q3_hygor_expectations: string | null
+          q30_monitor_technical: string | null
+          q31_monitor_interest: string | null
+          q32_monitor_engagement: string | null
+          q33_monitor_posture: string | null
+          q34_monitor_communication: string | null
+          q35_monitor_contribution: string | null
+          q36_monitor_strength: string | null
+          q37_monitor_improve: string | null
+          q4_hygor_clarity: string | null
+          q5_hygor_time: string | null
+          q6_hygor_liked_most: string | null
+          q7_hygor_improve: string | null
+          q8_patrick_expectations: string | null
+          q9_patrick_clarity: string | null
+          user_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_section?: number | null
+          id?: string
+          is_completed?: boolean | null
+          q1_satisfaction_level?: string | null
+          q10_patrick_time?: string | null
+          q11_patrick_liked_most?: string | null
+          q12_patrick_improve?: string | null
+          q13_organization?: string | null
+          q14_content_relevance?: string | null
+          q15_teacher_competence?: string | null
+          q16_material_quality?: string | null
+          q17_punctuality?: string | null
+          q18_infrastructure?: string | null
+          q19_support_team?: string | null
+          q2_first_time_course?: boolean | null
+          q20_coffee_break?: string | null
+          q21_liked_most_today?: string | null
+          q22_suggestions?: string | null
+          q23_start_preference?: string | null
+          q24_hunger_level?: string | null
+          q25_urgency_level?: string | null
+          q26_investment_level?: string | null
+          q27_weekly_time?: string | null
+          q28_current_reality?: string | null
+          q29_monitor_name?: string | null
+          q3_hygor_expectations?: string | null
+          q30_monitor_technical?: string | null
+          q31_monitor_interest?: string | null
+          q32_monitor_engagement?: string | null
+          q33_monitor_posture?: string | null
+          q34_monitor_communication?: string | null
+          q35_monitor_contribution?: string | null
+          q36_monitor_strength?: string | null
+          q37_monitor_improve?: string | null
+          q4_hygor_clarity?: string | null
+          q5_hygor_time?: string | null
+          q6_hygor_liked_most?: string | null
+          q7_hygor_improve?: string | null
+          q8_patrick_expectations?: string | null
+          q9_patrick_clarity?: string | null
+          user_id: string
+        }
+        Update: {
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_section?: number | null
+          id?: string
+          is_completed?: boolean | null
+          q1_satisfaction_level?: string | null
+          q10_patrick_time?: string | null
+          q11_patrick_liked_most?: string | null
+          q12_patrick_improve?: string | null
+          q13_organization?: string | null
+          q14_content_relevance?: string | null
+          q15_teacher_competence?: string | null
+          q16_material_quality?: string | null
+          q17_punctuality?: string | null
+          q18_infrastructure?: string | null
+          q19_support_team?: string | null
+          q2_first_time_course?: boolean | null
+          q20_coffee_break?: string | null
+          q21_liked_most_today?: string | null
+          q22_suggestions?: string | null
+          q23_start_preference?: string | null
+          q24_hunger_level?: string | null
+          q25_urgency_level?: string | null
+          q26_investment_level?: string | null
+          q27_weekly_time?: string | null
+          q28_current_reality?: string | null
+          q29_monitor_name?: string | null
+          q3_hygor_expectations?: string | null
+          q30_monitor_technical?: string | null
+          q31_monitor_interest?: string | null
+          q32_monitor_engagement?: string | null
+          q33_monitor_posture?: string | null
+          q34_monitor_communication?: string | null
+          q35_monitor_contribution?: string | null
+          q36_monitor_strength?: string | null
+          q37_monitor_improve?: string | null
+          q4_hygor_clarity?: string | null
+          q5_hygor_time?: string | null
+          q6_hygor_liked_most?: string | null
+          q7_hygor_improve?: string | null
+          q8_patrick_expectations?: string | null
+          q9_patrick_clarity?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "day1_satisfaction_surveys_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_checklist_items: {
         Row: {
           category: string | null
