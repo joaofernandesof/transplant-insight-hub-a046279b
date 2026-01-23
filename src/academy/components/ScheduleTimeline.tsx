@@ -421,11 +421,20 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                           {item.activity}
                         </p>
                         
-                        {item.location && (
-                          <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium w-fit`}>
-                            {item.location}
-                          </span>
-                        )}
+                        {/* Location and Group badges */}
+                        <div className="flex flex-wrap items-center gap-1">
+                          {item.location && (
+                            <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium`}>
+                              {item.location}
+                            </span>
+                          )}
+                          {item.notes && item.notes.toLowerCase().includes('grupo') && (
+                            <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border bg-muted border-border text-foreground font-medium">
+                              {item.notes}
+                            </span>
+                          )}
+                        
+                        </div>
                         
                         {!isShort && item.instructor && (
                           <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto pt-0.5">
