@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { ExamUploadDialog } from "@/components/admin/ExamUploadDialog";
 import { ExamManagementTable } from "@/components/admin/ExamManagementTable";
+import { AttemptAnswersDialog } from "@/components/admin/AttemptAnswersDialog";
 
 export default function ExamsAdmin() {
   const navigate = useNavigate();
@@ -431,6 +432,7 @@ export default function ExamsAdmin() {
                       <TableHead className="text-center">Nota</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead>Data</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -486,6 +488,14 @@ export default function ExamsAdmin() {
                                 : '-'
                               }
                             </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <AttemptAnswersDialog
+                              attemptId={attempt.id}
+                              studentName={attempt.profiles?.name || 'Aluno'}
+                              examTitle={getExamTitle(attempt.exam_id)}
+                              score={attempt.score || 0}
+                            />
                           </TableCell>
                         </TableRow>
                       );
