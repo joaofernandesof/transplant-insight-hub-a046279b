@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   FileText, 
   BookOpen, 
@@ -14,7 +15,9 @@ import {
   Target,
   Settings2,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { useAllExams, useCourses, useToggleExamStatus, useUpdateExamCourse } from "@/hooks/useExams";
 import { toast } from "sonner";
@@ -23,6 +26,7 @@ type StatusFilter = 'all' | 'active' | 'inactive';
 
 export function ExamManagementTable() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [isOpen, setIsOpen] = useState(false);
   
   const { data: exams, isLoading: examsLoading } = useAllExams();
   const { data: courses, isLoading: coursesLoading } = useCourses();
@@ -81,42 +85,55 @@ export function ExamManagementTable() {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Settings2 className="h-5 w-5 text-primary" />
-              Gerenciar Provas
-            </CardTitle>
-            <CardDescription>
-              Ative ou desative provas e vincule a cursos
-            </CardDescription>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CollapsibleTrigger asChild>
+              <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+                <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                  {isOpen ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </Button>
+                <Settings2 className="h-5 w-5 text-primary" />
+                <div>
+                  <CardTitle className="text-base">Gerenciar Provas</CardTitle>
+                  <CardDescription className="text-xs">
+                    Ative ou desative provas e vincule a cursos
+                  </CardDescription>
+                </div>
+              </div>
+            </CollapsibleTrigger>
+            
+            {isOpen && (
+              <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <TabsList>
+                  <TabsTrigger value="all" className="gap-2">
+                    Todas
+                    <Badge variant="secondary" className="ml-1">{exams?.length || 0}</Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="active" className="gap-2">
+                    <Eye className="h-3 w-3" />
+                    Ativas
+                    <Badge variant="default" className="ml-1 bg-emerald-500">{activeCount}</Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="inactive" className="gap-2">
+                    <EyeOff className="h-3 w-3" />
+                    Inativas
+                    <Badge variant="secondary" className="ml-1">{inactiveCount}</Badge>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
           </div>
-          
-          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <TabsList>
-              <TabsTrigger value="all" className="gap-2">
-                Todas
-                <Badge variant="secondary" className="ml-1">{exams?.length || 0}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="active" className="gap-2">
-                <Eye className="h-3 w-3" />
-                Ativas
-                <Badge variant="default" className="ml-1 bg-emerald-500">{activeCount}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="inactive" className="gap-2">
-                <EyeOff className="h-3 w-3" />
-                Inativas
-                <Badge variant="secondary" className="ml-1">{inactiveCount}</Badge>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {filteredExams.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent>
+            {filteredExams.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Prova</TableHead>
@@ -210,7 +227,9 @@ export function ExamManagementTable() {
             </p>
           </div>
         )}
-      </CardContent>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }
