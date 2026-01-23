@@ -161,32 +161,32 @@ export function AcademyExamTaking() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background w-full overflow-x-hidden">
       {/* Header fixo */}
-      <header className="sticky top-0 z-20 bg-card border-b shadow-sm">
-        <div className="px-4 py-3">
+      <header className="sticky top-0 z-20 bg-card border-b shadow-sm w-full overflow-hidden">
+        <div className="px-3 sm:px-4 py-3 max-w-4xl mx-auto">
           <GlobalBreadcrumb />
-          <div className="flex items-center justify-between gap-4 mt-2">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/academy/exams')}>
+          <div className="flex items-center justify-between gap-2 sm:gap-4 mt-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate('/academy/exams')}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <FileText className="h-5 w-5 text-emerald-600" />
-              <div>
-                <h1 className="text-lg font-bold truncate">{exam?.title}</h1>
+              <FileText className="h-5 w-5 text-emerald-600 shrink-0 hidden sm:block" />
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-bold truncate">{exam?.title}</h1>
                 <p className="text-xs text-muted-foreground">
                   Questão {currentQuestionIndex + 1} de {totalQuestions}
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               {timeRemaining !== null && (
                 <Badge 
                   variant={timeRemaining < 300 ? "destructive" : "secondary"}
-                  className="text-sm px-3 py-1"
+                  className="text-xs sm:text-sm px-2 sm:px-3 py-1"
                 >
-                  <Clock className="h-4 w-4 mr-1" />
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   {formatTime(timeRemaining)}
                 </Badge>
               )}
@@ -201,7 +201,7 @@ export function AcademyExamTaking() {
         </div>
       </header>
 
-      <main className="px-4 py-6 w-full overflow-x-hidden max-w-4xl mx-auto">
+      <main className="px-3 sm:px-4 py-6 w-full overflow-x-hidden max-w-4xl mx-auto">
         {/* Question Card */}
         <Card className="mb-6 border-emerald-200 dark:border-emerald-800">
           <CardHeader>
