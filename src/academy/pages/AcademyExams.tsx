@@ -181,11 +181,22 @@ export function AcademyExams() {
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="font-semibold">{exam.title}</h3>
                           {bestScore !== null && (
-                            <Badge className={bestScore >= 70 
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' 
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
+                            <Badge className={
+                              bestScore >= 70 
+                                ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                                : 'bg-red-500 text-white hover:bg-red-600'
                             }>
-                              {bestScore >= 70 ? 'Aprovado' : 'Reprovado'} • {bestScore}%
+                              {bestScore >= 70 ? (
+                                <>
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Aprovado • {bestScore}%
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="h-3 w-3 mr-1" />
+                                  Reprovado • {bestScore}% — Tente novamente
+                                </>
+                              )}
                             </Badge>
                           )}
                         </div>
@@ -203,20 +214,7 @@ export function AcademyExams() {
                             <Target className="h-3 w-3" />
                             Mínimo: {exam.passing_score || 70}%
                           </span>
-                          {exam.max_attempts && (
-                            <span className="flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {examAttempts.length}/{exam.max_attempts} tentativas
-                            </span>
-                          )}
                         </div>
-
-                        {bestScore !== null && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <Progress value={bestScore} className="flex-1 h-2" />
-                            <span className="text-xs font-medium">{bestScore}%</span>
-                          </div>
-                        )}
                       </div>
 
                       <div className="flex flex-col gap-2">
