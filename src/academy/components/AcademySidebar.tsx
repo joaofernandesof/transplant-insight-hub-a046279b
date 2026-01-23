@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, BookOpen, Award, FileText, Trophy,
-  Settings, LogOut, User, Users, TrendingUp, CalendarDays
+  Settings, LogOut, User, Users, TrendingUp, CalendarDays, Menu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,10 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
+import { useTheme } from 'next-themes';
+import ibramecLogo from '@/assets/ibramec-logo.png';
+import ibramecLogoDark from '@/assets/ibramec-logo-white.png';
+import ibramecIcon from '@/assets/ibramec-icon.png';
 
 interface AcademySidebarProps {
   children: React.ReactNode;
@@ -30,6 +34,12 @@ const navItems = [
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { user, logout } = useUnifiedAuth();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -41,18 +51,25 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   };
 
   const hasMultipleProfiles = user && user.profiles.length > 1;
+  const currentLogo = mounted && resolvedTheme === 'dark' ? ibramecLogoDark : ibramecLogo;
 
   return (
     <div className="flex flex-col h-full">
       {/* Header with IBRAMEC Logo */}
       <div className="p-4 border-b bg-gradient-to-r from-emerald-500/10 to-green-500/10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-            <Trophy className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <span className="font-bold text-emerald-700 dark:text-emerald-400">IBRAMEC</span>
-            <p className="text-xs text-muted-foreground">Portal do Aluno</p>
+          <img 
+            src={ibramecIcon} 
+            alt="IBRAMEC" 
+            className="w-10 h-10 rounded-xl shadow-lg object-cover"
+          />
+          <div className="flex-1">
+            <img 
+              src={currentLogo} 
+              alt="IBRAMEC - Instituto Brasileiro de Medicina Capilar" 
+              className="h-6 object-contain"
+            />
+            <p className="text-xs text-muted-foreground mt-0.5">Portal do Aluno</p>
           </div>
         </div>
       </div>
@@ -168,7 +185,7 @@ export function AcademySidebar({ children }: AcademySidebarProps) {
             size="icon"
             className="fixed top-4 left-4 z-40 lg:hidden border-emerald-500 bg-background"
           >
-            <Trophy className="h-5 w-5 text-emerald-600" />
+            <img src={ibramecIcon} alt="Menu" className="h-6 w-6 rounded object-cover" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">

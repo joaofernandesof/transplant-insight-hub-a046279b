@@ -286,6 +286,13 @@ Deno.serve(async (req) => {
     // Track processed emails to avoid duplicates
     const processedEmails = new Set<string>();
 
+    // Get all existing neohub_users emails in one query
+    const { data: existingUsers } = await supabaseAdmin
+      .from("neohub_users")
+      .select("email");
+    
+    const existingEmails = new Set(existingUsers?.map(u => u.email?.toLowerCase()) || []);
+
     for (const student of students) {
       const email = cleanEmail(student.email);
       
@@ -301,46 +308,51 @@ Deno.serve(async (req) => {
       }
       processedEmails.add(email);
 
+      // Skip if already exists in database
+      if (existingEmails.has(email.toLowerCase())) {
+        results.push({ email, status: "already_exists" });
+        continue;
+      }
+
       try {
-        // Check if user already exists in neohub_users
-        const { data: existingUser } = await supabaseAdmin
-          .from("neohub_users")
-          .select("id")
-          .eq("email", email)
-          .single();
-
-        if (existingUser) {
-          results.push({ email, status: "already_exists" });
-          continue;
-        }
-
-        // Check if auth user exists
-        const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
-        const existingAuthUser = authUsers?.users.find(u => u.email === email);
+        const password = generatePassword(student.fullName);
+        
+        // Try to create auth user directly (faster than checking first)
+        const { data: newAuthUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { name: student.fullName }
+        });
 
         let authUserId: string;
-        const password = generatePassword(student.fullName);
 
-        if (existingAuthUser) {
-          authUserId = existingAuthUser.id;
-          // Update password for existing auth user
-          await supabaseAdmin.auth.admin.updateUserById(authUserId, {
-            password,
-            email_confirm: true
-          });
-        } else {
-          // Create new auth user
-          const { data: newAuthUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-            email,
-            password,
-            email_confirm: true,
-            user_metadata: { name: student.fullName }
-          });
-
-          if (authError) {
+        if (authError) {
+          // If user already exists in auth, try to get their ID
+          if (authError.message.includes("already been registered") || authError.message.includes("already exists")) {
+            // Get user by email using getUserByEmail (available in admin API)
+            const { data: userData } = await supabaseAdmin.auth.admin.listUsers({ 
+              page: 1, 
+              perPage: 1000 
+            });
+            const existingAuthUser = userData?.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+            
+            if (existingAuthUser) {
+              authUserId = existingAuthUser.id;
+              // Update password
+              await supabaseAdmin.auth.admin.updateUserById(authUserId, {
+                password,
+                email_confirm: true
+              });
+            } else {
+              results.push({ email, status: "auth_error", error: "User exists but not found" });
+              continue;
+            }
+          } else {
             results.push({ email, status: "auth_error", error: authError.message });
             continue;
           }
+        } else {
           authUserId = newAuthUser.user.id;
         }
 
@@ -357,7 +369,7 @@ Deno.serve(async (req) => {
             address_state: student.state || null,
             birth_date: parseBirthDate(student.birthDate),
             crm: student.crm || null,
-            instagram_url: student.instagram || null,
+            instagram_personal: student.instagram || null,
             is_active: true
           })
           .select()
