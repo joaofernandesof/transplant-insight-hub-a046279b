@@ -1,8 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
+
+// Batch size for parallel uploads
+const UPLOAD_BATCH_SIZE = 10;
 
 export interface CourseGallery {
   id: string;
@@ -212,7 +215,7 @@ export function useGalleryManagement() {
     },
   });
 
-  // Upload photos to gallery
+  // Upload photos to gallery - optimized for bulk uploads
   const uploadPhotos = useCallback(
     async (galleryId: string, files: File[]) => {
       if (!canWrite) {
@@ -220,56 +223,97 @@ export function useGalleryManagement() {
         return [];
       }
 
+      if (files.length === 0) return [];
+
       setIsUploading(true);
       const uploadedPhotos: GalleryPhoto[] = [];
+      const failedUploads: string[] = [];
+      const totalFiles = files.length;
+      
+      // Show initial toast
+      const toastId = toast.loading(`Preparando upload de ${totalFiles} foto(s)...`);
 
       try {
-        for (const file of files) {
-          const timestamp = Date.now();
-          const ext = file.name.split('.').pop();
-          const storagePath = `${galleryId}/${timestamp}-${Math.random().toString(36).substring(7)}.${ext}`;
+        // Process in batches for better performance
+        for (let i = 0; i < files.length; i += UPLOAD_BATCH_SIZE) {
+          const batch = files.slice(i, i + UPLOAD_BATCH_SIZE);
+          const batchNumber = Math.floor(i / UPLOAD_BATCH_SIZE) + 1;
+          const totalBatches = Math.ceil(files.length / UPLOAD_BATCH_SIZE);
+          
+          // Update progress toast
+          toast.loading(`Enviando lote ${batchNumber}/${totalBatches} (${i + 1}-${Math.min(i + UPLOAD_BATCH_SIZE, totalFiles)} de ${totalFiles})...`, { id: toastId });
+          
+          // Upload batch in parallel
+          const batchPromises = batch.map(async (file) => {
+            try {
+              const timestamp = Date.now();
+              const ext = file.name.split('.').pop();
+              const storagePath = `${galleryId}/${timestamp}-${Math.random().toString(36).substring(7)}.${ext}`;
 
-          // Upload to storage
-          const { error: uploadError } = await supabase.storage
-            .from('course-galleries')
-            .upload(storagePath, file, {
-              cacheControl: '3600',
-              upsert: false,
-            });
+              // Upload to storage
+              const { error: uploadError } = await supabase.storage
+                .from('course-galleries')
+                .upload(storagePath, file, {
+                  cacheControl: '3600',
+                  upsert: false,
+                });
 
-          if (uploadError) throw uploadError;
+              if (uploadError) throw uploadError;
 
-          // Get public URL
-          const { data: urlData } = supabase.storage
-            .from('course-galleries')
-            .getPublicUrl(storagePath);
+              // Get public URL
+              const { data: urlData } = supabase.storage
+                .from('course-galleries')
+                .getPublicUrl(storagePath);
 
-          // Save photo record (use authUserId since uploaded_by references auth.users)
-          const { data: photo, error: dbError } = await supabase
-            .from('course_gallery_photos')
-            .insert({
-              gallery_id: galleryId,
-              storage_path: storagePath,
-              full_url: urlData.publicUrl,
-              thumbnail_url: urlData.publicUrl, // Could generate actual thumbnail
-              filename: file.name,
-              file_size: file.size,
-              uploaded_by: user?.authUserId,
-            })
-            .select()
-            .single();
+              // Save photo record
+              const { data: photo, error: dbError } = await supabase
+                .from('course_gallery_photos')
+                .insert({
+                  gallery_id: galleryId,
+                  storage_path: storagePath,
+                  full_url: urlData.publicUrl,
+                  thumbnail_url: urlData.publicUrl,
+                  filename: file.name,
+                  file_size: file.size,
+                  uploaded_by: user?.authUserId,
+                })
+                .select()
+                .single();
 
-          if (dbError) throw dbError;
-          uploadedPhotos.push(photo);
+              if (dbError) throw dbError;
+              return photo;
+            } catch (error: any) {
+              console.error(`Failed to upload ${file.name}:`, error);
+              failedUploads.push(file.name);
+              return null;
+            }
+          });
+
+          const batchResults = await Promise.all(batchPromises);
+          batchResults.forEach(photo => {
+            if (photo) uploadedPhotos.push(photo);
+          });
+          
+          // Small delay between batches to avoid rate limiting
+          if (i + UPLOAD_BATCH_SIZE < files.length) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
         }
 
         queryClient.invalidateQueries({ queryKey: ['gallery-photos', galleryId] });
         queryClient.invalidateQueries({ queryKey: ['all-galleries'] });
-        toast.success(`${uploadedPhotos.length} foto(s) enviada(s)!`);
+        
+        // Final success/warning toast
+        if (failedUploads.length === 0) {
+          toast.success(`${uploadedPhotos.length} foto(s) enviada(s) com sucesso!`, { id: toastId });
+        } else {
+          toast.warning(`${uploadedPhotos.length} foto(s) enviada(s), ${failedUploads.length} falhou(aram)`, { id: toastId });
+        }
+        
         return uploadedPhotos;
       } catch (error: any) {
-        toast.error(`Erro no upload: ${error.message}`);
-        return [];
+        toast.error(`Erro no upload: ${error.message}`, { id: toastId });
+        return uploadedPhotos;
       } finally {
         setIsUploading(false);
       }
