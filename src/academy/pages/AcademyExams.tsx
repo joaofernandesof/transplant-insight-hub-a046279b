@@ -40,8 +40,9 @@ export function AcademyExams() {
     attempts.some(a => a.exam_id === e.id && a.status === 'submitted')
   );
 
+  // Only get submitted attempts (exclude in_progress)
   const getExamAttempts = (examId: string) => {
-    return attempts.filter(a => a.exam_id === examId);
+    return attempts.filter(a => a.exam_id === examId && a.status !== 'in_progress');
   };
 
   const getBestScore = (examId: string) => {
