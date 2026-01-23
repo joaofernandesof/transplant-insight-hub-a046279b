@@ -194,9 +194,8 @@ export function AcademyClassDetail() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(val) => {
           // If clicking photos and survey not completed, open survey dialog
-          if (val === 'photos' && !hasSurveyCompleted && !isAdmin) {
-            setSurveyTriggeredByPhotos(true);
-            setSurveyDialogOpen(true);
+          if (val === 'photos' && !hasDay1Completed && !isAdmin) {
+            setDay1SurveyDialogOpen(true);
             return;
           }
           setActiveTab(val);
@@ -211,7 +210,7 @@ export function AcademyClassDetail() {
               <span className="text-[10px] sm:text-xs">Provas</span>
             </TabsTrigger>
             <TabsTrigger value="photos" className="flex-col gap-1 py-2 px-1 relative">
-              {!hasSurveyCompleted && !isAdmin && (
+              {!hasDay1Completed && !isAdmin && (
                 <Lock className="h-3 w-3 absolute top-1 right-1 text-muted-foreground" />
               )}
               <Camera className="h-4 w-4" />
