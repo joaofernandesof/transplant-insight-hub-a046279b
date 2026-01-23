@@ -281,7 +281,7 @@ function getGroupBadgeColors(groupName: string): { bg: string; border: string; t
   return { bg: 'bg-muted', border: 'border-border', text: 'text-foreground' };
 }
 
-// Parse notes to extract group badges
+// Parse notes to extract group badges - shows dots on mobile, full badges on desktop
 function parseGroupBadges(notes: string): React.ReactNode[] {
   const groupColors = ['verde', 'preto', 'azul', 'branco'];
   const foundGroups: string[] = [];
@@ -291,23 +291,34 @@ function parseGroupBadges(notes: string): React.ReactNode[] {
   // Find each color mentioned in the notes
   for (const color of groupColors) {
     if (lower.includes(color)) {
-      foundGroups.push(`Grupo ${color.charAt(0).toUpperCase() + color.slice(1)}`);
+      foundGroups.push(color);
     }
   }
   
-  // If no specific colors found but has "grupo", show as-is
-  if (foundGroups.length === 0 && lower.includes('grupo')) {
-    foundGroups.push(notes.trim());
+  // If no specific colors found, skip
+  if (foundGroups.length === 0) {
+    return [];
   }
   
-  return foundGroups.map((group, index) => {
-    const colors = getGroupBadgeColors(group);
+  return foundGroups.map((color, index) => {
+    const groupName = `Grupo ${color.charAt(0).toUpperCase() + color.slice(1)}`;
+    const colors = getGroupBadgeColors(groupName);
     return (
       <span
         key={index}
-        className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border font-medium ${colors.bg} ${colors.border} ${colors.text}`}
+        className="inline-flex items-center gap-1"
+        title={groupName}
       >
-        {group}
+        {/* Dot for mobile - always visible */}
+        <span 
+          className={`w-2.5 h-2.5 sm:hidden rounded-full ${colors.bg} ${colors.border} border flex-shrink-0`}
+        />
+        {/* Full badge for desktop */}
+        <span
+          className={`hidden sm:inline-flex text-xs px-1.5 py-0.5 rounded-full border font-medium ${colors.bg} ${colors.border} ${colors.text}`}
+        >
+          {groupName}
+        </span>
       </span>
     );
   });
