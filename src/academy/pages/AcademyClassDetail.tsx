@@ -177,23 +177,23 @@ export function AcademyClassDetail() {
 
         {/* Tabs */}
         <Tabs defaultValue="schedule" className="space-y-4">
-          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
-            <TabsTrigger value="schedule" className="gap-2">
+          <TabsList className={`grid w-full h-auto ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <TabsTrigger value="schedule" className="flex-col gap-1 py-2 px-1">
               <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Cronograma</span>
+              <span className="text-[10px] sm:text-xs">Cronograma</span>
             </TabsTrigger>
-            <TabsTrigger value="exams" className="gap-2">
+            <TabsTrigger value="exams" className="flex-col gap-1 py-2 px-1">
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Provas</span>
+              <span className="text-[10px] sm:text-xs">Provas</span>
             </TabsTrigger>
-            <TabsTrigger value="network" className="gap-2">
+            <TabsTrigger value="network" className="flex-col gap-1 py-2 px-1">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Network</span>
+              <span className="text-[10px] sm:text-xs">Network</span>
             </TabsTrigger>
             {isAdmin && (
-              <TabsTrigger value="admin" className="gap-2">
+              <TabsTrigger value="admin" className="flex-col gap-1 py-2 px-1">
                 <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Gestão</span>
+                <span className="text-[10px] sm:text-xs">Gestão</span>
               </TabsTrigger>
             )}
           </TabsList>
