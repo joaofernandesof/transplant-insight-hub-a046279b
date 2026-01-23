@@ -237,7 +237,7 @@ export function MostMissedQuestionsPanel() {
                           <HelpCircle className="h-3 w-3" />
                           <span>Resposta correta:</span>
                           <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                            {q.correct_answer} - {q.correct_text.length > 50 ? q.correct_text.slice(0, 50) + '...' : q.correct_text}
+                            {q.correct_text.length > 60 ? q.correct_text.slice(0, 60) + '...' : q.correct_text}
                           </span>
                         </div>
                         
