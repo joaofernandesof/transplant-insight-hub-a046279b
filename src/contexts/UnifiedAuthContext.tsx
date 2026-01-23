@@ -69,7 +69,7 @@ export const PROFILE_ROUTES: Record<ProfileKey, string> = {
   licenciado: '/home',
   colaborador: '/neoteam',
   medico: '/neoteam',
-  aluno: '/university',
+  aluno: '/academy',
   paciente: '/neocare',
   cliente_avivar: '/avivar',
 };
