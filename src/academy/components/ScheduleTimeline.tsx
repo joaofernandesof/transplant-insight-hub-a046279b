@@ -385,39 +385,47 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                     left: left,
                   }}
                 >
-                  <div className={`flex ${isShort ? 'flex-row items-center gap-2' : 'flex-col gap-1'}`}>
+                  <div className={`flex ${isShort ? 'flex-row items-center gap-1.5' : 'flex-col gap-1'} h-full`}>
                     {/* Icon and Time row */}
-                    <div className={`flex items-center gap-2 ${style.textColor}`}>
-                      <div className={`flex-shrink-0 w-7 h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center`}>
+                    <div className={`flex items-center gap-1.5 flex-shrink-0 ${style.textColor} flex-wrap`}>
+                      <div className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center`}>
                         {style.icon}
                       </div>
-                      <span className="text-xs font-semibold whitespace-nowrap">
+                      <span className="text-[10px] sm:text-xs font-semibold whitespace-nowrap">
                         {formatTime(item.startTime)} - {formatTime(item.endTime)}
                       </span>
-                      {item.location && totalColumns === 1 && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+                      {/* Location badge with activity color - inline on desktop or when space allows */}
+                      {item.location && !isShort && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium whitespace-nowrap hidden sm:inline-block`}>
                           {item.location}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                     
                     {/* Activity name */}
-                    <p className={`font-medium text-sm ${isShort ? 'truncate flex-1' : 'line-clamp-2'}`}>
+                    <p className={`font-medium text-xs sm:text-sm ${isShort ? 'truncate flex-1 min-w-0' : 'line-clamp-2'}`}>
                       {item.activity}
                     </p>
                     
-                    {/* Location for parallel activities (show below title) */}
-                    {!isShort && item.location && totalColumns > 1 && (
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 w-fit">
+                    {/* Location badge on mobile - shown below title for better fit */}
+                    {item.location && !isShort && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium w-fit sm:hidden`}>
                         {item.location}
-                      </Badge>
+                      </span>
+                    )}
+                    
+                    {/* Location for short blocks */}
+                    {item.location && isShort && (
+                      <span className={`text-[9px] px-1 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium whitespace-nowrap flex-shrink-0`}>
+                        {item.location}
+                      </span>
                     )}
                     
                     {/* Instructor (only for taller blocks) */}
                     {!isShort && item.instructor && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {item.instructor}
+                      <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto">
+                        <User className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{item.instructor}</span>
                       </p>
                     )}
                   </div>
