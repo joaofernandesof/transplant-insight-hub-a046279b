@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Frown, Meh, Smile, ThumbsUp, Heart, XCircle, MinusCircle, CheckCircle, ThumbsDown, Clock, Timer, Zap, Flame, Target, DollarSign, Wallet, TrendingUp, Hourglass, Calendar } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Frown, Meh, Smile, ThumbsUp, Heart, XCircle, MinusCircle, CheckCircle, ThumbsDown, Clock, Timer, Zap, Hourglass, Calendar } from 'lucide-react';
 import { useDay1Survey, Day1SurveyFormData } from '../hooks/useDay1Survey';
 import { cn } from '@/lib/utils';
 
@@ -13,11 +13,13 @@ import drHygorPhoto from '@/assets/instructors/dr-hygor.png';
 import draGleydesPhoto from '@/assets/instructors/dra-gleyldes.png';
 import drEderPhoto from '@/assets/instructors/dr-eder.png';
 
-// Instructor data
+// Instructor data - now includes all monitors for individual evaluation
 const INSTRUCTORS: Record<string, { name: string; role: string; photo: string }> = {
   'Aula Dr. Hygor Guerreiro': { name: 'Dr. Hygor Guerreiro', role: 'Professor', photo: drHygorPhoto },
   'Aula Dr. Patrick Penaforte': { name: 'Dr. Patrick Penaforte', role: 'Professor e Monitor', photo: drPatrickPhoto },
-  'Avaliação Monitor': { name: '', role: 'Monitor', photo: '' },
+  'Avaliação Monitor - Dra Gleyldes': { name: 'Dra. Gleyldes', role: 'Monitora', photo: draGleydesPhoto },
+  'Avaliação Monitor - Dr Eder': { name: 'Dr. Eder', role: 'Monitor', photo: drEderPhoto },
+  'Avaliação Monitor - Dr Patrick': { name: 'Dr. Patrick Penaforte', role: 'Monitor', photo: drPatrickPhoto },
 };
 
 interface Day1SurveyDialogProps {
@@ -27,7 +29,7 @@ interface Day1SurveyDialogProps {
   onComplete?: () => void;
 }
 
-// Define all 37 questions in order
+// Define all questions in order
 type QuestionType = 'radio' | 'text' | 'boolean';
 
 interface QuestionOption {
@@ -79,6 +81,15 @@ const qualityIcons = [
   <MinusCircle key="minus" className="h-5 w-5 text-muted-foreground" />,
   <Smile key="smile" className="h-5 w-5 text-emerald-500" />,
   <Heart key="heart" className="h-5 w-5 text-emerald-600" />,
+];
+
+// Monitor evaluation quality options
+const monitorQualityOptions: QuestionOption[] = [
+  { value: 'Muito ruim', label: 'Muito ruim', icon: qualityIcons[0] },
+  { value: 'Ruim', label: 'Ruim', icon: qualityIcons[1] },
+  { value: 'Regular', label: 'Regular', icon: qualityIcons[2] },
+  { value: 'Bom', label: 'Bom', icon: qualityIcons[3] },
+  { value: 'Excelente', label: 'Excelente', icon: qualityIcons[4] },
 ];
 
 const QUESTIONS: Question[] = [
@@ -320,31 +331,10 @@ const QUESTIONS: Question[] = [
     type: 'text',
     category: 'Feedback Aberto',
   },
-  // 6. Diagnóstico de Início
-  {
-    key: 'q23_start_preference',
-    text: '23. Você pretende iniciar imediatamente ou prefere ir mais lento?',
-    type: 'radio',
-    category: 'Diagnóstico de Início de Curso',
-    options: [
-      { value: 'Iniciar imediatamente', label: 'Iniciar imediatamente', icon: <Zap key="zap" className="h-5 w-5 text-amber-500" /> },
-      { value: 'Ir mais lento', label: 'Ir mais lento', icon: <Clock key="clock" className="h-5 w-5 text-blue-500" /> },
-    ],
-  },
-  {
-    key: 'q24_hunger_level',
-    text: '24. Qual seu nível de fome por resultado agora?',
-    type: 'radio',
-    category: 'Diagnóstico de Início de Curso',
-    options: [
-      { value: 'Baixa', label: 'Baixa', icon: <MinusCircle key="low" className="h-5 w-5 text-muted-foreground" /> },
-      { value: 'Média', label: 'Média', icon: <Target key="mid" className="h-5 w-5 text-amber-500" /> },
-      { value: 'Alta', label: 'Alta', icon: <Flame key="high" className="h-5 w-5 text-destructive" /> },
-    ],
-  },
+  // 6. Diagnóstico de Início (Removed q23, q24, q26)
   {
     key: 'q25_urgency_level',
-    text: '25. Qual sua urgência para iniciar na área?',
+    text: '23. Qual sua urgência para iniciar na área?',
     type: 'radio',
     category: 'Diagnóstico de Início de Curso',
     options: [
@@ -354,19 +344,8 @@ const QUESTIONS: Question[] = [
     ],
   },
   {
-    key: 'q26_investment_level',
-    text: '26. Quanto você está disposto a investir neste momento?',
-    type: 'radio',
-    category: 'Diagnóstico de Início de Curso',
-    options: [
-      { value: 'Até R$ 10 mil', label: 'Até R$ 10 mil', icon: <Wallet key="low" className="h-5 w-5 text-muted-foreground" /> },
-      { value: 'De R$ 10 mil a R$ 30 mil', label: 'De R$ 10 mil a R$ 30 mil', icon: <DollarSign key="mid" className="h-5 w-5 text-amber-500" /> },
-      { value: 'Acima de R$ 30 mil', label: 'Acima de R$ 30 mil', icon: <TrendingUp key="high" className="h-5 w-5 text-emerald-500" /> },
-    ],
-  },
-  {
     key: 'q27_weekly_time',
-    text: '27. Quanto tempo disponível você tem para se dedicar semanalmente?',
+    text: '24. Quanto tempo disponível você tem para se dedicar semanalmente?',
     type: 'radio',
     category: 'Diagnóstico de Início de Curso',
     options: [
@@ -377,118 +356,185 @@ const QUESTIONS: Question[] = [
   },
   {
     key: 'q28_current_reality',
-    text: '28. Qual alternativa melhor representa sua realidade hoje?',
+    text: '25. Qual alternativa melhor representa sua realidade hoje?',
     type: 'radio',
     category: 'Diagnóstico de Início de Curso',
     options: [
       { value: 'Baixo tempo e baixo investimento', label: 'Baixo tempo e baixo investimento', icon: <MinusCircle key="ll" className="h-5 w-5 text-muted-foreground" /> },
-      { value: 'Baixo tempo e alto investimento', label: 'Baixo tempo e alto investimento', icon: <DollarSign key="lh" className="h-5 w-5 text-amber-500" /> },
+      { value: 'Baixo tempo e alto investimento', label: 'Baixo tempo e alto investimento', icon: <Zap key="lh" className="h-5 w-5 text-amber-500" /> },
       { value: 'Alto tempo e baixo investimento', label: 'Alto tempo e baixo investimento', icon: <Clock key="hl" className="h-5 w-5 text-blue-500" /> },
-      { value: 'Alto tempo e alto investimento', label: 'Alto tempo e alto investimento', icon: <TrendingUp key="hh" className="h-5 w-5 text-emerald-500" /> },
+      { value: 'Alto tempo e alto investimento', label: 'Alto tempo e alto investimento', icon: <CheckCircle key="hh" className="h-5 w-5 text-emerald-500" /> },
     ],
   },
-  // 7. Avaliação dos Monitores
-  {
-    key: 'q29_monitor_name',
-    text: '29. Qual monitor você está avaliando?',
-    type: 'radio',
-    category: 'Avaliação dos Monitores',
-    options: [
-      { value: 'Dr Elenilton', label: 'Dr Elenilton', icon: <CheckCircle key="e" className="h-5 w-5 text-primary" /> },
-      { value: 'Dra Gleyldes', label: 'Dra Gleyldes', icon: <CheckCircle key="g" className="h-5 w-5 text-primary" /> },
-      { value: 'Dr Elder', label: 'Dr Elder', icon: <CheckCircle key="el" className="h-5 w-5 text-primary" /> },
-      { value: 'Dr Patrick', label: 'Dr Patrick', icon: <CheckCircle key="p" className="h-5 w-5 text-primary" /> },
-    ],
-  },
+  
+  // ======= Avaliação Individual dos Monitores =======
+  
+  // Monitor 1: Dra Gleyldes
   {
     key: 'q30_monitor_technical',
-    text: '30. Avalie o domínio técnico do monitor',
+    text: '26. Avalie o domínio técnico da monitora',
     type: 'radio',
-    category: 'Avaliação dos Monitores',
-    options: [
-      { value: 'Muito ruim', label: 'Muito ruim', icon: qualityIcons[0] },
-      { value: 'Ruim', label: 'Ruim', icon: qualityIcons[1] },
-      { value: 'Regular', label: 'Regular', icon: qualityIcons[2] },
-      { value: 'Bom', label: 'Bom', icon: qualityIcons[3] },
-      { value: 'Excelente', label: 'Excelente', icon: qualityIcons[4] },
-    ],
+    category: 'Avaliação Monitor - Dra Gleyldes',
+    options: monitorQualityOptions,
   },
   {
     key: 'q31_monitor_interest',
-    text: '31. Interesse do monitor em ensinar e orientar',
+    text: '27. Interesse da monitora em ensinar e orientar',
     type: 'radio',
-    category: 'Avaliação dos Monitores',
-    options: [
-      { value: 'Muito ruim', label: 'Muito ruim', icon: qualityIcons[0] },
-      { value: 'Ruim', label: 'Ruim', icon: qualityIcons[1] },
-      { value: 'Regular', label: 'Regular', icon: qualityIcons[2] },
-      { value: 'Bom', label: 'Bom', icon: qualityIcons[3] },
-      { value: 'Excelente', label: 'Excelente', icon: qualityIcons[4] },
-    ],
+    category: 'Avaliação Monitor - Dra Gleyldes',
+    options: monitorQualityOptions,
   },
   {
     key: 'q32_monitor_engagement',
-    text: '32. Engajamento do monitor com a turma',
+    text: '28. Engajamento da monitora com a turma',
     type: 'radio',
-    category: 'Avaliação dos Monitores',
-    options: [
-      { value: 'Muito ruim', label: 'Muito ruim', icon: qualityIcons[0] },
-      { value: 'Ruim', label: 'Ruim', icon: qualityIcons[1] },
-      { value: 'Regular', label: 'Regular', icon: qualityIcons[2] },
-      { value: 'Bom', label: 'Bom', icon: qualityIcons[3] },
-      { value: 'Excelente', label: 'Excelente', icon: qualityIcons[4] },
-    ],
+    category: 'Avaliação Monitor - Dra Gleyldes',
+    options: monitorQualityOptions,
   },
   {
     key: 'q33_monitor_posture',
-    text: '33. Postura profissional do monitor',
+    text: '29. Postura profissional da monitora',
     type: 'radio',
-    category: 'Avaliação dos Monitores',
-    options: [
-      { value: 'Muito ruim', label: 'Muito ruim', icon: qualityIcons[0] },
-      { value: 'Ruim', label: 'Ruim', icon: qualityIcons[1] },
-      { value: 'Regular', label: 'Regular', icon: qualityIcons[2] },
-      { value: 'Bom', label: 'Bom', icon: qualityIcons[3] },
-      { value: 'Excelente', label: 'Excelente', icon: qualityIcons[4] },
-    ],
+    category: 'Avaliação Monitor - Dra Gleyldes',
+    options: monitorQualityOptions,
   },
   {
     key: 'q34_monitor_communication',
-    text: '34. Comunicação com os alunos',
+    text: '30. Comunicação da monitora com os alunos',
     type: 'radio',
-    category: 'Avaliação dos Monitores',
-    options: [
-      { value: 'Muito ruim', label: 'Muito ruim', icon: qualityIcons[0] },
-      { value: 'Ruim', label: 'Ruim', icon: qualityIcons[1] },
-      { value: 'Regular', label: 'Regular', icon: qualityIcons[2] },
-      { value: 'Bom', label: 'Bom', icon: qualityIcons[3] },
-      { value: 'Excelente', label: 'Excelente', icon: qualityIcons[4] },
-    ],
+    category: 'Avaliação Monitor - Dra Gleyldes',
+    options: monitorQualityOptions,
   },
   {
     key: 'q35_monitor_contribution',
-    text: '35. Contribuição do monitor para sua experiência no curso',
+    text: '31. Contribuição da monitora para sua experiência no curso',
     type: 'radio',
-    category: 'Avaliação dos Monitores',
-    options: [
-      { value: 'Muito ruim', label: 'Muito ruim', icon: qualityIcons[0] },
-      { value: 'Ruim', label: 'Ruim', icon: qualityIcons[1] },
-      { value: 'Regular', label: 'Regular', icon: qualityIcons[2] },
-      { value: 'Bom', label: 'Bom', icon: qualityIcons[3] },
-      { value: 'Excelente', label: 'Excelente', icon: qualityIcons[4] },
-    ],
+    category: 'Avaliação Monitor - Dra Gleyldes',
+    options: monitorQualityOptions,
   },
   {
     key: 'q36_monitor_strength',
-    text: '36. Qual foi o principal ponto forte desse monitor?',
+    text: '32. Qual foi o principal ponto forte da Dra. Gleyldes?',
     type: 'text',
-    category: 'Avaliação dos Monitores',
+    category: 'Avaliação Monitor - Dra Gleyldes',
   },
   {
     key: 'q37_monitor_improve',
-    text: '37. O que esse monitor pode melhorar para as próximas turmas?',
+    text: '33. O que a Dra. Gleyldes pode melhorar para as próximas turmas?',
     type: 'text',
-    category: 'Avaliação dos Monitores',
+    category: 'Avaliação Monitor - Dra Gleyldes',
+  },
+  
+  // Monitor 2: Dr Eder
+  {
+    key: 'q38_eder_technical' as keyof Day1SurveyFormData,
+    text: '34. Avalie o domínio técnico do monitor',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q39_eder_interest' as keyof Day1SurveyFormData,
+    text: '35. Interesse do monitor em ensinar e orientar',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q40_eder_engagement' as keyof Day1SurveyFormData,
+    text: '36. Engajamento do monitor com a turma',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q41_eder_posture' as keyof Day1SurveyFormData,
+    text: '37. Postura profissional do monitor',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q42_eder_communication' as keyof Day1SurveyFormData,
+    text: '38. Comunicação do monitor com os alunos',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q43_eder_contribution' as keyof Day1SurveyFormData,
+    text: '39. Contribuição do monitor para sua experiência no curso',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q44_eder_strength' as keyof Day1SurveyFormData,
+    text: '40. Qual foi o principal ponto forte do Dr. Eder?',
+    type: 'text',
+    category: 'Avaliação Monitor - Dr Eder',
+  },
+  {
+    key: 'q45_eder_improve' as keyof Day1SurveyFormData,
+    text: '41. O que o Dr. Eder pode melhorar para as próximas turmas?',
+    type: 'text',
+    category: 'Avaliação Monitor - Dr Eder',
+  },
+  
+  // Monitor 3: Dr Patrick (como monitor)
+  {
+    key: 'q46_patrick_m_technical' as keyof Day1SurveyFormData,
+    text: '42. Avalie o domínio técnico do monitor',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Patrick',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q47_patrick_m_interest' as keyof Day1SurveyFormData,
+    text: '43. Interesse do monitor em ensinar e orientar',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Patrick',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q48_patrick_m_engagement' as keyof Day1SurveyFormData,
+    text: '44. Engajamento do monitor com a turma',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Patrick',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q49_patrick_m_posture' as keyof Day1SurveyFormData,
+    text: '45. Postura profissional do monitor',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Patrick',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q50_patrick_m_communication' as keyof Day1SurveyFormData,
+    text: '46. Comunicação do monitor com os alunos',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Patrick',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q51_patrick_m_contribution' as keyof Day1SurveyFormData,
+    text: '47. Contribuição do monitor para sua experiência no curso',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Patrick',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q52_patrick_m_strength' as keyof Day1SurveyFormData,
+    text: '48. Qual foi o principal ponto forte do Dr. Patrick como monitor?',
+    type: 'text',
+    category: 'Avaliação Monitor - Dr Patrick',
+  },
+  {
+    key: 'q53_patrick_m_improve' as keyof Day1SurveyFormData,
+    text: '49. O que o Dr. Patrick pode melhorar como monitor para as próximas turmas?',
+    type: 'text',
+    category: 'Avaliação Monitor - Dr Patrick',
   },
 ];
 
@@ -679,31 +725,42 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
                   rows={4}
                   className="resize-none"
                 />
-                <Button 
-                  onClick={handleTextNext} 
-                  disabled={isSaving || isSubmitting}
-                  className="w-full"
-                >
-                  {isSaving || isSubmitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : null}
-                  {currentQuestion === TOTAL_QUESTIONS - 1 ? 'Finalizar Pesquisa' : 'Próximo'}
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
               </div>
             )}
           </div>
         )}
         
-        {/* Back button */}
-        {currentQuestion > 0 && (
-          <div className="flex justify-start pt-2 border-t">
-            <Button variant="ghost" onClick={handleBack} disabled={isSaving || isSubmitting}>
+        {/* Navigation buttons - side by side */}
+        <div className="flex gap-3 pt-4 border-t">
+          {currentQuestion > 0 && (
+            <Button 
+              variant="outline" 
+              onClick={handleBack} 
+              disabled={isSaving || isSubmitting}
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 border-primary"
+            >
               <ChevronLeft className="h-4 w-4 mr-2" />
               Anterior
             </Button>
-          </div>
-        )}
+          )}
+          
+          {currentQ?.type === 'text' && (
+            <Button 
+              onClick={handleTextNext} 
+              disabled={isSaving || isSubmitting}
+              className={cn(
+                "flex-1 bg-emerald-600 text-white hover:bg-emerald-700",
+                currentQuestion === 0 && "w-full"
+              )}
+            >
+              {isSaving || isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              {currentQuestion === TOTAL_QUESTIONS - 1 ? 'Finalizar Pesquisa' : 'Próximo'}
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
