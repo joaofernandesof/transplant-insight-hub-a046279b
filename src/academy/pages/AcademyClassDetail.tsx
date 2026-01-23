@@ -21,7 +21,8 @@ import {
   Award,
   Settings,
   Plus,
-  Link as LinkIcon
+  Link as LinkIcon,
+  MessageCircle
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -321,16 +322,16 @@ export function AcademyClassDetail() {
           {/* Network Tab - Classmates */}
           <TabsContent value="network" className="space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />
                   Network da Turma ({classDetails.students.length} alunos)
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Conheça seus colegas de turma e amplie sua rede de contatos profissionais
                 </p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 sm:px-6">
                 {classDetails.students.length === 0 ? (
                   <div className="text-center py-8">
                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -338,29 +339,46 @@ export function AcademyClassDetail() {
                     <p className="text-sm text-muted-foreground">Os alunos aparecerão aqui quando forem matriculados</p>
                   </div>
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {classDetails.students.map((student) => (
-                      <div 
-                        key={student.id} 
-                        className="flex items-center gap-3 p-4 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all"
-                      >
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={student.avatarUrl || undefined} />
-                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
-                            {student.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{student.name}</p>
-                          {(student.city || student.state) && (
-                            <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {student.city}{student.city && student.state ? ', ' : ''}{student.state}
-                            </p>
+                  <div className="space-y-2">
+                    {classDetails.students.map((student) => {
+                      const isCurrentUser = student.id === user?.id;
+                      return (
+                        <div 
+                          key={student.id} 
+                          className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/50 transition-all"
+                        >
+                          <Avatar className="h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0">
+                            <AvatarImage src={student.avatarUrl || undefined} />
+                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold text-sm">
+                              {student.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{student.name}</p>
+                            {(student.city || student.state) && (
+                              <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                <MapPin className="h-3 w-3 flex-shrink-0" />
+                                {student.city}{student.city && student.state ? ', ' : ''}{student.state}
+                              </p>
+                            )}
+                          </div>
+                          {!isCurrentUser && (
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              className="flex-shrink-0 gap-1.5 h-8 px-2 sm:px-3"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/academy/chat/${student.id}?name=${encodeURIComponent(student.name)}`);
+                              }}
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                              <span className="hidden sm:inline text-xs">Mensagem</span>
+                            </Button>
                           )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
