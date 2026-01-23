@@ -97,15 +97,14 @@ export function useClassDetails(classId: string | null) {
         .eq("class_id", classId)
         .order("day_number", { ascending: true });
 
-      // Fetch exams for this class
+      // Fetch exams for this class (all exams for admin, only active for students)
       const { data: examsData } = await supabase
         .from("exams")
         .select(`
           id, title, description, duration_minutes, passing_score, 
           available_from, available_until, is_active
         `)
-        .eq("class_id", classId)
-        .eq("is_active", true);
+        .eq("class_id", classId);
 
       // Fetch user's exam attempts
       let examAttempts: Record<string, { count: number; bestScore: number | null; passed: boolean }> = {};
