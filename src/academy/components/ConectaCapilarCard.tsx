@@ -17,8 +17,7 @@ import {
   Megaphone,
   Stethoscope,
   Briefcase,
-  Lock,
-  ExternalLink
+  Lock
 } from "lucide-react";
 
 interface Track {
@@ -87,10 +86,12 @@ const tracks: Track[] = [
 ];
 
 function TrackItem({ track, onSelect }: { track: Track; onSelect?: () => void }) {
+  const navigate = useNavigate();
+  
   const handleClick = () => {
     if (track.isLocked) return;
-    // Open Conecta Capilar platform in new tab
-    window.open('https://conectacapilar.com.br', '_blank');
+    // Navigate to internal track page
+    navigate(`/university/trilha/${track.id}`);
   };
 
   return (
@@ -132,13 +133,14 @@ function TrackItem({ track, onSelect }: { track: Track; onSelect?: () => void })
       
       {/* Action */}
       {!track.isLocked && (
-        <ExternalLink className="h-4 w-4 text-muted-foreground" />
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
       )}
     </div>
   );
 }
 
 export function ConectaCapilarCard({ onSelectTrack }: ConectaCapilarCardProps) {
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(true);
   
   // Calculate overall progress
@@ -154,6 +156,12 @@ export function ConectaCapilarCard({ onSelectTrack }: ConectaCapilarCardProps) {
   const recommendedTrack = unlockedTracks
     .filter(t => t.progress < 100)
     .sort((a, b) => b.progress - a.progress)[0];
+
+  const handleContinueTrack = () => {
+    if (recommendedTrack) {
+      navigate(`/university/trilha/${recommendedTrack.id}`);
+    }
+  };
 
   return (
     <Card className="border-2 border-blue-200 dark:border-blue-800 overflow-hidden">
@@ -205,10 +213,10 @@ export function ConectaCapilarCard({ onSelectTrack }: ConectaCapilarCardProps) {
               <Button 
                 size="sm" 
                 className="bg-emerald-600 hover:bg-emerald-700 h-7 text-xs gap-1"
-                onClick={() => window.open('https://conectacapilar.com.br', '_blank')}
+                onClick={handleContinueTrack}
               >
                 Continuar
-                <ExternalLink className="h-3 w-3" />
+                <ChevronRight className="h-3 w-3" />
               </Button>
             </div>
           </div>

@@ -13,7 +13,11 @@ import {
   Trophy,
   Calendar,
   TrendingUp,
-  FileText
+  FileText,
+  ChevronRight,
+  Stethoscope,
+  Megaphone,
+  Briefcase
 } from "lucide-react";
 import { useUniversity, CourseWithProgress } from "@/hooks/useUniversity";
 import { CourseCard } from "@/components/CourseCard";
@@ -23,6 +27,14 @@ const upcomingEvents = [
   { id: 1, title: 'Imersão Presencial', date: '15-20 Fev 2026', type: 'Presencial' },
   { id: 2, title: 'Mentoria em Grupo', date: '25 Jan 2026', type: 'Online' },
   { id: 3, title: 'Webinar: Tendências 2026', date: '30 Jan 2026', type: 'Online' },
+];
+
+// Trilhas disponíveis
+const availableTracks = [
+  { id: 'comercial', name: 'Trilha Comercial', description: 'Vendas consultivas e captação', icon: TrendingUp, color: 'from-blue-500 to-indigo-600', lessons: 9, progress: 75 },
+  { id: 'medica', name: 'Trilha Médica', description: 'Técnicas e protocolos clínicos', icon: Stethoscope, color: 'from-emerald-500 to-green-600', lessons: 9, progress: 40 },
+  { id: 'marketing', name: 'Trilha de Marketing', description: 'Presença digital e captação', icon: Megaphone, color: 'from-purple-500 to-violet-600', lessons: 9, progress: 20, isNew: true },
+  { id: 'gestao', name: 'Trilha de Gestão', description: 'Gestão eficiente da clínica', icon: Briefcase, color: 'from-amber-500 to-orange-600', lessons: 9, progress: 0 },
 ];
 
 export default function University() {
@@ -147,6 +159,48 @@ export default function University() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Trilhas de Capacitação */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <GraduationCap className="h-5 w-5 text-purple-600" />
+            Trilhas de Capacitação
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {availableTracks.map((track) => (
+              <Card 
+                key={track.id}
+                className="cursor-pointer hover:shadow-lg transition-all duration-200 group"
+                onClick={() => navigate(`/university/trilha/${track.id}`)}
+              >
+                <CardContent className="pt-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${track.color} flex items-center justify-center flex-shrink-0`}>
+                      <track.icon className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-sm">{track.name}</h3>
+                        {track.isNew && (
+                          <Badge className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0">Novo</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{track.description}</p>
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-muted-foreground">{track.lessons} aulas</span>
+                          <span className="font-medium">{track.progress}%</span>
+                        </div>
+                        <Progress value={track.progress} className="h-1.5" />
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
 
         {/* Tabs and Courses */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">

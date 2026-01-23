@@ -38,6 +38,7 @@ import ClinicComparison from "./pages/ClinicComparison";
 import LicenseeHome from "./pages/LicenseeHome";
 import LicenseesPanel from "./pages/LicenseesPanel";
 import University from "./pages/University";
+import TrackDetail from "./pages/TrackDetail";
 import Regularization from "./pages/Regularization";
 import Materials from "./pages/Materials";
 import Marketing from "./pages/Marketing";
@@ -441,6 +442,7 @@ function AppRoutes() {
       <Route path="/licensees" element={<ProtectedRoute><SidebarWrapper><LicenseesPanel /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><ClinicComparison /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/university" element={<ProtectedRoute><SidebarWrapper><University /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/university/trilha/:trackId" element={<ProtectedRoute><SidebarWrapper><TrackDetail /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/university/exams" element={<ProtectedRoute><SidebarWrapper><ExamsList /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/university/exams/:examId/take" element={<ProtectedRoute><SidebarWrapper><ExamTaking /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/university/exams/:examId/results/:attemptId" element={<ProtectedRoute><SidebarWrapper><ExamResults /></SidebarWrapper></ProtectedRoute>} />
