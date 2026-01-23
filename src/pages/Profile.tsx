@@ -30,10 +30,15 @@ import {
   ChevronRight,
   Lock,
   Eye,
-  EyeOff
+  EyeOff,
+  Sun,
+  Moon,
+  Monitor,
+  Palette
 } from 'lucide-react';
 import logoByNeofolic from '@/assets/logo-byneofolic.png';
 import { toast } from 'sonner';
+import { useTheme } from 'next-themes';
 
 // Predefined services for hair transplant clinics
 const PREDEFINED_SERVICES = [
@@ -69,6 +74,7 @@ interface ProfileData {
 export default function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   
@@ -779,6 +785,45 @@ export default function Profile() {
                 </>
               )}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Appearance / Theme */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Aparência
+            </CardTitle>
+            <CardDescription>Personalize a aparência do sistema</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-3">
+              <Button
+                variant={theme === 'light' ? 'default' : 'outline'}
+                className="h-20 flex-col gap-2"
+                onClick={() => setTheme('light')}
+              >
+                <Sun className="h-5 w-5" />
+                <span className="text-xs">Claro</span>
+              </Button>
+              <Button
+                variant={theme === 'dark' ? 'default' : 'outline'}
+                className="h-20 flex-col gap-2"
+                onClick={() => setTheme('dark')}
+              >
+                <Moon className="h-5 w-5" />
+                <span className="text-xs">Escuro</span>
+              </Button>
+              <Button
+                variant={theme === 'system' ? 'default' : 'outline'}
+                className="h-20 flex-col gap-2"
+                onClick={() => setTheme('system')}
+              >
+                <Monitor className="h-5 w-5" />
+                <span className="text-xs">Sistema</span>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

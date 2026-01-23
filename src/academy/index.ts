@@ -14,7 +14,8 @@ export {
   AcademyEnrollmentsAdmin,
   AcademyCommunity,
   AcademyStudentsAdmin,
-  AcademyClassDetail
+  AcademyClassDetail,
+  AcademySettings
 } from './pages';
 export { useAcademyEnrollments } from './hooks/useAcademyEnrollments';
 export { useClassDetails } from './hooks/useClassDetails';
