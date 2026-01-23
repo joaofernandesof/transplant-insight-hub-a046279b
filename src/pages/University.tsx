@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
   GraduationCap,
@@ -17,102 +16,75 @@ import {
   ChevronRight,
   Stethoscope,
   Megaphone,
-  Briefcase
+  Briefcase,
+  MapPin,
+  Clock,
+  Users
 } from "lucide-react";
-import { useUniversity, CourseWithProgress } from "@/hooks/useUniversity";
-import { CourseCard } from "@/components/CourseCard";
-import { CourseViewer } from "@/components/CourseViewer";
+import { useUniversity } from "@/hooks/useUniversity";
 
-const upcomingEvents = [
-  { id: 1, title: 'Imersão Presencial', date: '15-20 Fev 2026', type: 'Presencial' },
-  { id: 2, title: 'Mentoria em Grupo', date: '25 Jan 2026', type: 'Online' },
-  { id: 3, title: 'Webinar: Tendências 2026', date: '30 Jan 2026', type: 'Online' },
-];
-
-// Trilhas disponíveis
-const availableTracks = [
+// Trilhas Online disponíveis
+const onlineTracks = [
   { id: 'comercial', name: 'Trilha Comercial', description: 'Vendas consultivas e captação', icon: TrendingUp, color: 'from-blue-500 to-indigo-600', lessons: 9, progress: 75 },
   { id: 'medica', name: 'Trilha Médica', description: 'Técnicas e protocolos clínicos', icon: Stethoscope, color: 'from-emerald-500 to-green-600', lessons: 9, progress: 40 },
   { id: 'marketing', name: 'Trilha de Marketing', description: 'Presença digital e captação', icon: Megaphone, color: 'from-purple-500 to-violet-600', lessons: 9, progress: 20, isNew: true },
   { id: 'gestao', name: 'Trilha de Gestão', description: 'Gestão eficiente da clínica', icon: Briefcase, color: 'from-amber-500 to-orange-600', lessons: 9, progress: 0 },
 ];
 
+// Cursos Presenciais - NÃO são online!
+const presentialCourses = [
+  { 
+    id: 'formacao-360', 
+    name: 'Formação 360°', 
+    description: 'Curso intensivo de 3 dias que apresenta todo o processo do transplante capilar, do diagnóstico ao pós-operatório.', 
+    difficulty: 'Iniciante',
+    duration: '3 dias',
+    icon: GraduationCap, 
+    color: 'from-purple-500 to-indigo-600',
+    isFeatured: true
+  },
+  { 
+    id: 'instrumentador', 
+    name: 'Instrumentador de Elite', 
+    description: 'Capacitação prática em instrumentação para transplante capilar. Treine sua equipe e ganhe autonomia.', 
+    difficulty: 'Intermediário',
+    duration: '3 dias',
+    icon: Users, 
+    color: 'from-emerald-500 to-teal-600',
+    isFeatured: false
+  },
+  { 
+    id: 'fellowship', 
+    name: 'Fellowship Avançado', 
+    description: 'Imersão prática completa na rotina da clínica. Acompanhe procedimentos reais e evolua para o nível avançado.', 
+    difficulty: 'Avançado',
+    duration: '30 dias',
+    icon: Trophy, 
+    color: 'from-amber-500 to-orange-600',
+    isFeatured: true
+  },
+];
+
 export default function University() {
   const navigate = useNavigate();
-  const {
-    courses,
-    enrollments,
-    isLoading,
-    selectedCourse,
-    selectedLesson,
-    setSelectedCourse,
-    setSelectedLesson,
-    fetchCourseDetails,
-    enrollInCourse,
-    markLessonCompleted,
-    startLesson,
-  } = useUniversity();
+  const { isLoading } = useUniversity();
 
-  const [activeTab, setActiveTab] = useState('all');
-
-  // Calculate overall stats
-  const enrolledCourses = courses.filter(c => c.enrollment);
-  const completedCourses = courses.filter(c => c.enrollment?.status === 'completed');
-  const inProgressCourses = courses.filter(c => c.enrollment && c.enrollment.status !== 'completed');
-  const totalProgress = enrolledCourses.length > 0
-    ? Math.round(enrolledCourses.reduce((acc, c) => acc + (c.enrollment?.progress_percent || 0), 0) / enrolledCourses.length)
+  // Calculate online tracks progress
+  const totalProgress = onlineTracks.length > 0
+    ? Math.round(onlineTracks.reduce((acc, t) => acc + t.progress, 0) / onlineTracks.length)
     : 0;
 
-  const handleSelectCourse = async (course: CourseWithProgress) => {
-    await fetchCourseDetails(course.id);
-  };
+  const completedTracks = onlineTracks.filter(t => t.progress === 100).length;
+  const inProgressTracks = onlineTracks.filter(t => t.progress > 0 && t.progress < 100).length;
 
-  const handleEnroll = async (courseId: string) => {
-    const success = await enrollInCourse(courseId);
-    if (success) {
-      await fetchCourseDetails(courseId);
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Iniciante': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+      case 'Intermediário': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'Avançado': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
-
-  const handleSelectLesson = async (lesson: any) => {
-    setSelectedLesson(lesson);
-    await startLesson(lesson.id);
-  };
-
-  const handleMarkComplete = async (lessonId: string) => {
-    await markLessonCompleted(lessonId);
-  };
-
-  const handleBack = () => {
-    setSelectedCourse(null);
-    setSelectedLesson(null);
-  };
-
-  // If viewing a specific course
-  if (selectedCourse) {
-    return (
-      <ModuleLayout>
-        <div className="p-4 pt-16 lg:pt-4 lg:p-6 h-[calc(100vh-2rem)]">
-          <CourseViewer
-            course={selectedCourse}
-            onBack={handleBack}
-            onSelectLesson={handleSelectLesson}
-            onMarkComplete={handleMarkComplete}
-            selectedLesson={selectedLesson}
-            isEnrolled={!!selectedCourse.enrollment}
-            onEnroll={() => handleEnroll(selectedCourse.id)}
-          />
-        </div>
-      </ModuleLayout>
-    );
-  }
-
-  // Filter courses based on active tab
-  const filteredCourses = activeTab === 'all' 
-    ? courses 
-    : activeTab === 'enrolled' 
-    ? enrolledCourses 
-    : courses.filter(c => !c.enrollment);
 
   return (
     <ModuleLayout>
@@ -125,7 +97,7 @@ export default function University() {
                 <GraduationCap className="h-5 w-5 text-purple-600" />
                 Universidade ByNeofolic
               </h1>
-              <p className="text-sm text-muted-foreground">Trilhas de capacitação e aulas gravadas</p>
+              <p className="text-sm text-muted-foreground">Cursos presenciais e trilhas online</p>
             </div>
             <Button onClick={() => navigate('/university/exams')} variant="outline" className="gap-2">
               <FileText className="h-4 w-4" />
@@ -135,39 +107,103 @@ export default function University() {
         </div>
       </header>
 
-      <main className="px-4 py-6 overflow-x-hidden w-full">
-        {/* Progress Overview */}
-        <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-900">{enrolledCourses.length}</div>
-                <p className="text-sm text-purple-700">Cursos Inscritos</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-900">{completedCourses.length}</div>
-                <p className="text-sm text-purple-700">Concluídos</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-900">{inProgressCourses.length}</div>
-                <p className="text-sm text-purple-700">Em Andamento</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-900">{totalProgress}%</div>
-                <p className="text-sm text-purple-700">Progresso Geral</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <main className="px-4 py-6 overflow-x-hidden w-full space-y-8">
+        {/* ==================== SEÇÃO 1: CURSOS PRESENCIAIS ==================== */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="h-5 w-5 text-purple-600" />
+            <h2 className="text-lg font-semibold">Cursos Presenciais</h2>
+            <Badge variant="outline" className="ml-2">IBRAMEC</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Formações práticas ministradas em nossa sede. Inscreva-se e participe das próximas turmas.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {presentialCourses.map((course) => (
+              <Card 
+                key={course.id}
+                className="cursor-pointer hover:shadow-lg transition-all duration-200 group overflow-hidden relative"
+                onClick={() => navigate('/academy/schedule')}
+              >
+                {/* Gradient Header */}
+                <div className={`h-24 bg-gradient-to-br ${course.color} flex items-center justify-center relative`}>
+                  {course.isFeatured && (
+                    <Badge className="absolute top-3 left-3 bg-white/20 text-white border-0">
+                      Destaque
+                    </Badge>
+                  )}
+                  <course.icon className="h-10 w-10 text-white/90" />
+                </div>
+                
+                <CardContent className="pt-4">
+                  <Badge className={`${getDifficultyColor(course.difficulty)} mb-2`}>
+                    {course.difficulty}
+                  </Badge>
+                  <h3 className="font-semibold mb-1">{course.name}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                    {course.description}
+                  </p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {course.duration}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Presencial
+                    </span>
+                  </div>
+                </CardContent>
+                
+                <CardContent className="pt-0">
+                  <Button variant="outline" className="w-full">
+                    Ver Agenda de Turmas
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
 
-        {/* Trilhas de Capacitação */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-purple-600" />
-            Trilhas de Capacitação
-          </h2>
+        {/* ==================== SEÇÃO 2: TRILHAS ONLINE ==================== */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen className="h-5 w-5 text-indigo-600" />
+            <h2 className="text-lg font-semibold">Trilhas Online</h2>
+            <Badge variant="secondary" className="ml-2">EAD</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Aulas gravadas para assistir no seu ritmo. Complemente sua formação com conteúdo teórico.
+          </p>
+
+          {/* Progress Overview - apenas para trilhas online */}
+          <Card className="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-indigo-200 dark:border-indigo-800">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-indigo-900 dark:text-indigo-100">{onlineTracks.length}</div>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-300">Trilhas Disponíveis</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-indigo-900 dark:text-indigo-100">{completedTracks}</div>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-300">Concluídas</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-indigo-900 dark:text-indigo-100">{inProgressTracks}</div>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-300">Em Andamento</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-indigo-900 dark:text-indigo-100">{totalProgress}%</div>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-300">Progresso Geral</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Trilhas Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {availableTracks.map((track) => (
+            {onlineTracks.map((track) => (
               <Card 
                 key={track.id}
                 className="cursor-pointer hover:shadow-lg transition-all duration-200 group"
@@ -182,7 +218,7 @@ export default function University() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium text-sm">{track.name}</h3>
                         {track.isNew && (
-                          <Badge className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0">Novo</Badge>
+                          <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 text-[10px] px-1.5 py-0">Novo</Badge>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground">{track.description}</p>
@@ -200,107 +236,32 @@ export default function University() {
               </Card>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Tabs and Courses */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList>
-            <TabsTrigger value="all" className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              Todos ({courses.length})
-            </TabsTrigger>
-            <TabsTrigger value="enrolled" className="gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Meus Cursos ({enrolledCourses.length})
-            </TabsTrigger>
-            <TabsTrigger value="available" className="gap-2">
-              <GraduationCap className="h-4 w-4" />
-              Disponíveis ({courses.length - enrolledCourses.length})
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i}>
-                <Skeleton className="h-40 rounded-t-lg" />
-                <CardHeader>
-                  <Skeleton className="h-4 w-20 mb-2" />
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Courses Grid */}
-        {!isLoading && (
-          <>
-            {filteredCourses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {filteredCourses.map((course) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    onSelect={handleSelectCourse}
-                    onEnroll={handleEnroll}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="text-lg font-medium">
-                  {activeTab === 'enrolled' 
-                    ? 'Você ainda não está inscrito em nenhum curso' 
-                    : 'Nenhum curso disponível'}
-                </p>
-                <p className="text-sm">
-                  {activeTab === 'enrolled' 
-                    ? 'Explore os cursos disponíveis e comece sua jornada!' 
-                    : 'Em breve novos cursos serão adicionados.'}
-                </p>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Upcoming Events */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-indigo-600" />
-              Próximos Eventos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {upcomingEvents.map((event) => (
-                <div 
-                  key={event.id} 
-                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-indigo-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">{event.date}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {event.type}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* ==================== SEÇÃO 3: PRÓXIMOS EVENTOS ==================== */}
+        <section>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-indigo-600" />
+                Próximas Turmas Presenciais
+              </CardTitle>
+              <CardDescription>
+                Confira as datas das próximas formações
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => navigate('/academy/schedule')}
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Ver Calendário Completo
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
       </main>
     </ModuleLayout>
   );
