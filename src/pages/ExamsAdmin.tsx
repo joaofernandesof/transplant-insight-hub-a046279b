@@ -42,6 +42,7 @@ import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import { ExamUploadDialog } from "@/components/admin/ExamUploadDialog";
 
 export default function ExamsAdmin() {
   const navigate = useNavigate();
@@ -276,6 +277,8 @@ export default function ExamsAdmin() {
             
             {/* Action buttons */}
             <div className="flex items-center gap-2">
+              <ExamUploadDialog onSuccess={() => refetchExams()} />
+              
               <Button 
                 variant="outline" 
                 size="sm"
