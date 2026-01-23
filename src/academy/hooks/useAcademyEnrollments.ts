@@ -20,22 +20,73 @@ export interface PresentialEnrollment {
 }
 
 export function useAcademyEnrollments() {
-  const { user } = useUnifiedAuth();
+  const { user, isAdmin } = useUnifiedAuth();
   
   // Use authUserId consistently (maps to auth.uid() for RLS)
   const userId = user?.authUserId || user?.userId;
   
   const { data: enrollments = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["academy-enrollments", userId],
+    queryKey: ["academy-enrollments", userId, isAdmin],
     queryFn: async () => {
       if (!userId) {
         console.log("[useAcademyEnrollments] No userId available");
         return [];
       }
       
-      console.log("[useAcademyEnrollments] Fetching enrollments for userId:", userId);
+      console.log("[useAcademyEnrollments] Fetching enrollments for userId:", userId, "isAdmin:", isAdmin);
       
-      // Get class enrollments with course and class details
+      // Admin sees ALL classes, regular users see only their enrollments
+      if (isAdmin) {
+        // Admin: Fetch all classes directly
+        const { data: allClasses, error: classesError } = await supabase
+          .from("course_classes")
+          .select(`
+            id,
+            code,
+            name,
+            start_date,
+            end_date,
+            location,
+            status,
+            max_students,
+            courses (
+              id,
+              title,
+              description,
+              thumbnail_url
+            )
+          `)
+          .order("start_date", { ascending: false });
+        
+        if (classesError) {
+          console.error("[useAcademyEnrollments] Admin - Error fetching all classes:", classesError);
+          return [];
+        }
+        
+        console.log("[useAcademyEnrollments] Admin - All classes:", allClasses?.length);
+        
+        // Transform to enrollment format for consistency
+        return (allClasses || []).map((classData: any): PresentialEnrollment => {
+          const courseData = classData.courses as any;
+          return {
+            id: classData.id,
+            classId: classData.id,
+            className: classData.name || "Turma",
+            classCode: classData.code || "",
+            courseId: courseData?.id || "",
+            courseName: courseData?.title || "Curso",
+            courseDescription: courseData?.description || "",
+            startDate: classData.start_date || null,
+            endDate: classData.end_date || null,
+            location: classData.location || null,
+            status: classData.status || "pending",
+            enrollmentStatus: "admin", // Special status for admin view
+            maxStudents: classData.max_students || null,
+          };
+        });
+      }
+      
+      // Regular user: Get only their class enrollments
       const { data, error } = await supabase
         .from("class_enrollments")
         .select(`
@@ -107,6 +158,13 @@ export function useAcademyEnrollments() {
 
   // Map class status to enrollment status
   const mapStatus = (classStatus: string, enrollmentStatus: string): 'confirmed' | 'pending' | 'completed' | 'in_progress' => {
+    // Admin viewing all classes - map based on class status
+    if (enrollmentStatus === "admin") {
+      if (classStatus === "in_progress") return "in_progress";
+      if (classStatus === "active" || classStatus === "confirmed") return "confirmed";
+      if (classStatus === "completed") return "completed";
+      return "confirmed"; // Default for admin view
+    }
     if (enrollmentStatus === "completed") return "completed";
     if (classStatus === "active" || classStatus === "confirmed") return "confirmed";
     if (classStatus === "in_progress") return "in_progress";
