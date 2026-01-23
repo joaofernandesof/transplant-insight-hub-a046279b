@@ -31,38 +31,45 @@ export function useAcademyCommunity() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all students with aluno profile
+  // Fetch all students enrolled in any course (from profiles + class_enrollments)
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["academy-community", user?.authUserId],
     queryFn: async () => {
       if (!user?.authUserId) return [];
 
-      // Get all users with aluno profile
-      const { data: profileAssignments, error: paError } = await supabase
-        .from("user_profile_assignments")
-        .select("user_id")
-        .eq("profile_id", "15ff5857-30b9-4862-a646-ffce72c200dc"); // aluno profile
+      // Get all unique user_ids from class_enrollments (students enrolled in any class)
+      const { data: enrollments, error: enrollError } = await supabase
+        .from("class_enrollments")
+        .select("user_id");
 
-      if (paError) {
-        console.error("Error fetching profile assignments:", paError);
+      if (enrollError) {
+        console.error("Error fetching enrollments:", enrollError);
         return [];
       }
 
-      const userIds = profileAssignments.map(pa => pa.user_id);
-      if (userIds.length === 0) return [];
+      // Get unique user IDs excluding the current user
+      const uniqueUserIds = [...new Set(enrollments.map(e => e.user_id))]
+        .filter(id => id !== user.authUserId);
 
-      // Get neohub_users data
-      const { data: users, error: usersError } = await supabase
-        .from("neohub_users")
-        .select("id, user_id, full_name, email, avatar_url, address_city, address_state, clinic_name, tier, services")
-        .in("user_id", userIds)
-        .neq("user_id", user.authUserId) // Exclude self
-        .eq("is_active", true);
+      if (uniqueUserIds.length === 0) return [];
 
-      if (usersError) {
-        console.error("Error fetching users:", usersError);
-        return [];
+      // Batch requests to avoid query size limits
+      const batchSize = 100;
+      const batches: string[][] = [];
+      for (let i = 0; i < uniqueUserIds.length; i += batchSize) {
+        batches.push(uniqueUserIds.slice(i, i + batchSize));
       }
+
+      const profileResults = await Promise.all(
+        batches.map(batch =>
+          supabase
+            .from("profiles")
+            .select("id, user_id, name, email, avatar_url, city, state, clinic_name, tier, services")
+            .in("user_id", batch)
+        )
+      );
+
+      const allProfiles = profileResults.flatMap(result => result.data || []);
 
       // Get contact requests for current user
       const { data: sentRequests } = await supabase
@@ -78,28 +85,28 @@ export function useAcademyCommunity() {
       const sentMap = new Map((sentRequests || []).map(r => [r.target_user_id, r.status]));
       const receivedMap = new Map((receivedRequests || []).map(r => [r.requester_id, r.status]));
 
-      return (users || []).map((u): CommunityMember => {
+      return allProfiles.map((p): CommunityMember => {
         let contactStatus: CommunityMember['contactStatus'] = 'none';
         
-        if (sentMap.has(u.user_id)) {
-          const status = sentMap.get(u.user_id);
+        if (sentMap.has(p.user_id)) {
+          const status = sentMap.get(p.user_id);
           contactStatus = status === 'accepted' ? 'accepted' : status === 'rejected' ? 'rejected' : 'pending_sent';
-        } else if (receivedMap.has(u.user_id)) {
-          const status = receivedMap.get(u.user_id);
+        } else if (receivedMap.has(p.user_id)) {
+          const status = receivedMap.get(p.user_id);
           contactStatus = status === 'accepted' ? 'accepted' : 'pending_received';
         }
 
         return {
-          id: u.id,
-          authUserId: u.user_id,
-          fullName: u.full_name,
-          email: u.email,
-          avatarUrl: u.avatar_url,
-          city: u.address_city,
-          state: u.address_state,
-          clinicName: u.clinic_name,
-          tier: u.tier,
-          services: u.services,
+          id: p.id,
+          authUserId: p.user_id,
+          fullName: p.name || "Aluno",
+          email: p.email,
+          avatarUrl: p.avatar_url,
+          city: p.city,
+          state: p.state,
+          clinicName: p.clinic_name,
+          tier: p.tier,
+          services: p.services,
           contactStatus,
         };
       });
@@ -124,11 +131,11 @@ export function useAcademyCommunity() {
         return [];
       }
 
-      // Get requester details
+      // Get requester details from profiles
       const requesterIds = data.map(r => r.requester_id);
       const { data: requesters } = await supabase
-        .from("neohub_users")
-        .select("user_id, full_name, avatar_url")
+        .from("profiles")
+        .select("user_id, name, avatar_url")
         .in("user_id", requesterIds);
 
       const requesterMap = new Map((requesters || []).map(r => [r.user_id, r]));
@@ -138,7 +145,7 @@ export function useAcademyCommunity() {
         return {
           id: r.id,
           requesterId: r.requester_id,
-          requesterName: requester?.full_name || "Usuário",
+          requesterName: requester?.name || "Usuário",
           requesterAvatar: requester?.avatar_url,
           message: r.message,
           createdAt: r.created_at,
