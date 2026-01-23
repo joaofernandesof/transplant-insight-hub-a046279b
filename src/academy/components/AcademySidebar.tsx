@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, BookOpen, Award, FileText, Trophy,
-  Settings, LogOut, User, Users, TrendingUp, CalendarDays, Menu
+  Settings, LogOut, User, Users, TrendingUp, CalendarDays, Menu, UserCog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
 import ibramecLogo from '@/assets/ibramec-logo.png';
 import ibramecLogoDark from '@/assets/ibramec-logo-white.png';
@@ -31,8 +32,13 @@ const navItems = [
   { icon: TrendingUp, label: 'Carreira', path: '/academy/career' },
 ];
 
+const adminItems = [
+  { icon: UserCog, label: 'Gestão de Matrículas', path: '/academy/admin/enrollments' },
+];
+
 function SidebarContent({ onClose }: { onClose?: () => void }) {
-  const { user, logout } = useUnifiedAuth();
+  const { user, logout, activeProfile } = useUnifiedAuth();
+  const isAdmin = activeProfile === 'administrador';
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
@@ -115,6 +121,34 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               {item.label}
             </NavLink>
           ))}
+
+          {/* Admin Section */}
+          {isAdmin && (
+            <>
+              <Separator className="my-3" />
+              <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Administração
+              </p>
+              {adminItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
+                      isActive
+                        ? "bg-amber-100 text-amber-700 font-medium dark:bg-amber-900/50 dark:text-amber-300"
+                        : "text-muted-foreground hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/50 dark:hover:text-amber-400"
+                    )
+                  }
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </NavLink>
+              ))}
+            </>
+          )}
         </nav>
       </ScrollArea>
 
