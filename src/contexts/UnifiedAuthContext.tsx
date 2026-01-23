@@ -34,6 +34,15 @@ export interface Module {
   icon?: string;
 }
 
+export interface ModuleOverride {
+  module_code: string;
+  can_read: boolean;
+  can_write: boolean;
+  can_delete: boolean;
+  reason?: string;
+  expires_at?: string;
+}
+
 export interface UserContext {
   user: {
     id: string;
@@ -43,9 +52,11 @@ export interface UserContext {
     avatar_url?: string;
     phone?: string;
   };
+  is_admin: boolean;
   profiles: UserProfile[];
   permissions: string[];
   modules: Module[];
+  overrides: ModuleOverride[];
   tenants: Tenant[];
 }
 
@@ -125,8 +136,9 @@ export interface UnifiedUser {
   
   // Nova estrutura
   profiles: ProfileKey[];
-  permissions: string[];
+  permissions: string[]; // Formato: "module_code:action"
   modules: Module[];
+  overrides: ModuleOverride[];
   tenants: Tenant[];
   
   // Perfil ativo com escopo
@@ -180,6 +192,9 @@ interface UnifiedAuthContextType {
   hasModule: (moduleKey: string) => boolean;
   canAccess: (portal: Portal) => boolean;
   canAccessCurrentRoute: (route: string) => boolean;
+  
+  // Nova API de módulos
+  canAccessModule: (moduleCode: string, action?: 'read' | 'write' | 'delete') => boolean;
   
   // Atalhos
   isAdmin: boolean;
@@ -241,9 +256,10 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
       if (contextData && !contextError && typeof contextData === 'object') {
         const ctx = contextData as unknown as UserContext;
         
-        if (ctx.user) {
+      if (ctx.user) {
           const profiles = (ctx.profiles || []).map(p => p.key).filter(k => VALID_PROFILES.includes(k));
-          const isAdmin = profiles.includes('administrador');
+          // Usar is_admin da RPC (fonte única de verdade)
+          const isAdmin = ctx.is_admin === true || profiles.includes('administrador');
           
           // Definir perfil ativo se ainda não definido
           if (!activeProfile && profiles.length > 0) {
@@ -258,6 +274,9 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             localStorage.setItem('neohub_active_tenant', JSON.stringify(ctx.tenants[0]));
           }
 
+          // Permissões no formato "module_code:action"
+          const permissions = Array.isArray(ctx.permissions) ? ctx.permissions : [];
+
           return {
             id: ctx.user.id,
             authUserId: ctx.user.auth_id,
@@ -267,8 +286,9 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             phone: ctx.user.phone,
             avatarUrl: ctx.user.avatar_url,
             profiles,
-            permissions: ctx.permissions || [],
+            permissions,
             modules: ctx.modules || [],
+            overrides: ctx.overrides || [],
             tenants: ctx.tenants || [],
             activeProfileData: ctx.profiles?.[0],
             isAdmin,
@@ -325,6 +345,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           profiles,
           permissions: [], // Fallback não tem permissões granulares
           modules: [],
+          overrides: [],
           tenants: [],
           isAdmin,
           legacyRole: isAdmin ? 'admin' : profiles.includes('licenciado') ? 'licensee' : undefined,
@@ -375,6 +396,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           profiles,
           permissions: [],
           modules: [],
+          overrides: [],
           tenants: [],
           isAdmin,
           legacyRole,
@@ -554,10 +576,21 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
     return user?.profiles.includes(profile) || false;
   }, [user]);
 
-  // Nova: verifica permissão atômica
+  // Nova: verifica permissão atômica (formato: "module_code:action")
   const hasPermission = useCallback((permissionKey: string): boolean => {
     if (user?.isAdmin) return true;
     return user?.permissions.includes(permissionKey) || false;
+  }, [user]);
+
+  // Nova API de módulos: canAccessModule(moduleCode, action)
+  // Esta é a função principal de autorização - fonte única de verdade
+  const canAccessModule = useCallback((
+    moduleCode: string,
+    action: 'read' | 'write' | 'delete' = 'read'
+  ): boolean => {
+    if (user?.isAdmin) return true;
+    const key = `${moduleCode}:${action}`;
+    return user?.permissions.includes(key) || false;
   }, [user]);
 
   // Nova: verifica módulo
@@ -592,6 +625,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         logout,
         refreshUser,
         hasProfile,
+        canAccessModule,
         hasPermission,
         hasModule,
         canAccess,

@@ -12,6 +12,9 @@ export {
   ComponentGuard,
 } from './UnifiedGuards';
 
+// Module guards (nova arquitetura)
+export { ModuleGuard, AcademyGuard, RequireAnyAcademy } from './ModuleGuard';
+
 // Re-export types
 export type { NeoHubProfile, Portal } from '@/contexts/UnifiedAuthContext';
 
