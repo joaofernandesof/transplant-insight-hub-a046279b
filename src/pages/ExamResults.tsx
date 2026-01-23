@@ -252,8 +252,19 @@ export default function ExamResults() {
                   <div className="space-y-2">
                     {answer.question.options?.map((option, optIdx) => {
                       const letter = String.fromCharCode(65 + optIdx); // A, B, C, D...
-                      const isCorrectOption = option === answer.question.correct_answer;
-                      const isSelectedWrong = option === answer.selected_answer && !answer.is_correct;
+                      
+                      // Check correct answer by TEXT (current system) or by LETTER (legacy)
+                      const correctAnswerRaw = answer.question.correct_answer;
+                      const isCorrectByText = option === correctAnswerRaw;
+                      const isCorrectByLetter = letter === correctAnswerRaw;
+                      const isCorrectOption = isCorrectByText || isCorrectByLetter;
+                      
+                      // Check selected answer by TEXT (current system) or by LETTER (legacy)
+                      const selectedAnswerRaw = answer.selected_answer;
+                      const isSelectedByText = option === selectedAnswerRaw;
+                      const isSelectedByLetter = letter === selectedAnswerRaw;
+                      const isSelectedOption = isSelectedByText || isSelectedByLetter;
+                      const isSelectedWrong = isSelectedOption && !answer.is_correct;
                       
                       return (
                         <div
@@ -287,6 +298,12 @@ export default function ExamResults() {
                             )}>
                               {option}
                             </span>
+                            {isCorrectOption && (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600 ml-auto" />
+                            )}
+                            {isSelectedWrong && (
+                              <XCircle className="h-4 w-4 text-red-600 ml-auto" />
+                            )}
                           </div>
                         </div>
                       );
