@@ -18,7 +18,7 @@ import {
   Star,
   FileText
 } from "lucide-react";
-import { GlobalBreadcrumb } from "@/components/GlobalBreadcrumb";
+
 
 export function AcademyHome() {
   const navigate = useNavigate();
@@ -45,20 +45,7 @@ export function AcademyHome() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-        <div className="px-3 sm:px-4 py-3 sm:py-4">
-          <div className="pl-10 sm:pl-12 lg:pl-0 flex justify-center">
-            <img 
-              src="/lovable-uploads/e5b40f45-ca09-4d14-9764-0d138fcfe356.png" 
-              alt="IBRAMEC" 
-              className="h-10 sm:h-12 object-contain"
-            />
-          </div>
-        </div>
-      </header>
-
-      <main className="px-3 sm:px-4 lg:px-6 py-4 lg:py-6 space-y-4 sm:space-y-6">
+      <main className="px-3 sm:px-4 lg:px-6 pt-16 lg:pt-6 pb-6 space-y-4 sm:space-y-6">
         {/* Progress Overview Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/50 dark:to-green-950/50 dark:border-emerald-800">

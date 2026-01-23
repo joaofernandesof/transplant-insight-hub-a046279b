@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
-import { GlobalBreadcrumb } from "@/components/GlobalBreadcrumb";
+
 import {
   Calendar,
   MapPin,
@@ -253,23 +253,17 @@ export function AcademySchedule() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-        <div className="px-4 py-4">
-          <div className="pl-12 lg:pl-0">
-            <GlobalBreadcrumb />
-            <h1 className="text-xl font-bold flex items-center gap-2 mt-2">
-              <CalendarDays className="h-5 w-5 text-emerald-600" />
-              Agenda do Aluno
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Sua próxima turma começa em breve. Acompanhe suas datas aqui.
-            </p>
-          </div>
+      <main className="px-4 pt-16 lg:pt-6 pb-6 lg:px-6 space-y-6">
+        {/* Page Title */}
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-emerald-600" />
+            Agenda do Aluno
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Sua próxima turma começa em breve. Acompanhe suas datas aqui.
+          </p>
         </div>
-      </header>
-
-      <main className="p-4 lg:p-6 space-y-6">
         {/* Next Event Highlight */}
         {nextEvent && (
           <Card className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 dark:border-emerald-800">

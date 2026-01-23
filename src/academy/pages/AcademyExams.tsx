@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useExams, useExamAttempts } from "@/hooks/useExams";
-import { GlobalBreadcrumb } from "@/components/GlobalBreadcrumb";
+
 import {
   FileText,
   Clock,
@@ -60,21 +60,15 @@ export function AcademyExams() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-        <div className="px-4 py-4">
-          <div className="pl-12 lg:pl-0">
-            <GlobalBreadcrumb />
-            <h1 className="text-xl font-bold flex items-center gap-2 mt-2">
-              <FileText className="h-5 w-5 text-blue-600" />
-              Provas e Avaliações
-            </h1>
-            <p className="text-sm text-muted-foreground">Teste seus conhecimentos e obtenha certificações</p>
-          </div>
+      <main className="px-4 pt-16 lg:pt-6 pb-6 overflow-x-hidden w-full">
+        {/* Page Title */}
+        <div className="mb-6">
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <FileText className="h-5 w-5 text-blue-600" />
+            Provas e Avaliações
+          </h1>
+          <p className="text-sm text-muted-foreground">Teste seus conhecimentos e obtenha certificações</p>
         </div>
-      </header>
-
-      <main className="px-4 py-6 overflow-x-hidden w-full">
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-950/50 dark:to-indigo-950/50 dark:border-blue-800">

@@ -21,7 +21,7 @@ import {
 import { useUniversity, CourseWithProgress } from "@/hooks/useUniversity";
 import { CourseCard } from "@/components/CourseCard";
 import { CourseViewer } from "@/components/CourseViewer";
-import { GlobalBreadcrumb } from "@/components/GlobalBreadcrumb";
+
 import { ConectaCapilarCard } from "../components/ConectaCapilarCard";
 import { PresentialCourseCard, PresentialCourse } from "../components/PresentialCourseCard";
 import { useAcademyEnrollments } from "../hooks/useAcademyEnrollments";
@@ -109,27 +109,21 @@ export function AcademyCourses() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between gap-4 pl-12 lg:pl-0">
-            <div>
-              <GlobalBreadcrumb />
-              <h1 className="text-xl font-bold flex items-center gap-2 mt-2">
-                <BookOpen className="h-5 w-5 text-emerald-600" />
-                Meus Cursos
-              </h1>
-              <p className="text-sm text-muted-foreground">Trilhas de capacitação e aulas gravadas</p>
-            </div>
-            <Button onClick={() => navigate('/academy/schedule')} variant="outline" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Agenda</span>
-            </Button>
+      <main className="px-4 pt-16 lg:pt-6 pb-6 overflow-x-hidden w-full space-y-6">
+        {/* Page Title */}
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-emerald-600" />
+              Meus Cursos
+            </h1>
+            <p className="text-sm text-muted-foreground">Trilhas de capacitação e aulas gravadas</p>
           </div>
+          <Button onClick={() => navigate('/academy/schedule')} variant="outline" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            <span className="hidden sm:inline">Agenda</span>
+          </Button>
         </div>
-      </header>
-
-      <main className="px-4 py-6 overflow-x-hidden w-full space-y-6">
         {/* Progress Overview */}
         <Card className="bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/30 dark:to-green-950/30 dark:border-emerald-800">
           <CardContent className="pt-6">
