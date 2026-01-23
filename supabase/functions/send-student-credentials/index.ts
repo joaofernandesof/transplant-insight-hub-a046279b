@@ -26,14 +26,14 @@ const generateEmailHtml = (student: StudentCredential) => `
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f0fdf4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     
     <!-- Header -->
     <div style="text-align: center; margin-bottom: 32px;">
-      <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 40px 32px; border-radius: 16px 16px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; line-height: 1.3;">Formação 360° em<br>Transplante Capilar</h1>
-        <p style="color: rgba(255,255,255,0.9); margin: 16px 0 0; font-size: 16px; font-weight: 500;">Turma Janeiro 2026</p>
+      <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; border-radius: 16px 16px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">🎓 Formação 360°</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 16px;">Turma Janeiro 2026</p>
       </div>
     </div>
     
@@ -48,13 +48,13 @@ const generateEmailHtml = (student: StudentCredential) => `
       </p>
       
       <!-- Credentials Box -->
-      <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 24px; border-radius: 12px; border: 1px solid #a7f3d0; margin: 24px 0;">
+      <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin: 24px 0;">
         <div style="margin-bottom: 16px;">
-          <span style="color: #047857; font-size: 14px; display: block; margin-bottom: 4px;">📧 Email de acesso</span>
+          <span style="color: #64748b; font-size: 14px; display: block; margin-bottom: 4px;">📧 Email de acesso</span>
           <span style="color: #1e293b; font-size: 18px; font-weight: 600;">${student.email}</span>
         </div>
         <div>
-          <span style="color: #047857; font-size: 14px; display: block; margin-bottom: 4px;">🔑 Senha</span>
+          <span style="color: #64748b; font-size: 14px; display: block; margin-bottom: 4px;">🔑 Senha</span>
           <span style="color: #1e293b; font-size: 18px; font-weight: 600; font-family: monospace; background: #fef3c7; padding: 4px 8px; border-radius: 4px;">${student.password}</span>
         </div>
       </div>
@@ -86,10 +86,10 @@ const generateEmailHtml = (student: StudentCredential) => `
     
     <!-- Footer -->
     <div style="text-align: center; margin-top: 32px;">
-      <p style="color: #6b7280; font-size: 12px; margin: 0;">
+      <p style="color: #94a3b8; font-size: 12px; margin: 0;">
         © 2026 IBRAMEC - Instituto Brasileiro de Micropigmentação Capilar
       </p>
-      <p style="color: #6b7280; font-size: 12px; margin: 8px 0 0;">
+      <p style="color: #94a3b8; font-size: 12px; margin: 8px 0 0;">
         Este é um email automático, por favor não responda.
       </p>
     </div>
