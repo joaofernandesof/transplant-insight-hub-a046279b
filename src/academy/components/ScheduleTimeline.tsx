@@ -359,120 +359,129 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
         )}
       </CardHeader>
       <CardContent className="pb-6">
-        {/* All-Day Activities Section */}
-        {allDayItems.length > 0 && (
-          <div className="mb-4 pb-4 border-b border-dashed">
-            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              Dia Inteiro
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {allDayItems.map((item) => {
+        {/* Timeline Grid with All-Day Columns on the Right */}
+        <div className="relative flex" style={{ minHeight: totalHeight }}>
+          {/* Left section: Hour labels + Regular activities */}
+          <div className="flex-1 relative" style={{ height: totalHeight }}>
+            {/* Hour lines */}
+            {hours.map((hour, index) => (
+              <div 
+                key={hour}
+                className="absolute left-0 right-0 flex items-start"
+                style={{ top: index * HOUR_HEIGHT }}
+              >
+                {/* Hour label */}
+                <div className="w-14 flex-shrink-0 text-xs text-muted-foreground font-medium pr-2 text-right -mt-2">
+                  {hour.toString().padStart(2, '0')}:00
+                </div>
+                {/* Hour line */}
+                <div className="flex-1 border-t border-dashed border-muted-foreground/20" />
+              </div>
+            ))}
+
+            {/* Activity blocks */}
+            <div className="absolute left-14 right-0 top-0" style={{ height: totalHeight }}>
+              {groupedItems.map(({ item, column, totalColumns }) => {
+                const startHour = parseTimeToHours(item.startTime);
+                const endHour = parseTimeToHours(item.endTime);
+                const top = (startHour - hourRange.start) * HOUR_HEIGHT;
+                const height = Math.max((endHour - startHour) * HOUR_HEIGHT - 4, 56);
                 const style = getActivityStyle(item.activity);
+                const isShort = height < 80;
+                
+                // Calculate width and left position for parallel activities
+                const GAP = 4;
+                const width = totalColumns > 1 
+                  ? `calc((100% - ${GAP * (totalColumns - 1)}px) / ${totalColumns})`
+                  : 'calc(100% - 8px)';
+                const left = totalColumns > 1
+                  ? `calc(${column} * ((100% - ${GAP * (totalColumns - 1)}px) / ${totalColumns} + ${GAP}px) + 4px)`
+                  : '4px';
+
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 ${style.bgColor} ${style.borderColor}`}
+                    className={`absolute rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 sm:p-3 overflow-hidden transition-all hover:shadow-md hover:z-10`}
+                    style={{ 
+                      top: top + 2, 
+                      height: height,
+                      width: width,
+                      left: left,
+                    }}
                   >
-                    <div className={`w-7 h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor}`}>
-                      {style.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-medium text-sm">{item.activity}</p>
-                      {item.location && (
-                        <span className={`text-xs ${style.textColor}`}>
-                          {item.location}
-                        </span>
-                      )}
+                    <div className={`flex ${isShort ? 'flex-row items-center gap-2' : 'flex-col gap-1'} h-full`}>
+                      {/* Icon */}
+                      <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor}`}>
+                        {style.icon}
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                        <p className="font-medium text-xs sm:text-sm leading-snug">
+                          {item.activity}
+                        </p>
+                        
+                        {item.location && (
+                          <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium w-fit`}>
+                            {item.location}
+                          </span>
+                        )}
+                        
+                        {!isShort && item.instructor && (
+                          <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto pt-0.5">
+                            <User className="h-3 w-3 flex-shrink-0" />
+                            <span>{item.instructor}</span>
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
           </div>
-        )}
 
-        {/* Timeline Grid */}
-        <div className="relative" style={{ height: totalHeight }}>
-          {/* Hour lines */}
-          {hours.map((hour, index) => (
-            <div 
-              key={hour}
-              className="absolute left-0 right-0 flex items-start"
-              style={{ top: index * HOUR_HEIGHT }}
-            >
-              {/* Hour label */}
-              <div className="w-14 flex-shrink-0 text-xs text-muted-foreground font-medium pr-2 text-right -mt-2">
-                {hour.toString().padStart(2, '0')}:00
-              </div>
-              {/* Hour line */}
-              <div className="flex-1 border-t border-dashed border-muted-foreground/20" />
-            </div>
-          ))}
-
-          {/* Activity blocks */}
-          <div className="absolute left-14 right-0 top-0" style={{ height: totalHeight }}>
-            {groupedItems.map(({ item, column, totalColumns }) => {
-              const startHour = parseTimeToHours(item.startTime);
-              const endHour = parseTimeToHours(item.endTime);
-              const top = (startHour - hourRange.start) * HOUR_HEIGHT;
-              const height = Math.max((endHour - startHour) * HOUR_HEIGHT - 4, 56); // Min 56px height (increased)
-              const style = getActivityStyle(item.activity);
-              const isShort = height < 80; // Adjusted threshold
-              
-              // Calculate width and left position for parallel activities
-              const GAP = 4; // gap between parallel items
-              const width = totalColumns > 1 
-                ? `calc((100% - ${GAP * (totalColumns - 1)}px) / ${totalColumns})`
-                : 'calc(100% - 8px)';
-              const left = totalColumns > 1
-                ? `calc(${column} * ((100% - ${GAP * (totalColumns - 1)}px) / ${totalColumns} + ${GAP}px) + 4px)`
-                : '4px';
-
-              return (
-                <div
-                  key={item.id}
-                  className={`absolute rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 sm:p-3 overflow-hidden transition-all hover:shadow-md hover:z-10`}
-                  style={{ 
-                    top: top + 2, 
-                    height: height,
-                    width: width,
-                    left: left,
-                  }}
-                >
-                  <div className={`flex ${isShort ? 'flex-row items-center gap-2' : 'flex-col gap-1'} h-full`}>
+          {/* Right section: All-Day vertical bars */}
+          {allDayItems.length > 0 && (
+            <div className="flex gap-2 ml-2 flex-shrink-0">
+              {allDayItems.map((item) => {
+                const style = getActivityStyle(item.activity);
+                return (
+                  <div
+                    key={item.id}
+                    className={`w-20 sm:w-24 rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 flex flex-col items-center`}
+                    style={{ height: totalHeight }}
+                  >
                     {/* Icon */}
-                    <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor}`}>
+                    <div className={`w-8 h-8 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor} mb-2`}>
                       {style.icon}
                     </div>
                     
-                    {/* Content - title and location only (time is shown on the left axis) */}
-                    <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                      {/* Activity name */}
-                      <p className="font-medium text-xs sm:text-sm leading-snug">
+                    {/* Vertical text container */}
+                    <div className="flex-1 flex items-center justify-center">
+                      <p 
+                        className="font-medium text-xs sm:text-sm text-center"
+                        style={{ 
+                          writingMode: 'vertical-rl',
+                          textOrientation: 'mixed',
+                          transform: 'rotate(180deg)'
+                        }}
+                      >
                         {item.activity}
                       </p>
-                      
-                      {/* Location badge */}
-                      {item.location && (
-                        <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium w-fit`}>
-                          {item.location}
-                        </span>
-                      )}
-                      
-                      {/* Instructor (only for taller blocks) */}
-                      {!isShort && item.instructor && (
-                        <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto pt-0.5">
-                          <User className="h-3 w-3 flex-shrink-0" />
-                          <span>{item.instructor}</span>
-                        </p>
-                      )}
                     </div>
+                    
+                    {/* Location at bottom */}
+                    {item.location && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium mt-2 text-center`}>
+                        {item.location}
+                      </span>
+                    )}
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Legend */}
