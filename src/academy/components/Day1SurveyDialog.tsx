@@ -18,7 +18,7 @@ const INSTRUCTORS: Record<string, { name: string; role: string; photo: string }>
   'Aula Dr. Hygor Guerreiro': { name: 'Dr. Hygor Guerreiro', role: 'Professor', photo: drHygorPhoto },
   'Aula Dr. Patrick Penaforte': { name: 'Dr. Patrick Penaforte', role: 'Professor e Monitor', photo: drPatrickPhoto },
   'Avaliação Monitor - Dra Gleyldes': { name: 'Dra. Gleyldes', role: 'Monitora', photo: draGleydesPhoto },
-  'Avaliação Monitor - Dr Eder': { name: 'Dr. Eder', role: 'Monitor', photo: drEderPhoto },
+  'Avaliação Monitor - Dr Elenilton': { name: 'Dr. Elenilton', role: 'Monitor', photo: drEderPhoto },
   'Avaliação Monitor - Dr Patrick': { name: 'Dr. Patrick Penaforte', role: 'Monitor', photo: drPatrickPhoto },
 };
 
@@ -52,7 +52,7 @@ const satisfactionIcons = [
   <Meh key="meh" className="h-5 w-5 text-orange-500" />,
   <MinusCircle key="minus" className="h-5 w-5 text-muted-foreground" />,
   <Smile key="smile" className="h-5 w-5 text-primary" />,
-  <Heart key="heart" className="h-5 w-5 text-primary" />,
+  <Heart key="heart" className="h-5 w-5 text-emerald-500" />,
 ];
 
 const agreementIcons = [
@@ -80,7 +80,7 @@ const qualityIcons = [
   <Meh key="meh" className="h-5 w-5 text-orange-500" />,
   <MinusCircle key="minus" className="h-5 w-5 text-muted-foreground" />,
   <Smile key="smile" className="h-5 w-5 text-primary" />,
-  <Heart key="heart" className="h-5 w-5 text-primary" />,
+  <Heart key="heart" className="h-5 w-5 text-emerald-500" />,
 ];
 
 // Monitor evaluation quality options
@@ -425,60 +425,60 @@ const QUESTIONS: Question[] = [
     category: 'Avaliação Monitor - Dra Gleyldes',
   },
   
-  // Monitor 2: Dr Eder
+  // Monitor 2: Dr Elenilton
   {
     key: 'q38_eder_technical' as keyof Day1SurveyFormData,
     text: '34. Avalie o domínio técnico do monitor',
     type: 'radio',
-    category: 'Avaliação Monitor - Dr Eder',
+    category: 'Avaliação Monitor - Dr Elenilton',
     options: monitorQualityOptions,
   },
   {
     key: 'q39_eder_interest' as keyof Day1SurveyFormData,
     text: '35. Interesse do monitor em ensinar e orientar',
     type: 'radio',
-    category: 'Avaliação Monitor - Dr Eder',
+    category: 'Avaliação Monitor - Dr Elenilton',
     options: monitorQualityOptions,
   },
   {
     key: 'q40_eder_engagement' as keyof Day1SurveyFormData,
     text: '36. Engajamento do monitor com a turma',
     type: 'radio',
-    category: 'Avaliação Monitor - Dr Eder',
+    category: 'Avaliação Monitor - Dr Elenilton',
     options: monitorQualityOptions,
   },
   {
     key: 'q41_eder_posture' as keyof Day1SurveyFormData,
     text: '37. Postura profissional do monitor',
     type: 'radio',
-    category: 'Avaliação Monitor - Dr Eder',
+    category: 'Avaliação Monitor - Dr Elenilton',
     options: monitorQualityOptions,
   },
   {
     key: 'q42_eder_communication' as keyof Day1SurveyFormData,
     text: '38. Comunicação do monitor com os alunos',
     type: 'radio',
-    category: 'Avaliação Monitor - Dr Eder',
+    category: 'Avaliação Monitor - Dr Elenilton',
     options: monitorQualityOptions,
   },
   {
     key: 'q43_eder_contribution' as keyof Day1SurveyFormData,
     text: '39. Contribuição do monitor para sua experiência no curso',
     type: 'radio',
-    category: 'Avaliação Monitor - Dr Eder',
+    category: 'Avaliação Monitor - Dr Elenilton',
     options: monitorQualityOptions,
   },
   {
     key: 'q44_eder_strength' as keyof Day1SurveyFormData,
-    text: '40. Qual foi o principal ponto forte do Dr. Eder?',
+    text: '40. Qual foi o principal ponto forte do Dr. Elenilton?',
     type: 'text',
-    category: 'Avaliação Monitor - Dr Eder',
+    category: 'Avaliação Monitor - Dr Elenilton',
   },
   {
     key: 'q45_eder_improve' as keyof Day1SurveyFormData,
-    text: '41. O que o Dr. Eder pode melhorar para as próximas turmas?',
+    text: '41. O que o Dr. Elenilton pode melhorar para as próximas turmas?',
     type: 'text',
-    category: 'Avaliação Monitor - Dr Eder',
+    category: 'Avaliação Monitor - Dr Elenilton',
   },
   
   // Monitor 3: Dr Patrick (como monitor)
