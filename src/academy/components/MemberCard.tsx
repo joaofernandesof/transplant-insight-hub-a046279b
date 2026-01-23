@@ -87,66 +87,70 @@ export function MemberCard({ member, onRequestContact, onSendMessage, isLoading 
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-md transition-shadow">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Avatar className="h-14 w-14 ring-2 ring-emerald-100 dark:ring-emerald-900">
+      <Card className="overflow-hidden hover:shadow-md transition-shadow h-full">
+        <CardContent className="p-3 flex flex-col h-full">
+          {/* Header with avatar and info */}
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-emerald-100 dark:ring-emerald-900">
               <AvatarImage src={member.avatarUrl || undefined} alt={member.fullName} />
-              <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-lg font-medium">
+              <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 font-medium">
                 {getInitials(member.fullName)}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="font-semibold text-sm truncate">{member.fullName}</h3>
-                  {member.clinicName && (
-                    <p className="text-xs text-muted-foreground truncate">{member.clinicName}</p>
-                  )}
-                </div>
-                {getContactStatusBadge()}
-              </div>
-
-              {(member.city || member.state) && (
-                <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
-                  <MapPin className="h-3 w-3" />
-                  <span>
-                    {[member.city, member.state].filter(Boolean).join(", ")}
-                  </span>
-                </div>
-              )}
-
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <h3 className="font-semibold text-sm truncate" title={member.fullName}>
+                {member.fullName}
+              </h3>
               {member.tier && (
-                <Badge variant="outline" className="mt-2 text-[10px]">
+                <Badge variant="outline" className="text-[10px] mt-0.5">
                   {member.tier}
                 </Badge>
               )}
             </div>
           </div>
 
-          <div className="flex gap-2 mt-4">
+          {/* Location and status */}
+          <div className="mt-2 space-y-1.5 flex-1">
+            {(member.city || member.state) && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                <MapPin className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">
+                  {[member.city, member.state].filter(Boolean).join(", ")}
+                </span>
+              </div>
+            )}
+            
+            {getContactStatusBadge() && (
+              <div className="flex">
+                {getContactStatusBadge()}
+              </div>
+            )}
+          </div>
+
+          {/* Action buttons - stacked vertically for better fit */}
+          <div className="flex flex-col gap-1.5 mt-3">
             {member.contactStatus === 'none' && (
               <Button
                 onClick={() => setShowRequestDialog(true)}
                 size="sm"
                 variant="outline"
-                className="flex-1 gap-1.5 text-xs"
+                className="w-full gap-1.5 text-xs h-8"
                 disabled={isLoading}
               >
-                <UserPlus className="h-3.5 w-3.5" />
-                Solicitar Contato
+                <UserPlus className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">Solicitar</span>
               </Button>
             )}
 
             <Button
               onClick={() => setShowMessageDialog(true)}
               size="sm"
-              className="flex-1 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700"
+              className="w-full gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-700"
               disabled={isLoading}
             >
-              <MessageCircle className="h-3.5 w-3.5" />
-              Enviar Mensagem
+              <MessageCircle className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="truncate">Mensagem</span>
             </Button>
           </div>
         </CardContent>
