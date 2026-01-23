@@ -136,10 +136,7 @@ export default function ExamsAdmin() {
           id,
           exam_id,
           order_index,
-          question_text,
-          options,
           correct_answer,
-          explanation,
           exams!inner(title)
         `)
         .order('exam_id')
@@ -163,55 +160,30 @@ export default function ExamsAdmin() {
       // Criar workbook
       const wb = XLSX.utils.book_new();
 
-      // Criar uma aba para cada prova
+      // Criar uma aba para cada prova - apenas nº e resposta correta
       Object.entries(examGroups).forEach(([examTitle, examQuestions]) => {
-        const sheetData = examQuestions.map((q, idx) => {
-          const options = Array.isArray(q.options) ? q.options : [];
-          const letterMap = ['A', 'B', 'C', 'D', 'E'];
-          
-          return {
-            'Nº': q.order_index || idx + 1,
-            'Questão': q.question_text,
-            'Opção A': options[0] || '',
-            'Opção B': options[1] || '',
-            'Opção C': options[2] || '',
-            'Opção D': options[3] || '',
-            'Opção E': options[4] || '',
-            'Gabarito': q.correct_answer,
-            'Explicação': q.explanation || ''
-          };
-        });
+        // Ordenar por order_index para garantir ordem correta
+        const sortedQuestions = [...examQuestions].sort((a, b) => 
+          (a.order_index || 0) - (b.order_index || 0)
+        );
+        
+        const sheetData = sortedQuestions.map((q, idx) => ({
+          'Questão': q.order_index || idx + 1,
+          'Resposta': q.correct_answer
+        }));
 
         const ws = XLSX.utils.json_to_sheet(sheetData);
         
         // Ajustar largura das colunas
         ws['!cols'] = [
-          { wch: 4 },   // Nº
-          { wch: 60 },  // Questão
-          { wch: 40 },  // Opção A
-          { wch: 40 },  // Opção B
-          { wch: 40 },  // Opção C
-          { wch: 40 },  // Opção D
-          { wch: 40 },  // Opção E
-          { wch: 8 },   // Gabarito
-          { wch: 50 },  // Explicação
+          { wch: 10 },  // Questão
+          { wch: 10 },  // Resposta
         ];
 
         // Nome da aba (max 31 chars)
         const sheetName = examTitle.length > 31 ? examTitle.slice(0, 28) + '...' : examTitle;
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
       });
-
-      // Criar aba resumo com todas as respostas
-      const resumoData = questions.map((q, idx) => ({
-        'Prova': (q.exams as any)?.title || 'Prova',
-        'Questão': q.order_index || idx + 1,
-        'Gabarito': q.correct_answer
-      }));
-      
-      const wsResumo = XLSX.utils.json_to_sheet(resumoData);
-      wsResumo['!cols'] = [{ wch: 40 }, { wch: 10 }, { wch: 10 }];
-      XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo Gabaritos');
 
       // Download
       XLSX.writeFile(wb, `gabarito-provas-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
