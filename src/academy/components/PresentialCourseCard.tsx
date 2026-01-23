@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
 
 export interface PresentialCourse {
   id: string;
@@ -35,10 +36,11 @@ interface PresentialCourseCardProps {
   onViewDetails?: (course: PresentialCourse) => void;
 }
 
-const courseTypeConfig: Record<string, { color: string; icon: React.ReactNode }> = {
+const courseTypeConfig: Record<string, { color: string; icon: React.ReactNode; logo?: string }> = {
   formacao360: {
-    color: 'from-emerald-500 to-green-600',
-    icon: <GraduationCap className="h-7 w-7" />
+    color: 'from-emerald-600 to-green-700',
+    icon: <GraduationCap className="h-7 w-7" />,
+    logo: logoFormacao360
   },
   instrumentador: {
     color: 'from-blue-500 to-indigo-600',
@@ -118,16 +120,22 @@ export function PresentialCourseCard({ course, onViewDetails }: PresentialCourse
       isCompleted ? 'opacity-75' : ''
     }`}>
       {/* Course Header with gradient */}
-      <div className={`h-28 bg-gradient-to-br ${config.color} p-4 flex items-end justify-between relative`}>
-        <div className="absolute top-4 right-4 text-white/80">
-          {config.icon}
-        </div>
-        <div className="text-white">
-          <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm mb-2">
-            <Clock className="h-3 w-3 mr-1" />
-            {course.duration}
-          </Badge>
-        </div>
+      <div className={`h-32 bg-gradient-to-br ${config.color} p-4 flex flex-col items-center justify-center relative`}>
+        {config.logo ? (
+          <img 
+            src={config.logo} 
+            alt={course.name} 
+            className="h-14 object-contain"
+          />
+        ) : (
+          <div className="text-white/80">
+            {config.icon}
+          </div>
+        )}
+        <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm mt-2">
+          <Clock className="h-3 w-3 mr-1" />
+          {course.duration}
+        </Badge>
       </div>
       
       <CardContent className="p-4">
