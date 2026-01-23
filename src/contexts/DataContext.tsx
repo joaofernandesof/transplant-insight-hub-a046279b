@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { WeekData, generateWeeks2026, isWeekAvailable } from '@/data/metricsData';
 import { calculateMetrics, CalculatedMetrics } from '@/utils/metricCalculations';
 import { toast } from 'sonner';
@@ -36,7 +36,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [clinics, setClinics] = useState<ClinicInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userClinicId, setUserClinicId] = useState<string | null>(null);
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin } = useUnifiedAuth();
 
   // Log admin access to clinic data for audit purposes
   const logAdminAccess = useCallback(async (action: string, resourceType: string, resourceId?: string, metadata?: Record<string, unknown>) => {
@@ -46,7 +46,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('admin_audit_log' as 'profiles')
         .insert({
-          admin_user_id: user.id,
+          admin_user_id: user.authUserId,
           action,
           resource_type: resourceType,
           resource_id: resourceId || null,
@@ -143,7 +143,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const { data: clinic, error: clinicError } = await supabase
           .from('clinics')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', user.authUserId)
           .maybeSingle();
 
         if (clinicError) {
@@ -160,8 +160,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
           const { data: newClinic, error: createError } = await supabase
             .from('clinics')
             .insert({
-              user_id: user.id,
-              name: user.clinicName || `Clínica de ${user.name}`,
+              user_id: user.authUserId,
+              name: user.clinicName || `Clínica de ${user.fullName}`,
               city: user.city,
               state: user.state,
             })
