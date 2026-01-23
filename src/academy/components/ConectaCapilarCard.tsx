@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -14,10 +15,10 @@ import {
   BookOpen,
   TrendingUp,
   Megaphone,
-  Users,
   Stethoscope,
   Briefcase,
-  Lock
+  Lock,
+  ExternalLink
 } from "lucide-react";
 
 interface Track {
@@ -82,21 +83,16 @@ const tracks: Track[] = [
     totalLessons: 10,
     completedLessons: 0,
     isLocked: false
-  },
-  {
-    id: 'comunidade',
-    name: 'Trilha Comunidade',
-    description: 'Networking e cases de sucesso com outros profissionais',
-    icon: <Users className="h-5 w-5" />,
-    color: 'from-pink-500 to-rose-600',
-    progress: 0,
-    totalLessons: 8,
-    completedLessons: 0,
-    isLocked: true
   }
 ];
 
 function TrackItem({ track, onSelect }: { track: Track; onSelect?: () => void }) {
+  const handleClick = () => {
+    if (track.isLocked) return;
+    // Open Conecta Capilar platform in new tab
+    window.open('https://conectacapilar.com.br', '_blank');
+  };
+
   return (
     <div 
       className={`flex items-center gap-4 p-3 rounded-lg border transition-all duration-200 ${
@@ -104,7 +100,7 @@ function TrackItem({ track, onSelect }: { track: Track; onSelect?: () => void })
           ? 'opacity-60 cursor-not-allowed bg-muted/50' 
           : 'hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 cursor-pointer'
       }`}
-      onClick={() => !track.isLocked && onSelect?.()}
+      onClick={handleClick}
     >
       {/* Track Icon */}
       <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${track.color} flex items-center justify-center flex-shrink-0 text-white`}>
@@ -136,7 +132,7 @@ function TrackItem({ track, onSelect }: { track: Track; onSelect?: () => void })
       
       {/* Action */}
       {!track.isLocked && (
-        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        <ExternalLink className="h-4 w-4 text-muted-foreground" />
       )}
     </div>
   );
@@ -208,10 +204,11 @@ export function ConectaCapilarCard({ onSelectTrack }: ConectaCapilarCardProps) {
               </div>
               <Button 
                 size="sm" 
-                className="bg-emerald-600 hover:bg-emerald-700 h-7 text-xs"
-                onClick={() => onSelectTrack?.(recommendedTrack.id)}
+                className="bg-emerald-600 hover:bg-emerald-700 h-7 text-xs gap-1"
+                onClick={() => window.open('https://conectacapilar.com.br', '_blank')}
               >
                 Continuar
+                <ExternalLink className="h-3 w-3" />
               </Button>
             </div>
           </div>
