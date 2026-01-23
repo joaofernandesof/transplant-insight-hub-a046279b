@@ -297,58 +297,96 @@ export function AcademyClassDetail() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {classDetails.exams.map((exam) => (
-                  <Card key={exam.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div>
-                          <h3 className="font-semibold">{exam.title}</h3>
-                          {exam.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">{exam.description}</p>
-                          )}
+              <div className="space-y-3">
+                {classDetails.exams.map((exam) => {
+                  const passed = exam.bestScore !== null && exam.bestScore >= (exam.passingScore || 70);
+                  const attempted = exam.attemptCount > 0;
+                  
+                  return (
+                    <Card key={exam.id} className="hover:shadow-md transition-all">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          {/* Icon */}
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                            passed
+                              ? 'bg-gradient-to-br from-emerald-400 to-green-500'
+                              : attempted
+                              ? 'bg-gradient-to-br from-amber-400 to-orange-500'
+                              : 'bg-gradient-to-br from-blue-400 to-indigo-500'
+                          }`}>
+                            {passed ? (
+                              <Award className="h-6 w-6 text-white" />
+                            ) : (
+                              <FileText className="h-6 w-6 text-white" />
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h3 className="font-semibold">{exam.title}</h3>
+                              {exam.bestScore !== null && (
+                                <Badge className={
+                                  passed 
+                                    ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                                    : 'bg-red-500 text-white hover:bg-red-600'
+                                }>
+                                  {passed ? (
+                                    <>
+                                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                                      Aprovado • {exam.bestScore}%
+                                    </>
+                                  ) : (
+                                    <>
+                                      <AlertCircle className="h-3 w-3 mr-1" />
+                                      Reprovado • {exam.bestScore}% — Tente novamente
+                                    </>
+                                  )}
+                                </Badge>
+                              )}
+                            </div>
+
+                            {exam.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{exam.description}</p>
+                            )}
+
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              {exam.durationMinutes && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {exam.durationMinutes} min
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Award className="h-3 w-3" />
+                                Mínimo: {exam.passingScore || 70}%
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex flex-col gap-2 flex-shrink-0">
+                            <Button 
+                              className="bg-blue-600 hover:bg-blue-700"
+                              onClick={() => navigate(`/academy/exams/${exam.id}/take`)}
+                            >
+                              {attempted ? 'Refazer' : 'Iniciar'}
+                            </Button>
+                            {attempted && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/academy/exams/${exam.id}/results`)}
+                              >
+                                Ver Resultado
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        {exam.passed ? (
-                          <Badge className="bg-emerald-100 text-emerald-700 border-0">
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                            Aprovado
-                          </Badge>
-                        ) : exam.attemptCount > 0 ? (
-                          <Badge variant="secondary">
-                            {exam.attemptCount} tentativa(s)
-                          </Badge>
-                        ) : null}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                        {exam.durationMinutes && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5" />
-                            {exam.durationMinutes} min
-                          </span>
-                        )}
-                        {exam.passingScore && (
-                          <span className="flex items-center gap-1">
-                            <Award className="h-3.5 w-3.5" />
-                            Mínimo: {exam.passingScore}%
-                          </span>
-                        )}
-                      </div>
-                      {exam.bestScore !== null && (
-                        <div className="mb-3 p-2 bg-muted rounded-lg">
-                          <p className="text-sm">
-                            Melhor nota: <span className="font-semibold">{exam.bestScore}%</span>
-                          </p>
-                        </div>
-                      )}
-                      <Button 
-                        className="w-full"
-                        onClick={() => navigate(`/academy/exams/${exam.id}/take`)}
-                      >
-                        {exam.attemptCount > 0 ? 'Tentar Novamente' : 'Iniciar Prova'}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
