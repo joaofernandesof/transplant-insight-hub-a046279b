@@ -1217,7 +1217,15 @@ export type Database = {
           q51_patrick_m_contribution: string | null
           q52_patrick_m_strength: string | null
           q53_patrick_m_improve: string | null
+          q54_eder_m_technical: string | null
+          q55_eder_m_interest: string | null
+          q56_eder_m_engagement: string | null
+          q57_eder_m_posture: string | null
+          q58_eder_m_communication: string | null
+          q59_eder_m_contribution: string | null
           q6_hygor_liked_most: string | null
+          q60_eder_m_strength: string | null
+          q61_eder_m_improve: string | null
           q7_hygor_improve: string | null
           q8_patrick_expectations: string | null
           q9_patrick_clarity: string | null
@@ -1279,7 +1287,15 @@ export type Database = {
           q51_patrick_m_contribution?: string | null
           q52_patrick_m_strength?: string | null
           q53_patrick_m_improve?: string | null
+          q54_eder_m_technical?: string | null
+          q55_eder_m_interest?: string | null
+          q56_eder_m_engagement?: string | null
+          q57_eder_m_posture?: string | null
+          q58_eder_m_communication?: string | null
+          q59_eder_m_contribution?: string | null
           q6_hygor_liked_most?: string | null
+          q60_eder_m_strength?: string | null
+          q61_eder_m_improve?: string | null
           q7_hygor_improve?: string | null
           q8_patrick_expectations?: string | null
           q9_patrick_clarity?: string | null
@@ -1341,7 +1357,15 @@ export type Database = {
           q51_patrick_m_contribution?: string | null
           q52_patrick_m_strength?: string | null
           q53_patrick_m_improve?: string | null
+          q54_eder_m_technical?: string | null
+          q55_eder_m_interest?: string | null
+          q56_eder_m_engagement?: string | null
+          q57_eder_m_posture?: string | null
+          q58_eder_m_communication?: string | null
+          q59_eder_m_contribution?: string | null
           q6_hygor_liked_most?: string | null
+          q60_eder_m_strength?: string | null
+          q61_eder_m_improve?: string | null
           q7_hygor_improve?: string | null
           q8_patrick_expectations?: string | null
           q9_patrick_clarity?: string | null

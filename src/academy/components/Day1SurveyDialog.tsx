@@ -11,15 +11,17 @@ import { cn } from '@/lib/utils';
 import drPatrickPhoto from '@/assets/instructors/dr-patrick.png';
 import drHygorPhoto from '@/assets/instructors/dr-hygor.png';
 import draGleydesPhoto from '@/assets/instructors/dra-gleyldes.png';
-import drEderPhoto from '@/assets/instructors/dr-eder.png';
+import drEleniltonPhoto from '@/assets/instructors/dr-eder.png';
+import drEderPhoto from '@/assets/instructors/dr-eder-new.png';
 
 // Instructor data - now includes all monitors for individual evaluation
 const INSTRUCTORS: Record<string, { name: string; role: string; photo: string }> = {
   'Aula Dr. Hygor Guerreiro': { name: 'Dr. Hygor Guerreiro', role: 'Professor', photo: drHygorPhoto },
   'Aula Dr. Patrick Penaforte': { name: 'Dr. Patrick Penaforte', role: 'Professor e Monitor', photo: drPatrickPhoto },
   'Avaliação Monitor - Dra Gleyldes': { name: 'Dra. Gleyldes', role: 'Monitora', photo: draGleydesPhoto },
-  'Avaliação Monitor - Dr Elenilton': { name: 'Dr. Elenilton', role: 'Monitor', photo: drEderPhoto },
+  'Avaliação Monitor - Dr Elenilton': { name: 'Dr. Elenilton', role: 'Monitor', photo: drEleniltonPhoto },
   'Avaliação Monitor - Dr Patrick': { name: 'Dr. Patrick Penaforte', role: 'Monitor', photo: drPatrickPhoto },
+  'Avaliação Monitor - Dr Eder': { name: 'Dr. Eder', role: 'Monitor', photo: drEderPhoto },
 };
 
 interface Day1SurveyDialogProps {
@@ -535,6 +537,62 @@ const QUESTIONS: Question[] = [
     text: '49. O que o Dr. Patrick pode melhorar como monitor para as próximas turmas?',
     type: 'text',
     category: 'Avaliação Monitor - Dr Patrick',
+  },
+  
+  // Monitor 4: Dr Eder
+  {
+    key: 'q54_eder_m_technical' as keyof Day1SurveyFormData,
+    text: '50. Avalie o domínio técnico do monitor',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q55_eder_m_interest' as keyof Day1SurveyFormData,
+    text: '51. Interesse do monitor em ensinar e orientar',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q56_eder_m_engagement' as keyof Day1SurveyFormData,
+    text: '52. Engajamento do monitor com a turma',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q57_eder_m_posture' as keyof Day1SurveyFormData,
+    text: '53. Postura profissional do monitor',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q58_eder_m_communication' as keyof Day1SurveyFormData,
+    text: '54. Comunicação do monitor com os alunos',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q59_eder_m_contribution' as keyof Day1SurveyFormData,
+    text: '55. Contribuição do monitor para sua experiência no curso',
+    type: 'radio',
+    category: 'Avaliação Monitor - Dr Eder',
+    options: monitorQualityOptions,
+  },
+  {
+    key: 'q60_eder_m_strength' as keyof Day1SurveyFormData,
+    text: '56. Qual foi o principal ponto forte do Dr. Eder?',
+    type: 'text',
+    category: 'Avaliação Monitor - Dr Eder',
+  },
+  {
+    key: 'q61_eder_m_improve' as keyof Day1SurveyFormData,
+    text: '57. O que o Dr. Eder pode melhorar para as próximas turmas?',
+    type: 'text',
+    category: 'Avaliação Monitor - Dr Eder',
   },
 ];
 
