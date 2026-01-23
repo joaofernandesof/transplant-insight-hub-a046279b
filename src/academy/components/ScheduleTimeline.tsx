@@ -433,8 +433,8 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                 className="absolute left-0 right-0 flex items-start"
                 style={{ top: index * HOUR_HEIGHT }}
               >
-                {/* Hour label */}
-                <div className="w-14 flex-shrink-0 text-xs text-muted-foreground font-medium pr-2 text-right -mt-2">
+                {/* Hour label - narrower on mobile */}
+                <div className="w-11 sm:w-14 flex-shrink-0 text-[10px] sm:text-xs text-muted-foreground font-medium pr-1 sm:pr-2 text-right -mt-2">
                   {hour.toString().padStart(2, '0')}:00
                 </div>
                 {/* Hour line */}
@@ -443,7 +443,7 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
             ))}
 
             {/* Activity blocks */}
-            <div className="absolute left-14 right-0 top-0" style={{ height: totalHeight }}>
+            <div className="absolute left-11 sm:left-14 right-0 top-0" style={{ height: totalHeight }}>
               {groupedItems.map(({ item, column, totalColumns }) => {
                 const startHour = parseTimeToHours(item.startTime);
                 const endHour = parseTimeToHours(item.endTime);
