@@ -372,11 +372,11 @@ export function AcademyClassDetail() {
                             >
                               {attempted ? 'Refazer' : 'Iniciar'}
                             </Button>
-                            {attempted && (
+                            {attempted && exam.lastAttemptId && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => navigate(`/academy/exams/${exam.id}/results`)}
+                                onClick={() => navigate(`/academy/exams/${exam.id}/results/${exam.lastAttemptId}`)}
                               >
                                 Ver Resultado
                               </Button>
