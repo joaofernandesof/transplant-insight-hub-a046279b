@@ -365,6 +365,94 @@ export type Database = {
           },
         ]
       }
+      class_schedule: {
+        Row: {
+          class_id: string
+          created_at: string
+          day_date: string | null
+          day_number: number
+          day_theme: string | null
+          day_title: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          day_date?: string | null
+          day_number: number
+          day_theme?: string | null
+          day_title: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          day_date?: string | null
+          day_number?: number
+          day_theme?: string | null
+          day_title?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_schedule_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_schedule_items: {
+        Row: {
+          activity: string
+          created_at: string
+          end_time: string
+          id: string
+          instructor: string | null
+          location: string | null
+          notes: string | null
+          order_index: number | null
+          schedule_id: string
+          start_time: string
+        }
+        Insert: {
+          activity: string
+          created_at?: string
+          end_time: string
+          id?: string
+          instructor?: string | null
+          location?: string | null
+          notes?: string | null
+          order_index?: number | null
+          schedule_id: string
+          start_time: string
+        }
+        Update: {
+          activity?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          instructor?: string | null
+          location?: string | null
+          notes?: string | null
+          order_index?: number | null
+          schedule_id?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_schedule_items_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "class_schedule"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_patients: {
         Row: {
           cpf: string | null

@@ -292,7 +292,8 @@ import {
   AcademyExamResults,
   AcademyEnrollmentsAdmin,
   AcademyCommunity,
-  AcademyStudentsAdmin
+  AcademyStudentsAdmin,
+  AcademyClassDetail
 } from './academy';
 
 function AcademyRoutes() {
@@ -302,6 +303,7 @@ function AcademyRoutes() {
         <Routes>
           <Route index element={<AcademyHome />} />
           <Route path="courses" element={<AcademyCourses />} />
+          <Route path="classes/:classId" element={<AcademyClassDetail />} />
           <Route path="schedule" element={<AcademySchedule />} />
           <Route path="materials" element={<Materials />} />
           <Route path="exams" element={<AcademyExams />} />

@@ -105,6 +105,7 @@ export function useAcademyEnrollments() {
   // Transform enrollments to PresentialCourse format for the component
   const presentialCourses = enrollments.map(enrollment => ({
     id: enrollment.id,
+    classId: enrollment.classId, // Adiciona o classId para navegação
     name: enrollment.courseName,
     description: enrollment.courseDescription,
     duration: enrollment.courseName.toLowerCase().includes("fellowship") ? "180h" : "60h",

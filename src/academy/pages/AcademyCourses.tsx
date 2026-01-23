@@ -83,8 +83,9 @@ export function AcademyCourses() {
   };
 
   const handleViewPresentialDetails = (course: PresentialCourse) => {
-    // Navigate to course details or open modal
-    navigate('/academy/schedule');
+    // Navigate to class details page
+    const classId = course.classId || course.id;
+    navigate(`/academy/classes/${classId}`);
   };
 
   const handleSelectTrack = (trackId: string) => {

@@ -8,3 +8,4 @@ export { AcademyExamResults } from './AcademyExamResults';
 export { AcademyEnrollmentsAdmin } from './AcademyEnrollmentsAdmin';
 export { AcademyCommunity } from './AcademyCommunity';
 export { AcademyStudentsAdmin } from './AcademyStudentsAdmin';
+export { AcademyClassDetail } from './AcademyClassDetail';
