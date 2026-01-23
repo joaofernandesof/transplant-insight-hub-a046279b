@@ -134,38 +134,52 @@ export function useClassDetails(classId: string | null) {
         }
       }
 
-      // Fetch enrolled students
+      // Fetch enrolled students with profiles in a single query
       const { data: enrollmentsData } = await supabase
         .from("class_enrollments")
         .select(`
           id, status, enrolled_at, user_id
         `)
-        .eq("class_id", classId);
+        .eq("class_id", classId)
+        .order("enrolled_at", { ascending: true });
 
-      // Fetch student profiles
+      // Fetch student profiles - handle large arrays by batching
       let students: ClassStudent[] = [];
       if (enrollmentsData && enrollmentsData.length > 0) {
         const userIds = enrollmentsData.map(e => e.user_id);
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("user_id, name, email, avatar_url, city, state")
-          .in("user_id", userIds);
-
-        if (profilesData) {
-          students = enrollmentsData.map(enrollment => {
-            const profile = profilesData.find(p => p.user_id === enrollment.user_id);
-            return {
-              id: enrollment.id,
-              name: profile?.name || "Aluno",
-              email: profile?.email || "",
-              avatarUrl: profile?.avatar_url || null,
-              city: profile?.city || null,
-              state: profile?.state || null,
-              enrollmentStatus: enrollment.status,
-              enrolledAt: enrollment.enrolled_at,
-            };
-          });
+        
+        // Batch requests in groups of 100 to avoid query size limits
+        const batchSize = 100;
+        const batches: string[][] = [];
+        for (let i = 0; i < userIds.length; i += batchSize) {
+          batches.push(userIds.slice(i, i + batchSize));
         }
+        
+        const profilesResults = await Promise.all(
+          batches.map(batch =>
+            supabase
+              .from("profiles")
+              .select("user_id, name, email, avatar_url, city, state")
+              .in("user_id", batch)
+          )
+        );
+        
+        const allProfiles = profilesResults.flatMap(result => result.data || []);
+        const profileMap = new Map(allProfiles.map(p => [p.user_id, p]));
+
+        students = enrollmentsData.map(enrollment => {
+          const profile = profileMap.get(enrollment.user_id);
+          return {
+            id: enrollment.id,
+            name: profile?.name || "Aluno",
+            email: profile?.email || "",
+            avatarUrl: profile?.avatar_url || null,
+            city: profile?.city || null,
+            state: profile?.state || null,
+            enrollmentStatus: enrollment.status,
+            enrolledAt: enrollment.enrolled_at,
+          };
+        });
       }
 
       const course = classData.courses as any;
