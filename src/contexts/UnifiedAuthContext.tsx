@@ -341,10 +341,28 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         .single();
 
       if (legacyProfile) {
+        // Check if user is a student (has class enrollments)
+        const { data: enrollmentData } = await supabase
+          .from('class_enrollments')
+          .select('id')
+          .eq('user_id', authUser.id)
+          .limit(1);
+        
+        const isStudent = (enrollmentData && enrollmentData.length > 0);
+        
         const { data: roleData } = await supabase.rpc('get_user_role', { _user_id: authUser.id });
-        const legacyRole = (roleData as 'admin' | 'licensee') || 'licensee';
+        const legacyRole = (roleData as 'admin' | 'licensee') || (isStudent ? undefined : 'licensee');
         const isAdmin = legacyRole === 'admin';
-        const profiles: ProfileKey[] = isAdmin ? ['administrador'] : ['licenciado'];
+        
+        // Determine profile: admin > student > licensee
+        let profiles: ProfileKey[];
+        if (isAdmin) {
+          profiles = ['administrador'];
+        } else if (isStudent) {
+          profiles = ['aluno'];
+        } else {
+          profiles = ['licenciado'];
+        }
 
         return {
           id: legacyProfile.id || authUser.id,
