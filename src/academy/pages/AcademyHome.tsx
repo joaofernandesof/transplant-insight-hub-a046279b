@@ -48,20 +48,12 @@ export function AcademyHome() {
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
         <div className="px-3 sm:px-4 py-3 sm:py-4">
-          <div className="pl-10 sm:pl-12 lg:pl-0 flex items-center gap-3">
+          <div className="pl-10 sm:pl-12 lg:pl-0 flex justify-center">
             <img 
               src="/lovable-uploads/e5b40f45-ca09-4d14-9764-0d138fcfe356.png" 
               alt="IBRAMEC" 
               className="h-10 sm:h-12 object-contain"
             />
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold text-emerald-700 dark:text-emerald-400">
-                Portal do Aluno
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Olá, {user?.fullName?.split(' ')[0] || 'Aluno'}! 👋
-              </p>
-            </div>
           </div>
         </div>
       </header>
