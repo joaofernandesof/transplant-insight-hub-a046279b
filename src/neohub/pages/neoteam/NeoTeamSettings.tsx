@@ -35,15 +35,18 @@ import {
 } from '@/components/ui/alert-dialog';
 import { 
   Settings, User, Bell, Shield, Clock,
-  Camera, Save, Building2, Plus, Trash2, Edit, Loader2
+  Camera, Save, Building2, Plus, Trash2, Edit, Loader2,
+  Sun, Moon, Monitor, Palette
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNeoTeamBranches, Branch, NewBranch } from '@/neohub/hooks/useNeoTeamBranches';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
+import { useTheme } from 'next-themes';
 
 export default function NeoTeamSettings() {
   const { user } = useUnifiedAuth();
   const { branches, isLoading, createBranch, updateBranch, deleteBranch } = useNeoTeamBranches();
+  const { theme, setTheme } = useTheme();
   
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
@@ -346,6 +349,45 @@ export default function NeoTeamSettings() {
               <p className="text-sm text-muted-foreground">Notificar sobre cancelamentos</p>
             </div>
             <Switch defaultChecked />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Appearance */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Aparência
+          </CardTitle>
+          <CardDescription>Personalize a aparência do sistema</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <Button
+              variant={theme === 'light' ? 'default' : 'outline'}
+              className="h-20 flex-col gap-2"
+              onClick={() => setTheme('light')}
+            >
+              <Sun className="h-5 w-5" />
+              Claro
+            </Button>
+            <Button
+              variant={theme === 'dark' ? 'default' : 'outline'}
+              className="h-20 flex-col gap-2"
+              onClick={() => setTheme('dark')}
+            >
+              <Moon className="h-5 w-5" />
+              Escuro
+            </Button>
+            <Button
+              variant={theme === 'system' ? 'default' : 'outline'}
+              className="h-20 flex-col gap-2"
+              onClick={() => setTheme('system')}
+            >
+              <Monitor className="h-5 w-5" />
+              Sistema
+            </Button>
           </div>
         </CardContent>
       </Card>

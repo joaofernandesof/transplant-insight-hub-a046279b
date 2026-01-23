@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
@@ -141,13 +140,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       </ScrollArea>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t space-y-3">
-        {/* Theme Toggle */}
-        <div className="flex items-center gap-3 py-2">
-          <ThemeToggle />
-          <span className="text-sm text-muted-foreground truncate">{user?.email}</span>
-        </div>
-        
+      <div className="p-4 border-t space-y-2">
         {/* Settings */}
         <NavLink
           to="/academy/profile"

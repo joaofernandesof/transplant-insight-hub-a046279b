@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   MAIN_MENU_CATEGORIES, 
   filterMenuByPermissions,
@@ -279,16 +278,9 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
 
         {/* Footer */}
         <div className={cn("p-4 border-t", isCollapsed && "flex flex-col items-center")}>
-          {isCollapsed ? (
-            <ThemeToggle />
-          ) : (
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] text-muted-foreground">
-                {isAdmin ? 'Painel Administrativo' : 'Portal do Licenciado'}
-              </p>
-              <ThemeToggle />
-            </div>
-          )}
+          <p className="text-[10px] text-muted-foreground text-center">
+            {isAdmin ? 'Painel Administrativo' : 'Portal do Licenciado'}
+          </p>
         </div>
       </aside>
 

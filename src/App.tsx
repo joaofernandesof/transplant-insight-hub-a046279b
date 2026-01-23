@@ -297,7 +297,8 @@ import {
   AcademyEnrollmentsAdmin,
   AcademyCommunity,
   AcademyStudentsAdmin,
-  AcademyClassDetail
+  AcademyClassDetail,
+  AcademySettings
 } from './academy';
 
 function AcademyRoutes() {
@@ -316,7 +317,7 @@ function AcademyRoutes() {
           <Route path="certificates" element={<AcademyCertificates />} />
           <Route path="community" element={<AcademyCommunity />} />
           <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="profile" element={<AcademySettings />} />
           <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
           <Route path="admin/students" element={<AcademyStudentsAdmin />} />
           <Route path="*" element={<Navigate to="/academy" replace />} />

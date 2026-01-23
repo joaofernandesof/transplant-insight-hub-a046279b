@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   Home, Calendar, Clock, Users, FileText,
   Settings, LogOut, Menu, X, ChevronLeft,
@@ -283,7 +282,7 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
           </div>
 
           {/* Footer */}
-          <div className="p-2 border-t space-y-1">
+          <div className="p-2 border-t">
             <Button
               variant="ghost"
               className={cn(
@@ -295,12 +294,6 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
               <LogOut className="h-5 w-5" />
               {!isCollapsed && <span>Sair</span>}
             </Button>
-            
-            {!isCollapsed && (
-              <div className="flex justify-center pt-2">
-                <ThemeToggle />
-              </div>
-            )}
           </div>
         </div>
       </aside>
