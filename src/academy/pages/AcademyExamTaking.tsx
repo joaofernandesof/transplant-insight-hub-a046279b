@@ -106,8 +106,8 @@ export function AcademyExamTaking() {
   const totalQuestions = questions?.length || 0;
   const progressPercent = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
-  const handleAnswerChange = (questionId: string, answer: string) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+  const handleAnswerChange = (questionId: string, answerLetter: string) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answerLetter }));
   };
 
   const handleNext = () => {
@@ -220,22 +220,26 @@ export function AcademyExamTaking() {
               onValueChange={(value) => handleAnswerChange(currentQuestion?.id || '', value)}
               className="space-y-3"
             >
-              {(currentQuestion?.options || []).map((option, idx) => (
-                <div
-                  key={idx}
-                  className={`flex items-center space-x-3 p-4 rounded-lg border transition-colors cursor-pointer ${
-                    answers[currentQuestion?.id || ''] === option
-                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50'
-                      : 'hover:bg-muted/50'
-                  }`}
-                  onClick={() => handleAnswerChange(currentQuestion?.id || '', option)}
-                >
-                  <RadioGroupItem value={option} id={`option-${idx}`} />
-                  <Label htmlFor={`option-${idx}`} className="flex-1 cursor-pointer text-sm">
-                    {option}
-                  </Label>
-                </div>
-              ))}
+              {(currentQuestion?.options || []).map((option, idx) => {
+                const letter = String.fromCharCode(65 + idx); // A, B, C, D, E...
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-center space-x-3 p-4 rounded-lg border transition-colors cursor-pointer ${
+                      answers[currentQuestion?.id || ''] === letter
+                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50'
+                        : 'hover:bg-muted/50'
+                    }`}
+                    onClick={() => handleAnswerChange(currentQuestion?.id || '', letter)}
+                  >
+                    <RadioGroupItem value={letter} id={`option-${idx}`} />
+                    <Label htmlFor={`option-${idx}`} className="flex-1 cursor-pointer text-sm">
+                      <span className="font-semibold mr-2">{letter}.</span>
+                      {option}
+                    </Label>
+                  </div>
+                );
+              })}
             </RadioGroup>
           </CardContent>
         </Card>
