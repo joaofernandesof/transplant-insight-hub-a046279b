@@ -25,10 +25,18 @@ export function AcademyHome() {
   const { user } = useUnifiedAuth();
   const { courses, enrollments, isLoading } = useUniversity();
 
+  // Filter out hidden courses (Formação 360 is presential, Instrumentador de Elite is deprecated)
+  const visibleCourses = courses.filter(c => {
+    const title = c.title.toLowerCase();
+    return !title.includes('formação 360') && 
+           !title.includes('formacao 360') &&
+           !title.includes('instrumentador de elite');
+  });
+
   // Stats
-  const enrolledCourses = courses.filter(c => c.enrollment);
-  const completedCourses = courses.filter(c => c.enrollment?.status === 'completed');
-  const inProgressCourses = courses.filter(c => c.enrollment && c.enrollment.status !== 'completed');
+  const enrolledCourses = visibleCourses.filter(c => c.enrollment);
+  const completedCourses = visibleCourses.filter(c => c.enrollment?.status === 'completed');
+  const inProgressCourses = visibleCourses.filter(c => c.enrollment && c.enrollment.status !== 'completed');
   const totalProgress = enrolledCourses.length > 0
     ? Math.round(enrolledCourses.reduce((acc, c) => acc + (c.enrollment?.progress_percent || 0), 0) / enrolledCourses.length)
     : 0;
@@ -225,7 +233,7 @@ export function AcademyHome() {
         </div>
 
         {/* Available Courses Preview */}
-        {courses.filter(c => !c.enrollment).length > 0 && (
+        {visibleCourses.filter(c => !c.enrollment).length > 0 && (
           <Card className="overflow-hidden">
             <CardHeader className="p-3 pb-2">
               <div className="flex items-center justify-between">
@@ -241,7 +249,7 @@ export function AcademyHome() {
             </CardHeader>
             <CardContent className="p-3 pt-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {courses.filter(c => !c.enrollment).slice(0, 3).map((course) => (
+                {visibleCourses.filter(c => !c.enrollment).slice(0, 3).map((course) => (
                   <Card key={course.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/academy/courses')}>
                     <CardContent className="p-3">
                       <div className="w-full h-16 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 flex items-center justify-center mb-2">
