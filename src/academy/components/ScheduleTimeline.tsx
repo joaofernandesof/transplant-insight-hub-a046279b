@@ -314,8 +314,8 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
   // Group parallel activities
   const groupedItems = useMemo(() => groupParallelActivities(day.items), [day.items]);
 
-  // Calculate pixel height per hour
-  const HOUR_HEIGHT = 60; // pixels per hour
+  // Calculate pixel height per hour - increased for better readability
+  const HOUR_HEIGHT = 80; // pixels per hour (increased from 60)
   const totalHeight = (hourRange.end - hourRange.start) * HOUR_HEIGHT;
 
   return (
@@ -361,9 +361,9 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
               const startHour = parseTimeToHours(item.startTime);
               const endHour = parseTimeToHours(item.endTime);
               const top = (startHour - hourRange.start) * HOUR_HEIGHT;
-              const height = Math.max((endHour - startHour) * HOUR_HEIGHT - 4, 40); // Min 40px height
+              const height = Math.max((endHour - startHour) * HOUR_HEIGHT - 4, 56); // Min 56px height (increased)
               const style = getActivityStyle(item.activity);
-              const isShort = height < 60;
+              const isShort = height < 80; // Adjusted threshold
               
               // Calculate width and left position for parallel activities
               const GAP = 4; // gap between parallel items
@@ -377,7 +377,7 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
               return (
                 <div
                   key={item.id}
-                  className={`absolute rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 overflow-hidden transition-all hover:shadow-md hover:z-10`}
+                  className={`absolute rounded-lg border-2 ${style.bgColor} ${style.borderColor} p-2 sm:p-3 overflow-hidden transition-all hover:shadow-md hover:z-10`}
                   style={{ 
                     top: top + 2, 
                     height: height,
@@ -385,49 +385,39 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                     left: left,
                   }}
                 >
-                  <div className={`flex ${isShort ? 'flex-row items-center gap-1.5 flex-wrap' : 'flex-col gap-1'} h-full`}>
-                    {/* Icon and Time row */}
-                    <div className={`flex items-center gap-1.5 flex-shrink-0 ${style.textColor}`}>
-                      <div className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center`}>
-                        {style.icon}
-                      </div>
-                      <span className="text-[10px] sm:text-xs font-semibold whitespace-nowrap">
+                  <div className={`flex ${isShort ? 'flex-row items-center gap-2 flex-wrap' : 'flex-col gap-1.5'} h-full`}>
+                    {/* Icon */}
+                    <div className={`flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor}`}>
+                      {style.icon}
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                      {/* Time */}
+                      <span className={`text-xs sm:text-sm font-semibold ${style.textColor}`}>
                         {formatTime(item.startTime)} - {formatTime(item.endTime)}
                       </span>
-                      {/* Location badge with activity color - inline on desktop */}
-                      {item.location && !isShort && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium whitespace-nowrap hidden sm:inline-block`}>
+                      
+                      {/* Activity name */}
+                      <p className="font-medium text-xs sm:text-sm leading-snug">
+                        {item.activity}
+                      </p>
+                      
+                      {/* Location badge */}
+                      {item.location && (
+                        <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium w-fit mt-0.5`}>
                           {item.location}
                         </span>
                       )}
+                      
+                      {/* Instructor (only for taller blocks) */}
+                      {!isShort && item.instructor && (
+                        <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto pt-1">
+                          <User className="h-3 w-3 flex-shrink-0" />
+                          <span>{item.instructor}</span>
+                        </p>
+                      )}
                     </div>
-                    
-                    {/* Activity name - never truncate on mobile */}
-                    <p className={`font-medium text-xs sm:text-sm ${isShort ? 'sm:truncate sm:flex-1 sm:min-w-0' : ''}`}>
-                      {item.activity}
-                    </p>
-                    
-                    {/* Location badge on mobile - shown below title for better fit */}
-                    {item.location && !isShort && (
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium w-fit sm:hidden`}>
-                        {item.location}
-                      </span>
-                    )}
-                    
-                    {/* Location for short blocks */}
-                    {item.location && isShort && (
-                      <span className={`text-[9px] px-1 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium whitespace-nowrap flex-shrink-0`}>
-                        {item.location}
-                      </span>
-                    )}
-                    
-                    {/* Instructor (only for taller blocks) */}
-                    {!isShort && item.instructor && (
-                      <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto">
-                        <User className="h-3 w-3 flex-shrink-0" />
-                        <span className="sm:truncate">{item.instructor}</span>
-                      </p>
-                    )}
                   </div>
                 </div>
               );
