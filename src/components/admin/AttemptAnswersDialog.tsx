@@ -136,15 +136,24 @@ export function AttemptAnswersDialog({
             <div className="space-y-4">
               {answers.map((answer, idx) => {
                 const options = answer.question.options as string[];
-                const correctIndex = answer.question.correct_answer.charCodeAt(0) - 65;
-                const correctText = options[correctIndex] || answer.question.correct_answer;
                 
-                // Find selected option index (if letter was stored)
-                let selectedText = answer.selected_answer;
-                if (answer.selected_answer.length === 1 && /[A-E]/i.test(answer.selected_answer)) {
-                  const selectedIndex = answer.selected_answer.toUpperCase().charCodeAt(0) - 65;
-                  selectedText = options[selectedIndex] || answer.selected_answer;
+                // Get correct answer text - check if it's a letter or full text
+                let correctText = answer.question.correct_answer;
+                if (correctText.length === 1 && /[A-E]/i.test(correctText)) {
+                  const correctIndex = correctText.toUpperCase().charCodeAt(0) - 65;
+                  correctText = options[correctIndex] || correctText;
                 }
+                
+                // Get selected answer text - check if it's a letter or full text
+                let selectedText = answer.selected_answer;
+                if (selectedText && selectedText.length === 1 && /[A-E]/i.test(selectedText)) {
+                  const selectedIndex = selectedText.toUpperCase().charCodeAt(0) - 65;
+                  selectedText = options[selectedIndex] || selectedText;
+                }
+
+                // Truncate long texts for display
+                const truncate = (text: string, maxLen: number = 80) => 
+                  text && text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
 
                 return (
                   <div 
@@ -182,8 +191,7 @@ export function AttemptAnswersDialog({
                               "font-medium",
                               answer.is_correct ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"
                             )}>
-                              {answer.selected_answer}
-                              {selectedText !== answer.selected_answer && ` - ${selectedText.substring(0, 50)}...`}
+                              {truncate(selectedText)}
                             </span>
                           </div>
                           
@@ -192,8 +200,7 @@ export function AttemptAnswersDialog({
                               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                               <span className="text-muted-foreground">Correta:</span>
                               <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                                {answer.question.correct_answer}
-                                {correctText !== answer.question.correct_answer && ` - ${correctText.substring(0, 50)}...`}
+                                {truncate(correctText)}
                               </span>
                             </div>
                           )}
