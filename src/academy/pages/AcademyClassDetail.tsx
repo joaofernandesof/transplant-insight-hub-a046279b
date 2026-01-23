@@ -209,9 +209,14 @@ export function AcademyClassDetail() {
               <FileText className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Provas</span>
             </TabsTrigger>
-            <TabsTrigger value="photos" className="flex-col gap-1 py-2 px-1 relative">
+            <TabsTrigger 
+              value="photos" 
+              className={`flex-col gap-1 py-2 px-1 relative ${!hasDay1Completed && !isAdmin ? 'opacity-70' : ''}`}
+            >
               {!hasDay1Completed && !isAdmin && (
-                <Lock className="h-3 w-3 absolute top-1 right-1 text-muted-foreground" />
+                <div className="absolute -top-1 -right-1 bg-muted rounded-full p-0.5">
+                  <Lock className="h-3 w-3 text-muted-foreground" />
+                </div>
               )}
               <Camera className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Fotos</span>
