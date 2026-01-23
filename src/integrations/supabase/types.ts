@@ -1983,6 +1983,59 @@ export type Database = {
         }
         Relationships: []
       }
+      neohub_user_module_overrides: {
+        Row: {
+          can_delete: boolean | null
+          can_read: boolean | null
+          can_write: boolean | null
+          created_at: string | null
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          module_code: string
+          reason: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          module_code: string
+          reason?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          can_delete?: boolean | null
+          can_read?: boolean | null
+          can_write?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          module_code?: string
+          reason?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neohub_user_module_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neohub_user_profiles: {
         Row: {
           granted_at: string | null
@@ -6313,6 +6366,10 @@ export type Database = {
       }
       can_access_module: {
         Args: { _module_code: string; _user_id: string }
+        Returns: boolean
+      }
+      can_access_module_with_action: {
+        Args: { _action?: string; _module_code: string; _user_id: string }
         Returns: boolean
       }
       get_all_enrolled_user_ids: { Args: never; Returns: string[] }
