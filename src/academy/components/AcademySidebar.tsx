@@ -33,6 +33,7 @@ const navItems = [
 
 const adminItems = [
   { icon: UserCog, label: 'Gestão de Matrículas', path: '/academy/admin/enrollments' },
+  { icon: Users, label: 'Alunos x Turmas', path: '/academy/admin/students' },
 ];
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
