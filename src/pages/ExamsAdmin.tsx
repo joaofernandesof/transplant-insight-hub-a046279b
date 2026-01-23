@@ -45,6 +45,7 @@ import * as XLSX from "xlsx";
 import { ExamUploadDialog } from "@/components/admin/ExamUploadDialog";
 import { ExamManagementTable } from "@/components/admin/ExamManagementTable";
 import { AttemptAnswersDialog } from "@/components/admin/AttemptAnswersDialog";
+import { MostMissedQuestionsPanel } from "@/components/admin/MostMissedQuestionsPanel";
 
 export default function ExamsAdmin() {
   const navigate = useNavigate();
@@ -359,6 +360,11 @@ export default function ExamsAdmin() {
         {/* Exam Management Table */}
         <div className="mb-6">
           <ExamManagementTable />
+        </div>
+
+        {/* Most Missed Questions Ranking */}
+        <div className="mb-6">
+          <MostMissedQuestionsPanel />
         </div>
 
         {/* Filters */}
