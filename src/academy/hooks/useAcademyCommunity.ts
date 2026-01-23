@@ -14,7 +14,10 @@ export interface CommunityMember {
   clinicName: string | null;
   tier: string | null;
   services: string[] | null;
-  contactStatus: 'none' | 'pending_sent' | 'pending_received' | 'accepted' | 'rejected';
+  profilePublic: boolean;
+  bio: string | null;
+  instagramPersonal: string | null;
+  whatsappPersonal: string | null;
 }
 
 export interface ContactRequest {
@@ -31,7 +34,7 @@ export function useAcademyCommunity() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all students enrolled in any course (from profiles + class_enrollments)
+  // Fetch all students enrolled in any course
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["academy-community", user?.authUserId],
     queryFn: async () => {
@@ -60,56 +63,34 @@ export function useAcademyCommunity() {
         batches.push(uniqueUserIds.slice(i, i + batchSize));
       }
 
-      const profileResults = await Promise.all(
+      // Fetch from neohub_users (source of truth) with new fields
+      const neohubResults = await Promise.all(
         batches.map(batch =>
           supabase
-            .from("profiles")
-            .select("id, user_id, name, email, avatar_url, city, state, clinic_name, tier, services")
+            .from("neohub_users")
+            .select("id, user_id, full_name, email, avatar_url, address_city, address_state, clinic_name, tier, services, profile_public, bio, instagram_personal, whatsapp_personal")
             .in("user_id", batch)
         )
       );
 
-      const allProfiles = profileResults.flatMap(result => result.data || []);
+      const allUsers = neohubResults.flatMap(result => result.data || []);
 
-      // Get contact requests for current user
-      const { data: sentRequests } = await supabase
-        .from("contact_requests")
-        .select("target_user_id, status")
-        .eq("requester_id", user.authUserId);
-
-      const { data: receivedRequests } = await supabase
-        .from("contact_requests")
-        .select("requester_id, status")
-        .eq("target_user_id", user.authUserId);
-
-      const sentMap = new Map((sentRequests || []).map(r => [r.target_user_id, r.status]));
-      const receivedMap = new Map((receivedRequests || []).map(r => [r.requester_id, r.status]));
-
-      return allProfiles.map((p): CommunityMember => {
-        let contactStatus: CommunityMember['contactStatus'] = 'none';
-        
-        if (sentMap.has(p.user_id)) {
-          const status = sentMap.get(p.user_id);
-          contactStatus = status === 'accepted' ? 'accepted' : status === 'rejected' ? 'rejected' : 'pending_sent';
-        } else if (receivedMap.has(p.user_id)) {
-          const status = receivedMap.get(p.user_id);
-          contactStatus = status === 'accepted' ? 'accepted' : 'pending_received';
-        }
-
-        return {
-          id: p.id,
-          authUserId: p.user_id,
-          fullName: p.name || "Aluno",
-          email: p.email,
-          avatarUrl: p.avatar_url,
-          city: p.city,
-          state: p.state,
-          clinicName: p.clinic_name,
-          tier: p.tier,
-          services: p.services,
-          contactStatus,
-        };
-      });
+      return allUsers.map((u): CommunityMember => ({
+        id: u.id,
+        authUserId: u.user_id,
+        fullName: u.full_name || "Aluno",
+        email: u.email,
+        avatarUrl: u.avatar_url,
+        city: u.address_city,
+        state: u.address_state,
+        clinicName: u.clinic_name,
+        tier: u.tier,
+        services: u.services,
+        profilePublic: u.profile_public || false,
+        bio: u.bio,
+        instagramPersonal: u.instagram_personal,
+        whatsappPersonal: u.whatsapp_personal,
+      }));
     },
     enabled: !!user?.authUserId,
   });
@@ -131,11 +112,11 @@ export function useAcademyCommunity() {
         return [];
       }
 
-      // Get requester details from profiles
+      // Get requester details from neohub_users
       const requesterIds = data.map(r => r.requester_id);
       const { data: requesters } = await supabase
-        .from("profiles")
-        .select("user_id, name, avatar_url")
+        .from("neohub_users")
+        .select("user_id, full_name, avatar_url")
         .in("user_id", requesterIds);
 
       const requesterMap = new Map((requesters || []).map(r => [r.user_id, r]));
@@ -145,7 +126,7 @@ export function useAcademyCommunity() {
         return {
           id: r.id,
           requesterId: r.requester_id,
-          requesterName: requester?.name || "Usuário",
+          requesterName: requester?.full_name || "Usuário",
           requesterAvatar: requester?.avatar_url,
           message: r.message,
           createdAt: r.created_at,
@@ -156,26 +137,25 @@ export function useAcademyCommunity() {
     enabled: !!user?.authUserId,
   });
 
-  // Send contact request
-  const sendContactRequest = useMutation({
-    mutationFn: async ({ targetUserId, message }: { targetUserId: string; message?: string }) => {
+  // Send message to user
+  const sendMessage = useMutation({
+    mutationFn: async ({ recipientId, content }: { recipientId: string; content: string }) => {
       const { error } = await supabase
-        .from("contact_requests")
+        .from("community_messages")
         .insert({
-          requester_id: user!.authUserId,
-          target_user_id: targetUserId,
-          message,
+          sender_id: user!.authUserId,
+          recipient_id: recipientId,
+          content,
         });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Solicitação de contato enviada!");
-      queryClient.invalidateQueries({ queryKey: ["academy-community"] });
+      toast.success("Mensagem enviada!");
     },
     onError: (error) => {
-      console.error("Error sending contact request:", error);
-      toast.error("Erro ao enviar solicitação");
+      console.error("Error sending message:", error);
+      toast.error("Erro ao enviar mensagem");
     },
   });
 
@@ -203,36 +183,20 @@ export function useAcademyCommunity() {
     },
   });
 
-  // Send message to user
-  const sendMessage = useMutation({
-    mutationFn: async ({ recipientId, content }: { recipientId: string; content: string }) => {
-      const { error } = await supabase
-        .from("community_messages")
-        .insert({
-          sender_id: user!.authUserId,
-          recipient_id: recipientId,
-          content,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Mensagem enviada!");
-    },
-    onError: (error) => {
-      console.error("Error sending message:", error);
-      toast.error("Erro ao enviar mensagem");
-    },
-  });
+  // Check if current user's profile is complete
+  const isProfileComplete = !!(
+    user?.fullName &&
+    user?.phone &&
+    (user as any)?.address_city
+  );
 
   return {
     members,
     pendingRequests,
     isLoading,
-    sendContactRequest: sendContactRequest.mutate,
     respondToRequest: respondToRequest.mutate,
     sendMessage: sendMessage.mutate,
-    isSendingRequest: sendContactRequest.isPending,
     isSendingMessage: sendMessage.isPending,
+    isProfileComplete,
   };
 }

@@ -4,9 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Lock, Palette, ArrowLeft, Loader2, Save, Moon, Sun, Monitor } from 'lucide-react';
+import { User, Lock, Palette, ArrowLeft, Loader2, Save, Moon, Sun, Monitor, Users, Eye, EyeOff, Instagram, Phone } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -19,6 +21,7 @@ export function AcademySettings() {
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [isSavingCommunity, setIsSavingCommunity] = useState(false);
   
   // Profile form
   const [fullName, setFullName] = useState('');
@@ -32,6 +35,13 @@ export function AcademySettings() {
   const [addressNeighborhood, setAddressNeighborhood] = useState('');
   const [addressCity, setAddressCity] = useState('');
   const [addressState, setAddressState] = useState('');
+
+  // Community/Privacy form
+  const [profilePublic, setProfilePublic] = useState(false);
+  const [bio, setBio] = useState('');
+  const [clinicName, setClinicName] = useState('');
+  const [instagramPersonal, setInstagramPersonal] = useState('');
+  const [whatsappPersonal, setWhatsappPersonal] = useState('');
 
   // Password form
   const [newPassword, setNewPassword] = useState('');
@@ -50,8 +60,29 @@ export function AcademySettings() {
       setAddressNeighborhood(user.addressNeighborhood || '');
       setAddressCity(user.addressCity || '');
       setAddressState(user.addressState || '');
+      
+      // Load community settings from DB
+      loadCommunitySettings();
     }
   }, [user]);
+
+  const loadCommunitySettings = async () => {
+    if (!user?.id) return;
+    
+    const { data } = await supabase
+      .from('neohub_users')
+      .select('profile_public, bio, clinic_name, instagram_personal, whatsapp_personal')
+      .eq('id', user.id)
+      .single();
+    
+    if (data) {
+      setProfilePublic(data.profile_public || false);
+      setBio(data.bio || '');
+      setClinicName(data.clinic_name || '');
+      setInstagramPersonal(data.instagram_personal || '');
+      setWhatsappPersonal(data.whatsapp_personal || '');
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -82,6 +113,33 @@ export function AcademySettings() {
       toast.error('Erro ao salvar perfil');
     } else {
       toast.success('Perfil atualizado com sucesso!');
+      refreshUser();
+    }
+  };
+
+  const handleSaveCommunity = async () => {
+    if (!user) return;
+    
+    setIsSavingCommunity(true);
+
+    const { error } = await supabase
+      .from('neohub_users')
+      .update({
+        profile_public: profilePublic,
+        bio,
+        clinic_name: clinicName,
+        instagram_personal: instagramPersonal,
+        whatsapp_personal: whatsappPersonal,
+      })
+      .eq('id', user.id);
+
+    setIsSavingCommunity(false);
+
+    if (error) {
+      console.error('Error updating community settings:', error);
+      toast.error('Erro ao salvar configurações');
+    } else {
+      toast.success('Configurações de comunidade salvas!');
       refreshUser();
     }
   };
@@ -137,10 +195,14 @@ export function AcademySettings() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Perfil</span>
+          </TabsTrigger>
+          <TabsTrigger value="community" className="gap-2">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Comunidade</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Lock className="h-4 w-4" />
@@ -164,7 +226,7 @@ export function AcademySettings() {
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
                   <AvatarImage src={user?.avatarUrl} />
-                  <AvatarFallback className="text-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                  <AvatarFallback className="text-lg bg-primary/10 text-primary">
                     {user?.fullName ? getInitials(user.fullName) : '?'}
                   </AvatarFallback>
                 </Avatar>
@@ -280,7 +342,7 @@ export function AcademySettings() {
               </div>
 
               <div className="flex justify-end">
-                <Button onClick={handleSaveProfile} disabled={isLoading} className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={handleSaveProfile} disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -296,6 +358,131 @@ export function AcademySettings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Community Tab */}
+        <TabsContent value="community">
+          <div className="space-y-6">
+            {/* Visibility Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {profilePublic ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                  Visibilidade do Perfil
+                </CardTitle>
+                <CardDescription>
+                  Controle o que outros alunos podem ver sobre você na Comunidade IBRAMEC
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/50">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="profile-public" className="font-medium">Perfil Público</Label>
+                    <p className="text-sm text-muted-foreground">
+                      {profilePublic 
+                        ? "Outros alunos podem ver suas informações detalhadas" 
+                        : "Apenas seu nome e localização são visíveis"}
+                    </p>
+                  </div>
+                  <Switch
+                    id="profile-public"
+                    checked={profilePublic}
+                    onCheckedChange={setProfilePublic}
+                  />
+                </div>
+
+                {profilePublic && (
+                  <div className="text-xs text-muted-foreground bg-primary/5 p-3 rounded-lg">
+                    <strong>Informações visíveis quando o perfil é público:</strong>
+                    <ul className="list-disc list-inside mt-1 space-y-0.5">
+                      <li>Nome e localização (sempre visíveis)</li>
+                      <li>Bio/descrição</li>
+                      <li>Nome da clínica</li>
+                      <li>Instagram e WhatsApp pessoal</li>
+                      <li>Serviços oferecidos</li>
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Profile Details Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações da Comunidade</CardTitle>
+                <CardDescription>
+                  Dados que aparecerão no seu perfil público (se ativado)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio / Descrição</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Conte um pouco sobre você e sua experiência..."
+                    rows={3}
+                    maxLength={300}
+                  />
+                  <p className="text-xs text-muted-foreground text-right">{bio.length}/300</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="clinicName">Nome da Clínica</Label>
+                  <Input
+                    id="clinicName"
+                    value={clinicName}
+                    onChange={(e) => setClinicName(e.target.value)}
+                    placeholder="Clínica Exemplo"
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="instagramPersonal" className="flex items-center gap-2">
+                      <Instagram className="h-4 w-4" />
+                      Instagram Pessoal
+                    </Label>
+                    <Input
+                      id="instagramPersonal"
+                      value={instagramPersonal}
+                      onChange={(e) => setInstagramPersonal(e.target.value)}
+                      placeholder="@seuusuario"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsappPersonal" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      WhatsApp Pessoal
+                    </Label>
+                    <Input
+                      id="whatsappPersonal"
+                      value={whatsappPersonal}
+                      onChange={(e) => setWhatsappPersonal(e.target.value)}
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <Button onClick={handleSaveCommunity} disabled={isSavingCommunity}>
+                    {isSavingCommunity ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Salvar Configurações
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Security Tab */}
@@ -327,7 +514,7 @@ export function AcademySettings() {
                 />
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleChangePassword} disabled={isSavingPassword || !newPassword} className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={handleChangePassword} disabled={isSavingPassword || !newPassword}>
                   {isSavingPassword ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -353,7 +540,7 @@ export function AcademySettings() {
               <div className="grid grid-cols-3 gap-4">
                 <Button
                   variant={theme === 'light' ? 'default' : 'outline'}
-                  className={`h-24 flex-col gap-2 ${theme === 'light' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+                  className="h-24 flex-col gap-2"
                   onClick={() => setTheme('light')}
                 >
                   <Sun className="h-6 w-6" />
@@ -361,7 +548,7 @@ export function AcademySettings() {
                 </Button>
                 <Button
                   variant={theme === 'dark' ? 'default' : 'outline'}
-                  className={`h-24 flex-col gap-2 ${theme === 'dark' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+                  className="h-24 flex-col gap-2"
                   onClick={() => setTheme('dark')}
                 >
                   <Moon className="h-6 w-6" />
@@ -369,7 +556,7 @@ export function AcademySettings() {
                 </Button>
                 <Button
                   variant={theme === 'system' ? 'default' : 'outline'}
-                  className={`h-24 flex-col gap-2 ${theme === 'system' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+                  className="h-24 flex-col gap-2"
                   onClick={() => setTheme('system')}
                 >
                   <Monitor className="h-6 w-6" />
