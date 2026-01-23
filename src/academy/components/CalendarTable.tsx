@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, MapPin, CheckCircle2, Clock, AlertCircle, GraduationCap } from "lucide-react";
+import { Calendar, MapPin, CheckCircle2, Clock, AlertCircle, GraduationCap, UserPlus, UserCheck, Loader2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAcademyCalendar, CalendarCourse } from "../hooks/useAcademyCalendar";
@@ -46,6 +47,37 @@ function getStatusConfig(status: CalendarCourse['status']) {
   }
 }
 
+function getEnrollmentBadge(isEnrolled: boolean, enrollmentStatus: string | null) {
+  if (!isEnrolled) {
+    return null;
+  }
+  
+  switch (enrollmentStatus) {
+    case 'confirmed':
+    case 'in_progress':
+      return {
+        label: 'Matriculado',
+        bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+        textColor: 'text-blue-700 dark:text-blue-300',
+        icon: <UserCheck className="h-3 w-3" />,
+      };
+    case 'pending':
+      return {
+        label: 'Aguardando',
+        bgColor: 'bg-orange-100 dark:bg-orange-900/50',
+        textColor: 'text-orange-700 dark:text-orange-300',
+        icon: <Clock className="h-3 w-3" />,
+      };
+    default:
+      return {
+        label: 'Matriculado',
+        bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+        textColor: 'text-blue-700 dark:text-blue-300',
+        icon: <UserCheck className="h-3 w-3" />,
+      };
+  }
+}
+
 function formatDateRange(startDate: string | null, endDate: string | null): string {
   if (!startDate) return '—';
   
@@ -76,7 +108,7 @@ function getMonthYear(startDate: string | null, code: string): string {
 }
 
 export function CalendarTable() {
-  const { classes, isLoading } = useAcademyCalendar();
+  const { classes, isLoading, enrollInClass, isEnrolling } = useAcademyCalendar();
 
   if (isLoading) {
     return (
@@ -104,6 +136,10 @@ export function CalendarTable() {
     c.name.toLowerCase().includes('formacao')
   );
 
+  const handleEnroll = (classId: string) => {
+    enrollInClass(classId);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -123,11 +159,13 @@ export function CalendarTable() {
                 <th className="text-left py-3 px-4 font-semibold">Curso</th>
                 <th className="text-center py-3 px-4 font-semibold">Datas</th>
                 <th className="text-center py-3 px-4 font-semibold">Status</th>
+                <th className="text-center py-3 px-4 font-semibold">Matrícula</th>
               </tr>
             </thead>
             <tbody>
               {formacaoClasses.map((classItem, index) => {
                 const statusConfig = getStatusConfig(classItem.status);
+                const enrollmentBadge = getEnrollmentBadge(classItem.isEnrolled, classItem.enrollmentStatus);
                 const monthYear = getMonthYear(classItem.startDate, classItem.code);
                 const courseName = classItem.name.includes('+') 
                   ? classItem.name.split(' - ')[0] 
@@ -157,6 +195,29 @@ export function CalendarTable() {
                         <span className="text-xs">{statusConfig.label}</span>
                       </Badge>
                     </td>
+                    <td className="py-3 px-4">
+                      {enrollmentBadge ? (
+                        <Badge className={`${enrollmentBadge.bgColor} ${enrollmentBadge.textColor} border-0 flex items-center gap-1 justify-center w-full max-w-[130px] mx-auto`}>
+                          {enrollmentBadge.icon}
+                          <span className="text-xs">{enrollmentBadge.label}</span>
+                        </Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs gap-1 mx-auto flex"
+                          onClick={() => handleEnroll(classItem.id)}
+                          disabled={isEnrolling || classItem.status === 'completed'}
+                        >
+                          {isEnrolling ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <UserPlus className="h-3 w-3" />
+                          )}
+                          Matricular
+                        </Button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
@@ -168,6 +229,7 @@ export function CalendarTable() {
         <div className="sm:hidden space-y-3 px-4">
           {formacaoClasses.map((classItem) => {
             const statusConfig = getStatusConfig(classItem.status);
+            const enrollmentBadge = getEnrollmentBadge(classItem.isEnrolled, classItem.enrollmentStatus);
             const monthYear = getMonthYear(classItem.startDate, classItem.code);
             const courseName = classItem.name.includes('+') 
               ? classItem.name.split(' - ')[0] 
@@ -187,7 +249,7 @@ export function CalendarTable() {
                     {statusConfig.label}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
                     {classItem.city || 'São Paulo'}
@@ -196,6 +258,30 @@ export function CalendarTable() {
                     <Calendar className="h-3 w-3" />
                     {formatDateRange(classItem.startDate, classItem.endDate)}
                   </div>
+                </div>
+                {/* Enrollment status/button */}
+                <div className="pt-2 border-t">
+                  {enrollmentBadge ? (
+                    <Badge className={`${enrollmentBadge.bgColor} ${enrollmentBadge.textColor} border-0 flex items-center gap-1 justify-center w-full`}>
+                      {enrollmentBadge.icon}
+                      <span className="text-xs">{enrollmentBadge.label}</span>
+                    </Badge>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-xs gap-1 w-full"
+                      onClick={() => handleEnroll(classItem.id)}
+                      disabled={isEnrolling || classItem.status === 'completed'}
+                    >
+                      {isEnrolling ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <UserPlus className="h-3 w-3" />
+                      )}
+                      Solicitar Matrícula
+                    </Button>
+                  )}
                 </div>
               </div>
             );
