@@ -33,6 +33,7 @@ export interface ClassExam {
   attemptCount: number;
   bestScore: number | null;
   passed: boolean;
+  lastAttemptId: string | null;
 }
 
 export interface ClassStudent {
@@ -106,19 +107,20 @@ export function useClassDetails(classId: string | null) {
         .eq("class_id", classId);
 
       // Fetch user's exam attempts
-      let examAttempts: Record<string, { count: number; bestScore: number | null; passed: boolean }> = {};
+      let examAttempts: Record<string, { count: number; bestScore: number | null; passed: boolean; lastAttemptId: string | null }> = {};
       if (user?.authUserId && examsData) {
         const examIds = examsData.map(e => e.id);
         const { data: attemptsData } = await supabase
           .from("exam_attempts")
-          .select("exam_id, score, status")
+          .select("id, exam_id, score, status, submitted_at")
           .eq("user_id", user.authUserId)
-          .in("exam_id", examIds);
+          .in("exam_id", examIds)
+          .order("submitted_at", { ascending: false });
 
         if (attemptsData) {
           for (const attempt of attemptsData) {
             if (!examAttempts[attempt.exam_id]) {
-              examAttempts[attempt.exam_id] = { count: 0, bestScore: null, passed: false };
+              examAttempts[attempt.exam_id] = { count: 0, bestScore: null, passed: false, lastAttemptId: attempt.id };
             }
             examAttempts[attempt.exam_id].count++;
             if (attempt.score !== null) {
@@ -225,6 +227,7 @@ export function useClassDetails(classId: string | null) {
           attemptCount: examAttempts[exam.id]?.count || 0,
           bestScore: examAttempts[exam.id]?.bestScore || null,
           passed: examAttempts[exam.id]?.passed || false,
+          lastAttemptId: examAttempts[exam.id]?.lastAttemptId || null,
         })),
         students,
         enrolledCount: enrollmentsData?.length || 0,
