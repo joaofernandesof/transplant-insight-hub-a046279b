@@ -45,11 +45,13 @@ export function AcademyCourses() {
   const { presentialCourses, isLoading: isLoadingPresential } = useAcademyEnrollments();
   const [activeTab, setActiveTab] = useState('presencial');
 
-  // Calculate overall stats - filter out "Formação 360" from online courses (it's presential)
-  const onlineCourses = courses.filter(c => 
-    !c.title.toLowerCase().includes('formação 360') && 
-    !c.title.toLowerCase().includes('formacao 360')
-  );
+  // Calculate overall stats - filter out courses that shouldn't appear in online listings
+  const onlineCourses = courses.filter(c => {
+    const title = c.title.toLowerCase();
+    return !title.includes('formação 360') && 
+           !title.includes('formacao 360') &&
+           !title.includes('instrumentador de elite');
+  });
   const enrolledCourses = onlineCourses.filter(c => c.enrollment);
   const completedCourses = onlineCourses.filter(c => c.enrollment?.status === 'completed');
   const inProgressCourses = onlineCourses.filter(c => c.enrollment && c.enrollment.status !== 'completed');
