@@ -100,6 +100,17 @@ export function EnrollmentManagementPanel() {
   const [showEnrollDialog, setShowEnrollDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Auto-select first in_progress class when classes load
+  useEffect(() => {
+    if (classes.length > 0 && !selectedClass) {
+      const inProgressClass = classes.find(c => c.status === "in_progress");
+      if (inProgressClass) {
+        setSelectedClass(inProgressClass);
+      }
+    }
+  }, [classes, selectedClass]);
 
   // Load enrollments when class is selected
   useEffect(() => {
@@ -125,6 +136,10 @@ export function EnrollmentManagementPanel() {
     const cls = classes.find(c => c.id === classId);
     setSelectedClass(cls || null);
   };
+
+  const filteredClasses = statusFilter === "all" 
+    ? classes 
+    : classes.filter(c => c.status === statusFilter);
 
   const handleEnrollSelected = () => {
     if (!selectedClass || selectedStudents.size === 0) return;
@@ -175,22 +190,68 @@ export function EnrollmentManagementPanel() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-emerald-600" />
-            Gerenciar Matrículas
+            Gerenciar Matrículas por Turma
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Status filter tabs */}
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant={statusFilter === "all" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setStatusFilter("all")}
+            >
+              Todas ({classes.length})
+            </Button>
+            <Button 
+              variant={statusFilter === "in_progress" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setStatusFilter("in_progress")}
+              className={statusFilter === "in_progress" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+            >
+              <Clock className="h-3 w-3 mr-1" />
+              Em Andamento ({classes.filter(c => c.status === "in_progress").length})
+            </Button>
+            <Button 
+              variant={statusFilter === "confirmed" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setStatusFilter("confirmed")}
+            >
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Confirmadas ({classes.filter(c => c.status === "confirmed" || c.status === "active").length})
+            </Button>
+            <Button 
+              variant={statusFilter === "pending" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setStatusFilter("pending")}
+            >
+              <AlertCircle className="h-3 w-3 mr-1" />
+              A Confirmar ({classes.filter(c => c.status === "pending").length})
+            </Button>
+          </div>
+
           <Select value={selectedClass?.id || ""} onValueChange={handleSelectClass}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione uma turma..." />
             </SelectTrigger>
             <SelectContent>
-              {classes.map((cls) => (
+              {filteredClasses.map((cls) => (
                 <SelectItem key={cls.id} value={cls.id}>
                   <div className="flex items-center gap-2">
-                    <span>{cls.name}</span>
+                    <span className="font-medium">{cls.name}</span>
+                    {cls.status === "in_progress" && (
+                      <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 border-0 text-xs">
+                        Em Andamento
+                      </Badge>
+                    )}
                     <Badge variant="outline" className="text-xs">
                       {cls.enrolledCount} alunos
                     </Badge>
+                    {cls.startDate && (
+                      <span className="text-xs text-muted-foreground">
+                        {format(parseISO(cls.startDate), "dd/MM/yyyy", { locale: ptBR })}
+                      </span>
+                    )}
                   </div>
                 </SelectItem>
               ))}
