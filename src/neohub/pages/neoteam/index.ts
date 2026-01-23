@@ -10,3 +10,4 @@ export { default as NeoTeamDocuments } from './NeoTeamDocuments';
 export { default as NeoTeamTasks } from './NeoTeamTasks';
 export { default as NeoTeamSettings } from './NeoTeamSettings';
 export { default as NeoTeamStaffRoles } from './NeoTeamStaffRoles';
+export { default as NeoTeamEvents } from './NeoTeamEvents';

@@ -11,7 +11,7 @@ import {
   Settings, LogOut, Menu, X, ChevronLeft,
   Bell, Folder, Stethoscope, BarChart3, CheckSquare,
   UserCog, Building2, ChevronDown, ChevronRight,
-  List, Ticket
+  List, Ticket, CalendarDays
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
@@ -42,6 +42,7 @@ const menuItems: MenuItem[] = [
   { id: 'waiting-room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
   { id: 'doctor-view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view', doctorOnly: true },
   { id: 'tasks', title: 'Tarefas', icon: CheckSquare, route: '/neoteam/tasks' },
+  { id: 'events', title: 'Organização de Eventos', icon: CalendarDays, route: '/neoteam/events' },
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },

@@ -103,7 +103,8 @@ import {
   NeoTeamDocuments,
   NeoTeamTasks,
   NeoTeamSettings,
-  NeoTeamStaffRoles
+  NeoTeamStaffRoles,
+  NeoTeamEvents
 } from "./neohub/pages/neoteam";
 
 // ====================================
@@ -266,6 +267,7 @@ function NeoTeamRoutes() {
           <Route path="medical-records" element={<NeoTeamMedicalRecords />} />
           <Route path="documents" element={<NeoTeamDocuments />} />
           <Route path="tasks" element={<NeoTeamTasks />} />
+          <Route path="events" element={<NeoTeamEvents />} />
           <Route path="postvenda" element={<PostVendaHome />} />
           <Route path="postvenda/chamados" element={<ChamadoListPage />} />
           <Route path="postvenda/chamados/:id" element={<ChamadoDetailPage />} />
