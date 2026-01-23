@@ -121,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
         const targetEmail = testEmail || student.email;
         
         const emailResponse = await resend.emails.send({
-          from: "Formação 360° - IBRAMEC <onboarding@resend.dev>",
+          from: "Formação 360° - IBRAMEC <formacao@ibramec.com>",
           to: [targetEmail],
           subject: `🎓 Seus dados de acesso - Formação 360° Turma 01/2026${testEmail ? ` (TESTE: ${student.name})` : ''}`,
           html: generateEmailHtml(student),
