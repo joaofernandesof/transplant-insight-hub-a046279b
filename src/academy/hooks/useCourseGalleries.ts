@@ -139,11 +139,12 @@ export function useGalleryManagement() {
   // Create gallery
   const createGallery = useMutation({
     mutationFn: async (data: CreateGalleryData) => {
+      // Use authUserId (auth.uid) since created_by references auth.users(id)
       const { data: gallery, error } = await supabase
         .from('course_galleries')
         .insert({
           ...data,
-          created_by: user?.id,
+          created_by: user?.authUserId,
           status: 'draft',
         })
         .select()
@@ -243,7 +244,7 @@ export function useGalleryManagement() {
             .from('course-galleries')
             .getPublicUrl(storagePath);
 
-          // Save photo record
+          // Save photo record (use authUserId since uploaded_by references auth.users)
           const { data: photo, error: dbError } = await supabase
             .from('course_gallery_photos')
             .insert({
@@ -253,7 +254,7 @@ export function useGalleryManagement() {
               thumbnail_url: urlData.publicUrl, // Could generate actual thumbnail
               filename: file.name,
               file_size: file.size,
-              uploaded_by: user?.id,
+              uploaded_by: user?.authUserId,
             })
             .select()
             .single();
