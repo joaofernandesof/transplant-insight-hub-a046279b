@@ -3,6 +3,7 @@
 // ====================================
 // Arquitetura unificada NeoHub com um único AuthProvider
 
+import React, { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -254,7 +255,7 @@ function NeoCareRoutes() {
 // NeoTeam Routes (Portal do Colaborador)
 // ====================================
 function NeoTeamRoutes() {
-  const NeoTeamGalleries = React.lazy(() => import('@/neohub/pages/neoteam/NeoTeamGalleries'));
+  const NeoTeamGalleries = lazy(() => import('@/neohub/pages/neoteam/NeoTeamGalleries'));
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
@@ -271,7 +272,7 @@ function NeoTeamRoutes() {
           <Route path="documents" element={<NeoTeamDocuments />} />
           <Route path="tasks" element={<NeoTeamTasks />} />
           <Route path="events" element={<NeoTeamEvents />} />
-          <Route path="galleries" element={<React.Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamGalleries /></React.Suspense>} />
+          <Route path="galleries" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamGalleries /></Suspense>} />
           <Route path="postvenda" element={<PostVendaHome />} />
           <Route path="postvenda/chamados" element={<ChamadoListPage />} />
           <Route path="postvenda/chamados/:id" element={<ChamadoDetailPage />} />
@@ -289,7 +290,7 @@ function NeoTeamRoutes() {
 // ====================================
 // Academy Routes (Portal do Aluno - IBRAMEC)
 // ====================================
-import { 
+import {
   AcademySidebar, 
   AcademyHome, 
   AcademyCourses, 
