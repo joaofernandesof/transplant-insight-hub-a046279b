@@ -228,8 +228,8 @@ export function AcademySidebar({ children }: AcademySidebarProps) {
       </Sheet>
 
       {/* Main Content */}
-      <main className="flex-1 lg:pl-64">
-        <div className="min-h-screen">
+      <main className="flex-1 lg:pl-64 w-full max-w-full overflow-x-hidden">
+        <div className="min-h-screen w-full max-w-full">
           {children}
         </div>
       </main>
