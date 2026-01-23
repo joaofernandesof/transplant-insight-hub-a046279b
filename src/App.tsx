@@ -289,7 +289,8 @@ import {
   AcademyExams,
   AcademySchedule,
   AcademyExamTaking,
-  AcademyExamResults
+  AcademyExamResults,
+  AcademyEnrollmentsAdmin
 } from './academy';
 
 function AcademyRoutes() {
@@ -308,6 +309,7 @@ function AcademyRoutes() {
           <Route path="community" element={<PlaceholderPage title="Comunidade IBRAMEC" />} />
           <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
           <Route path="*" element={<Navigate to="/academy" replace />} />
         </Routes>
       </AcademySidebar>

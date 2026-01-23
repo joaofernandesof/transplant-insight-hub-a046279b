@@ -5,3 +5,4 @@ export { AcademyExams } from './AcademyExams';
 export { AcademySchedule } from './AcademySchedule';
 export { AcademyExamTaking } from './AcademyExamTaking';
 export { AcademyExamResults } from './AcademyExamResults';
+export { AcademyEnrollmentsAdmin } from './AcademyEnrollmentsAdmin';
