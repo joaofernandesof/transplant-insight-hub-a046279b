@@ -355,33 +355,6 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* System Health Bar */}
-        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 rounded-md bg-green-100 dark:bg-green-900/30">
-              <Server className="h-4 w-4 text-green-600 dark:text-green-400" />
-            </div>
-            <span className="text-sm font-medium">Sistema Online</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <Database className="h-3.5 w-3.5 text-muted-foreground" />
-              {getHealthIcon(systemHealth.database)}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Shield className="h-3.5 w-3.5 text-muted-foreground" />
-              {getHealthIcon(systemHealth.auth)}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <HardDrive className="h-3.5 w-3.5 text-muted-foreground" />
-              {getHealthIcon(systemHealth.storage)}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Zap className="h-3.5 w-3.5 text-muted-foreground" />
-              {getHealthIcon(systemHealth.edgeFunctions)}
-            </div>
-          </div>
-        </div>
 
         {/* Portals Quick Access Widget */}
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
