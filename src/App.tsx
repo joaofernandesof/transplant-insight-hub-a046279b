@@ -298,7 +298,8 @@ import {
   AcademyCommunity,
   AcademyStudentsAdmin,
   AcademyClassDetail,
-  AcademySettings
+  AcademySettings,
+  AcademyChat
 } from './academy';
 
 function AcademyRoutes() {
@@ -316,6 +317,8 @@ function AcademyRoutes() {
           <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
           <Route path="certificates" element={<AcademyCertificates />} />
           <Route path="community" element={<AcademyCommunity />} />
+          <Route path="chat" element={<AcademyChat />} />
+          <Route path="chat/:recipientId" element={<AcademyChat />} />
           <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />
           <Route path="profile" element={<AcademySettings />} />
           <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
