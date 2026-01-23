@@ -6206,6 +6206,7 @@ export type Database = {
         Args: { _module_code: string; _user_id: string }
         Returns: boolean
       }
+      get_all_enrolled_user_ids: { Args: never; Returns: string[] }
       get_exam_results_with_answers: {
         Args: { p_attempt_id: string }
         Returns: {
@@ -6286,6 +6287,7 @@ export type Database = {
       }
       is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
+      user_has_any_enrollment: { Args: { _user_id: string }; Returns: boolean }
       user_has_permission: {
         Args: { _permission_key: string }
         Returns: boolean
