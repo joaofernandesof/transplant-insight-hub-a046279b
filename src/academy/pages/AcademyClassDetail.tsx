@@ -18,10 +18,6 @@ import {
   CheckCircle2,
   AlertCircle,
   User,
-  Coffee,
-  Utensils,
-  Stethoscope,
-  BookOpen,
   Award,
   Settings,
   Plus,
@@ -29,25 +25,14 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useClassDetails, ScheduleItem } from "../hooks/useClassDetails";
+import { useClassDetails } from "../hooks/useClassDetails";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { useAllExams, useUpdateExamClass, useToggleExamStatus } from "@/hooks/useExams";
 import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
 import { toast } from "sonner";
+import { ScheduleTimeline } from "../components/ScheduleTimeline";
 
-function getActivityIcon(activity: string) {
-  const lower = activity.toLowerCase();
-  if (lower.includes('coffee') || lower.includes('break')) return <Coffee className="h-4 w-4" />;
-  if (lower.includes('almoço') || lower.includes('almoco')) return <Utensils className="h-4 w-4" />;
-  if (lower.includes('prática') || lower.includes('cirúrgico') || lower.includes('cirurgico')) return <Stethoscope className="h-4 w-4" />;
-  if (lower.includes('aula') || lower.includes('workshop')) return <BookOpen className="h-4 w-4" />;
-  if (lower.includes('neoconnect') || lower.includes('confraternização')) return <Users className="h-4 w-4" />;
-  return <Clock className="h-4 w-4" />;
-}
-
-function formatTime(time: string): string {
-  return time.substring(0, 5);
-}
+// formatTime helper moved to ScheduleTimeline component
 
 export function AcademyClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -224,65 +209,7 @@ export function AcademyClassDetail() {
                 </CardContent>
               </Card>
             ) : (
-              classDetails.schedule.map((day) => (
-                <Card key={day.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{day.dayTitle}</CardTitle>
-                        {day.dayDate && (
-                          <CardDescription>
-                            {format(parseISO(day.dayDate), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          </CardDescription>
-                        )}
-                      </div>
-                      <Badge variant="outline">Dia {day.dayNumber}</Badge>
-                    </div>
-                    {day.dayTheme && (
-                      <p className="text-sm text-muted-foreground mt-2 italic">{day.dayTheme}</p>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {day.items.map((item, index) => (
-                        <div 
-                          key={item.id} 
-                          className={`flex items-start gap-4 p-3 rounded-lg border ${
-                            item.activity.toLowerCase().includes('coffee') || 
-                            item.activity.toLowerCase().includes('almoço') ||
-                            item.activity.toLowerCase().includes('almoco')
-                              ? 'bg-muted/30 border-dashed'
-                              : 'bg-background'
-                          }`}
-                        >
-                          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                            {getActivityIcon(item.activity)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-medium text-primary">
-                                {formatTime(item.startTime)} - {formatTime(item.endTime)}
-                              </span>
-                              {item.location && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {item.location}
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="font-medium">{item.activity}</p>
-                            {item.instructor && (
-                              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                                <User className="h-3 w-3" />
-                                {item.instructor}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+              <ScheduleTimeline schedule={classDetails.schedule} />
             )}
           </TabsContent>
 
