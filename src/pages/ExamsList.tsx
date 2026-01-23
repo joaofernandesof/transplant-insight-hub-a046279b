@@ -105,14 +105,14 @@ export default function ExamsList() {
 
       <main className="px-4 py-6 w-full overflow-x-hidden">
         {/* Active Classes */}
-        {classes && classes.filter(c => c.status === 'active').length > 0 && (
+        {classes && classes.filter(c => c.status === 'active' || c.status === 'in_progress').length > 0 && (
           <div className="mb-6">
             <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               TURMAS ATIVAS
             </h2>
             <div className="flex gap-3 overflow-x-auto pb-2">
-              {classes.filter(c => c.status === 'active').map(cls => (
+              {classes.filter(c => c.status === 'active' || c.status === 'in_progress').map(cls => (
                 <Card 
                   key={cls.id}
                   className={cn(
