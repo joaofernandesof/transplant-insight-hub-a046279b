@@ -261,6 +261,57 @@ function DayList({ day }: { day: ScheduleDay }) {
   );
 }
 
+// Get color classes for group badge
+function getGroupBadgeColors(groupName: string): { bg: string; border: string; text: string } {
+  const lower = groupName.toLowerCase();
+  
+  if (lower.includes('verde')) {
+    return { bg: 'bg-green-500', border: 'border-green-600', text: 'text-white' };
+  }
+  if (lower.includes('preto')) {
+    return { bg: 'bg-gray-900 dark:bg-black', border: 'border-gray-800', text: 'text-white' };
+  }
+  if (lower.includes('azul')) {
+    return { bg: 'bg-blue-500', border: 'border-blue-600', text: 'text-white' };
+  }
+  if (lower.includes('branco')) {
+    return { bg: 'bg-white', border: 'border-gray-300', text: 'text-gray-800' };
+  }
+  
+  return { bg: 'bg-muted', border: 'border-border', text: 'text-foreground' };
+}
+
+// Parse notes to extract group badges
+function parseGroupBadges(notes: string): React.ReactNode[] {
+  const groups: string[] = [];
+  
+  // Split by common delimiters and find groups
+  const parts = notes.split(/[,;\/]/).map(p => p.trim());
+  
+  for (const part of parts) {
+    if (part.toLowerCase().includes('grupo')) {
+      groups.push(part);
+    }
+  }
+  
+  // If no split worked, check if it's a single group
+  if (groups.length === 0 && notes.toLowerCase().includes('grupo')) {
+    groups.push(notes.trim());
+  }
+  
+  return groups.map((group, index) => {
+    const colors = getGroupBadgeColors(group);
+    return (
+      <span
+        key={index}
+        className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border font-medium ${colors.bg} ${colors.border} ${colors.text}`}
+      >
+        {group}
+      </span>
+    );
+  });
+}
+
 // Check if an activity is an all-day type (Mentoria, Estúdio)
 function isAllDayActivity(activity: string): boolean {
   const lower = activity.toLowerCase();
@@ -428,11 +479,7 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                               {item.location}
                             </span>
                           )}
-                          {item.notes && item.notes.toLowerCase().includes('grupo') && (
-                            <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border bg-muted border-border text-foreground font-medium">
-                              {item.notes}
-                            </span>
-                          )}
+                          {item.notes && parseGroupBadges(item.notes)}
                         
                         </div>
                         
