@@ -23,7 +23,7 @@ interface AcademySidebarProps {
 
 const navItems = [
   { icon: Home, label: 'Início', path: '/academy' },
-  { icon: BookOpen, label: 'Meus Cursos', path: '/academy/courses' },
+  { icon: BookOpen, label: 'Cursos', path: '/academy/courses' },
   { icon: CalendarDays, label: 'Agenda do Aluno', path: '/academy/schedule' },
   { icon: Award, label: 'Certificados', path: '/academy/certificates' },
   { icon: Users, label: 'Comunidade', path: '/academy/community' },

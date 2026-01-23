@@ -189,8 +189,9 @@ export function AcademySchedule() {
     ? differenceInDays(parseISO(nextEvent.startDate), new Date())
     : null;
   
-  const handleClassClick = (classId: string) => {
-    navigate(`/academy/turma/${classId}`);
+  const handleClassClick = (classData: PresentialCourse) => {
+    // Use classId (the actual course_classes.id) for navigation, not enrollment id
+    navigate(`/academy/classes/${classData.classId}`);
   };
 
   if (isLoading) {
@@ -312,7 +313,7 @@ export function AcademySchedule() {
                 <ScheduleCard 
                   key={classData.id} 
                   classData={classData} 
-                  onClick={() => handleClassClick(classData.id)}
+                  onClick={() => handleClassClick(classData)}
                 />
               ))
             ) : (
@@ -330,7 +331,7 @@ export function AcademySchedule() {
                 <ScheduleCard 
                   key={classData.id} 
                   classData={classData} 
-                  onClick={() => handleClassClick(classData.id)}
+                  onClick={() => handleClassClick(classData)}
                 />
               ))
             ) : (
@@ -348,7 +349,7 @@ export function AcademySchedule() {
                 <ScheduleCard 
                   key={classData.id} 
                   classData={classData} 
-                  onClick={() => handleClassClick(classData.id)}
+                  onClick={() => handleClassClick(classData)}
                 />
               ))
             ) : (

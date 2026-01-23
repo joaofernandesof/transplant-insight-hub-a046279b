@@ -5,16 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import {
   GraduationCap,
   BookOpen,
-  Trophy,
-  Calendar,
-  TrendingUp,
-  FileText,
-  Clock,
-  Play,
   MapPin,
   Video
 } from "lucide-react";
@@ -118,18 +111,12 @@ export function AcademyCourses() {
     <div className="min-h-screen bg-background">
       <main className="px-4 pt-16 lg:pt-6 pb-6 overflow-x-hidden w-full space-y-6">
         {/* Page Title */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-emerald-600" />
-              Meus Cursos
-            </h1>
-            <p className="text-sm text-muted-foreground">Trilhas de capacitação e aulas gravadas</p>
-          </div>
-          <Button onClick={() => navigate('/academy/schedule')} variant="outline" className="gap-2">
-            <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">Agenda</span>
-          </Button>
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-emerald-600" />
+            Cursos
+          </h1>
+          <p className="text-sm text-muted-foreground">Trilhas de capacitação e aulas gravadas</p>
         </div>
         {/* Progress Overview */}
         <Card className="bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/30 dark:to-green-950/30 dark:border-emerald-800">
@@ -263,41 +250,6 @@ export function AcademyCourses() {
           </TabsContent>
         </Tabs>
 
-        {/* Upcoming Events */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-emerald-600" />
-              Próximos Eventos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { id: 1, title: 'Formação 360° - SP', date: '20-25 Jan 2026', type: 'Presencial' },
-                { id: 2, title: 'Mentoria em Grupo', date: '30 Jan 2026', type: 'Online' },
-                { id: 3, title: 'Webinar: Tendências 2026', date: '10 Fev 2026', type: 'Online' },
-              ].map((event) => (
-                <div 
-                  key={event.id} 
-                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-all duration-200 hover:shadow-md"
-                  onClick={() => navigate('/academy/schedule')}
-                >
-                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-emerald-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">{event.date}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {event.type}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </main>
     </div>
   );
