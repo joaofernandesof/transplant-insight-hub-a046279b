@@ -106,8 +106,8 @@ export function AcademyExamTaking() {
   const totalQuestions = questions?.length || 0;
   const progressPercent = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
-  const handleAnswerChange = (questionId: string, answerLetter: string) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answerLetter }));
+  const handleAnswerChange = (questionId: string, answerText: string) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answerText }));
   };
 
   const handleNext = () => {
@@ -226,13 +226,13 @@ export function AcademyExamTaking() {
                   <div
                     key={idx}
                     className={`flex items-center space-x-3 p-4 rounded-lg border transition-colors cursor-pointer ${
-                      answers[currentQuestion?.id || ''] === letter
+                      answers[currentQuestion?.id || ''] === option
                         ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50'
                         : 'hover:bg-muted/50'
                     }`}
-                    onClick={() => handleAnswerChange(currentQuestion?.id || '', letter)}
+                    onClick={() => handleAnswerChange(currentQuestion?.id || '', option)}
                   >
-                    <RadioGroupItem value={letter} id={`option-${idx}`} />
+                    <RadioGroupItem value={option} id={`option-${idx}`} />
                     <Label htmlFor={`option-${idx}`} className="flex-1 cursor-pointer text-sm">
                       <span className="font-semibold mr-2">{letter}.</span>
                       {option}
