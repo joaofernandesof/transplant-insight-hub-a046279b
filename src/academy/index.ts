@@ -2,5 +2,14 @@
 export { AcademySidebar } from './components/AcademySidebar';
 export { ConectaCapilarCard } from './components/ConectaCapilarCard';
 export { PresentialCourseCard } from './components/PresentialCourseCard';
-export { AcademyHome, AcademyCourses, AcademyCertificates, AcademyExams, AcademySchedule } from './pages';
+export { IbramecLogo } from './components/IbramecLogo';
+export { 
+  AcademyHome, 
+  AcademyCourses, 
+  AcademyCertificates, 
+  AcademyExams, 
+  AcademySchedule,
+  AcademyExamTaking,
+  AcademyExamResults 
+} from './pages';
 export { useAcademyEnrollments } from './hooks/useAcademyEnrollments';

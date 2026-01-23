@@ -287,7 +287,9 @@ import {
   AcademyCourses, 
   AcademyCertificates, 
   AcademyExams,
-  AcademySchedule
+  AcademySchedule,
+  AcademyExamTaking,
+  AcademyExamResults
 } from './academy';
 
 function AcademyRoutes() {
@@ -300,8 +302,8 @@ function AcademyRoutes() {
           <Route path="schedule" element={<AcademySchedule />} />
           <Route path="materials" element={<Materials />} />
           <Route path="exams" element={<AcademyExams />} />
-          <Route path="exams/:examId/take" element={<ExamTaking />} />
-          <Route path="exams/:examId/results/:attemptId" element={<ExamResults />} />
+          <Route path="exams/:examId/take" element={<AcademyExamTaking />} />
+          <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
           <Route path="certificates" element={<AcademyCertificates />} />
           <Route path="community" element={<PlaceholderPage title="Comunidade IBRAMEC" />} />
           <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />

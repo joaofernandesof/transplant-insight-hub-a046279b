@@ -3,3 +3,5 @@ export { AcademyCourses } from './AcademyCourses';
 export { AcademyCertificates } from './AcademyCertificates';
 export { AcademyExams } from './AcademyExams';
 export { AcademySchedule } from './AcademySchedule';
+export { AcademyExamTaking } from './AcademyExamTaking';
+export { AcademyExamResults } from './AcademyExamResults';
