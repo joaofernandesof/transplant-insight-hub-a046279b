@@ -5113,6 +5113,134 @@ export type Database = {
           },
         ]
       }
+      satisfaction_survey_responses: {
+        Row: {
+          ai_relation: string | null
+          clarity_teachers: string | null
+          class_id: string | null
+          completed_at: string | null
+          created_at: string
+          current_block: number | null
+          evolution_path_clarity: string | null
+          expectations_met: string | null
+          full_name: string | null
+          future_vision_12m: string | null
+          has_captation_plan: string | null
+          id: string
+          investment_comfort: string | null
+          is_completed: boolean
+          is_priority_lead: boolean | null
+          knows_next_step: string | null
+          lead_score: number | null
+          lead_tags: string[] | null
+          memorable_phrase: string | null
+          partial_data: Json | null
+          practice_format: string | null
+          priority_score: number | null
+          professional_moment: string | null
+          satisfaction_score: number | null
+          start_timeline: string | null
+          started_at: string
+          success_result: string | null
+          survey_version: number
+          time_vs_money: string | null
+          updated_at: string
+          user_id: string
+          wants_individual_talk: string | null
+          weekly_hours: string | null
+          what_could_improve: string | null
+          what_differentiates_best: string | null
+          what_liked_most: string | null
+          years_practicing: string | null
+        }
+        Insert: {
+          ai_relation?: string | null
+          clarity_teachers?: string | null
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_block?: number | null
+          evolution_path_clarity?: string | null
+          expectations_met?: string | null
+          full_name?: string | null
+          future_vision_12m?: string | null
+          has_captation_plan?: string | null
+          id?: string
+          investment_comfort?: string | null
+          is_completed?: boolean
+          is_priority_lead?: boolean | null
+          knows_next_step?: string | null
+          lead_score?: number | null
+          lead_tags?: string[] | null
+          memorable_phrase?: string | null
+          partial_data?: Json | null
+          practice_format?: string | null
+          priority_score?: number | null
+          professional_moment?: string | null
+          satisfaction_score?: number | null
+          start_timeline?: string | null
+          started_at?: string
+          success_result?: string | null
+          survey_version?: number
+          time_vs_money?: string | null
+          updated_at?: string
+          user_id: string
+          wants_individual_talk?: string | null
+          weekly_hours?: string | null
+          what_could_improve?: string | null
+          what_differentiates_best?: string | null
+          what_liked_most?: string | null
+          years_practicing?: string | null
+        }
+        Update: {
+          ai_relation?: string | null
+          clarity_teachers?: string | null
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_block?: number | null
+          evolution_path_clarity?: string | null
+          expectations_met?: string | null
+          full_name?: string | null
+          future_vision_12m?: string | null
+          has_captation_plan?: string | null
+          id?: string
+          investment_comfort?: string | null
+          is_completed?: boolean
+          is_priority_lead?: boolean | null
+          knows_next_step?: string | null
+          lead_score?: number | null
+          lead_tags?: string[] | null
+          memorable_phrase?: string | null
+          partial_data?: Json | null
+          practice_format?: string | null
+          priority_score?: number | null
+          professional_moment?: string | null
+          satisfaction_score?: number | null
+          start_timeline?: string | null
+          started_at?: string
+          success_result?: string | null
+          survey_version?: number
+          time_vs_money?: string | null
+          updated_at?: string
+          user_id?: string
+          wants_individual_talk?: string | null
+          weekly_hours?: string | null
+          what_could_improve?: string | null
+          what_differentiates_best?: string | null
+          what_liked_most?: string | null
+          years_practicing?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "satisfaction_survey_responses_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sentinel_alert_recipients: {
         Row: {
           created_at: string
@@ -6531,6 +6659,10 @@ export type Database = {
           role_code: string
           role_name: string
         }[]
+      }
+      has_completed_satisfaction_survey: {
+        Args: { _class_id?: string; _user_id: string }
+        Returns: boolean
       }
       has_neohub_profile: {
         Args: {

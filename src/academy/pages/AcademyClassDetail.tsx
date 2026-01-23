@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,9 @@ import {
   Plus,
   Link as LinkIcon,
   MessageCircle,
-  Camera
+  Camera,
+  ClipboardList,
+  Lock
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -34,6 +37,8 @@ import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
 import { toast } from "sonner";
 import { ScheduleTimeline } from "../components/ScheduleTimeline";
 import { CourseGalleryViewer } from "../components/CourseGalleryViewer";
+import { SatisfactionSurveyDialog } from "../components/SatisfactionSurveyDialog";
+import { useSatisfactionSurvey } from "../hooks/useSatisfactionSurvey";
 
 export function AcademyClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -43,6 +48,12 @@ export function AcademyClassDetail() {
   const { data: allExams = [] } = useAllExams();
   const updateExamClass = useUpdateExamClass();
   const toggleExamStatus = useToggleExamStatus();
+  
+  // Satisfaction survey state
+  const { hasCompleted: hasSurveyCompleted, refetch: refetchSurvey } = useSatisfactionSurvey(classId);
+  const [surveyDialogOpen, setSurveyDialogOpen] = useState(false);
+  const [surveyTriggeredByPhotos, setSurveyTriggeredByPhotos] = useState(false);
+  const [activeTab, setActiveTab] = useState('schedule');
 
   const isAdmin = activeProfile === 'administrador';
 
@@ -177,8 +188,16 @@ export function AcademyClassDetail() {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="schedule" className="space-y-4">
-          <TabsList className={`grid w-full h-auto ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
+        <Tabs value={activeTab} onValueChange={(val) => {
+          // If clicking photos and survey not completed, open survey dialog
+          if (val === 'photos' && !hasSurveyCompleted && !isAdmin) {
+            setSurveyTriggeredByPhotos(true);
+            setSurveyDialogOpen(true);
+            return;
+          }
+          setActiveTab(val);
+        }} className="space-y-4">
+          <TabsList className={`grid w-full h-auto ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="schedule" className="flex-col gap-1 py-2 px-1">
               <Calendar className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Cronograma</span>
@@ -187,13 +206,20 @@ export function AcademyClassDetail() {
               <FileText className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Provas</span>
             </TabsTrigger>
-            <TabsTrigger value="photos" className="flex-col gap-1 py-2 px-1">
+            <TabsTrigger value="photos" className="flex-col gap-1 py-2 px-1 relative">
+              {!hasSurveyCompleted && !isAdmin && (
+                <Lock className="h-3 w-3 absolute top-1 right-1 text-muted-foreground" />
+              )}
               <Camera className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Fotos</span>
             </TabsTrigger>
             <TabsTrigger value="network" className="flex-col gap-1 py-2 px-1">
               <Users className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Network</span>
+            </TabsTrigger>
+            <TabsTrigger value="survey" className="flex-col gap-1 py-2 px-1">
+              <ClipboardList className="h-4 w-4" />
+              <span className="text-[10px] sm:text-xs">Pesquisa</span>
             </TabsTrigger>
             {isAdmin && (
               <TabsTrigger value="admin" className="flex-col gap-1 py-2 px-1">
@@ -221,6 +247,44 @@ export function AcademyClassDetail() {
           {/* Photos Tab */}
           <TabsContent value="photos" className="space-y-4">
             <CourseGalleryViewer classId={classId || ''} />
+          </TabsContent>
+          
+          {/* Survey Tab */}
+          <TabsContent value="survey" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-primary" />
+                  Pesquisa de Satisfação
+                </CardTitle>
+                <CardDescription>
+                  Sua opinião é muito importante para continuarmos evoluindo a formação
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {hasSurveyCompleted ? (
+                  <div className="text-center py-6">
+                    <CheckCircle2 className="h-12 w-12 text-primary mx-auto mb-4" />
+                    <p className="text-lg font-medium">Pesquisa já respondida</p>
+                    <p className="text-sm text-muted-foreground">Obrigado pela sua contribuição!</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-lg font-medium mb-2">Responda nossa pesquisa</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Leva menos de 8 minutos e nos ajuda a evoluir ainda mais a formação.
+                    </p>
+                    <Button onClick={() => {
+                      setSurveyTriggeredByPhotos(false);
+                      setSurveyDialogOpen(true);
+                    }}>
+                      Iniciar Pesquisa
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Exams Tab */}
@@ -530,6 +594,20 @@ export function AcademyClassDetail() {
             </TabsContent>
           )}
         </Tabs>
+        
+        {/* Satisfaction Survey Dialog */}
+        <SatisfactionSurveyDialog
+          open={surveyDialogOpen}
+          onOpenChange={setSurveyDialogOpen}
+          classId={classId || ''}
+          showPhotosMessage={surveyTriggeredByPhotos}
+          onComplete={() => {
+            refetchSurvey();
+            if (surveyTriggeredByPhotos) {
+              setActiveTab('photos');
+            }
+          }}
+        />
       </div>
     </div>
   );
