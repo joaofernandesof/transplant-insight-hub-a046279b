@@ -1,6 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Coffee,
   Utensils,
@@ -13,7 +15,9 @@ import {
   Presentation,
   MessageSquare,
   PartyPopper,
-  Briefcase
+  Briefcase,
+  List,
+  CalendarClock
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -153,12 +157,107 @@ function getHourRange(items: ScheduleItem[]): { start: number; end: number } {
 }
 
 export function ScheduleTimeline({ schedule }: ScheduleTimelineProps) {
+  const [viewMode, setViewMode] = useState<'timeline' | 'list'>('timeline');
+
   return (
-    <div className="space-y-6">
-      {schedule.map((day) => (
-        <DayTimeline key={day.id} day={day} />
-      ))}
+    <div className="space-y-4">
+      {/* View Mode Toggle */}
+      <div className="flex justify-end">
+        <ToggleGroup 
+          type="single" 
+          value={viewMode} 
+          onValueChange={(value) => value && setViewMode(value as 'timeline' | 'list')}
+          className="bg-muted rounded-lg p-1"
+        >
+          <ToggleGroupItem value="timeline" aria-label="Ver como timeline" className="gap-1.5 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">
+            <CalendarClock className="h-4 w-4" />
+            <span className="text-xs hidden sm:inline">Timeline</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label="Ver como lista" className="gap-1.5 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">
+            <List className="h-4 w-4" />
+            <span className="text-xs hidden sm:inline">Lista</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+      
+      {/* Schedule Content */}
+      <div className="space-y-6">
+        {schedule.map((day) => (
+          viewMode === 'timeline' 
+            ? <DayTimeline key={day.id} day={day} />
+            : <DayList key={day.id} day={day} />
+        ))}
+      </div>
     </div>
+  );
+}
+
+// List View Component
+function DayList({ day }: { day: ScheduleDay }) {
+  const sortedItems = useMemo(() => 
+    [...day.items].sort((a, b) => parseTimeToHours(a.startTime) - parseTimeToHours(b.startTime)),
+    [day.items]
+  );
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">{day.dayTitle}</CardTitle>
+            {day.dayDate && (
+              <CardDescription>
+                {format(parseISO(day.dayDate), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </CardDescription>
+            )}
+          </div>
+          <Badge variant="outline" className="font-semibold">Dia {day.dayNumber}</Badge>
+        </div>
+        {day.dayTheme && (
+          <p className="text-sm text-muted-foreground mt-2 italic">{day.dayTheme}</p>
+        )}
+      </CardHeader>
+      <CardContent className="pb-6">
+        <div className="space-y-2">
+          {sortedItems.map((item) => {
+            const style = getActivityStyle(item.activity);
+            const isBreak = item.activity.toLowerCase().includes('coffee') || 
+                           item.activity.toLowerCase().includes('almoço') ||
+                           item.activity.toLowerCase().includes('almoco');
+            
+            return (
+              <div 
+                key={item.id} 
+                className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-colors ${style.bgColor} ${style.borderColor} ${isBreak ? 'border-dashed' : ''}`}
+              >
+                <div className={`flex-shrink-0 w-9 h-9 rounded-lg border ${style.bgColor} ${style.borderColor} flex items-center justify-center ${style.textColor}`}>
+                  {style.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className={`text-sm font-semibold ${style.textColor}`}>
+                      {formatTime(item.startTime)} - {formatTime(item.endTime)}
+                    </span>
+                    {item.location && (
+                      <Badge variant="secondary" className="text-xs">
+                        {item.location}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="font-medium text-sm">{item.activity}</p>
+                  {item.instructor && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <User className="h-3 w-3" />
+                      {item.instructor}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
