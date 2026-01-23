@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useStudentGalleries, useGalleryPhotos, CourseGallery } from '../hooks/useCourseGalleries';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Images, ChevronLeft, ChevronRight, X, Camera, Calendar } from 'lucide-react';
+import { Images, ChevronLeft, ChevronRight, X, Camera, Calendar, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
 interface CourseGalleryViewerProps {
   classId: string;
@@ -15,7 +17,11 @@ interface CourseGalleryViewerProps {
 
 export function CourseGalleryViewer({ classId }: CourseGalleryViewerProps) {
   const { galleries, isLoading } = useStudentGalleries(classId);
+  const { isAdmin, canAccessModule } = useUnifiedAuth();
+  const navigate = useNavigate();
   const [selectedGallery, setSelectedGallery] = useState<CourseGallery | null>(null);
+  
+  const canManageGalleries = isAdmin || canAccessModule('neoteam_galleries', 'write');
 
   if (isLoading) {
     return (
@@ -31,7 +37,23 @@ export function CourseGalleryViewer({ classId }: CourseGalleryViewerProps) {
   }
 
   if (galleries.length === 0) {
-    return null; // Don't show section if no galleries
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Camera className="h-10 w-10 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold mb-2">Nenhuma foto ainda</h3>
+        <p className="text-muted-foreground max-w-md mb-4">
+          As fotos do curso serão exibidas aqui assim que forem publicadas pela equipe.
+        </p>
+        {canManageGalleries && (
+          <Button onClick={() => navigate('/neoteam/galleries')}>
+            <Upload className="h-4 w-4 mr-2" />
+            Gerenciar Galerias
+          </Button>
+        )}
+      </div>
+    );
   }
 
   return (
