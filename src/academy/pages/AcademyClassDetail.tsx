@@ -22,7 +22,8 @@ import {
   Settings,
   Plus,
   Link as LinkIcon,
-  MessageCircle
+  MessageCircle,
+  Camera
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -32,8 +33,7 @@ import { useAllExams, useUpdateExamClass, useToggleExamStatus } from "@/hooks/us
 import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
 import { toast } from "sonner";
 import { ScheduleTimeline } from "../components/ScheduleTimeline";
-
-// formatTime helper moved to ScheduleTimeline component
+import { CourseGalleryViewer } from "../components/CourseGalleryViewer";
 
 export function AcademyClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -178,7 +178,7 @@ export function AcademyClassDetail() {
 
         {/* Tabs */}
         <Tabs defaultValue="schedule" className="space-y-4">
-          <TabsList className={`grid w-full h-auto ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          <TabsList className={`grid w-full h-auto ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="schedule" className="flex-col gap-1 py-2 px-1">
               <Calendar className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Cronograma</span>
@@ -186,6 +186,10 @@ export function AcademyClassDetail() {
             <TabsTrigger value="exams" className="flex-col gap-1 py-2 px-1">
               <FileText className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Provas</span>
+            </TabsTrigger>
+            <TabsTrigger value="photos" className="flex-col gap-1 py-2 px-1">
+              <Camera className="h-4 w-4" />
+              <span className="text-[10px] sm:text-xs">Fotos</span>
             </TabsTrigger>
             <TabsTrigger value="network" className="flex-col gap-1 py-2 px-1">
               <Users className="h-4 w-4" />
@@ -212,6 +216,11 @@ export function AcademyClassDetail() {
             ) : (
               <ScheduleTimeline schedule={classDetails.schedule} />
             )}
+          </TabsContent>
+
+          {/* Photos Tab */}
+          <TabsContent value="photos" className="space-y-4">
+            <CourseGalleryViewer classId={classId || ''} />
           </TabsContent>
 
           {/* Exams Tab */}
