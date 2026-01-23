@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Calendar,
   CheckCircle2,
@@ -22,11 +23,16 @@ import {
   MapPin,
   CircleDashed,
   XCircle,
-  User
+  User,
+  Bell,
+  BellRing
 } from "lucide-react";
 import { useEventChecklists, useChecklistItems, EventChecklist } from "@/neohub/hooks/useEventChecklists";
+import { NewChecklistDialog } from "@/neohub/components/NewChecklistDialog";
+import { AddTaskDialog } from "@/neohub/components/AddTaskDialog";
 import { format, differenceInDays, parseISO, isToday, isPast } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const statusConfig = {
   pendente: { label: "Pendente", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300", icon: CircleDashed },
@@ -43,13 +49,31 @@ const priorityConfig = {
 };
 
 export default function NeoTeamEvents() {
-  const { checklists, upcomingClasses, isLoading } = useEventChecklists();
+  const { checklists, upcomingClasses, isLoading, createChecklist } = useEventChecklists();
   const [selectedChecklist, setSelectedChecklist] = useState<EventChecklist | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterResponsible, setFilterResponsible] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showOverdueAlert, setShowOverdueAlert] = useState(true);
 
-  const { items, stats, updateItemStatus, isLoading: loadingItems } = useChecklistItems(selectedChecklist?.id || null);
+  const { items, stats, updateItemStatus, createItem, isLoading: loadingItems } = useChecklistItems(selectedChecklist?.id || null);
+
+  // Auto-select first checklist when loaded
+  useEffect(() => {
+    if (checklists && checklists.length > 0 && !selectedChecklist) {
+      setSelectedChecklist(checklists[0]);
+    }
+  }, [checklists, selectedChecklist]);
+
+  // Show overdue notifications
+  useEffect(() => {
+    if (stats && stats.atrasados > 0 && showOverdueAlert) {
+      toast.warning(`${stats.atrasados} tarefa(s) atrasada(s)!`, {
+        description: "Verifique as tarefas pendentes do evento.",
+        duration: 5000,
+      });
+    }
+  }, [stats?.atrasados, showOverdueAlert]);
 
   // Get unique responsibles
   const uniqueResponsibles = useMemo(() => {
@@ -123,11 +147,41 @@ export default function NeoTeamEvents() {
               Gerencie checklists e tarefas dos cursos IBRAMEC
             </p>
           </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Checklist
-          </Button>
+          <NewChecklistDialog
+            upcomingClasses={upcomingClasses?.map(c => ({
+              id: c.id,
+              name: c.name,
+              code: c.code,
+              start_date: c.start_date,
+              end_date: c.end_date,
+              location: c.location
+            }))}
+            onCreateChecklist={(data) => {
+              createChecklist.mutate(data);
+            }}
+          />
         </div>
+
+        {/* Overdue Alert */}
+        {stats && stats.atrasados > 0 && showOverdueAlert && (
+          <Alert variant="destructive" className="border-red-300 bg-red-50 dark:bg-red-950/30">
+            <BellRing className="h-4 w-4" />
+            <AlertTitle className="flex items-center justify-between">
+              <span>Atenção: {stats.atrasados} tarefa(s) atrasada(s)</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 px-2 text-xs"
+                onClick={() => setShowOverdueAlert(false)}
+              >
+                Dispensar
+              </Button>
+            </AlertTitle>
+            <AlertDescription>
+              Existem tarefas pendentes que já passaram do prazo. Revise o checklist para garantir que tudo seja concluído.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sidebar - Event List */}
@@ -305,8 +359,8 @@ export default function NeoTeamEvents() {
                     </TabsTrigger>
                   </TabsList>
 
-                  {/* Filters */}
-                  <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                  {/* Filters & Add Task */}
+                  <div className="flex flex-col sm:flex-row gap-2 mt-4 items-start sm:items-center">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -339,6 +393,10 @@ export default function NeoTeamEvents() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <AddTaskDialog
+                      checklistId={selectedChecklist.id}
+                      onAddTask={(task) => createItem.mutate(task)}
+                    />
                   </div>
 
                   {/* Timeline View */}
