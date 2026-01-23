@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
-  Home, BookOpen, Award, FileText, Trophy,
+  Home, BookOpen, Award,
   Settings, LogOut, User, Users, TrendingUp, CalendarDays, Menu, UserCog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,7 +25,6 @@ const navItems = [
   { icon: Home, label: 'Início', path: '/academy' },
   { icon: BookOpen, label: 'Meus Cursos', path: '/academy/courses' },
   { icon: CalendarDays, label: 'Agenda do Aluno', path: '/academy/schedule' },
-  { icon: FileText, label: 'Provas', path: '/academy/exams' },
   { icon: Award, label: 'Certificados', path: '/academy/certificates' },
   { icon: Users, label: 'Comunidade', path: '/academy/community' },
   { icon: TrendingUp, label: 'Carreira', path: '/academy/career' },
@@ -83,10 +82,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate">{user?.fullName || 'Aluno'}</p>
-            <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800">
-              <Trophy className="h-3 w-3 mr-1" />
-              Basic
-            </Badge>
+            <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
           </div>
         </div>
       </div>

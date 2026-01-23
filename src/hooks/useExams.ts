@@ -133,6 +133,30 @@ export function useUpdateExamCourse() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-exams'] });
       queryClient.invalidateQueries({ queryKey: ['exams'] });
+      queryClient.invalidateQueries({ queryKey: ['class-details'] });
+    },
+  });
+}
+
+// Mutation para vincular/desvincular prova a turma
+export function useUpdateExamClass() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ examId, classId }: { examId: string; classId: string | null }) => {
+      const { data, error } = await supabase
+        .from('exams')
+        .update({ class_id: classId })
+        .eq('id', examId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-exams'] });
+      queryClient.invalidateQueries({ queryKey: ['exams'] });
+      queryClient.invalidateQueries({ queryKey: ['class-details'] });
     },
   });
 }

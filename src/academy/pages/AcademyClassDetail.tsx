@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   ChevronLeft,
   Calendar,
@@ -20,13 +22,18 @@ import {
   Utensils,
   Stethoscope,
   BookOpen,
-  Award
+  Award,
+  Settings,
+  Plus,
+  Link as LinkIcon
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useClassDetails, ScheduleItem } from "../hooks/useClassDetails";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
+import { useAllExams, useUpdateExamClass, useToggleExamStatus } from "@/hooks/useExams";
 import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
+import { toast } from "sonner";
 
 function getActivityIcon(activity: string) {
   const lower = activity.toLowerCase();
@@ -45,8 +52,48 @@ function formatTime(time: string): string {
 export function AcademyClassDetail() {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
-  const { user } = useUnifiedAuth();
-  const { classDetails, isLoading } = useClassDetails(classId || null);
+  const { user, activeProfile } = useUnifiedAuth();
+  const { classDetails, isLoading, refetch } = useClassDetails(classId || null);
+  const { data: allExams = [] } = useAllExams();
+  const updateExamClass = useUpdateExamClass();
+  const toggleExamStatus = useToggleExamStatus();
+
+  const isAdmin = activeProfile === 'administrador';
+
+  // Exams not linked to this class (for admin to add)
+  const availableExams = allExams.filter(
+    exam => !exam.class_id || exam.class_id !== classId
+  );
+
+  const handleLinkExam = async (examId: string) => {
+    try {
+      await updateExamClass.mutateAsync({ examId, classId: classId || null });
+      toast.success("Prova vinculada à turma com sucesso!");
+      refetch();
+    } catch (error) {
+      toast.error("Erro ao vincular prova");
+    }
+  };
+
+  const handleUnlinkExam = async (examId: string) => {
+    try {
+      await updateExamClass.mutateAsync({ examId, classId: null });
+      toast.success("Prova desvinculada da turma!");
+      refetch();
+    } catch (error) {
+      toast.error("Erro ao desvincular prova");
+    }
+  };
+
+  const handleToggleExamStatus = async (examId: string, isActive: boolean) => {
+    try {
+      await toggleExamStatus.mutateAsync({ examId, isActive });
+      toast.success(isActive ? "Prova ativada!" : "Prova desativada!");
+      refetch();
+    } catch (error) {
+      toast.error("Erro ao alterar status da prova");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -145,7 +192,7 @@ export function AcademyClassDetail() {
 
         {/* Tabs */}
         <Tabs defaultValue="schedule" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="schedule" className="gap-2">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Cronograma</span>
@@ -158,6 +205,12 @@ export function AcademyClassDetail() {
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Alunos</span>
             </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="admin" className="gap-2">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Gestão</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Schedule Tab */}
@@ -289,7 +342,7 @@ export function AcademyClassDetail() {
                       )}
                       <Button 
                         className="w-full"
-                        onClick={() => navigate(`/academy/exams/${exam.id}`)}
+                        onClick={() => navigate(`/academy/exams/${exam.id}/take`)}
                       >
                         {exam.attemptCount > 0 ? 'Tentar Novamente' : 'Iniciar Prova'}
                       </Button>
@@ -355,6 +408,142 @@ export function AcademyClassDetail() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Admin Tab - Only for administrators */}
+          {isAdmin && (
+            <TabsContent value="admin" className="space-y-4">
+              {/* Linked Exams Management */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-amber-600" />
+                    Provas Vinculadas à Turma ({classDetails.exams.length})
+                  </CardTitle>
+                  <CardDescription>Gerencie as provas disponíveis para esta turma</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {classDetails.exams.length === 0 ? (
+                    <div className="text-center py-6 border-2 border-dashed rounded-lg">
+                      <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">Nenhuma prova vinculada</p>
+                      <p className="text-xs text-muted-foreground">Use a seção abaixo para vincular provas</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {classDetails.exams.map((exam) => (
+                        <div key={exam.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{exam.title}</h4>
+                            <p className="text-sm text-muted-foreground">{exam.description}</p>
+                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                              {exam.durationMinutes && <span>{exam.durationMinutes} min</span>}
+                              {exam.passingScore && <span>Mínimo: {exam.passingScore}%</span>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                id={`exam-active-${exam.id}`}
+                                checked={exam.isActive}
+                                onCheckedChange={(checked) => handleToggleExamStatus(exam.id, checked)}
+                              />
+                              <Label htmlFor={`exam-active-${exam.id}`} className="text-sm">
+                                {exam.isActive ? 'Ativa' : 'Inativa'}
+                              </Label>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUnlinkExam(exam.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              Desvincular
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Available exams to link */}
+                  {availableExams.length > 0 && (
+                    <div className="mt-6 pt-6 border-t">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Vincular Nova Prova
+                      </h4>
+                      <div className="grid gap-2 max-h-60 overflow-y-auto">
+                        {availableExams.map((exam) => (
+                          <div key={exam.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                            <div>
+                              <p className="font-medium text-sm">{exam.title}</p>
+                              {exam.courses?.title && (
+                                <p className="text-xs text-muted-foreground">
+                                  Curso: {exam.courses.title}
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleLinkExam(exam.id)}
+                              className="gap-1"
+                            >
+                              <LinkIcon className="h-3 w-3" />
+                              Vincular
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Quick Stats */}
+              <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{classDetails.enrolledCount}</p>
+                        <p className="text-xs text-muted-foreground">Alunos Matriculados</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{classDetails.exams.length}</p>
+                        <p className="text-xs text-muted-foreground">Provas Vinculadas</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{classDetails.schedule.length}</p>
+                        <p className="text-xs text-muted-foreground">Dias de Aula</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
