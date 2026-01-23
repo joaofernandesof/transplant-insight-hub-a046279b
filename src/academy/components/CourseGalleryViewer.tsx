@@ -266,13 +266,18 @@ function GalleryLightbox({ gallery, onClose }: GalleryLightboxProps) {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {filteredPhotoIds ? (
+              {viewMode === 'single' ? (
+                <Button variant="outline" size="sm" onClick={() => setViewMode('grid')}>
+                  <Images className="h-4 w-4 mr-2" />
+                  Ver todas
+                </Button>
+              ) : filteredPhotoIds ? (
                 <Button variant="outline" size="sm" onClick={clearFilter}>
                   <X className="h-4 w-4 mr-1" />
                   Limpar filtro
                 </Button>
               ) : (
-                <Button 
+                <Button
                   variant="outline" 
                   size="sm" 
                   onClick={() => setSelfieDialogOpen(true)}
@@ -384,19 +389,18 @@ function GalleryLightbox({ gallery, onClose }: GalleryLightboxProps) {
                   )}
                 </div>
 
-                {/* Back to grid */}
+                {/* Close single view - X on the photo */}
                 <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute top-4 left-4"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full h-10 w-10"
                   onClick={() => setViewMode('grid')}
                 >
-                  <Images className="h-4 w-4 mr-2" />
-                  Ver todas
+                  <X className="h-5 w-5" />
                 </Button>
 
                 {/* Counter */}
-                <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm">
+                <div className="absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm">
                   {currentIndex + 1} / {displayPhotos.length}
                 </div>
               </div>
