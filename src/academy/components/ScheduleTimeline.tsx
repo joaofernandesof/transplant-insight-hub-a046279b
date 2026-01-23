@@ -261,6 +261,12 @@ function DayList({ day }: { day: ScheduleDay }) {
   );
 }
 
+// Check if an activity is an all-day type (Mentoria, Estúdio)
+function isAllDayActivity(activity: string): boolean {
+  const lower = activity.toLowerCase();
+  return lower.includes('mentoria') || lower.includes('estúdio') || lower.includes('estudio');
+}
+
 // Group overlapping items into columns (for parallel activities)
 function groupParallelActivities(items: ScheduleItem[]): { item: ScheduleItem; column: number; totalColumns: number }[] {
   if (items.length === 0) return [];
@@ -301,8 +307,24 @@ function groupParallelActivities(items: ScheduleItem[]): { item: ScheduleItem; c
 }
 
 function DayTimeline({ day }: { day: ScheduleDay }) {
-  // Calculate hour range for this day
-  const hourRange = useMemo(() => getHourRange(day.items), [day.items]);
+  // Separate all-day activities from regular activities
+  const { allDayItems, regularItems } = useMemo(() => {
+    const allDay: ScheduleItem[] = [];
+    const regular: ScheduleItem[] = [];
+    
+    day.items.forEach(item => {
+      if (isAllDayActivity(item.activity)) {
+        allDay.push(item);
+      } else {
+        regular.push(item);
+      }
+    });
+    
+    return { allDayItems: allDay, regularItems: regular };
+  }, [day.items]);
+
+  // Calculate hour range for this day (only for regular items)
+  const hourRange = useMemo(() => getHourRange(regularItems), [regularItems]);
   const hours = useMemo(() => {
     const arr = [];
     for (let h = hourRange.start; h <= hourRange.end; h++) {
@@ -311,8 +333,8 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
     return arr;
   }, [hourRange]);
   
-  // Group parallel activities
-  const groupedItems = useMemo(() => groupParallelActivities(day.items), [day.items]);
+  // Group parallel activities (only regular items)
+  const groupedItems = useMemo(() => groupParallelActivities(regularItems), [regularItems]);
 
   // Calculate pixel height per hour - increased for better readability
   const HOUR_HEIGHT = 80; // pixels per hour (increased from 60)
@@ -337,6 +359,39 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
         )}
       </CardHeader>
       <CardContent className="pb-6">
+        {/* All-Day Activities Section */}
+        {allDayItems.length > 0 && (
+          <div className="mb-4 pb-4 border-b border-dashed">
+            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Dia Inteiro
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {allDayItems.map((item) => {
+                const style = getActivityStyle(item.activity);
+                return (
+                  <div
+                    key={item.id}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 ${style.bgColor} ${style.borderColor}`}
+                  >
+                    <div className={`w-7 h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor}`}>
+                      {style.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm">{item.activity}</p>
+                      {item.location && (
+                        <span className={`text-xs ${style.textColor}`}>
+                          {item.location}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Timeline Grid */}
         <div className="relative" style={{ height: totalHeight }}>
           {/* Hour lines */}
