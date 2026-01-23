@@ -29,11 +29,13 @@ const generateEmailHtml = (student: StudentCredential) => `
 <body style="margin: 0; padding: 0; background-color: #f0fdf4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     
-    <!-- Header with Logo -->
+    <!-- Header -->
     <div style="text-align: center; margin-bottom: 32px;">
-      <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; border-radius: 16px 16px 0 0;">
-        <img src="https://transplant-insight-hub.lovable.app/lovable-uploads/logo-formacao-360-white.png" alt="Formação 360°" style="max-width: 280px; height: auto; margin-bottom: 12px;" />
-        <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 16px; font-weight: 500;">Turma Janeiro 2026</p>
+      <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 40px 32px; border-radius: 16px 16px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; line-height: 1.3;">Formação 360° em<br>Transplante Capilar</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 16px 0 0; font-size: 16px; font-weight: 500;">Turma Janeiro 2026</p>
+      </div>
+    </div>
       </div>
     </div>
     
