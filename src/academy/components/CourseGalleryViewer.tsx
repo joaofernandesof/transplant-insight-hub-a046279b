@@ -276,18 +276,7 @@ function GalleryLightbox({ gallery, onClose }: GalleryLightboxProps) {
                   <X className="h-4 w-4 mr-1" />
                   Limpar filtro
                 </Button>
-              ) : (
-                <Button
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setSelfieDialogOpen(true)}
-                  className="gap-2"
-                >
-                  <UserSearch className="h-4 w-4" />
-                  <span className="hidden sm:inline">Buscar minhas fotos</span>
-                  <span className="sm:hidden">Selfie</span>
-                </Button>
-              )}
+              ) : null}
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-4 w-4" />
               </Button>
