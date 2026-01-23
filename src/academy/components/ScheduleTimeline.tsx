@@ -385,16 +385,16 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                     left: left,
                   }}
                 >
-                  <div className={`flex ${isShort ? 'flex-row items-center gap-1.5' : 'flex-col gap-1'} h-full`}>
+                  <div className={`flex ${isShort ? 'flex-row items-center gap-1.5 flex-wrap' : 'flex-col gap-1'} h-full`}>
                     {/* Icon and Time row */}
-                    <div className={`flex items-center gap-1.5 flex-shrink-0 ${style.textColor} flex-wrap`}>
+                    <div className={`flex items-center gap-1.5 flex-shrink-0 ${style.textColor}`}>
                       <div className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center`}>
                         {style.icon}
                       </div>
                       <span className="text-[10px] sm:text-xs font-semibold whitespace-nowrap">
                         {formatTime(item.startTime)} - {formatTime(item.endTime)}
                       </span>
-                      {/* Location badge with activity color - inline on desktop or when space allows */}
+                      {/* Location badge with activity color - inline on desktop */}
                       {item.location && !isShort && (
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium whitespace-nowrap hidden sm:inline-block`}>
                           {item.location}
@@ -402,8 +402,8 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                       )}
                     </div>
                     
-                    {/* Activity name */}
-                    <p className={`font-medium text-xs sm:text-sm ${isShort ? 'truncate flex-1 min-w-0' : 'line-clamp-2'}`}>
+                    {/* Activity name - never truncate on mobile */}
+                    <p className={`font-medium text-xs sm:text-sm ${isShort ? 'sm:truncate sm:flex-1 sm:min-w-0' : ''}`}>
                       {item.activity}
                     </p>
                     
@@ -425,7 +425,7 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                     {!isShort && item.instructor && (
                       <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto">
                         <User className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{item.instructor}</span>
+                        <span className="sm:truncate">{item.instructor}</span>
                       </p>
                     )}
                   </div>
