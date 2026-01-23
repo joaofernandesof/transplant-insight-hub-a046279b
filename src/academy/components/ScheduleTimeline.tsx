@@ -385,19 +385,14 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                     left: left,
                   }}
                 >
-                  <div className={`flex ${isShort ? 'flex-row items-center gap-2 flex-wrap' : 'flex-col gap-1.5'} h-full`}>
+                  <div className={`flex ${isShort ? 'flex-row items-center gap-2' : 'flex-col gap-1'} h-full`}>
                     {/* Icon */}
-                    <div className={`flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor}`}>
+                    <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor}`}>
                       {style.icon}
                     </div>
                     
-                    {/* Content */}
+                    {/* Content - title and location only (time is shown on the left axis) */}
                     <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                      {/* Time */}
-                      <span className={`text-xs sm:text-sm font-semibold ${style.textColor}`}>
-                        {formatTime(item.startTime)} - {formatTime(item.endTime)}
-                      </span>
-                      
                       {/* Activity name */}
                       <p className="font-medium text-xs sm:text-sm leading-snug">
                         {item.activity}
@@ -405,14 +400,14 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                       
                       {/* Location badge */}
                       {item.location && (
-                        <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium w-fit mt-0.5`}>
+                        <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium w-fit`}>
                           {item.location}
                         </span>
                       )}
                       
                       {/* Instructor (only for taller blocks) */}
                       {!isShort && item.instructor && (
-                        <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto pt-1">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-auto pt-0.5">
                           <User className="h-3 w-3 flex-shrink-0" />
                           <span>{item.instructor}</span>
                         </p>
