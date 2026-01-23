@@ -254,7 +254,25 @@ export function AcademyClassDetail() {
 
           {/* Photos Tab */}
           <TabsContent value="photos" className="space-y-4">
-            <CourseGalleryViewer classId={classId || ''} />
+            {!hasDay1Completed && !isAdmin ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Lock className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Galeria Bloqueada</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                    Para acessar as fotos do curso, primeiro responda à Pesquisa de Satisfação do Dia 1.
+                  </p>
+                  <Button onClick={() => setDay1SurveyDialogOpen(true)}>
+                    <ClipboardList className="h-4 w-4 mr-2" />
+                    Responder Pesquisa
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <CourseGalleryViewer classId={classId || ''} />
+            )}
           </TabsContent>
           
           {/* Survey Tab */}
