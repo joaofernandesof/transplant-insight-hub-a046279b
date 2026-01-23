@@ -180,7 +180,7 @@ export function AcademyExamResults() {
                 "text-4xl font-bold mb-2",
                 passed ? "text-emerald-700 dark:text-emerald-300" : "text-red-700 dark:text-red-300"
               )}>
-                {result.score.toFixed(1)}%
+                {(result.score ?? 0).toFixed(1)}%
               </h2>
               
               <Badge 
