@@ -230,7 +230,7 @@ export default function ExamsAdmin() {
       const { error: answersError } = await supabase
         .from('exam_answers')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Deleta todos
+        .gte('created_at', '1970-01-01'); // Deleta todos os registros
 
       if (answersError) throw answersError;
 
@@ -238,7 +238,7 @@ export default function ExamsAdmin() {
       const { error: attemptsError } = await supabase
         .from('exam_attempts')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Deleta todos
+        .gte('created_at', '1970-01-01'); // Deleta todos os registros
 
       if (attemptsError) throw attemptsError;
 
