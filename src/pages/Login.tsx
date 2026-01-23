@@ -172,43 +172,30 @@ export default function Login() {
             localStorage.removeItem('rememberedEmail');
           }
           
-          // Verificar se o usuário tem perfil NeoHub e redirecionar adequadamente
+          // Nova arquitetura de redirecionamento:
+          // - Admin → direto para /admin-dashboard
+          // - Outros → /portal-selector para escolher o portal
           const { data: { user: authUser } } = await supabase.auth.getUser();
           if (authUser) {
-            // Buscar dados do usuário na tabela neohub_users
-            const { data: neoHubUser } = await supabase
-              .from('neohub_users')
-              .select('id')
+            // Check if user is admin via user_roles table
+            const { data: roleData } = await supabase
+              .from('user_roles')
+              .select('role')
               .eq('user_id', authUser.id)
+              .eq('role', 'admin')
               .single();
-
-            if (neoHubUser) {
-              // Buscar perfis do usuário NeoHub
-              const { data: profilesData } = await supabase
-                .from('neohub_user_profiles')
-                .select('profile')
-                .eq('neohub_user_id', neoHubUser.id)
-                .eq('is_active', true);
-
-              const profiles = (profilesData || []).map(p => p.profile as NeoHubProfile);
-              
-              if (profiles.length === 1) {
-                // Redirecionar diretamente para o portal do perfil
-                const targetRoute = PROFILE_ROUTES[profiles[0]];
-                navigate(targetRoute);
-              } else if (profiles.length > 1) {
-                // Múltiplos perfis, redirecionar para seleção
-                navigate('/select-profile');
-              } else {
-                // Sem perfis NeoHub, seguir fluxo normal
-                navigate('/');
-              }
+            
+            const isAdmin = !!roleData;
+            
+            if (isAdmin) {
+              // Admin vai direto para o Dashboard Administrativo
+              navigate('/admin-dashboard');
             } else {
-              // Não é usuário NeoHub, seguir fluxo normal
-              navigate('/');
+              // Todos os outros perfis vão para o seletor de portal
+              navigate('/portal-selector');
             }
           } else {
-            navigate('/');
+            navigate('/portal-selector');
           }
         } else {
           setError(loginError || 'Email ou senha incorretos');
