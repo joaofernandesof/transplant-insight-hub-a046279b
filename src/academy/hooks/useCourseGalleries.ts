@@ -355,12 +355,32 @@ export function useGalleryManagement() {
     [updateGallery]
   );
 
-  // Set cover photo for gallery
+  // Set cover photo for gallery (uploads cropped image)
   const setCoverPhoto = useMutation({
-    mutationFn: async ({ galleryId, photoUrl }: { galleryId: string; photoUrl: string }) => {
+    mutationFn: async ({ galleryId, croppedBlob }: { galleryId: string; croppedBlob: Blob }) => {
+      // Upload the cropped cover to storage
+      const timestamp = Date.now();
+      const storagePath = `${galleryId}/cover-${timestamp}.jpg`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('course-galleries')
+        .upload(storagePath, croppedBlob, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: 'image/jpeg',
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('course-galleries')
+        .getPublicUrl(storagePath);
+
+      // Update gallery with cover URL
       const { error } = await supabase
         .from('course_galleries')
-        .update({ cover_photo_url: photoUrl })
+        .update({ cover_photo_url: urlData.publicUrl })
         .eq('id', galleryId);
 
       if (error) throw error;

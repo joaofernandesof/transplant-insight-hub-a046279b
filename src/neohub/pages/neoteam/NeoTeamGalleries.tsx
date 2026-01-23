@@ -14,8 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
-  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star
+  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop
 } from 'lucide-react';
+import { ImageCropper } from '@/components/ImageCropper';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -193,7 +194,7 @@ export default function NeoTeamGalleries() {
           }}
           onUpload={uploadPhotos}
           onDeletePhoto={(photo) => deletePhoto.mutate(photo)}
-          onSetCover={(photo) => setCoverPhoto.mutate({ galleryId: selectedGallery.id, photoUrl: photo.full_url })}
+          onSetCover={(galleryId, croppedBlob) => setCoverPhoto.mutate({ galleryId, croppedBlob })}
           isUploading={isUploading}
           canWrite={canWrite}
           canDelete={canDelete}
@@ -436,7 +437,7 @@ interface GalleryEditDialogProps {
   onClose: () => void;
   onUpload: (galleryId: string, files: File[]) => Promise<any[]>;
   onDeletePhoto: (photo: any) => void;
-  onSetCover: (photo: any) => void;
+  onSetCover: (galleryId: string, croppedBlob: Blob) => void;
   isUploading: boolean;
   canWrite: boolean;
   canDelete: boolean;
@@ -454,6 +455,19 @@ function GalleryEditDialog({
 }: GalleryEditDialogProps) {
   const { photos, isLoading, refetch } = useGalleryPhotos(gallery.id);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedPhotoForCrop, setSelectedPhotoForCrop] = useState<string | null>(null);
+
+  const handleSelectCover = (photoUrl: string) => {
+    setSelectedPhotoForCrop(photoUrl);
+    setCropperOpen(true);
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    onSetCover(gallery.id, croppedBlob);
+    setCropperOpen(false);
+    setSelectedPhotoForCrop(null);
+  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -547,7 +561,7 @@ function GalleryEditDialog({
                         className={`relative aspect-square rounded-lg overflow-hidden group cursor-pointer ${
                           isCover ? 'ring-2 ring-primary ring-offset-2' : ''
                         }`}
-                        onClick={() => canWrite && onSetCover(photo)}
+                        onClick={() => canWrite && handleSelectCover(photo.full_url)}
                       >
                         <img
                           src={photo.thumbnail_url || photo.full_url}
@@ -624,6 +638,19 @@ function GalleryEditDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Image Cropper for cover photo */}
+      {selectedPhotoForCrop && (
+        <ImageCropper
+          open={cropperOpen}
+          onClose={() => {
+            setCropperOpen(false);
+            setSelectedPhotoForCrop(null);
+          }}
+          imageSrc={selectedPhotoForCrop}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </Dialog>
   );
 }
