@@ -163,7 +163,7 @@ export function AcademyHome() {
                 onClick={() => navigate('/academy/courses')}
               >
                 <BookOpen className="h-5 w-5 text-emerald-600" />
-                <span className="text-xs">Meus Cursos</span>
+                <span className="text-xs">Cursos</span>
               </Button>
               <Button 
                 variant="outline" 
