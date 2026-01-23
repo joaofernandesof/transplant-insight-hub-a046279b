@@ -615,7 +615,7 @@ export type Database = {
           location: string | null
           max_students: number | null
           name: string
-          start_date: string
+          start_date: string | null
           status: string
           updated_at: string
         }
@@ -629,7 +629,7 @@ export type Database = {
           location?: string | null
           max_students?: number | null
           name: string
-          start_date: string
+          start_date?: string | null
           status?: string
           updated_at?: string
         }
@@ -643,7 +643,7 @@ export type Database = {
           location?: string | null
           max_students?: number | null
           name?: string
-          start_date?: string
+          start_date?: string | null
           status?: string
           updated_at?: string
         }

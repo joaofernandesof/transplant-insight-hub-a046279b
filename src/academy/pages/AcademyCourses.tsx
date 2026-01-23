@@ -25,6 +25,8 @@ import { CourseViewer } from "@/components/CourseViewer";
 import { ConectaCapilarCard } from "../components/ConectaCapilarCard";
 import { PresentialCourseCard, PresentialCourse } from "../components/PresentialCourseCard";
 import { useAcademyEnrollments } from "../hooks/useAcademyEnrollments";
+import { useAcademyCalendar } from "../hooks/useAcademyCalendar";
+import { CalendarTable } from "../components/CalendarTable";
 
 export function AcademyCourses() {
   const navigate = useNavigate();
@@ -166,28 +168,32 @@ export function AcademyCourses() {
           </TabsList>
 
           <TabsContent value="presencial" className="mt-6 space-y-6">
+            {/* Calendar Table */}
+            <CalendarTable />
+
+            {/* My Enrollments */}
             {isLoadingPresential ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2].map(i => (
                   <Skeleton key={i} className="h-64 w-full rounded-lg" />
                 ))}
               </div>
-            ) : presentialCourses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {presentialCourses.map((course) => (
-                  <PresentialCourseCard
-                    key={course.id}
-                    course={course as PresentialCourse}
-                    onViewDetails={handleViewPresentialDetails}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <GraduationCap className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="text-lg font-medium">Nenhum curso presencial matriculado</p>
-                <p className="text-sm">Entre em contato para se matricular em uma turma.</p>
-              </div>
+            ) : presentialCourses.length > 0 && (
+              <>
+                <h3 className="text-base font-semibold flex items-center gap-2 mt-6">
+                  <GraduationCap className="h-4 w-4 text-emerald-600" />
+                  Minhas Matrículas
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {presentialCourses.map((course) => (
+                    <PresentialCourseCard
+                      key={course.id}
+                      course={course as PresentialCourse}
+                      onViewDetails={handleViewPresentialDetails}
+                    />
+                  ))}
+                </div>
+              </>
             )}
 
             {/* Info Card */}
