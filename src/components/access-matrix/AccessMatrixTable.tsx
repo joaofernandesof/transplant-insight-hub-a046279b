@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -235,20 +233,26 @@ export function AccessMatrixTable({
         <div className="flex flex-wrap items-center gap-4 mt-4 p-3 bg-muted/50 rounded-lg text-sm">
           <span className="font-medium text-muted-foreground">Legenda:</span>
           <div className="flex items-center gap-1.5">
-            <Eye className="h-3.5 w-3.5 text-blue-600" />
+            <div className="w-4 h-4 rounded bg-emerald-500 flex items-center justify-center">
+              <Eye className="h-2.5 w-2.5 text-white" />
+            </div>
             <span>Visualizar</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Pencil className="h-3.5 w-3.5 text-amber-600" />
+            <div className="w-4 h-4 rounded bg-emerald-500 flex items-center justify-center">
+              <Pencil className="h-2.5 w-2.5 text-white" />
+            </div>
             <span>Editar</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Plus className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Inserir</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Trash2 className="h-3.5 w-3.5 text-red-600" />
+            <div className="w-4 h-4 rounded bg-emerald-500 flex items-center justify-center">
+              <Trash2 className="h-2.5 w-2.5 text-white" />
+            </div>
             <span>Excluir</span>
+          </div>
+          <div className="flex items-center gap-1.5 ml-4 pl-4 border-l">
+            <div className="w-4 h-4 rounded border-2 border-muted-foreground/30" />
+            <span className="text-muted-foreground">Inativo</span>
           </div>
         </div>
       </CardHeader>
@@ -320,26 +324,25 @@ export function AccessMatrixTable({
                         const deleteState = getCheckboxState(mod.code, profile, 'canDelete');
                         
                         return (
-                          <TableCell key={profile} className="text-center">
-                            <div className="flex items-center justify-center gap-2">
+                          <TableCell key={profile} className="text-center px-2">
+                            <div className="flex items-center justify-center gap-1.5">
                               {/* Visualizar (Read) */}
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <div className="flex flex-col items-center gap-0.5">
-                                      <Checkbox
-                                        checked={readState.checked}
-                                        disabled={readState.disabled}
-                                        onCheckedChange={(checked) => 
-                                          handlePermissionChange(mod.code, profile, 'canRead', !!checked)
-                                        }
-                                        className={cn(
-                                          "data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600",
-                                          readState.disabled && "opacity-50"
-                                        )}
-                                      />
-                                      <Eye className="h-3 w-3 text-blue-600" />
-                                    </div>
+                                    <button
+                                      onClick={() => !readState.disabled && handlePermissionChange(mod.code, profile, 'canRead', !readState.checked)}
+                                      disabled={readState.disabled}
+                                      className={cn(
+                                        "w-7 h-7 rounded-md flex items-center justify-center transition-all",
+                                        readState.checked 
+                                          ? "bg-emerald-500 text-white shadow-sm" 
+                                          : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                                        readState.disabled && "opacity-50 cursor-not-allowed"
+                                      )}
+                                    >
+                                      <Eye className="h-3.5 w-3.5" />
+                                    </button>
                                   </TooltipTrigger>
                                   <TooltipContent>Visualizar</TooltipContent>
                                 </Tooltip>
@@ -349,20 +352,19 @@ export function AccessMatrixTable({
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <div className="flex flex-col items-center gap-0.5">
-                                      <Checkbox
-                                        checked={writeState.checked}
-                                        disabled={writeState.disabled}
-                                        onCheckedChange={(checked) => 
-                                          handlePermissionChange(mod.code, profile, 'canWrite', !!checked)
-                                        }
-                                        className={cn(
-                                          "data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600",
-                                          writeState.disabled && "opacity-50"
-                                        )}
-                                      />
-                                      <Pencil className="h-3 w-3 text-amber-600" />
-                                    </div>
+                                    <button
+                                      onClick={() => !writeState.disabled && handlePermissionChange(mod.code, profile, 'canWrite', !writeState.checked)}
+                                      disabled={writeState.disabled}
+                                      className={cn(
+                                        "w-7 h-7 rounded-md flex items-center justify-center transition-all",
+                                        writeState.checked 
+                                          ? "bg-emerald-500 text-white shadow-sm" 
+                                          : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                                        writeState.disabled && "opacity-50 cursor-not-allowed"
+                                      )}
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                    </button>
                                   </TooltipTrigger>
                                   <TooltipContent>Editar / Inserir</TooltipContent>
                                 </Tooltip>
@@ -372,20 +374,19 @@ export function AccessMatrixTable({
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <div className="flex flex-col items-center gap-0.5">
-                                      <Checkbox
-                                        checked={deleteState.checked}
-                                        disabled={deleteState.disabled}
-                                        onCheckedChange={(checked) => 
-                                          handlePermissionChange(mod.code, profile, 'canDelete', !!checked)
-                                        }
-                                        className={cn(
-                                          "data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600",
-                                          deleteState.disabled && "opacity-50"
-                                        )}
-                                      />
-                                      <Trash2 className="h-3 w-3 text-red-600" />
-                                    </div>
+                                    <button
+                                      onClick={() => !deleteState.disabled && handlePermissionChange(mod.code, profile, 'canDelete', !deleteState.checked)}
+                                      disabled={deleteState.disabled}
+                                      className={cn(
+                                        "w-7 h-7 rounded-md flex items-center justify-center transition-all",
+                                        deleteState.checked 
+                                          ? "bg-emerald-500 text-white shadow-sm" 
+                                          : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                                        deleteState.disabled && "opacity-50 cursor-not-allowed"
+                                      )}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
                                   </TooltipTrigger>
                                   <TooltipContent>Excluir</TooltipContent>
                                 </Tooltip>
