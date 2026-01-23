@@ -44,18 +44,18 @@ export function AcademyHome() {
   ];
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      <main className="px-3 sm:px-4 lg:px-6 pt-16 lg:pt-6 pb-6 space-y-4 sm:space-y-6">
+    <div className="min-h-screen bg-background w-full max-w-full overflow-x-hidden">
+      <main className="px-3 sm:px-4 lg:px-6 pt-16 lg:pt-6 pb-6 space-y-4 sm:space-y-6 w-full max-w-full">
         {/* Progress Overview Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/50 dark:to-green-950/50 dark:border-emerald-800">
-            <CardContent className="p-3 sm:pt-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <CardContent className="p-2.5 sm:p-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="h-4 w-4 text-white" />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-400">{enrolledCourses.length}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg sm:text-xl font-bold text-emerald-700 dark:text-emerald-400">{enrolledCourses.length}</p>
                   <p className="text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-500 truncate">Cursos Matriculados</p>
                 </div>
               </div>
@@ -63,13 +63,13 @@ export function AcademyHome() {
           </Card>
 
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-950/50 dark:to-indigo-950/50 dark:border-blue-800">
-            <CardContent className="p-3 sm:pt-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <CardContent className="p-2.5 sm:p-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="h-4 w-4 text-white" />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xl sm:text-2xl font-bold text-blue-700 dark:text-blue-400">{totalProgress}%</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-400">{totalProgress}%</p>
                   <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-500 truncate">Progresso Geral</p>
                 </div>
               </div>
@@ -77,13 +77,13 @@ export function AcademyHome() {
           </Card>
 
           <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 dark:from-amber-950/50 dark:to-yellow-950/50 dark:border-amber-800">
-            <CardContent className="p-3 sm:pt-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500 flex items-center justify-center flex-shrink-0">
-                  <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <CardContent className="p-2.5 sm:p-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
+                  <Trophy className="h-4 w-4 text-white" />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-400">{completedCourses.length}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-400">{completedCourses.length}</p>
                   <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-500 truncate">Cursos Concluídos</p>
                 </div>
               </div>
@@ -91,13 +91,13 @@ export function AcademyHome() {
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 dark:from-purple-950/50 dark:to-violet-950/50 dark:border-purple-800">
-            <CardContent className="p-3 sm:pt-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500 flex items-center justify-center flex-shrink-0">
-                  <Award className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <CardContent className="p-2.5 sm:p-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center flex-shrink-0">
+                  <Award className="h-4 w-4 text-white" />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-400">{completedCourses.length}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg sm:text-xl font-bold text-purple-700 dark:text-purple-400">{completedCourses.length}</p>
                   <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-500 truncate">Certificados</p>
                 </div>
               </div>
@@ -107,32 +107,32 @@ export function AcademyHome() {
 
         {/* Continue Learning */}
         {lastCourse && (
-          <Card className="border-2 border-emerald-200 dark:border-emerald-800">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
+          <Card className="border-2 border-emerald-200 dark:border-emerald-800 overflow-hidden">
+            <CardHeader className="pb-2 px-3 sm:px-6">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   <Play className="h-4 w-4 text-emerald-600" />
                   Continue de onde parou
                 </CardTitle>
-                <Badge variant="outline" className="text-emerald-600 border-emerald-300">
+                <Badge variant="outline" className="text-emerald-600 border-emerald-300 text-xs">
                   Em Andamento
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center flex-shrink-0">
-                  <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+            <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center flex-shrink-0">
+                  <GraduationCap className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0 w-full">
-                  <h3 className="font-semibold text-base sm:text-lg truncate">{lastCourse.title}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{lastCourse.description}</p>
-                  <div className="flex items-center gap-2 sm:gap-4 mt-2">
+                  <h3 className="font-semibold text-sm sm:text-base truncate">{lastCourse.title}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{lastCourse.description}</p>
+                  <div className="flex items-center gap-2 mt-2">
                     <Progress value={lastCourse.enrollment?.progress_percent || 0} className="flex-1 h-2" />
-                    <span className="text-xs sm:text-sm font-medium text-emerald-600">{lastCourse.enrollment?.progress_percent || 0}%</span>
+                    <span className="text-xs font-medium text-emerald-600 flex-shrink-0">{lastCourse.enrollment?.progress_percent || 0}%</span>
                   </div>
                 </div>
-                <Button onClick={() => navigate('/academy/courses')} className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto mt-2 sm:mt-0" size="sm">
+                <Button onClick={() => navigate('/academy/courses')} className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto" size="sm">
                   Continuar
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -142,80 +142,80 @@ export function AcademyHome() {
         )}
 
         {/* Grid Section */}
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Quick Actions */}
-          <Card>
-            <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-2">
-              <CardTitle className="text-sm sm:text-base">Acesso Rápido</CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-3 pb-2">
+              <CardTitle className="text-sm">Acesso Rápido</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-2 sm:gap-3 p-3 sm:p-6 pt-0 sm:pt-0">
+            <CardContent className="grid grid-cols-2 gap-2 p-3 pt-0">
               <Button 
                 variant="outline" 
-                className="h-auto py-3 sm:py-4 flex flex-col gap-1 sm:gap-2 hover:bg-emerald-50 hover:border-emerald-300 dark:hover:bg-emerald-950/50"
+                className="h-auto py-3 flex flex-col gap-1 hover:bg-emerald-50 hover:border-emerald-300 dark:hover:bg-emerald-950/50"
                 onClick={() => navigate('/academy/courses')}
               >
-                <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
-                <span className="text-xs sm:text-sm">Meus Cursos</span>
+                <BookOpen className="h-5 w-5 text-emerald-600" />
+                <span className="text-xs">Meus Cursos</span>
               </Button>
               <Button 
                 variant="outline" 
-                className="h-auto py-3 sm:py-4 flex flex-col gap-1 sm:gap-2 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950/50"
+                className="h-auto py-3 flex flex-col gap-1 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950/50"
                 onClick={() => navigate('/academy/exams')}
               >
-                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-                <span className="text-xs sm:text-sm">Provas</span>
+                <FileText className="h-5 w-5 text-blue-600" />
+                <span className="text-xs">Provas</span>
               </Button>
               <Button 
                 variant="outline" 
-                className="h-auto py-3 sm:py-4 flex flex-col gap-1 sm:gap-2 hover:bg-amber-50 hover:border-amber-300 dark:hover:bg-amber-950/50"
+                className="h-auto py-3 flex flex-col gap-1 hover:bg-amber-50 hover:border-amber-300 dark:hover:bg-amber-950/50"
                 onClick={() => navigate('/academy/certificates')}
               >
-                <Award className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
-                <span className="text-xs sm:text-sm">Certificados</span>
+                <Award className="h-5 w-5 text-amber-600" />
+                <span className="text-xs">Certificados</span>
               </Button>
               <Button 
                 variant="outline" 
-                className="h-auto py-3 sm:py-4 flex flex-col gap-1 sm:gap-2 hover:bg-purple-50 hover:border-purple-300 dark:hover:bg-purple-950/50"
+                className="h-auto py-3 flex flex-col gap-1 hover:bg-purple-50 hover:border-purple-300 dark:hover:bg-purple-950/50"
                 onClick={() => navigate('/academy/community')}
               >
-                <Star className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
-                <span className="text-xs sm:text-sm">Comunidade</span>
+                <Star className="h-5 w-5 text-purple-600" />
+                <span className="text-xs">Comunidade</span>
               </Button>
             </CardContent>
           </Card>
 
           {/* Upcoming Events */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
+          <Card className="overflow-hidden">
+            <CardHeader className="p-3 pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-emerald-600" />
                 Próximos Eventos
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 p-3 pt-0">
               {upcomingEvents.map((event) => (
                 <div 
                   key={event.id} 
-                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-2 p-2 rounded-lg border hover:bg-muted/50 transition-colors"
                 >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     event.type === 'live' ? 'bg-red-100 dark:bg-red-950' : 
                     event.type === 'mentorship' ? 'bg-blue-100 dark:bg-blue-950' : 
                     'bg-amber-100 dark:bg-amber-950'
                   }`}>
                     {event.type === 'live' ? (
-                      <Play className={`h-4 w-4 ${event.type === 'live' ? 'text-red-600' : 'text-blue-600'}`} />
+                      <Play className="h-3.5 w-3.5 text-red-600" />
                     ) : event.type === 'mentorship' ? (
-                      <Clock className="h-4 w-4 text-blue-600" />
+                      <Clock className="h-3.5 w-3.5 text-blue-600" />
                     ) : (
-                      <FileText className="h-4 w-4 text-amber-600" />
+                      <FileText className="h-3.5 w-3.5 text-amber-600" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">{event.date} às {event.time}</p>
+                    <p className="font-medium text-xs truncate">{event.title}</p>
+                    <p className="text-[10px] text-muted-foreground">{event.date} às {event.time}</p>
                   </div>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-[10px] flex-shrink-0">
                     {event.type === 'live' ? 'Ao Vivo' : event.type === 'mentorship' ? 'Mentoria' : 'Prova'}
                   </Badge>
                 </div>
@@ -226,34 +226,34 @@ export function AcademyHome() {
 
         {/* Available Courses Preview */}
         {courses.filter(c => !c.enrollment).length > 0 && (
-          <Card>
-            <CardHeader>
+          <Card className="overflow-hidden">
+            <CardHeader className="p-3 pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="text-sm flex items-center gap-2">
                   <GraduationCap className="h-4 w-4 text-emerald-600" />
                   Cursos Disponíveis
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/academy/courses')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/academy/courses')} className="text-xs h-7">
                   Ver todos
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="p-3 pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {courses.filter(c => !c.enrollment).slice(0, 3).map((course) => (
                   <Card key={course.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/academy/courses')}>
-                    <CardContent className="pt-4">
-                      <div className="w-full h-24 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 flex items-center justify-center mb-3">
-                        <GraduationCap className="h-10 w-10 text-emerald-600" />
+                    <CardContent className="p-3">
+                      <div className="w-full h-16 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 flex items-center justify-center mb-2">
+                        <GraduationCap className="h-8 w-8 text-emerald-600" />
                       </div>
-                      <h4 className="font-medium text-sm truncate">{course.title}</h4>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary" className="text-xs">
-                          <Clock className="h-3 w-3 mr-1" />
+                      <h4 className="font-medium text-xs truncate">{course.title}</h4>
+                      <div className="flex items-center gap-1 mt-1 flex-wrap">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          <Clock className="h-2.5 w-2.5 mr-0.5" />
                           {course.duration_hours || 0}h
                         </Badge>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                           {course.difficulty || 'Básico'}
                         </Badge>
                       </div>
