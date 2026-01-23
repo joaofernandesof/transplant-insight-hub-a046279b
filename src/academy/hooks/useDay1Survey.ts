@@ -187,6 +187,8 @@ export function useDay1Survey(classId?: string) {
       surveyId: string; 
       data: Partial<Day1SurveyFormData>;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error } = await supabase
         .from('day1_satisfaction_surveys')
         .update({
@@ -198,6 +200,23 @@ export function useDay1Survey(classId?: string) {
         .eq('id', surveyId);
       
       if (error) throw error;
+      
+      // Send email notification (don't block on failure)
+      const surveyData = await supabase
+        .from('day1_satisfaction_surveys')
+        .select('class_id')
+        .eq('id', surveyId)
+        .single();
+      
+      if (surveyData.data?.class_id && user) {
+        supabase.functions.invoke('notify-survey-completed', {
+          body: {
+            surveyId,
+            classId: surveyData.data.class_id,
+            userId: user.id
+          }
+        }).catch(err => console.error('Failed to send survey notification:', err));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['day1-survey'] });
