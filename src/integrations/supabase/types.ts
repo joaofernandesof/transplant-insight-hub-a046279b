@@ -2188,6 +2188,7 @@ export type Database = {
           address_state: string | null
           address_street: string | null
           avatar_url: string | null
+          bio: string | null
           birth_date: string | null
           clinic_logo_url: string | null
           clinic_name: string | null
@@ -2206,6 +2207,7 @@ export type Database = {
           onboarding_completed: boolean | null
           onboarding_completed_at: string | null
           phone: string | null
+          profile_public: boolean | null
           referral_code: string | null
           rqe: string | null
           services: string[] | null
@@ -2226,6 +2228,7 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           avatar_url?: string | null
+          bio?: string | null
           birth_date?: string | null
           clinic_logo_url?: string | null
           clinic_name?: string | null
@@ -2244,6 +2247,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_completed_at?: string | null
           phone?: string | null
+          profile_public?: boolean | null
           referral_code?: string | null
           rqe?: string | null
           services?: string[] | null
@@ -2264,6 +2268,7 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           avatar_url?: string | null
+          bio?: string | null
           birth_date?: string | null
           clinic_logo_url?: string | null
           clinic_name?: string | null
@@ -2282,6 +2287,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_completed_at?: string | null
           phone?: string | null
+          profile_public?: boolean | null
           referral_code?: string | null
           rqe?: string | null
           services?: string[] | null

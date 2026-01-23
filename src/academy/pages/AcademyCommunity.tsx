@@ -10,9 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Users, Search, MapPin, Filter } from "lucide-react";
-import { useAcademyCommunity } from "../hooks/useAcademyCommunity";
+import { useAcademyCommunity, CommunityMember } from "../hooks/useAcademyCommunity";
 import { MemberCard } from "../components/MemberCard";
+import { MemberProfileDialog } from "../components/MemberProfileDialog";
+import { CompleteProfileBanner } from "../components/CompleteProfileBanner";
 import { ContactRequestsPanel } from "../components/ContactRequestsPanel";
 
 export function AcademyCommunity() {
@@ -20,15 +32,18 @@ export function AcademyCommunity() {
     members,
     pendingRequests,
     isLoading,
-    sendContactRequest,
     respondToRequest,
     sendMessage,
-    isSendingRequest,
     isSendingMessage,
+    isProfileComplete,
   } = useAcademyCommunity();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [stateFilter, setStateFilter] = useState<string>("all");
+  const [selectedMember, setSelectedMember] = useState<CommunityMember | null>(null);
+  const [messageDialogMember, setMessageDialogMember] = useState<CommunityMember | null>(null);
+  const [message, setMessage] = useState("");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Get unique states for filter
   const uniqueStates = [...new Set(members.map(m => m.state).filter(Boolean))].sort();
@@ -47,8 +62,29 @@ export function AcademyCommunity() {
 
   // Stats
   const totalMembers = members.length;
-  const connectedCount = members.filter(m => m.contactStatus === 'accepted').length;
   const statesCount = uniqueStates.length;
+
+  const handleSendMessage = (recipientId: string, content: string) => {
+    sendMessage({ recipientId, content });
+  };
+
+  const handleViewProfile = (member: CommunityMember) => {
+    setSelectedMember(member);
+  };
+
+  const handleSendMessageFromProfile = (recipientId: string) => {
+    const member = members.find(m => m.authUserId === recipientId);
+    if (member) {
+      setMessageDialogMember(member);
+    }
+  };
+
+  const handleSubmitMessage = () => {
+    if (!message.trim() || !messageDialogMember) return;
+    sendMessage({ recipientId: messageDialogMember.authUserId, content: message });
+    setMessage("");
+    setMessageDialogMember(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,7 +93,7 @@ export function AcademyCommunity() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2">
-              <Users className="h-5 w-5 text-emerald-600" />
+              <Users className="h-5 w-5 text-primary" />
               Comunidade IBRAMEC
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -66,30 +102,28 @@ export function AcademyCommunity() {
           </div>
         </div>
 
+        {/* Complete Profile Banner */}
+        <CompleteProfileBanner 
+          isProfileComplete={isProfileComplete}
+          onDismiss={() => setBannerDismissed(true)}
+        />
+
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/30 dark:to-green-950/30 dark:border-emerald-800">
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+              <div className="text-2xl font-bold text-primary">
                 {isLoading ? "-" : totalMembers}
               </div>
-              <p className="text-xs text-emerald-600 dark:text-emerald-500">Membros</p>
+              <p className="text-xs text-primary/80">Membros</p>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 dark:from-blue-950/30 dark:to-indigo-950/30 dark:border-blue-800">
+          <Card className="bg-gradient-to-br from-secondary/50 to-secondary/30 border-secondary">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-                {isLoading ? "-" : connectedCount}
-              </div>
-              <p className="text-xs text-blue-600 dark:text-blue-500">Conexões</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 dark:from-purple-950/30 dark:to-violet-950/30 dark:border-purple-800">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
+              <div className="text-2xl font-bold text-foreground">
                 {isLoading ? "-" : statesCount}
               </div>
-              <p className="text-xs text-purple-600 dark:text-purple-500">Estados</p>
+              <p className="text-xs text-muted-foreground">Estados</p>
             </CardContent>
           </Card>
         </div>
@@ -152,7 +186,7 @@ export function AcademyCommunity() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <Skeleton key={i} className="h-48 w-full rounded-lg" />
+              <Skeleton key={i} className="h-32 w-full rounded-lg" />
             ))}
           </div>
         ) : filteredMembers.length > 0 ? (
@@ -161,13 +195,9 @@ export function AcademyCommunity() {
               <MemberCard
                 key={member.id}
                 member={member}
-                onRequestContact={(targetUserId, message) =>
-                  sendContactRequest({ targetUserId, message })
-                }
-                onSendMessage={(recipientId, content) =>
-                  sendMessage({ recipientId, content })
-                }
-                isLoading={isSendingRequest || isSendingMessage}
+                onSendMessage={handleSendMessage}
+                onViewProfile={handleViewProfile}
+                isLoading={isSendingMessage}
               />
             ))}
           </div>
@@ -189,14 +219,52 @@ export function AcademyCommunity() {
               <div>
                 <p className="font-medium text-sm">Comunidade IBRAMEC</p>
                 <p className="text-sm text-muted-foreground">
-                  Conecte-se com colegas de turma, troque experiências e amplie sua rede profissional.
-                  As informações de contato só são compartilhadas após aprovação mútua.
+                  Conecte-se com colegas de turma e amplie sua rede profissional.
+                  Configure a visibilidade do seu perfil nas configurações.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </main>
+
+      {/* Member Profile Dialog */}
+      <MemberProfileDialog
+        member={selectedMember}
+        onClose={() => setSelectedMember(null)}
+        onSendMessage={handleSendMessageFromProfile}
+      />
+
+      {/* Send Message Dialog */}
+      <Dialog open={!!messageDialogMember} onOpenChange={() => setMessageDialogMember(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enviar Mensagem</DialogTitle>
+            <DialogDescription>
+              Envie uma mensagem para {messageDialogMember?.fullName}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Digite sua mensagem..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMessageDialogMember(null)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSubmitMessage} 
+              disabled={!message.trim()}
+            >
+              Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
