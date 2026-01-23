@@ -10,6 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { 
   Users, 
   Trophy, 
   CheckCircle2,
@@ -19,12 +30,18 @@ import {
   Download,
   BarChart3,
   FileText,
-  Filter
+  Filter,
+  RotateCcw,
+  FileSpreadsheet,
+  Loader2
 } from "lucide-react";
-import { useExams, useAllExamAttempts, useCourseClasses } from "@/hooks/useExams";
+import { useExams, useAllExamAttempts, useCourseClasses, useExamQuestions } from "@/hooks/useExams";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export default function ExamsAdmin() {
   const navigate = useNavigate();
@@ -32,9 +49,11 @@ export default function ExamsAdmin() {
   const [selectedExamId, setSelectedExamId] = useState<string>('all');
   const [selectedClassId, setSelectedClassId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [isExportingGabarito, setIsExportingGabarito] = useState(false);
   
-  const { data: exams, isLoading: examsLoading } = useExams();
-  const { data: allAttempts, isLoading: attemptsLoading } = useAllExamAttempts();
+  const { data: exams, isLoading: examsLoading, refetch: refetchExams } = useExams();
+  const { data: allAttempts, isLoading: attemptsLoading, refetch: refetchAttempts } = useAllExamAttempts();
   const { data: classes, isLoading: classesLoading } = useCourseClasses();
 
   const isLoading = examsLoading || attemptsLoading || classesLoading;
@@ -104,23 +123,206 @@ export default function ExamsAdmin() {
     a.click();
   };
 
+  // Exportar gabarito de todas as provas em Excel
+  const exportGabaritoExcel = async () => {
+    setIsExportingGabarito(true);
+    try {
+      // Buscar todas as questões com as provas
+      const { data: questions, error } = await supabase
+        .from('exam_questions')
+        .select(`
+          id,
+          exam_id,
+          order_index,
+          question_text,
+          options,
+          correct_answer,
+          explanation,
+          exams!inner(title)
+        `)
+        .order('exam_id')
+        .order('order_index');
+
+      if (error) throw error;
+
+      if (!questions || questions.length === 0) {
+        toast.error('Nenhuma questão encontrada');
+        return;
+      }
+
+      // Agrupar por prova
+      const examGroups = questions.reduce((acc, q) => {
+        const examTitle = (q.exams as any)?.title || 'Prova';
+        if (!acc[examTitle]) acc[examTitle] = [];
+        acc[examTitle].push(q);
+        return acc;
+      }, {} as Record<string, typeof questions>);
+
+      // Criar workbook
+      const wb = XLSX.utils.book_new();
+
+      // Criar uma aba para cada prova
+      Object.entries(examGroups).forEach(([examTitle, examQuestions]) => {
+        const sheetData = examQuestions.map((q, idx) => {
+          const options = Array.isArray(q.options) ? q.options : [];
+          const letterMap = ['A', 'B', 'C', 'D', 'E'];
+          
+          return {
+            'Nº': q.order_index || idx + 1,
+            'Questão': q.question_text,
+            'Opção A': options[0] || '',
+            'Opção B': options[1] || '',
+            'Opção C': options[2] || '',
+            'Opção D': options[3] || '',
+            'Opção E': options[4] || '',
+            'Gabarito': q.correct_answer,
+            'Explicação': q.explanation || ''
+          };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(sheetData);
+        
+        // Ajustar largura das colunas
+        ws['!cols'] = [
+          { wch: 4 },   // Nº
+          { wch: 60 },  // Questão
+          { wch: 40 },  // Opção A
+          { wch: 40 },  // Opção B
+          { wch: 40 },  // Opção C
+          { wch: 40 },  // Opção D
+          { wch: 40 },  // Opção E
+          { wch: 8 },   // Gabarito
+          { wch: 50 },  // Explicação
+        ];
+
+        // Nome da aba (max 31 chars)
+        const sheetName = examTitle.length > 31 ? examTitle.slice(0, 28) + '...' : examTitle;
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      });
+
+      // Criar aba resumo com todas as respostas
+      const resumoData = questions.map((q, idx) => ({
+        'Prova': (q.exams as any)?.title || 'Prova',
+        'Questão': q.order_index || idx + 1,
+        'Gabarito': q.correct_answer
+      }));
+      
+      const wsResumo = XLSX.utils.json_to_sheet(resumoData);
+      wsResumo['!cols'] = [{ wch: 40 }, { wch: 10 }, { wch: 10 }];
+      XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo Gabaritos');
+
+      // Download
+      XLSX.writeFile(wb, `gabarito-provas-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      toast.success('Gabarito exportado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao exportar gabarito:', error);
+      toast.error('Erro ao exportar gabarito');
+    } finally {
+      setIsExportingGabarito(false);
+    }
+  };
+
+  // Reset de todas as tentativas de provas
+  const handleResetAllAttempts = async () => {
+    setIsResetting(true);
+    try {
+      // Deletar todas as respostas primeiro (FK constraint)
+      const { error: answersError } = await supabase
+        .from('exam_answers')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Deleta todos
+
+      if (answersError) throw answersError;
+
+      // Deletar todas as tentativas
+      const { error: attemptsError } = await supabase
+        .from('exam_attempts')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Deleta todos
+
+      if (attemptsError) throw attemptsError;
+
+      toast.success('Todas as provas foram resetadas com sucesso!');
+      refetchAttempts();
+    } catch (error) {
+      console.error('Erro ao resetar provas:', error);
+      toast.error('Erro ao resetar provas');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <ModuleLayout>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
         <div className="px-4 py-4">
-          <div className="flex items-center gap-4 pl-12 lg:pl-0">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/university/exams')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Painel de Resultados
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Acompanhe as notas dos alunos nas provas
-              </p>
+          <div className="flex items-center justify-between pl-12 lg:pl-0">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/university/exams')}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Painel de Resultados
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Acompanhe as notas dos alunos nas provas
+                </p>
+              </div>
+            </div>
+            
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={exportGabaritoExcel}
+                disabled={isExportingGabarito}
+              >
+                {isExportingGabarito ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                )}
+                <span className="hidden sm:inline">Gabarito Excel</span>
+              </Button>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Resetar Provas</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Resetar todas as provas?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação irá apagar <strong>todas</strong> as tentativas de provas de <strong>todos</strong> os alunos. 
+                      Isso permitirá que eles refaçam as provas novamente. Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleResetAllAttempts}
+                      disabled={isResetting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isResetting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Resetando...
+                        </>
+                      ) : (
+                        'Sim, resetar tudo'
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </div>
