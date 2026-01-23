@@ -1053,6 +1053,115 @@ export type Database = {
           },
         ]
       }
+      event_checklist_items: {
+        Row: {
+          category: string | null
+          checklist_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          days_offset: number
+          due_date: string | null
+          id: string
+          observation: string | null
+          priority: string | null
+          responsible: string
+          status: string | null
+          task_description: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          checklist_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          days_offset?: number
+          due_date?: string | null
+          id?: string
+          observation?: string | null
+          priority?: string | null
+          responsible: string
+          status?: string | null
+          task_description: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          checklist_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          days_offset?: number
+          due_date?: string | null
+          id?: string
+          observation?: string | null
+          priority?: string | null
+          responsible?: string
+          status?: string | null
+          task_description?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "event_checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_checklists: {
+        Row: {
+          class_id: string | null
+          created_at: string
+          created_by: string | null
+          event_end_date: string | null
+          event_name: string
+          event_start_date: string
+          id: string
+          location: string | null
+          notes: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          class_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_end_date?: string | null
+          event_name: string
+          event_start_date: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_end_date?: string | null
+          event_name?: string
+          event_start_date?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_checklists_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_answers: {
         Row: {
           answered_at: string | null
