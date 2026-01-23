@@ -16,7 +16,6 @@ import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
 import ibramecLogo from '@/assets/ibramec-logo.png';
 import ibramecLogoDark from '@/assets/ibramec-logo-white.png';
-import ibramecIcon from '@/assets/ibramec-icon.png';
 
 interface AcademySidebarProps {
   children: React.ReactNode;
@@ -63,20 +62,12 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     <div className="flex flex-col h-full">
       {/* Header with IBRAMEC Logo */}
       <div className="p-4 border-b bg-gradient-to-r from-emerald-500/10 to-green-500/10">
-        <div className="flex items-center gap-3">
+        <div className="flex justify-center">
           <img 
-            src={ibramecIcon} 
-            alt="IBRAMEC" 
-            className="w-10 h-10 rounded-xl shadow-lg object-cover"
+            src={currentLogo} 
+            alt="IBRAMEC - Instituto Brasileiro de Medicina Capilar" 
+            className="h-8 object-contain"
           />
-          <div className="flex-1">
-            <img 
-              src={currentLogo} 
-              alt="IBRAMEC - Instituto Brasileiro de Medicina Capilar" 
-              className="h-6 object-contain"
-            />
-            <p className="text-xs text-muted-foreground mt-0.5">Portal do Aluno</p>
-          </div>
         </div>
       </div>
 
@@ -219,7 +210,7 @@ export function AcademySidebar({ children }: AcademySidebarProps) {
             size="icon"
             className="fixed top-4 left-4 z-40 lg:hidden border-emerald-500 bg-background"
           >
-            <img src={ibramecIcon} alt="Menu" className="h-6 w-6 rounded object-cover" />
+            <Menu className="h-5 w-5 text-emerald-600" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
