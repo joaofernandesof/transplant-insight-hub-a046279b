@@ -51,27 +51,27 @@ const satisfactionIcons = [
   <Frown key="frown" className="h-5 w-5 text-destructive" />,
   <Meh key="meh" className="h-5 w-5 text-orange-500" />,
   <MinusCircle key="minus" className="h-5 w-5 text-muted-foreground" />,
-  <Smile key="smile" className="h-5 w-5 text-emerald-500" />,
-  <Heart key="heart" className="h-5 w-5 text-emerald-600" />,
+  <Smile key="smile" className="h-5 w-5 text-primary" />,
+  <Heart key="heart" className="h-5 w-5 text-primary" />,
 ];
 
 const agreementIcons = [
   <XCircle key="x" className="h-5 w-5 text-destructive" />,
   <ThumbsDown key="down" className="h-5 w-5 text-orange-500" />,
   <MinusCircle key="minus" className="h-5 w-5 text-muted-foreground" />,
-  <ThumbsUp key="up" className="h-5 w-5 text-emerald-500" />,
-  <CheckCircle key="check" className="h-5 w-5 text-emerald-600" />,
+  <ThumbsUp key="up" className="h-5 w-5 text-primary" />,
+  <CheckCircle key="check" className="h-5 w-5 text-primary" />,
 ];
 
 const expectationIcons = [
   <XCircle key="x" className="h-5 w-5 text-destructive" />,
   <MinusCircle key="minus" className="h-5 w-5 text-amber-500" />,
-  <CheckCircle key="check" className="h-5 w-5 text-emerald-600" />,
+  <CheckCircle key="check" className="h-5 w-5 text-primary" />,
 ];
 
 const timeIcons = [
   <Timer key="timer" className="h-5 w-5 text-destructive" />,
-  <Clock key="clock" className="h-5 w-5 text-emerald-500" />,
+  <Clock key="clock" className="h-5 w-5 text-primary" />,
   <Hourglass key="hourglass" className="h-5 w-5 text-blue-500" />,
 ];
 
@@ -79,8 +79,8 @@ const qualityIcons = [
   <Frown key="frown" className="h-5 w-5 text-destructive" />,
   <Meh key="meh" className="h-5 w-5 text-orange-500" />,
   <MinusCircle key="minus" className="h-5 w-5 text-muted-foreground" />,
-  <Smile key="smile" className="h-5 w-5 text-emerald-500" />,
-  <Heart key="heart" className="h-5 w-5 text-emerald-600" />,
+  <Smile key="smile" className="h-5 w-5 text-primary" />,
+  <Heart key="heart" className="h-5 w-5 text-primary" />,
 ];
 
 // Monitor evaluation quality options
