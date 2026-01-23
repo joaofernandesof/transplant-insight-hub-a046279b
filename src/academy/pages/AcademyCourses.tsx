@@ -24,34 +24,7 @@ import { CourseViewer } from "@/components/CourseViewer";
 import { GlobalBreadcrumb } from "@/components/GlobalBreadcrumb";
 import { ConectaCapilarCard } from "../components/ConectaCapilarCard";
 import { PresentialCourseCard, PresentialCourse } from "../components/PresentialCourseCard";
-
-// Mock presential courses - in production would come from database
-const mockPresentialCourses: PresentialCourse[] = [
-  {
-    id: '1',
-    name: 'Formação 360°',
-    description: 'Formação completa em transplante capilar FUE e FUT',
-    duration: '60h',
-    type: 'formacao360',
-    startDate: '2026-01-20',
-    endDate: '2026-01-25',
-    city: 'São Paulo',
-    state: 'SP',
-    status: 'confirmed'
-  },
-  {
-    id: '2',
-    name: 'Fellowship Avançado',
-    description: 'Aprofundamento em técnicas avançadas de transplante capilar',
-    duration: '180h',
-    type: 'fellowship',
-    startDate: null,
-    endDate: null,
-    city: 'Fortaleza',
-    state: 'CE',
-    status: 'pending'
-  }
-];
+import { useAcademyEnrollments } from "../hooks/useAcademyEnrollments";
 
 export function AcademyCourses() {
   const navigate = useNavigate();
@@ -69,6 +42,7 @@ export function AcademyCourses() {
     startLesson,
   } = useUniversity();
 
+  const { presentialCourses, isLoading: isLoadingPresential } = useAcademyEnrollments();
   const [activeTab, setActiveTab] = useState('presencial');
 
   // Calculate overall stats
@@ -162,7 +136,7 @@ export function AcademyCourses() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
-                  {mockPresentialCourses.length + (enrolledCourses.length > 0 ? 1 : 0)}
+                  {presentialCourses.length + (enrolledCourses.length > 0 ? 1 : 0)}
                 </div>
                 <p className="text-sm text-emerald-600 dark:text-emerald-500">Cursos Matriculados</p>
               </div>
@@ -172,7 +146,7 @@ export function AcademyCourses() {
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
-                  {mockPresentialCourses.filter(c => c.status === 'confirmed').length}
+                  {presentialCourses.filter(c => c.status === 'confirmed').length}
                 </div>
                 <p className="text-sm text-emerald-600 dark:text-emerald-500">Turmas Confirmadas</p>
               </div>
@@ -197,19 +171,24 @@ export function AcademyCourses() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Presential Courses Tab */}
           <TabsContent value="presencial" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockPresentialCourses.map((course) => (
-                <PresentialCourseCard
-                  key={course.id}
-                  course={course}
-                  onViewDetails={handleViewPresentialDetails}
-                />
-              ))}
-            </div>
-
-            {mockPresentialCourses.length === 0 && (
+            {isLoadingPresential ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2].map(i => (
+                  <Skeleton key={i} className="h-64 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : presentialCourses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {presentialCourses.map((course) => (
+                  <PresentialCourseCard
+                    key={course.id}
+                    course={course as PresentialCourse}
+                    onViewDetails={handleViewPresentialDetails}
+                  />
+                ))}
+              </div>
+            ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <GraduationCap className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p className="text-lg font-medium">Nenhum curso presencial matriculado</p>
