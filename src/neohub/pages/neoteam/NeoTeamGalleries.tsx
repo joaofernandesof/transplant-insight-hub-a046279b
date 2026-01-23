@@ -494,8 +494,11 @@ function GalleryEditDialog({
                     onChange={handleFileSelect}
                   />
                   <Camera className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground mb-1">
                     Arraste fotos aqui ou clique para selecionar
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Suporta upload de até 300 fotos por vez
                   </p>
                   <Button
                     onClick={() => fileInputRef.current?.click()}
@@ -504,7 +507,7 @@ function GalleryEditDialog({
                     {isUploading ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Enviando...
+                        Enviando fotos...
                       </>
                     ) : (
                       <>
