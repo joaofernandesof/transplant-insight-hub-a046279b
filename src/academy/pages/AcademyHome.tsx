@@ -44,12 +44,8 @@ export function AcademyHome() {
   // Get last accessed course
   const lastCourse = inProgressCourses[0];
 
-  // Upcoming events mock
-  const upcomingEvents = [
-    { id: 1, title: 'Aula ao Vivo: Técnicas Avançadas', date: '28 Jan 2026', time: '19:00', type: 'live' },
-    { id: 2, title: 'Mentoria em Grupo', date: '30 Jan 2026', time: '10:00', type: 'mentorship' },
-    { id: 3, title: 'Prazo: Prova Módulo 2', date: '02 Fev 2026', time: '23:59', type: 'exam' },
-  ];
+  // Upcoming events - only real events from database, no mocks
+  const upcomingEvents: { id: number; title: string; date: string; time: string; type: string }[] = [];
 
   return (
     <div className="min-h-screen bg-background w-full max-w-full overflow-x-hidden">
@@ -201,33 +197,41 @@ export function AcademyHome() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 p-3 pt-0">
-              {upcomingEvents.map((event) => (
-                <div 
-                  key={event.id} 
-                  className="flex items-center gap-2 p-2 rounded-lg border hover:bg-muted/50 transition-colors"
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    event.type === 'live' ? 'bg-red-100 dark:bg-red-950' : 
-                    event.type === 'mentorship' ? 'bg-blue-100 dark:bg-blue-950' : 
-                    'bg-amber-100 dark:bg-amber-950'
-                  }`}>
-                    {event.type === 'live' ? (
-                      <Play className="h-3.5 w-3.5 text-red-600" />
-                    ) : event.type === 'mentorship' ? (
-                      <Clock className="h-3.5 w-3.5 text-blue-600" />
-                    ) : (
-                      <FileText className="h-3.5 w-3.5 text-amber-600" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-xs truncate">{event.title}</p>
-                    <p className="text-[10px] text-muted-foreground">{event.date} às {event.time}</p>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] flex-shrink-0">
-                    {event.type === 'live' ? 'Ao Vivo' : event.type === 'mentorship' ? 'Mentoria' : 'Prova'}
-                  </Badge>
+              {upcomingEvents.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                  <Calendar className="h-10 w-10 text-muted-foreground/30 mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhum evento agendado</p>
+                  <p className="text-xs text-muted-foreground/70">Os próximos eventos aparecerão aqui</p>
                 </div>
-              ))}
+              ) : (
+                upcomingEvents.map((event) => (
+                  <div 
+                    key={event.id} 
+                    className="flex items-center gap-2 p-2 rounded-lg border hover:bg-muted/50 transition-colors"
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      event.type === 'live' ? 'bg-red-100 dark:bg-red-950' : 
+                      event.type === 'mentorship' ? 'bg-blue-100 dark:bg-blue-950' : 
+                      'bg-amber-100 dark:bg-amber-950'
+                    }`}>
+                      {event.type === 'live' ? (
+                        <Play className="h-3.5 w-3.5 text-red-600" />
+                      ) : event.type === 'mentorship' ? (
+                        <Clock className="h-3.5 w-3.5 text-blue-600" />
+                      ) : (
+                        <FileText className="h-3.5 w-3.5 text-amber-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-xs truncate">{event.title}</p>
+                      <p className="text-[10px] text-muted-foreground">{event.date} às {event.time}</p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] flex-shrink-0">
+                      {event.type === 'live' ? 'Ao Vivo' : event.type === 'mentorship' ? 'Mentoria' : 'Prova'}
+                    </Badge>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </div>
