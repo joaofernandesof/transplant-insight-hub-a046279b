@@ -43,7 +43,7 @@ export interface Day1SurveyData {
   q21_liked_most_today: string | null;
   q22_suggestions: string | null;
   
-  // Q23-28
+  // Q23-28 (some removed but keeping field names for compatibility)
   q23_start_preference: string | null;
   q24_hunger_level: string | null;
   q25_urgency_level: string | null;
@@ -51,7 +51,7 @@ export interface Day1SurveyData {
   q27_weekly_time: string | null;
   q28_current_reality: string | null;
   
-  // Q29-37
+  // Q29-37 - Monitor 1: Dra Gleyldes
   q29_monitor_name: string | null;
   q30_monitor_technical: string | null;
   q31_monitor_interest: string | null;
@@ -61,6 +61,26 @@ export interface Day1SurveyData {
   q35_monitor_contribution: string | null;
   q36_monitor_strength: string | null;
   q37_monitor_improve: string | null;
+  
+  // Q38-45 - Monitor 2: Dr Elenilton
+  q38_eder_technical: string | null;
+  q39_eder_interest: string | null;
+  q40_eder_engagement: string | null;
+  q41_eder_posture: string | null;
+  q42_eder_communication: string | null;
+  q43_eder_contribution: string | null;
+  q44_eder_strength: string | null;
+  q45_eder_improve: string | null;
+  
+  // Q46-53 - Monitor 3: Dr Patrick as monitor
+  q46_patrick_m_technical: string | null;
+  q47_patrick_m_interest: string | null;
+  q48_patrick_m_engagement: string | null;
+  q49_patrick_m_posture: string | null;
+  q50_patrick_m_communication: string | null;
+  q51_patrick_m_contribution: string | null;
+  q52_patrick_m_strength: string | null;
+  q53_patrick_m_improve: string | null;
 }
 
 export type Day1SurveyFormData = Omit<Day1SurveyData, 'id' | 'user_id' | 'created_at' | 'completed_at'>;
