@@ -158,7 +158,10 @@ export function AcademyExams() {
               const examAttempts = getExamAttempts(exam.id);
               const bestScore = getBestScore(exam.id);
               const lastAttempt = examAttempts[0];
-              const canRetake = !exam.max_attempts || examAttempts.length < exam.max_attempts;
+              const passingScore = exam.passing_score || 70;
+              const hasPassed = bestScore !== null && bestScore >= passingScore;
+              // Student UX: allow retry until passing (don't hide due to max_attempts)
+              const canRetake = !hasPassed;
 
               return (
                 <Card key={exam.id} className="hover:shadow-md transition-all">
@@ -213,7 +216,7 @@ export function AcademyExams() {
                           )}
                           <span className="flex items-center gap-1">
                             <Target className="h-3 w-3" />
-                            Mínimo: {exam.passing_score || 70}%
+                            Mínimo: {passingScore}%
                           </span>
                         </div>
                       </div>
