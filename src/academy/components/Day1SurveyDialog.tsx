@@ -7,6 +7,19 @@ import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Frown, Meh, Smile, Th
 import { useDay1Survey, Day1SurveyFormData } from '../hooks/useDay1Survey';
 import { cn } from '@/lib/utils';
 
+// Import instructor photos
+import drPatrickPhoto from '@/assets/instructors/dr-patrick.png';
+import drHygorPhoto from '@/assets/instructors/dr-hygor.png';
+import draGleydesPhoto from '@/assets/instructors/dra-gleyldes.png';
+import drEderPhoto from '@/assets/instructors/dr-eder.png';
+
+// Instructor data
+const INSTRUCTORS: Record<string, { name: string; role: string; photo: string }> = {
+  'Aula Dr. Hygor Guerreiro': { name: 'Dr. Hygor Guerreiro', role: 'Professor', photo: drHygorPhoto },
+  'Aula Dr. Patrick Penaforte': { name: 'Dr. Patrick Penaforte', role: 'Professor e Monitor', photo: drPatrickPhoto },
+  'Avaliação Monitor': { name: '', role: 'Monitor', photo: '' },
+};
+
 interface Day1SurveyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -602,7 +615,6 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
               <span>{Math.round(progress)}% concluído</span>
             </div>
             <Progress value={progress} className="h-2" />
-            <p className="text-xs text-muted-foreground">{currentQ?.category}</p>
           </div>
         </DialogHeader>
         
@@ -612,6 +624,23 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           </div>
         ) : currentQ && (
           <div className="space-y-6 py-4">
+            {/* Show instructor info for relevant categories */}
+            {currentQ.category && INSTRUCTORS[currentQ.category] && (
+              <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                {INSTRUCTORS[currentQ.category].photo && (
+                  <img 
+                    src={INSTRUCTORS[currentQ.category].photo} 
+                    alt={INSTRUCTORS[currentQ.category].name}
+                    className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20"
+                  />
+                )}
+                <div>
+                  <p className="text-lg font-bold text-foreground">{INSTRUCTORS[currentQ.category].name}</p>
+                  <p className="text-sm text-muted-foreground">{INSTRUCTORS[currentQ.category].role}</p>
+                </div>
+              </div>
+            )}
+            
             <p className="text-lg font-medium">{currentQ.text}</p>
             
             {/* Radio/Boolean options with icons */}
