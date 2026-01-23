@@ -17,6 +17,7 @@ import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
 
 export interface PresentialCourse {
   id: string;
+  classId?: string; // ID da turma para navegação
   name: string;
   description: string;
   duration: string;
