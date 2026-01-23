@@ -38,7 +38,9 @@ import { toast } from "sonner";
 import { ScheduleTimeline } from "../components/ScheduleTimeline";
 import { CourseGalleryViewer } from "../components/CourseGalleryViewer";
 import { SatisfactionSurveyDialog } from "../components/SatisfactionSurveyDialog";
+import { Day1SurveyDialog } from "../components/Day1SurveyDialog";
 import { useSatisfactionSurvey } from "../hooks/useSatisfactionSurvey";
+import { useDay1Survey } from "../hooks/useDay1Survey";
 
 export function AcademyClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -51,7 +53,9 @@ export function AcademyClassDetail() {
   
   // Satisfaction survey state
   const { hasCompleted: hasSurveyCompleted, refetch: refetchSurvey } = useSatisfactionSurvey(classId);
+  const { hasCompleted: hasDay1Completed, refetch: refetchDay1 } = useDay1Survey(classId);
   const [surveyDialogOpen, setSurveyDialogOpen] = useState(false);
+  const [day1SurveyDialogOpen, setDay1SurveyDialogOpen] = useState(false);
   const [surveyTriggeredByPhotos, setSurveyTriggeredByPhotos] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
 
@@ -251,11 +255,45 @@ export function AcademyClassDetail() {
           
           {/* Survey Tab */}
           <TabsContent value="survey" className="space-y-4">
+            {/* Day 1 Survey Card */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ClipboardList className="h-5 w-5 text-primary" />
-                  Pesquisa de Satisfação
+                  Pesquisa de Satisfação - Dia 1
+                </CardTitle>
+                <CardDescription>
+                  Avaliação do primeiro dia de curso, aulas e monitores
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {hasDay1Completed ? (
+                  <div className="text-center py-4">
+                    <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
+                    <p className="font-medium">Pesquisa do Dia 1 já respondida</p>
+                    <p className="text-sm text-muted-foreground">Obrigado pelo feedback!</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="font-medium mb-2">Avalie o primeiro dia do curso</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      37 perguntas sobre as aulas, professores, monitores e infraestrutura.
+                    </p>
+                    <Button onClick={() => setDay1SurveyDialogOpen(true)}>
+                      Responder Pesquisa do Dia 1
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* General Survey Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-primary" />
+                  Pesquisa de Satisfação Geral
                 </CardTitle>
                 <CardDescription>
                   Sua opinião é muito importante para continuarmos evoluindo a formação
@@ -263,15 +301,15 @@ export function AcademyClassDetail() {
               </CardHeader>
               <CardContent>
                 {hasSurveyCompleted ? (
-                  <div className="text-center py-6">
-                    <CheckCircle2 className="h-12 w-12 text-primary mx-auto mb-4" />
-                    <p className="text-lg font-medium">Pesquisa já respondida</p>
+                  <div className="text-center py-4">
+                    <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
+                    <p className="font-medium">Pesquisa já respondida</p>
                     <p className="text-sm text-muted-foreground">Obrigado pela sua contribuição!</p>
                   </div>
                 ) : (
-                  <div className="text-center py-6">
-                    <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg font-medium mb-2">Responda nossa pesquisa</p>
+                  <div className="text-center py-4">
+                    <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="font-medium mb-2">Responda nossa pesquisa</p>
                     <p className="text-sm text-muted-foreground mb-4">
                       Leva menos de 8 minutos e nos ajuda a evoluir ainda mais a formação.
                     </p>
@@ -279,7 +317,7 @@ export function AcademyClassDetail() {
                       setSurveyTriggeredByPhotos(false);
                       setSurveyDialogOpen(true);
                     }}>
-                      Iniciar Pesquisa
+                      Iniciar Pesquisa Geral
                     </Button>
                   </div>
                 )}
@@ -594,6 +632,14 @@ export function AcademyClassDetail() {
             </TabsContent>
           )}
         </Tabs>
+        
+        {/* Day 1 Survey Dialog */}
+        <Day1SurveyDialog
+          open={day1SurveyDialogOpen}
+          onOpenChange={setDay1SurveyDialogOpen}
+          classId={classId || ''}
+          onComplete={() => refetchDay1()}
+        />
         
         {/* Satisfaction Survey Dialog */}
         <SatisfactionSurveyDialog
