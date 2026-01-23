@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useUniversity } from "@/hooks/useUniversity";
-import { GlobalBreadcrumb } from "@/components/GlobalBreadcrumb";
+
 import { 
   Award, 
   Download, 
@@ -116,21 +116,15 @@ export function AcademyCertificates() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-        <div className="px-4 py-4">
-          <div className="pl-12 lg:pl-0">
-            <GlobalBreadcrumb />
-            <h1 className="text-xl font-bold flex items-center gap-2 mt-2">
-              <Award className="h-5 w-5 text-amber-600" />
-              Meus Certificados
-            </h1>
-            <p className="text-sm text-muted-foreground">Acompanhe seu progresso e baixe seus certificados</p>
-          </div>
+      <main className="px-4 pt-16 lg:pt-6 pb-6 overflow-x-hidden w-full">
+        {/* Page Title */}
+        <div className="mb-6">
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Award className="h-5 w-5 text-amber-600" />
+            Meus Certificados
+          </h1>
+          <p className="text-sm text-muted-foreground">Acompanhe seu progresso e baixe seus certificados</p>
         </div>
-      </header>
-
-      <main className="px-4 py-6 overflow-x-hidden w-full">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 dark:from-green-950/50 dark:to-emerald-950/50 dark:border-green-800">
