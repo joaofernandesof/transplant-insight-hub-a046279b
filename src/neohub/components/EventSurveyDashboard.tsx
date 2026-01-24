@@ -1246,6 +1246,17 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     { name: 'Coffee Break', value: analytics.infrastructure.coffeeBreak },
   ];
 
+  // Calculate overall infrastructure average
+  const infrastructureAvg = infrastructureData.length > 0
+    ? infrastructureData.reduce((sum, d) => sum + (d.value || 0), 0) / infrastructureData.length
+    : 0;
+
+  // Radar chart format for infrastructure
+  const infrastructureRadarData = infrastructureData.map(d => ({
+    metric: d.name,
+    value: d.value || 0,
+  }));
+
   const instructorRadarData = [
     {
       metric: 'Expectativas',
@@ -2098,32 +2109,78 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         </div>
 
         {/* Infrastructure & Instructors */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Infrastructure Radar */}
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center justify-between">
-                Infraestrutura (Médias)
-                <Badge variant="outline" className="text-[10px] font-normal">Clique para detalhar</Badge>
+        <div className="grid grid-cols-1 gap-4">
+          {/* Infrastructure Radar Chart */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Avaliação do Evento
               </CardTitle>
+              <CardDescription>Métricas de infraestrutura e organização em 8 dimensões</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={infrastructureData} layout="vertical" margin={{ left: 10, right: 30 }}>
-                  <XAxis type="number" domain={[0, 5]} hide />
-                  <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={(value: number) => value.toFixed(1)} />
-                  <Bar 
-                    dataKey="value" 
-                    fill="hsl(var(--primary))" 
-                    radius={[0, 4, 4, 0]}
-                    onClick={(data) => handleInfrastructureBarClick(data)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <LabelList dataKey="value" position="right" formatter={(v: number) => v.toFixed(1)} className="text-xs" />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="flex flex-col lg:flex-row items-center gap-8">
+                <ResponsiveContainer width="100%" height={400}>
+                  <RadarChart data={infrastructureRadarData} outerRadius="75%">
+                    <PolarGrid strokeDasharray="3 3" />
+                    <PolarAngleAxis 
+                      dataKey="metric" 
+                      tick={{ fontSize: 12, fontWeight: 500 }} 
+                    />
+                    <PolarRadiusAxis 
+                      domain={[0, 5]} 
+                      tick={{ fontSize: 10 }} 
+                      tickCount={6}
+                      axisLine={false}
+                    />
+                    <Radar 
+                      name="Avaliação" 
+                      dataKey="value" 
+                      stroke="hsl(var(--primary))" 
+                      fill="hsl(var(--primary))" 
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                    />
+                    <Legend 
+                      wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
+                      iconSize={14}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => value.toFixed(2)}
+                      contentStyle={{ borderRadius: 8 }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+                <div className="flex flex-col gap-3 min-w-[220px]">
+                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Target className="h-4 w-4 text-primary" />
+                      <span className="font-semibold text-primary">Média Geral</span>
+                    </div>
+                    <div className="text-3xl font-bold text-primary">
+                      {infrastructureAvg.toFixed(1)}/5
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Todas as dimensões</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {infrastructureRadarData.slice(0, 4).map((d, i) => (
+                      <div key={i} className="p-2 rounded-lg bg-muted/50 text-center">
+                        <div className="text-lg font-bold">{d.value.toFixed(1)}</div>
+                        <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {infrastructureRadarData.slice(4).map((d, i) => (
+                      <div key={i} className="p-2 rounded-lg bg-muted/50 text-center">
+                        <div className="text-lg font-bold">{d.value.toFixed(1)}</div>
+                        <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
