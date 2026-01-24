@@ -269,7 +269,7 @@ function getGroupBadgeColors(groupName: string): { bg: string; border: string; t
     return { bg: 'bg-green-100', border: 'border-green-300', text: 'text-green-700' };
   }
   if (lower.includes('preto')) {
-    return { bg: 'bg-gray-200 dark:bg-gray-700', border: 'border-gray-400 dark:border-gray-500', text: 'text-gray-700 dark:text-gray-200' };
+    return { bg: 'bg-gray-700 dark:bg-gray-800', border: 'border-gray-600 dark:border-gray-600', text: 'text-white' };
   }
   if (lower.includes('azul')) {
     return { bg: 'bg-blue-100', border: 'border-blue-300', text: 'text-blue-700' };
