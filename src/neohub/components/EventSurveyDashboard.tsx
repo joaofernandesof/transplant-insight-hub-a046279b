@@ -333,12 +333,20 @@ async function exportOverviewPDF(analytics: NonNullable<SurveyAnalyticsData>) {
 async function exportRankingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   const sortedRankings = [...analytics.questionRankings].sort((a, b) => b.avgRating - a.avgRating);
   
+  // Gradient color function for PDF (0-5 scale)
   const getRatingColorFn = (value: number): string => {
-    if (value >= 4.5) return '#10b981';
-    if (value >= 3.5) return '#3b82f6';
-    if (value >= 2.5) return '#f59e0b';
-    if (value >= 1.5) return '#f97316';
-    return '#ef4444';
+    // Convert 0-5 scale to 0-100 percentage
+    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+    // HSL: 0° = Red, 60° = Yellow, 120° = Green
+    const hue = (percent / 100) * 120;
+    return `hsl(${hue}, 70%, 45%)`;
+  };
+  
+  // Background color gradient
+  const getRatingBgFn = (value: number): string => {
+    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+    const hue = (percent / 100) * 120;
+    return `hsl(${hue}, 70%, 92%)`;
   };
 
   const html = `
@@ -376,12 +384,18 @@ async function exportRankingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
 
 // QUESTIONS PDF
 async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
+  // Gradient color function for PDF (0-5 scale)
   const getRatingColorFn = (value: number): string => {
-    if (value >= 4.5) return '#10b981';
-    if (value >= 3.5) return '#3b82f6';
-    if (value >= 2.5) return '#f59e0b';
-    if (value >= 1.5) return '#f97316';
-    return '#ef4444';
+    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+    const hue = (percent / 100) * 120;
+    return `hsl(${hue}, 70%, 45%)`;
+  };
+  
+  // Background color gradient
+  const getRatingBgFn = (value: number): string => {
+    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+    const hue = (percent / 100) * 120;
+    return `hsl(${hue}, 70%, 92%)`;
   };
   
   const categories = [...new Set(analytics.allQuestions.map(q => q.category))];
@@ -417,7 +431,7 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
                   <div style="background: ${idx % 2 === 0 ? '#f9fafb' : 'white'}; padding: 16px; border-radius: 8px; margin-bottom: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                       <p style="margin: 0; font-size: 13px; font-weight: 500; color: #1f2937; flex: 1;">${q.questionLabel}</p>
-                      <div style="background: ${q.avgRating >= 4.5 ? '#ecfdf5' : q.avgRating >= 3.5 ? '#eff6ff' : q.avgRating >= 2.5 ? '#fef9c3' : '#fee2e2'}; padding: 6px 12px; border-radius: 8px; margin-left: 12px;">
+                      <div style="background: ${getRatingBgFn(q.avgRating)}; padding: 6px 12px; border-radius: 8px; margin-left: 12px;">
                         <span style="font-size: 18px; font-weight: bold; color: ${getRatingColorFn(q.avgRating)};">${q.avgRating.toFixed(1)}</span>
                       </div>
                     </div>
@@ -597,19 +611,69 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
   await createPDFFromHTML(html, `alunos-pesquisa-${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
+/**
+ * Universal gradient color function
+ * Creates smooth red→yellow→green gradient based on percentage (0-100%)
+ * HSL: Red (0°) → Yellow (60°) → Green (120°)
+ */
+const getGradientHSL = (value: number, min: number = 0, max: number = 10): { h: number; s: number; l: number } => {
+  // Normalize to percentage 0-100
+  const percent = max === min ? 50 : Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+  
+  // HSL: 0° = Red, 60° = Yellow, 120° = Green
+  // Map 0% → 0° (red), 50% → 60° (yellow), 100% → 120° (green)
+  const hue = (percent / 100) * 120;
+  const saturation = 70; // Consistent saturation
+  const lightness = 45; // Consistent lightness for text readability
+  
+  return { h: hue, s: saturation, l: lightness };
+};
+
+/**
+ * Returns inline CSS color string for gradient coloring
+ */
+const getGradientColorStyle = (value: number, min: number = 0, max: number = 10): string => {
+  const { h, s, l } = getGradientHSL(value, min, max);
+  return `hsl(${h}, ${s}%, ${l}%)`;
+};
+
+/**
+ * Returns inline CSS background color string (lighter version)
+ */
+const getGradientBgStyle = (value: number, min: number = 0, max: number = 10): string => {
+  const { h, s } = getGradientHSL(value, min, max);
+  return `hsl(${h}, ${s}%, 92%)`; // Very light for backgrounds
+};
+
+/**
+ * Returns both background and text colors for styled elements
+ */
+const getGradientStyles = (value: number, min: number = 0, max: number = 10): { bg: string; text: string; border: string } => {
+  const { h, s } = getGradientHSL(value, min, max);
+  return {
+    bg: `hsl(${h}, ${s}%, 92%)`,
+    text: `hsl(${h}, ${s}%, 35%)`,
+    border: `hsl(${h}, ${s}%, 80%)`,
+  };
+};
+
+// Legacy functions that use the new gradient system
 const getRatingColor = (value: number): string => {
-  if (value >= 4.5) return 'text-emerald-600';
-  if (value >= 3.5) return 'text-blue-600';
-  if (value >= 2.5) return 'text-yellow-600';
-  if (value >= 1.5) return 'text-orange-600';
+  // For 0-5 scale, convert to gradient
+  const percent = (value / 5) * 100;
+  if (percent >= 90) return 'text-emerald-600';
+  if (percent >= 70) return 'text-lime-600';
+  if (percent >= 50) return 'text-yellow-600';
+  if (percent >= 30) return 'text-orange-600';
   return 'text-red-600';
 };
 
 const getRatingBgColor = (value: number): string => {
-  if (value >= 4.5) return 'bg-emerald-100 border-emerald-200';
-  if (value >= 3.5) return 'bg-blue-100 border-blue-200';
-  if (value >= 2.5) return 'bg-yellow-100 border-yellow-200';
-  if (value >= 1.5) return 'bg-orange-100 border-orange-200';
+  const percent = (value / 5) * 100;
+  if (percent >= 90) return 'bg-emerald-100 border-emerald-200';
+  if (percent >= 70) return 'bg-lime-100 border-lime-200';
+  if (percent >= 50) return 'bg-yellow-100 border-yellow-200';
+  if (percent >= 30) return 'bg-orange-100 border-orange-200';
   return 'bg-red-100 border-red-200';
 };
 
@@ -715,7 +779,10 @@ function QuestionDetailView({
               <CardTitle className="text-lg leading-tight">{question.questionLabel}</CardTitle>
             </div>
             <div className="text-right">
-              <div className={`text-4xl font-bold ${getRatingColor(question.avgRating)}`}>
+              <div 
+                className="text-4xl font-bold"
+                style={{ color: getGradientColorStyle(question.avgRating, 0, 5) }}
+              >
                 {question.avgRating.toFixed(1)}
               </div>
               <span className="text-xs text-muted-foreground">média</span>
@@ -883,10 +950,18 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className={`${classConfig.bg} ${classConfig.text}`}>
+            <Badge 
+              style={{ 
+                backgroundColor: getGradientBgStyle(student.overallScore, 0, 10),
+                color: getGradientColorStyle(student.overallScore, 0, 10)
+              }}
+            >
               {classConfig.label}
             </Badge>
-            <span className="text-sm font-semibold text-muted-foreground">
+            <span 
+              className="text-sm font-semibold"
+              style={{ color: getGradientColorStyle(student.overallScore, 0, 10) }}
+            >
               {student.overallScore.toFixed(1)}
             </span>
           </div>
@@ -901,7 +976,10 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
                 {responses.map((r, idx) => (
                   <div key={idx} className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-sm">
                     <span className="text-muted-foreground">{r.questionLabel}</span>
-                    <span className={`font-medium ${r.numericValue ? getRatingColor(r.numericValue) : ''}`}>
+                    <span 
+                      className="font-medium"
+                      style={r.numericValue ? { color: getGradientColorStyle(r.numericValue, 0, 10) } : undefined}
+                    >
                       {r.value || <span className="text-muted-foreground/50">—</span>}
                     </span>
                   </div>
@@ -1288,22 +1366,19 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   Visualize todas as notas por aluno e pergunta em formato de matriz
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-4 text-xs">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded bg-emerald-500" />
-                  <span>Ótimo (9-10)</span>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Legenda:</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: 'hsl(0, 70%, 50%)' }} />
+                  <span className="text-[10px]">0%</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded bg-blue-500" />
-                  <span>Bom (7-8)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded bg-amber-400" />
-                  <span>Médio (5-6)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded bg-red-500" />
-                  <span>Ruim (0-4)</span>
+                <div 
+                  className="w-24 h-3 rounded" 
+                  style={{ background: 'linear-gradient(to right, hsl(0, 70%, 50%), hsl(60, 70%, 50%), hsl(120, 70%, 50%))' }} 
+                />
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: 'hsl(120, 70%, 50%)' }} />
+                  <span className="text-[10px]">100%</span>
                 </div>
               </div>
             </div>
@@ -1362,25 +1437,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             const score = response?.numericValue;
                             rowValues.push(score);
                             
-                            // Color based on 0-10 score
-                            let bgColor = 'bg-muted/30';
-                            let textColor = 'text-muted-foreground';
-                            
-                            if (score !== null && score !== undefined) {
-                              if (score >= 9) {
-                                bgColor = 'bg-emerald-500';
-                                textColor = 'text-white';
-                              } else if (score >= 7) {
-                                bgColor = 'bg-blue-500';
-                                textColor = 'text-white';
-                              } else if (score >= 5) {
-                                bgColor = 'bg-amber-400';
-                                textColor = 'text-amber-900';
-                              } else {
-                                bgColor = 'bg-red-500';
-                                textColor = 'text-white';
-                              }
-                            }
+                            // Use gradient color based on 0-10 scale
+                            const hasScore = score !== null && score !== undefined;
+                            const bgStyle = hasScore ? getGradientColorStyle(score, 0, 10) : undefined;
                             
                             return (
                               <td 
@@ -1388,10 +1447,14 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                                 className="p-1 border-b text-center"
                               >
                                 <div 
-                                  className={`w-full h-8 rounded flex items-center justify-center font-bold ${bgColor} ${textColor} transition-all hover:scale-110 hover:shadow-lg cursor-default`}
+                                  className="w-full h-8 rounded flex items-center justify-center font-bold text-white transition-all hover:scale-110 hover:shadow-lg cursor-default"
+                                  style={{ 
+                                    backgroundColor: hasScore ? bgStyle : 'hsl(var(--muted))',
+                                    color: hasScore ? 'white' : 'hsl(var(--muted-foreground))'
+                                  }}
                                   title={`${student.userName}: ${response?.value || 'Sem resposta'}`}
                                 >
-                                  {score !== null && score !== undefined ? score.toFixed(0) : '—'}
+                                  {hasScore ? score.toFixed(0) : '—'}
                                 </div>
                               </td>
                             );
@@ -1402,9 +1465,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                               const validScores = rowValues.filter((v): v is number => v !== null);
                               if (validScores.length === 0) return '—';
                               const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
-                              const avgColor = avg >= 9 ? 'text-emerald-600' : avg >= 7 ? 'text-blue-600' : avg >= 5 ? 'text-amber-600' : 'text-red-600';
                               return (
-                                <span className={`font-bold ${avgColor}`}>
+                                <span 
+                                  className="font-bold"
+                                  style={{ color: getGradientColorStyle(avg, 0, 10) }}
+                                >
                                   {avg.toFixed(1)}
                                 </span>
                               );
@@ -1424,11 +1489,20 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                         
                         return (
                           <td key={student.userId} className="p-1 border-t text-center">
-                            <div className={`flex flex-col items-center gap-0.5`}>
-                              <span className={`font-bold text-sm ${config.text}`}>
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span 
+                                className="font-bold text-sm"
+                                style={{ color: getGradientColorStyle(score, 0, 10) }}
+                              >
                                 {score.toFixed(1)}
                               </span>
-                              <Badge className={`text-[8px] ${config.bg} ${config.text} px-1 py-0`}>
+                              <Badge 
+                                className="text-[8px] px-1 py-0"
+                                style={{ 
+                                  backgroundColor: getGradientBgStyle(score, 0, 10),
+                                  color: getGradientColorStyle(score, 0, 10)
+                                }}
+                              >
                                 {config.shortLabel}
                               </Badge>
                             </div>
@@ -1436,7 +1510,10 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                         );
                       })}
                       <td className="p-1 border-t text-center bg-muted/50">
-                        <span className="font-bold text-primary">
+                        <span 
+                          className="font-bold"
+                          style={{ color: getGradientColorStyle(overallAvgScore, 0, 10) }}
+                        >
                           {overallAvgScore.toFixed(1)}
                         </span>
                       </td>
@@ -2604,13 +2681,18 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </CardHeader>
           <CardContent>
             {(() => {
+              // Define ranges with percentage values for gradient calculation
               const ranges = [
-                { label: '5.0', min: 5.0, max: 5.0, color: 'bg-emerald-500', textColor: 'text-emerald-600' },
-                { label: '4.5-4.9', min: 4.5, max: 4.9, color: 'bg-emerald-400', textColor: 'text-emerald-500' },
-                { label: '4.0-4.4', min: 4.0, max: 4.4, color: 'bg-lime-400', textColor: 'text-lime-600' },
-                { label: '3.5-3.9', min: 3.5, max: 3.9, color: 'bg-amber-400', textColor: 'text-amber-600' },
-                { label: '3.0-3.4', min: 3.0, max: 3.4, color: 'bg-orange-400', textColor: 'text-orange-600' },
-                { label: '< 3.0', min: 0, max: 2.9, color: 'bg-red-400', textColor: 'text-red-600' },
+                { label: '5.0', min: 5.0, max: 5.0, pct: 100 },
+                { label: '4.5-4.9', min: 4.5, max: 4.9, pct: 90 },
+                { label: '4.0-4.4', min: 4.0, max: 4.4, pct: 80 },
+                { label: '3.5-3.9', min: 3.5, max: 3.9, pct: 70 },
+                { label: '3.0-3.4', min: 3.0, max: 3.4, pct: 60 },
+                { label: '2.5-2.9', min: 2.5, max: 2.9, pct: 50 },
+                { label: '2.0-2.4', min: 2.0, max: 2.4, pct: 40 },
+                { label: '1.5-1.9', min: 1.5, max: 1.9, pct: 30 },
+                { label: '1.0-1.4', min: 1.0, max: 1.4, pct: 20 },
+                { label: '< 1.0', min: 0, max: 0.9, pct: 10 },
               ];
               
               const distribution = ranges.map(range => ({
@@ -2618,33 +2700,49 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 count: analytics.questionRankings.filter(q => 
                   q.avgRating >= range.min && q.avgRating <= range.max
                 ).length
-              }));
+              })).filter(d => d.count > 0 || ['5.0', '4.0-4.4', '3.0-3.4', '< 1.0'].includes(d.label));
               
               const maxCount = Math.max(...distribution.map(d => d.count), 1);
               
               return (
                 <div className="space-y-3">
-                  {distribution.map((range) => (
-                    <div key={range.label} className="flex items-center gap-3">
-                      <span className={`w-20 text-sm font-medium ${range.textColor}`}>{range.label}</span>
-                      <div className="flex-1 h-8 bg-muted/50 rounded-lg overflow-hidden relative">
-                        <div 
-                          className={`h-full ${range.color} transition-all duration-500 flex items-center justify-end pr-2`}
-                          style={{ width: `${(range.count / maxCount) * 100}%`, minWidth: range.count > 0 ? '2rem' : '0' }}
+                  {distribution.map((range) => {
+                    const barColor = getGradientColorStyle(range.pct, 0, 100);
+                    const textColor = getGradientColorStyle(range.pct, 0, 100);
+                    
+                    return (
+                      <div key={range.label} className="flex items-center gap-3">
+                        <span 
+                          className="w-20 text-sm font-medium"
+                          style={{ color: textColor }}
                         >
-                          {range.count > 0 && (
-                            <span className="text-sm font-bold text-white">{range.count}</span>
+                          {range.label}
+                        </span>
+                        <div className="flex-1 h-8 bg-muted/50 rounded-lg overflow-hidden relative">
+                          <div 
+                            className="h-full transition-all duration-500 flex items-center justify-end pr-2"
+                            style={{ 
+                              width: `${(range.count / maxCount) * 100}%`, 
+                              minWidth: range.count > 0 ? '2rem' : '0',
+                              backgroundColor: barColor
+                            }}
+                          >
+                            {range.count > 0 && (
+                              <span className="text-sm font-bold text-white">{range.count}</span>
+                            )}
+                          </div>
+                          {range.count === 0 && (
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">0</span>
                           )}
                         </div>
-                        {range.count === 0 && (
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">0</span>
-                        )}
+                        <span className="w-16 text-xs text-muted-foreground text-right">
+                          {analytics.questionRankings.length > 0 
+                            ? ((range.count / analytics.questionRankings.length) * 100).toFixed(0) 
+                            : 0}%
+                        </span>
                       </div>
-                      <span className="w-16 text-xs text-muted-foreground text-right">
-                        {((range.count / analytics.questionRankings.length) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               );
             })()}
@@ -2712,9 +2810,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             <Badge variant="secondary" className="text-[10px]">{q.category}</Badge>
                           </div>
                           
-                          {/* Score */}
+                          {/* Score with gradient */}
                           <div className="text-right flex-shrink-0">
-                            <div className={`text-2xl font-bold ${getRatingColor(q.avgRating)}`}>
+                            <div 
+                              className="text-2xl font-bold"
+                              style={{ color: getGradientColorStyle(q.avgRating, 0, 5) }}
+                            >
                               {q.avgRating.toFixed(1)}
                             </div>
                             <p className="text-[10px] text-muted-foreground">{q.responseCount} respostas</p>
@@ -2899,14 +3000,14 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             </div>
                           </div>
                           
-                          {/* Rating badge */}
-                          <div className={`px-3 py-1.5 rounded-lg font-bold text-lg ${
-                            q.avgRating >= 4.5 ? 'bg-emerald-100 dark:bg-emerald-900/30' :
-                            q.avgRating >= 3.5 ? 'bg-blue-100 dark:bg-blue-900/30' :
-                            q.avgRating >= 2.5 ? 'bg-yellow-100 dark:bg-yellow-900/30' :
-                            q.avgRating >= 1.5 ? 'bg-orange-100 dark:bg-orange-900/30' :
-                            'bg-red-100 dark:bg-red-900/30'
-                          } ${ratingColorClass}`}>
+                          {/* Rating badge with gradient */}
+                          <div 
+                            className="px-3 py-1.5 rounded-lg font-bold text-lg"
+                            style={{ 
+                              backgroundColor: getGradientBgStyle(q.avgRating, 0, 5),
+                              color: getGradientColorStyle(q.avgRating, 0, 5)
+                            }}
+                          >
                             {q.avgRating.toFixed(1)}
                           </div>
                         </div>
