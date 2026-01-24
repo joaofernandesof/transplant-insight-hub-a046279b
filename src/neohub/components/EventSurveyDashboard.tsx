@@ -998,66 +998,76 @@ function QuestionInlineCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0 pb-3">
-        {/* Compact chart */}
-        <ResponsiveContainer width="100%" height={Math.max(120, distributionData.length * 28)}>
-          <BarChart 
-            data={distributionData} 
-            layout="vertical" 
-            margin={{ left: 5, right: 35, top: 0, bottom: 0 }}
-          >
-            <XAxis type="number" hide />
-            <YAxis 
-              type="category" 
-              dataKey="name" 
-              width={120} 
-              tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))', 
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '6px',
-                fontSize: '12px'
-              }}
-              formatter={(value: number) => [`${value} respostas`, 'Total']}
-            />
-            <Bar 
-              dataKey="value" 
-              radius={[0, 6, 6, 0]}
-              maxBarSize={24}
-            >
-              {distributionData.map((entry, idx) => (
-                <Cell key={`cell-${idx}`} fill={entry.fill} />
-              ))}
-              <LabelList 
-                dataKey="value" 
-                position="right" 
-                className="text-xs font-semibold fill-foreground"
-              />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        {/* Only show chart when there are responses */}
+        {totalResponses > 0 ? (
+          <>
+            {/* Compact chart */}
+            <ResponsiveContainer width="100%" height={Math.max(120, distributionData.length * 28)}>
+              <BarChart 
+                data={distributionData} 
+                layout="vertical" 
+                margin={{ left: 5, right: 35, top: 0, bottom: 0 }}
+              >
+                <XAxis type="number" hide />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  width={120} 
+                  tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--background))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '6px',
+                    fontSize: '12px'
+                  }}
+                  formatter={(value: number) => [`${value} respostas`, 'Total']}
+                />
+                <Bar 
+                  dataKey="value" 
+                  radius={[0, 6, 6, 0]}
+                  maxBarSize={24}
+                >
+                  {distributionData.map((entry, idx) => (
+                    <Cell key={`cell-${idx}`} fill={entry.fill} />
+                  ))}
+                  <LabelList 
+                    dataKey="value" 
+                    position="right" 
+                    className="text-xs font-semibold fill-foreground"
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
 
-        {/* Legend with percentages - compact */}
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {distributionData.map((item, idx) => (
-            <div 
-              key={idx}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-[10px]"
-            >
-              <div 
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: item.fill }}
-              />
-              <span className="font-medium truncate max-w-[80px]">{item.name}</span>
-              <span className="text-muted-foreground">
-                ({totalResponses > 0 ? Math.round((item.value / totalResponses) * 100) : 0}%)
-              </span>
+            {/* Legend with percentages - compact */}
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {distributionData.filter(item => item.value > 0).map((item, idx) => (
+                <div 
+                  key={idx}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-[10px]"
+                >
+                  <div 
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: item.fill }}
+                  />
+                  <span className="font-medium truncate max-w-[80px]">{item.name}</span>
+                  <span className="text-muted-foreground">
+                    ({Math.round((item.value / totalResponses) * 100)}%)
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <FileText className="h-8 w-8 text-muted-foreground/30 mb-2" />
+            <p className="text-sm text-muted-foreground">Sem respostas ainda</p>
+          </div>
+        )}
 
         {/* Button to show respondents */}
         {respondents && respondents.length > 0 && (
