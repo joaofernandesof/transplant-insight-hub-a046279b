@@ -2029,7 +2029,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{analytics.overallSatisfaction.toFixed(1)}</p>
-                  <p className="text-xs text-muted-foreground">Satisfação</p>
+                  <p className="text-xs text-muted-foreground">Nota Média</p>
                 </div>
               </div>
             </CardContent>
