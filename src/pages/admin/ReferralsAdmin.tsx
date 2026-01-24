@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Users,
   Gift,
@@ -22,7 +22,6 @@ import {
   Calendar,
   Loader2,
   ArrowLeft,
-  Filter,
   Download,
   TrendingUp,
   TrendingDown,
@@ -32,7 +31,6 @@ import {
   Lightbulb,
   BarChart3,
   PieChart,
-  ArrowRight,
   MessageCircle,
   Send,
   Copy,
@@ -45,6 +43,7 @@ import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
+import { ReferralsTable, UnifiedReferral } from '@/components/admin/ReferralsTable';
 import { 
   BarChart, 
   Bar, 
@@ -60,30 +59,6 @@ import {
   Line,
   Legend
 } from 'recharts';
-
-// Unified Referral type
-interface UnifiedReferral {
-  id: string;
-  source: 'student' | 'lead';
-  name: string;
-  email: string;
-  phone: string;
-  referrer_user_id: string;
-  referrer_name: string;
-  referrer_code?: string;
-  status: string;
-  interest?: string;
-  city?: string;
-  state?: string;
-  has_crm?: boolean;
-  crm?: string;
-  commission_rate?: number;
-  commission_value?: number;
-  commission_paid: boolean;
-  converted_value?: number;
-  created_at: string;
-  converted_at: string | null;
-}
 
 // Stats interface
 interface ReferralStats {
@@ -839,207 +814,13 @@ export default function ReferralsAdmin() {
         </div>
       )}
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome, email ou indicador..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos Status</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="contacted">Contatado</SelectItem>
-                <SelectItem value="enrolled">Matriculado</SelectItem>
-                <SelectItem value="converted">Convertido</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="w-full md:w-[140px]">
-                <SelectValue placeholder="Origem" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas Origens</SelectItem>
-                <SelectItem value="student">Indicador</SelectItem>
-                <SelectItem value="lead">Indicado</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full md:w-[140px]">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todo Período</SelectItem>
-                <SelectItem value="7d">Últimos 7 dias</SelectItem>
-                <SelectItem value="30d">Últimos 30 dias</SelectItem>
-                <SelectItem value="90d">Últimos 90 dias</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {uniqueReferrers.length > 1 && (
-              <Select value={referrerFilter} onValueChange={setReferrerFilter}>
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="Indicador" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos Indicadores</SelectItem>
-                  {uniqueReferrers.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('all');
-                setSourceFilter('all');
-                setDateFilter('all');
-                setReferrerFilter('all');
-              }}
-            >
-              <Filter className="h-4 w-4 mr-1" />
-              Limpar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Table */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Indicações ({filteredReferrals.length})
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {filteredReferrals.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Gift className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhuma indicação encontrada</p>
-            </div>
-          ) : (
-            <ScrollArea className="h-[500px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Indicado</TableHead>
-                    <TableHead className="hidden md:table-cell">Contato</TableHead>
-                    <TableHead>Indicador</TableHead>
-                    <TableHead className="hidden lg:table-cell">Origem</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden sm:table-cell">Data</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredReferrals.map((referral) => (
-                    <TableRow key={`${referral.source}-${referral.id}`}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{referral.name}</p>
-                          <p className="text-xs text-muted-foreground md:hidden truncate max-w-[150px]">
-                            {referral.email}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-xs">
-                            <Mail className="h-3 w-3" />
-                            <span className="truncate max-w-[180px]">{referral.email}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-xs">
-                            <Phone className="h-3 w-3" />
-                            {referral.phone}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="text-sm font-medium">{referral.referrer_name}</p>
-                          {referral.referrer_code && (
-                            <p className="text-xs text-muted-foreground">{referral.referrer_code}</p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <Badge variant={referral.source === 'student' ? 'default' : 'secondary'}>
-                          {referral.source === 'student' ? 'Indicador' : 'Indicado'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(referral.status)}</TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {format(new Date(referral.created_at), "dd/MM/yy", { locale: ptBR })}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Select 
-                            value={referral.status} 
-                            onValueChange={(value) => updateStatus(referral, value)}
-                          >
-                            <SelectTrigger className="w-[110px] h-7 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">Pendente</SelectItem>
-                              <SelectItem value="contacted">Contatado</SelectItem>
-                              <SelectItem value="enrolled">Matriculado</SelectItem>
-                              <SelectItem value="converted">Convertido</SelectItem>
-                              <SelectItem value="cancelled">Cancelado</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => openWhatsApp(referral.phone, referral.name)}
-                            title="WhatsApp"
-                          >
-                            <MessageCircle className="h-3.5 w-3.5 text-green-600" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => resendEmail(referral)}
-                            title="Reenviar e-mail"
-                          >
-                            <Send className="h-3.5 w-3.5 text-blue-600" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
+      {/* Table Component */}
+      <ReferralsTable
+        referrals={filteredReferrals}
+        onStatusChange={updateStatus}
+        onOpenWhatsApp={openWhatsApp}
+        onResendEmail={resendEmail}
+      />
         </TabsContent>
 
         {/* Referrers Management Tab */}
