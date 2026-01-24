@@ -654,6 +654,109 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
   await createPDFFromHTML(html, `alunos-pesquisa-${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
+// MATRIX PDF - High-fidelity heatmap export
+async function exportMatrixPDF(analytics: NonNullable<SurveyAnalyticsData>) {
+  // Color scale function (0-10 scale)
+  const getCellColor = (value: number): string => {
+    const percent = Math.max(0, Math.min(100, (value / 10) * 100));
+    const hue = (percent / 100) * 120;
+    return `hsl(${hue}, 70%, 45%)`;
+  };
+  
+  const getCellBg = (value: number): string => {
+    const percent = Math.max(0, Math.min(100, (value / 10) * 100));
+    const hue = (percent / 100) * 120;
+    return `hsl(${hue}, 70%, 92%)`;
+  };
+
+  const students = analytics.responsesByStudent;
+  const questions = analytics.allQuestions;
+  
+  const getScore = (studentId: string, questionKey: string): number | null => {
+    const student = students.find(s => s.userId === studentId);
+    if (!student) return null;
+    const response = student.responses.find(r => r.questionKey === questionKey);
+    return response?.numericValue ?? null;
+  };
+  
+  const getQuestionAvg = (questionKey: string): number => {
+    const scores = students
+      .map(s => getScore(s.userId, questionKey))
+      .filter((v): v is number => v !== null);
+    return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+  };
+
+  // Build student headers
+  const studentHeaders = students.map(s => 
+    `<th style="text-align: center; padding: 6px 4px; border: 1px solid #e2e8f0; font-weight: 600; color: #374151; min-width: 55px; max-width: 70px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.userName.split(' ').slice(0, 2).join(' ')}</th>`
+  ).join('');
+
+  // Build rows
+  const rows = questions.map((q, qIdx) => {
+    const avg = getQuestionAvg(q.questionKey);
+    const cells = students.map(s => {
+      const score = getScore(s.userId, q.questionKey);
+      if (score === null) {
+        return `<td style="text-align: center; padding: 4px; border: 1px solid #e2e8f0; color: #9ca3af;">—</td>`;
+      }
+      return `<td style="text-align: center; padding: 4px; border: 1px solid #e2e8f0; background: ${getCellBg(score)}; color: ${getCellColor(score)}; font-weight: 700;">${score.toFixed(0)}</td>`;
+    }).join('');
+    
+    return `
+      <tr style="background: ${qIdx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+        <td style="padding: 6px; border: 1px solid #e2e8f0; font-weight: 500; color: #1f2937;">
+          <div style="max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${q.questionLabel}">${q.questionLabel}</div>
+          <div style="font-size: 8px; color: #9ca3af; margin-top: 2px;">${q.category}</div>
+        </td>
+        ${cells}
+        <td style="text-align: center; padding: 4px; border: 1px solid #e2e8f0; background: ${getCellBg(avg)}; color: ${getCellColor(avg)}; font-weight: 800;">${avg.toFixed(1)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff;">
+      <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 24px 32px;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span style="font-size: 28px;">📊</span>
+          <h1 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">Mapa de Notas - Matriz Completa</h1>
+        </div>
+        <p style="text-align: center; color: rgba(255,255,255,0.85); font-size: 12px; margin: 8px 0 0 0;">
+          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} • ${students.length} alunos • ${questions.length} perguntas
+        </p>
+      </div>
+      
+      <div style="padding: 16px; overflow-x: auto;">
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 12px; font-size: 11px;">
+          <span style="color: #6b7280;">Legenda:</span>
+          <div style="width: 14px; height: 14px; border-radius: 3px; background: hsl(0, 70%, 50%);"></div>
+          <span style="color: #6b7280;">0</span>
+          <div style="width: 80px; height: 14px; border-radius: 3px; background: linear-gradient(to right, hsl(0, 70%, 50%), hsl(60, 70%, 50%), hsl(120, 70%, 50%));"></div>
+          <div style="width: 14px; height: 14px; border-radius: 3px; background: hsl(120, 70%, 50%);"></div>
+          <span style="color: #6b7280;">10</span>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="text-align: left; padding: 8px 6px; border: 1px solid #e2e8f0; font-weight: 600; color: #374151; min-width: 140px; max-width: 180px;">Pergunta</th>
+              ${studentHeaders}
+              <th style="text-align: center; padding: 6px 4px; border: 1px solid #e2e8f0; font-weight: 700; color: #374151; background: #e0f2fe; min-width: 50px;">Média</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      
+      <div style="background: #f8fafc; padding: 12px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+        <p style="margin: 0; font-size: 10px; color: #94a3b8;">Relatório de Matriz de Notas • Sistema de Pesquisa de Satisfação</p>
+      </div>
+    </div>
+  `;
+  
+  await createPDFFromHTML(html, `matriz-notas-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
 /**
  * Universal gradient color function
  * Creates smooth red→yellow→green gradient based on percentage (0-100%)
@@ -1160,7 +1263,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     setDrilldownOpen(true);
   };
 
-  const handleExportPDF = async (tab: 'overview' | 'ranking' | 'questions' | 'students') => {
+  const handleExportPDF = async (tab: 'overview' | 'ranking' | 'questions' | 'students' | 'matrix') => {
     if (!analytics) return;
     setExportingTab(tab);
     try {
@@ -1176,6 +1279,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           break;
         case 'students':
           await exportStudentResponsesPDF(analytics.responsesByStudent);
+          break;
+        case 'matrix':
+          await exportMatrixPDF(analytics);
           break;
       }
     } finally {
@@ -1460,19 +1566,35 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   Visualize todas as notas por aluno e pergunta em formato de matriz
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground">Legenda:</span>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded" style={{ backgroundColor: 'hsl(0, 70%, 50%)' }} />
-                  <span className="text-[10px]">0%</span>
-                </div>
-                <div 
-                  className="w-24 h-3 rounded" 
-                  style={{ background: 'linear-gradient(to right, hsl(0, 70%, 50%), hsl(60, 70%, 50%), hsl(120, 70%, 50%))' }} 
-                />
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded" style={{ backgroundColor: 'hsl(120, 70%, 50%)' }} />
-                  <span className="text-[10px]">100%</span>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExportPDF('matrix')}
+                  disabled={exportingTab === 'matrix'}
+                  className="gap-2"
+                >
+                  {exportingTab === 'matrix' ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  Baixar PDF
+                </Button>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">Legenda:</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: 'hsl(0, 70%, 50%)' }} />
+                    <span className="text-[10px]">0%</span>
+                  </div>
+                  <div 
+                    className="w-24 h-3 rounded" 
+                    style={{ background: 'linear-gradient(to right, hsl(0, 70%, 50%), hsl(60, 70%, 50%), hsl(120, 70%, 50%))' }} 
+                  />
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: 'hsl(120, 70%, 50%)' }} />
+                    <span className="text-[10px]">100%</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2107,7 +2229,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               </div>
             </CardContent>
           </Card>
-
 
         </div>
 
