@@ -2858,18 +2858,19 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </CardHeader>
           <CardContent>
             {(() => {
-              // Define ranges with percentage values for gradient calculation
+              // Define ranges with percentage values for gradient calculation (scale 0-10)
               const ranges = [
-                { label: '5.0', min: 5.0, max: 5.0, pct: 100 },
-                { label: '4.5-4.9', min: 4.5, max: 4.9, pct: 90 },
-                { label: '4.0-4.4', min: 4.0, max: 4.4, pct: 80 },
-                { label: '3.5-3.9', min: 3.5, max: 3.9, pct: 70 },
-                { label: '3.0-3.4', min: 3.0, max: 3.4, pct: 60 },
-                { label: '2.5-2.9', min: 2.5, max: 2.9, pct: 50 },
-                { label: '2.0-2.4', min: 2.0, max: 2.4, pct: 40 },
-                { label: '1.5-1.9', min: 1.5, max: 1.9, pct: 30 },
-                { label: '1.0-1.4', min: 1.0, max: 1.4, pct: 20 },
-                { label: '< 1.0', min: 0, max: 0.9, pct: 10 },
+                { label: '10.0', min: 10.0, max: 10.0, pct: 100 },
+                { label: '9.0-9.9', min: 9.0, max: 9.99, pct: 95 },
+                { label: '8.0-8.9', min: 8.0, max: 8.99, pct: 85 },
+                { label: '7.0-7.9', min: 7.0, max: 7.99, pct: 75 },
+                { label: '6.0-6.9', min: 6.0, max: 6.99, pct: 65 },
+                { label: '5.0-5.9', min: 5.0, max: 5.99, pct: 55 },
+                { label: '4.0-4.9', min: 4.0, max: 4.99, pct: 45 },
+                { label: '3.0-3.9', min: 3.0, max: 3.99, pct: 35 },
+                { label: '2.0-2.9', min: 2.0, max: 2.99, pct: 25 },
+                { label: '1.0-1.9', min: 1.0, max: 1.99, pct: 15 },
+                { label: '< 1.0', min: 0, max: 0.99, pct: 5 },
               ];
               
               const distribution = ranges.map(range => ({
@@ -2877,7 +2878,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 count: analytics.questionRankings.filter(q => 
                   q.avgRating >= range.min && q.avgRating <= range.max
                 ).length
-              })).filter(d => d.count > 0 || ['5.0', '4.0-4.4', '3.0-3.4', '< 1.0'].includes(d.label));
+              })).filter(d => d.count > 0 || ['10.0', '8.0-8.9', '6.0-6.9', '< 1.0'].includes(d.label));
               
               const maxCount = Math.max(...distribution.map(d => d.count), 1);
               
