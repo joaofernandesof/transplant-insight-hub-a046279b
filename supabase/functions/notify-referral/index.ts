@@ -131,15 +131,54 @@ Deno.serve(async (req) => {
       </html>
     `;
 
+    // Try with verified domain first, fallback to resend.dev for testing
+    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "onboarding@resend.dev";
+    
     try {
       const emailResponse = await resend.emails.send({
-        from: "IBRAMEC <noreply@ibramec.com.br>",
+        from: `IBRAMEC <${fromEmail}>`,
         to: [adminEmail],
         subject: subject,
         html: htmlContent,
       });
 
-      console.log("Email sent successfully:", emailResponse);
+      // Check if there was an error in the response
+      if (emailResponse.error) {
+        // Handle domain not verified error gracefully
+        if (emailResponse.error.message?.includes('domain is not verified')) {
+          console.log("Email domain not verified, trying with resend.dev...");
+          
+          // Retry with resend.dev test domain
+          const retryResponse = await resend.emails.send({
+            from: "IBRAMEC <onboarding@resend.dev>",
+            to: [adminEmail],
+            subject: subject,
+            html: htmlContent,
+          });
+
+          if (retryResponse.error) {
+            console.error("Retry also failed:", retryResponse.error);
+            return new Response(
+              JSON.stringify({ success: false, error: retryResponse.error.message }),
+              { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+
+          console.log("Email sent successfully with resend.dev:", retryResponse.data?.id);
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: "Notification sent (via resend.dev)",
+              email_id: retryResponse.data?.id 
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        throw new Error(emailResponse.error.message);
+      }
+
+      console.log("Email sent successfully:", emailResponse.data?.id);
 
       return new Response(
         JSON.stringify({ 
@@ -150,14 +189,7 @@ Deno.serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } catch (emailError: any) {
-      // Handle unverified domain error gracefully
-      if (emailError.message?.includes('domain is not verified')) {
-        console.log("Email domain not verified, skipping notification");
-        return new Response(
-          JSON.stringify({ success: true, skipped: true, reason: "Domain not verified" }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      console.error("Email error:", emailError);
       throw emailError;
     }
 
