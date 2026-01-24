@@ -630,7 +630,19 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   }, [open]);
   
   const currentQ = QUESTIONS[currentQuestion];
-  const progress = ((currentQuestion + 1) / TOTAL_QUESTIONS) * 100;
+  
+  // Accelerated progress: fast at the start, slower at the end
+  // Uses an easing function that reaches 80% when you're at 50% of questions
+  const calculateAcceleratedProgress = (current: number, total: number): number => {
+    const linearProgress = current / total;
+    // Easeout curve: progress = 1 - (1 - x)^2, adjusted to feel faster at start
+    const eased = 1 - Math.pow(1 - linearProgress, 1.5);
+    return Math.min(Math.round(eased * 100), 99); // Cap at 99% until truly complete
+  };
+  
+  const displayProgress = currentQuestion === TOTAL_QUESTIONS - 1 
+    ? 99 // Last question shows 99%
+    : calculateAcceleratedProgress(currentQuestion + 1, TOTAL_QUESTIONS);
   
   const handleSelectOption = async (value: string) => {
     const key = currentQ.key;
@@ -714,11 +726,10 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         <DialogHeader>
           <DialogTitle>📋 Pesquisa de Satisfação - Dia 1</DialogTitle>
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Pergunta {currentQuestion + 1} de {TOTAL_QUESTIONS}</span>
-              <span>{Math.round(progress)}% concluído</span>
+            <div className="flex justify-end text-sm font-medium text-primary">
+              <span>{displayProgress}% concluído</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={displayProgress} className="h-2" />
           </div>
         </DialogHeader>
         
