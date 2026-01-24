@@ -2109,59 +2109,61 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Pontos Críticos */}
               {aiInsights.pontosCriticos && aiInsights.pontosCriticos.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-red-600" />
-                    <h3 className="font-semibold text-red-700">Pontos Críticos</h3>
-                    <Badge className="bg-red-100 text-red-700 border-red-200">{aiInsights.pontosCriticos.length}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground -mt-2">Áreas que precisam de atenção imediata</p>
-                  <div className="space-y-3">
+                <Card className="border-red-200/50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                      <CardTitle className="text-base text-red-700">Pontos Críticos</CardTitle>
+                      <Badge className="bg-red-100 text-red-700 border-red-200">{aiInsights.pontosCriticos.length}</Badge>
+                    </div>
+                    <CardDescription>Áreas que precisam de atenção imediata</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
                     {[...aiInsights.pontosCriticos]
                       .sort((a: any, b: any) => {
                         const impactOrder: Record<string, number> = { alto: 0, medio: 1, baixo: 2 };
                         return (impactOrder[a.impacto] ?? 3) - (impactOrder[b.impacto] ?? 3);
                       })
                       .map((ponto: any, idx: number) => (
-                      <Card key={idx} className="border-red-200/50 bg-red-50/30 dark:bg-red-950/10">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-200">
-                                  {ponto.area}
-                                </Badge>
-                                {ponto.urgencia === 'alta' && (
-                                  <Badge className="text-xs bg-red-600">Urgente</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm">{ponto.problema}</p>
+                      <div key={idx} className="p-3 rounded-lg bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-200">
+                                {ponto.area}
+                              </Badge>
+                              {ponto.urgencia === 'alta' && (
+                                <Badge className="text-xs bg-red-600">Urgente</Badge>
+                              )}
                             </div>
-                            <Badge variant="outline" className={`shrink-0 ${
-                              ponto.impacto === 'alto' ? 'bg-red-100 text-red-700' :
-                              ponto.impacto === 'medio' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
-                              Impacto {ponto.impacto}
-                            </Badge>
+                            <p className="text-sm">{ponto.problema}</p>
                           </div>
-                        </CardContent>
-                      </Card>
+                          <Badge variant="outline" className={`shrink-0 ${
+                            ponto.impacto === 'alto' ? 'bg-red-100 text-red-700' :
+                            ponto.impacto === 'medio' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            Impacto {ponto.impacto}
+                          </Badge>
+                        </div>
+                      </div>
                     ))}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Ações Sugeridas */}
               {aiInsights.acoesSugeridas && aiInsights.acoesSugeridas.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-emerald-600" />
-                    <h3 className="font-semibold text-emerald-700">Ações Sugeridas</h3>
-                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{aiInsights.acoesSugeridas.length}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground -mt-2">Passos concretos para melhorar a experiência</p>
-                  <div className="space-y-3">
+                <Card className="border-emerald-200/50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-emerald-600" />
+                      <CardTitle className="text-base text-emerald-700">Ações Sugeridas</CardTitle>
+                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{aiInsights.acoesSugeridas.length}</Badge>
+                    </div>
+                    <CardDescription>Passos concretos para melhorar a experiência</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
                     {[...aiInsights.acoesSugeridas]
                       .sort((a: any, b: any) => {
                         const prazoOrder: Record<string, number> = { imediato: 0, proximo_dia: 1, fim_curso: 2 };
@@ -2169,89 +2171,87 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       })
                       .slice(0, 8)
                       .map((acao: any, idx: number) => (
-                      <Card key={idx} className="border-emerald-200/50 bg-emerald-50/30 dark:bg-emerald-950/10">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm shrink-0">
-                              {acao.prioridade || idx + 1}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">{acao.acao}</p>
-                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                                {acao.responsavel && (
-                                  <span className="flex items-center gap-1">
-                                    <User className="h-3 w-3" /> {acao.responsavel}
-                                  </span>
-                                )}
-                                {acao.prazo && (
-                                  <Badge variant="outline" className={`text-[10px] ${
-                                    acao.prazo === 'imediato' ? 'bg-red-50 text-red-600' :
-                                    acao.prazo === 'proximo_dia' ? 'bg-yellow-50 text-yellow-600' :
-                                    'bg-blue-50 text-blue-600'
-                                  }`}>
-                                    {acao.prazo === 'imediato' ? '⚡ Imediato' :
-                                     acao.prazo === 'proximo_dia' ? '📅 Próximo dia' :
-                                     '🎯 Fim do curso'}
-                                  </Badge>
-                                )}
-                              </div>
+                      <div key={idx} className="p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30">
+                        <div className="flex items-start gap-4">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm shrink-0">
+                            {acao.prioridade || idx + 1}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{acao.acao}</p>
+                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                              {acao.responsavel && (
+                                <span className="flex items-center gap-1">
+                                  <User className="h-3 w-3" /> {acao.responsavel}
+                                </span>
+                              )}
+                              {acao.prazo && (
+                                <Badge variant="outline" className={`text-[10px] ${
+                                  acao.prazo === 'imediato' ? 'bg-red-50 text-red-600' :
+                                  acao.prazo === 'proximo_dia' ? 'bg-yellow-50 text-yellow-600' :
+                                  'bg-blue-50 text-blue-600'
+                                }`}>
+                                  {acao.prazo === 'imediato' ? '⚡ Imediato' :
+                                   acao.prazo === 'proximo_dia' ? '📅 Próximo dia' :
+                                   '🎯 Fim do curso'}
+                                </Badge>
+                              )}
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     ))}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
               {/* Pontos Fortes */}
               {aiInsights.pontosFortes && aiInsights.pontosFortes.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <ThumbsUp className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-semibold text-blue-700">Pontos Fortes</h3>
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">{aiInsights.pontosFortes.length}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground -mt-2">Destaques positivos do curso</p>
-                  <div className="space-y-3">
+                <Card className="border-blue-200/50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <ThumbsUp className="h-5 w-5 text-blue-600" />
+                      <CardTitle className="text-base text-blue-700">Pontos Fortes</CardTitle>
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-200">{aiInsights.pontosFortes.length}</Badge>
+                    </div>
+                    <CardDescription>Destaques positivos do curso</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
                     {aiInsights.pontosFortes.map((ponto: string, idx: number) => (
-                      <Card key={idx} className="border-blue-200/50 bg-blue-50/30 dark:bg-blue-950/10">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
-                            <p className="text-sm">{ponto}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <div key={idx} className="p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30">
+                        <div className="flex items-start gap-3">
+                          <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                          <p className="text-sm">{ponto}</p>
+                        </div>
+                      </div>
                     ))}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Tendências */}
               {aiInsights.tendencias && aiInsights.tendencias.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-purple-600" />
-                    <h3 className="font-semibold text-purple-700">Tendências Identificadas</h3>
-                    <Badge className="bg-purple-100 text-purple-700 border-purple-200">{aiInsights.tendencias.length}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground -mt-2">Padrões observados nas respostas</p>
-                  <div className="space-y-3">
+                <Card className="border-purple-200/50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-purple-600" />
+                      <CardTitle className="text-base text-purple-700">Tendências Identificadas</CardTitle>
+                      <Badge className="bg-purple-100 text-purple-700 border-purple-200">{aiInsights.tendencias.length}</Badge>
+                    </div>
+                    <CardDescription>Padrões observados nas respostas</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
                     {aiInsights.tendencias.map((tendencia: string, idx: number) => (
-                      <Card key={idx} className="border-purple-200/50 bg-purple-50/30 dark:bg-purple-950/10">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <Zap className="h-5 w-5 text-purple-500 shrink-0 mt-0.5" />
-                            <p className="text-sm">{tendencia}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <div key={idx} className="p-3 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                        <div className="flex items-start gap-3">
+                          <Zap className="h-5 w-5 text-purple-500 shrink-0 mt-0.5" />
+                          <p className="text-sm">{tendencia}</p>
+                        </div>
+                      </div>
                     ))}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
 
