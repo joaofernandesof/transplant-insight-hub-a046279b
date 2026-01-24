@@ -104,38 +104,45 @@ async function createPDFFromHTML(htmlContent: string, filename: string) {
   container.style.position = 'absolute';
   container.style.left = '-9999px';
   container.style.top = '0';
-  container.style.width = '800px';
+  container.style.width = '794px'; // A4 width in pixels at 96dpi
   container.style.background = '#ffffff';
-  container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+  container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  container.style.lineHeight = '1.5';
+  container.style.color = '#1f2937';
   document.body.appendChild(container);
   container.innerHTML = htmlContent;
+  
+  // Wait for fonts and styles to load
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   try {
     const canvas = await html2canvas(container, {
-      scale: 2,
+      scale: 2.5, // Higher quality
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
+      allowTaint: true,
+      imageTimeout: 0,
     });
 
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const imgWidth = pdfWidth;
     const imgHeight = (canvas.height * pdfWidth) / canvas.width;
     
     let heightLeft = imgHeight;
     let position = 0;
     
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     heightLeft -= pdfHeight;
     
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pdfHeight;
     }
     
@@ -143,7 +150,7 @@ async function createPDFFromHTML(htmlContent: string, filename: string) {
     for (let i = 1; i <= pageCount; i++) {
       pdf.setPage(i);
       pdf.setFontSize(8);
-      pdf.setTextColor(107, 114, 128);
+      pdf.setTextColor(156, 163, 175);
       pdf.text(`Página ${i} de ${pageCount}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
     }
     
@@ -383,126 +390,152 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   await createPDFFromHTML(html, `perguntas-${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
-// STUDENTS PDF - Fixed to work with html2canvas
+// STUDENTS PDF - High fidelity site replica
 const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) => {
-  // Helper function to get response color
+  // Helper function to get semantic color for responses
   const getValueColor = (value: string): string => {
     const key = value.toLowerCase().trim();
     
     // Excellent - Green
     const excellentWords = ['excelente', 'muito satisfeito', 'totalmente', 'atendeu plenamente', 
-      'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 'concordo totalmente', 'muito bom'];
-    if (excellentWords.some(w => key.includes(w))) return '#10b981';
+      'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 'concordo totalmente', 'muito bom', 'superou'];
+    if (excellentWords.some(w => key.includes(w))) return '#059669';
     
     // Good - Blue
     const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu', 'de 5 a 10', 'suficiente', 'sim'];
-    if (goodWords.some(w => key.includes(w))) return '#3b82f6';
+    if (goodWords.some(w => key.includes(w))) return '#2563eb';
     
-    // Medium - Yellow
-    const mediumWords = ['neutro', 'parcialmente', 'regular', 'médio', 'até 5', 'razoável'];
-    if (mediumWords.some(w => key.includes(w))) return '#f59e0b';
+    // Medium - Yellow/Amber
+    const mediumWords = ['neutro', 'parcialmente', 'regular', 'médio', 'até 5', 'razoável', 'moderado'];
+    if (mediumWords.some(w => key.includes(w))) return '#d97706';
     
     // Bad - Red
-    const badWords = ['insuficiente', 'insatisfeito', 'ruim', 'péssimo', 'não', 'discordo', 'fraco', 'baixo'];
-    if (badWords.some(w => key.includes(w))) return '#ef4444';
+    const badWords = ['insuficiente', 'insatisfeito', 'ruim', 'péssimo', 'não', 'discordo', 'fraco', 'baixo', 'nunca'];
+    if (badWords.some(w => key.includes(w))) return '#dc2626';
     
-    return '#64748b';
+    return '#475569';
   };
 
-  // Summary stats
+  // Get badge colors matching the site exactly
+  const getSatisfactionBadgeStyle = (satisfaction: string) => {
+    const s = satisfaction.toLowerCase();
+    if (s.includes('muito satisfeito')) return { bg: '#dcfce7', color: '#166534', border: '#86efac' };
+    if (s.includes('satisfeito')) return { bg: '#dbeafe', color: '#1e40af', border: '#93c5fd' };
+    if (s.includes('neutro')) return { bg: '#fef3c7', color: '#92400e', border: '#fcd34d' };
+    return { bg: '#fee2e2', color: '#991b1b', border: '#fca5a5' };
+  };
+
+  // Stats
   const totalStudents = students.length;
   const completedStudents = students.filter(s => s.isCompleted).length;
   const hotLeads = students.filter(s => s.isHotLead).length;
 
-  // Build HTML
+  // Build high-fidelity HTML matching the site exactly
   const html = `
-    <div style="padding: 0; font-family: system-ui, -apple-system, sans-serif;">
-      <!-- Header -->
-      <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); height: 80px; display: flex; align-items: center; justify-content: center;">
-        <h1 style="color: white; font-size: 24px; margin: 0;">👥 Análise Individual por Aluno</h1>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #ffffff; color: #0f172a;">
+      <!-- Header with gradient -->
+      <div style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); padding: 32px 40px;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span style="font-size: 32px;">👥</span>
+          <h1 style="color: white; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">
+            Análise Individual por Aluno
+          </h1>
+        </div>
+        <p style="text-align: center; color: rgba(255,255,255,0.8); font-size: 13px; margin: 10px 0 0 0;">
+          Pesquisa de Satisfação • Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </p>
       </div>
       
-      <div style="padding: 30px 40px;">
-        <p style="text-align: center; color: #6b7280; font-size: 12px; margin-bottom: 20px;">
-          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
-        </p>
-        
-        <!-- Stats -->
-        <div style="display: flex; gap: 16px; margin-bottom: 30px;">
-          <div style="flex: 1; background: #eff6ff; border-radius: 12px; padding: 16px; text-align: center;">
-            <div style="font-size: 28px; font-weight: bold; color: #1d4ed8;">${totalStudents}</div>
-            <div style="font-size: 11px; color: #6b7280;">Total Alunos</div>
+      <div style="padding: 28px 36px;">
+        <!-- Stats Cards - exactly like site -->
+        <div style="display: flex; gap: 16px; margin-bottom: 32px;">
+          <div style="flex: 1; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #bfdbfe;">
+            <div style="font-size: 36px; font-weight: 800; color: #1d4ed8; line-height: 1;">${totalStudents}</div>
+            <div style="font-size: 12px; color: #3b82f6; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Total Alunos</div>
           </div>
-          <div style="flex: 1; background: #ecfdf5; border-radius: 12px; padding: 16px; text-align: center;">
-            <div style="font-size: 28px; font-weight: bold; color: #059669;">${completedStudents}</div>
-            <div style="font-size: 11px; color: #6b7280;">Completos</div>
+          <div style="flex: 1; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #a7f3d0;">
+            <div style="font-size: 36px; font-weight: 800; color: #059669; line-height: 1;">${completedStudents}</div>
+            <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Completos</div>
           </div>
-          <div style="flex: 1; background: #fff7ed; border-radius: 12px; padding: 16px; text-align: center;">
-            <div style="font-size: 28px; font-weight: bold; color: #ea580c;">${hotLeads}</div>
-            <div style="font-size: 11px; color: #6b7280;">Hot Leads</div>
+          <div style="flex: 1; background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #fed7aa;">
+            <div style="font-size: 36px; font-weight: 800; color: #ea580c; line-height: 1;">${hotLeads}</div>
+            <div style="font-size: 12px; color: #f97316; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">🔥 Hot Leads</div>
           </div>
         </div>
         
-        <!-- Student cards -->
-        ${students.map(student => {
+        <!-- Student Cards - matching site design -->
+        ${students.map((student, studentIdx) => {
           const groupedResponses = student.responses.reduce((acc, r) => {
             if (!acc[r.category]) acc[r.category] = [];
             acc[r.category].push(r);
             return acc;
           }, {} as Record<string, typeof student.responses>);
+          
+          const satisfactionStyle = student.satisfaction ? getSatisfactionBadgeStyle(student.satisfaction) : null;
 
           return `
-            <div style="margin-bottom: 30px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-              <!-- Student header -->
-              <div style="background: ${student.isHotLead ? '#fff7ed' : '#f9fafb'}; padding: 16px 20px; display: flex; align-items: center; border-bottom: 1px solid #e5e7eb;">
-                <div style="width: 48px; height: 48px; border-radius: 50%; background: ${student.isHotLead ? '#f97316' : '#3b82f6'}; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold; margin-right: 15px;">
-                  ${student.userName.charAt(0).toUpperCase()}
+            <div style="margin-bottom: 24px; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
+              <!-- Student header - exactly like Card component -->
+              <div style="background: ${student.isHotLead ? 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)' : '#f8fafc'}; padding: 18px 24px; border-bottom: 1px solid #e5e7eb;">
+                <div style="display: flex; align-items: center;">
+                  <!-- Avatar -->
+                  <div style="width: 52px; height: 52px; border-radius: 50%; background: ${student.isHotLead ? 'linear-gradient(135deg, #f97316, #ea580c)' : 'linear-gradient(135deg, #3b82f6, #2563eb)'}; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 700; margin-right: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    ${student.userName.charAt(0).toUpperCase()}
+                  </div>
+                  
+                  <!-- Name and status -->
+                  <div style="flex: 1;">
+                    <div style="font-size: 18px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                      ${student.userName}
+                      ${student.isHotLead ? '<span style="background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #ea580c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #fed7aa; display: inline-flex; align-items: center; gap: 4px;">🔥 Hot Lead</span>' : ''}
+                    </div>
+                    <div style="font-size: 13px; color: ${student.isCompleted ? '#059669' : '#d97706'}; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+                      ${student.isCompleted 
+                        ? '<span style="color: #059669;">✓</span> Completou a pesquisa' 
+                        : `<span style="color: #d97706;">⏳</span> Em andamento (${student.progressPercent}%)`}
+                    </div>
+                  </div>
+                  
+                  <!-- Satisfaction badge -->
+                  ${satisfactionStyle ? `
+                    <div style="background: ${satisfactionStyle.bg}; color: ${satisfactionStyle.color}; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid ${satisfactionStyle.border};">
+                      ${student.satisfaction}
+                    </div>
+                  ` : ''}
                 </div>
-                <div style="flex: 1;">
-                  <div style="font-size: 16px; font-weight: bold; color: #1f2937;">
-                    ${student.userName}
-                    ${student.isHotLead ? ' 🔥' : ''}
-                  </div>
-                  <div style="font-size: 12px; color: ${student.isCompleted ? '#16a34a' : '#ca8a04'};">
-                    ${student.isCompleted ? '✓ Completou' : `Em andamento (${student.progressPercent}%)`}
-                  </div>
-                </div>
-                ${student.satisfaction ? `
-                  <div style="background: ${
-                    student.satisfaction.toLowerCase().includes('muito satisfeito') ? '#dcfce7' :
-                    student.satisfaction.toLowerCase().includes('satisfeito') ? '#dbeafe' :
-                    student.satisfaction.toLowerCase().includes('neutro') ? '#fef9c3' :
-                    '#fee2e2'
-                  }; color: ${
-                    student.satisfaction.toLowerCase().includes('muito satisfeito') ? '#166534' :
-                    student.satisfaction.toLowerCase().includes('satisfeito') ? '#1e40af' :
-                    student.satisfaction.toLowerCase().includes('neutro') ? '#854d0e' :
-                    '#b91c1c'
-                  }; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                    ${student.satisfaction}
-                  </div>
-                ` : ''}
               </div>
               
-              <!-- Responses -->
-              <div style="padding: 16px 20px;">
+              <!-- Responses section -->
+              <div style="padding: 20px 24px; background: #ffffff;">
                 ${Object.entries(groupedResponses).map(([category, responses]) => `
-                  <div style="margin-bottom: 16px;">
-                    <h3 style="font-size: 12px; font-weight: 600; color: #6b7280; margin: 0 0 8px 0; text-transform: uppercase;">${category}</h3>
-                    ${(responses as typeof student.responses).map((r, idx) => `
-                      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: ${idx % 2 === 0 ? '#f9fafb' : 'white'}; border-radius: 6px;">
-                        <span style="font-size: 12px; color: #4b5563;">${r.questionLabel}</span>
-                        <span style="font-size: 12px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#9ca3af'};">
-                          ${r.value || '—'}
-                        </span>
-                      </div>
-                    `).join('')}
+                  <div style="margin-bottom: 20px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 6px;">
+                      <span style="width: 4px; height: 4px; background: #94a3b8; border-radius: 50%;"></span>
+                      ${category}
+                    </div>
+                    <div style="border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+                      ${(responses as typeof student.responses).map((r, idx) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: ${idx % 2 === 0 ? '#f8fafc' : '#ffffff'}; ${idx > 0 ? 'border-top: 1px solid #f1f5f9;' : ''}">
+                          <span style="font-size: 13px; color: #475569; flex: 1; padding-right: 12px;">${r.questionLabel}</span>
+                          <span style="font-size: 13px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#94a3b8'}; white-space: nowrap; text-align: right; max-width: 200px;">
+                            ${r.value || '—'}
+                          </span>
+                        </div>
+                      `).join('')}
+                    </div>
                   </div>
                 `).join('')}
               </div>
             </div>
           `;
         }).join('')}
+      </div>
+      
+      <!-- Footer -->
+      <div style="background: #f8fafc; padding: 16px 36px; border-top: 1px solid #e5e7eb; text-align: center;">
+        <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+          Relatório gerado automaticamente pelo Sistema de Pesquisa de Satisfação
+        </p>
       </div>
     </div>
   `;
