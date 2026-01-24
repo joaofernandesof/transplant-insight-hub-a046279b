@@ -191,67 +191,72 @@ Deno.serve(async (req) => {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
       </head>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 24px;">
-            ${isStudentReferral ? '🎓 Formação 360° IBRAMEC' : '✅ Recebemos seu interesse!'}
-          </h1>
-        </div>
-        
-        <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-          <h2 style="color: #374151; margin-top: 0;">Olá, ${referral.name}! 👋</h2>
+      <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+          <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center; border-radius: 16px 16px 0 0;">
+            <img src="https://transplant-insight-hub.lovable.app/images/ibramec-logo.png" alt="IBRAMEC" style="height: 50px; margin-bottom: 16px;" />
+            <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 700;">
+              ${isStudentReferral ? '✅ Recebemos sua inscrição!' : '✅ Recebemos seu interesse!'}
+            </h1>
+          </div>
           
-          ${isStudentReferral ? `
-          <p style="color: #4b5563; font-size: 16px;">
-            Recebemos sua solicitação de desconto exclusivo para a <strong>Formação 360°</strong> em Transplante Capilar!
-          </p>
-          
-          <div style="background: #dcfce7; border-left: 4px solid #10b981; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-            <p style="margin: 0; color: #166534; font-weight: 600;">
-              🎁 Você tem direito a um desconto especial por ter sido indicado${referral.referrer_name ? ` por ${referral.referrer_name}` : ''}!
+          <div style="background: white; padding: 32px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <p style="color: #1e293b; font-size: 18px; margin: 0 0 16px;">Olá, <strong>${referral.name.split(' ')[0]}</strong>! 👋</p>
+            
+            ${isStudentReferral ? `
+            <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+              Recebemos sua solicitação de desconto exclusivo para a <strong>Formação 360°</strong> em Transplante Capilar!
             </p>
-          </div>
-          
-          <p style="color: #4b5563; font-size: 16px;">
-            Nossa equipe entrará em contato em breve pelo WhatsApp <strong>${referral.phone}</strong> para passar todas as informações sobre o curso e condições especiais.
-          </p>
-          
-          <h3 style="color: #374151; margin-top: 25px;">O que você vai aprender:</h3>
-          <ul style="color: #4b5563;">
-            <li>Técnicas avançadas de transplante capilar (FUE e FUT)</li>
-            <li>Tricologia e diagnóstico capilar</li>
-            <li>Prática intensiva em casos reais</li>
-            <li>Gestão de clínica e marketing médico</li>
-          </ul>
-          ` : `
-          <p style="color: #4b5563; font-size: 16px;">
-            Recebemos seu interesse e nossa equipe entrará em contato em breve!
-          </p>
-          
-          ${referral.referrer_name ? `
-          <div style="background: #dcfce7; border-left: 4px solid #10b981; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-            <p style="margin: 0; color: #166534; font-weight: 600;">
-              Você foi indicado por ${referral.referrer_name}!
+            
+            <div style="background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%); padding: 20px; border-radius: 12px; border-left: 4px solid #10b981; margin: 24px 0;">
+              <p style="margin: 0; color: #166534; font-weight: 600; font-size: 16px;">
+                🎁 Você tem direito a um desconto especial por ter sido indicado${referral.referrer_name ? ` por <strong>${referral.referrer_name}</strong>` : ''}!
+              </p>
+            </div>
+            
+            <p style="color: #475569; font-size: 16px; line-height: 1.6;">
+              Nossa equipe entrará em contato em breve pelo telefone <strong>${referral.phone}</strong> para passar todas as informações sobre o curso e condições especiais.
             </p>
+            
+            <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin: 24px 0;">
+              <h3 style="color: #374151; margin: 0 0 16px; font-size: 16px;">📚 O que você vai aprender:</h3>
+              <ul style="color: #4b5563; margin: 0; padding-left: 20px; line-height: 1.8;">
+                <li>Técnicas avançadas de transplante capilar (FUE e FUT)</li>
+                <li>Tricologia e diagnóstico capilar</li>
+                <li>Prática intensiva em casos reais</li>
+                <li>Gestão de clínica e marketing médico</li>
+              </ul>
+            </div>
+            ` : `
+            <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+              Recebemos seu interesse e nossa equipe entrará em contato em breve!
+            </p>
+            
+            ${referral.referrer_name ? `
+            <div style="background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%); padding: 20px; border-radius: 12px; border-left: 4px solid #10b981; margin: 24px 0;">
+              <p style="margin: 0; color: #166534; font-weight: 600;">
+                Você foi indicado por <strong>${referral.referrer_name}</strong>!
+              </p>
+            </div>
+            ` : ''}
+            
+            <p style="color: #475569; font-size: 16px; line-height: 1.6;">
+              Entraremos em contato pelo telefone <strong>${referral.phone}</strong> para entender melhor suas necessidades.
+            </p>
+            `}
+            
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="https://wa.me/5521999999999" 
+                 style="display: inline-block; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4);">
+                💬 Falar pelo WhatsApp
+              </a>
+            </div>
           </div>
-          ` : ''}
           
-          <p style="color: #4b5563; font-size: 16px;">
-            Entraremos em contato pelo telefone <strong>${referral.phone}</strong> para entender melhor suas necessidades.
-          </p>
-          `}
-          
-          <div style="margin-top: 30px; text-align: center;">
-            <a href="https://wa.me/5521999999999" 
-               style="display: inline-block; background: #25D366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
-              💬 Falar pelo WhatsApp
-            </a>
+          <div style="text-align: center; margin-top: 32px;">
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Se você não solicitou este contato, por favor ignore este email.</p>
+            <p style="color: #94a3b8; font-size: 12px; margin: 8px 0 0;">© ${new Date().getFullYear()} IBRAMEC - Instituto Brasileiro de Medicina Capilar</p>
           </div>
-        </div>
-        
-        <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
-          <p>Se você não solicitou este contato, por favor ignore este email.</p>
-          <p>© ${new Date().getFullYear()} IBRAMEC - Instituto Brasileiro de Medicina Capilar</p>
         </div>
       </body>
       </html>
