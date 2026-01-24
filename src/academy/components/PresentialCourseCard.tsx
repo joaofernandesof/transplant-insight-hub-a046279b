@@ -14,7 +14,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
-import logoBrowsTransplant from "@/assets/logo-brows-transplant-360.png";
+import logoBrowsTransplant from "@/assets/logo-brows-transplant-360.jpg";
 
 export interface PresentialCourse {
   id: string;
@@ -45,7 +45,7 @@ const courseTypeConfig: Record<string, { color: string; icon: React.ReactNode; l
     logo: logoFormacao360
   },
   brows: {
-    color: 'from-zinc-800 to-zinc-900',
+    color: 'bg-[#27272a]',
     icon: <GraduationCap className="h-7 w-7" />,
     logo: logoBrowsTransplant
   },
@@ -126,8 +126,8 @@ export function PresentialCourseCard({ course, onViewDetails }: PresentialCourse
     <Card className={`overflow-hidden transition-all duration-200 hover:shadow-lg ${
       isCompleted ? 'opacity-75' : ''
     }`}>
-      {/* Course Header with gradient */}
-      <div className={`h-32 bg-gradient-to-br ${config.color} p-4 flex items-center justify-center relative`}>
+      {/* Course Header with gradient or solid color */}
+      <div className={`h-32 p-4 flex items-center justify-center relative ${config.color.startsWith('bg-') ? config.color : `bg-gradient-to-br ${config.color}`}`}>
         {config.logo ? (
           <img 
             src={config.logo} 
