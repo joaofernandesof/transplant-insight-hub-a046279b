@@ -221,7 +221,7 @@ export function SurveyQuestionsManager({ open, onOpenChange }: SurveyQuestionsMa
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="h-5 w-5 text-primary" />
@@ -264,8 +264,9 @@ export function SurveyQuestionsManager({ open, onOpenChange }: SurveyQuestionsMa
           </div>
 
           {/* Questions List */}
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-6 py-4">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ScrollArea className="h-full pr-4">
+              <div className="space-y-6 py-4">
               {Object.entries(groupedQuestions).map(([category, categoryQuestions]) => {
                 const categoryConfig = CATEGORY_LABELS[category];
                 return (
@@ -393,6 +394,7 @@ export function SurveyQuestionsManager({ open, onOpenChange }: SurveyQuestionsMa
               )}
             </div>
           </ScrollArea>
+          </div>
 
           <DialogFooter className="border-t pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
