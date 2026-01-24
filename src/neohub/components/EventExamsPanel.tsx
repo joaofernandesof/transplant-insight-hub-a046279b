@@ -54,6 +54,7 @@ export function EventExamsPanel({ classId }: EventExamsPanelProps) {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [selectedExamToLink, setSelectedExamToLink] = useState<string>("");
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
+  const [confirmUnlink, setConfirmUnlink] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -163,7 +164,7 @@ export function EventExamsPanel({ classId }: EventExamsPanelProps) {
                           variant="ghost"
                           size="sm"
                           className="text-destructive hover:text-destructive"
-                          onClick={() => unlinkExam.mutate(exam.id)}
+                          onClick={() => setConfirmUnlink(exam.id)}
                         >
                           <Link2Off className="h-4 w-4" />
                         </Button>
@@ -301,6 +302,38 @@ export function EventExamsPanel({ classId }: EventExamsPanelProps) {
               onClick={() => confirmReset && handleResetAttempts(confirmReset)}
             >
               Resetar Tudo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Unlink Dialog */}
+      <Dialog open={!!confirmUnlink} onOpenChange={() => setConfirmUnlink(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Link2Off className="h-5 w-5" />
+              Desvincular Prova
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja desvincular esta prova do evento? 
+              A prova não será excluída, apenas desvinculada.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmUnlink(null)}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                if (confirmUnlink) {
+                  unlinkExam.mutate(confirmUnlink);
+                  setConfirmUnlink(null);
+                }
+              }}
+            >
+              Desvincular
             </Button>
           </DialogFooter>
         </DialogContent>
