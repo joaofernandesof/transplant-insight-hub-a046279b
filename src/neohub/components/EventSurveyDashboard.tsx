@@ -2883,7 +2883,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 count: analytics.questionRankings.filter(q => 
                   q.avgRating >= range.min && q.avgRating <= range.max
                 ).length
-              })).filter(d => d.count > 0 || ['10.0', '8.0-8.9', '6.0-6.9', '< 1.0'].includes(d.label));
+              }));
               
               const maxCount = Math.max(...distribution.map(d => d.count), 1);
               
