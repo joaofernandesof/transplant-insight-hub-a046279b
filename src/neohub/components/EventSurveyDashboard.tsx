@@ -42,13 +42,21 @@ import {
   ListOrdered,
   FileText,
   Download,
+  Sparkles,
+  AlertTriangle,
+  Target,
+  Zap,
+  Brain,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useSurveyAnalytics, type QuestionRating, type StudentDetailedResponse } from "@/neohub/hooks/useSurveyAnalytics";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EventSurveyDashboardProps {
   classId: string | null;
@@ -872,6 +880,10 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [studentSearch, setStudentSearch] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const [exportingTab, setExportingTab] = useState<string | null>(null);
+  
+  // AI Insights state
+  const [aiInsights, setAiInsights] = useState<any>(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
 
   const handleExportPDF = async (tab: 'overview' | 'ranking' | 'questions' | 'students') => {
     if (!analytics) return;
@@ -893,6 +905,57 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
       }
     } finally {
       setExportingTab(null);
+    }
+  };
+
+  const generateAIInsights = async () => {
+    if (!analytics) return;
+    
+    setIsLoadingInsights(true);
+    try {
+      const surveyData = {
+        totalResponses: analytics.totalResponses,
+        completionRate: analytics.completionRate,
+        npsScore: analytics.nps.score,
+        overallSatisfaction: analytics.overallSatisfaction,
+        instructorMetrics: {
+          hygor: {
+            avgExpectations: analytics.instructors.hygor.avgExpectations,
+            avgClarity: analytics.instructors.hygor.avgClarity,
+            avgTime: analytics.instructors.hygor.avgTime,
+            strengths: analytics.instructors.hygor.strengths,
+            improvements: analytics.instructors.hygor.improvements,
+          },
+          patrick: {
+            avgExpectations: analytics.instructors.patrick.avgExpectations,
+            avgClarity: analytics.instructors.patrick.avgClarity,
+            avgTime: analytics.instructors.patrick.avgTime,
+            strengths: analytics.instructors.patrick.strengths,
+            improvements: analytics.instructors.patrick.improvements,
+          },
+        },
+        infrastructure: analytics.infrastructure,
+        openFeedback: {
+          likedMost: analytics.openFeedback.likedMost.map(f => f.text),
+          suggestions: analytics.openFeedback.suggestions.map(f => f.text),
+        },
+        studentProfile: analytics.studentProfile,
+        hotLeadsCount: analytics.hotLeads.length,
+      };
+
+      const { data, error } = await supabase.functions.invoke('analyze-survey-insights', {
+        body: { surveyData, className: 'Formação 360°' }
+      });
+
+      if (error) throw error;
+      
+      setAiInsights(data.insights);
+      toast.success("Insights gerados com sucesso!");
+    } catch (err) {
+      console.error("Error generating insights:", err);
+      toast.error("Erro ao gerar insights. Tente novamente.");
+    } finally {
+      setIsLoadingInsights(false);
     }
   };
 
@@ -986,10 +1049,14 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
   return (
     <Tabs defaultValue="overview" className="space-y-4">
-      <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+      <TabsList className="grid grid-cols-5 w-full max-w-3xl">
         <TabsTrigger value="overview" className="flex items-center gap-1.5">
           <BarChart3 className="h-4 w-4" />
           Visão Geral
+        </TabsTrigger>
+        <TabsTrigger value="insights" className="flex items-center gap-1.5">
+          <Sparkles className="h-4 w-4" />
+          Insights IA
         </TabsTrigger>
         <TabsTrigger value="ranking" className="flex items-center gap-1.5">
           <ListOrdered className="h-4 w-4" />
@@ -1004,6 +1071,309 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           Alunos
         </TabsTrigger>
       </TabsList>
+
+      {/* ============== AI INSIGHTS TAB ============== */}
+      <TabsContent value="insights" className="space-y-6">
+        {!aiInsights ? (
+          <Card className="border-2 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/20 flex items-center justify-center mb-6">
+                <Brain className="h-10 w-10 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Análise Inteligente com IA</h3>
+              <p className="text-muted-foreground max-w-md mb-6">
+                Gere insights acionáveis baseados em todas as respostas da pesquisa. 
+                A IA analisará padrões, identificará pontos críticos e sugerirá ações concretas para melhorar o curso.
+              </p>
+              <Button 
+                onClick={generateAIInsights}
+                disabled={isLoadingInsights}
+                className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700"
+              >
+                {isLoadingInsights ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Analisando dados...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Gerar Insights com IA
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            {/* Header with regenerate button */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/20">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">Insights Gerados por IA</h2>
+                  <p className="text-xs text-muted-foreground">Baseado em {analytics.totalResponses} respostas analisadas</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={generateAIInsights}
+                disabled={isLoadingInsights}
+              >
+                {isLoadingInsights ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Regenerar
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Score Geral */}
+            {aiInsights.scoreGeral && (
+              <Card className={`border-2 ${
+                aiInsights.scoreGeral >= 80 ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-900/10' :
+                aiInsights.scoreGeral >= 60 ? 'border-blue-200 bg-blue-50/50 dark:bg-blue-900/10' :
+                aiInsights.scoreGeral >= 40 ? 'border-yellow-200 bg-yellow-50/50 dark:bg-yellow-900/10' :
+                'border-red-200 bg-red-50/50 dark:bg-red-900/10'
+              }`}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Score Geral da Turma</p>
+                      <p className="text-4xl font-bold mt-1">{aiInsights.scoreGeral}/100</p>
+                    </div>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                      aiInsights.scoreGeral >= 80 ? 'bg-emerald-100 text-emerald-600' :
+                      aiInsights.scoreGeral >= 60 ? 'bg-blue-100 text-blue-600' :
+                      aiInsights.scoreGeral >= 40 ? 'bg-yellow-100 text-yellow-600' :
+                      'bg-red-100 text-red-600'
+                    }`}>
+                      {aiInsights.scoreGeral >= 80 ? <ThumbsUp className="h-8 w-8" /> :
+                       aiInsights.scoreGeral >= 60 ? <TrendingUp className="h-8 w-8" /> :
+                       <AlertTriangle className="h-8 w-8" />}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Resumo Executivo */}
+            {aiInsights.resumoExecutivo && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    Resumo Executivo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed">{aiInsights.resumoExecutivo}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pontos Críticos */}
+            {aiInsights.pontosCriticos && aiInsights.pontosCriticos.length > 0 && (
+              <Card className="border-red-200/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-red-700">
+                    <AlertTriangle className="h-4 w-4" />
+                    Pontos Críticos ({aiInsights.pontosCriticos.length})
+                  </CardTitle>
+                  <CardDescription>Áreas que precisam de atenção imediata</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {aiInsights.pontosCriticos.map((ponto: any, idx: number) => (
+                      <div key={idx} className="p-4 rounded-lg bg-red-50/50 dark:bg-red-900/10 border border-red-100">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-200">
+                                {ponto.area}
+                              </Badge>
+                              {ponto.urgencia === 'alta' && (
+                                <Badge className="text-xs bg-red-600">Urgente</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm">{ponto.problema}</p>
+                          </div>
+                          <Badge variant="outline" className={`shrink-0 ${
+                            ponto.impacto === 'alto' ? 'bg-red-100 text-red-700' :
+                            ponto.impacto === 'medio' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            Impacto {ponto.impacto}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Ações Sugeridas */}
+            {aiInsights.acoesSugeridas && aiInsights.acoesSugeridas.length > 0 && (
+              <Card className="border-emerald-200/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-emerald-700">
+                    <Target className="h-4 w-4" />
+                    Ações Sugeridas ({aiInsights.acoesSugeridas.length})
+                  </CardTitle>
+                  <CardDescription>Passos concretos para melhorar a experiência</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {aiInsights.acoesSugeridas.slice(0, 8).map((acao: any, idx: number) => (
+                      <div key={idx} className="p-4 rounded-lg bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100">
+                        <div className="flex items-start gap-4">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm shrink-0">
+                            {acao.prioridade || idx + 1}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{acao.acao}</p>
+                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                              {acao.responsavel && (
+                                <span className="flex items-center gap-1">
+                                  <User className="h-3 w-3" /> {acao.responsavel}
+                                </span>
+                              )}
+                              {acao.prazo && (
+                                <Badge variant="outline" className={`text-[10px] ${
+                                  acao.prazo === 'imediato' ? 'bg-red-50 text-red-600' :
+                                  acao.prazo === 'proximo_dia' ? 'bg-yellow-50 text-yellow-600' :
+                                  'bg-blue-50 text-blue-600'
+                                }`}>
+                                  {acao.prazo === 'imediato' ? '⚡ Imediato' :
+                                   acao.prazo === 'proximo_dia' ? '📅 Próximo dia' :
+                                   '🎯 Fim do curso'}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Grid com análises */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Pontos Fortes */}
+              {aiInsights.pontosFortes && aiInsights.pontosFortes.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2 text-blue-700">
+                      <ThumbsUp className="h-4 w-4" />
+                      Pontos Fortes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {aiInsights.pontosFortes.map((ponto: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{ponto}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Tendências */}
+              {aiInsights.tendencias && aiInsights.tendencias.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2 text-purple-700">
+                      <TrendingUp className="h-4 w-4" />
+                      Tendências Identificadas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {aiInsights.tendencias.map((tendencia: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm">
+                          <Zap className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
+                          <span>{tendencia}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Hot Leads */}
+            {aiInsights.alertasHotLeads && (
+              <Card className="border-orange-200/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-orange-700">
+                    <Flame className="h-4 w-4" />
+                    Alerta: Hot Leads
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed">{aiInsights.alertasHotLeads}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Análise dos Professores */}
+            {aiInsights.analiseProfessores && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Award className="h-4 w-4 text-yellow-600" />
+                    Análise dos Professores
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed">{aiInsights.analiseProfessores}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Análise da Infraestrutura */}
+            {aiInsights.analiseInfra && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-blue-600" />
+                    Análise da Infraestrutura
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed">{aiInsights.analiseInfra}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Raw content fallback */}
+            {aiInsights.rawContent && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Análise Completa</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
+                    {aiInsights.rawContent}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </TabsContent>
 
       {/* ============== OVERVIEW TAB ============== */}
       <TabsContent value="overview" className="space-y-6">
