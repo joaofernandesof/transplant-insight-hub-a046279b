@@ -19,10 +19,15 @@ export interface CourseGallery {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Unlock requirement fields
+  unlock_requirement: 'none' | 'exam' | 'survey';
+  required_exam_id: string | null;
+  required_survey_type: string | null;
   // Joined data
   course_name?: string;
   class_name?: string;
   class_code?: string;
+  exam_title?: string;
 }
 
 export interface GalleryPhoto {
@@ -60,7 +65,8 @@ export function useStudentGalleries(classId: string | null) {
         .select(`
           *,
           courses:course_id (title),
-          course_classes:class_id (name, code)
+          course_classes:class_id (name, code),
+          exams:required_exam_id (title)
         `)
         .eq('class_id', classId)
         .eq('status', 'published')
@@ -73,6 +79,7 @@ export function useStudentGalleries(classId: string | null) {
         course_name: g.courses?.title,
         class_name: g.course_classes?.name,
         class_code: g.course_classes?.code,
+        exam_title: g.exams?.title,
       })) as CourseGallery[];
     },
     enabled: !!classId && !!user,
@@ -123,7 +130,8 @@ export function useGalleryManagement() {
         .select(`
           *,
           courses:course_id (title),
-          course_classes:class_id (name, code)
+          course_classes:class_id (name, code),
+          exams:required_exam_id (title)
         `)
         .order('created_at', { ascending: false });
 
@@ -134,6 +142,7 @@ export function useGalleryManagement() {
         course_name: g.courses?.title,
         class_name: g.course_classes?.name,
         class_code: g.course_classes?.code,
+        exam_title: g.exams?.title,
       })) as CourseGallery[];
     },
     enabled: canWrite,
