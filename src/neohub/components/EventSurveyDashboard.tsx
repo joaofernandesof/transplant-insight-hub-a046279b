@@ -1000,6 +1000,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionRating | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentDetailedResponse | null>(null);
   const [studentSearch, setStudentSearch] = useState("");
+  const [studentSortBy, setStudentSortBy] = useState<'name' | 'score' | 'date'>('name');
   const [isExporting, setIsExporting] = useState(false);
   const [exportingTab, setExportingTab] = useState<string | null>(null);
   
@@ -1320,10 +1321,25 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     return matchesSearch && matchesCategory;
   });
 
-  // Filter students
-  const filteredStudents = analytics.responsesByStudent.filter(s =>
-    s.userName.toLowerCase().includes(studentSearch.toLowerCase())
-  );
+  // Filter and sort students
+  const filteredStudents = analytics.responsesByStudent
+    .filter(s => s.userName.toLowerCase().includes(studentSearch.toLowerCase()))
+    .sort((a, b) => {
+      switch (studentSortBy) {
+        case 'name':
+          return a.userName.localeCompare(b.userName, 'pt-BR');
+        case 'score':
+          return b.overallScore - a.overallScore; // Highest first
+        case 'date':
+          // Sort by completedAt (most recent first), incomplete surveys at the end
+          if (!a.completedAt && !b.completedAt) return 0;
+          if (!a.completedAt) return 1;
+          if (!b.completedAt) return -1;
+          return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
+        default:
+          return 0;
+      }
+    });
 
   // Format time helper
   const formatTime = (seconds: number) => {
@@ -3164,14 +3180,27 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           {/* LEFT - Student List (compact) */}
           <Card className="lg:col-span-1">
             <CardContent className="p-3 space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar aluno..."
-                  value={studentSearch}
-                  onChange={(e) => setStudentSearch(e.target.value)}
-                  className="pl-9 h-9"
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar aluno..."
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    className="pl-9 h-9"
+                  />
+                </div>
+                <Select value={studentSortBy} onValueChange={(v) => setStudentSortBy(v as 'name' | 'score' | 'date')}>
+                  <SelectTrigger className="w-[110px] h-9">
+                    <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Nome</SelectItem>
+                    <SelectItem value="score">Média</SelectItem>
+                    <SelectItem value="date">Data</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <ScrollArea className="h-[500px]">
