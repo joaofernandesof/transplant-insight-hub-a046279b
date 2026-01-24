@@ -156,9 +156,9 @@ export function PresentialCourseCard({ course, onViewDetails }: PresentialCourse
         </div>
         
         {/* Date Highlight */}
-        <div className="flex items-center gap-2 mb-3 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-          <Calendar className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-          <span className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">
+        <div className="flex items-center gap-2 mb-3 p-2.5 rounded-full bg-muted/80 dark:bg-muted/50">
+          <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+          <span className="font-medium text-foreground text-sm">
             {formatDateRange(course.startDate, course.endDate)}
           </span>
         </div>
