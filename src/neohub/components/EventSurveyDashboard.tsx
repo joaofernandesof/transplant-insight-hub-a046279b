@@ -2281,16 +2281,16 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <CardContent className="pt-0">
               <div className="flex flex-col lg:flex-row items-center gap-8">
                 {(() => {
-                  // Color scale function: red (0) → yellow (2.5) → green (5)
+                  // Color scale function: red (0) → yellow (5) → green (10) - scale 0-10
                   const getBarColor = (value: number): string => {
-                    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+                    const percent = Math.max(0, Math.min(100, (value / 10) * 100));
                     // HSL: 0° = Red, 60° = Yellow, 120° = Green
                     const hue = (percent / 100) * 120;
                     return `hsl(${hue}, 70%, 50%)`;
                   };
                   
                   const getScoreColor = (value: number) => {
-                    const ratio = value / 5; // 0-1 scale
+                    const ratio = value / 10; // 0-1 scale (values are 0-10)
                     if (ratio < 0.5) {
                       return {
                         bg: ratio < 0.3 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30',
@@ -2324,7 +2324,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             height={70}
                           />
                           <YAxis 
-                            domain={[0, 5]} 
+                            domain={[0, 10]} 
                             tick={{ fontSize: 11 }}
                             tickCount={6}
                           />
@@ -2356,7 +2356,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             <span className={`font-semibold ${avgColor.text}`}>Média Geral</span>
                           </div>
                           <div className={`text-3xl font-bold ${avgColor.text}`}>
-                            {(infrastructureAvg * 2).toFixed(1)}/10
+                            {infrastructureAvg.toFixed(1)}/10
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Todas as dimensões</p>
                         </div>
@@ -2365,7 +2365,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             const color = getScoreColor(d.value);
                             return (
                               <div key={i} className={`p-2 rounded-lg ${color.bg} border ${color.border} text-center`}>
-                                <div className={`text-lg font-bold ${color.text}`}>{(d.value * 2).toFixed(1)}</div>
+                              <div className={`text-lg font-bold ${color.text}`}>{d.value.toFixed(1)}</div>
                                 <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
                               </div>
                             );
@@ -2376,7 +2376,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             const color = getScoreColor(d.value);
                             return (
                               <div key={i} className={`p-2 rounded-lg ${color.bg} border ${color.border} text-center`}>
-                                <div className={`text-lg font-bold ${color.text}`}>{(d.value * 2).toFixed(1)}</div>
+                                <div className={`text-lg font-bold ${color.text}`}>{d.value.toFixed(1)}</div>
                                 <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
                               </div>
                             );
