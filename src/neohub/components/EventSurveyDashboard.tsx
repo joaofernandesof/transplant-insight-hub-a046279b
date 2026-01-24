@@ -1491,10 +1491,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
   // Monitors are now handled via dynamicMonitors below
 
-  // Also include fixed monitors from analytics.monitors if they have data
+  // Include all 4 fixed monitors from analytics.monitors if they have data
   const fixedMonitorsData = [
     { ...MONITOR_COLORS[0], metrics: analytics.monitors.eder },
     { ...MONITOR_COLORS[1], metrics: analytics.monitors.patrickM },
+    { ...MONITOR_COLORS[2], metrics: analytics.monitors.gleyldes },
+    { ...MONITOR_COLORS[3], metrics: analytics.monitors.elenilton },
   ].filter(m => m.metrics && m.metrics.overallAvg > 0);
 
   // Add monitors from monitorsByName with proper color matching (includes Gleyldes and Elenilton)
