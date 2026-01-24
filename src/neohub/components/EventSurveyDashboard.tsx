@@ -41,7 +41,10 @@ import {
   BarChart3,
   ListOrdered,
   FileText,
+  Download,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import jsPDF from "jspdf";
 import { useSurveyAnalytics, type QuestionRating, type StudentDetailedResponse } from "@/neohub/hooks/useSurveyAnalytics";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -90,6 +93,104 @@ const getWordFrequency = (texts: string[]): { word: string; count: number }[] =>
     .map(([word, count]) => ({ word, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 30);
+};
+
+const exportStudentResponsesPDF = (students: StudentDetailedResponse[]) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 15;
+  let y = 20;
+
+  // Title
+  doc.setFontSize(18);
+  doc.setFont("helvetica", "bold");
+  doc.text("Respostas da Pesquisa de Satisfação", pageWidth / 2, y, { align: "center" });
+  y += 10;
+  
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, pageWidth / 2, y, { align: "center" });
+  y += 15;
+
+  students.forEach((student, studentIndex) => {
+    // Check if we need a new page
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // Student header
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, y - 5, pageWidth - margin * 2, 12, 'F');
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${studentIndex + 1}. ${student.userName}`, margin + 3, y + 3);
+    
+    // Status badge
+    const status = student.isCompleted ? "Completo" : `${student.progressPercent}%`;
+    const statusX = pageWidth - margin - 25;
+    doc.setFontSize(9);
+    doc.text(status, statusX, y + 3);
+    
+    if (student.isHotLead) {
+      doc.setTextColor(234, 88, 12);
+      doc.text("🔥 Hot Lead", margin + 3, y + 10);
+      doc.setTextColor(0, 0, 0);
+    }
+    
+    y += student.isHotLead ? 18 : 12;
+
+    // Group responses by category
+    const groupedResponses = student.responses.reduce((acc, r) => {
+      if (!acc[r.category]) acc[r.category] = [];
+      acc[r.category].push(r);
+      return acc;
+    }, {} as Record<string, typeof student.responses>);
+
+    Object.entries(groupedResponses).forEach(([category, responses]) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+
+      // Category header
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 100, 100);
+      doc.text(category, margin, y);
+      doc.setTextColor(0, 0, 0);
+      y += 6;
+
+      responses.forEach(r => {
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        
+        const questionText = r.questionLabel.length > 50 
+          ? r.questionLabel.substring(0, 50) + "..." 
+          : r.questionLabel;
+        doc.text(`• ${questionText}`, margin + 3, y);
+        
+        const valueText = r.value || "—";
+        const truncatedValue = valueText.length > 40 ? valueText.substring(0, 40) + "..." : valueText;
+        doc.setFont("helvetica", "bold");
+        doc.text(truncatedValue, pageWidth - margin - doc.getTextWidth(truncatedValue), y);
+        doc.setFont("helvetica", "normal");
+        
+        y += 5;
+      });
+
+      y += 3;
+    });
+
+    y += 8;
+  });
+
+  doc.save(`pesquisa-satisfacao-${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
 const getRatingColor = (value: number): string => {
@@ -736,9 +837,20 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
       {/* ============== STUDENTS TAB ============== */}
       <TabsContent value="students" className="space-y-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Análise Individual por Aluno</CardTitle>
-            <CardDescription>Selecione um aluno para ver todas as respostas</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Análise Individual por Aluno</CardTitle>
+              <CardDescription>Selecione um aluno para ver todas as respostas</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportStudentResponsesPDF(analytics.responsesByStudent)}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Exportar PDF
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
