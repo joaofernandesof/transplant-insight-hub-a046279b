@@ -465,10 +465,6 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
             <div style="font-size: 36px; font-weight: 800; color: #059669; line-height: 1;">${completedStudents}</div>
             <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Completos</div>
           </div>
-          <div style="flex: 1; background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #fed7aa;">
-            <div style="font-size: 36px; font-weight: 800; color: #ea580c; line-height: 1;">${hotLeads}</div>
-            <div style="font-size: 12px; color: #f97316; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">🔥 Hot Leads</div>
-          </div>
         </div>
         
         <!-- Student Cards - matching site design -->
@@ -484,18 +480,17 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
           return `
             <div style="margin-bottom: 24px; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
               <!-- Student header - exactly like Card component -->
-              <div style="background: ${student.isHotLead ? 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)' : '#f8fafc'}; padding: 18px 24px; border-bottom: 1px solid #e5e7eb;">
+              <div style="background: #f8fafc; padding: 18px 24px; border-bottom: 1px solid #e5e7eb;">
                 <div style="display: flex; align-items: center;">
                   <!-- Avatar -->
-                  <div style="width: 52px; height: 52px; border-radius: 50%; background: ${student.isHotLead ? 'linear-gradient(135deg, #f97316, #ea580c)' : 'linear-gradient(135deg, #3b82f6, #2563eb)'}; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 700; margin-right: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 700; margin-right: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     ${student.userName.charAt(0).toUpperCase()}
                   </div>
                   
                   <!-- Name and status -->
                   <div style="flex: 1;">
-                    <div style="font-size: 18px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <div style="font-size: 18px; font-weight: 700; color: #0f172a;">
                       ${student.userName}
-                      ${student.isHotLead ? '<span style="background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #ea580c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #fed7aa; display: inline-flex; align-items: center; gap: 4px;">🔥 Hot Lead</span>' : ''}
                     </div>
                     <div style="font-size: 13px; color: ${student.isCompleted ? '#059669' : '#d97706'}; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
                       ${student.isCompleted 
@@ -812,14 +807,13 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12">
-            <AvatarFallback className={student.isHotLead ? 'bg-orange-100 text-orange-700' : ''}>
+            <AvatarFallback>
               {student.userName.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg">
               {student.userName}
-              {student.isHotLead && <Flame className="h-4 w-4 text-orange-500" />}
             </CardTitle>
             <CardDescription>
               {student.isCompleted ? (
@@ -940,7 +934,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           suggestions: analytics.openFeedback.suggestions.map(f => f.text),
         },
         studentProfile: analytics.studentProfile,
-        hotLeadsCount: analytics.hotLeads.length,
       };
 
       const { data, error } = await supabase.functions.invoke('analyze-survey-insights', {
@@ -1312,21 +1305,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </Card>
               )}
             </div>
-
-            {/* Hot Leads */}
-            {aiInsights.alertasHotLeads && (
-              <Card className="border-orange-200/50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2 text-orange-700">
-                    <Flame className="h-4 w-4" />
-                    Alerta: Hot Leads
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm leading-relaxed">{aiInsights.alertasHotLeads}</p>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Análise dos Professores */}
             {aiInsights.analiseProfessores && (
@@ -1941,22 +1919,19 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
                     selectedStudent?.userId === student.userId
                       ? 'border-primary bg-primary/5'
-                      : student.isHotLead
-                      ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 hover:bg-orange-100'
                       : 'hover:bg-muted/50'
                   }`}
                   onClick={() => setSelectedStudent(student)}
                 >
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className={student.isHotLead ? 'bg-orange-100 text-orange-700' : ''}>
+                      <AvatarFallback>
                         {student.userName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="text-sm font-medium flex items-center gap-1.5">
                         {student.userName}
-                        {student.isHotLead && <Flame className="h-3 w-3 text-orange-500" />}
                         {student.isFirstTime && (
                           <Badge variant="outline" className="text-[10px] px-1 py-0">1ª vez</Badge>
                         )}
