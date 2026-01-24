@@ -456,15 +456,92 @@ export function useSurveyAnalytics(classId: string | null) {
         suggestions: completed.map(r => r.q22_suggestions).filter((v): v is string => !!v && v.length > 3),
       };
 
+      // Count answered questions for each response
+      const countAnsweredQuestions = (r: SurveyResponse): { answered: number; total: number } => {
+        const total = 61; // Total questions in survey
+        let answered = 0;
+        
+        // Count non-null answers (excluding id, user_id, class_id, created_at, completed_at, is_completed, current_section)
+        if (r.q1_satisfaction_level) answered++;
+        if (r.q2_first_time_course !== null) answered++;
+        if (r.q3_hygor_expectations) answered++;
+        if (r.q4_hygor_clarity) answered++;
+        if (r.q5_hygor_time) answered++;
+        if (r.q6_hygor_liked_most) answered++;
+        if (r.q7_hygor_improve) answered++;
+        if (r.q8_patrick_expectations) answered++;
+        if (r.q9_patrick_clarity) answered++;
+        if (r.q10_patrick_time) answered++;
+        if (r.q11_patrick_liked_most) answered++;
+        if (r.q12_patrick_improve) answered++;
+        if (r.q13_organization) answered++;
+        if (r.q14_content_relevance) answered++;
+        if (r.q15_teacher_competence) answered++;
+        if (r.q16_material_quality) answered++;
+        if (r.q17_punctuality) answered++;
+        if (r.q18_infrastructure) answered++;
+        if (r.q19_support_team) answered++;
+        if (r.q20_coffee_break) answered++;
+        if (r.q21_liked_most_today) answered++;
+        if (r.q22_suggestions) answered++;
+        if (r.q23_start_preference) answered++;
+        if (r.q24_hunger_level) answered++;
+        if (r.q25_urgency_level) answered++;
+        if (r.q26_investment_level) answered++;
+        if (r.q27_weekly_time) answered++;
+        if (r.q28_current_reality) answered++;
+        if (r.q29_monitor_name) answered++;
+        if (r.q30_monitor_technical) answered++;
+        if (r.q31_monitor_interest) answered++;
+        if (r.q32_monitor_engagement) answered++;
+        if (r.q33_monitor_posture) answered++;
+        if (r.q34_monitor_communication) answered++;
+        if (r.q35_monitor_contribution) answered++;
+        if (r.q36_monitor_strength) answered++;
+        if (r.q37_monitor_improve) answered++;
+        if (r.q38_eder_technical) answered++;
+        if (r.q39_eder_interest) answered++;
+        if (r.q40_eder_engagement) answered++;
+        if (r.q41_eder_posture) answered++;
+        if (r.q42_eder_communication) answered++;
+        if (r.q43_eder_contribution) answered++;
+        if (r.q44_eder_strength) answered++;
+        if (r.q45_eder_improve) answered++;
+        if (r.q46_patrick_m_technical) answered++;
+        if (r.q47_patrick_m_interest) answered++;
+        if (r.q48_patrick_m_engagement) answered++;
+        if (r.q49_patrick_m_posture) answered++;
+        if (r.q50_patrick_m_communication) answered++;
+        if (r.q51_patrick_m_contribution) answered++;
+        if (r.q52_patrick_m_strength) answered++;
+        if (r.q53_patrick_m_improve) answered++;
+        if (r.q54_eder_m_technical) answered++;
+        if (r.q55_eder_m_interest) answered++;
+        if (r.q56_eder_m_engagement) answered++;
+        if (r.q57_eder_m_posture) answered++;
+        if (r.q58_eder_m_communication) answered++;
+        if (r.q59_eder_m_contribution) answered++;
+        if (r.q60_eder_m_strength) answered++;
+        if (r.q61_eder_m_improve) answered++;
+        
+        return { answered, total };
+      };
+
       // Responses by student
-      const responsesByStudent = responses.map(r => ({
-        userId: r.user_id,
-        userName: r.user_profiles?.full_name || 'Aluno',
-        completedAt: r.completed_at,
-        satisfaction: r.q1_satisfaction_level,
-        isFirstTime: r.q2_first_time_course || false,
-        isHotLead: isHighUrgency(r.q25_urgency_level),
-      }));
+      const responsesByStudent = responses.map(r => {
+        const progress = countAnsweredQuestions(r);
+        return {
+          userId: r.user_id,
+          userName: r.user_profiles?.full_name || 'Aluno',
+          completedAt: r.completed_at,
+          satisfaction: r.q1_satisfaction_level,
+          isFirstTime: r.q2_first_time_course || false,
+          isHotLead: isHighUrgency(r.q25_urgency_level),
+          answeredQuestions: progress.answered,
+          totalQuestions: progress.total,
+          progressPercent: Math.round((progress.answered / progress.total) * 100),
+        };
+      });
 
       return {
         totalResponses: responses.length,
