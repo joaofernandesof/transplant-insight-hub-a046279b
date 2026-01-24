@@ -2747,28 +2747,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
       {/* ============== OVERVIEW TAB ============== */}
       <TabsContent value="overview" className="space-y-6">
-        {/* Header with export button */}
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleExportPDF('overview')}
-            disabled={exportingTab === 'overview'}
-            className="flex items-center gap-2"
-          >
-            {exportingTab === 'overview' ? (
-              <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                Gerando PDF...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                Exportar PDF
-              </>
-            )}
-          </Button>
-        </div>
         
         {/* Header Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
