@@ -594,17 +594,44 @@ const buildDistributionData = (
 };
 
 // ============== ENHANCED QUESTION DETAIL COMPONENT ==============
-// Color palette for distribution bars
-const distributionColors = [
-  '#10b981', // emerald
-  '#3b82f6', // blue
-  '#8b5cf6', // violet
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#06b6d4', // cyan
-  '#ec4899', // pink
-  '#84cc16', // lime
-];
+// Semantic color function for response values
+// Bad = Red, Medium = Yellow/Orange, Good = Blue, Excellent = Green
+const getSemanticColor = (responseKey: string): string => {
+  const key = responseKey.toLowerCase().trim();
+  
+  // EXCELLENT / VERY GOOD - GREEN
+  const excellentWords = [
+    'excelente', 'muito satisfeito', 'totalmente', 'atendeu plenamente', 
+    'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 
+    'concordo totalmente', 'alta urgência', 'muito bom', 'superou'
+  ];
+  if (excellentWords.some(w => key.includes(w))) return '#10b981'; // emerald-500
+  
+  // GOOD - BLUE
+  const goodWords = [
+    'satisfeito', 'adequado', 'bom', 'concordo', 'atendeu', 
+    'de 5 a 10', 'suficiente', 'média urgência', 'sim'
+  ];
+  if (goodWords.some(w => key.includes(w))) return '#3b82f6'; // blue-500
+  
+  // MEDIUM / NEUTRAL - YELLOW/ORANGE
+  const mediumWords = [
+    'neutro', 'parcialmente', 'regular', 'médio', 'até 5', 
+    'razoável', 'moderado', 'indiferente'
+  ];
+  if (mediumWords.some(w => key.includes(w))) return '#f59e0b'; // amber-500
+  
+  // BAD / POOR - RED
+  const badWords = [
+    'insuficiente', 'insatisfeito', 'muito insatisfeito', 'ruim', 'péssimo', 
+    'não', 'discordo', 'fraco', 'baixo', 'nunca', 'sem urgência',
+    'não atendeu', 'não concordo'
+  ];
+  if (badWords.some(w => key.includes(w))) return '#ef4444'; // red-500
+  
+  // Default fallback - neutral gray/slate
+  return '#64748b'; // slate-500
+};
 
 function QuestionDetailView({ 
   question, 
@@ -613,11 +640,11 @@ function QuestionDetailView({
   question: QuestionRating;
   respondents?: { name: string; value: string }[];
 }) {
-  // Build distribution data with colors
-  const distributionData = Object.entries(question.distribution).map(([key, value], idx) => ({
+  // Build distribution data with semantic colors
+  const distributionData = Object.entries(question.distribution).map(([key, value]) => ({
     name: key,
     value,
-    fill: distributionColors[idx % distributionColors.length],
+    fill: getSemanticColor(key),
   }));
 
   // Total responses including zeros
