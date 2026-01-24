@@ -172,21 +172,31 @@ export function useAcademyEnrollments() {
   };
 
   // Transform enrollments to PresentialCourse format for the component
-  const presentialCourses = enrollments.map(enrollment => ({
-    id: enrollment.id,
-    classId: enrollment.classId, // Adiciona o classId para navegação
-    name: enrollment.courseName,
-    description: enrollment.courseDescription,
-    duration: enrollment.courseName.toLowerCase().includes("fellowship") ? "180h" : "60h",
-    type: mapCourseType(enrollment.courseName),
-    startDate: enrollment.startDate,
-    endDate: enrollment.endDate,
-    city: enrollment.location?.split(" - ").pop()?.split(",")[0] || null,
-    state: enrollment.location?.match(/\b([A-Z]{2})\b/)?.[1] || null,
-    status: mapStatus(enrollment.status, enrollment.enrollmentStatus),
-    spotsAvailable: undefined,
-    totalSpots: enrollment.maxStudents || undefined,
-  }));
+  // Sort by start_date (oldest to newest), nulls at the end
+  const presentialCourses = enrollments
+    .map(enrollment => ({
+      id: enrollment.id,
+      classId: enrollment.classId, // Adiciona o classId para navegação
+      name: enrollment.courseName,
+      description: enrollment.courseDescription,
+      duration: enrollment.courseName.toLowerCase().includes("fellowship") ? "180h" : "60h",
+      type: mapCourseType(enrollment.courseName),
+      startDate: enrollment.startDate,
+      endDate: enrollment.endDate,
+      city: enrollment.location?.split(" - ").pop()?.split(",")[0] || null,
+      state: enrollment.location?.match(/\b([A-Z]{2})\b/)?.[1] || null,
+      status: mapStatus(enrollment.status, enrollment.enrollmentStatus),
+      spotsAvailable: undefined,
+      totalSpots: enrollment.maxStudents || undefined,
+    }))
+    .sort((a, b) => {
+      // Courses with null dates go to the end
+      if (!a.startDate && !b.startDate) return 0;
+      if (!a.startDate) return 1;
+      if (!b.startDate) return -1;
+      // Sort by start date (oldest first)
+      return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+    });
 
   return {
     enrollments,
