@@ -1935,7 +1935,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center justify-between">
-                Distribuição de Satisfação
+                Distribuição por Nota
                 <Badge variant="outline" className="text-[10px] font-normal">Clique para detalhar</Badge>
               </CardTitle>
             </CardHeader>
@@ -1964,21 +1964,21 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           {/* Satisfaction Distribution */}
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
             setDrilldownData({
-              title: 'Distribuição de Satisfação',
+              title: 'Distribuição de Notas',
               category: 'satisfaction',
               students: analytics.responsesByStudent
-                .filter(s => s.satisfaction)
                 .map(s => ({
                   name: s.userName,
-                  response: s.satisfaction || '',
-                  value: null
+                  response: s.overallScore.toFixed(1),
+                  value: s.overallScore
                 }))
+                .sort((a, b) => (b.value || 0) - (a.value || 0))
             });
             setDrilldownOpen(true);
           }}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center justify-between">
-                Distribuição de Satisfação
+                Distribuição por Nota
                 <Badge variant="outline" className="text-[10px] font-normal">Clique para detalhar</Badge>
               </CardTitle>
             </CardHeader>
@@ -3191,23 +3191,18 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       </Avatar>
                       <span className="font-medium text-sm">{student.name}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {student.value !== null && student.value !== undefined && (
-                        <Badge 
-                          variant="secondary"
-                          className={`${
-                            student.value >= 4 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                            student.value >= 3 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          }`}
-                        >
-                          {student.value}/5
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="text-xs">
-                        {student.response}
+                    {/* Show numeric score with gradient color */}
+                    {student.value !== null && student.value !== undefined && (
+                      <Badge 
+                        className="font-bold px-3"
+                        style={{ 
+                          backgroundColor: getGradientBgStyle(student.value, 0, 10),
+                          color: getGradientColorStyle(student.value, 0, 10)
+                        }}
+                      >
+                        {student.value.toFixed(1)}
                       </Badge>
-                    </div>
+                    )}
                   </div>
                 ))
               )}
