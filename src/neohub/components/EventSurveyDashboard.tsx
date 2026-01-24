@@ -425,7 +425,7 @@ async function exportRankingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   await createPDFFromHTML(html, `ranking-perguntas-${new Date().toISOString().split('T')[0]}.pdf`, { fitToSinglePage: true });
 }
 
-// QUESTIONS PDF
+// QUESTIONS PDF - Shows each student's answer next to their name
 async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   // Gradient color function for PDF (0-5 scale)
   const getRatingColorFn = (value: number): string => {
@@ -440,29 +440,47 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
     const hue = (percent / 100) * 120;
     return `hsl(${hue}, 70%, 92%)`;
   };
+
+  // Get semantic color for response value
+  const getValueColor = (value: string): string => {
+    const key = value.toLowerCase().trim();
+    const excellentWords = ['excelente', 'muito satisfeito', 'totalmente', 'atendeu plenamente', 
+      'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 'concordo totalmente', 'muito bom', 'superou'];
+    if (excellentWords.some(w => key.includes(w))) return '#059669';
+    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu', 'de 5 a 10', 'suficiente', 'sim'];
+    if (goodWords.some(w => key.includes(w))) return '#2563eb';
+    const mediumWords = ['neutro', 'parcialmente', 'regular', 'médio', 'até 5', 'razoável', 'moderado'];
+    if (mediumWords.some(w => key.includes(w))) return '#d97706';
+    const badWords = ['insuficiente', 'insatisfeito', 'ruim', 'péssimo', 'não', 'discordo', 'fraco', 'baixo', 'nunca'];
+    if (badWords.some(w => key.includes(w))) return '#dc2626';
+    return '#475569';
+  };
   
   const categories = [...new Set(analytics.allQuestions.map(q => q.category))];
 
   const html = `
-    <div style="padding: 0;">
-      <div style="background: linear-gradient(135deg, #8b5cf6, #6366f1); height: 80px; display: flex; align-items: center; justify-content: center;">
-        <h1 style="color: white; font-size: 24px; margin: 0;">📝 Análise por Perguntas</h1>
-      </div>
-      
-      <div style="padding: 30px 40px;">
-        <p style="text-align: center; color: #6b7280; font-size: 12px; margin-bottom: 30px;">
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff;">
+      <div style="background: linear-gradient(135deg, #8b5cf6, #6366f1); padding: 24px 32px;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span style="font-size: 28px;">📝</span>
+          <h1 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">Análise por Perguntas</h1>
+        </div>
+        <p style="text-align: center; color: rgba(255,255,255,0.85); font-size: 12px; margin: 8px 0 0 0;">
           Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
           <br/>${analytics.allQuestions.length} perguntas analisadas
         </p>
-        
+      </div>
+      
+      <div style="padding: 24px 32px;">
         ${categories.map(category => {
           const questionsInCategory = analytics.allQuestions.filter(q => q.category === category);
           return `
-            <div style="margin-bottom: 30px;">
-              <h2 style="font-size: 16px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;">
+            <div style="margin-bottom: 32px;">
+              <h2 style="font-size: 16px; font-weight: 700; color: #1f2937; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 3px solid #8b5cf6;">
                 ${category}
               </h2>
               ${questionsInCategory.map((q, idx) => {
+                // Get all respondents with their specific answers
                 const respondents = analytics.responsesByStudent
                   .map(student => {
                     const response = student.responses.find(r => r.questionKey === q.questionKey);
@@ -471,31 +489,42 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
                   .filter((r): r is { name: string; value: string } => r !== null && r.value !== '');
                 
                 return `
-                  <div style="background: ${idx % 2 === 0 ? '#f9fafb' : 'white'}; padding: 16px; border-radius: 8px; margin-bottom: 8px;">
+                  <div style="background: ${idx % 2 === 0 ? '#f9fafb' : '#ffffff'}; padding: 16px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e5e7eb;">
+                    <!-- Question header with score -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                      <p style="margin: 0; font-size: 13px; font-weight: 500; color: #1f2937; flex: 1;">${q.questionLabel}</p>
-                      <div style="background: ${getRatingBgFn(q.avgRating)}; padding: 6px 12px; border-radius: 8px; margin-left: 12px;">
-                        <span style="font-size: 18px; font-weight: bold; color: ${getRatingColorFn(q.avgRating)};">${q.avgRating.toFixed(1)}</span>
+                      <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1f2937; flex: 1;">${q.questionLabel}</p>
+                      <div style="background: ${getRatingBgFn(q.avgRating)}; padding: 8px 14px; border-radius: 10px; margin-left: 12px; min-width: 50px; text-align: center;">
+                        <span style="font-size: 20px; font-weight: 800; color: ${getRatingColorFn(q.avgRating)};">${q.avgRating.toFixed(1)}</span>
                       </div>
                     </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    
+                    <!-- Summary distribution -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
                       ${Object.entries(q.distribution).map(([key, value]) => `
-                        <span style="background: #e5e7eb; padding: 4px 8px; border-radius: 12px; font-size: 11px; color: #374151;">
+                        <span style="background: #f3e8ff; padding: 4px 10px; border-radius: 12px; font-size: 11px; color: #7c3aed; border: 1px solid #e9d5ff;">
                           ${key}: <strong>${value}</strong>
                         </span>
                       `).join('')}
                     </div>
+                    
+                    <!-- Student answers table -->
                     ${respondents.length > 0 ? `
-                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e5e7eb;">
-                        <p style="margin: 0 0 6px 0; font-size: 11px; color: #6b7280;">Quem respondeu:</p>
-                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                          ${respondents.slice(0, 10).map(r => `
-                            <span style="background: #f3e8ff; color: #7c3aed; padding: 2px 8px; border-radius: 10px; font-size: 10px;">
-                              ${r.name}
-                            </span>
-                          `).join('')}
-                          ${respondents.length > 10 ? `<span style="font-size: 10px; color: #6b7280;">+${respondents.length - 10} mais</span>` : ''}
-                        </div>
+                      <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                        <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #6b7280;">Quem respondeu:</p>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                          <tbody>
+                            ${respondents.map((r, rIdx) => `
+                              <tr style="background: ${rIdx % 2 === 0 ? '#faf5ff' : '#ffffff'};">
+                                <td style="padding: 6px 10px; border: 1px solid #e5e7eb; font-weight: 500; color: #374151; width: 45%;">
+                                  ${r.name}
+                                </td>
+                                <td style="padding: 6px 10px; border: 1px solid #e5e7eb; color: ${getValueColor(r.value)}; font-weight: 600;">
+                                  ${r.value}
+                                </td>
+                              </tr>
+                            `).join('')}
+                          </tbody>
+                        </table>
                       </div>
                     ` : ''}
                   </div>
@@ -504,6 +533,11 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
             </div>
           `;
         }).join('')}
+      </div>
+      
+      <!-- Footer -->
+      <div style="background: #f8fafc; padding: 12px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+        <p style="margin: 0; font-size: 10px; color: #94a3b8;">Relatório de Análise por Perguntas • Sistema de Pesquisa de Satisfação</p>
       </div>
     </div>
   `;
