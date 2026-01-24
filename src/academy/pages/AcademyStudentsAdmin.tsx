@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Users, GraduationCap, Settings } from "lucide-react";
 import { EnrollmentManagementPanel } from "../components/EnrollmentManagementPanel";
+import { ClassSettingsPanel } from "../components/ClassSettingsPanel";
 
 export function AcademyStudentsAdmin() {
   const navigate = useNavigate();
@@ -45,16 +45,7 @@ export function AcademyStudentsAdmin() {
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Configurações de Turmas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Funcionalidades de configuração em desenvolvimento.
-                </p>
-              </CardContent>
-            </Card>
+            <ClassSettingsPanel />
           </TabsContent>
         </Tabs>
       </main>
