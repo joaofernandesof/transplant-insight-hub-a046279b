@@ -291,34 +291,52 @@ export function useSurveyAnalytics(classId: string | null) {
     queryFn: async (): Promise<SurveyAnalytics | null> => {
       if (!classId) return null;
 
-      // First fetch surveys
+      // First fetch COMPLETED surveys only (exclude admin test data)
       const { data: surveys, error } = await supabase
         .from('day1_satisfaction_surveys')
         .select('*')
-        .eq('class_id', classId);
+        .eq('class_id', classId)
+        .eq('is_completed', true);
 
       if (error) throw error;
       if (!surveys || surveys.length === 0) return null;
-
-      // Fetch user info from neohub_users (primary source)
+      
+      // Get user emails to filter out admin test responses
       const userIds = surveys.map(s => s.user_id);
+      const { data: usersForFilter } = await supabase
+        .from('neohub_users')
+        .select('user_id, email')
+        .in('user_id', userIds);
+      
+      // Filter out admin test accounts from analytics
+      const adminEmails = ['adm@neofolic.com.br', 'orlandifranca@yahoo.com.br'];
+      const adminUserIds = new Set(
+        usersForFilter?.filter(u => adminEmails.includes(u.email || '')).map(u => u.user_id) || []
+      );
+      
+      const filteredSurveys = surveys.filter(s => !adminUserIds.has(s.user_id));
+      if (filteredSurveys.length === 0) return null;
+
+      // Fetch user info from neohub_users (primary source) for filtered surveys
+      const filteredUserIds = filteredSurveys.map(s => s.user_id);
       const { data: users } = await supabase
         .from('neohub_users')
         .select('user_id, full_name, avatar_url')
-        .in('user_id', userIds);
+        .in('user_id', filteredUserIds);
 
       const profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null }>();
       users?.forEach((u) => {
         profilesMap.set(u.user_id, { full_name: u.full_name, avatar_url: u.avatar_url });
       });
 
-      // Map surveys to include user profile data
-      const responses: SurveyResponse[] = surveys.map(s => ({
+      // Map surveys to include user profile data (already filtered + completed)
+      const responses: SurveyResponse[] = filteredSurveys.map(s => ({
         ...s,
         user_profiles: profilesMap.get(s.user_id) || undefined,
       })) as SurveyResponse[];
       
-      const completed = responses.filter(r => r.is_completed);
+      // All responses are already completed (filtered above)
+      const completed = responses;
 
       // NPS Calculation
       const nps = calculateNPS(completed.map(r => r.q1_satisfaction_level));
