@@ -118,33 +118,6 @@ export function AcademyCourses() {
           </h1>
           <p className="text-sm text-muted-foreground">Trilhas de capacitação e aulas gravadas</p>
         </div>
-        {/* Progress Overview */}
-        <Card className="bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/30 dark:to-green-950/30 dark:border-emerald-800">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
-                  {presentialCourses.length + (enrolledCourses.length > 0 ? 1 : 0)}
-                </div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-500">Cursos Matriculados</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{completedCourses.length}</div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-500">Concluídos</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
-                  {presentialCourses.filter(c => c.status === 'confirmed').length}
-                </div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-500">Turmas Confirmadas</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{totalProgress}%</div>
-                <p className="text-sm text-emerald-600 dark:text-emerald-500">Progresso Online</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
