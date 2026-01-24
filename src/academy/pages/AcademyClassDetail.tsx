@@ -129,11 +129,6 @@ export function AcademyClassDetail() {
   return (
     <div className="min-h-screen bg-background w-full overflow-x-hidden">
       <div className="p-4 pt-16 lg:pt-6 pb-8 space-y-6">
-        {/* Back button */}
-        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2 -ml-2">
-          <ChevronLeft className="h-4 w-4" />
-          Voltar para Meus Cursos
-        </Button>
 
         {/* Header - Simple text only */}
         <div className="space-y-2">
