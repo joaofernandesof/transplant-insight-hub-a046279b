@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   BarChart,
   Bar,
@@ -29,7 +30,6 @@ import {
   TrendingUp,
   Award,
   MessageSquare,
-  Flame,
   Star,
   CheckCircle2,
   Clock,
@@ -48,6 +48,7 @@ import {
   Zap,
   Brain,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -57,6 +58,17 @@ import { useSurveyAnalytics, type QuestionRating, type StudentDetailedResponse }
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+
+interface EventSurveyDashboardProps {
+  classId: string | null;
+}
+
+// Drill-down dialog state type
+interface DrilldownData {
+  title: string;
+  category: string;
+  students: { name: string; response: string; value?: number | null }[];
+}
 
 interface EventSurveyDashboardProps {
   classId: string | null;
@@ -878,6 +890,110 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   // AI Insights state
   const [aiInsights, setAiInsights] = useState<any>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  
+  // Drill-down dialog state
+  const [drilldownOpen, setDrilldownOpen] = useState(false);
+  const [drilldownData, setDrilldownData] = useState<DrilldownData | null>(null);
+
+  // Helper to get students who answered a specific satisfaction level
+  const getSatisfactionDrilldown = useMemo(() => {
+    if (!analytics) return () => [];
+    return (satisfactionLevel: string) => {
+      return analytics.responsesByStudent
+        .filter(s => s.satisfaction?.toLowerCase() === satisfactionLevel.toLowerCase())
+        .map(s => ({
+          name: s.userName,
+          response: s.satisfaction || '',
+          value: null
+        }));
+    };
+  }, [analytics]);
+
+  // Helper to get students by NPS category
+  const getNPSDrilldown = useMemo(() => {
+    if (!analytics) return () => [];
+    return (category: 'Promotores' | 'Neutros' | 'Detratores') => {
+      return analytics.responsesByStudent.filter(s => {
+        if (!s.satisfaction) return false;
+        const rating = s.responses.find(r => r.questionKey === 'q1_satisfaction_level')?.numericValue;
+        if (rating === null || rating === undefined) return false;
+        
+        if (category === 'Promotores') return rating >= 4;
+        if (category === 'Neutros') return rating === 3;
+        if (category === 'Detratores') return rating < 3;
+        return false;
+      }).map(s => ({
+        name: s.userName,
+        response: s.satisfaction || '',
+        value: s.responses.find(r => r.questionKey === 'q1_satisfaction_level')?.numericValue
+      }));
+    };
+  }, [analytics]);
+
+  // Helper to get students by infrastructure metric
+  const getInfrastructureDrilldown = useMemo(() => {
+    if (!analytics) return () => [];
+    
+    const metricKeyMap: Record<string, string> = {
+      'Organização': 'q13_organization',
+      'Conteúdo': 'q14_content_relevance',
+      'Professores': 'q15_teacher_competence',
+      'Material': 'q16_material_quality',
+      'Pontualidade': 'q17_punctuality',
+      'Infraestrutura': 'q18_infrastructure',
+      'Equipe': 'q19_support_team',
+      'Coffee Break': 'q20_coffee_break',
+    };
+    
+    return (metricName: string) => {
+      const questionKey = metricKeyMap[metricName];
+      if (!questionKey) return [];
+      
+      return analytics.responsesByStudent.map(s => {
+        const response = s.responses.find(r => r.questionKey === questionKey);
+        return {
+          name: s.userName,
+          response: response?.value || 'Não respondeu',
+          value: response?.numericValue
+        };
+      }).filter(s => s.response !== 'Não respondeu')
+        .sort((a, b) => (b.value || 0) - (a.value || 0));
+    };
+  }, [analytics]);
+
+  // Handle chart bar click
+  const handleSatisfactionBarClick = (data: any) => {
+    if (!data || !data.name) return;
+    const students = getSatisfactionDrilldown(data.name);
+    setDrilldownData({
+      title: `Satisfação: ${data.name}`,
+      category: 'satisfaction',
+      students
+    });
+    setDrilldownOpen(true);
+  };
+
+  const handleNPSBarClick = (data: any) => {
+    if (!data || !data.name) return;
+    const students = getNPSDrilldown(data.name as 'Promotores' | 'Neutros' | 'Detratores');
+    setDrilldownData({
+      title: `NPS: ${data.name}`,
+      category: 'nps',
+      students
+    });
+    setDrilldownOpen(true);
+  };
+
+  const handleInfrastructureBarClick = (data: any) => {
+    if (!data || !data.name) return;
+    const students = getInfrastructureDrilldown(data.name);
+    setDrilldownData({
+      title: `${data.name} (média: ${data.value?.toFixed(1) || 'N/A'})`,
+      category: 'infrastructure',
+      students
+    });
+    setDrilldownOpen(true);
+  };
 
   const handleExportPDF = async (tab: 'overview' | 'ranking' | 'questions' | 'students') => {
     if (!analytics) return;
@@ -1456,9 +1572,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Satisfaction Distribution */}
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Distribuição de Satisfação</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center justify-between">
+                Distribuição de Satisfação
+                <Badge variant="outline" className="text-[10px] font-normal">Clique para detalhar</Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <ResponsiveContainer width="100%" height={180}>
@@ -1466,7 +1585,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  <Bar 
+                    dataKey="value" 
+                    radius={[0, 4, 4, 0]} 
+                    onClick={(data) => handleSatisfactionBarClick(data)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     {satisfactionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
@@ -1478,9 +1602,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Card>
 
           {/* NPS Distribution */}
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Distribuição NPS</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center justify-between">
+                Distribuição NPS
+                <Badge variant="outline" className="text-[10px] font-normal">Clique para detalhar</Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <ResponsiveContainer width="100%" height={180}>
@@ -1488,7 +1615,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  <Bar 
+                    dataKey="value" 
+                    radius={[0, 4, 4, 0]}
+                    onClick={(data) => handleNPSBarClick(data)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     {npsDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
@@ -1503,9 +1635,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         {/* Infrastructure & Instructors */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Infrastructure Radar */}
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Infraestrutura (Médias)</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center justify-between">
+                Infraestrutura (Médias)
+                <Badge variant="outline" className="text-[10px] font-normal">Clique para detalhar</Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <ResponsiveContainer width="100%" height={220}>
@@ -1513,7 +1648,13 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   <XAxis type="number" domain={[0, 5]} hide />
                   <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 10 }} />
                   <Tooltip formatter={(value: number) => value.toFixed(1)} />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
+                  <Bar 
+                    dataKey="value" 
+                    fill="hsl(var(--primary))" 
+                    radius={[0, 4, 4, 0]}
+                    onClick={(data) => handleInfrastructureBarClick(data)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <LabelList dataKey="value" position="right" formatter={(v: number) => v.toFixed(1)} className="text-xs" />
                   </Bar>
                 </BarChart>
@@ -1980,6 +2121,64 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <StudentDetailView student={selectedStudent} />
         )}
       </TabsContent>
+
+      {/* Drilldown Dialog */}
+      <Dialog open={drilldownOpen} onOpenChange={setDrilldownOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              {drilldownData?.title}
+            </DialogTitle>
+            <DialogDescription>
+              {drilldownData?.students.length || 0} aluno(s) nesta categoria
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 max-h-[60vh]">
+            <div className="space-y-2 pr-4">
+              {drilldownData?.students.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Nenhum aluno nesta categoria
+                </p>
+              ) : (
+                drilldownData?.students.map((student, idx) => (
+                  <div 
+                    key={idx} 
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback className="text-sm">
+                          {student.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium text-sm">{student.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {student.value !== null && student.value !== undefined && (
+                        <Badge 
+                          variant="secondary"
+                          className={`${
+                            student.value >= 4 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                            student.value >= 3 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                          }`}
+                        >
+                          {student.value}/5
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {student.response}
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </Tabs>
   );
 }
