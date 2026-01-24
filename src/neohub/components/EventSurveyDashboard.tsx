@@ -890,6 +890,43 @@ const getSemanticColor = (responseKey: string): string => {
   return '#64748b'; // slate-500
 };
 
+// Possible options for different question types (order matters - best to worst for display)
+const OPTION_TEMPLATES: Record<string, string[]> = {
+  satisfaction: ['Muito Satisfeito', 'Satisfeito', 'Neutro', 'Insatisfeito', 'Muito Insatisfeito'],
+  expectations: ['Superou Expectativas', 'Atendeu Plenamente', 'Atendeu Parcialmente', 'Não Atendeu'],
+  time: ['Mais do que suficiente', 'Adequado', 'Insuficiente'],
+  quality: ['Excelente', 'Muito Bom', 'Bom', 'Regular', 'Ruim'],
+  agreement: ['Concordo Totalmente', 'Concordo', 'Neutro', 'Discordo', 'Discordo Totalmente'],
+  level: ['Muito Alto', 'Alto', 'Médio', 'Baixo', 'Muito Baixo'],
+  urgency: ['Alta Urgência', 'Média Urgência', 'Sem Urgência'],
+  hunger: ['Mais de 10 horas', 'De 5 a 10 horas', 'Até 5 horas'],
+  investment: ['Alto Investimento', 'Médio Investimento', 'Baixo Investimento'],
+};
+
+// Detect question type from questionKey or category
+const detectQuestionType = (question: QuestionRating): string => {
+  const key = question.questionKey.toLowerCase();
+  const label = question.questionLabel.toLowerCase();
+  
+  if (key.includes('time') || key.includes('tempo') || label.includes('tempo')) return 'time';
+  if (key.includes('expectat') || label.includes('expectativa')) return 'expectations';
+  if (key.includes('satisfaction') || key.includes('satisfacao') || label.includes('satisfação')) return 'satisfaction';
+  if (key.includes('urgency') || key.includes('urgencia') || label.includes('urgência')) return 'urgency';
+  if (key.includes('hunger') || key.includes('fome') || label.includes('fome')) return 'hunger';
+  if (key.includes('investment') || key.includes('investimento') || label.includes('investimento')) return 'investment';
+  if (key.includes('clarity') || key.includes('clareza') || key.includes('technical') || key.includes('tecnico')) return 'quality';
+  
+  // Default based on distribution keys present
+  const keys = Object.keys(question.distribution).join(' ').toLowerCase();
+  if (keys.includes('adequado') || keys.includes('suficiente') || keys.includes('insuficiente')) return 'time';
+  if (keys.includes('superou') || keys.includes('atendeu') || keys.includes('plenamente')) return 'expectations';
+  if (keys.includes('urgência') || keys.includes('urgencia')) return 'urgency';
+  if (keys.includes('satisfeito')) return 'satisfaction';
+  if (keys.includes('excelente') || keys.includes('bom') || keys.includes('ruim')) return 'quality';
+  
+  return 'quality'; // fallback
+};
+
 function QuestionDetailView({ 
   question, 
   respondents 
@@ -897,12 +934,31 @@ function QuestionDetailView({
   question: QuestionRating;
   respondents?: { name: string; value: string }[];
 }) {
-  // Build distribution data with semantic colors
-  const distributionData = Object.entries(question.distribution).map(([key, value]) => ({
-    name: key,
-    value,
-    fill: getSemanticColor(key),
-  }));
+  // Detect question type and get all possible options
+  const questionType = detectQuestionType(question);
+  const allOptions = OPTION_TEMPLATES[questionType] || [];
+  
+  // Build distribution data with ALL options, including zeros
+  const distributionData = allOptions.length > 0
+    ? allOptions.map(option => {
+        // Find matching key in distribution (case-insensitive partial match)
+        const normalizedOption = option.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const matchingKey = Object.keys(question.distribution).find(key => {
+          const normalizedKey = key.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return normalizedKey.includes(normalizedOption) || normalizedOption.includes(normalizedKey);
+        });
+        
+        return {
+          name: matchingKey || option,
+          value: matchingKey ? question.distribution[matchingKey] : 0,
+          fill: getSemanticColor(option.toLowerCase()),
+        };
+      })
+    : Object.entries(question.distribution).map(([key, value]) => ({
+        name: key,
+        value,
+        fill: getSemanticColor(key),
+      }));
 
   // Total responses including zeros
   const totalResponses = distributionData.reduce((sum, d) => sum + d.value, 0);
