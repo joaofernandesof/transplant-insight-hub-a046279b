@@ -96,10 +96,23 @@ interface PresentialCourse {
   city: string | null;
   state: string | null;
   status: 'confirmed' | 'pending' | 'completed' | 'in_progress';
+  type?: 'formacao360' | 'instrumentador' | 'fellowship' | 'licenca' | 'monitor' | 'brows';
+}
+
+// Get gradient color based on course type
+function getCourseGradient(courseName: string): string {
+  const name = courseName.toLowerCase();
+  if (name.includes("brows")) return "from-zinc-700 to-zinc-900";
+  if (name.includes("fellowship")) return "from-purple-500 to-violet-600";
+  if (name.includes("instrumentador")) return "from-blue-500 to-indigo-600";
+  if (name.includes("licença") || name.includes("licenca")) return "from-amber-500 to-orange-600";
+  if (name.includes("monitor")) return "from-pink-500 to-rose-600";
+  return "from-emerald-500 to-green-600"; // Default for Formação 360
 }
 
 function ScheduleCard({ classData, onClick }: { classData: PresentialCourse; onClick: () => void }) {
   const status = getEventStatus(classData.startDate, classData.endDate, classData.status);
+  const gradientColor = getCourseGradient(classData.name);
   
   // Extract city from location
   const city = classData.city || 'São Paulo';
@@ -111,7 +124,7 @@ function ScheduleCard({ classData, onClick }: { classData: PresentialCourse; onC
       <CardContent className="p-4">
         <div className="flex items-start gap-3 sm:gap-4">
           {/* Icon */}
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-emerald-500 to-green-600">
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${gradientColor}`}>
             <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
           
