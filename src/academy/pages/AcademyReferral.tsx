@@ -168,9 +168,6 @@ export function AcademyReferral() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">
             {/* Step 1 */}
             <div className="flex-1 flex flex-col items-center text-center p-4 relative">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-3 ring-4 ring-emerald-500/20">
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">1</span>
-              </div>
               <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-2">
                 <Send className="h-5 w-5 text-emerald-500" />
               </div>
@@ -190,9 +187,6 @@ export function AcademyReferral() {
 
             {/* Step 2 */}
             <div className="flex-1 flex flex-col items-center text-center p-4 relative">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-3 ring-4 ring-emerald-500/20">
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">2</span>
-              </div>
               <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-2">
                 <UserPlus className="h-5 w-5 text-emerald-500" />
               </div>
@@ -212,9 +206,6 @@ export function AcademyReferral() {
 
             {/* Step 3 */}
             <div className="flex-1 flex flex-col items-center text-center p-4 relative">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-3 ring-4 ring-emerald-500/20">
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">3</span>
-              </div>
               <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-2">
                 <Wallet className="h-5 w-5 text-emerald-500" />
               </div>
@@ -383,46 +374,6 @@ export function AcademyReferral() {
         </CardContent>
       </Card>
 
-      {/* How it works */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-emerald-500" />
-            Como Funciona
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid sm:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-3">
-                <span className="text-lg font-bold text-emerald-600">1</span>
-              </div>
-              <h4 className="font-medium mb-1">Compartilhe seu link</h4>
-              <p className="text-sm text-muted-foreground">
-                Envie seu link exclusivo para médicos interessados na Formação 360
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-3">
-                <span className="text-lg font-bold text-emerald-600">2</span>
-              </div>
-              <h4 className="font-medium mb-1">Médico se cadastra</h4>
-              <p className="text-sm text-muted-foreground">
-                O indicado preenche os dados e nossa equipe entra em contato
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-3">
-                <span className="text-lg font-bold text-emerald-600">3</span>
-              </div>
-              <h4 className="font-medium mb-1">Receba sua comissão</h4>
-              <p className="text-sm text-muted-foreground">
-                Após a matrícula, você recebe {currentCommissionRate}% via PIX
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
