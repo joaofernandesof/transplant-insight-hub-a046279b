@@ -235,18 +235,16 @@ export function useSurveyAnalytics(classId: string | null) {
       if (error) throw error;
       if (!surveys || surveys.length === 0) return null;
 
-      // Fetch user profiles separately using class enrollments
+      // Fetch user info from neohub_users (primary source)
       const userIds = surveys.map(s => s.user_id);
-      const { data: enrollments } = await supabase
-        .from('class_enrollments')
-        .select('user_id, user_profiles!inner(id, full_name, avatar_url)')
+      const { data: users } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name, avatar_url')
         .in('user_id', userIds);
 
       const profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null }>();
-      enrollments?.forEach((e: any) => {
-        if (e.user_profiles) {
-          profilesMap.set(e.user_id, e.user_profiles);
-        }
+      users?.forEach((u) => {
+        profilesMap.set(u.user_id, { full_name: u.full_name, avatar_url: u.avatar_url });
       });
 
       // Map surveys to include user profile data
