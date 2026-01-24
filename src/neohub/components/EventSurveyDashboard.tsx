@@ -545,7 +545,7 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   await createPDFFromHTML(html, `perguntas-${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
-// STUDENTS PDF - High fidelity site replica (looks like a screenshot)
+// STUDENTS PDF - All students in a single PDF (sequential)
 const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) => {
   // Helper function to get semantic color for responses
   const getValueColor = (value: string): string => {
@@ -571,8 +571,8 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
     return '#64748b';
   };
 
-  // Generate one PDF per student to match the site exactly
-  for (const student of students) {
+  // Generate all students in a single HTML for one PDF
+  const studentsHtml = students.map((student, studentIndex) => {
     const groupedResponses = student.responses.reduce((acc, r) => {
       if (!acc[r.category]) acc[r.category] = [];
       acc[r.category].push(r);
@@ -582,8 +582,8 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
     const totalResponded = student.responses.filter(r => r.value).length;
     const totalQuestions = student.responses.length;
 
-    const html = `
-      <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; min-height: 100vh;">
+    return `
+      <div style="page-break-before: ${studentIndex > 0 ? 'always' : 'auto'}; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; min-height: 100vh;">
         <!-- Page wrapper with subtle gray background like the site -->
         <div style="max-width: 900px; margin: 0 auto; padding: 32px;">
           
@@ -591,7 +591,7 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
           <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 16px; padding: 32px 40px; margin-bottom: 24px; text-align: center;">
             <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
             <h1 style="color: white; font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px;">
-              Relatório Individual
+              Relatório Individual #${studentIndex + 1}
             </h1>
             <p style="color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 500; margin: 0;">
               ${student.userName}
@@ -645,11 +645,41 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
         </div>
       </div>
     `;
+  }).join('');
+
+  const fullHtml = `
+    <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <!-- Cover page -->
+      <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); min-height: 200px; padding: 40px; text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+        <h1 style="color: white; font-size: 28px; font-weight: 700; margin: 0 0 12px 0;">
+          Relatórios Individuais - Pesquisa de Satisfação
+        </h1>
+        <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">
+          ${students.length} alunos • Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </p>
+      </div>
+      
+      <!-- Index of students -->
+      <div style="padding: 24px 32px; background: #f8fafc;">
+        <h2 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 16px 0;">📋 Índice de Alunos</h2>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+          ${students.map((s, i) => `
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+              <span style="font-size: 12px; font-weight: 600; color: #6366f1;">#${i + 1}</span>
+              <span style="font-size: 13px; color: #374151;">${s.userName}</span>
+              <span style="margin-left: auto; font-size: 12px; font-weight: 700; color: #6366f1;">${s.overallScore.toFixed(1)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      
+      ${studentsHtml}
+    </div>
+  `;
     
-    // Generate individual PDF for each student
-    const safeName = student.userName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-    await createPDFFromHTML(html, `relatorio-${safeName}-${new Date().toISOString().split('T')[0]}.pdf`);
-  }
+  // Generate a single consolidated PDF
+  await createPDFFromHTML(fullHtml, `relatorios-alunos-${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
 // MATRIX PDF - High-fidelity heatmap export
