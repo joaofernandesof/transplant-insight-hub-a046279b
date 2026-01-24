@@ -510,8 +510,16 @@ export function useSurveyAnalytics(classId: string | null) {
       ederMMetrics.overallAvg = (ederMMetrics.avgTechnical + ederMMetrics.avgInterest + ederMMetrics.avgEngagement + 
                                   ederMMetrics.avgPosture + ederMMetrics.avgCommunication + ederMMetrics.avgContribution) / 6;
 
-      // Custom monitor evaluation (q29-q37)
-      const monitorsByName: Record<string, MonitorMetrics> = {};
+      // Custom monitor evaluation (q29-q37) - with full metrics calculation
+      const monitorsByName: Record<string, MonitorMetrics & { 
+        technicalValues: number[]; 
+        interestValues: number[]; 
+        engagementValues: number[]; 
+        postureValues: number[]; 
+        communicationValues: number[]; 
+        contributionValues: number[];
+      }> = {};
+      
       completed.forEach(r => {
         const name = r.q29_monitor_name;
         if (!name) return;
@@ -528,12 +536,62 @@ export function useSurveyAnalytics(classId: string | null) {
             overallAvg: 0,
             strengths: [],
             improvements: [],
+            technicalValues: [],
+            interestValues: [],
+            engagementValues: [],
+            postureValues: [],
+            communicationValues: [],
+            contributionValues: [],
           };
         }
         
-        // Add values (will calculate average later)
+        // Collect numeric values from q30-q35
+        const tech = getRatingValue(r.q30_monitor_technical);
+        const interest = getRatingValue(r.q31_monitor_interest);
+        const engage = getRatingValue(r.q32_monitor_engagement);
+        const posture = getRatingValue(r.q33_monitor_posture);
+        const comm = getRatingValue(r.q34_monitor_communication);
+        const contrib = getRatingValue(r.q35_monitor_contribution);
+        
+        if (tech !== null) monitorsByName[name].technicalValues.push(tech);
+        if (interest !== null) monitorsByName[name].interestValues.push(interest);
+        if (engage !== null) monitorsByName[name].engagementValues.push(engage);
+        if (posture !== null) monitorsByName[name].postureValues.push(posture);
+        if (comm !== null) monitorsByName[name].communicationValues.push(comm);
+        if (contrib !== null) monitorsByName[name].contributionValues.push(contrib);
+        
+        // Collect text feedback
         if (r.q36_monitor_strength) monitorsByName[name].strengths.push(r.q36_monitor_strength);
         if (r.q37_monitor_improve) monitorsByName[name].improvements.push(r.q37_monitor_improve);
+      });
+      
+      // Calculate averages for each monitor
+      Object.values(monitorsByName).forEach(monitor => {
+        monitor.avgTechnical = calculateAverage(monitor.technicalValues);
+        monitor.avgInterest = calculateAverage(monitor.interestValues);
+        monitor.avgEngagement = calculateAverage(monitor.engagementValues);
+        monitor.avgPosture = calculateAverage(monitor.postureValues);
+        monitor.avgCommunication = calculateAverage(monitor.communicationValues);
+        monitor.avgContribution = calculateAverage(monitor.contributionValues);
+        monitor.overallAvg = (monitor.avgTechnical + monitor.avgInterest + monitor.avgEngagement + 
+                              monitor.avgPosture + monitor.avgCommunication + monitor.avgContribution) / 6;
+      });
+      
+      // Convert to clean MonitorMetrics (remove temp arrays)
+      const cleanMonitorsByName: Record<string, MonitorMetrics> = {};
+      Object.entries(monitorsByName).forEach(([key, val]) => {
+        cleanMonitorsByName[key] = {
+          name: val.name,
+          avgTechnical: val.avgTechnical,
+          avgInterest: val.avgInterest,
+          avgEngagement: val.avgEngagement,
+          avgPosture: val.avgPosture,
+          avgCommunication: val.avgCommunication,
+          avgContribution: val.avgContribution,
+          overallAvg: val.overallAvg,
+          strengths: val.strengths,
+          improvements: val.improvements,
+        };
       });
 
       // Infrastructure metrics
@@ -945,7 +1003,7 @@ export function useSurveyAnalytics(classId: string | null) {
           patrickM: patrickMMetrics,
           ederM: ederMMetrics,
         },
-        monitorsByName,
+        monitorsByName: cleanMonitorsByName,
         infrastructure,
         studentProfile,
         hotLeads,

@@ -1317,38 +1317,47 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     },
   ];
 
-  // Build monitor radar data from all available monitors
+  // Build monitor radar data from all available monitors (dynamic from monitorsByName)
+  const MONITOR_COLORS = [
+    { key: 'eder', name: 'Dr. Eder', stroke: 'hsl(262, 83%, 58%)', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200 dark:border-violet-800', text: 'text-violet-700 dark:text-violet-400', dot: 'bg-violet-500' },
+    { key: 'patrick', name: 'Dr. Patrick M', stroke: 'hsl(25, 95%, 53%)', bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-700 dark:text-orange-400', dot: 'bg-orange-500' },
+    { key: 'gleyldes', name: 'Dra. Gleyldes', stroke: 'hsl(330, 80%, 50%)', bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200 dark:border-pink-800', text: 'text-pink-700 dark:text-pink-400', dot: 'bg-pink-500' },
+    { key: 'elenilton', name: 'Dr. Elenilton', stroke: 'hsl(190, 70%, 45%)', bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-200 dark:border-cyan-800', text: 'text-cyan-700 dark:text-cyan-400', dot: 'bg-cyan-500' },
+  ];
+
+  // Get active monitors from analytics (those with data)
+  const activeMonitors = Object.entries(analytics.monitorsByName || {})
+    .filter(([_, metrics]) => metrics && metrics.overallAvg > 0)
+    .map(([name, metrics]) => {
+      // Match to color config
+      const normalized = name.toLowerCase();
+      const colorConfig = MONITOR_COLORS.find(c => normalized.includes(c.key)) || 
+        { key: name, name, stroke: 'hsl(220, 70%, 50%)', bg: 'bg-slate-50 dark:bg-slate-950/30', border: 'border-slate-200 dark:border-slate-800', text: 'text-slate-700 dark:text-slate-400', dot: 'bg-slate-500' };
+      return { ...colorConfig, name, metrics };
+    });
+
+  // Also include fixed monitors from analytics.monitors if they have data
+  const fixedMonitorsData = [
+    { ...MONITOR_COLORS[0], metrics: analytics.monitors.eder },
+    { ...MONITOR_COLORS[1], metrics: analytics.monitors.patrickM },
+  ].filter(m => m.metrics && m.metrics.overallAvg > 0);
+
+  // Combine and dedupe by name  
+  const allMonitors = [...fixedMonitorsData];
+  activeMonitors.forEach(am => {
+    if (!allMonitors.find(m => m.name.toLowerCase() === am.name.toLowerCase())) {
+      allMonitors.push(am);
+    }
+  });
+
+  // Build radar data with all monitors
   const monitorRadarData = [
-    {
-      metric: 'Técnica',
-      'Dr. Eder': analytics.monitors.eder?.avgTechnical || 0,
-      'Dr. Patrick M': analytics.monitors.patrickM?.avgTechnical || 0,
-    },
-    {
-      metric: 'Interesse',
-      'Dr. Eder': analytics.monitors.eder?.avgInterest || 0,
-      'Dr. Patrick M': analytics.monitors.patrickM?.avgInterest || 0,
-    },
-    {
-      metric: 'Engajamento',
-      'Dr. Eder': analytics.monitors.eder?.avgEngagement || 0,
-      'Dr. Patrick M': analytics.monitors.patrickM?.avgEngagement || 0,
-    },
-    {
-      metric: 'Postura',
-      'Dr. Eder': analytics.monitors.eder?.avgPosture || 0,
-      'Dr. Patrick M': analytics.monitors.patrickM?.avgPosture || 0,
-    },
-    {
-      metric: 'Comunicação',
-      'Dr. Eder': analytics.monitors.eder?.avgCommunication || 0,
-      'Dr. Patrick M': analytics.monitors.patrickM?.avgCommunication || 0,
-    },
-    {
-      metric: 'Contribuição',
-      'Dr. Eder': analytics.monitors.eder?.avgContribution || 0,
-      'Dr. Patrick M': analytics.monitors.patrickM?.avgContribution || 0,
-    },
+    { metric: 'Técnica', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgTechnical || 0])) },
+    { metric: 'Interesse', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgInterest || 0])) },
+    { metric: 'Engajamento', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgEngagement || 0])) },
+    { metric: 'Postura', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgPosture || 0])) },
+    { metric: 'Comunicação', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgCommunication || 0])) },
+    { metric: 'Contribuição', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgContribution || 0])) },
   ];
 
   const wordFrequency = getWordFrequency([
@@ -2327,22 +2336,17 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     tickCount={6}
                     axisLine={false}
                   />
-                  <Radar 
-                    name="Dr. Eder" 
-                    dataKey="Dr. Eder" 
-                    stroke="hsl(262, 83%, 58%)" 
-                    fill="transparent" 
-                    fillOpacity={0}
-                    strokeWidth={3}
-                  />
-                  <Radar 
-                    name="Dr. Patrick M" 
-                    dataKey="Dr. Patrick M" 
-                    stroke="hsl(25, 95%, 53%)" 
-                    fill="transparent" 
-                    fillOpacity={0}
-                    strokeWidth={3}
-                  />
+                  {allMonitors.map((monitor, idx) => (
+                    <Radar 
+                      key={monitor.name}
+                      name={monitor.name} 
+                      dataKey={monitor.name} 
+                      stroke={monitor.stroke} 
+                      fill="transparent" 
+                      fillOpacity={0}
+                      strokeWidth={3}
+                    />
+                  ))}
                   <Legend 
                     wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
                     iconSize={14}
@@ -2353,27 +2357,28 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   />
                 </RadarChart>
               </ResponsiveContainer>
-              <div className="flex flex-col gap-4 min-w-[200px]">
-                <div className="p-4 rounded-xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-3 h-3 rounded-full bg-violet-500" />
-                    <span className="font-semibold text-violet-700 dark:text-violet-400">Dr. Eder</span>
+              <div className="flex flex-col gap-3 min-w-[200px]">
+                {allMonitors.map((monitor) => (
+                  <div 
+                    key={monitor.name}
+                    className={`p-4 rounded-xl ${monitor.bg} border ${monitor.border}`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`w-3 h-3 rounded-full ${monitor.dot}`} />
+                      <span className={`font-semibold ${monitor.text}`}>{monitor.name}</span>
+                    </div>
+                    <div className={`text-2xl font-bold ${monitor.text}`}>
+                      {monitor.metrics?.overallAvg?.toFixed(1) || 'N/A'}/5
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
                   </div>
-                  <div className="text-2xl font-bold text-violet-600">
-                    {analytics.monitors.eder?.overallAvg?.toFixed(1) || 'N/A'}/5
+                ))}
+                {allMonitors.length === 0 && (
+                  <div className="text-center text-muted-foreground py-8">
+                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhum monitor avaliado</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
-                </div>
-                <div className="p-4 rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-3 h-3 rounded-full bg-orange-500" />
-                    <span className="font-semibold text-orange-700 dark:text-orange-400">Dr. Patrick M</span>
-                  </div>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {analytics.monitors.patrickM?.overallAvg?.toFixed(1) || 'N/A'}/5
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
-                </div>
+                )}
               </div>
             </div>
           </CardContent>
