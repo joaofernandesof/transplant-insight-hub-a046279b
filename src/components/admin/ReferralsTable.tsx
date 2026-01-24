@@ -394,24 +394,50 @@ export function ReferralsTable({
               <p>Nenhuma indicação encontrada</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <ScrollArea className="h-[550px]">
-                <div className="min-w-[900px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <ColumnHeader field="name" label="Indicado" />
-                        <ColumnHeader field="email" label="Email" />
-                        <ColumnHeader field="phone" label="Telefone" />
-                        <ColumnHeader field="referrer_name" label="Indicador" />
-                        <ColumnHeader field="source" label="Origem" />
-                        <ColumnHeader field="status" label="Status" />
-                        <ColumnHeader field="created_at" label="Data/Hora" />
-                        <ColumnHeader field="ganho_indicador" label="Ganho Indicador" />
-                        <ColumnHeader field="ganho_indicado" label="Ganho Indicado" />
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
+            <ScrollArea className="h-[550px]">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="min-w-[100px]">
+                      <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                        Indicado <SortIcon field="name" />
+                      </button>
+                    </TableHead>
+                    <TableHead className="min-w-[140px]">
+                      <button onClick={() => handleSort('email')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                        Email <SortIcon field="email" />
+                      </button>
+                    </TableHead>
+                    <TableHead className="min-w-[100px]">
+                      <button onClick={() => handleSort('phone')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                        Telefone <SortIcon field="phone" />
+                      </button>
+                    </TableHead>
+                    <TableHead className="min-w-[110px]">
+                      <button onClick={() => handleSort('referrer_name')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                        Indicador <SortIcon field="referrer_name" />
+                      </button>
+                    </TableHead>
+                    <TableHead className="min-w-[80px]">
+                      <button onClick={() => handleSort('source')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                        Origem <SortIcon field="source" />
+                      </button>
+                    </TableHead>
+                    <TableHead className="min-w-[100px]">
+                      <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                        Status <SortIcon field="status" />
+                      </button>
+                    </TableHead>
+                    <TableHead className="min-w-[90px]">
+                      <button onClick={() => handleSort('created_at')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                        Data <SortIcon field="created_at" />
+                      </button>
+                    </TableHead>
+                    <TableHead className="min-w-[70px] text-center">Ganho Ind.</TableHead>
+                    <TableHead className="min-w-[70px] text-center">Desc. Ind.</TableHead>
+                    <TableHead className="min-w-[140px] text-right pr-4">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {filteredAndSortedData.map((referral) => {
                     const gains = calculateGains(referral);
@@ -425,73 +451,53 @@ export function ReferralsTable({
                         className="cursor-pointer hover:bg-muted/50 transition-colors"
                         onClick={() => setSelectedReferral(referral)}
                       >
-                        <TableCell>
-                          <div className="font-medium">{referral.name}</div>
+                        <TableCell className="py-2">
+                          <div className="font-medium text-sm truncate max-w-[100px]">{referral.name}</div>
                         </TableCell>
-                        <TableCell>
-                          <div className="text-sm text-muted-foreground truncate max-w-[180px]">
+                        <TableCell className="py-2">
+                          <div className="text-xs text-muted-foreground truncate max-w-[140px]">
                             {referral.email}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{referral.phone}</div>
+                        <TableCell className="py-2">
+                          <div className="text-xs">{referral.phone}</div>
                         </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-sm">{referral.referrer_name}</div>
-                            {referral.referrer_code && (
-                              <div className="text-xs text-muted-foreground font-mono">{referral.referrer_code}</div>
-                            )}
-                          </div>
+                        <TableCell className="py-2">
+                          <div className="text-sm truncate max-w-[110px]">{referral.referrer_name}</div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-2">
                           <Badge 
                             variant="outline" 
-                            className={`${sourceConfig.bgColor} ${sourceConfig.color} border text-xs`}
+                            className={`${sourceConfig.bgColor} ${sourceConfig.color} border text-xs px-1.5 py-0.5`}
                           >
-                            {sourceConfig.label}
+                            {referral.source === 'student' ? 'Ind.' : 'Indic.'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-2">
                           <Badge 
                             variant="outline" 
-                            className={`${statusConfig.bgColor} ${statusConfig.color} border text-xs flex items-center gap-1 w-fit`}
+                            className={`${statusConfig.bgColor} ${statusConfig.color} border text-xs flex items-center gap-1 w-fit px-1.5 py-0.5`}
                           >
                             {statusConfig.icon}
-                            {statusConfig.label}
+                            <span className="truncate max-w-[60px]">{statusConfig.label}</span>
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3 text-muted-foreground" />
-                              {format(new Date(referral.created_at), "dd/MM/yy", { locale: ptBR })}
-                            </div>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {format(new Date(referral.created_at), "HH:mm", { locale: ptBR })}
-                            </div>
+                        <TableCell className="py-2">
+                          <div className="text-xs">
+                            {format(new Date(referral.created_at), "dd/MM/yy", { locale: ptBR })}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className={`text-sm font-medium ${isPaidOff ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
-                            <span className="flex items-center gap-1">
-                              5%
-                              {isPaidOff && <span className="text-xs">(aplicado)</span>}
-                              {!isPaidOff && <span className="text-xs italic">(potencial)</span>}
-                            </span>
-                          </div>
+                        <TableCell className="py-2 text-center">
+                          <span className={`text-xs font-medium ${isPaidOff ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                            5%
+                          </span>
                         </TableCell>
-                        <TableCell>
-                          <div className={`text-sm font-medium ${isPaidOff ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
-                            <span className="flex items-center gap-1">
-                              5%
-                              {isPaidOff && <span className="text-xs">(aplicado)</span>}
-                              {!isPaidOff && <span className="text-xs italic">(potencial)</span>}
-                            </span>
-                          </div>
+                        <TableCell className="py-2 text-center">
+                          <span className={`text-xs font-medium ${isPaidOff ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
+                            5%
+                          </span>
                         </TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
+                        <TableCell className="py-2 pr-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1">
                             <Select 
                               value={referral.status} 
@@ -532,9 +538,7 @@ export function ReferralsTable({
                   })}
                 </TableBody>
               </Table>
-                </div>
-              </ScrollArea>
-            </div>
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
