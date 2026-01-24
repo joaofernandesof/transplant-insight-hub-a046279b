@@ -2,58 +2,35 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Info, TrendingUp, ShieldCheck, AlertTriangle } from 'lucide-react';
-import {
-  ComposedChart,
-  Area,
-  Line,
-  XAxis,
-  YAxis,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
 
-// Gerar dados do gráfico serrote (sawtooth)
-// O estoque começa no máximo, cai linearmente até zero, e sobe instantaneamente de volta
-const generateSawtoothData = () => {
-  const data = [];
-  const maxStock = 100;
-  const cycleLength = 50; // pontos por ciclo
-  
-  // Primeiro ciclo: máximo -> zero
-  for (let i = 0; i <= cycleLength; i++) {
-    const stock = maxStock - (maxStock * i / cycleLength);
-    data.push({
-      time: i,
-      stock: Math.max(0, stock),
-      label: i === 0 ? 'Início' : i === cycleLength ? 'Reposição' : '',
-    });
-  }
-  
-  // Segundo ciclo: máximo -> parcial (para mostrar continuidade)
-  for (let i = 1; i <= cycleLength * 0.7; i++) {
-    const stock = maxStock - (maxStock * i / cycleLength);
-    data.push({
-      time: cycleLength + i,
-      stock: Math.max(0, stock),
-      label: '',
-    });
-  }
-  
-  return data;
-};
-
-const data = generateSawtoothData();
-
-// Níveis de referência
+// Níveis de referência (em porcentagem)
 const LEVELS = {
-  max: 100,      // 2 meses
-  reorder: 66,   // 1 mês (ponto de reposição)
-  safety: 33,    // 15 dias (estoque de segurança)
+  max: 100,      // Máximo
+  reorder: 66,   // Ponto de reposição
+  safety: 33,    // Estoque de segurança
   zero: 0,
 };
 
 export function InventoryConceptChart() {
+  // Dimensões do gráfico
+  const chartWidth = 100;
+  const chartHeight = 100;
+  
+  // Primeiro ciclo: 100 -> 0 (60% do gráfico)
+  const cycle1EndX = 55;
+  // Segundo ciclo: 100 -> ~30 (40% restante)
+  const cycle2EndX = 95;
+  const cycle2EndY = 30;
+
+  // Pontos da linha serrote (coordenadas SVG onde Y cresce pra baixo)
+  // Convertemos: Y real = chartHeight - (valor em %)
+  const sawtoothPath = `
+    M 5,${chartHeight - LEVELS.max}
+    L ${cycle1EndX},${chartHeight - LEVELS.zero}
+    L ${cycle1EndX},${chartHeight - LEVELS.max}
+    L ${cycle2EndX},${chartHeight - cycle2EndY}
+  `;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -82,119 +59,129 @@ export function InventoryConceptChart() {
           </Badge>
         </div>
 
-        {/* Gráfico */}
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-              {/* Zona Verde (Confortável): acima do ponto de reposição */}
-              <defs>
-                <linearGradient id="greenZone" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.2} />
-                </linearGradient>
-                <linearGradient id="amberZone" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.2} />
-                </linearGradient>
-                <linearGradient id="redZone" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0.2} />
-                </linearGradient>
-              </defs>
+        {/* Área do Gráfico */}
+        <div className="relative">
+          {/* Eixo Y - Labels à esquerda */}
+          <div className="absolute left-0 top-0 bottom-8 w-16 flex flex-col justify-between text-xs text-muted-foreground pr-2">
+            <span className="text-right">2 meses</span>
+            <span className="text-right">1 mês</span>
+            <span className="text-right">15 dias</span>
+            <span className="text-right">Zero</span>
+          </div>
 
-              {/* Eixos */}
-              <XAxis 
-                dataKey="time" 
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-                tickLine={false}
-                tick={false}
+          {/* Container do Gráfico SVG */}
+          <div className="ml-16 mr-16">
+            <svg 
+              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              className="w-full h-64 border-l-2 border-b-2 border-foreground/20"
+              preserveAspectRatio="none"
+            >
+              {/* Faixa Verde (Confortável): de 100% até 66% */}
+              <rect 
+                x="0" 
+                y={chartHeight - LEVELS.max} 
+                width={chartWidth} 
+                height={LEVELS.max - LEVELS.reorder}
+                fill="#10b981"
+                opacity="0.15"
               />
-              <YAxis 
-                domain={[0, 100]}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-                tickLine={false}
-                ticks={[0, 33, 66, 100]}
-                tickFormatter={(value) => {
-                  if (value === 100) return '2 meses';
-                  if (value === 66) return '1 mês';
-                  if (value === 33) return '15 dias';
-                  return 'Zero';
-                }}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                width={60}
+              
+              {/* Faixa Amarela (Segurança): de 66% até 33% */}
+              <rect 
+                x="0" 
+                y={chartHeight - LEVELS.reorder} 
+                width={chartWidth} 
+                height={LEVELS.reorder - LEVELS.safety}
+                fill="#f59e0b"
+                opacity="0.15"
+              />
+              
+              {/* Faixa Vermelha (Crítica): de 33% até 0% */}
+              <rect 
+                x="0" 
+                y={chartHeight - LEVELS.safety} 
+                width={chartWidth} 
+                height={LEVELS.safety}
+                fill="#ef4444"
+                opacity="0.15"
               />
 
-              {/* Linhas de referência horizontais */}
-              <ReferenceLine 
-                y={LEVELS.max} 
+              {/* Linhas horizontais tracejadas */}
+              {/* Máximo (Verde) */}
+              <line 
+                x1="0" y1={chartHeight - LEVELS.max} 
+                x2={chartWidth} y2={chartHeight - LEVELS.max}
                 stroke="#10b981" 
-                strokeDasharray="6 4" 
-                strokeWidth={1.5}
-                label={{ value: 'Máximo', position: 'right', fontSize: 10, fill: '#10b981' }}
+                strokeWidth="0.8" 
+                strokeDasharray="3 2"
               />
-              <ReferenceLine 
-                y={LEVELS.reorder} 
+              {/* Ponto de Reposição (Amarelo) */}
+              <line 
+                x1="0" y1={chartHeight - LEVELS.reorder} 
+                x2={chartWidth} y2={chartHeight - LEVELS.reorder}
                 stroke="#f59e0b" 
-                strokeDasharray="6 4" 
-                strokeWidth={1.5}
-                label={{ value: 'Ponto de Reposição', position: 'right', fontSize: 10, fill: '#f59e0b' }}
+                strokeWidth="0.8" 
+                strokeDasharray="3 2"
               />
-              <ReferenceLine 
-                y={LEVELS.safety} 
+              {/* Estoque de Segurança (Vermelho) */}
+              <line 
+                x1="0" y1={chartHeight - LEVELS.safety} 
+                x2={chartWidth} y2={chartHeight - LEVELS.safety}
                 stroke="#ef4444" 
-                strokeDasharray="6 4" 
-                strokeWidth={1.5}
-                label={{ value: 'Estoque Segurança', position: 'right', fontSize: 10, fill: '#ef4444' }}
+                strokeWidth="0.8" 
+                strokeDasharray="3 2"
               />
 
-              {/* Linha vertical de reposição */}
-              <ReferenceLine 
-                x={50} 
-                stroke="hsl(var(--foreground))" 
-                strokeDasharray="4 4" 
-                strokeWidth={2}
+              {/* Área preenchida sob a linha serrote */}
+              <defs>
+                <clipPath id="sawtoothClip">
+                  <path d={`${sawtoothPath} L ${cycle2EndX},${chartHeight} L 5,${chartHeight} Z`} />
+                </clipPath>
+              </defs>
+              
+              {/* Preenchimento verde claro da área do estoque */}
+              <rect 
+                x="0" y="0" 
+                width={chartWidth} height={chartHeight}
+                fill="#10b981"
+                opacity="0.3"
+                clipPath="url(#sawtoothClip)"
               />
 
-              {/* Área do estoque */}
-              <Area
-                type="linear"
-                dataKey="stock"
+              {/* Linha vertical tracejada de reposição */}
+              <line 
+                x1={cycle1EndX} y1="0" 
+                x2={cycle1EndX} y2={chartHeight}
+                stroke="currentColor" 
+                strokeWidth="0.8" 
+                strokeDasharray="2 2"
+                opacity="0.5"
+              />
+
+              {/* Linha serrote principal */}
+              <path 
+                d={sawtoothPath}
+                fill="none"
                 stroke="#1f2937"
-                strokeWidth={2.5}
-                fill="url(#greenZone)"
-                dot={false}
-                activeDot={{ r: 4, fill: '#10b981' }}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="dark:stroke-gray-300"
               />
+            </svg>
+          </div>
 
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const value = payload[0].value as number;
-                    let status = 'Crítico';
-                    let color = 'text-red-600';
-                    if (value > LEVELS.reorder) {
-                      status = 'Confortável';
-                      color = 'text-emerald-600';
-                    } else if (value > LEVELS.safety) {
-                      status = 'Segurança';
-                      color = 'text-amber-600';
-                    }
-                    return (
-                      <div className="bg-popover border rounded-lg shadow-lg p-2 text-sm">
-                        <p className="font-medium">Nível: {value.toFixed(0)}%</p>
-                        <p className={color}>Status: {status}</p>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+          {/* Eixo Y - Labels à direita */}
+          <div className="absolute right-0 top-0 bottom-8 w-14 flex flex-col justify-between text-xs pl-2">
+            <span className="text-emerald-600 font-medium">Máximo</span>
+            <span className="text-amber-600 font-medium">Ponto</span>
+            <span className="text-red-600 font-medium">Estoque</span>
+            <span className="text-muted-foreground"></span>
+          </div>
         </div>
 
         {/* Labels do eixo X */}
-        <div className="flex justify-between px-16 text-xs text-muted-foreground -mt-2">
+        <div className="flex justify-between ml-16 mr-16 text-xs text-muted-foreground">
           <span>Início</span>
           <span className="text-emerald-600 font-semibold">↑ Reposição</span>
           <span>Tempo →</span>
