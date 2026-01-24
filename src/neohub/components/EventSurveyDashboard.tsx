@@ -3016,59 +3016,110 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         
         {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800">
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/20 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Nota Máxima</p>
-                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {analytics.questionRankings.length > 0 
-                      ? Math.max(...analytics.questionRankings.map(q => q.avgRating)).toFixed(1)
-                      : '-'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {(() => {
+            const maxValue = analytics.questionRankings.length > 0 
+              ? Math.max(...analytics.questionRankings.map(q => q.avgRating))
+              : 0;
+            const gradientColor = getGradientColorStyle(maxValue, 0, 10);
+            const gradientBg = getGradientBgStyle(maxValue, 0, 10);
+            
+            return (
+              <Card 
+                className="border"
+                style={{ 
+                  background: `linear-gradient(135deg, ${gradientBg}, ${gradientBg}80)`,
+                  borderColor: gradientColor + '40'
+                }}
+              >
+                <CardContent className="pt-4 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="p-2 rounded-lg"
+                      style={{ backgroundColor: gradientColor + '30' }}
+                    >
+                      <TrendingUp className="h-5 w-5" style={{ color: gradientColor }} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Nota Máxima</p>
+                      <p className="text-2xl font-bold" style={{ color: gradientColor }}>
+                        {maxValue > 0 ? maxValue.toFixed(1) : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
           
-          <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-500/20 rounded-lg">
-                  <BarChart3 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Média Geral</p>
-                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                    {analytics.questionRankings.length > 0 
-                      ? (analytics.questionRankings.reduce((acc, q) => acc + q.avgRating, 0) / analytics.questionRankings.length).toFixed(1)
-                      : '-'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {(() => {
+            const avgValue = analytics.questionRankings.length > 0 
+              ? analytics.questionRankings.reduce((acc, q) => acc + q.avgRating, 0) / analytics.questionRankings.length
+              : 0;
+            const gradientColor = getGradientColorStyle(avgValue, 0, 10);
+            const gradientBg = getGradientBgStyle(avgValue, 0, 10);
+            
+            return (
+              <Card 
+                className="border"
+                style={{ 
+                  background: `linear-gradient(135deg, ${gradientBg}, ${gradientBg}80)`,
+                  borderColor: gradientColor + '40'
+                }}
+              >
+                <CardContent className="pt-4 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="p-2 rounded-lg"
+                      style={{ backgroundColor: gradientColor + '30' }}
+                    >
+                      <BarChart3 className="h-5 w-5" style={{ color: gradientColor }} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Média Geral</p>
+                      <p className="text-2xl font-bold" style={{ color: gradientColor }}>
+                        {avgValue > 0 ? avgValue.toFixed(1) : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
           
-          <Card className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-500/20 rounded-lg">
-                  <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Nota Mínima</p>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                    {analytics.questionRankings.length > 0 
-                      ? Math.min(...analytics.questionRankings.map(q => q.avgRating)).toFixed(1)
-                      : '-'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {(() => {
+            const minValue = analytics.questionRankings.length > 0 
+              ? Math.min(...analytics.questionRankings.map(q => q.avgRating))
+              : 0;
+            const gradientColor = getGradientColorStyle(minValue, 0, 10);
+            const gradientBg = getGradientBgStyle(minValue, 0, 10);
+            
+            return (
+              <Card 
+                className="border"
+                style={{ 
+                  background: `linear-gradient(135deg, ${gradientBg}, ${gradientBg}80)`,
+                  borderColor: gradientColor + '40'
+                }}
+              >
+                <CardContent className="pt-4 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="p-2 rounded-lg"
+                      style={{ backgroundColor: gradientColor + '30' }}
+                    >
+                      <TrendingDown className="h-5 w-5" style={{ color: gradientColor }} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Nota Mínima</p>
+                      <p className="text-2xl font-bold" style={{ color: gradientColor }}>
+                        {minValue > 0 ? minValue.toFixed(1) : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
           
           <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <CardContent className="pt-4 pb-3">
