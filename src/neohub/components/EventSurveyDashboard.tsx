@@ -175,18 +175,24 @@ async function createPDFFromHTML(htmlContent: string, filename: string, options?
   container.style.left = '-9999px';
   container.style.top = '0';
   container.style.width = '750px'; // Slightly narrower for better margins
+  container.style.minHeight = '100px'; // Ensure minimum height
   container.style.background = '#ffffff';
   container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   container.style.lineHeight = '1.5';
   container.style.color = '#1f2937';
   container.style.padding = '20px'; // Add internal padding
+  container.style.overflow = 'visible'; // Ensure content is visible
   document.body.appendChild(container);
   container.innerHTML = htmlContent;
   
-  // Wait for fonts and styles to load
-  await new Promise(resolve => setTimeout(resolve, 150));
+  // Wait for fonts and styles to load - increased timeout for complex content
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   try {
+    // Get actual content height after rendering
+    const contentHeight = container.scrollHeight;
+    const contentWidth = container.scrollWidth;
+    
     const canvas = await html2canvas(container, {
       scale: 2, // Good quality without being too heavy
       useCORS: true,
@@ -194,7 +200,18 @@ async function createPDFFromHTML(htmlContent: string, filename: string, options?
       backgroundColor: '#ffffff',
       allowTaint: true,
       imageTimeout: 0,
+      height: contentHeight, // Explicitly set height
+      width: Math.max(contentWidth, 750),
+      windowHeight: contentHeight + 100,
+      scrollY: 0,
+      scrollX: 0,
     });
+
+    // Check if canvas has content
+    if (canvas.width === 0 || canvas.height === 0) {
+      console.error('Canvas is empty - content may not have rendered');
+      throw new Error('Failed to render PDF content');
+    }
 
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfWidth = pdf.internal.pageSize.getWidth();
