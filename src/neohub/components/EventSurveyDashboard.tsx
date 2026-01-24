@@ -2116,69 +2116,83 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex flex-col lg:flex-row items-center gap-8">
-                <ResponsiveContainer width="100%" height={400}>
-                  <RadarChart data={infrastructureRadarData} outerRadius="75%">
-                    <PolarGrid strokeDasharray="3 3" />
-                    <PolarAngleAxis 
-                      dataKey="metric" 
-                      tick={{ fontSize: 12, fontWeight: 500 }} 
-                    />
-                    <PolarRadiusAxis 
-                      domain={[0, 5]} 
-                      tick={{ fontSize: 10 }} 
-                      tickCount={6}
-                      axisLine={false}
-                    />
-                    <Radar 
-                      name="Avaliação" 
-                      dataKey="value" 
-                      stroke="hsl(var(--primary))" 
-                      fill="hsl(var(--primary))" 
-                      fillOpacity={0.3}
-                      strokeWidth={2}
-                    />
-                    <Legend 
-                      wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
-                      iconSize={14}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => value.toFixed(2)}
-                      contentStyle={{ borderRadius: 8 }}
-                    />
-                  </RadarChart>
-                </ResponsiveContainer>
-                <div className="flex flex-col gap-3 min-w-[220px]">
-                  {(() => {
-                    // Color scale function: red (0) → yellow (2.5) → green (5)
-                    const getScoreColor = (value: number) => {
-                      const ratio = value / 5; // 0-1 scale
-                      if (ratio < 0.5) {
-                        // Red to Yellow
-                        return {
-                          bg: ratio < 0.3 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30',
-                          text: ratio < 0.3 ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400',
-                          border: ratio < 0.3 ? 'border-red-200 dark:border-red-800' : 'border-amber-200 dark:border-amber-800',
-                        };
-                      } else {
-                        // Yellow to Green
-                        return {
-                          bg: ratio >= 0.8 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-lime-100 dark:bg-lime-900/30',
-                          text: ratio >= 0.8 ? 'text-emerald-700 dark:text-emerald-400' : 'text-lime-700 dark:text-lime-400',
-                          border: ratio >= 0.8 ? 'border-emerald-200 dark:border-emerald-800' : 'border-lime-200 dark:border-lime-800',
-                        };
-                      }
-                    };
-                    const avgColor = getScoreColor(infrastructureAvg);
-                    
-                    return (
-                      <>
+                {(() => {
+                  // Color scale function: red (0) → yellow (2.5) → green (5)
+                  const getBarColor = (value: number): string => {
+                    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+                    // HSL: 0° = Red, 60° = Yellow, 120° = Green
+                    const hue = (percent / 100) * 120;
+                    return `hsl(${hue}, 70%, 50%)`;
+                  };
+                  
+                  const getScoreColor = (value: number) => {
+                    const ratio = value / 5; // 0-1 scale
+                    if (ratio < 0.5) {
+                      return {
+                        bg: ratio < 0.3 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30',
+                        text: ratio < 0.3 ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400',
+                        border: ratio < 0.3 ? 'border-red-200 dark:border-red-800' : 'border-amber-200 dark:border-amber-800',
+                      };
+                    } else {
+                      return {
+                        bg: ratio >= 0.8 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-lime-100 dark:bg-lime-900/30',
+                        text: ratio >= 0.8 ? 'text-emerald-700 dark:text-emerald-400' : 'text-lime-700 dark:text-lime-400',
+                        border: ratio >= 0.8 ? 'border-emerald-200 dark:border-emerald-800' : 'border-lime-200 dark:border-lime-800',
+                      };
+                    }
+                  };
+                  
+                  const avgColor = getScoreColor(infrastructureAvg);
+                  
+                  return (
+                    <>
+                      <ResponsiveContainer width="100%" height={350}>
+                        <BarChart 
+                          data={infrastructureRadarData}
+                          margin={{ top: 20, right: 20, left: 20, bottom: 60 }}
+                        >
+                          <XAxis 
+                            dataKey="metric" 
+                            tick={{ fontSize: 11, fontWeight: 500 }}
+                            angle={-35}
+                            textAnchor="end"
+                            interval={0}
+                            height={70}
+                          />
+                          <YAxis 
+                            domain={[0, 5]} 
+                            tick={{ fontSize: 11 }}
+                            tickCount={6}
+                          />
+                          <Tooltip 
+                            formatter={(value: number) => [value.toFixed(2), 'Média']}
+                            contentStyle={{ borderRadius: 8 }}
+                          />
+                          <Bar 
+                            dataKey="value" 
+                            radius={[6, 6, 0, 0]}
+                            maxBarSize={50}
+                          >
+                            {infrastructureRadarData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={getBarColor(entry.value)} />
+                            ))}
+                            <LabelList 
+                              dataKey="value" 
+                              position="top" 
+                              formatter={(value: number) => value.toFixed(1)}
+                              style={{ fontSize: 11, fontWeight: 600, fill: 'hsl(var(--foreground))' }}
+                            />
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                      <div className="flex flex-col gap-3 min-w-[220px]">
                         <div className={`p-4 rounded-xl ${avgColor.bg} border ${avgColor.border}`}>
                           <div className="flex items-center gap-2 mb-2">
                             <Target className={`h-4 w-4 ${avgColor.text}`} />
                             <span className={`font-semibold ${avgColor.text}`}>Média Geral</span>
                           </div>
                           <div className={`text-3xl font-bold ${avgColor.text}`}>
-                            {infrastructureAvg.toFixed(1)}/10
+                            {(infrastructureAvg * 2).toFixed(1)}/10
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Todas as dimensões</p>
                         </div>
@@ -2187,7 +2201,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             const color = getScoreColor(d.value);
                             return (
                               <div key={i} className={`p-2 rounded-lg ${color.bg} border ${color.border} text-center`}>
-                                <div className={`text-lg font-bold ${color.text}`}>{d.value.toFixed(1)}</div>
+                                <div className={`text-lg font-bold ${color.text}`}>{(d.value * 2).toFixed(1)}</div>
                                 <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
                               </div>
                             );
@@ -2198,16 +2212,16 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             const color = getScoreColor(d.value);
                             return (
                               <div key={i} className={`p-2 rounded-lg ${color.bg} border ${color.border} text-center`}>
-                                <div className={`text-lg font-bold ${color.text}`}>{d.value.toFixed(1)}</div>
+                                <div className={`text-lg font-bold ${color.text}`}>{(d.value * 2).toFixed(1)}</div>
                                 <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
                               </div>
                             );
                           })}
                         </div>
-                      </>
-                    );
-                  })()}
-                </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>
