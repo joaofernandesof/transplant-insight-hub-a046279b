@@ -14,7 +14,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
-import logoBrowsTransplant from "@/assets/logo-brows-transplant-360.jpg";
+import logoBrowsTransplant from "@/assets/logo-brows-transplant-360.png";
 
 export interface PresentialCourse {
   id: string;
