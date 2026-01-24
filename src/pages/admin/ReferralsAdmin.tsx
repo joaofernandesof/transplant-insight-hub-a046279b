@@ -486,7 +486,7 @@ export default function ReferralsAdmin() {
       r.email,
       r.phone,
       r.referrer_name,
-      r.source === 'student' ? 'Aluno' : 'Lead',
+      r.source === 'student' ? 'Indicador' : 'Indicado',
       STATUS_LABELS[r.status] || r.status,
       format(new Date(r.created_at), 'dd/MM/yyyy HH:mm'),
       r.converted_at ? format(new Date(r.converted_at), 'dd/MM/yyyy HH:mm') : '-'
@@ -873,8 +873,8 @@ export default function ReferralsAdmin() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas Origens</SelectItem>
-                <SelectItem value="student">Alunos</SelectItem>
-                <SelectItem value="lead">Landing Page</SelectItem>
+                <SelectItem value="student">Indicador</SelectItem>
+                <SelectItem value="lead">Indicado</SelectItem>
               </SelectContent>
             </Select>
 
@@ -985,7 +985,7 @@ export default function ReferralsAdmin() {
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
                         <Badge variant={referral.source === 'student' ? 'default' : 'secondary'}>
-                          {referral.source === 'student' ? 'Aluno' : 'Lead'}
+                          {referral.source === 'student' ? 'Indicador' : 'Indicado'}
                         </Badge>
                       </TableCell>
                       <TableCell>{getStatusBadge(referral.status)}</TableCell>
