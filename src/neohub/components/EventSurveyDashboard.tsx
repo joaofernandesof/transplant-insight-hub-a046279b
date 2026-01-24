@@ -1013,6 +1013,10 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   // Drill-down dialog state
   const [drilldownOpen, setDrilldownOpen] = useState(false);
   const [drilldownData, setDrilldownData] = useState<DrilldownData | null>(null);
+  
+  // Matrix sorting state
+  const [matrixSortColumn, setMatrixSortColumn] = useState<string | null>(null); // 'avg' or student.userId or 'question'
+  const [matrixSortDir, setMatrixSortDir] = useState<'asc' | 'desc'>('desc');
 
   // Helper to get students who answered a specific satisfaction level
   const getSatisfactionDrilldown = useMemo(() => {
@@ -1387,24 +1391,95 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <CardContent className="p-0">
             <ScrollArea className="w-full">
               <div className="min-w-max">
+                {/* Sorting helper function */}
+                {(() => {
+                  const handleSort = (columnId: string) => {
+                    if (matrixSortColumn === columnId) {
+                      setMatrixSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+                    } else {
+                      setMatrixSortColumn(columnId);
+                      setMatrixSortDir('desc');
+                    }
+                  };
+                  
+                  const SortIndicator = ({ columnId }: { columnId: string }) => (
+                    matrixSortColumn === columnId ? (
+                      matrixSortDir === 'desc' ? 
+                        <TrendingDown className="h-3 w-3" /> : 
+                        <TrendingUp className="h-3 w-3" />
+                    ) : <ArrowUpDown className="h-3 w-3 opacity-40" />
+                  );
+                  
+                  // Calculate scores for sorting
+                  const getQuestionScoreForStudent = (question: QuestionRating, studentUserId: string) => {
+                    const student = analytics.responsesByStudent.find(s => s.userId === studentUserId);
+                    if (!student) return null;
+                    const response = student.responses.find(r => r.questionKey === question.questionKey);
+                    return response?.numericValue ?? null;
+                  };
+                  
+                  const getQuestionAvg = (question: QuestionRating) => {
+                    const scores = analytics.responsesByStudent
+                      .map(s => getQuestionScoreForStudent(question, s.userId))
+                      .filter((v): v is number => v !== null);
+                    return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+                  };
+                  
+                  // Sort questions
+                  const sortedQuestions = [...analytics.allQuestions].sort((a, b) => {
+                    if (!matrixSortColumn) return 0;
+                    
+                    let aVal: number | string;
+                    let bVal: number | string;
+                    
+                    if (matrixSortColumn === 'avg') {
+                      aVal = getQuestionAvg(a);
+                      bVal = getQuestionAvg(b);
+                    } else if (matrixSortColumn === 'question') {
+                      aVal = a.questionLabel;
+                      bVal = b.questionLabel;
+                    } else {
+                      aVal = getQuestionScoreForStudent(a, matrixSortColumn) ?? -1;
+                      bVal = getQuestionScoreForStudent(b, matrixSortColumn) ?? -1;
+                    }
+                    
+                    if (typeof aVal === 'string') {
+                      return matrixSortDir === 'asc' ? aVal.localeCompare(bVal as string) : (bVal as string).localeCompare(aVal);
+                    }
+                    return matrixSortDir === 'asc' ? aVal - (bVal as number) : (bVal as number) - aVal;
+                  });
+                  
+                  return (
                 <table className="w-full text-xs">
                   <thead className="bg-muted/50 sticky top-0 z-10">
                     <tr>
-                      <th className="text-left p-2 font-semibold border-b min-w-[200px] sticky left-0 bg-muted/80 z-20">
-                        Pergunta
+                      <th 
+                        className="text-left p-2 font-semibold border-b min-w-[200px] sticky left-0 bg-muted/80 z-20 cursor-pointer hover:bg-muted"
+                        onClick={() => handleSort('question')}
+                      >
+                        <div className="flex items-center gap-1">
+                          Pergunta
+                          <SortIndicator columnId="question" />
+                        </div>
                       </th>
                       {analytics.responsesByStudent.map((student) => (
                         <th 
                           key={student.userId} 
-                          className="p-2 font-medium border-b text-center min-w-[120px]"
-                          title={student.userName}
+                          className="p-2 font-medium border-b text-center min-w-[120px] cursor-pointer hover:bg-muted/70 transition-colors"
+                          title={`Clique para ordenar por ${student.userName}`}
                         >
                           <div className="flex flex-col items-center gap-1">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-[10px]">
-                                {student.userName.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                              </AvatarFallback>
-                            </Avatar>
+                            <div 
+                              className="flex items-center gap-1 cursor-pointer"
+                              onClick={() => handleSort(student.userId)}
+                            >
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-[10px]">
+                                  {student.userName.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <SortIndicator columnId={student.userId} />
+                            </div>
                             <span className="text-xs whitespace-nowrap">
                               {student.userName}
                             </span>
@@ -1412,7 +1487,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                               variant="ghost" 
                               size="sm" 
                               className="h-5 px-1.5 text-[10px]"
-                              onClick={() => setSelectedStudent(student)}
+                              onClick={(e) => { e.stopPropagation(); setSelectedStudent(student); }}
                             >
                               <Eye className="h-3 w-3 mr-0.5" />
                               Ver
@@ -1420,14 +1495,20 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                           </div>
                         </th>
                       ))}
-                      <th className="p-2 font-semibold border-b text-center min-w-[60px] bg-muted/50">
-                        Média
+                      <th 
+                        className="p-2 font-semibold border-b text-center min-w-[60px] bg-muted/50 cursor-pointer hover:bg-muted/70"
+                        onClick={() => handleSort('avg')}
+                      >
+                        <div className="flex items-center justify-center gap-1">
+                          Média
+                          <SortIndicator columnId="avg" />
+                        </div>
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Filter to only numeric questions */}
-                    {analytics.allQuestions.map((question, qIdx) => {
+                    {/* Sorted questions */}
+                    {sortedQuestions.map((question, qIdx) => {
                       const rowValues: (number | null)[] = [];
                       
                       return (
@@ -1530,6 +1611,8 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     </tr>
                   </tbody>
                 </table>
+                  );
+                })()}
               </div>
             </ScrollArea>
           </CardContent>
