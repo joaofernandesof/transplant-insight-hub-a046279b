@@ -2573,7 +2573,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                           </Bar>
                         </BarChart>
                       </ResponsiveContainer>
-                      <div className="flex flex-col gap-3 min-w-[220px]">
+                      <div className="flex flex-col gap-3 w-full lg:w-[240px] flex-shrink-0">
                         <div className={`p-4 rounded-xl ${avgColor.bg} border ${avgColor.border}`}>
                           <div className="flex items-center gap-2 mb-2">
                             <Target className={`h-4 w-4 ${avgColor.text}`} />
@@ -2585,18 +2585,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                           <p className="text-xs text-muted-foreground mt-1">Todas as dimensões</p>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          {infrastructureRadarData.slice(0, 4).map((d, i) => {
-                            const color = getScoreColor(d.value);
-                            return (
-                              <div key={i} className={`p-2 rounded-lg ${color.bg} border ${color.border} text-center`}>
-                              <div className={`text-lg font-bold ${color.text}`}>{d.value.toFixed(1)}</div>
-                                <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {infrastructureRadarData.slice(4).map((d, i) => {
+                          {infrastructureRadarData.map((d, i) => {
                             const color = getScoreColor(d.value);
                             return (
                               <div key={i} className={`p-2 rounded-lg ${color.bg} border ${color.border} text-center`}>
