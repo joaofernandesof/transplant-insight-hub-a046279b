@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Images, ChevronLeft, ChevronRight, X, Camera, Calendar, Upload, Loader2, UserSearch, ImageIcon } from 'lucide-react';
+import { Images, ChevronLeft, ChevronRight, X, Camera, Calendar, Upload, Loader2, UserSearch, ImageIcon, Lock, ClipboardList } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -17,15 +17,26 @@ import { CoverPhotoCropper } from './CoverPhotoCropper';
 
 interface CourseGalleryViewerProps {
   classId: string;
+  isLocked?: boolean;
+  onUnlockRequest?: () => void;
 }
 
-export function CourseGalleryViewer({ classId }: CourseGalleryViewerProps) {
+export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest }: CourseGalleryViewerProps) {
   const { galleries, isLoading } = useStudentGalleries(classId);
   const { isAdmin, canAccessModule } = useUnifiedAuth();
   const navigate = useNavigate();
   const [selectedGallery, setSelectedGallery] = useState<CourseGallery | null>(null);
   
   const canManageGalleries = isAdmin || canAccessModule('neoteam_galleries', 'write');
+
+  // Handle gallery click - show lock message if locked
+  const handleGalleryClick = (gallery: CourseGallery) => {
+    if (isLocked) {
+      onUnlockRequest?.();
+      return;
+    }
+    setSelectedGallery(gallery);
+  };
 
   if (isLoading) {
     return (
@@ -73,7 +84,8 @@ export function CourseGalleryViewer({ classId }: CourseGalleryViewerProps) {
           <GalleryCard
             key={gallery.id}
             gallery={gallery}
-            onClick={() => setSelectedGallery(gallery)}
+            onClick={() => handleGalleryClick(gallery)}
+            isLocked={isLocked}
           />
         ))}
       </div>
@@ -91,12 +103,13 @@ export function CourseGalleryViewer({ classId }: CourseGalleryViewerProps) {
 interface GalleryCardProps {
   gallery: CourseGallery;
   onClick: () => void;
+  isLocked?: boolean;
 }
 
-function GalleryCard({ gallery, onClick }: GalleryCardProps) {
+function GalleryCard({ gallery, onClick, isLocked = false }: GalleryCardProps) {
   return (
     <Card
-      className="cursor-pointer hover:shadow-lg transition-all overflow-hidden group"
+      className="cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative"
       onClick={onClick}
     >
       <div className="relative aspect-video bg-muted overflow-hidden">
@@ -104,11 +117,18 @@ function GalleryCard({ gallery, onClick }: GalleryCardProps) {
           <img
             src={gallery.cover_photo_url}
             alt={gallery.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isLocked ? 'blur-sm' : ''}`}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20">
+          <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20 ${isLocked ? 'blur-sm' : ''}`}>
             <Images className="h-12 w-12 text-primary" />
+          </div>
+        )}
+        {isLocked && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="bg-background/90 rounded-full p-3">
+              <Lock className="h-6 w-6 text-muted-foreground" />
+            </div>
           </div>
         )}
         <div className="absolute bottom-2 right-2">
