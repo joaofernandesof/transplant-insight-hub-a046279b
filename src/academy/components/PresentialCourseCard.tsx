@@ -45,7 +45,7 @@ const courseTypeConfig: Record<string, { color: string; icon: React.ReactNode; l
     logo: logoFormacao360
   },
   brows: {
-    color: 'bg-[#27272a]',
+    color: 'bg-[#232323]',
     icon: <GraduationCap className="h-7 w-7" />,
     logo: logoBrowsTransplant
   },
