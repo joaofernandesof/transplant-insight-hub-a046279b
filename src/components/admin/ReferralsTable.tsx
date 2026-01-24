@@ -486,30 +486,20 @@ export function ReferralsTable({
                         </TableCell>
                         <TableCell className="hidden xl:table-cell">
                           <div className={`text-sm font-medium ${isConverted ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
-                            {isConverted ? (
-                              <span className="flex items-center gap-1">
-                                <DollarSign className="h-3 w-3" />
-                                {formatCurrency(gains.indicador)}
-                              </span>
-                            ) : (
-                              <span className="text-xs italic">
-                                {formatCurrency(gains.potentialIndicador)} (potencial)
-                              </span>
-                            )}
+                            <span className="flex items-center gap-1">
+                              5%
+                              {isConverted && <span className="text-xs">(aplicado)</span>}
+                              {!isConverted && <span className="text-xs italic">(potencial)</span>}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell className="hidden xl:table-cell">
                           <div className={`text-sm font-medium ${isConverted ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
-                            {isConverted ? (
-                              <span className="flex items-center gap-1">
-                                <DollarSign className="h-3 w-3" />
-                                {formatCurrency(gains.indicado)}
-                              </span>
-                            ) : (
-                              <span className="text-xs italic">
-                                {formatCurrency(gains.potentialIndicado)} (potencial)
-                              </span>
-                            )}
+                            <span className="flex items-center gap-1">
+                              5%
+                              {isConverted && <span className="text-xs">(aplicado)</span>}
+                              {!isConverted && <span className="text-xs italic">(potencial)</span>}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
