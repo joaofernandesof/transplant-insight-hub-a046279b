@@ -516,15 +516,14 @@ function DayTimeline({ day }: { day: ScheduleDay }) {
                       
                       {/* Details - only show if there's enough height */}
                       <div className="flex-1 min-h-0 overflow-hidden">
-                        {item.location && height >= 55 && (
-                          <span className={`inline-block text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium`}>
-                            {item.location}
-                          </span>
-                        )}
-                        
-                        {/* Group badges */}
-                        {groupBadges && height >= 70 && (
-                          <div className="flex flex-wrap gap-0.5 mt-0.5">
+                        {/* Location and Group badges on same line */}
+                        {(item.location || groupBadges) && height >= 55 && (
+                          <div className="flex flex-wrap items-center gap-1">
+                            {item.location && (
+                              <span className={`inline-flex text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full border ${style.bgColor} ${style.borderColor} ${style.textColor} font-medium`}>
+                                {item.location}
+                              </span>
+                            )}
                             {groupBadges}
                           </div>
                         )}
