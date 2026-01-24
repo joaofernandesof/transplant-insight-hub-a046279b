@@ -1849,33 +1849,76 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </CardContent>
         </Card>
 
+        {/* Word Cloud - Full Width */}
+        {wordFrequency.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                Nuvem de Palavras
+              </CardTitle>
+              <CardDescription>
+                O tamanho de cada palavra representa sua frequência nos feedbacks
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {(() => {
+                const maxCount = Math.max(...wordFrequency.map(w => w.count));
+                const minCount = Math.min(...wordFrequency.map(w => w.count));
+                
+                // Calculate font size based on relative frequency
+                const getFontSize = (count: number) => {
+                  if (maxCount === minCount) return 20;
+                  const normalized = (count - minCount) / (maxCount - minCount);
+                  return Math.round(14 + (normalized * 32)); // Range: 14px to 46px
+                };
+                
+                // Get color intensity based on frequency
+                const getColorClass = (count: number) => {
+                  const normalized = maxCount === minCount ? 0.5 : (count - minCount) / (maxCount - minCount);
+                  if (normalized >= 0.8) return 'text-primary font-bold';
+                  if (normalized >= 0.6) return 'text-primary/90 font-semibold';
+                  if (normalized >= 0.4) return 'text-primary/75 font-medium';
+                  if (normalized >= 0.2) return 'text-primary/60 font-medium';
+                  return 'text-muted-foreground font-normal';
+                };
+                
+                return (
+                  <div className="min-h-[200px] py-6 px-4 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                    {wordFrequency.map((item, idx) => (
+                      <span
+                        key={idx}
+                        className={`inline-block transition-transform hover:scale-110 cursor-default ${getColorClass(item.count)}`}
+                        style={{ 
+                          fontSize: `${getFontSize(item.count)}px`,
+                          lineHeight: 1.2,
+                        }}
+                        title={`"${item.word}" apareceu ${item.count} vez${item.count > 1 ? 'es' : ''}`}
+                      >
+                        {item.word}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
+              <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Menos citado</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-primary/30" />
+                    <div className="w-4 h-4 rounded bg-primary/50" />
+                    <div className="w-5 h-5 rounded bg-primary/70" />
+                    <div className="w-6 h-6 rounded bg-primary" />
+                  </div>
+                  <span className="text-sm text-muted-foreground">Mais citado</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Feedback Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {wordFrequency.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 text-primary" />
-                  Palavras Mais Citadas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex flex-wrap gap-1.5">
-                  {wordFrequency.map((item, idx) => (
-                    <Badge
-                      key={idx}
-                      variant="secondary"
-                      className="text-xs"
-                      style={{ fontSize: `${Math.max(10, Math.min(14, 10 + item.count))}px` }}
-                    >
-                      {item.word}
-                      <span className="ml-1 text-muted-foreground text-[10px]">({item.count})</span>
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           <Card>
             <CardHeader className="pb-2">
