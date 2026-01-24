@@ -407,6 +407,32 @@ export default function ReferralProgram() {
                 getStatusBadge={getStatusBadge}
                 formatDate={formatDate}
                 formatCurrency={formatCurrency}
+                isAdmin={true}
+                onResendEmail={async (referral) => {
+                  setResendingEmail(referral.id);
+                  try {
+                    const { data, error } = await supabase.functions.invoke('notify-referral', {
+                      body: {
+                        name: referral.name,
+                        email: referral.email,
+                        phone: referral.phone,
+                        type: 'referral_lead',
+                      }
+                    });
+                    if (error) throw error;
+                    if (data?.skipped) {
+                      toast.info(`E-mail pulado: ${data.reason}`);
+                    } else {
+                      toast.success('E-mail de notificação reenviado com sucesso!');
+                    }
+                  } catch (error) {
+                    console.error('Error resending notification:', error);
+                    toast.error('Erro ao reenviar e-mail de notificação');
+                  } finally {
+                    setResendingEmail(null);
+                  }
+                }}
+                resendingEmail={resendingEmail}
               />
             </TabsContent>
 
@@ -508,6 +534,9 @@ export default function ReferralProgram() {
             getStatusBadge={getStatusBadge}
             formatDate={formatDate}
             formatCurrency={formatCurrency}
+            isAdmin={false}
+            onResendEmail={() => {}}
+            resendingEmail={null}
           />
         )}
       </div>
@@ -520,12 +549,18 @@ function ReferralsList({
   referrals, 
   getStatusBadge, 
   formatDate, 
-  formatCurrency 
+  formatCurrency,
+  isAdmin,
+  onResendEmail,
+  resendingEmail
 }: { 
   referrals: ReferralLead[];
   getStatusBadge: (status: string) => React.ReactNode;
   formatDate: (date: string) => string;
   formatCurrency: (value: number) => string;
+  isAdmin: boolean;
+  onResendEmail: (referral: ReferralLead) => void;
+  resendingEmail: string | null;
 }) {
   return (
     <Card>
@@ -548,14 +583,16 @@ function ReferralsList({
                 className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors gap-3"
               >
                 <div className="space-y-1">
-                  <p className="font-medium">{referral.name}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-medium">{referral.name}</p>
+                    {getStatusBadge(referral.status)}
+                  </div>
                   <p className="text-sm text-muted-foreground">{referral.email}</p>
                   <p className="text-xs text-muted-foreground">
                     Indicado em {formatDate(referral.created_at)}
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  {getStatusBadge(referral.status)}
+                <div className="flex flex-wrap items-center gap-2">
                   {referral.commission_value > 0 && (
                     <Badge 
                       variant={referral.commission_paid ? "default" : "outline"}
@@ -565,6 +602,39 @@ function ReferralsList({
                       {formatCurrency(referral.commission_value)}
                       {referral.commission_paid && " (Pago)"}
                     </Badge>
+                  )}
+                  {isAdmin && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onResendEmail(referral)}
+                        disabled={resendingEmail === referral.id}
+                        className="gap-1"
+                      >
+                        {resendingEmail === referral.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-3 w-3" />
+                        )}
+                        Reenviar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                      >
+                        <a 
+                          href={`https://wa.me/55${referral.phone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="gap-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          WhatsApp
+                        </a>
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
