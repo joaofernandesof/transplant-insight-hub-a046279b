@@ -2667,9 +2667,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3">
-                      {/* Credibility Score Bar */}
-                      <div className="w-24 hidden sm:block">
+                    <div className="flex items-center gap-4">
+                      {/* Credibility Score Bar - Fixed width column */}
+                      <div className="w-28 flex-shrink-0 hidden sm:block">
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div 
                             className={`h-full ${
@@ -2686,10 +2686,13 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                         </p>
                       </div>
                       
-                      <Badge variant="secondary" className={`${levelConfig.bg} ${levelConfig.text} border-0 text-xs`}>
-                        <IconComponent className="h-3 w-3 mr-1" />
-                        {levelConfig.label}
-                      </Badge>
+                      {/* Badge - Fixed width column for alignment */}
+                      <div className="w-24 flex-shrink-0 flex justify-center">
+                        <Badge variant="secondary" className={`${levelConfig.bg} ${levelConfig.text} border-0 text-xs`}>
+                          <IconComponent className="h-3 w-3 mr-1" />
+                          {levelConfig.label}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 );
