@@ -10,7 +10,7 @@ import {
   Settings, LogOut, Menu, X, ChevronLeft,
   Bell, Folder, Stethoscope, BarChart3, CheckSquare,
   UserCog, Building2, ChevronDown, ChevronRight,
-  List, Ticket, CalendarDays, Images
+  List, Ticket, CalendarDays, Images, ClipboardList
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
@@ -44,6 +44,7 @@ const menuItems: MenuItem[] = [
   { id: 'events', title: 'Organização de Eventos', icon: CalendarDays, route: '/neoteam/events' },
   { id: 'galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/galleries' },
   { id: 'patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
+  { id: 'anamnesis', title: 'Anamnese', icon: ClipboardList, route: '/neoteam/anamnesis' },
   { id: 'medical-records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
   { 
