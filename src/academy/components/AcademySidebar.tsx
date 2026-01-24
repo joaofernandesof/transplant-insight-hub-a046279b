@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, BookOpen, Award,
-  Settings, LogOut, User, Users, TrendingUp, CalendarDays, Menu, UserCog
+  Settings, LogOut, User, Users, CalendarDays, Menu, UserCog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,6 @@ const navItems = [
   { icon: CalendarDays, label: 'Agenda do Aluno', path: '/academy/schedule' },
   { icon: Award, label: 'Certificados', path: '/academy/certificates' },
   { icon: Users, label: 'Comunidade', path: '/academy/community' },
-  { icon: TrendingUp, label: 'Carreira', path: '/academy/career' },
 ];
 
 const adminItems = [
