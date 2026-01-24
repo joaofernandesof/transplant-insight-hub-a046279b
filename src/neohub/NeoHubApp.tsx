@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { NeoHubAuthProvider, useNeoHubAuth } from './contexts/NeoHubAuthContext';
 import { NeoHubLayout, ProfileGuard } from './components/NeoHubLayout';
-import NeoHubLogin from './pages/NeoHubLogin';
+
 import NeoHubRegister from './pages/NeoHubRegister';
 import ProfileSelector from './pages/ProfileSelector';
 import { Loader2 } from 'lucide-react';

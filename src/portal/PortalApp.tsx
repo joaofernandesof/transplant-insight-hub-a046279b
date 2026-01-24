@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { PortalAuthProvider, usePortalAuth } from './contexts/PortalAuthContext';
 import { PortalSidebar } from './components/PortalSidebar';
 import PortalLanding from './pages/PortalLanding';
-import PortalLogin from './pages/PortalLogin';
 import PortalRegister from './pages/PortalRegister';
 import PortalHome from './pages/PortalHome';
 import PortalSettings from './pages/PortalSettings';
@@ -28,7 +27,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <Navigate to="/portal/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <PortalSidebar>{children}</PortalSidebar>;
@@ -39,7 +38,7 @@ function PortalRoutes() {
     <Routes>
       {/* Public routes */}
       <Route path="landing" element={<PortalLanding />} />
-      <Route path="login" element={<PortalLogin />} />
+      <Route path="login" element={<Navigate to="/login" replace />} />
       <Route path="register" element={<PortalRegister />} />
       <Route path="forgot-password" element={<ForgotPassword />} />
       <Route path="reset-password" element={<ResetPassword />} />
