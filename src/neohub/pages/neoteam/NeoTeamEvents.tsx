@@ -193,107 +193,86 @@ export default function NeoTeamEvents() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Sidebar - Event List */}
-        <div className="lg:col-span-3 space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <CalendarDays className="h-4 w-4" />
-                Eventos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[500px]">
-                <div className="space-y-1 p-3 pt-0">
-                  {checklists && checklists.length > 0 ? (
-                    checklists.map((checklist) => {
-                      const daysUntil = differenceInDays(parseISO(checklist.event_start_date), new Date());
-                      const isSelected = selectedChecklist?.id === checklist.id;
-                      
-                      return (
-                        <button
-                          key={checklist.id}
-                          onClick={() => {
-                            setSelectedChecklist(checklist);
-                            setActiveTab("dashboard");
-                          }}
+      {/* Events Selection - Horizontal on top */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              Eventos
+            </CardTitle>
+            {upcomingClasses && upcomingClasses.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {upcomingClasses.length} turmas sem checklist
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <ScrollArea className="w-full">
+            <div className="flex gap-3 pb-2">
+              {checklists && checklists.length > 0 ? (
+                checklists.map((checklist) => {
+                  const daysUntil = differenceInDays(parseISO(checklist.event_start_date), new Date());
+                  const isSelected = selectedChecklist?.id === checklist.id;
+                  
+                  return (
+                    <button
+                      key={checklist.id}
+                      onClick={() => {
+                        setSelectedChecklist(checklist);
+                        setActiveTab("dashboard");
+                      }}
+                      className={cn(
+                        "flex-shrink-0 p-3 rounded-lg text-left transition-all min-w-[200px] max-w-[260px]",
+                        isSelected 
+                          ? "bg-primary/10 border-2 border-primary" 
+                          : "hover:bg-muted border-2 border-border"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm truncate">{checklist.event_name}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <Calendar className="h-3 w-3" />
+                            {format(parseISO(checklist.event_start_date), "dd/MM/yyyy")}
+                          </p>
+                          {checklist.location && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {checklist.location}
+                            </p>
+                          )}
+                        </div>
+                        <Badge 
+                          variant="outline" 
                           className={cn(
-                            "w-full p-3 rounded-lg text-left transition-all",
-                            isSelected 
-                              ? "bg-primary/10 border-2 border-primary" 
-                              : "hover:bg-muted border-2 border-transparent"
+                            "text-xs shrink-0",
+                            daysUntil <= 0 ? "bg-destructive/10 text-destructive border-destructive/30" :
+                            daysUntil <= 7 ? "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300" :
+                            "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300"
                           )}
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-sm truncate">{checklist.event_name}</p>
-                              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                <Calendar className="h-3 w-3" />
-                                {format(parseISO(checklist.event_start_date), "dd/MM/yyyy")}
-                              </p>
-                              {checklist.location && (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  {checklist.location}
-                                </p>
-                              )}
-                            </div>
-                            <Badge 
-                              variant="outline" 
-                              className={cn(
-                                "text-xs shrink-0",
-                                daysUntil <= 0 ? "bg-destructive/10 text-destructive border-destructive/30" :
-                                daysUntil <= 7 ? "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300" :
-                                "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300"
-                              )}
-                            >
-                              {daysUntil === 0 ? "Hoje" : daysUntil < 0 ? `D+${Math.abs(daysUntil)}` : `D-${daysUntil}`}
-                            </Badge>
-                          </div>
-                        </button>
-                      );
-                    })
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Nenhum checklist cadastrado</p>
-                      <p className="text-xs">Clique em "Novo Checklist" para começar</p>
-                    </div>
-                  )}
+                          {daysUntil === 0 ? "Hoje" : daysUntil < 0 ? `D+${Math.abs(daysUntil)}` : `D-${daysUntil}`}
+                        </Badge>
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="text-center py-4 text-muted-foreground w-full">
+                  <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhum checklist cadastrado</p>
+                  <p className="text-xs">Clique em "Novo Checklist" para começar</p>
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+              )}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
-          {/* Upcoming Classes Card */}
-          {upcomingClasses && upcomingClasses.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Próximas Turmas</CardTitle>
-                <CardDescription className="text-xs">Turmas sem checklist</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {upcomingClasses.slice(0, 3).map((cls) => (
-                  <div key={cls.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="text-sm font-medium">{cls.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {cls.start_date && format(parseISO(cls.start_date), "dd/MM/yyyy")}
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Main Content */}
-        <div className="lg:col-span-9">
+      {/* Main Content - Full Width */}
+      <div className="w-full">
           {selectedChecklist ? (
             <div className="space-y-4">
               {/* Main Tabs */}
@@ -389,7 +368,6 @@ export default function NeoTeamEvents() {
             </Card>
           )}
         </div>
-      </div>
     </div>
   );
 }
