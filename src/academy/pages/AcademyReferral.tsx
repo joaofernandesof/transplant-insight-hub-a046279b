@@ -16,7 +16,10 @@ import {
   Zap,
   DollarSign,
   UserPlus,
-  Timer
+  Timer,
+  ArrowRight,
+  Send,
+  Wallet
 } from 'lucide-react';
 import { useStudentReferrals } from '../hooks/useStudentReferrals';
 import { toast } from 'sonner';
@@ -107,6 +110,77 @@ export function AcademyReferral() {
           Indique médicos e ganhe comissão por cada matrícula realizada
         </p>
       </div>
+
+      {/* How It Works - Flipchart Style */}
+      <Card className="bg-gradient-to-br from-background to-muted/30 border-dashed">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <TrendingUp className="h-5 w-5 text-emerald-500" />
+            Como Funciona
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">
+            {/* Step 1 */}
+            <div className="flex-1 flex flex-col items-center text-center p-4 relative">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-3 ring-4 ring-emerald-500/20">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">1</span>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-2">
+                <Send className="h-5 w-5 text-emerald-500" />
+              </div>
+              <h4 className="font-semibold text-sm">Compartilhe seu link</h4>
+              <p className="text-xs text-muted-foreground mt-1">
+                Envie seu link exclusivo para médicos interessados na Formação 360
+              </p>
+            </div>
+
+            {/* Arrow 1 */}
+            <div className="hidden md:flex items-center text-emerald-400">
+              <ArrowRight className="h-6 w-6" />
+            </div>
+            <div className="md:hidden flex items-center text-emerald-400 rotate-90">
+              <ArrowRight className="h-5 w-5" />
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex-1 flex flex-col items-center text-center p-4 relative">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-3 ring-4 ring-emerald-500/20">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">2</span>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-2">
+                <UserPlus className="h-5 w-5 text-emerald-500" />
+              </div>
+              <h4 className="font-semibold text-sm">Médico se cadastra</h4>
+              <p className="text-xs text-muted-foreground mt-1">
+                O indicado preenche os dados e nossa equipe entra em contato
+              </p>
+            </div>
+
+            {/* Arrow 2 */}
+            <div className="hidden md:flex items-center text-emerald-400">
+              <ArrowRight className="h-6 w-6" />
+            </div>
+            <div className="md:hidden flex items-center text-emerald-400 rotate-90">
+              <ArrowRight className="h-5 w-5" />
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex-1 flex flex-col items-center text-center p-4 relative">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-3 ring-4 ring-emerald-500/20">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">3</span>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-2">
+                <Wallet className="h-5 w-5 text-emerald-500" />
+              </div>
+              <h4 className="font-semibold text-sm">Receba sua comissão</h4>
+              <p className="text-xs text-muted-foreground mt-1">
+                Após a matrícula, você recebe {currentCommissionRate}% via PIX
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Promo Banner */}
       {isPromoActive && countdown && (
