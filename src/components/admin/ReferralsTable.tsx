@@ -290,28 +290,17 @@ export function ReferralsTable({
               <Users className="h-4 w-4" />
               Indicações ({filteredAndSortedData.length})
             </CardTitle>
-            <div className="flex items-center gap-2">
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
-                  <X className="h-3 w-3 mr-1" />
-                  Limpar Filtros
-                </Button>
-              )}
-              <Button 
-                variant={showFilters ? "secondary" : "outline"} 
-                size="sm" 
-                onClick={() => setShowFilters(!showFilters)}
-                className="h-7 text-xs"
-              >
-                <Filter className="h-3 w-3 mr-1" />
-                Filtros
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
+                <X className="h-3 w-3 mr-1" />
+                Limpar Filtros
               </Button>
-            </div>
+            )}
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {/* Filters Row */}
-          {showFilters && (
+          {/* Filters Row - Always visible */}
+          <div className="p-4 border-b bg-muted/30 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             <div className="p-4 border-b bg-muted/30 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Indicado</label>
@@ -397,7 +386,7 @@ export function ReferralsTable({
                 </Select>
               </div>
             </div>
-          )}
+          </div>
 
           {filteredAndSortedData.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
