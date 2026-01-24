@@ -52,6 +52,7 @@ import {
   Trophy,
   Medal,
   X,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -1395,7 +1396,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       {analytics.responsesByStudent.map((student) => (
                         <th 
                           key={student.userId} 
-                          className="p-2 font-medium border-b text-center min-w-[80px] max-w-[100px]"
+                          className="p-2 font-medium border-b text-center min-w-[120px]"
                           title={student.userName}
                         >
                           <div className="flex flex-col items-center gap-1">
@@ -1404,9 +1405,18 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                                 {student.userName.split(' ').map(n => n[0]).slice(0, 2).join('')}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="truncate max-w-[70px]">
-                              {student.userName.split(' ')[0]}
+                            <span className="text-xs whitespace-nowrap">
+                              {student.userName}
                             </span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-5 px-1.5 text-[10px]"
+                              onClick={() => setSelectedStudent(student)}
+                            >
+                              <Eye className="h-3 w-3 mr-0.5" />
+                              Ver
+                            </Button>
                           </div>
                         </th>
                       ))}
