@@ -1001,6 +1001,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [selectedStudent, setSelectedStudent] = useState<StudentDetailedResponse | null>(null);
   const [studentSearch, setStudentSearch] = useState("");
   const [studentSortBy, setStudentSortBy] = useState<'name' | 'score' | 'date'>('name');
+  const [questionSortBy, setQuestionSortBy] = useState<'original' | 'name' | 'score'>('original');
   const [isExporting, setIsExporting] = useState(false);
   const [exportingTab, setExportingTab] = useState<string | null>(null);
   
@@ -1315,11 +1316,23 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
   // Filter questions
   const categories = [...new Set(analytics.allQuestions.map(q => q.category))];
-  const filteredQuestions = analytics.allQuestions.filter(q => {
-    const matchesSearch = q.questionLabel.toLowerCase().includes(questionSearch.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || q.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredQuestions = analytics.allQuestions
+    .filter(q => {
+      const matchesSearch = q.questionLabel.toLowerCase().includes(questionSearch.toLowerCase());
+      const matchesCategory = categoryFilter === "all" || q.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (questionSortBy) {
+        case 'name':
+          return a.questionLabel.localeCompare(b.questionLabel, 'pt-BR');
+        case 'score':
+          return b.avgRating - a.avgRating; // Highest first
+        case 'original':
+        default:
+          return 0; // Keep original order from analytics
+      }
+    });
 
   // Filter and sort students
   const filteredStudents = analytics.responsesByStudent
@@ -3035,7 +3048,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   />
                 </div>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-[160px]">
                     <SelectValue placeholder="Categoria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -3043,6 +3056,17 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     {categories.map(cat => (
                       <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+                <Select value={questionSortBy} onValueChange={(v) => setQuestionSortBy(v as 'original' | 'name' | 'score')}>
+                  <SelectTrigger className="w-[120px]">
+                    <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="original">Sequência</SelectItem>
+                    <SelectItem value="name">Nome</SelectItem>
+                    <SelectItem value="score">Média</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
