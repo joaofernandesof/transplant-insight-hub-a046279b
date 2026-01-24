@@ -1485,16 +1485,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     { key: 'elenilton', name: 'Dr. Elenilton', stroke: 'hsl(190, 70%, 45%)', bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-200 dark:border-cyan-800', text: 'text-cyan-700 dark:text-cyan-400', dot: 'bg-cyan-500' },
   ];
 
-  // Get active monitors from analytics (those with data)
-  const activeMonitors = Object.entries(analytics.monitorsByName || {})
-    .filter(([_, metrics]) => metrics && metrics.overallAvg > 0)
-    .map(([name, metrics]) => {
-      // Match to color config
-      const normalized = name.toLowerCase();
-      const colorConfig = MONITOR_COLORS.find(c => normalized.includes(c.key)) || 
-        { key: name, name, stroke: 'hsl(220, 70%, 50%)', bg: 'bg-slate-50 dark:bg-slate-950/30', border: 'border-slate-200 dark:border-slate-800', text: 'text-slate-700 dark:text-slate-400', dot: 'bg-slate-500' };
-      return { ...colorConfig, name, metrics };
-    });
+  // Monitors are now handled via dynamicMonitors below
 
   // Also include fixed monitors from analytics.monitors if they have data
   const fixedMonitorsData = [
@@ -1502,11 +1493,25 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     { ...MONITOR_COLORS[1], metrics: analytics.monitors.patrickM },
   ].filter(m => m.metrics && m.metrics.overallAvg > 0);
 
-  // Combine and dedupe by name  
+  // Add monitors from monitorsByName with proper color matching (includes Gleyldes and Elenilton)
+  const dynamicMonitors = Object.entries(analytics.monitorsByName || {})
+    .filter(([_, metrics]) => metrics && metrics.overallAvg > 0)
+    .map(([name, metrics]) => {
+      const normalized = name.toLowerCase();
+      const colorConfig = MONITOR_COLORS.find(c => normalized.includes(c.key)) || 
+        { key: name, name, stroke: 'hsl(220, 70%, 50%)', bg: 'bg-slate-50 dark:bg-slate-950/30', border: 'border-slate-200 dark:border-slate-800', text: 'text-slate-700 dark:text-slate-400', dot: 'bg-slate-500' };
+      return { ...colorConfig, name, metrics };
+    });
+
+  // Combine and dedupe by name - prioritize dynamic data
   const allMonitors = [...fixedMonitorsData];
-  activeMonitors.forEach(am => {
-    if (!allMonitors.find(m => m.name.toLowerCase() === am.name.toLowerCase())) {
-      allMonitors.push(am);
+  dynamicMonitors.forEach(dm => {
+    const existingIdx = allMonitors.findIndex(m => m.name.toLowerCase().includes(dm.name.toLowerCase().split(' ')[1] || dm.name.toLowerCase()));
+    if (existingIdx === -1) {
+      allMonitors.push(dm);
+    } else {
+      // Update with dynamic data if exists
+      allMonitors[existingIdx] = { ...allMonitors[existingIdx], metrics: dm.metrics, name: dm.name };
     }
   });
 
@@ -2429,7 +2434,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       tick={{ fontSize: 13, fontWeight: 500 }} 
                     />
                     <PolarRadiusAxis 
-                      domain={[0, 5]} 
+                      domain={[0, 10]} 
                       tick={{ fontSize: 10 }} 
                       tickCount={6}
                       axisLine={false}
@@ -2467,7 +2472,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       <span className="font-semibold text-blue-700 dark:text-blue-400">Dr. Hygor</span>
                     </div>
                     <div className="text-2xl font-bold text-blue-600">
-                      {analytics.instructors.hygor.overallAvg.toFixed(1)}/5
+                      {analytics.instructors.hygor.overallAvg.toFixed(1)}/10
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
                   </div>
@@ -2477,7 +2482,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       <span className="font-semibold text-emerald-700 dark:text-emerald-400">Dr. Patrick</span>
                     </div>
                     <div className="text-2xl font-bold text-emerald-600">
-                      {analytics.instructors.patrick.overallAvg.toFixed(1)}/5
+                      {analytics.instructors.patrick.overallAvg.toFixed(1)}/10
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
                   </div>
@@ -2506,7 +2511,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     tick={{ fontSize: 12, fontWeight: 500 }} 
                   />
                   <PolarRadiusAxis 
-                    domain={[0, 5]} 
+                    domain={[0, 10]} 
                     tick={{ fontSize: 10 }} 
                     tickCount={6}
                     axisLine={false}
@@ -2543,7 +2548,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       <span className={`font-semibold ${monitor.text}`}>{monitor.name}</span>
                     </div>
                     <div className={`text-2xl font-bold ${monitor.text}`}>
-                      {monitor.metrics?.overallAvg?.toFixed(1) || 'N/A'}/5
+                      {monitor.metrics?.overallAvg?.toFixed(1) || 'N/A'}/10
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
                   </div>
