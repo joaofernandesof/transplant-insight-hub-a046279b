@@ -754,19 +754,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-orange-500/20">
-                  <Flame className="h-4 w-4 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">{analytics.hotLeads.length}</p>
-                  <p className="text-xs text-muted-foreground">Hot Leads</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
         </div>
 
