@@ -940,31 +940,89 @@ function QuestionInlineCard({
   const [showRespondents, setShowRespondents] = useState(false);
   
   // Detect question type and get all possible options
-  const questionType = detectQuestionType(question);
+  const safeRespondents = (respondents ?? []).filter((r) => (r.value ?? '').trim() !== "");
+  const inferredType = (() => {
+    const joined = safeRespondents.map((r) => r.value).join(" ").toLowerCase();
+    if (joined.includes('concordo') || joined.includes('discordo')) return 'agreement';
+    if (joined.includes('superou') || joined.includes('atendeu')) return 'expectations';
+    if (joined.includes('satisfeito')) return 'satisfaction';
+    if (joined.includes('suficiente') || joined.includes('adequado') || joined.includes('insuficiente')) return 'time';
+    if (joined.includes('excelente') || joined.includes('muito bom') || joined.includes('regular') || joined.includes('ruim')) return 'quality';
+    return null;
+  })();
+  const questionType = inferredType ?? detectQuestionType(question);
   const allOptions = OPTION_TEMPLATES[questionType] || [];
   
-  // Build distribution data with ALL options, including zeros
-  const distributionData = allOptions.length > 0
-    ? allOptions.map(option => {
-        const normalizedOption = option.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const matchingKey = Object.keys(question.distribution).find(key => {
-          const normalizedKey = key.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // Build distribution primarily from actual textual answers (respondents), falling back to precomputed distribution
+  const normalizeText = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+  const distributionData = (() => {
+    // Prefer respondents because some questions store distribution as numeric keys (0..10) but UI expects textual options.
+    if (safeRespondents.length > 0) {
+      const counts: Record<string, number> = {};
+      const extras: string[] = [];
+
+      const matchOption = (value: string) => {
+        const nv = normalizeText(value);
+        return allOptions.find((opt) => {
+          const no = normalizeText(opt);
+          return no === nv || no.includes(nv) || nv.includes(no);
+        });
+      };
+
+      for (const r of safeRespondents) {
+        const raw = (r.value ?? '').trim();
+        if (!raw) continue;
+
+        const matched = allOptions.length > 0 ? matchOption(raw) : undefined;
+        const label = matched ?? raw;
+        counts[label] = (counts[label] ?? 0) + 1;
+
+        if (!matched && allOptions.length > 0) {
+          const exists = extras.some((e) => normalizeText(e) === normalizeText(raw));
+          if (!exists) extras.push(raw);
+        }
+      }
+
+      const displayOptions = allOptions.length > 0
+        ? [...allOptions, ...extras]
+        : Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
+
+      return displayOptions.map((label) => ({
+        name: label,
+        value: counts[label] ?? 0,
+        fill: getSemanticColor(label),
+      }));
+    }
+
+    // Fallback: use question.distribution as-is
+    if (allOptions.length > 0) {
+      return allOptions.map((option) => {
+        const normalizedOption = normalizeText(option);
+        const matchingKey = Object.keys(question.distribution).find((key) => {
+          const normalizedKey = normalizeText(key);
           return normalizedKey.includes(normalizedOption) || normalizedOption.includes(normalizedKey);
         });
-        
+
         return {
           name: matchingKey || option,
           value: matchingKey ? question.distribution[matchingKey] : 0,
-          fill: getSemanticColor(option.toLowerCase()),
+          fill: getSemanticColor(option),
         };
-      })
-    : Object.entries(question.distribution).map(([key, value]) => ({
-        name: key,
-        value,
-        fill: getSemanticColor(key),
-      }));
+      });
+    }
 
-  const totalResponses = distributionData.reduce((sum, d) => sum + d.value, 0);
+    return Object.entries(question.distribution).map(([key, value]) => ({
+      name: key,
+      value,
+      fill: getSemanticColor(key),
+    }));
+  })();
+
+  const totalResponses = safeRespondents.length > 0
+    ? safeRespondents.length
+    : distributionData.reduce((sum, d) => sum + d.value, 0);
 
   return (
     <Card className="border hover:shadow-md transition-shadow">
