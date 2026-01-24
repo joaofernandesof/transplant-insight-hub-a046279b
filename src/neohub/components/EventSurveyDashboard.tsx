@@ -2026,7 +2026,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {aiInsights.pontosCriticos.map((ponto: any, idx: number) => (
+                    {[...aiInsights.pontosCriticos]
+                      .sort((a: any, b: any) => {
+                        const impactOrder: Record<string, number> = { alto: 0, medio: 1, baixo: 2 };
+                        return (impactOrder[a.impacto] ?? 3) - (impactOrder[b.impacto] ?? 3);
+                      })
+                      .map((ponto: any, idx: number) => (
                       <div key={idx} className="p-4 rounded-lg bg-red-50/50 dark:bg-red-900/10 border border-red-100">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
