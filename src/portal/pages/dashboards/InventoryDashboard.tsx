@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../../contexts/PortalAuthContext';
+import { InventoryConceptChart } from '../../components/InventoryConceptChart';
 
 export default function InventoryDashboard() {
   const { user } = usePortalAuth();
@@ -57,6 +58,9 @@ export default function InventoryDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Inventory Concept Chart */}
+      <InventoryConceptChart />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
