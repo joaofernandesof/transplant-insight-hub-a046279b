@@ -261,21 +261,21 @@ function DayList({ day }: { day: ScheduleDay }) {
   );
 }
 
-// Get color classes for group badge
+// Get color classes for group badge - softer/pastel colors
 function getGroupBadgeColors(groupName: string): { bg: string; border: string; text: string } {
   const lower = groupName.toLowerCase();
   
   if (lower.includes('verde')) {
-    return { bg: 'bg-green-500', border: 'border-green-600', text: 'text-white' };
+    return { bg: 'bg-green-100', border: 'border-green-300', text: 'text-green-700' };
   }
   if (lower.includes('preto')) {
-    return { bg: 'bg-gray-900 dark:bg-black', border: 'border-gray-800', text: 'text-white' };
+    return { bg: 'bg-gray-200 dark:bg-gray-700', border: 'border-gray-400 dark:border-gray-500', text: 'text-gray-700 dark:text-gray-200' };
   }
   if (lower.includes('azul')) {
-    return { bg: 'bg-blue-500', border: 'border-blue-600', text: 'text-white' };
+    return { bg: 'bg-blue-100', border: 'border-blue-300', text: 'text-blue-700' };
   }
   if (lower.includes('branco')) {
-    return { bg: 'bg-white', border: 'border-gray-300', text: 'text-gray-800' };
+    return { bg: 'bg-white', border: 'border-gray-300', text: 'text-gray-600' };
   }
   
   return { bg: 'bg-muted', border: 'border-border', text: 'text-foreground' };
