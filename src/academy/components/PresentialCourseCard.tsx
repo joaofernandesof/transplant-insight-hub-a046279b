@@ -14,7 +14,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
-import logoBrowsTransplant from "@/assets/logo-brows-transplant-360.jpg";
+import logoBrowsTransplant from "@/assets/logo-brows-transplant-360.png";
 
 export interface PresentialCourse {
   id: string;
@@ -127,22 +127,18 @@ export function PresentialCourseCard({ course, onViewDetails }: PresentialCourse
       isCompleted ? 'opacity-75' : ''
     }`}>
       {/* Course Header with gradient */}
-      <div className={`h-32 bg-gradient-to-br ${config.color} p-4 flex flex-col items-center justify-center relative`}>
+      <div className={`h-32 bg-gradient-to-br ${config.color} p-4 flex items-center justify-center relative`}>
         {config.logo ? (
           <img 
             src={config.logo} 
             alt={course.name} 
-            className="h-14 object-contain"
+            className="h-20 object-contain max-w-[85%]"
           />
         ) : (
           <div className="text-white/80">
             {config.icon}
           </div>
         )}
-        <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm mt-2">
-          <Clock className="h-3 w-3 mr-1" />
-          {course.duration}
-        </Badge>
       </div>
       
       <CardContent className="p-4">
@@ -172,6 +168,11 @@ export function PresentialCourseCard({ course, onViewDetails }: PresentialCourse
               <span>{course.city}, {course.state}</span>
             </div>
           )}
+          
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            <span>{course.duration}</span>
+          </div>
         </div>
         
         {/* Action Button */}
