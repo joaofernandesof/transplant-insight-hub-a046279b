@@ -88,31 +88,72 @@ interface SurveyResponse {
 
 // Rating scale mapping (worst to best)
 const ratingScaleMap: Record<string, number> = {
-  'pessimo': 1,
-  'ruim': 2,
-  'regular': 3,
-  'bom': 4,
-  'excelente': 5,
-  'muito_baixo': 1,
-  'baixo': 2,
-  'medio': 3,
-  'alto': 4,
-  'muito_alto': 5,
-  'nenhum': 1,
-  'pouco': 2,
-  'moderado': 3,
-  'bastante': 4,
-  'total': 5,
-  'nao_atendeu': 1,
-  'parcialmente': 2,
-  'atendeu': 3,
-  'superou': 4,
-  'superou_muito': 5,
+  // Qualidade (1-5)
+  pessimo: 1,
+  muito_ruim: 1,
+  ruim: 2,
+  regular: 3,
+  bom: 4,
+  excelente: 5,
+
+  // Satisfação geral (1-5)
+  muito_insatisfeito: 1,
+  insatisfeito: 2,
+  neutro: 3,
+  satisfeito: 4,
+  muito_satisfeito: 5,
+
+  // Concordância (1-5)
+  discordo_totalmente: 1,
+  discordo: 2,
+  concordo: 4,
+  concordo_totalmente: 5,
+
+  // Expectativas (normalizado para 1/3/5)
+  nao_atendeu: 1,
+  atendeu_parcialmente: 3,
+  atendeu_totalmente: 5,
+
+  // Tempo (normalizado para 1/3/5)
+  insuficiente: 1,
+  adequado: 3,
+  mais_do_que_suficiente: 5,
+
+  // Legado / outras escalas usadas em outros formulários
+  muito_baixo: 1,
+  baixo: 2,
+  medio: 3,
+  alto: 4,
+  muito_alto: 5,
+  nenhum: 1,
+  pouco: 2,
+  moderado: 3,
+  bastante: 4,
+  total: 5,
+  parcialmente: 2,
+  atendeu: 3,
+  superou: 4,
+  superou_muito: 5,
+};
+
+const normalizeRatingKey = (value: string): string => {
+  // Remove acentos/diacríticos e normaliza para snake_case
+  const noDiacritics = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  return noDiacritics
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s_]/g, "")
+    .replace(/\s+/g, "_");
 };
 
 const getRatingValue = (value: string | null): number | null => {
   if (!value) return null;
-  return ratingScaleMap[value.toLowerCase()] || null;
+  const key = normalizeRatingKey(value);
+  if (key === 'ainda_nao_sei_responder') return null;
+  return ratingScaleMap[key] ?? null;
 };
 
 const calculateAverage = (values: (number | null)[]): number => {
