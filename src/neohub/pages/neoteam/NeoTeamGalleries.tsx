@@ -273,18 +273,28 @@ function GalleryManagementCard({
   
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <div className="relative aspect-video bg-muted">
+      {/* Clickable banner area */}
+      <div 
+        className="relative aspect-video bg-muted cursor-pointer group"
+        onClick={onEdit}
+      >
         {gallery.cover_photo_url ? (
           <img
             src={gallery.cover_photo_url}
             alt={gallery.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 group-hover:from-slate-200 group-hover:to-slate-300 dark:group-hover:from-slate-700 dark:group-hover:to-slate-800 transition-colors">
             <Images className="h-12 w-12 text-muted-foreground" />
           </div>
         )}
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+          <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 px-3 py-1.5 rounded-full text-sm">
+            Abrir Álbum
+          </span>
+        </div>
         <Badge
           className={`absolute top-2 right-2 ${
             gallery.status === 'published'
