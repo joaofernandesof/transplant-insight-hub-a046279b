@@ -6139,6 +6139,60 @@ export type Database = {
           },
         ]
       }
+      student_referrals: {
+        Row: {
+          commission_paid: boolean | null
+          commission_rate: number | null
+          converted_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          referral_code: string
+          referred_crm: string | null
+          referred_email: string
+          referred_has_crm: boolean | null
+          referred_name: string
+          referred_phone: string
+          referrer_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          commission_paid?: boolean | null
+          commission_rate?: number | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          referral_code: string
+          referred_crm?: string | null
+          referred_email: string
+          referred_has_crm?: boolean | null
+          referred_name: string
+          referred_phone: string
+          referrer_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          commission_paid?: boolean | null
+          commission_rate?: number | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          referral_code?: string
+          referred_crm?: string | null
+          referred_email?: string
+          referred_has_crm?: boolean | null
+          referred_name?: string
+          referred_phone?: string
+          referrer_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       surgery_schedule: {
         Row: {
           balance_due: number | null

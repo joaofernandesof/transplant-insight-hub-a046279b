@@ -11,3 +11,5 @@ export { AcademyStudentsAdmin } from './AcademyStudentsAdmin';
 export { AcademyClassDetail } from './AcademyClassDetail';
 export { AcademySettings } from './AcademySettings';
 export { AcademyChat } from './AcademyChat';
+export { AcademyReferral } from './AcademyReferral';
+export { Formacao360ReferralLanding } from './Formacao360ReferralLanding';
