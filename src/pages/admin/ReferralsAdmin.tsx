@@ -158,49 +158,49 @@ export default function ReferralsAdmin() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      // Fetch student referrals
-      const { data: studentData } = await supabase
-        .from('student_referrals')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch both sources in parallel and fail loudly if any query errors.
+      const [studentRes, leadsRes] = await Promise.all([
+        supabase.from('student_referrals').select('*').order('created_at', { ascending: false }),
+        supabase.from('referral_leads').select('*').order('created_at', { ascending: false })
+      ]);
 
-      // Fetch referral leads
-      const { data: leadsData } = await supabase
-        .from('referral_leads')
-        .select('*')
-        .order('created_at', { ascending: false });
+      if (studentRes.error) throw studentRes.error;
+      if (leadsRes.error) throw leadsRes.error;
+
+      const studentData = studentRes.data || [];
+      const leadsData = leadsRes.data || [];
 
       // Get all referrer IDs
-      const referrerIds = [
-        ...new Set([
-          ...(studentData?.map(r => r.referrer_user_id) || []),
-          ...(leadsData?.map(r => r.referrer_user_id) || [])
+      const referrerIds = Array.from(
+        new Set([
+          ...studentData.map(r => r.referrer_user_id).filter(Boolean),
+          ...leadsData.map(r => r.referrer_user_id).filter(Boolean)
         ])
-      ];
+      );
 
       // Fetch referrer names from neohub_users (primary) and profiles (fallback)
-      const { data: neohubUsers } = await supabase
-        .from('neohub_users')
-        .select('user_id, full_name')
-        .in('user_id', referrerIds);
-
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, name')
-        .in('user_id', referrerIds);
-
-      // Create map: neohub_users takes priority over profiles
       const profileMap = new Map<string, string>();
-      profiles?.forEach(p => {
-        if (p.name) profileMap.set(p.user_id, p.name);
-      });
-      neohubUsers?.forEach(u => {
-        if (u.full_name) profileMap.set(u.user_id, u.full_name);
-      });
+      if (referrerIds.length > 0) {
+        const [neohubRes, profilesRes] = await Promise.all([
+          supabase.from('neohub_users').select('user_id, full_name').in('user_id', referrerIds),
+          supabase.from('profiles').select('user_id, name').in('user_id', referrerIds)
+        ]);
+
+        if (neohubRes.error) throw neohubRes.error;
+        if (profilesRes.error) throw profilesRes.error;
+
+        // Create map: neohub_users takes priority over profiles
+        profilesRes.data?.forEach(p => {
+          if (p.name) profileMap.set(p.user_id, p.name);
+        });
+        neohubRes.data?.forEach(u => {
+          if (u.full_name) profileMap.set(u.user_id, u.full_name);
+        });
+      }
 
       // Unify data
       const unified: UnifiedReferral[] = [
-        ...(studentData || []).map(r => ({
+        ...studentData.map(r => ({
           id: r.id,
           source: 'student' as const,
           name: r.referred_name,
@@ -217,7 +217,7 @@ export default function ReferralsAdmin() {
           created_at: r.created_at,
           converted_at: r.converted_at
         })),
-        ...(leadsData || []).map(r => ({
+        ...leadsData.map(r => ({
           id: r.id,
           source: 'lead' as const,
           name: r.name,
@@ -241,11 +241,13 @@ export default function ReferralsAdmin() {
       calculateStats(unified);
 
       // Fetch all users with referral codes for the Referrers tab
-      const { data: allNeohubUsers } = await supabase
+      const { data: allNeohubUsers, error: allNeohubUsersError } = await supabase
         .from('neohub_users')
         .select('id, user_id, full_name, email, referral_code')
         .not('referral_code', 'is', null)
         .order('full_name');
+
+      if (allNeohubUsersError) throw allNeohubUsersError;
 
       // Build referrer stats
       const baseUrl = window.location.origin;
