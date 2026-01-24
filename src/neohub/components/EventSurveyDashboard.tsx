@@ -24,6 +24,8 @@ import {
   Legend,
   LabelList,
   Cell,
+  PieChart,
+  Pie,
 } from "recharts";
 import {
   Users,
@@ -1097,48 +1099,66 @@ function QuestionInlineCard({
         {/* Only show chart when there are responses */}
         {totalResponses > 0 ? (
           <>
-            {/* Compact chart */}
-            <ResponsiveContainer width="100%" height={Math.max(120, distributionData.length * 28)}>
-              <BarChart 
-                data={distributionData} 
-                layout="vertical" 
-                margin={{ left: 5, right: 35, top: 0, bottom: 0 }}
-              >
-                <XAxis type="number" hide />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  width={120} 
-                  tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--background))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '6px',
-                    fontSize: '12px'
-                  }}
-                  formatter={(value: number) => [`${value} respostas`, 'Total']}
-                />
-                <Bar 
-                  dataKey="value" 
-                  radius={[0, 6, 6, 0]}
-                  maxBarSize={24}
-                >
-                  {distributionData.map((entry, idx) => (
-                    <Cell key={`cell-${idx}`} fill={entry.fill} />
-                  ))}
-                  <LabelList 
-                    dataKey="value" 
-                    position="right" 
-                    className="text-xs font-semibold fill-foreground"
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-
+            {/* Pie chart with percentages */}
+            <div className="flex flex-col lg:flex-row items-center gap-4">
+              <div className="w-full lg:w-1/2">
+                <ResponsiveContainer width="100%" height={140}>
+                  <PieChart>
+                    <Pie
+                      data={distributionData.filter(d => d.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={30}
+                      outerRadius={55}
+                      dataKey="value"
+                      paddingAngle={2}
+                    >
+                      {distributionData.filter(d => d.value > 0).map((entry, idx) => (
+                        <Cell key={`cell-${idx}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--background))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px',
+                        fontSize: '12px'
+                      }}
+                      formatter={(value: number, name: string) => [
+                        `${value} (${((value / totalResponses) * 100).toFixed(0)}%)`, 
+                        name
+                      ]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* Legend with percentages */}
+              <div className="w-full lg:w-1/2 space-y-1">
+                {distributionData.map((item, idx) => {
+                  const percent = totalResponses > 0 ? ((item.value / totalResponses) * 100).toFixed(0) : '0';
+                  return (
+                    <div key={idx} className="flex items-center justify-between text-xs gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full shrink-0" 
+                          style={{ backgroundColor: item.fill }}
+                        />
+                        <span className="truncate text-muted-foreground">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="font-semibold" style={{ color: item.fill }}>
+                          {percent}%
+                        </span>
+                        <span className="text-muted-foreground text-[10px]">
+                          ({item.value})
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-6 text-center">
