@@ -1668,11 +1668,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     { ...MONITOR_COLORS[2], metrics: analytics.monitors.ederM },
     { ...MONITOR_COLORS[3], metrics: analytics.monitors.gleyldes },
     { ...MONITOR_COLORS[4], metrics: analytics.monitors.elenilton },
-  ].filter(m => m.metrics && m.metrics.overallAvg > 0);
+  ].filter(m => m.metrics && !isNaN(m.metrics.overallAvg) && m.metrics.overallAvg > 0);
 
   // Add monitors from monitorsByName with proper color matching (includes Gleyldes and Elenilton)
   const dynamicMonitors = Object.entries(analytics.monitorsByName || {})
-    .filter(([_, metrics]) => metrics && metrics.overallAvg > 0)
+    .filter(([_, metrics]) => metrics && !isNaN(metrics.overallAvg) && metrics.overallAvg > 0)
     .map(([name, metrics]) => {
       const normalized = name.toLowerCase();
       const colorConfig = MONITOR_COLORS.find(c => normalized.includes(c.key)) || 
