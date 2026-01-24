@@ -14,6 +14,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
+import logoBrowsTransplant from "@/assets/logo-brows-transplant-360.jpg";
 
 export interface PresentialCourse {
   id: string;
@@ -21,7 +22,7 @@ export interface PresentialCourse {
   name: string;
   description: string;
   duration: string;
-  type: 'formacao360' | 'instrumentador' | 'fellowship' | 'licenca' | 'monitor';
+  type: 'formacao360' | 'instrumentador' | 'fellowship' | 'licenca' | 'monitor' | 'brows';
   startDate: string | null;
   endDate: string | null;
   city: string | null;
@@ -42,6 +43,11 @@ const courseTypeConfig: Record<string, { color: string; icon: React.ReactNode; l
     color: 'from-emerald-600 to-green-700',
     icon: <GraduationCap className="h-7 w-7" />,
     logo: logoFormacao360
+  },
+  brows: {
+    color: 'from-zinc-800 to-zinc-900',
+    icon: <GraduationCap className="h-7 w-7" />,
+    logo: logoBrowsTransplant
   },
   instrumentador: {
     color: 'from-blue-500 to-indigo-600',
