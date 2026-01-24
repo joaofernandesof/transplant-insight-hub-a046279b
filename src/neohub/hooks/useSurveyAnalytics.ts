@@ -283,8 +283,8 @@ export interface SurveyAnalytics {
   totalResponses: number;
   completedResponses: number;
   completionRate: number;
-  nps: { score: number; promoters: number; passives: number; detractors: number };
-  overallSatisfaction: number;
+  overallSatisfaction: number; // Média simples de satisfação (1-5)
+  overallSatisfactionPercent: number; // Satisfação em percentual (0-100)
   instructors: {
     hygor: InstructorMetrics;
     patrick: InstructorMetrics;
@@ -361,13 +361,12 @@ export function useSurveyAnalytics(classId: string | null) {
       // All responses are already completed (filtered above)
       const completed = responses;
 
-      // NPS Calculation
-      const nps = calculateNPS(completed.map(r => r.q1_satisfaction_level));
-
-      // Overall satisfaction
+      // Overall satisfaction - média simples (não NPS)
       const overallSatisfaction = calculateAverage(
         completed.map(r => getRatingValue(r.q1_satisfaction_level))
       );
+      // Converte para percentual (1-5 → 0-100%)
+      const overallSatisfactionPercent = overallSatisfaction > 0 ? ((overallSatisfaction - 1) / 4) * 100 : 0;
 
       // Instructor metrics - Hygor
       const hygorMetrics: InstructorMetrics = {
@@ -808,8 +807,8 @@ export function useSurveyAnalytics(classId: string | null) {
         totalResponses: responses.length,
         completedResponses: completed.length,
         completionRate: responses.length > 0 ? Math.round((completed.length / responses.length) * 100) : 0,
-        nps,
         overallSatisfaction,
+        overallSatisfactionPercent,
         instructors: {
           hygor: hygorMetrics,
           patrick: patrickMetrics,

@@ -220,13 +220,13 @@ async function exportOverviewPDF(analytics: NonNullable<SurveyAnalyticsData>) {
             <div style="font-size: 32px; font-weight: bold; color: #059669;">${analytics.completionRate}%</div>
             <div style="font-size: 12px; color: #6b7280;">Conclusão</div>
           </div>
-          <div style="flex: 1; background: ${analytics.nps.score >= 50 ? '#ecfdf5' : analytics.nps.score >= 0 ? '#fef9c3' : '#fee2e2'}; border-radius: 12px; padding: 20px; text-align: center;">
-            <div style="font-size: 32px; font-weight: bold; color: ${analytics.nps.score >= 50 ? '#059669' : analytics.nps.score >= 0 ? '#ca8a04' : '#dc2626'};">${analytics.nps.score}</div>
-            <div style="font-size: 12px; color: #6b7280;">NPS</div>
+          <div style="flex: 1; background: ${analytics.overallSatisfactionPercent >= 80 ? '#ecfdf5' : analytics.overallSatisfactionPercent >= 60 ? '#fef9c3' : '#fee2e2'}; border-radius: 12px; padding: 20px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: ${analytics.overallSatisfactionPercent >= 80 ? '#059669' : analytics.overallSatisfactionPercent >= 60 ? '#ca8a04' : '#dc2626'};">${analytics.overallSatisfactionPercent.toFixed(0)}%</div>
+            <div style="font-size: 12px; color: #6b7280;">Satisfação</div>
           </div>
           <div style="flex: 1; background: #f3e8ff; border-radius: 12px; padding: 20px; text-align: center;">
-            <div style="font-size: 32px; font-weight: bold; color: #7c3aed;">${analytics.overallSatisfaction.toFixed(1)}</div>
-            <div style="font-size: 12px; color: #6b7280;">Satisfação</div>
+            <div style="font-size: 32px; font-weight: bold; color: #7c3aed;">${analytics.overallSatisfaction.toFixed(1)}/5</div>
+            <div style="font-size: 12px; color: #6b7280;">Média</div>
           </div>
         </div>
         
@@ -244,19 +244,19 @@ async function exportOverviewPDF(analytics: NonNullable<SurveyAnalyticsData>) {
         </div>
         
         <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-          <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 16px 0;">Distribuição NPS</h3>
+          <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 16px 0;">Métricas de Satisfação</h3>
           <div style="display: flex; gap: 16px;">
             <div style="flex: 1; text-align: center; padding: 16px; background: #ecfdf5; border-radius: 8px;">
-              <div style="font-size: 24px; font-weight: bold; color: #10b981;">${analytics.nps.promoters}</div>
-              <div style="font-size: 11px; color: #6b7280;">Promotores</div>
+              <div style="font-size: 24px; font-weight: bold; color: #10b981;">${analytics.overallSatisfaction.toFixed(2)}</div>
+              <div style="font-size: 11px; color: #6b7280;">Média (1-5)</div>
             </div>
-            <div style="flex: 1; text-align: center; padding: 16px; background: #fef9c3; border-radius: 8px;">
-              <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${analytics.nps.passives}</div>
-              <div style="font-size: 11px; color: #6b7280;">Passivos</div>
+            <div style="flex: 1; text-align: center; padding: 16px; background: #dbeafe; border-radius: 8px;">
+              <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${analytics.overallSatisfactionPercent.toFixed(0)}%</div>
+              <div style="font-size: 11px; color: #6b7280;">Percentual</div>
             </div>
-            <div style="flex: 1; text-align: center; padding: 16px; background: #fee2e2; border-radius: 8px;">
-              <div style="font-size: 24px; font-weight: bold; color: #ef4444;">${analytics.nps.detractors}</div>
-              <div style="font-size: 11px; color: #6b7280;">Detratores</div>
+            <div style="flex: 1; text-align: center; padding: 16px; background: #f3e8ff; border-radius: 8px;">
+              <div style="font-size: 24px; font-weight: bold; color: #7c3aed;">${analytics.totalResponses}</div>
+              <div style="font-size: 11px; color: #6b7280;">Respostas</div>
             </div>
           </div>
         </div>
@@ -1027,11 +1027,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     
     setIsLoadingInsights(true);
     try {
-      const surveyData = {
+    const surveyData = {
         totalResponses: analytics.totalResponses,
         completionRate: analytics.completionRate,
-        npsScore: analytics.nps.score,
         overallSatisfaction: analytics.overallSatisfaction,
+        satisfactionPercent: analytics.overallSatisfactionPercent,
         instructorMetrics: {
           hygor: {
             avgExpectations: analytics.instructors.hygor.avgExpectations,
@@ -1108,10 +1108,13 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const urgencyData = buildDistributionData(analytics.studentProfile.urgencyLevel, ALL_URGENCY_LEVELS);
   const weeklyTimeData = buildDistributionData(analytics.studentProfile.weeklyTime, ALL_WEEKLY_TIME);
 
-  const npsDistribution = [
-    { name: 'Promotores', value: analytics.nps.promoters, fill: NPS_COLORS.promoters },
-    { name: 'Neutros', value: analytics.nps.passives, fill: NPS_COLORS.passives },
-    { name: 'Detratores', value: analytics.nps.detractors, fill: NPS_COLORS.detractors },
+  // Distribuição de satisfação por nível
+  const satisfactionLevelDistribution = [
+    { name: 'Excelente (5)', value: satisfactionData.find(s => s.name.includes('Excelente'))?.value || 0, fill: '#10b981' },
+    { name: 'Bom (4)', value: satisfactionData.find(s => s.name.includes('Bom'))?.value || 0, fill: '#22c55e' },
+    { name: 'Neutro (3)', value: satisfactionData.find(s => s.name.includes('Neutro'))?.value || 0, fill: '#f59e0b' },
+    { name: 'Ruim (2)', value: satisfactionData.find(s => s.name.includes('Ruim') && !s.name.includes('Muito'))?.value || 0, fill: '#f97316' },
+    { name: 'Muito Ruim (1)', value: satisfactionData.find(s => s.name.includes('Muito Ruim'))?.value || 0, fill: '#ef4444' },
   ];
 
   const infrastructureData = [
@@ -1591,28 +1594,28 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Card>
 
           <Card className={`bg-gradient-to-br ${
-            analytics.nps.score >= 50 
+            analytics.overallSatisfactionPercent >= 80 
               ? 'from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200/50'
-              : analytics.nps.score >= 0
+              : analytics.overallSatisfactionPercent >= 60
               ? 'from-yellow-50 to-yellow-100 dark:from-yellow-950/30 dark:to-yellow-900/20 border-yellow-200/50'
               : 'from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200/50'
           }`}>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <div className={`p-2 rounded-lg ${
-                  analytics.nps.score >= 50 ? 'bg-emerald-500/20' : analytics.nps.score >= 0 ? 'bg-yellow-500/20' : 'bg-red-500/20'
+                  analytics.overallSatisfactionPercent >= 80 ? 'bg-emerald-500/20' : analytics.overallSatisfactionPercent >= 60 ? 'bg-yellow-500/20' : 'bg-red-500/20'
                 }`}>
                   <TrendingUp className={`h-4 w-4 ${
-                    analytics.nps.score >= 50 ? 'text-emerald-600' : analytics.nps.score >= 0 ? 'text-yellow-600' : 'text-red-600'
+                    analytics.overallSatisfactionPercent >= 80 ? 'text-emerald-600' : analytics.overallSatisfactionPercent >= 60 ? 'text-yellow-600' : 'text-red-600'
                   }`} />
                 </div>
                 <div>
                   <p className={`text-2xl font-bold ${
-                    analytics.nps.score >= 50 ? 'text-emerald-700 dark:text-emerald-400' :
-                    analytics.nps.score >= 0 ? 'text-yellow-700 dark:text-yellow-400' :
+                    analytics.overallSatisfactionPercent >= 80 ? 'text-emerald-700 dark:text-emerald-400' :
+                    analytics.overallSatisfactionPercent >= 60 ? 'text-yellow-700 dark:text-yellow-400' :
                     'text-red-700 dark:text-red-400'
-                  }`}>{analytics.nps.score}</p>
-                  <p className="text-xs text-muted-foreground">NPS</p>
+                  }`}>{analytics.overallSatisfactionPercent.toFixed(0)}%</p>
+                  <p className="text-xs text-muted-foreground">Satisfação</p>
                 </div>
               </div>
             </CardContent>
@@ -1667,27 +1670,39 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
 
-          {/* NPS Distribution */}
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+          {/* Satisfaction Distribution */}
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
+            setDrilldownData({
+              title: 'Distribuição de Satisfação',
+              category: 'satisfaction',
+              students: analytics.responsesByStudent
+                .filter(s => s.satisfaction)
+                .map(s => ({
+                  name: s.userName,
+                  response: s.satisfaction || '',
+                  value: null
+                }))
+            });
+            setDrilldownOpen(true);
+          }}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center justify-between">
-                Distribuição NPS
+                Distribuição de Satisfação
                 <Badge variant="outline" className="text-[10px] font-normal">Clique para detalhar</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={npsDistribution} layout="vertical" margin={{ left: 10, right: 30 }}>
+                <BarChart data={satisfactionLevelDistribution} layout="vertical" margin={{ left: 10, right: 30 }}>
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
                   <Tooltip />
                   <Bar 
                     dataKey="value" 
                     radius={[0, 4, 4, 0]}
-                    onClick={(data) => handleNPSBarClick(data)}
                     style={{ cursor: 'pointer' }}
                   >
-                    {npsDistribution.map((entry, index) => (
+                    {satisfactionLevelDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                     <LabelList dataKey="value" position="right" className="text-xs font-medium" />
