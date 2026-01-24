@@ -955,22 +955,15 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
               )}
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge 
-              style={{ 
-                backgroundColor: getGradientBgStyle(student.overallScore, 0, 10),
-                color: getGradientColorStyle(student.overallScore, 0, 10)
-              }}
-            >
-              {classConfig.label}
-            </Badge>
-            <span 
-              className="text-sm font-semibold"
-              style={{ color: getGradientColorStyle(student.overallScore, 0, 10) }}
-            >
-              {student.overallScore.toFixed(1)}
-            </span>
-          </div>
+          <Badge 
+            className="font-bold text-base px-3"
+            style={{ 
+              backgroundColor: getGradientBgStyle(student.overallScore, 0, 10),
+              color: getGradientColorStyle(student.overallScore, 0, 10)
+            }}
+          >
+            {student.overallScore.toFixed(1)}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent>
@@ -3335,16 +3328,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       
                       <div style="padding: 30px;">
                         <div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
-                          <div style="flex: 1; min-width: 180px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 28px; font-weight: bold; color: #6366f1;">${selectedStudent.overallScore.toFixed(1)}</div>
-                            <div style="font-size: 12px; color: #6b7280;">Nota Geral</div>
+                          <div style="flex: 1; min-width: 200px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: #6366f1;">${selectedStudent.overallScore.toFixed(1)}</div>
+                            <div style="font-size: 12px; color: #6b7280;">Nota Média</div>
                           </div>
-                          <div style="flex: 1; min-width: 180px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 18px; font-weight: bold; color: #10b981;">${classConfig.label}</div>
-                            <div style="font-size: 12px; color: #6b7280;">Classificação</div>
-                          </div>
-                          <div style="flex: 1; min-width: 180px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 18px; font-weight: bold; color: #6366f1;">${selectedStudent.answeredQuestions}/${selectedStudent.totalQuestions}</div>
+                          <div style="flex: 1; min-width: 200px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold; color: #6366f1;">${selectedStudent.answeredQuestions}/${selectedStudent.totalQuestions}</div>
                             <div style="font-size: 12px; color: #6b7280;">Perguntas Respondidas</div>
                           </div>
                         </div>
