@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ClinicAuthProvider, useClinicAuth } from './contexts/ClinicAuthContext';
 import { ClinicSidebar } from './components/ClinicSidebar';
-import ClinicLogin from './pages/ClinicLogin';
+
 import ClinicDashboard from './pages/ClinicDashboard';
 import RegisterPatient from './pages/RegisterPatient';
 import NewSale from './pages/NewSale';
@@ -22,7 +22,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <Navigate to="/clinic/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <ClinicSidebar>{children}</ClinicSidebar>;
@@ -31,7 +31,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function ClinicRoutes() {
   return (
     <Routes>
-      <Route path="login" element={<ClinicLogin />} />
+      <Route path="login" element={<Navigate to="/login" replace />} />
       <Route path="/" element={<ProtectedRoute><ClinicDashboard /></ProtectedRoute>} />
       <Route path="paciente" element={<ProtectedRoute><RegisterPatient /></ProtectedRoute>} />
       <Route path="nova-venda" element={<ProtectedRoute><NewSale /></ProtectedRoute>} />
