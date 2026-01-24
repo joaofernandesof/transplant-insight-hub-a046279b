@@ -26,7 +26,7 @@ const navItems = [
   { icon: CalendarDays, label: 'Agenda do Aluno', path: '/academy/schedule' },
   { icon: Award, label: 'Certificados', path: '/academy/certificates' },
   { icon: Users, label: 'Comunidade', path: '/academy/community' },
-  { icon: Gift, label: 'Indicação', path: '/academy/referral' },
+  { icon: Gift, label: 'Indicação', path: '/academy/referral', highlight: true },
 ];
 
 const adminItems = [
@@ -101,12 +101,16 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
                   isActive
                     ? "bg-emerald-100 text-emerald-700 font-medium dark:bg-emerald-900/50 dark:text-emerald-300"
-                    : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-400"
+                    : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-400",
+                  item.highlight && "border border-amber-300 dark:border-amber-600"
                 )
               }
             >
               <item.icon className="h-4 w-4" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.highlight && (
+                <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">10%</Badge>
+              )}
             </NavLink>
           ))}
 
