@@ -1138,6 +1138,40 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     },
   ];
 
+  // Build monitor radar data from all available monitors
+  const monitorRadarData = [
+    {
+      metric: 'Técnica',
+      'Dr. Eder': analytics.monitors.eder?.avgTechnical || 0,
+      'Dr. Patrick M': analytics.monitors.patrickM?.avgTechnical || 0,
+    },
+    {
+      metric: 'Interesse',
+      'Dr. Eder': analytics.monitors.eder?.avgInterest || 0,
+      'Dr. Patrick M': analytics.monitors.patrickM?.avgInterest || 0,
+    },
+    {
+      metric: 'Engajamento',
+      'Dr. Eder': analytics.monitors.eder?.avgEngagement || 0,
+      'Dr. Patrick M': analytics.monitors.patrickM?.avgEngagement || 0,
+    },
+    {
+      metric: 'Postura',
+      'Dr. Eder': analytics.monitors.eder?.avgPosture || 0,
+      'Dr. Patrick M': analytics.monitors.patrickM?.avgPosture || 0,
+    },
+    {
+      metric: 'Comunicação',
+      'Dr. Eder': analytics.monitors.eder?.avgCommunication || 0,
+      'Dr. Patrick M': analytics.monitors.patrickM?.avgCommunication || 0,
+    },
+    {
+      metric: 'Contribuição',
+      'Dr. Eder': analytics.monitors.eder?.avgContribution || 0,
+      'Dr. Patrick M': analytics.monitors.patrickM?.avgContribution || 0,
+    },
+  ];
+
   const wordFrequency = getWordFrequency([
     ...analytics.openFeedback.likedMost.map(f => f.text), 
     ...analytics.openFeedback.suggestions.map(f => f.text)
@@ -1662,25 +1696,158 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
 
-          {/* Instructor Radar */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Comparação de Professores</CardTitle>
+          {/* Instructor Radar - Full Width */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Award className="h-5 w-5 text-primary" />
+                Comparação de Professores
+              </CardTitle>
+              <CardDescription>Avaliação comparativa entre Dr. Hygor e Dr. Patrick</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <ResponsiveContainer width="100%" height={220}>
-                <RadarChart data={instructorRadarData}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 8 }} />
-                  <Radar name="Dr. Hygor" dataKey="Dr. Hygor" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
-                  <Radar name="Dr. Patrick" dataKey="Dr. Patrick" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
-                  <Legend wrapperStyle={{ fontSize: 10 }} />
-                </RadarChart>
-              </ResponsiveContainer>
+              <div className="flex flex-col lg:flex-row items-center gap-8">
+                <ResponsiveContainer width="100%" height={350}>
+                  <RadarChart data={instructorRadarData} outerRadius="80%">
+                    <PolarGrid strokeDasharray="3 3" />
+                    <PolarAngleAxis 
+                      dataKey="metric" 
+                      tick={{ fontSize: 13, fontWeight: 500 }} 
+                    />
+                    <PolarRadiusAxis 
+                      domain={[0, 5]} 
+                      tick={{ fontSize: 10 }} 
+                      tickCount={6}
+                      axisLine={false}
+                    />
+                    <Radar 
+                      name="Dr. Hygor" 
+                      dataKey="Dr. Hygor" 
+                      stroke="hsl(217, 91%, 60%)" 
+                      fill="hsl(217, 91%, 60%)" 
+                      fillOpacity={0.35}
+                      strokeWidth={2}
+                    />
+                    <Radar 
+                      name="Dr. Patrick" 
+                      dataKey="Dr. Patrick" 
+                      stroke="hsl(160, 84%, 39%)" 
+                      fill="hsl(160, 84%, 39%)" 
+                      fillOpacity={0.35}
+                      strokeWidth={2}
+                    />
+                    <Legend 
+                      wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
+                      iconSize={14}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => value.toFixed(2)}
+                      contentStyle={{ borderRadius: 8 }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+                <div className="flex flex-col gap-4 min-w-[200px]">
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500" />
+                      <span className="font-semibold text-blue-700 dark:text-blue-400">Dr. Hygor</span>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {analytics.instructors.hygor.overallAvg.toFixed(1)}/5
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                      <span className="font-semibold text-emerald-700 dark:text-emerald-400">Dr. Patrick</span>
+                    </div>
+                    <div className="text-2xl font-bold text-emerald-600">
+                      {analytics.instructors.patrick.overallAvg.toFixed(1)}/5
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Monitor Comparison Chart */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Users className="h-5 w-5 text-violet-600" />
+              Comparação de Monitores
+            </CardTitle>
+            <CardDescription>Avaliação detalhada dos monitores em 6 dimensões</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex flex-col lg:flex-row items-center gap-8">
+              <ResponsiveContainer width="100%" height={400}>
+                <RadarChart data={monitorRadarData} outerRadius="75%">
+                  <PolarGrid strokeDasharray="3 3" />
+                  <PolarAngleAxis 
+                    dataKey="metric" 
+                    tick={{ fontSize: 12, fontWeight: 500 }} 
+                  />
+                  <PolarRadiusAxis 
+                    domain={[0, 5]} 
+                    tick={{ fontSize: 10 }} 
+                    tickCount={6}
+                    axisLine={false}
+                  />
+                  <Radar 
+                    name="Dr. Eder" 
+                    dataKey="Dr. Eder" 
+                    stroke="hsl(262, 83%, 58%)" 
+                    fill="hsl(262, 83%, 58%)" 
+                    fillOpacity={0.35}
+                    strokeWidth={2}
+                  />
+                  <Radar 
+                    name="Dr. Patrick M" 
+                    dataKey="Dr. Patrick M" 
+                    stroke="hsl(25, 95%, 53%)" 
+                    fill="hsl(25, 95%, 53%)" 
+                    fillOpacity={0.35}
+                    strokeWidth={2}
+                  />
+                  <Legend 
+                    wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
+                    iconSize={14}
+                  />
+                  <Tooltip 
+                    formatter={(value: number) => value.toFixed(2)}
+                    contentStyle={{ borderRadius: 8 }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+              <div className="flex flex-col gap-4 min-w-[200px]">
+                <div className="p-4 rounded-xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 rounded-full bg-violet-500" />
+                    <span className="font-semibold text-violet-700 dark:text-violet-400">Dr. Eder</span>
+                  </div>
+                  <div className="text-2xl font-bold text-violet-600">
+                    {analytics.monitors.eder?.overallAvg?.toFixed(1) || 'N/A'}/5
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
+                </div>
+                <div className="p-4 rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 rounded-full bg-orange-500" />
+                    <span className="font-semibold text-orange-700 dark:text-orange-400">Dr. Patrick M</span>
+                  </div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {analytics.monitors.patrickM?.overallAvg?.toFixed(1) || 'N/A'}/5
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Feedback Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
