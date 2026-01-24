@@ -84,35 +84,36 @@ interface ReferralsTableProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
-  pending: { 
-    label: 'Pendente', 
+  new_referral: { 
+    label: 'Nova Indicação', 
     color: 'text-amber-700 dark:text-amber-400', 
     bgColor: 'bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800',
-    icon: <Clock className="h-3 w-3" />
+    icon: <Gift className="h-3 w-3" />
   },
-  contacted: { 
-    label: 'Contatado', 
+  negotiating: { 
+    label: 'Em negociação', 
     color: 'text-blue-700 dark:text-blue-400', 
     bgColor: 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800',
     icon: <Phone className="h-3 w-3" />
   },
-  enrolled: { 
-    label: 'Matriculado', 
+  deposit_paid: { 
+    label: 'Sinal Pago', 
     color: 'text-purple-700 dark:text-purple-400', 
     bgColor: 'bg-purple-100 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800',
-    icon: <Users className="h-3 w-3" />
+    icon: <DollarSign className="h-3 w-3" />
   },
-  converted: { 
-    label: 'Convertido', 
+  paid_off: { 
+    label: 'Quitado', 
     color: 'text-emerald-700 dark:text-emerald-400', 
     bgColor: 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800',
     icon: <CheckCircle className="h-3 w-3" />
   },
-  cancelled: { 
-    label: 'Cancelado', 
-    color: 'text-rose-700 dark:text-rose-400', 
-    bgColor: 'bg-rose-100 dark:bg-rose-900/30 border-rose-200 dark:border-rose-800',
-    icon: <XCircle className="h-3 w-3" />
+  // Legacy status mapping
+  pending: { 
+    label: 'Nova Indicação', 
+    color: 'text-amber-700 dark:text-amber-400', 
+    bgColor: 'bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800',
+    icon: <Gift className="h-3 w-3" />
   }
 };
 
@@ -148,14 +149,14 @@ export function ReferralsTable({
   });
   const [selectedReferral, setSelectedReferral] = useState<UnifiedReferral | null>(null);
 
-  // Calculate gains
+  // Calculate gains - reward only after "paid_off" (Quitado)
   const calculateGains = (referral: UnifiedReferral) => {
-    const isConverted = referral.status === 'converted' || referral.status === 'enrolled';
+    const isPaidOff = referral.status === 'paid_off';
     const baseValue = referral.converted_value || COURSE_VALUE;
     
     return {
-      indicador: isConverted ? baseValue * INDICADOR_COMMISSION_RATE : 0,
-      indicado: isConverted ? baseValue * INDICADO_DISCOUNT_RATE : 0,
+      indicador: isPaidOff ? baseValue * INDICADOR_COMMISSION_RATE : 0,
+      indicado: isPaidOff ? baseValue * INDICADO_DISCOUNT_RATE : 0,
       potentialIndicador: baseValue * INDICADOR_COMMISSION_RATE,
       potentialIndicado: baseValue * INDICADO_DISCOUNT_RATE
     };
@@ -377,11 +378,10 @@ export function ReferralsTable({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="pending">Pendente</SelectItem>
-                    <SelectItem value="contacted">Contatado</SelectItem>
-                    <SelectItem value="enrolled">Matriculado</SelectItem>
-                    <SelectItem value="converted">Convertido</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                    <SelectItem value="new_referral">Nova Indicação</SelectItem>
+                    <SelectItem value="negotiating">Em negociação</SelectItem>
+                    <SelectItem value="deposit_paid">Sinal Pago</SelectItem>
+                    <SelectItem value="paid_off">Quitado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -415,9 +415,9 @@ export function ReferralsTable({
                 <TableBody>
                   {filteredAndSortedData.map((referral) => {
                     const gains = calculateGains(referral);
-                    const statusConfig = STATUS_CONFIG[referral.status] || STATUS_CONFIG.pending;
+                    const statusConfig = STATUS_CONFIG[referral.status] || STATUS_CONFIG.new_referral;
                     const sourceConfig = SOURCE_CONFIG[referral.source] || SOURCE_CONFIG.lead;
-                    const isConverted = referral.status === 'converted' || referral.status === 'enrolled';
+                    const isPaidOff = referral.status === 'paid_off';
                     
                     return (
                       <TableRow 
@@ -474,20 +474,20 @@ export function ReferralsTable({
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className={`text-sm font-medium ${isConverted ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                          <div className={`text-sm font-medium ${isPaidOff ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                             <span className="flex items-center gap-1">
                               5%
-                              {isConverted && <span className="text-xs">(aplicado)</span>}
-                              {!isConverted && <span className="text-xs italic">(potencial)</span>}
+                              {isPaidOff && <span className="text-xs">(aplicado)</span>}
+                              {!isPaidOff && <span className="text-xs italic">(potencial)</span>}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className={`text-sm font-medium ${isConverted ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
+                          <div className={`text-sm font-medium ${isPaidOff ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
                             <span className="flex items-center gap-1">
                               5%
-                              {isConverted && <span className="text-xs">(aplicado)</span>}
-                              {!isConverted && <span className="text-xs italic">(potencial)</span>}
+                              {isPaidOff && <span className="text-xs">(aplicado)</span>}
+                              {!isPaidOff && <span className="text-xs italic">(potencial)</span>}
                             </span>
                           </div>
                         </TableCell>
@@ -501,11 +501,10 @@ export function ReferralsTable({
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="pending">Pendente</SelectItem>
-                                <SelectItem value="contacted">Contatado</SelectItem>
-                                <SelectItem value="enrolled">Matriculado</SelectItem>
-                                <SelectItem value="converted">Convertido</SelectItem>
-                                <SelectItem value="cancelled">Cancelado</SelectItem>
+                                <SelectItem value="new_referral">Nova Indicação</SelectItem>
+                                <SelectItem value="negotiating">Em negociação</SelectItem>
+                                <SelectItem value="deposit_paid">Sinal Pago</SelectItem>
+                                <SelectItem value="paid_off">Quitado</SelectItem>
                               </SelectContent>
                             </Select>
                             <Button
