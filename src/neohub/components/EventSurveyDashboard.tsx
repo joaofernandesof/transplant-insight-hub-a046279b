@@ -3155,106 +3155,206 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
       {/* ============== STUDENTS TAB ============== */}
       <TabsContent value="students" className="space-y-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Análise Individual por Aluno</CardTitle>
-              <CardDescription>Selecione um aluno para ver todas as respostas</CardDescription>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleExportPDF('students')}
-              disabled={exportingTab === 'students'}
-              className="flex items-center gap-2"
-            >
-              {exportingTab === 'students' ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  Gerando PDF...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4" />
-                  Exportar PDF
-                </>
-              )}
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar aluno..."
-                value={studentSearch}
-                onChange={(e) => setStudentSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+        {/* Header with export button */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Análise Individual por Aluno</h3>
+            <p className="text-sm text-muted-foreground">Selecione um aluno para ver todas as respostas</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportPDF('students')}
+            disabled={exportingTab === 'students'}
+            className="flex items-center gap-2"
+          >
+            {exportingTab === 'students' ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
+        </div>
 
-            {/* Students List - Full list without scroll */}
-            <div className="space-y-1.5">
-              {filteredStudents.map((student) => (
-                <div
-                  key={student.userId}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
-                    selectedStudent?.userId === student.userId
-                      ? 'border-primary bg-primary/5'
-                      : 'hover:bg-muted/50'
-                  }`}
-                  onClick={() => setSelectedStudent(student)}
-                >
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
+        {/* Two-column layout: student list + detail panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* LEFT - Student List (compact) */}
+          <Card className="lg:col-span-1">
+            <CardContent className="p-3 space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar aluno..."
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-1 pr-2">
+                  {filteredStudents.map((student) => {
+                    const classConfig = getSatisfactionClassConfig(student.satisfactionClass);
+                    const isSelected = selectedStudent?.userId === student.userId;
+                    
+                    return (
+                      <div
+                        key={student.userId}
+                        className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-primary/10 border-l-2 border-primary'
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => setSelectedStudent(student)}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Avatar className="h-7 w-7 shrink-0">
+                            <AvatarFallback className="text-xs">
+                              {student.userName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className={`text-sm truncate ${isSelected ? 'font-medium' : ''}`}>
+                            {student.userName}
+                          </span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] shrink-0 ml-2 ${classConfig.bg} ${classConfig.text} border-0`}
+                        >
+                          {student.overallScore.toFixed(1)}
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                  
+                  {filteredStudents.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-8">
+                      Nenhum aluno encontrado
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* RIGHT - Student Detail Panel */}
+          <Card className="lg:col-span-2">
+            {selectedStudent ? (
+              <>
+                <CardHeader className="pb-3 flex flex-row items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
                       <AvatarFallback>
-                        {student.userName.charAt(0)}
+                        {selectedStudent.userName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-medium flex items-center gap-1.5">
-                        {student.userName}
-                        {student.isFirstTime && (
-                          <Badge variant="outline" className="text-[10px] px-1 py-0">1ª vez</Badge>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        {selectedStudent.userName}
+                        {selectedStudent.isFirstTime && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">1ª vez</Badge>
                         )}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {student.isCompleted ? (
-                          <span className="text-emerald-600">Completou</span>
+                      </CardTitle>
+                      <CardDescription className="flex items-center gap-2">
+                        {selectedStudent.isCompleted ? (
+                          <span className="flex items-center gap-1 text-emerald-600">
+                            <CheckCircle2 className="h-3 w-3" /> Completou
+                          </span>
                         ) : (
-                          <span className="text-yellow-600">
-                            {student.answeredQuestions}/{student.totalQuestions} ({student.progressPercent}%)
+                          <span className="flex items-center gap-1 text-yellow-600">
+                            <Clock className="h-3 w-3" /> {selectedStudent.progressPercent}% concluído
                           </span>
                         )}
-                      </p>
+                        <span>•</span>
+                        <span>Média: <strong>{selectedStudent.overallScore.toFixed(1)}</strong></span>
+                      </CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {!student.isCompleted && (
-                      <Progress value={student.progressPercent} className="w-12 h-1.5" />
-                    )}
-                    {(() => {
-                      const classConfig = getSatisfactionClassConfig(student.satisfactionClass);
-                      return (
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] ${classConfig.bg} ${classConfig.text} ${classConfig.border}`}
-                        >
-                          {classConfig.label} ({student.overallScore.toFixed(1)})
-                        </Badge>
-                      );
-                    })()}
-                    {student.isCompleted ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    ) : (
-                      <Clock className="h-4 w-4 text-yellow-500" />
-                    )}
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      const classConfig = getSatisfactionClassConfig(selectedStudent.satisfactionClass);
+                      const groupedResponses = selectedStudent.responses.reduce((acc, r) => {
+                        if (!acc[r.category]) acc[r.category] = [];
+                        acc[r.category].push(r);
+                        return acc;
+                      }, {} as Record<string, typeof selectedStudent.responses>);
+                      
+                      const html = `
+                        <div style="padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                          <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 30px; text-align: center;">
+                            <h1 style="color: white; font-size: 22px; margin: 0;">📋 Relatório Individual</h1>
+                            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">${selectedStudent.userName}</p>
+                          </div>
+                          
+                          <div style="padding: 30px;">
+                            <div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
+                              <div style="flex: 1; min-width: 200px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 32px; font-weight: bold; color: #6366f1;">${selectedStudent.overallScore.toFixed(1)}</div>
+                                <div style="font-size: 12px; color: #6b7280;">Nota Média</div>
+                              </div>
+                              <div style="flex: 1; min-width: 200px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: bold; color: #6366f1;">${selectedStudent.answeredQuestions}/${selectedStudent.totalQuestions}</div>
+                                <div style="font-size: 12px; color: #6b7280;">Perguntas Respondidas</div>
+                              </div>
+                            </div>
+                            
+                            ${Object.entries(groupedResponses).map(([category, responses]) => `
+                              <div style="margin-bottom: 24px;">
+                                <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;">${category}</h3>
+                                ${(responses as any[]).map(r => `
+                                  <div style="display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: #f9fafb; border-radius: 8px;">
+                                    <span style="color: #6b7280; font-size: 13px;">${r.questionLabel}</span>
+                                    <span style="font-weight: 500; font-size: 13px; color: ${r.numericValue && r.numericValue >= 8 ? '#10b981' : r.numericValue && r.numericValue >= 5 ? '#f59e0b' : '#6b7280'};">${r.value || '—'}</span>
+                                  </div>
+                                `).join('')}
+                              </div>
+                            `).join('')}
+                            
+                            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #9ca3af; font-size: 11px;">
+                              Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} • IBRAMEC
+                            </div>
+                          </div>
+                        </div>
+                      `;
+                      createPDFFromHTML(html, `relatorio-${selectedStudent.userName.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
+                    }}
+                  >
+                    <Download className="h-4 w-4" />
+                    PDF
+                  </Button>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <ScrollArea className="h-[430px]">
+                    <div className="pr-4">
+                      <StudentDetailView student={selectedStudent} />
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </>
+            ) : (
+              <CardContent className="flex flex-col items-center justify-center h-[520px] text-center">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <User className="h-8 w-8 text-muted-foreground/50" />
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                  Selecione um aluno
+                </h3>
+                <p className="text-sm text-muted-foreground/70 max-w-xs">
+                  Clique em um aluno à esquerda para visualizar todas as suas respostas e detalhes
+                </p>
+              </CardContent>
+            )}
+          </Card>
+        </div>
       </TabsContent>
 
       {/* Student Detail Dialog - Global (accessible from all tabs) */}
