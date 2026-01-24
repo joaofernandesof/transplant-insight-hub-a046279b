@@ -102,14 +102,14 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                   isActive
                     ? "bg-emerald-100 text-emerald-700 font-medium dark:bg-emerald-900/50 dark:text-emerald-300"
                     : "text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-400",
-                  item.highlight && "border border-amber-300 dark:border-amber-600"
+                  item.highlight && "border border-red-300 dark:border-red-600"
                 )
               }
             >
               <item.icon className="h-4 w-4" />
               <span className="flex-1">{item.label}</span>
               {item.highlight && (
-                <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">10%</Badge>
+                <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 animate-pulse">10%</Badge>
               )}
             </NavLink>
           ))}
