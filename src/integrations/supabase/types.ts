@@ -2573,6 +2573,138 @@ export type Database = {
         }
         Relationships: []
       }
+      neoteam_anamnesis: {
+        Row: {
+          additional_info: string | null
+          age: number | null
+          baldness_grade: number | null
+          best_time_procedure: string | null
+          blood_pressure: string | null
+          branch_id: string | null
+          chronic_diseases: string | null
+          continuous_medications: string | null
+          created_at: string | null
+          created_by: string | null
+          current_feeling: string | null
+          decision_factors: string | null
+          family_baldness: string | null
+          follows_neofolic: string | null
+          hair_loss_evolution: string | null
+          health_insurance: string | null
+          health_insurance_type: string | null
+          how_found_clinic: string | null
+          id: string
+          important_event: string | null
+          interest_regions: string[] | null
+          known_allergies: string | null
+          main_complaint: string | null
+          patient_id: string | null
+          patient_name: string
+          previous_clinical_treatment: string | null
+          previous_surgeries: string | null
+          previous_transplant: string | null
+          price_awareness: string | null
+          profession: string | null
+          recent_exams: string | null
+          seen_other_results: string | null
+          status: string | null
+          updated_at: string | null
+          urgency_level: number | null
+          visited_other_clinics: string | null
+        }
+        Insert: {
+          additional_info?: string | null
+          age?: number | null
+          baldness_grade?: number | null
+          best_time_procedure?: string | null
+          blood_pressure?: string | null
+          branch_id?: string | null
+          chronic_diseases?: string | null
+          continuous_medications?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_feeling?: string | null
+          decision_factors?: string | null
+          family_baldness?: string | null
+          follows_neofolic?: string | null
+          hair_loss_evolution?: string | null
+          health_insurance?: string | null
+          health_insurance_type?: string | null
+          how_found_clinic?: string | null
+          id?: string
+          important_event?: string | null
+          interest_regions?: string[] | null
+          known_allergies?: string | null
+          main_complaint?: string | null
+          patient_id?: string | null
+          patient_name: string
+          previous_clinical_treatment?: string | null
+          previous_surgeries?: string | null
+          previous_transplant?: string | null
+          price_awareness?: string | null
+          profession?: string | null
+          recent_exams?: string | null
+          seen_other_results?: string | null
+          status?: string | null
+          updated_at?: string | null
+          urgency_level?: number | null
+          visited_other_clinics?: string | null
+        }
+        Update: {
+          additional_info?: string | null
+          age?: number | null
+          baldness_grade?: number | null
+          best_time_procedure?: string | null
+          blood_pressure?: string | null
+          branch_id?: string | null
+          chronic_diseases?: string | null
+          continuous_medications?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_feeling?: string | null
+          decision_factors?: string | null
+          family_baldness?: string | null
+          follows_neofolic?: string | null
+          hair_loss_evolution?: string | null
+          health_insurance?: string | null
+          health_insurance_type?: string | null
+          how_found_clinic?: string | null
+          id?: string
+          important_event?: string | null
+          interest_regions?: string[] | null
+          known_allergies?: string | null
+          main_complaint?: string | null
+          patient_id?: string | null
+          patient_name?: string
+          previous_clinical_treatment?: string | null
+          previous_surgeries?: string | null
+          previous_transplant?: string | null
+          price_awareness?: string | null
+          profession?: string | null
+          recent_exams?: string | null
+          seen_other_results?: string | null
+          status?: string | null
+          updated_at?: string | null
+          urgency_level?: number | null
+          visited_other_clinics?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neoteam_anamnesis_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neoteam_anamnesis_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoteam_appointments: {
         Row: {
           appointment_date: string
