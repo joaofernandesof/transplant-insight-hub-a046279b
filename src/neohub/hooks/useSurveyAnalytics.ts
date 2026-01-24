@@ -434,14 +434,15 @@ export function useSurveyAnalytics(classId: string | null) {
         returning: completed.filter(r => r.q2_first_time_course === false).length,
       };
 
-      // Hot leads detection
+      // Hot leads detection - based on HIGH urgency (Alta urgência)
+      const isHighUrgency = (urgency: string | null): boolean => {
+        if (!urgency) return false;
+        const normalized = urgency.toLowerCase().trim();
+        return normalized.includes('alta') || normalized === 'muito_alto' || normalized === 'alto';
+      };
+
       const hotLeads = completed
-        .filter(r => {
-          const hunger = r.q24_hunger_level?.toLowerCase();
-          const urgency = r.q25_urgency_level?.toLowerCase();
-          return hunger === 'muito_alto' || hunger === 'alto' || 
-                 urgency === 'muito_alto' || urgency === 'alto';
-        })
+        .filter(r => isHighUrgency(r.q25_urgency_level))
         .map(r => ({
           userId: r.user_id,
           name: r.user_profiles?.full_name || 'Aluno',
@@ -462,8 +463,7 @@ export function useSurveyAnalytics(classId: string | null) {
         completedAt: r.completed_at,
         satisfaction: r.q1_satisfaction_level,
         isFirstTime: r.q2_first_time_course || false,
-        isHotLead: (r.q24_hunger_level === 'muito_alto' || r.q24_hunger_level === 'alto' ||
-                    r.q25_urgency_level === 'muito_alto' || r.q25_urgency_level === 'alto'),
+        isHotLead: isHighUrgency(r.q25_urgency_level),
       }));
 
       return {
