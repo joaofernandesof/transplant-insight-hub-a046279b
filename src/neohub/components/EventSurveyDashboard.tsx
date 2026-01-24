@@ -55,6 +55,8 @@ import {
   Medal,
   X,
   Eye,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -3734,85 +3736,119 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
 
-          {/* RIGHT - All Student Responses Inline (scrollable) */}
+          {/* RIGHT - Selected Student Full Form with Navigation */}
           <Card className="lg:col-span-2">
             <CardContent className="p-4">
-              <ScrollArea className="h-[600px]">
-                <div className="space-y-6 pr-4">
-                  {filteredStudents.map((student, studentIdx) => {
-                    const groupedResponses = student.responses.reduce((acc, r) => {
-                      if (!acc[r.category]) acc[r.category] = [];
-                      acc[r.category].push(r);
-                      return acc;
-                    }, {} as Record<string, typeof student.responses>);
+              {selectedStudent ? (() => {
+                const currentIndex = filteredStudents.findIndex(s => s.userId === selectedStudent.userId);
+                const canGoPrev = currentIndex > 0;
+                const canGoNext = currentIndex < filteredStudents.length - 1;
+                
+                const goToPrev = () => {
+                  if (canGoPrev) setSelectedStudent(filteredStudents[currentIndex - 1]);
+                };
+                const goToNext = () => {
+                  if (canGoNext) setSelectedStudent(filteredStudents[currentIndex + 1]);
+                };
+                
+                const groupedResponses = selectedStudent.responses.reduce((acc, r) => {
+                  if (!acc[r.category]) acc[r.category] = [];
+                  acc[r.category].push(r);
+                  return acc;
+                }, {} as Record<string, typeof selectedStudent.responses>);
 
-                    return (
-                      <div 
-                        key={student.userId} 
-                        id={`student-${student.userId}`}
-                        className="border rounded-lg overflow-hidden"
+                return (
+                  <>
+                    {/* Navigation Header */}
+                    <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={!canGoPrev}
+                        onClick={goToPrev}
+                        className="gap-1"
                       >
+                        <ChevronLeft className="h-4 w-4" />
+                        Anterior
+                      </Button>
+                      <span className="text-sm text-muted-foreground font-medium">
+                        {currentIndex + 1} / {filteredStudents.length}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={!canGoNext}
+                        onClick={goToNext}
+                        className="gap-1"
+                      >
+                        Próximo
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <ScrollArea className="h-[550px]">
+                      <div className="pr-4">
                         {/* Student Header */}
-                        <div className="bg-muted/50 px-4 py-3 flex items-center justify-between border-b">
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold text-muted-foreground">
-                              #{studentIdx + 1}
-                            </span>
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="text-sm">
-                                {student.userName.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-semibold text-sm flex items-center gap-2">
-                                {student.userName}
-                                {student.isFirstTime && (
-                                  <Badge variant="outline" className="text-[9px] px-1 py-0">1ª vez</Badge>
-                                )}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {student.answeredQuestions}/{student.totalQuestions} perguntas
-                                {student.isCompleted ? (
-                                  <span className="ml-2 text-emerald-600">• Completou</span>
-                                ) : (
-                                  <span className="ml-2 text-yellow-600">• {student.progressPercent}%</span>
-                                )}
-                              </p>
+                        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl px-5 py-4 mb-5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <Avatar className="h-12 w-12 border-2 border-primary/20">
+                                <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
+                                  {selectedStudent.userName.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-bold text-lg flex items-center gap-2">
+                                  {selectedStudent.userName}
+                                  {selectedStudent.isFirstTime && (
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">1ª vez</Badge>
+                                  )}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {selectedStudent.answeredQuestions}/{selectedStudent.totalQuestions} perguntas
+                                  {selectedStudent.isCompleted ? (
+                                    <span className="ml-2 text-emerald-600 font-medium">• Completou</span>
+                                  ) : (
+                                    <span className="ml-2 text-yellow-600 font-medium">• {selectedStudent.progressPercent}%</span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            <div 
+                              className="text-3xl font-extrabold px-4 py-2 rounded-xl"
+                              style={{ 
+                                backgroundColor: getGradientBgStyle(selectedStudent.overallScore, 0, 10),
+                                color: getGradientColorStyle(selectedStudent.overallScore, 0, 10)
+                              }}
+                            >
+                              {selectedStudent.overallScore.toFixed(1)}
                             </div>
                           </div>
-                          <Badge
-                            className="text-sm font-bold px-3 py-1"
-                            style={{ 
-                              backgroundColor: getGradientBgStyle(student.overallScore, 0, 10),
-                              color: getGradientColorStyle(student.overallScore, 0, 10)
-                            }}
-                          >
-                            {student.overallScore.toFixed(1)}
-                          </Badge>
                         </div>
 
-                        {/* Student Responses Grid */}
-                        <div className="p-4">
+                        {/* All Responses by Category */}
+                        <div className="space-y-5">
                           {Object.entries(groupedResponses).map(([category, responses]) => (
-                            <div key={category} className="mb-4 last:mb-0">
-                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            <div key={category}>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 pb-1 border-b">
                                 {category}
                               </p>
-                              <div className="grid gap-1">
+                              <div className="space-y-1">
                                 {responses.map((r, rIdx) => (
                                   <div 
                                     key={rIdx} 
-                                    className="flex items-center justify-between py-1.5 px-2 rounded bg-muted/30 text-sm"
+                                    className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors"
+                                    style={{ backgroundColor: rIdx % 2 === 0 ? 'hsl(var(--muted) / 0.3)' : 'transparent' }}
                                   >
-                                    <span className="text-muted-foreground truncate pr-3 flex-1">
+                                    <span className="text-sm text-muted-foreground flex-1 pr-4">
                                       {r.questionLabel}
                                     </span>
                                     <span 
-                                      className="font-medium shrink-0"
+                                      className="font-semibold text-sm shrink-0 text-right"
                                       style={{
                                         color: r.numericValue !== null && r.numericValue !== undefined
                                           ? getGradientColorStyle(r.numericValue, 0, 10)
-                                          : undefined
+                                          : r.value ? getSemanticColor(r.value) : undefined
                                       }}
                                     >
                                       {r.value || '—'}
@@ -3824,22 +3860,20 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                           ))}
                         </div>
                       </div>
-                    );
-                  })}
-
-                  {filteredStudents.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-[400px] text-center">
-                      <User className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                      <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                        Nenhum aluno encontrado
-                      </h3>
-                      <p className="text-sm text-muted-foreground/70 max-w-xs">
-                        Ajuste a busca para ver os alunos
-                      </p>
-                    </div>
-                  )}
+                    </ScrollArea>
+                  </>
+                );
+              })() : (
+                <div className="flex flex-col items-center justify-center h-[600px] text-center">
+                  <User className="h-16 w-16 text-muted-foreground/20 mb-4" />
+                  <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                    Selecione um aluno
+                  </h3>
+                  <p className="text-sm text-muted-foreground/70 max-w-xs">
+                    Clique em um aluno na lista à esquerda para ver todas as respostas
+                  </p>
                 </div>
-              </ScrollArea>
+              )}
             </CardContent>
           </Card>
         </div>
