@@ -59,10 +59,22 @@ export function useStudentReferrals() {
   // CRITICAL: Use authUserId (auth.users UUID) instead of id (neohub_users UUID)
   const authUserId = user?.authUserId || user?.userId;
   
+  console.log('[useStudentReferrals] user:', { 
+    id: user?.id, 
+    authUserId: user?.authUserId, 
+    userId: user?.userId,
+    resolvedAuthUserId: authUserId 
+  });
+  
   const { data: userReferralData } = useQuery({
     queryKey: ['user-referral-code', authUserId],
     queryFn: async () => {
-      if (!authUserId) return null;
+      if (!authUserId) {
+        console.log('[useStudentReferrals] No authUserId, returning null');
+        return null;
+      }
+      
+      console.log('[useStudentReferrals] Fetching referral code for authUserId:', authUserId);
       
       // Try neohub_users first using auth user_id
       const { data: neohubUser, error: neohubError } = await supabase
@@ -70,6 +82,8 @@ export function useStudentReferrals() {
         .select('referral_code, full_name')
         .eq('user_id', authUserId)
         .maybeSingle();
+      
+      console.log('[useStudentReferrals] neohub_users result:', { neohubUser, neohubError });
       
       if (neohubUser?.referral_code) {
         return { code: neohubUser.referral_code, name: neohubUser.full_name };
