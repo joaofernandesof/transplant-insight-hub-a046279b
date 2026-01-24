@@ -155,13 +155,16 @@ export function PresentialCourseCard({ course, onViewDetails }: PresentialCourse
           {getStatusBadge(course.status)}
         </div>
         
-        {/* Details */}
+        {/* Date Highlight */}
+        <div className="flex items-center gap-2 mb-3 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+          <Calendar className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+          <span className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm">
+            {formatDateRange(course.startDate, course.endDate)}
+          </span>
+        </div>
+        
+        {/* Other Details */}
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span>{formatDateRange(course.startDate, course.endDate)}</span>
-          </div>
-          
           {course.city && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4" />
