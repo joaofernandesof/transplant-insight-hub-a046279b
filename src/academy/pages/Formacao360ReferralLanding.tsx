@@ -210,8 +210,8 @@ export function Formacao360ReferralLanding() {
             <div className="bg-emerald-900/30 border border-emerald-700/50 rounded-lg p-4 mb-6">
               <p className="text-emerald-400 font-semibold mb-2">Resumo do Pagamento:</p>
               <div className="text-gray-300 text-sm space-y-1">
-                <p>Taxa de reserva: <strong>{formatPrice(DEPOSIT_AMOUNT)}</strong></p>
-                <p>Saldo a pagar no dia do curso: <strong>{formatPrice(REMAINING_AMOUNT)}</strong></p>
+                <p>Sinal contratual para reserva de vaga: <strong>{formatPrice(DEPOSIT_AMOUNT)}</strong></p>
+                <p>Saldo devedor (pago no dia do curso, em até 24x): <strong>{formatPrice(REMAINING_AMOUNT)}</strong></p>
               </div>
             </div>
             <Badge className="bg-blue-600 text-white mb-4">
@@ -388,14 +388,19 @@ export function Formacao360ReferralLanding() {
                     <CreditCard className="h-4 w-4" />
                     Como funciona o pagamento:
                   </p>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-3 text-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Taxa de reserva (agora):</span>
+                      <span className="text-gray-600">Sinal contratual para reserva de vaga:</span>
                       <span className="font-bold text-blue-700">{formatPrice(DEPOSIT_AMOUNT)}</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Saldo (no dia do curso):</span>
-                      <span className="font-semibold text-gray-700">{formatPrice(REMAINING_AMOUNT)}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Saldo devedor:</span>
+                        <span className="font-semibold text-gray-700">{formatPrice(REMAINING_AMOUNT)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 italic">
+                        Poderá ser pago no dia do curso, à vista ou em até 24x no cartão
+                      </p>
                     </div>
                   </div>
                 </div>
