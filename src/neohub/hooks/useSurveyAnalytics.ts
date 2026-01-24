@@ -277,8 +277,8 @@ export interface SurveyAnalytics {
   studentProfile: StudentProfileMetrics;
   hotLeads: { userId: string; name: string; hungerLevel: string; urgencyLevel: string }[];
   openFeedback: {
-    likedMost: string[];
-    suggestions: string[];
+    likedMost: { text: string; author: string }[];
+    suggestions: { text: string; author: string }[];
   };
   responsesByStudent: StudentDetailedResponse[];
   questionRankings: QuestionRating[];
@@ -474,10 +474,20 @@ export function useSurveyAnalytics(classId: string | null) {
           urgencyLevel: r.q25_urgency_level || '',
         }));
 
-      // Open feedback
+      // Open feedback with author names
       const openFeedback = {
-        likedMost: completed.map(r => r.q21_liked_most_today).filter((v): v is string => !!v && v.length > 3),
-        suggestions: completed.map(r => r.q22_suggestions).filter((v): v is string => !!v && v.length > 3),
+        likedMost: completed
+          .filter(r => r.q21_liked_most_today && r.q21_liked_most_today.length > 3)
+          .map(r => ({
+            text: r.q21_liked_most_today!,
+            author: r.user_profiles?.full_name || 'Anônimo'
+          })),
+        suggestions: completed
+          .filter(r => r.q22_suggestions && r.q22_suggestions.length > 3)
+          .map(r => ({
+            text: r.q22_suggestions!,
+            author: r.user_profiles?.full_name || 'Anônimo'
+          })),
       };
 
       // Count answered questions for each response

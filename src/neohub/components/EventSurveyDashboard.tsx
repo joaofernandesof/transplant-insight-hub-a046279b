@@ -641,7 +641,10 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     },
   ];
 
-  const wordFrequency = getWordFrequency([...analytics.openFeedback.likedMost, ...analytics.openFeedback.suggestions]);
+  const wordFrequency = getWordFrequency([
+    ...analytics.openFeedback.likedMost.map(f => f.text), 
+    ...analytics.openFeedback.suggestions.map(f => f.text)
+  ]);
 
   // Filter questions
   const categories = [...new Set(analytics.allQuestions.map(q => q.category))];
@@ -891,12 +894,15 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <ScrollArea className="h-40">
-                <div className="space-y-1.5">
+              <ScrollArea className="h-48">
+                <div className="space-y-2">
                   {analytics.openFeedback.likedMost.length > 0 ? (
-                    analytics.openFeedback.likedMost.slice(0, 6).map((text, idx) => (
-                      <div key={idx} className="p-2 rounded-md bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
-                        <p className="text-xs text-foreground">"{text}"</p>
+                    analytics.openFeedback.likedMost.slice(0, 8).map((feedback, idx) => (
+                      <div key={idx} className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
+                        <p className="text-sm text-foreground">"{feedback.text}"</p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium">
+                          — {feedback.author}
+                        </p>
                       </div>
                     ))
                   ) : (
@@ -920,10 +926,13 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {analytics.openFeedback.suggestions.slice(0, 6).map((text, idx) => (
-                  <div key={idx} className="p-2 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
-                    <p className="text-xs text-foreground">"{text}"</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {analytics.openFeedback.suggestions.slice(0, 9).map((feedback, idx) => (
+                  <div key={idx} className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
+                    <p className="text-sm text-foreground">"{feedback.text}"</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 font-medium">
+                      — {feedback.author}
+                    </p>
                   </div>
                 ))}
               </div>
