@@ -33,7 +33,7 @@ import { ptBR } from "date-fns/locale";
 import { useClassDetails } from "../hooks/useClassDetails";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { useAllExams, useUpdateExamClass, useToggleExamStatus } from "@/hooks/useExams";
-import logoFormacao360 from "@/assets/logo-formacao-360-white.png";
+
 import { toast } from "sonner";
 import { ScheduleTimeline } from "../components/ScheduleTimeline";
 import { CourseGalleryViewer } from "../components/CourseGalleryViewer";
@@ -125,8 +125,6 @@ export function AcademyClassDetail() {
     );
   }
 
-  const isFormacao360 = classDetails.name.toLowerCase().includes('formação') || 
-                        classDetails.name.toLowerCase().includes('formacao');
 
   return (
     <div className="min-h-screen bg-background w-full overflow-x-hidden">
@@ -137,19 +135,12 @@ export function AcademyClassDetail() {
           Voltar para Meus Cursos
         </Button>
 
-        {/* Header Card - Compact for mobile */}
-        <Card className="overflow-hidden">
-          <div className={`h-20 sm:h-32 bg-gradient-to-br ${isFormacao360 ? 'from-emerald-600 to-green-700' : 'from-blue-600 to-indigo-700'} p-4 flex items-center justify-between relative`}>
-            <div className="flex items-center gap-3">
-              {isFormacao360 ? (
-                <img src={logoFormacao360} alt="Formação 360" className="h-10 sm:h-14 object-contain" />
-              ) : (
-                <GraduationCap className="h-10 sm:h-14 w-10 sm:w-14 text-white/80" />
-              )}
-              <div className="text-white">
-                <h1 className="text-lg sm:text-xl font-bold leading-tight">{classDetails.courseName || classDetails.name}</h1>
-                <p className="text-white/80 text-xs sm:text-sm">{classDetails.name}</p>
-              </div>
+        {/* Header - Simple text only */}
+        <div className="space-y-2">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold leading-tight">{classDetails.courseName || classDetails.name}</h1>
+              <p className="text-muted-foreground text-sm">{classDetails.name}</p>
             </div>
             <Badge 
               className={`${
@@ -164,30 +155,28 @@ export function AcademyClassDetail() {
                classDetails.status === 'confirmed' || classDetails.status === 'active' ? 'Confirmado' : 'Pendente'}
             </Badge>
           </div>
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              {classDetails.startDate && (
-                <Badge variant="outline" className="gap-1 text-xs rounded-full bg-muted/50">
-                  <Calendar className="h-3 w-3" />
-                  {format(parseISO(classDetails.startDate), "dd MMM", { locale: ptBR })}
-                  {classDetails.endDate && classDetails.endDate !== classDetails.startDate && (
-                    <> - {format(parseISO(classDetails.endDate), "dd MMM yyyy", { locale: ptBR })}</>
-                  )}
-                </Badge>
-              )}
-              {classDetails.location && (
-                <Badge variant="outline" className="gap-1 text-xs rounded-full bg-muted/50">
-                  <MapPin className="h-3 w-3" />
-                  <span className="hidden sm:inline">Presencial - </span>{classDetails.location}
-                </Badge>
-              )}
+          <div className="flex flex-wrap items-center gap-2">
+            {classDetails.startDate && (
               <Badge variant="outline" className="gap-1 text-xs rounded-full bg-muted/50">
-                <Users className="h-3 w-3" />
-                {classDetails.enrolledCount} alunos
+                <Calendar className="h-3 w-3" />
+                {format(parseISO(classDetails.startDate), "dd MMM", { locale: ptBR })}
+                {classDetails.endDate && classDetails.endDate !== classDetails.startDate && (
+                  <> - {format(parseISO(classDetails.endDate), "dd MMM yyyy", { locale: ptBR })}</>
+                )}
               </Badge>
-            </div>
-          </CardContent>
-        </Card>
+            )}
+            {classDetails.location && (
+              <Badge variant="outline" className="gap-1 text-xs rounded-full bg-muted/50">
+                <MapPin className="h-3 w-3" />
+                <span className="hidden sm:inline">Presencial - </span>{classDetails.location}
+              </Badge>
+            )}
+            <Badge variant="outline" className="gap-1 text-xs rounded-full bg-muted/50">
+              <Users className="h-3 w-3" />
+              {classDetails.enrolledCount} alunos
+            </Badge>
+          </div>
+        </div>
 
         {/* Navigation Buttons - Two rows of pills */}
         <div className="space-y-2">
