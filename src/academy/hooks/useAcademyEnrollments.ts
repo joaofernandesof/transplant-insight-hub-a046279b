@@ -146,8 +146,9 @@ export function useAcademyEnrollments() {
   });
 
   // Map course title to type
-  const mapCourseType = (courseName: string): 'formacao360' | 'instrumentador' | 'fellowship' | 'licenca' | 'monitor' => {
+  const mapCourseType = (courseName: string): 'formacao360' | 'instrumentador' | 'fellowship' | 'licenca' | 'monitor' | 'brows' => {
     const name = courseName.toLowerCase();
+    if (name.includes("brows")) return "brows";
     if (name.includes("formação 360") || name.includes("formacao 360")) return "formacao360";
     if (name.includes("instrumentador")) return "instrumentador";
     if (name.includes("fellowship")) return "fellowship";
