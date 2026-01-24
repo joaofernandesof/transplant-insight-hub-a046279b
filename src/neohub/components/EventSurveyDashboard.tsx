@@ -2860,20 +2860,19 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                           {range.label}
                         </span>
                         <div className="flex-1 h-8 bg-muted/50 rounded-lg overflow-hidden relative">
-                          <div 
-                            className="h-full transition-all duration-500 flex items-center justify-end pr-2"
-                            style={{ 
-                              width: `${(range.count / maxCount) * 100}%`, 
-                              minWidth: range.count > 0 ? '2rem' : '0',
-                              backgroundColor: barColor
-                            }}
-                          >
-                            {range.count > 0 && (
+                          {range.count > 0 ? (
+                            <div 
+                              className="h-full transition-all duration-500 flex items-center justify-end pr-2"
+                              style={{ 
+                                width: `${(range.count / maxCount) * 100}%`, 
+                                minWidth: '2rem',
+                                backgroundColor: barColor
+                              }}
+                            >
                               <span className="text-sm font-bold text-white">{range.count}</span>
-                            )}
-                          </div>
-                          {range.count === 0 && (
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">0</span>
+                            </div>
+                          ) : (
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">0</span>
                           )}
                         </div>
                         <span className="w-16 text-xs text-muted-foreground text-right">
