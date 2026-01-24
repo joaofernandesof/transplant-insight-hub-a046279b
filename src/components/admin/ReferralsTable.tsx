@@ -435,48 +435,48 @@ export function ReferralsTable({
               onOpenDetails={setSelectedReferral}
             />
           ) : (
-            <ScrollArea className="h-[550px]">
-              <Table className="table-fixed w-full">
+            <div className="overflow-x-auto">
+              <Table className="min-w-[900px] w-full">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead className="w-[160px] px-4">
+                    <TableHead className="w-[120px] px-3">
                       <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Indicado <SortIcon field="name" />
                       </button>
                     </TableHead>
-                    <TableHead className="w-[200px] px-4">
+                    <TableHead className="w-[160px] px-3">
                       <button onClick={() => handleSort('email')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Email <SortIcon field="email" />
                       </button>
                     </TableHead>
-                    <TableHead className="w-[130px] px-4">
+                    <TableHead className="w-[100px] px-3">
                       <button onClick={() => handleSort('phone')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Telefone <SortIcon field="phone" />
                       </button>
                     </TableHead>
-                    <TableHead className="w-[180px] px-4">
+                    <TableHead className="w-[130px] px-3">
                       <button onClick={() => handleSort('referrer_name')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Indicador <SortIcon field="referrer_name" />
                       </button>
                     </TableHead>
-                    <TableHead className="w-[90px] px-4">
+                    <TableHead className="w-[70px] px-3">
                       <button onClick={() => handleSort('source')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Origem <SortIcon field="source" />
                       </button>
                     </TableHead>
-                    <TableHead className="w-[130px] px-4">
+                    <TableHead className="w-[110px] px-3">
                       <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Status <SortIcon field="status" />
                       </button>
                     </TableHead>
-                    <TableHead className="w-[100px] px-4">
+                    <TableHead className="w-[80px] px-3">
                       <button onClick={() => handleSort('created_at')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Data <SortIcon field="created_at" />
                       </button>
                     </TableHead>
-                    <TableHead className="w-[90px] px-4 text-center">Ganho Ind.</TableHead>
-                    <TableHead className="w-[90px] px-4 text-center">Desc. Ind.</TableHead>
-                    <TableHead className="w-[160px] px-4 text-right">Ações</TableHead>
+                    <TableHead className="w-[60px] px-2 text-center text-xs">Ganho</TableHead>
+                    <TableHead className="w-[60px] px-2 text-center text-xs">Desc.</TableHead>
+                    <TableHead className="w-[50px] px-2"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -579,7 +579,7 @@ export function ReferralsTable({
                   })}
                 </TableBody>
               </Table>
-            </ScrollArea>
+            </div>
           )}
         </CardContent>
       </Card>
