@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { ModuleLayout } from '@/components/ModuleLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Gift, 
   Copy, 
@@ -16,7 +18,11 @@ import {
   Share2,
   TrendingUp,
   Loader2,
-  ExternalLink
+  Mail,
+  Phone,
+  RefreshCw,
+  GraduationCap,
+  Shield
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -32,6 +38,22 @@ interface ReferralLead {
   created_at: string;
 }
 
+interface StudentReferral {
+  id: string;
+  referrer_user_id: string;
+  referral_code: string;
+  referred_name: string;
+  referred_email: string;
+  referred_phone: string;
+  referred_has_crm: boolean;
+  referred_crm: string | null;
+  status: string;
+  commission_rate: number;
+  commission_paid: boolean;
+  created_at: string;
+  referrer_name?: string;
+}
+
 interface ReferralStats {
   totalReferrals: number;
   pendingReferrals: number;
@@ -43,8 +65,10 @@ interface ReferralStats {
 
 export default function ReferralProgram() {
   const { user } = useAuth();
+  const { isAdmin } = useUnifiedAuth();
   const [referralCode, setReferralCode] = useState<string>('');
   const [referrals, setReferrals] = useState<ReferralLead[]>([]);
+  const [allStudentReferrals, setAllStudentReferrals] = useState<StudentReferral[]>([]);
   const [stats, setStats] = useState<ReferralStats>({
     totalReferrals: 0,
     pendingReferrals: 0,
@@ -55,6 +79,7 @@ export default function ReferralProgram() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState<string | null>(null);
 
   const referralLink = referralCode 
     ? `${window.location.origin}/indicacao/${referralCode}` 
@@ -64,7 +89,7 @@ export default function ReferralProgram() {
     if (user) {
       fetchData();
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   const fetchData = async () => {
     try {
@@ -79,7 +104,7 @@ export default function ReferralProgram() {
         setReferralCode(profile.referral_code);
       }
 
-      // Fetch referrals
+      // Fetch user's own referrals
       const { data: referralData } = await supabase
         .from('referral_leads')
         .select('*')
@@ -103,6 +128,34 @@ export default function ReferralProgram() {
           pendingEarnings: unpaidCommissions.reduce((acc, r) => acc + (r.commission_value || 0), 0),
           paidEarnings: paidCommissions.reduce((acc, r) => acc + (r.commission_value || 0), 0)
         });
+      }
+
+      // If admin, fetch ALL student referrals
+      if (isAdmin) {
+        const { data: studentReferrals, error: studentError } = await supabase
+          .from('student_referrals')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (studentError) {
+          console.error('Error fetching student referrals:', studentError);
+        } else if (studentReferrals) {
+          // Get referrer names from profiles
+          const referrerIds = [...new Set(studentReferrals.map(r => r.referrer_user_id))];
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('user_id, name')
+            .in('user_id', referrerIds);
+
+          const profileMap = new Map(profiles?.map(p => [p.user_id, p.name]) || []);
+
+          const enrichedReferrals = studentReferrals.map(r => ({
+            ...r,
+            referrer_name: profileMap.get(r.referrer_user_id) || 'Desconhecido'
+          }));
+
+          setAllStudentReferrals(enrichedReferrals);
+        }
       }
     } catch (error) {
       console.error('Error fetching referral data:', error);
@@ -141,12 +194,47 @@ export default function ReferralProgram() {
     }
   };
 
+  const resendNotificationEmail = async (referral: StudentReferral) => {
+    setResendingEmail(referral.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('notify-referral', {
+        body: {
+          name: referral.referred_name,
+          email: referral.referred_email,
+          phone: referral.referred_phone,
+          referrer_name: referral.referrer_name || 'Desconhecido',
+          referral_code: referral.referral_code,
+          type: 'student_referral',
+          has_crm: referral.referred_has_crm,
+          crm: referral.referred_crm,
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.skipped) {
+        toast.info(`E-mail pulado: ${data.reason}`);
+      } else {
+        toast.success('E-mail de notificação reenviado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error resending notification:', error);
+      toast.error('Erro ao reenviar e-mail de notificação');
+    } finally {
+      setResendingEmail(null);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'converted':
         return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Convertido</Badge>;
       case 'contacted':
         return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">Contatado</Badge>;
+      case 'enrolled':
+        return <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20">Matriculado</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Cancelado</Badge>;
       default:
         return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Pendente</Badge>;
     }
@@ -294,53 +382,196 @@ export default function ReferralProgram() {
           </Card>
         </div>
 
-        {/* Referrals List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Suas Indicações</CardTitle>
-            <CardDescription>Acompanhe o status de cada indicação</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {referrals.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Gift className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="font-medium">Nenhuma indicação ainda</p>
-                <p className="text-sm">Compartilhe seu link e comece a ganhar!</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {referrals.map((referral) => (
-                  <div 
-                    key={referral.id} 
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors gap-3"
-                  >
-                    <div className="space-y-1">
-                      <p className="font-medium">{referral.name}</p>
-                      <p className="text-sm text-muted-foreground">{referral.email}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Indicado em {formatDate(referral.created_at)}
-                      </p>
+        {/* Tabs for Admin */}
+        {isAdmin ? (
+          <Tabs defaultValue="my-referrals" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="my-referrals" className="gap-2">
+                <Users className="h-4 w-4" />
+                Minhas Indicações
+              </TabsTrigger>
+              <TabsTrigger value="student-referrals" className="gap-2">
+                <GraduationCap className="h-4 w-4" />
+                Indicações de Alunos
+                {allStudentReferrals.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 justify-center">
+                    {allStudentReferrals.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="my-referrals">
+              <ReferralsList 
+                referrals={referrals} 
+                getStatusBadge={getStatusBadge}
+                formatDate={formatDate}
+                formatCurrency={formatCurrency}
+              />
+            </TabsContent>
+
+            <TabsContent value="student-referrals">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-red-500" />
+                    Todas as Indicações de Alunos (Admin)
+                  </CardTitle>
+                  <CardDescription>
+                    Visualize e gerencie todas as indicações feitas pelos alunos da Formação 360
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {allStudentReferrals.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <GraduationCap className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p className="font-medium">Nenhuma indicação de aluno ainda</p>
+                      <p className="text-sm">As indicações aparecerão aqui quando os alunos indicarem novos interessados</p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      {getStatusBadge(referral.status)}
-                      {referral.commission_value > 0 && (
-                        <Badge 
-                          variant={referral.commission_paid ? "default" : "outline"}
-                          className={referral.commission_paid ? "bg-green-600" : ""}
+                  ) : (
+                    <div className="space-y-4">
+                      {allStudentReferrals.map((referral) => (
+                        <div 
+                          key={referral.id} 
+                          className="flex flex-col lg:flex-row lg:items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors gap-4"
                         >
-                          <DollarSign className="h-3 w-3 mr-1" />
-                          {formatCurrency(referral.commission_value)}
-                          {referral.commission_paid && " (Pago)"}
-                        </Badge>
-                      )}
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium">{referral.referred_name}</p>
+                              {getStatusBadge(referral.status)}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Mail className="h-3 w-3" />
+                                {referral.referred_email}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                {referral.referred_phone}
+                              </span>
+                            </div>
+                            {referral.referred_has_crm && referral.referred_crm && (
+                              <p className="text-sm">
+                                <span className="text-muted-foreground">CRM:</span>{' '}
+                                <span className="font-medium text-green-600">{referral.referred_crm}</span>
+                              </p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              Indicado por <span className="font-medium">{referral.referrer_name}</span> em {formatDate(referral.created_at)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Código: <span className="font-mono bg-muted px-1 rounded">{referral.referral_code}</span>
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => resendNotificationEmail(referral)}
+                              disabled={resendingEmail === referral.id}
+                              className="gap-2"
+                            >
+                              {resendingEmail === referral.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
+                              Reenviar E-mail
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                            >
+                              <a 
+                                href={`https://wa.me/55${referral.referred_phone.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="gap-2"
+                              >
+                                <Phone className="h-4 w-4" />
+                                WhatsApp
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <ReferralsList 
+            referrals={referrals} 
+            getStatusBadge={getStatusBadge}
+            formatDate={formatDate}
+            formatCurrency={formatCurrency}
+          />
+        )}
       </div>
     </ModuleLayout>
+  );
+}
+
+// Extracted component for referrals list
+function ReferralsList({ 
+  referrals, 
+  getStatusBadge, 
+  formatDate, 
+  formatCurrency 
+}: { 
+  referrals: ReferralLead[];
+  getStatusBadge: (status: string) => React.ReactNode;
+  formatDate: (date: string) => string;
+  formatCurrency: (value: number) => string;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Suas Indicações</CardTitle>
+        <CardDescription>Acompanhe o status de cada indicação</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {referrals.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <Gift className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="font-medium">Nenhuma indicação ainda</p>
+            <p className="text-sm">Compartilhe seu link e comece a ganhar!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {referrals.map((referral) => (
+              <div 
+                key={referral.id} 
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors gap-3"
+              >
+                <div className="space-y-1">
+                  <p className="font-medium">{referral.name}</p>
+                  <p className="text-sm text-muted-foreground">{referral.email}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Indicado em {formatDate(referral.created_at)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  {getStatusBadge(referral.status)}
+                  {referral.commission_value > 0 && (
+                    <Badge 
+                      variant={referral.commission_paid ? "default" : "outline"}
+                      className={referral.commission_paid ? "bg-green-600" : ""}
+                    >
+                      <DollarSign className="h-3 w-3 mr-1" />
+                      {formatCurrency(referral.commission_value)}
+                      {referral.commission_paid && " (Pago)"}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
