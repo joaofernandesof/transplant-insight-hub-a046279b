@@ -927,13 +927,18 @@ const detectQuestionType = (question: QuestionRating): string => {
   return 'quality'; // fallback
 };
 
-function QuestionDetailView({ 
+// Inline question card with chart and expandable respondents
+function QuestionInlineCard({ 
   question, 
-  respondents 
+  respondents,
+  index
 }: { 
   question: QuestionRating;
   respondents?: { name: string; value: string }[];
+  index: number;
 }) {
+  const [showRespondents, setShowRespondents] = useState(false);
+  
   // Detect question type and get all possible options
   const questionType = detectQuestionType(question);
   const allOptions = OPTION_TEMPLATES[questionType] || [];
@@ -941,7 +946,6 @@ function QuestionDetailView({
   // Build distribution data with ALL options, including zeros
   const distributionData = allOptions.length > 0
     ? allOptions.map(option => {
-        // Find matching key in distribution (case-insensitive partial match)
         const normalizedOption = option.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const matchingKey = Object.keys(question.distribution).find(key => {
           const normalizedKey = key.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -960,161 +964,161 @@ function QuestionDetailView({
         fill: getSemanticColor(key),
       }));
 
-  // Total responses including zeros
   const totalResponses = distributionData.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="space-y-4">
-      {/* Main chart card */}
-      <Card className="border-2 border-primary/20">
-        <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Badge 
-                variant="secondary" 
-                className="bg-primary/10 text-primary border-primary/20 font-medium"
-              >
+    <Card className="border hover:shadow-md transition-shadow">
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="outline" className="text-[10px] shrink-0">
                 {question.category}
               </Badge>
-              <CardTitle className="text-lg leading-tight">{question.questionLabel}</CardTitle>
+              <span className="text-[10px] text-muted-foreground">#{index + 1}</span>
             </div>
-            <div className="text-right">
-              <div 
-                className="text-4xl font-bold"
-                style={{ color: getGradientColorStyle(question.avgRating, 0, 5) }}
-              >
-                {question.avgRating.toFixed(1)}
-              </div>
-              <span className="text-xs text-muted-foreground">média</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="outline" className="text-xs">
-              {totalResponses} respostas
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <ResponsiveContainer width="100%" height={Math.max(180, distributionData.length * 40)}>
-            <BarChart 
-              data={distributionData} 
-              layout="vertical" 
-              margin={{ left: 10, right: 40, top: 5, bottom: 5 }}
-            >
-              <XAxis type="number" hide />
-              <YAxis 
-                type="category" 
-                dataKey="name" 
-                width={140} 
-                tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--background))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                }}
-                formatter={(value: number) => [`${value} respostas`, 'Total']}
-              />
-              <Bar 
-                dataKey="value" 
-                radius={[0, 8, 8, 0]}
-                maxBarSize={35}
-              >
-                {distributionData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.fill}
-                    style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
-                  />
-                ))}
-                <LabelList 
-                  dataKey="value" 
-                  position="right" 
-                  className="text-sm font-semibold fill-foreground"
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-
-          {/* Legend with percentages */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            {distributionData.map((item, idx) => (
-              <div 
-                key={idx}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 text-xs"
-              >
-                <div 
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: item.fill }}
-                />
-                <span className="font-medium">{item.name}</span>
-                <span className="text-muted-foreground">
-                  ({totalResponses > 0 ? Math.round((item.value / totalResponses) * 100) : 0}%)
-                </span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Respondents list */}
-      {respondents && respondents.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              Quem respondeu ({respondents.length})
+            <CardTitle className="text-sm font-medium leading-tight">
+              {question.questionLabel}
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Full list without scroll */}
-            <div className="space-y-1">
-              {respondents.map((r, idx) => (
-                <div 
-                  key={idx}
-                  className={`flex items-center justify-between p-2 rounded-md ${
-                    idx % 2 === 0 ? 'bg-muted/30' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-xs font-medium text-primary">
-                        {r.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <span className="text-sm">{r.name}</span>
-                  </div>
-                  <Badge 
-                    variant="secondary"
-                    className={`text-xs ${(() => {
-                      const val = r.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                      // ÓTIMO - Verde (excelente, totalmente, muito satisfeito, mais do que suficiente, superou)
-                      if (val.includes('excelente') || val.includes('totalmente') || val.includes('muito satisfeito') || val.includes('mais do que suficiente') || val.includes('superou') || val.includes('otimo') || val.includes('perfeito'))
-                        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
-                      // RUIM - Vermelho (insuficiente, ruim, péssimo, não atendeu, muito insatisfeito)
-                      if (val.includes('ruim') || val.includes('insuficiente') || val.includes('nao atendeu') || val.includes('pessimo') || val.includes('muito insatisfeito') || val.includes('discordo'))
-                        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-                      // MÉDIO - Amarelo/Laranja (neutro, parcialmente, regular)
-                      if (val.includes('neutro') || val.includes('parcialmente') || val.includes('regular') || val.includes('medio'))
-                        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-                      // BOM - Azul (adequado, bom, satisfeito, suficiente, concordo)
-                      return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-                    })()}`}
-                  >
-                    {r.value || '—'}
-                  </Badge>
-                </div>
-              ))}
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-muted-foreground">
+                {totalResponses} respostas
+              </span>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+          <div 
+            className="px-3 py-1.5 rounded-lg font-bold text-lg shrink-0"
+            style={{ 
+              backgroundColor: getGradientBgStyle(question.avgRating, 0, 10),
+              color: getGradientColorStyle(question.avgRating, 0, 10)
+            }}
+          >
+            {question.avgRating.toFixed(1)}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0 pb-3">
+        {/* Compact chart */}
+        <ResponsiveContainer width="100%" height={Math.max(120, distributionData.length * 28)}>
+          <BarChart 
+            data={distributionData} 
+            layout="vertical" 
+            margin={{ left: 5, right: 35, top: 0, bottom: 0 }}
+          >
+            <XAxis type="number" hide />
+            <YAxis 
+              type="category" 
+              dataKey="name" 
+              width={120} 
+              tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--background))', 
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '6px',
+                fontSize: '12px'
+              }}
+              formatter={(value: number) => [`${value} respostas`, 'Total']}
+            />
+            <Bar 
+              dataKey="value" 
+              radius={[0, 6, 6, 0]}
+              maxBarSize={24}
+            >
+              {distributionData.map((entry, idx) => (
+                <Cell key={`cell-${idx}`} fill={entry.fill} />
+              ))}
+              <LabelList 
+                dataKey="value" 
+                position="right" 
+                className="text-xs font-semibold fill-foreground"
+              />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+
+        {/* Legend with percentages - compact */}
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {distributionData.map((item, idx) => (
+            <div 
+              key={idx}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-[10px]"
+            >
+              <div 
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: item.fill }}
+              />
+              <span className="font-medium truncate max-w-[80px]">{item.name}</span>
+              <span className="text-muted-foreground">
+                ({totalResponses > 0 ? Math.round((item.value / totalResponses) * 100) : 0}%)
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Button to show respondents */}
+        {respondents && respondents.length > 0 && (
+          <div className="mt-3 pt-2 border-t">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs h-7"
+              onClick={() => setShowRespondents(!showRespondents)}
+            >
+              <Eye className="h-3 w-3 mr-1.5" />
+              {showRespondents ? 'Ocultar' : 'Ver'} votos individuais ({respondents.length})
+            </Button>
+            
+            {showRespondents && (
+              <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                {respondents.map((r, idx) => (
+                  <div 
+                    key={idx}
+                    className={`flex items-center justify-between p-1.5 rounded text-xs ${
+                      idx % 2 === 0 ? 'bg-muted/30' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-[9px] font-medium text-primary">
+                          {r.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="truncate">{r.name}</span>
+                    </div>
+                    <Badge 
+                      variant="secondary"
+                      className="text-[9px] shrink-0 ml-1"
+                      style={{
+                        backgroundColor: `${getSemanticColor(r.value)}20`,
+                        color: getSemanticColor(r.value)
+                      }}
+                    >
+                      {r.value || '—'}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
+}
+
+// Keep old component for backward compatibility if needed elsewhere
+function QuestionDetailView({ 
+  question, 
+  respondents 
+}: { 
+  question: QuestionRating;
+  respondents?: { name: string; value: string }[];
+}) {
+  return <QuestionInlineCard question={question} respondents={respondents} index={0} />;
 }
 
 // ============== STUDENT DETAIL COMPONENT ==============
@@ -3264,151 +3268,80 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-          {/* LEFT SIDE - Questions List */}
-          <Card className="h-fit">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                Perguntas da Pesquisa
-              </CardTitle>
-              <CardDescription>
-                Clique em uma pergunta para ver os detalhes à direita
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Filters */}
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar pergunta..."
-                    value={questionSearch}
-                    onChange={(e) => setQuestionSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas categorias</SelectItem>
-                    {categories.map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={questionSortBy} onValueChange={(v) => setQuestionSortBy(v as 'original' | 'name' | 'score')}>
-                  <SelectTrigger className="w-[120px]">
-                    <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="original">Sequência</SelectItem>
-                    <SelectItem value="name">Nome</SelectItem>
-                    <SelectItem value="score">Média</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Filters */}
+        <Card className="p-4">
+          <div className="flex flex-wrap gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar pergunta..."
+                value={questionSearch}
+                onChange={(e) => setQuestionSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas categorias</SelectItem>
+                {categories.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={questionSortBy} onValueChange={(v) => setQuestionSortBy(v as 'original' | 'name' | 'score')}>
+              <SelectTrigger className="w-[130px]">
+                <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="original">Sequência</SelectItem>
+                <SelectItem value="name">Nome</SelectItem>
+                <SelectItem value="score">Média</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="mt-2 text-xs text-muted-foreground">
+            {filteredQuestions.length} perguntas encontradas
+          </div>
+        </Card>
 
-              {/* Questions List - Full list without scroll limit */}
-              <div className="space-y-2">
-                  {filteredQuestions.map((q, idx) => {
-                    const isSelected = selectedQuestion?.questionKey === q.questionKey;
-                    const ratingColorClass = getRatingColor(q.avgRating);
-                    
-                    return (
-                      <div
-                        key={q.questionKey}
-                        className={`group relative p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                          isSelected
-                            ? 'border-primary bg-primary/5 shadow-md'
-                            : 'border-transparent bg-muted/30 hover:bg-muted/50 hover:border-muted-foreground/20'
-                        }`}
-                        onClick={() => setSelectedQuestion(q)}
-                      >
-                        {/* Selection indicator */}
-                        {isSelected && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />
-                        )}
-                        
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge 
-                                variant="outline" 
-                                className={`text-[10px] shrink-0 ${
-                                  isSelected ? 'bg-primary/10 border-primary/30 text-primary' : ''
-                                }`}
-                              >
-                                {q.category}
-                              </Badge>
-                              <span className="text-[10px] text-muted-foreground">
-                                #{idx + 1}
-                              </span>
-                            </div>
-                            <p className={`text-sm font-medium leading-tight ${
-                              isSelected ? 'text-foreground' : 'text-foreground/80'
-                            }`}>
-                              {q.questionLabel}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Users className="h-3 w-3" />
-                                <span>{q.responseCount} respostas</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Rating badge with gradient */}
-                          <div 
-                            className="px-3 py-1.5 rounded-lg font-bold text-lg"
-                            style={{ 
-                              backgroundColor: getGradientBgStyle(q.avgRating, 0, 5),
-                              color: getGradientColorStyle(q.avgRating, 0, 5)
-                            }}
-                          >
-                            {q.avgRating.toFixed(1)}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+        {/* Questions Grid - All charts visible */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredQuestions.map((q, idx) => {
+            const respondents = analytics.responsesByStudent
+              .map(student => {
+                const response = student.responses.find(r => r.questionKey === q.questionKey);
+                return response ? { name: student.userName, value: response.value || '' } : null;
+              })
+              .filter((r): r is { name: string; value: string } => r !== null && r.value !== '');
+            
+            return (
+              <QuestionInlineCard 
+                key={q.questionKey}
+                question={q} 
+                respondents={respondents}
+                index={idx}
+              />
+            );
+          })}
+        </div>
+
+        {filteredQuestions.length === 0 && (
+          <Card className="border-2 border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground">
+                Nenhuma pergunta encontrada
+              </h3>
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                Ajuste os filtros para ver mais resultados
+              </p>
             </CardContent>
           </Card>
-
-          {/* RIGHT SIDE - Question Details */}
-          <div className="h-fit sticky top-4">
-            {selectedQuestion ? (
-              <QuestionDetailView 
-                question={selectedQuestion} 
-                respondents={analytics.responsesByStudent
-                  .map(student => {
-                    const response = student.responses.find(r => r.questionKey === selectedQuestion.questionKey);
-                    return response ? { name: student.userName, value: response.value || '' } : null;
-                  })
-                  .filter((r): r is { name: string; value: string } => r !== null && r.value !== '')
-                }
-              />
-            ) : (
-              <Card className="border-2 border-dashed border-muted-foreground/20">
-                <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <BarChart3 className="h-8 w-8 text-muted-foreground/50" />
-                  </div>
-                  <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                    Selecione uma pergunta
-                  </h3>
-                  <p className="text-sm text-muted-foreground/70 max-w-xs">
-                    Clique em uma pergunta à esquerda para visualizar o gráfico de distribuição de respostas e quem respondeu
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+        )}
       </TabsContent>
 
       {/* ============== STUDENTS TAB ============== */}
