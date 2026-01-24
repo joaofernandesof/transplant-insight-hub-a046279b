@@ -2413,47 +2413,24 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
       {/* ============== TIMING ANALYSIS TAB ============== */}
       <TabsContent value="timing" className="space-y-4">
-        {/* Time Range Analysis - Top */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-3">
-                  <TrendingDown className="h-6 w-6 text-blue-600" />
+        {/* Summary Stats - Single Row with all metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-950/30 dark:to-slate-900/20 border-slate-200 dark:border-slate-800">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-slate-500/20 rounded-lg">
+                  <TrendingDown className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                 </div>
-                <p className="text-sm text-muted-foreground">Menor Tempo</p>
-                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.minTotalTime)}</p>
+                <div>
+                  <p className="text-xs text-muted-foreground">Menor Tempo</p>
+                  <p className="text-xl font-bold text-slate-600 dark:text-slate-400">
+                    {formatTime(analytics.timingAnalytics.minTotalTime)}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-3">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
-                </div>
-                <p className="text-sm text-muted-foreground">Tempo Médio</p>
-                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.avgTotalTime)}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-3">
-                  <TrendingUp className="h-6 w-6 text-emerald-600" />
-                </div>
-                <p className="text-sm text-muted-foreground">Maior Tempo</p>
-                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.maxTotalTime)}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-3">
@@ -2461,25 +2438,25 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Tempo Médio Total</p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <p className="text-xs text-muted-foreground">Tempo Médio</p>
+                  <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
                     {formatTime(analytics.timingAnalytics.avgTotalTime)}
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <Target className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Média por Pergunta</p>
-                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {formatTime(analytics.timingAnalytics.avgTimePerQuestion)}
+                  <p className="text-xs text-muted-foreground">Maior Tempo</p>
+                  <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                    {formatTime(analytics.timingAnalytics.maxTotalTime)}
                   </p>
                 </div>
               </div>
@@ -2494,7 +2471,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Respostas Genuínas</p>
-                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                     {analytics.timingAnalytics.genuineCount}
                   </p>
                 </div>
@@ -2510,7 +2487,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Suspeitas/Apressadas</p>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
                     {analytics.timingAnalytics.suspiciousCount}
                   </p>
                 </div>
