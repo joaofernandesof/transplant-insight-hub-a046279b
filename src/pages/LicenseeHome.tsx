@@ -40,6 +40,7 @@ import OnboardingTour from "@/components/OnboardingTour";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import FirstStepsDialog from "@/components/FirstStepsDialog";
 import { JourneyRoadmap } from "@/components/JourneyRoadmap";
+import { LicenseeLevelRoadmap } from "@/components/LicenseeLevelRoadmap";
 import { AnnouncementBanner } from "@/components/announcements";
 import { SpotlightTour } from "@/components/tour";
 import { 
@@ -427,6 +428,9 @@ export default function LicenseeHome() {
         <div data-tour="journey-roadmap">
           <JourneyRoadmap currentTier={tier} />
         </div>
+
+        {/* Roadmap de Licenciamento por Níveis */}
+        <LicenseeLevelRoadmap currentTier={tier} />
 
         {/* Dashboard Global - 6 Widgets */}
         <DashboardPeriodProvider>
