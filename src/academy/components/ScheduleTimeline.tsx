@@ -45,7 +45,7 @@ interface ScheduleTimelineProps {
   schedule: ScheduleDay[];
 }
 
-// Activity type to color/icon mapping
+// Activity type to color/icon mapping - Google Calendar inspired vivid colors
 function getActivityStyle(activity: string): { 
   icon: React.ReactNode; 
   bgColor: string; 
@@ -54,77 +54,85 @@ function getActivityStyle(activity: string): {
 } {
   const lower = activity.toLowerCase();
   
+  // Coffee Break / Welcome - Vivid Yellow
   if (lower.includes('coffee') || lower.includes('break') || lower.includes('welcome')) {
     return {
       icon: <Coffee className="h-4 w-4" />,
-      bgColor: 'bg-amber-100 dark:bg-amber-900/30',
-      borderColor: 'border-amber-300 dark:border-amber-700',
-      textColor: 'text-amber-700 dark:text-amber-300'
+      bgColor: 'bg-yellow-200 dark:bg-yellow-600/40',
+      borderColor: 'border-yellow-400 dark:border-yellow-500',
+      textColor: 'text-yellow-800 dark:text-yellow-200'
     };
   }
+  // Meals - Vivid Orange
   if (lower.includes('almoço') || lower.includes('almoco')) {
     return {
       icon: <Utensils className="h-4 w-4" />,
-      bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-      borderColor: 'border-orange-300 dark:border-orange-700',
-      textColor: 'text-orange-700 dark:text-orange-300'
+      bgColor: 'bg-orange-200 dark:bg-orange-600/40',
+      borderColor: 'border-orange-400 dark:border-orange-500',
+      textColor: 'text-orange-800 dark:text-orange-200'
     };
   }
+  // Practice / Surgery - Vivid Green
   if (lower.includes('prática') || lower.includes('cirúrgico') || lower.includes('cirurgico') || lower.includes('hands-on')) {
     return {
       icon: <Stethoscope className="h-4 w-4" />,
-      bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
-      borderColor: 'border-emerald-300 dark:border-emerald-700',
-      textColor: 'text-emerald-700 dark:text-emerald-300'
+      bgColor: 'bg-green-200 dark:bg-green-600/40',
+      borderColor: 'border-green-400 dark:border-green-500',
+      textColor: 'text-green-800 dark:text-green-200'
     };
   }
+  // Theory / Classes - Vivid Blue
   if (lower.includes('aula') || lower.includes('teórica') || lower.includes('teorica') || lower.includes('fundamento')) {
     return {
       icon: <BookOpen className="h-4 w-4" />,
-      bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-      borderColor: 'border-blue-300 dark:border-blue-700',
-      textColor: 'text-blue-700 dark:text-blue-300'
+      bgColor: 'bg-blue-200 dark:bg-blue-600/40',
+      borderColor: 'border-blue-400 dark:border-blue-500',
+      textColor: 'text-blue-800 dark:text-blue-200'
     };
   }
+  // Workshop - Vivid Purple
   if (lower.includes('workshop') || lower.includes('apresentação') || lower.includes('apresentacao')) {
     return {
       icon: <Presentation className="h-4 w-4" />,
-      bgColor: 'bg-purple-100 dark:bg-purple-900/30',
-      borderColor: 'border-purple-300 dark:border-purple-700',
-      textColor: 'text-purple-700 dark:text-purple-300'
+      bgColor: 'bg-purple-200 dark:bg-purple-600/40',
+      borderColor: 'border-purple-400 dark:border-purple-500',
+      textColor: 'text-purple-800 dark:text-purple-200'
     };
   }
+  // Social / Networking - Vivid Pink
   if (lower.includes('neoconnect') || lower.includes('confraternização') || lower.includes('networking')) {
     return {
       icon: <PartyPopper className="h-4 w-4" />,
-      bgColor: 'bg-pink-100 dark:bg-pink-900/30',
-      borderColor: 'border-pink-300 dark:border-pink-700',
-      textColor: 'text-pink-700 dark:text-pink-300'
+      bgColor: 'bg-pink-200 dark:bg-pink-600/40',
+      borderColor: 'border-pink-400 dark:border-pink-500',
+      textColor: 'text-pink-800 dark:text-pink-200'
     };
   }
+  // Mentoring - Vivid Indigo
   if (lower.includes('mentoria') || lower.includes('discussão') || lower.includes('discussao')) {
     return {
       icon: <MessageSquare className="h-4 w-4" />,
-      bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
-      borderColor: 'border-indigo-300 dark:border-indigo-700',
-      textColor: 'text-indigo-700 dark:text-indigo-300'
+      bgColor: 'bg-indigo-200 dark:bg-indigo-600/40',
+      borderColor: 'border-indigo-400 dark:border-indigo-500',
+      textColor: 'text-indigo-800 dark:text-indigo-200'
     };
   }
-  if (lower.includes('abertura') || lower.includes('orientações') || lower.includes('orientacoes')) {
+  // Opening / Orientations - Neutral Slate
+  if (lower.includes('abertura') || lower.includes('orientações') || lower.includes('orientacoes') || lower.includes('livre')) {
     return {
       icon: <Briefcase className="h-4 w-4" />,
-      bgColor: 'bg-slate-100 dark:bg-slate-800/50',
-      borderColor: 'border-slate-300 dark:border-slate-600',
-      textColor: 'text-slate-700 dark:text-slate-300'
+      bgColor: 'bg-slate-200 dark:bg-slate-700/50',
+      borderColor: 'border-slate-400 dark:border-slate-500',
+      textColor: 'text-slate-800 dark:text-slate-200'
     };
   }
   
-  // Default
+  // Default - Light gray
   return {
     icon: <Clock className="h-4 w-4" />,
-    bgColor: 'bg-gray-100 dark:bg-gray-800/50',
-    borderColor: 'border-gray-300 dark:border-gray-600',
-    textColor: 'text-gray-700 dark:text-gray-300'
+    bgColor: 'bg-gray-200 dark:bg-gray-700/50',
+    borderColor: 'border-gray-400 dark:border-gray-500',
+    textColor: 'text-gray-800 dark:text-gray-200'
   };
 }
 
@@ -258,7 +266,7 @@ function DayList({ day }: DayListProps) {
                       </Badge>
                     )}
                   </div>
-                  <p className="font-medium text-sm">{item.activity}</p>
+                  <p className="font-medium text-sm sm:text-base sm:font-bold">{item.activity}</p>
                   {item.instructor && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                       <User className="h-3 w-3" />
@@ -461,7 +469,7 @@ function DayTimeline({ day }: DayTimelineProps) {
                       {style.icon}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-sm leading-tight">{item.activity}</p>
+                      <p className="font-medium text-sm sm:text-base sm:font-bold leading-tight">{item.activity}</p>
                       {item.location && (
                         <span className={`text-[10px] ${style.textColor} font-medium`}>
                           {item.location}
@@ -525,12 +533,12 @@ function DayTimeline({ day }: DayTimelineProps) {
                   >
                     <div className="h-full flex flex-col min-h-0">
                       {/* Header with icon */}
-                      <div className="flex items-start gap-1 sm:gap-1.5 mb-0.5 sm:mb-1 flex-shrink-0">
-                        <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor} flex-shrink-0`}>
+                      <div className="flex items-start gap-1 sm:gap-2 mb-0.5 sm:mb-1 flex-shrink-0">
+                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-md ${style.bgColor} ${style.borderColor} border flex items-center justify-center ${style.textColor} flex-shrink-0`}>
                           {style.icon}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-xs sm:text-sm leading-tight line-clamp-2">{item.activity}</p>
+                          <p className="font-semibold text-xs sm:text-base sm:font-bold leading-tight line-clamp-2">{item.activity}</p>
                         </div>
                       </div>
                       
