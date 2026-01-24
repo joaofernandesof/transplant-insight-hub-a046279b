@@ -28,11 +28,20 @@ import {
   TrendingUp,
   Loader2,
   CreditCard,
-  ShieldCheck
+  ShieldCheck,
+  Play,
+  BookOpen,
+  Target,
+  Lightbulb
 } from 'lucide-react';
 import { useSubmitReferral, useValidateReferralCode } from '../hooks/useStudentReferrals';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// Images
+import heroSurgeryImage from '@/assets/ibramec/hero-surgery.jpg';
+import classroomImage from '@/assets/ibramec/classroom-training.jpg';
+import ibramecLogoWhite from '@/assets/ibramec-logo-white.png';
 
 // Promotion deadline: 25/01/2026 at 23:59 BRT (UTC-3)
 const PROMO_DEADLINE = new Date('2026-01-26T02:59:00.000Z');
@@ -228,140 +237,150 @@ export function Formacao360ReferralLanding() {
 
   return (
     <div className="min-h-screen bg-[#0a1628]">
-      {/* Header */}
-      <header className="bg-[#0d1e36] border-b border-blue-900/30 p-4 flex items-center justify-center">
-        <img 
-          src="https://ibramec.com/wp-content/uploads/2025/09/logo-branca-ibramec.webp" 
-          alt="IBRAMEC" 
-          className="h-10 object-contain" 
-        />
-      </header>
-
-      {/* Discount Banner */}
-      {isPromoActive && countdown && (
-        <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 py-4 px-4 text-center text-white">
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <Percent className="h-6 w-6" />
-            <span className="font-bold text-lg">DESCONTO EXCLUSIVO DE {DISCOUNT_PERCENTAGE}% NA MATRÍCULA!</span>
-          </div>
-          <p className="text-sm text-white/90 mt-1">Válido apenas para indicados. Promoção por tempo limitado!</p>
-          <div className="flex items-center justify-center gap-2 mt-2 bg-white/20 rounded-lg px-4 py-2 w-fit mx-auto">
-            <Timer className="h-4 w-4" />
-            <span className="font-mono font-bold text-lg">
-              {String(countdown.hours).padStart(2, '0')}:
-              {String(countdown.minutes).padStart(2, '0')}:
-              {String(countdown.seconds).padStart(2, '0')}
-            </span>
-          </div>
+      {/* Hero Section with Background Image */}
+      <div className="relative">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroSurgeryImage})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a1628]/95 via-[#0a1628]/80 to-[#0a1628]/60" />
         </div>
-      )}
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="grid lg:grid-cols-2 gap-8 items-start">
-          {/* Left - Course Info */}
-          <div className="text-white space-y-6">
-            {/* Course Title */}
-            <div>
-              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 mb-4">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Você foi indicado por {validation?.referrerName || 'um aluno'}!
-              </Badge>
-              <h1 className="text-4xl sm:text-5xl font-bold mb-2">
-                <span className="text-blue-400">FORMAÇÃO 360°</span> EM
-              </h1>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white">
-                TRANSPLANTE CAPILAR
-              </h2>
-              <p className="text-lg text-gray-400 mt-4">
-                Acesse em <strong className="text-white">3 dias</strong> a estrutura completa para entrar com segurança no mercado mais promissor da medicina.
-              </p>
+        {/* Header */}
+        <header className="relative z-10 bg-[#0d1e36]/80 backdrop-blur border-b border-blue-900/30 p-4 flex items-center justify-center">
+          <img 
+            src={ibramecLogoWhite}
+            alt="IBRAMEC" 
+            className="h-10 object-contain" 
+          />
+        </header>
+
+        {/* Discount Banner */}
+        {isPromoActive && countdown && (
+          <div className="relative z-10 bg-gradient-to-r from-emerald-600 to-emerald-500 py-4 px-4 text-center text-white">
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <Percent className="h-6 w-6" />
+              <span className="font-bold text-lg">DESCONTO EXCLUSIVO DE {DISCOUNT_PERCENTAGE}% NA MATRÍCULA!</span>
             </div>
-
-            {/* Location Badge */}
-            <div className="flex items-center gap-2 text-gray-300">
-              <MapPin className="h-5 w-5 text-blue-400" />
-              <span>Localização: São Paulo (SP)</span>
-            </div>
-
-            {/* Key Highlights */}
-            <div className="grid grid-cols-3 gap-4 border-t border-b border-blue-900/50 py-6">
-              <div className="text-center">
-                <Award className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                <p className="text-sm font-medium">Certificado Oficial</p>
-                <p className="text-xs text-gray-500">IBRAMEC®</p>
-              </div>
-              <div className="text-center">
-                <Clock className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                <p className="text-sm font-medium">+30 Horas</p>
-                <p className="text-xs text-gray-500">de Hands-On</p>
-              </div>
-              <div className="text-center">
-                <Users className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                <p className="text-sm font-medium">Para médicos</p>
-                <p className="text-xs text-gray-500">de todas as áreas</p>
-              </div>
-            </div>
-
-            {/* Differentials */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold">O que torna nossa formação diferente:</h3>
-              
-              <div className="bg-[#0d1e36] border border-blue-900/50 rounded-xl p-5 space-y-3">
-                <div className="flex items-start gap-3">
-                  <Scissors className="h-6 w-6 text-emerald-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-emerald-400">Vivência Real de Cirurgia</h4>
-                    <p className="text-sm text-gray-400">Mais de 70% do curso é prática em pacientes reais. De 20 a 30 cirurgias em 3 dias!</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <GraduationCap className="h-6 w-6 text-blue-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-blue-400">Formação Completa</h4>
-                    <p className="text-sm text-gray-400">Transplante de cabelo, barba e sobrancelhas. Certificação Oficial pelo IBRAMEC®.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Briefcase className="h-6 w-6 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-amber-400">Modelo de Negócio</h4>
-                    <p className="text-sm text-gray-400">Aulas de Marketing e Comercial + Mentoria com a equipe do Dr. Hygor Guerreiro.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="bg-gradient-to-r from-blue-900/30 to-blue-800/30 rounded-xl p-5">
-              <p className="text-sm text-gray-400 mb-3">Números que comprovam:</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <TrendingUp className="h-5 w-5 text-emerald-400 mb-1" />
-                  <p className="text-2xl font-bold">+5.000</p>
-                  <p className="text-xs text-gray-500">transplantes realizados</p>
-                </div>
-                <div>
-                  <TrendingUp className="h-5 w-5 text-emerald-400 mb-1" />
-                  <p className="text-2xl font-bold">R$ 2,5M+</p>
-                  <p className="text-xs text-gray-500">faturamento mensal da clínica</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonial */}
-            <div className="bg-[#0d1e36] border border-blue-900/50 rounded-xl p-5">
-              <div className="flex items-center gap-1 mb-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <p className="italic text-gray-300 mb-3">
-                "Em apenas 40 dias estou operando meus primeiros 5 pacientes. Daqui a 15 dias tenho outros 6 pacientes agendados. O curso é muito completo!"
-              </p>
-              <p className="text-sm text-gray-500">— Aluno da Formação 360°</p>
+            <p className="text-sm text-white/90 mt-1">Válido apenas para indicados. Promoção por tempo limitado!</p>
+            <div className="flex items-center justify-center gap-2 mt-2 bg-white/20 rounded-lg px-4 py-2 w-fit mx-auto">
+              <Timer className="h-4 w-4" />
+              <span className="font-mono font-bold text-lg">
+                {String(countdown.hours).padStart(2, '0')}:
+                {String(countdown.minutes).padStart(2, '0')}:
+                {String(countdown.seconds).padStart(2, '0')}
+              </span>
             </div>
           </div>
+        )}
+
+        {/* Main Content Inside Hero */}
+        <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-8 items-start">
+            {/* Left - Course Info */}
+            <div className="text-white space-y-6">
+              {/* Course Title */}
+              <div>
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 mb-4 backdrop-blur">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Você foi indicado por {validation?.referrerName || 'um aluno'}!
+                </Badge>
+                <h1 className="text-4xl sm:text-5xl font-bold mb-2">
+                  <span className="text-blue-400">FORMAÇÃO 360°</span> EM
+                </h1>
+                <h2 className="text-3xl sm:text-4xl font-bold text-white">
+                  TRANSPLANTE CAPILAR
+                </h2>
+                <p className="text-lg text-gray-300 mt-4">
+                  Acesse em <strong className="text-white">3 dias</strong> a estrutura completa para entrar com segurança no mercado mais promissor da medicina.
+                </p>
+              </div>
+
+              {/* Location Badge */}
+              <div className="flex items-center gap-2 text-gray-200">
+                <MapPin className="h-5 w-5 text-blue-400" />
+                <span>Localização: República - São Paulo (SP)</span>
+              </div>
+
+              {/* Key Highlights */}
+              <div className="grid grid-cols-3 gap-4 border-t border-b border-blue-500/30 py-6 backdrop-blur-sm bg-[#0a1628]/40 rounded-xl px-4">
+                <div className="text-center">
+                  <Award className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                  <p className="text-sm font-medium">Certificado Oficial</p>
+                  <p className="text-xs text-gray-400">IBRAMEC®</p>
+                </div>
+                <div className="text-center">
+                  <Clock className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                  <p className="text-sm font-medium">+30 Horas</p>
+                  <p className="text-xs text-gray-400">de Hands-On</p>
+                </div>
+                <div className="text-center">
+                  <Users className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                  <p className="text-sm font-medium">Para médicos</p>
+                  <p className="text-xs text-gray-400">de todas as áreas</p>
+                </div>
+              </div>
+
+              {/* Differentials */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold">O que torna nossa formação diferente:</h3>
+                
+                <div className="bg-[#0d1e36]/90 backdrop-blur border border-blue-900/50 rounded-xl p-5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Scissors className="h-6 w-6 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-emerald-400">Vivência Real de Cirurgia</h4>
+                      <p className="text-sm text-gray-300">Mais de 70% do curso é prática em pacientes reais. De 20 a 30 cirurgias em 3 dias!</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <GraduationCap className="h-6 w-6 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-blue-400">Formação Completa</h4>
+                      <p className="text-sm text-gray-300">Transplante de cabelo, barba e sobrancelhas. Certificação Oficial pelo IBRAMEC®.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Briefcase className="h-6 w-6 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-amber-400">Modelo de Negócio</h4>
+                      <p className="text-sm text-gray-300">Aulas de Marketing e Comercial + Mentoria com a equipe do Dr. Hygor Guerreiro.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="bg-gradient-to-r from-blue-900/50 to-blue-800/50 backdrop-blur rounded-xl p-5">
+                <p className="text-sm text-gray-300 mb-3">Números que comprovam:</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <TrendingUp className="h-5 w-5 text-emerald-400 mb-1" />
+                    <p className="text-2xl font-bold">+5.000</p>
+                    <p className="text-xs text-gray-400">transplantes realizados</p>
+                  </div>
+                  <div>
+                    <TrendingUp className="h-5 w-5 text-emerald-400 mb-1" />
+                    <p className="text-2xl font-bold">R$ 2,5M+</p>
+                    <p className="text-xs text-gray-400">faturamento mensal da clínica</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Testimonial */}
+              <div className="bg-[#0d1e36]/90 backdrop-blur border border-blue-900/50 rounded-xl p-5">
+                <div className="flex items-center gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="italic text-gray-200 mb-3">
+                  "Em apenas 40 dias estou operando meus primeiros 5 pacientes. Daqui a 15 dias tenho outros 6 pacientes agendados. O curso é muito completo!"
+                </p>
+                <p className="text-sm text-gray-400">— Aluno da Formação 360°</p>
+              </div>
+            </div>
 
           {/* Right - Form */}
           <div className="lg:sticky lg:top-8">
@@ -542,11 +561,60 @@ export function Formacao360ReferralLanding() {
           </div>
         </div>
       </div>
+      {/* End of relative hero section */}
+      </div>
 
-      {/* Footer */}
-      <footer className="bg-[#0d1e36] border-t border-blue-900/30 text-center py-8 mt-12">
+      {/* Course Content Section */}
+      <div className="bg-[#0d1e36] py-16">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <h3 className="text-3xl font-bold text-white text-center mb-4">
+            Descubra a nossa formação completa
+          </h3>
+          <p className="text-gray-400 text-center mb-12 max-w-2xl mx-auto">
+            Confira o que você vai receber ao entrar na Formação 360°
+          </p>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { num: '1', title: 'Diagnóstico e Planejamento', desc: 'Anatomia, classificação das alopecias e avaliação clínica' },
+              { num: '2', title: 'Desenho e Estratégia', desc: 'Planejamento da linha frontal e distribuição folicular' },
+              { num: '3', title: 'Técnica Cirúrgica FUE', desc: 'Extração, implantação e protocolos anestésicos' },
+              { num: '4', title: 'Pós-operatório', desc: 'Cuidados e manejo de intercorrências' },
+              { num: '5', title: 'Módulo Prático', desc: 'Hospital exclusivo com 4 salas de cirurgia' },
+              { num: '6', title: 'Gestão de Clínicas', desc: 'CRM, prontuário digital e automação' },
+              { num: '7', title: 'Marketing e Comercial', desc: 'Posicionamento digital e estratégias de vendas' },
+              { num: '8', title: 'Jurídico e Segurança', desc: 'ANVISA, CFM, LGPD e blindagem jurídica' },
+            ].map((item) => (
+              <div key={item.num} className="bg-[#0a1628] border border-blue-900/50 rounded-xl p-5 hover:border-blue-500/50 transition-colors">
+                <span className="text-blue-400 font-bold text-lg">#{item.num}</span>
+                <h4 className="font-semibold text-white mt-2 mb-1">{item.title}</h4>
+                <p className="text-sm text-gray-400">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Classroom Image Section */}
+      <div className="relative h-64 md:h-80">
         <img 
-          src="https://ibramec.com/wp-content/uploads/2025/09/logo-branca-ibramec.webp" 
+          src={classroomImage}
+          alt="Sala de aula - Formação IBRAMEC"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d1e36] via-transparent to-[#0a1628]" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center px-4">
+            <p className="text-white text-2xl md:text-3xl font-bold">
+              Transformamos médicos em líderes no mercado mais promissor da medicina.
+            </p>
+          </div>
+        </div>
+      </div>
+      {/* Footer */}
+      <footer className="bg-[#0d1e36] border-t border-blue-900/30 text-center py-8">
+        <img 
+          src={ibramecLogoWhite}
           alt="IBRAMEC" 
           className="h-8 object-contain mx-auto mb-4" 
         />
