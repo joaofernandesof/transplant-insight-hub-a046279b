@@ -16,7 +16,10 @@ export {
   AcademyStudentsAdmin,
   AcademyClassDetail,
   AcademySettings,
-  AcademyChat
+  AcademyChat,
+  AcademyReferral,
+  Formacao360ReferralLanding
 } from './pages';
 export { useAcademyEnrollments } from './hooks/useAcademyEnrollments';
 export { useClassDetails } from './hooks/useClassDetails';
+export { useStudentReferrals, useSubmitReferral } from './hooks/useStudentReferrals';

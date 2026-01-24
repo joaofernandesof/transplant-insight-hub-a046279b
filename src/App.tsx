@@ -306,7 +306,9 @@ import {
   AcademyStudentsAdmin,
   AcademyClassDetail,
   AcademySettings,
-  AcademyChat
+  AcademyChat,
+  AcademyReferral,
+  Formacao360ReferralLanding
 } from './academy';
 
 function AcademyRoutes() {
@@ -327,6 +329,7 @@ function AcademyRoutes() {
           <Route path="chat" element={<AcademyChat />} />
           <Route path="chat/:recipientId" element={<AcademyChat />} />
           <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />
+          <Route path="referral" element={<AcademyReferral />} />
           <Route path="profile" element={<AcademySettings />} />
           <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
           <Route path="admin/students" element={<AcademyStudentsAdmin />} />
@@ -411,6 +414,7 @@ function AppRoutes() {
       />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/indicacao/:code" element={<ReferralLanding />} />
+      <Route path="/indicacao-formacao360/:code" element={<Formacao360ReferralLanding />} />
       <Route path="/api-docs" element={<ApiDocs />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/neocare-landing" element={<NeoCareLanding />} />
