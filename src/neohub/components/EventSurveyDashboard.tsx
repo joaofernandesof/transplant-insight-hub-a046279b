@@ -164,7 +164,10 @@ const getWordFrequency = (texts: string[]): { word: string; count: number }[] =>
 // ============== PDF EXPORT HELPERS ==============
 type SurveyAnalyticsData = ReturnType<typeof useSurveyAnalytics>['data'];
 
-async function createPDFFromHTML(htmlContent: string, filename: string) {
+// PDF Margins in mm
+const PDF_MARGIN = 10;
+
+async function createPDFFromHTML(htmlContent: string, filename: string, options?: { fitToSinglePage?: boolean }) {
   const container = document.createElement('div');
   container.style.position = 'absolute';
   container.style.left = '-9999px';
@@ -194,29 +197,68 @@ async function createPDFFromHTML(htmlContent: string, filename: string) {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     
+    // Usable area with margins
+    const usableWidth = pdfWidth - (PDF_MARGIN * 2);
+    const usableHeight = pdfHeight - (PDF_MARGIN * 2) - 5; // Extra 5mm for page number
+    
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    const imgWidth = pdfWidth;
-    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
     
-    let heightLeft = imgHeight;
-    let position = 0;
+    // Calculate aspect ratio to fit within margins
+    const canvasAspectRatio = canvas.width / canvas.height;
+    const usableAspectRatio = usableWidth / usableHeight;
     
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pdfHeight;
+    let imgWidth: number;
+    let imgHeight: number;
     
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-    }
-    
-    const pageCount = pdf.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      pdf.setPage(i);
+    if (options?.fitToSinglePage) {
+      // Scale proportionally to fit entire content in single page
+      if (canvasAspectRatio > usableAspectRatio) {
+        // Width constrained
+        imgWidth = usableWidth;
+        imgHeight = imgWidth / canvasAspectRatio;
+      } else {
+        // Height constrained
+        imgHeight = usableHeight;
+        imgWidth = imgHeight * canvasAspectRatio;
+      }
+      
+      // Center horizontally within margins
+      const xOffset = PDF_MARGIN + (usableWidth - imgWidth) / 2;
+      pdf.addImage(imgData, 'JPEG', xOffset, PDF_MARGIN, imgWidth, imgHeight);
+      
+      // Page number
       pdf.setFontSize(8);
       pdf.setTextColor(156, 163, 175);
-      pdf.text(`Página ${i} de ${pageCount}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+      pdf.text('Página 1 de 1', pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+    } else {
+      // Original multi-page logic with margins
+      imgWidth = usableWidth;
+      imgHeight = (canvas.height * usableWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = PDF_MARGIN;
+      let pageNum = 1;
+      
+      // First page
+      pdf.addImage(imgData, 'JPEG', PDF_MARGIN, position, imgWidth, imgHeight);
+      heightLeft -= usableHeight;
+      
+      while (heightLeft > 0) {
+        position = PDF_MARGIN - (imgHeight - heightLeft);
+        pdf.addPage();
+        pageNum++;
+        pdf.addImage(imgData, 'JPEG', PDF_MARGIN, position, imgWidth, imgHeight);
+        heightLeft -= usableHeight;
+      }
+      
+      // Add page numbers
+      const pageCount = pdf.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(156, 163, 175);
+        pdf.text(`Página ${i} de ${pageCount}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+      }
     }
     
     pdf.save(filename);
@@ -327,7 +369,7 @@ async function exportOverviewPDF(analytics: NonNullable<SurveyAnalyticsData>) {
     </div>
   `;
   
-  await createPDFFromHTML(html, `visao-geral-${new Date().toISOString().split('T')[0]}.pdf`);
+  await createPDFFromHTML(html, `visao-geral-${new Date().toISOString().split('T')[0]}.pdf`, { fitToSinglePage: true });
 }
 
 // RANKING PDF
@@ -380,7 +422,7 @@ async function exportRankingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
     </div>
   `;
   
-  await createPDFFromHTML(html, `ranking-perguntas-${new Date().toISOString().split('T')[0]}.pdf`);
+  await createPDFFromHTML(html, `ranking-perguntas-${new Date().toISOString().split('T')[0]}.pdf`, { fitToSinglePage: true });
 }
 
 // QUESTIONS PDF
