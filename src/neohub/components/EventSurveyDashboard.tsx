@@ -165,27 +165,28 @@ const getWordFrequency = (texts: string[]): { word: string; count: number }[] =>
 type SurveyAnalyticsData = ReturnType<typeof useSurveyAnalytics>['data'];
 
 // PDF Margins in mm
-const PDF_MARGIN = 10;
+const PDF_MARGIN = 15;
 
 async function createPDFFromHTML(htmlContent: string, filename: string, options?: { fitToSinglePage?: boolean }) {
   const container = document.createElement('div');
   container.style.position = 'absolute';
   container.style.left = '-9999px';
   container.style.top = '0';
-  container.style.width = '794px'; // A4 width in pixels at 96dpi
+  container.style.width = '750px'; // Slightly narrower for better margins
   container.style.background = '#ffffff';
   container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   container.style.lineHeight = '1.5';
   container.style.color = '#1f2937';
+  container.style.padding = '20px'; // Add internal padding
   document.body.appendChild(container);
   container.innerHTML = htmlContent;
   
   // Wait for fonts and styles to load
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise(resolve => setTimeout(resolve, 150));
 
   try {
     const canvas = await html2canvas(container, {
-      scale: 2.5, // Higher quality
+      scale: 2, // Good quality without being too heavy
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
@@ -197,11 +198,11 @@ async function createPDFFromHTML(htmlContent: string, filename: string, options?
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     
-    // Usable area with margins
+    // Usable area with margins - increased margins
     const usableWidth = pdfWidth - (PDF_MARGIN * 2);
-    const usableHeight = pdfHeight - (PDF_MARGIN * 2) - 5; // Extra 5mm for page number
+    const usableHeight = pdfHeight - (PDF_MARGIN * 2) - 8; // Extra 8mm for page number
     
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
     
     // Calculate aspect ratio to fit within margins
     const canvasAspectRatio = canvas.width / canvas.height;
@@ -231,33 +232,40 @@ async function createPDFFromHTML(htmlContent: string, filename: string, options?
       pdf.setTextColor(156, 163, 175);
       pdf.text('Página 1 de 1', pdfWidth / 2, pdfHeight - 5, { align: 'center' });
     } else {
-      // Original multi-page logic with margins
+      // Multi-page logic with proper margins and clipping
       imgWidth = usableWidth;
       imgHeight = (canvas.height * usableWidth) / canvas.width;
       
-      let heightLeft = imgHeight;
-      let position = PDF_MARGIN;
-      let pageNum = 1;
+      // Calculate how many pages we need
+      const totalPages = Math.ceil(imgHeight / usableHeight);
       
-      // First page
-      pdf.addImage(imgData, 'JPEG', PDF_MARGIN, position, imgWidth, imgHeight);
-      heightLeft -= usableHeight;
-      
-      while (heightLeft > 0) {
-        position = PDF_MARGIN - (imgHeight - heightLeft);
-        pdf.addPage();
-        pageNum++;
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage();
+        }
+        
+        // Calculate the y position for this page's slice
+        const srcY = page * usableHeight;
+        const position = PDF_MARGIN - srcY;
+        
+        // Add the image, offset to show the correct portion
         pdf.addImage(imgData, 'JPEG', PDF_MARGIN, position, imgWidth, imgHeight);
-        heightLeft -= usableHeight;
-      }
-      
-      // Add page numbers
-      const pageCount = pdf.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        pdf.setPage(i);
+        
+        // Draw white rectangles to hide content outside margins (clip effect)
+        pdf.setFillColor(255, 255, 255);
+        // Top margin area
+        pdf.rect(0, 0, pdfWidth, PDF_MARGIN, 'F');
+        // Bottom margin area (including page number space)
+        pdf.rect(0, pdfHeight - PDF_MARGIN - 8, pdfWidth, PDF_MARGIN + 8, 'F');
+        // Left margin
+        pdf.rect(0, 0, PDF_MARGIN, pdfHeight, 'F');
+        // Right margin
+        pdf.rect(pdfWidth - PDF_MARGIN, 0, PDF_MARGIN, pdfHeight, 'F');
+        
+        // Page number
         pdf.setFontSize(8);
         pdf.setTextColor(156, 163, 175);
-        pdf.text(`Página ${i} de ${pageCount}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+        pdf.text(`Página ${page + 1} de ${totalPages}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
       }
     }
     
