@@ -395,47 +395,47 @@ export function ReferralsTable({
             </div>
           ) : (
             <ScrollArea className="h-[550px]">
-              <Table>
+              <Table className="table-fixed w-full">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead className="min-w-[100px]">
+                    <TableHead className="w-[160px] px-4">
                       <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Indicado <SortIcon field="name" />
                       </button>
                     </TableHead>
-                    <TableHead className="min-w-[140px]">
+                    <TableHead className="w-[200px] px-4">
                       <button onClick={() => handleSort('email')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Email <SortIcon field="email" />
                       </button>
                     </TableHead>
-                    <TableHead className="min-w-[100px]">
+                    <TableHead className="w-[130px] px-4">
                       <button onClick={() => handleSort('phone')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Telefone <SortIcon field="phone" />
                       </button>
                     </TableHead>
-                    <TableHead className="min-w-[110px]">
+                    <TableHead className="w-[180px] px-4">
                       <button onClick={() => handleSort('referrer_name')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Indicador <SortIcon field="referrer_name" />
                       </button>
                     </TableHead>
-                    <TableHead className="min-w-[80px]">
+                    <TableHead className="w-[90px] px-4">
                       <button onClick={() => handleSort('source')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Origem <SortIcon field="source" />
                       </button>
                     </TableHead>
-                    <TableHead className="min-w-[100px]">
+                    <TableHead className="w-[130px] px-4">
                       <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Status <SortIcon field="status" />
                       </button>
                     </TableHead>
-                    <TableHead className="min-w-[90px]">
+                    <TableHead className="w-[100px] px-4">
                       <button onClick={() => handleSort('created_at')} className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                         Data <SortIcon field="created_at" />
                       </button>
                     </TableHead>
-                    <TableHead className="min-w-[70px] text-center">Ganho Ind.</TableHead>
-                    <TableHead className="min-w-[70px] text-center">Desc. Ind.</TableHead>
-                    <TableHead className="min-w-[140px] text-right pr-4">Ações</TableHead>
+                    <TableHead className="w-[90px] px-4 text-center">Ganho Ind.</TableHead>
+                    <TableHead className="w-[90px] px-4 text-center">Desc. Ind.</TableHead>
+                    <TableHead className="w-[160px] px-4 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
