@@ -36,7 +36,7 @@ export function CompleteProfileBanner({ isProfileComplete, onDismiss }: Complete
   };
 
   const handleGoToProfile = () => {
-    navigate("/academy/settings");
+    navigate("/academy/profile");
   };
 
   // Don't show if profile is complete or banner was dismissed
