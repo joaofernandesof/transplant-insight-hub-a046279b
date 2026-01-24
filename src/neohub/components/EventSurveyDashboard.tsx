@@ -2822,18 +2822,19 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <CardContent>
             {(() => {
               // Define ranges with percentage values for gradient calculation (scale 0-10)
+              // Ordered from lowest to highest
               const ranges = [
-                { label: '10.0', min: 10.0, max: 10.0, pct: 100 },
-                { label: '9.0-9.9', min: 9.0, max: 9.99, pct: 95 },
-                { label: '8.0-8.9', min: 8.0, max: 8.99, pct: 85 },
-                { label: '7.0-7.9', min: 7.0, max: 7.99, pct: 75 },
-                { label: '6.0-6.9', min: 6.0, max: 6.99, pct: 65 },
-                { label: '5.0-5.9', min: 5.0, max: 5.99, pct: 55 },
-                { label: '4.0-4.9', min: 4.0, max: 4.99, pct: 45 },
-                { label: '3.0-3.9', min: 3.0, max: 3.99, pct: 35 },
-                { label: '2.0-2.9', min: 2.0, max: 2.99, pct: 25 },
-                { label: '1.0-1.9', min: 1.0, max: 1.99, pct: 15 },
-                { label: '< 1.0', min: 0, max: 0.99, pct: 5 },
+                { label: '< 1', min: 0, max: 0.99, pct: 5 },
+                { label: '1-2', min: 1.0, max: 1.99, pct: 15 },
+                { label: '2-3', min: 2.0, max: 2.99, pct: 25 },
+                { label: '3-4', min: 3.0, max: 3.99, pct: 35 },
+                { label: '4-5', min: 4.0, max: 4.99, pct: 45 },
+                { label: '5-6', min: 5.0, max: 5.99, pct: 55 },
+                { label: '6-7', min: 6.0, max: 6.99, pct: 65 },
+                { label: '7-8', min: 7.0, max: 7.99, pct: 75 },
+                { label: '8-9', min: 8.0, max: 8.99, pct: 85 },
+                { label: '9-10', min: 9.0, max: 9.99, pct: 95 },
+                { label: '10', min: 10.0, max: 10.0, pct: 100 },
               ];
               
               const distribution = ranges.map(range => ({
@@ -2846,39 +2847,39 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               const maxCount = Math.max(...distribution.map(d => d.count), 1);
               
               return (
-                <div className="space-y-3">
+                <div className="flex items-end justify-between gap-2 h-48 px-2">
                   {distribution.map((range) => {
                     const barColor = getGradientColorStyle(range.pct, 0, 100);
-                    const textColor = getGradientColorStyle(range.pct, 0, 100);
+                    const heightPercent = range.count > 0 ? (range.count / maxCount) * 100 : 0;
                     
                     return (
-                      <div key={range.label} className="flex items-center gap-3">
+                      <div key={range.label} className="flex flex-col items-center gap-1 flex-1">
+                        {/* Count label on top */}
                         <span 
-                          className="w-20 text-sm font-medium"
-                          style={{ color: textColor }}
+                          className="text-xs font-bold"
+                          style={{ color: barColor }}
                         >
-                          {range.label}
+                          {range.count}
                         </span>
-                        <div className="flex-1 h-8 bg-muted/50 rounded-lg overflow-hidden relative">
-                          {range.count > 0 ? (
+                        {/* Vertical bar */}
+                        <div className="w-full h-36 bg-muted/30 rounded-t-lg overflow-hidden flex flex-col justify-end">
+                          {range.count > 0 && (
                             <div 
-                              className="h-full transition-all duration-500 flex items-center justify-end pr-2"
+                              className="w-full rounded-t-lg transition-all duration-500"
                               style={{ 
-                                width: `${(range.count / maxCount) * 100}%`, 
-                                minWidth: '2rem',
+                                height: `${heightPercent}%`,
+                                minHeight: '4px',
                                 backgroundColor: barColor
                               }}
-                            >
-                              <span className="text-sm font-bold text-white">{range.count}</span>
-                            </div>
-                          ) : (
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">0</span>
+                            />
                           )}
                         </div>
-                        <span className="w-16 text-xs text-muted-foreground text-right">
-                          {analytics.questionRankings.length > 0 
-                            ? ((range.count / analytics.questionRankings.length) * 100).toFixed(0) 
-                            : 0}%
+                        {/* Range label below */}
+                        <span 
+                          className="text-[10px] font-medium text-center"
+                          style={{ color: barColor }}
+                        >
+                          {range.label}
                         </span>
                       </div>
                     );
