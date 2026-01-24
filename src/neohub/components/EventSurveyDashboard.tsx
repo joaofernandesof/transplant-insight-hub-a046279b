@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { useSurveyAnalytics, type QuestionRating, type StudentDetailedResponse } from "@/neohub/hooks/useSurveyAnalytics";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -95,246 +96,168 @@ const getWordFrequency = (texts: string[]): { word: string; count: number }[] =>
     .slice(0, 30);
 };
 
-const exportStudentResponsesPDF = (students: StudentDetailedResponse[], eventName?: string) => {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 20;
-  let y = 25;
+const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) => {
+  // Create a hidden container to render the content
+  const container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = '800px';
+  container.style.background = '#ffffff';
+  container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+  document.body.appendChild(container);
 
-  // Colors (RGB)
-  const colors = {
-    primary: { r: 22, g: 163, b: 74 },      // Green-600
-    primaryLight: { r: 220, g: 252, b: 231 }, // Green-100
-    secondary: { r: 59, g: 130, b: 246 },    // Blue-500
-    orange: { r: 234, g: 88, b: 12 },        // Orange-600
-    gray: { r: 107, g: 114, b: 128 },        // Gray-500
-    grayLight: { r: 243, g: 244, b: 246 },   // Gray-100
-    grayMedium: { r: 229, g: 231, b: 235 },  // Gray-200
-    dark: { r: 31, g: 41, b: 55 },           // Gray-800
-    white: { r: 255, g: 255, b: 255 },
-  };
-
-  // Helper: Draw rounded rectangle
-  const drawRoundedRect = (x: number, y: number, w: number, h: number, r: number, fill: boolean, stroke: boolean) => {
-    doc.roundedRect(x, y, w, h, r, r, fill ? 'F' : stroke ? 'S' : 'FD');
-  };
-
-  // Helper: Get rating color based on sentiment
-  const getValueColor = (value: string) => {
-    const positiveWords = ['excelente', 'ótimo', 'muito', 'totalmente', 'concordo', 'atendeu', 'perfeito', 'alta', 'bom'];
-    const negativeWords = ['ruim', 'péssimo', 'não', 'insatisfeito', 'discordo', 'baixo', 'fraco'];
+  // Helper function to get response color
+  const getValueColor = (value: string): string => {
+    const positiveWords = ['excelente', 'ótimo', 'muito', 'totalmente', 'concordo', 'atendeu', 'perfeito', 'alta', 'bom', 'sim', 'mais de'];
+    const negativeWords = ['ruim', 'péssimo', 'não', 'insatisfeito', 'discordo', 'baixo', 'fraco', 'insuficiente'];
     
     const lowerValue = value.toLowerCase();
-    if (positiveWords.some(w => lowerValue.includes(w))) return colors.primary;
-    if (negativeWords.some(w => lowerValue.includes(w))) return colors.orange;
-    return colors.secondary;
+    if (positiveWords.some(w => lowerValue.includes(w))) return '#16a34a'; // green-600
+    if (negativeWords.some(w => lowerValue.includes(w))) return '#ea580c'; // orange-600
+    return '#3b82f6'; // blue-500
   };
-
-  // ========== HEADER ==========
-  // Top gradient bar
-  doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
-  doc.rect(0, 0, pageWidth, 8, 'F');
-  
-  // Title
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
-  doc.text("Pesquisa de Satisfação", pageWidth / 2, y, { align: "center" });
-  y += 8;
-  
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
-  doc.text("Respostas Detalhadas por Aluno", pageWidth / 2, y, { align: "center" });
-  y += 10;
-
-  // Generation date badge
-  const dateText = `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
-  const dateWidth = doc.getTextWidth(dateText) + 12;
-  doc.setFillColor(colors.grayLight.r, colors.grayLight.g, colors.grayLight.b);
-  drawRoundedRect((pageWidth - dateWidth) / 2, y - 4, dateWidth, 8, 2, true, false);
-  doc.setFontSize(9);
-  doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
-  doc.text(dateText, pageWidth / 2, y + 1, { align: "center" });
-  y += 18;
 
   // Summary stats
   const totalStudents = students.length;
   const completedStudents = students.filter(s => s.isCompleted).length;
   const hotLeads = students.filter(s => s.isHotLead).length;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
-  doc.text(`${totalStudents} alunos  •  ${completedStudents} completos  •  ${hotLeads} hot leads`, pageWidth / 2, y, { align: "center" });
-  y += 15;
 
-  // Divider line
-  doc.setDrawColor(colors.grayMedium.r, colors.grayMedium.g, colors.grayMedium.b);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 12;
-
-  // ========== STUDENT CARDS ==========
-  students.forEach((student, studentIndex) => {
-    // Check if we need a new page
-    if (y > 240) {
-      doc.addPage();
-      // Add top bar on new pages
-      doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
-      doc.rect(0, 0, pageWidth, 5, 'F');
-      y = 20;
-    }
-
-    // ===== Student Header Card =====
-    // Background card
-    doc.setFillColor(colors.grayLight.r, colors.grayLight.g, colors.grayLight.b);
-    drawRoundedRect(margin, y - 5, pageWidth - margin * 2, 22, 3, true, false);
-    
-    // Avatar circle with initial
-    const avatarX = margin + 10;
-    const avatarY = y + 6;
-    doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
-    doc.circle(avatarX, avatarY, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    const initial = student.userName.charAt(0).toUpperCase();
-    doc.text(initial, avatarX, avatarY + 3.5, { align: "center" });
-    
-    // Student name
-    doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text(student.userName, margin + 22, y + 4);
-    
-    // Completion date
-    if (student.completedAt) {
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(colors.primary.r, colors.primary.g, colors.primary.b);
-      doc.text(`✓ Completou em ${student.completedAt}`, margin + 22, y + 11);
-    } else {
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
-      doc.text(`Em andamento (${student.progressPercent}%)`, margin + 22, y + 11);
-    }
-    
-    // Status badge
-    const statusText = student.isCompleted ? "Completo" : `${student.progressPercent}%`;
-    const statusWidth = doc.getTextWidth(statusText) + 10;
-    const badgeX = pageWidth - margin - statusWidth - 5;
-    
-    if (student.isCompleted) {
-      doc.setFillColor(colors.primaryLight.r, colors.primaryLight.g, colors.primaryLight.b);
-    } else {
-      doc.setFillColor(colors.grayMedium.r, colors.grayMedium.g, colors.grayMedium.b);
-    }
-    drawRoundedRect(badgeX, y - 1, statusWidth, 7, 2, true, false);
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    if (student.isCompleted) {
-      doc.setTextColor(colors.primary.r, colors.primary.g, colors.primary.b);
-    } else {
-      doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
-    }
-    doc.text(statusText, badgeX + 5, y + 3.5);
-    
-    // Hot Lead badge
-    if (student.isHotLead) {
-      const hotLeadText = "🔥 Hot Lead";
-      const hotLeadWidth = doc.getTextWidth(hotLeadText) + 8;
-      const hotLeadX = badgeX - hotLeadWidth - 5;
-      doc.setFillColor(255, 237, 213);
-      drawRoundedRect(hotLeadX, y - 1, hotLeadWidth, 7, 2, true, false);
-      doc.setFontSize(8);
-      doc.setTextColor(colors.orange.r, colors.orange.g, colors.orange.b);
-      doc.text(hotLeadText, hotLeadX + 4, y + 3.5);
-    }
-    
-    y += 22;
-
-    // Group responses by category
-    const groupedResponses = student.responses.reduce((acc, r) => {
-      if (!acc[r.category]) acc[r.category] = [];
-      acc[r.category].push(r);
-      return acc;
-    }, {} as Record<string, typeof student.responses>);
-
-    // ===== Category Sections =====
-    Object.entries(groupedResponses).forEach(([category, responses]) => {
-      if (y > 265) {
-        doc.addPage();
-        doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
-        doc.rect(0, 0, pageWidth, 5, 'F');
-        y = 20;
-      }
-
-      // Category header
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
-      doc.text(category, margin, y);
-      y += 6;
-
-      // Response rows (zebra striping)
-      responses.forEach((r, idx) => {
-        if (y > 280) {
-          doc.addPage();
-          doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
-          doc.rect(0, 0, pageWidth, 5, 'F');
-          y = 20;
-        }
-
-        // Zebra stripe background
-        if (idx % 2 === 0) {
-          doc.setFillColor(colors.grayLight.r, colors.grayLight.g, colors.grayLight.b);
-          doc.rect(margin, y - 4, pageWidth - margin * 2, 7, 'F');
-        }
-
-        // Question text (full, with word wrap if needed)
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
+  // Build the HTML content that mirrors the website
+  container.innerHTML = `
+    <div style="padding: 0;">
+      <!-- Green header bar -->
+      <div style="background: #16a34a; height: 20px; margin-bottom: 30px;"></div>
+      
+      <!-- Title section -->
+      <div style="text-align: center; margin-bottom: 25px; padding: 0 40px;">
+        <h1 style="font-size: 28px; font-weight: bold; color: #1f2937; margin: 0 0 8px 0;">Pesquisa de Satisfação</h1>
+        <p style="font-size: 14px; color: #6b7280; margin: 0 0 15px 0;">Respostas Detalhadas por Aluno</p>
         
-        const maxQuestionWidth = (pageWidth - margin * 2) * 0.55;
-        const questionLines = doc.splitTextToSize(r.questionLabel, maxQuestionWidth);
-        doc.text(questionLines[0], margin + 3, y);
+        <!-- Date badge -->
+        <div style="display: inline-block; background: #f3f4f6; border-radius: 20px; padding: 6px 16px; font-size: 12px; color: #6b7280;">
+          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </div>
         
-        // Value text (colored based on sentiment)
-        const valueText = r.value || "—";
-        const maxValueWidth = (pageWidth - margin * 2) * 0.4;
-        const valueColor = r.value ? getValueColor(r.value) : colors.gray;
-        doc.setTextColor(valueColor.r, valueColor.g, valueColor.b);
-        doc.setFont("helvetica", "bold");
-        
-        const valueLines = doc.splitTextToSize(valueText, maxValueWidth);
-        doc.text(valueLines[0], pageWidth - margin - 3, y, { align: "right" });
-        
-        y += 7;
-      });
+        <!-- Stats -->
+        <p style="font-size: 13px; color: #1f2937; margin-top: 15px;">
+          ${totalStudents} alunos  •  ${completedStudents} completos  •  ${hotLeads} hot leads
+        </p>
+      </div>
+      
+      <!-- Divider -->
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0 40px 30px 40px;">
+      
+      <!-- Student cards -->
+      ${students.map(student => {
+        const groupedResponses = student.responses.reduce((acc, r) => {
+          if (!acc[r.category]) acc[r.category] = [];
+          acc[r.category].push(r);
+          return acc;
+        }, {} as Record<string, typeof student.responses>);
 
-      y += 4;
+        return `
+          <div style="margin: 0 40px 30px 40px;">
+            <!-- Student header card -->
+            <div style="background: #f3f4f6; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; margin-bottom: 16px;">
+              <!-- Avatar -->
+              <div style="width: 48px; height: 48px; border-radius: 50%; background: #16a34a; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold; margin-right: 15px;">
+                ${student.userName.charAt(0).toUpperCase()}
+              </div>
+              
+              <!-- Name and status -->
+              <div style="flex: 1;">
+                <div style="font-size: 16px; font-weight: bold; color: #1f2937;">${student.userName}</div>
+                <div style="font-size: 12px; color: #16a34a; font-family: monospace;">
+                  ${student.isCompleted && student.completedAt ? `✓ Completou em ${student.completedAt}` : `Em andamento (${student.progressPercent}%)`}
+                </div>
+              </div>
+              
+              <!-- Badges -->
+              <div style="display: flex; gap: 8px;">
+                ${student.isHotLead ? `
+                  <span style="background: #ffedd5; color: #ea580c; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">
+                    🔥 Hot Lead
+                  </span>
+                ` : ''}
+                <span style="background: ${student.isCompleted ? '#dcfce7' : '#e5e7eb'}; color: ${student.isCompleted ? '#16a34a' : '#6b7280'}; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">
+                  ${student.isCompleted ? 'Completo' : `${student.progressPercent}%`}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Responses by category -->
+            ${Object.entries(groupedResponses).map(([category, responses]) => `
+              <div style="margin-bottom: 16px;">
+                <h3 style="font-size: 13px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">${category}</h3>
+                ${(responses as typeof student.responses).map((r, idx) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: ${idx % 2 === 0 ? '#f9fafb' : 'transparent'}; border-radius: 6px;">
+                    <span style="font-size: 13px; color: #6b7280;">${r.questionLabel}</span>
+                    <span style="font-size: 13px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#9ca3af'};">
+                      ${r.value || '—'}
+                    </span>
+                  </div>
+                `).join('')}
+              </div>
+            `).join('')}
+          </div>
+          
+          <!-- Divider between students -->
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0 80px 30px 80px;">
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  try {
+    // Capture the container as canvas
+    const canvas = await html2canvas(container, {
+      scale: 2, // Higher quality
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
     });
 
-    // Divider between students
-    y += 4;
-    doc.setDrawColor(colors.grayMedium.r, colors.grayMedium.g, colors.grayMedium.b);
-    doc.setLineWidth(0.3);
-    doc.line(margin + 20, y, pageWidth - margin - 20, y);
-    y += 10;
-  });
-
-  // Footer on last page
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
-    doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, 290, { align: "center" });
+    // Calculate PDF dimensions (A4)
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    
+    // Convert canvas to image
+    const imgData = canvas.toDataURL('image/png');
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+    
+    // Add pages as needed
+    let heightLeft = imgHeight;
+    let position = 0;
+    
+    // First page
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+    
+    // Additional pages if content is longer
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+    
+    // Add page numbers
+    const pageCount = pdf.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(8);
+      pdf.setTextColor(107, 114, 128);
+      pdf.text(`Página ${i} de ${pageCount}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+    }
+    
+    pdf.save(`pesquisa-satisfacao-${new Date().toISOString().split('T')[0]}.pdf`);
+  } finally {
+    // Clean up
+    document.body.removeChild(container);
   }
-
-  doc.save(`pesquisa-satisfacao-${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
 const getRatingColor = (value: number): string => {
@@ -636,6 +559,17 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionRating | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentDetailedResponse | null>(null);
   const [studentSearch, setStudentSearch] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!analytics) return;
+    setIsExporting(true);
+    try {
+      await exportStudentResponsesPDF(analytics.responsesByStudent);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -1211,11 +1145,21 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => exportStudentResponsesPDF(analytics.responsesByStudent)}
+              onClick={handleExportPDF}
+              disabled={isExporting}
               className="flex items-center gap-2"
             >
-              <Download className="h-4 w-4" />
-              Exportar PDF
+              {isExporting ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  Gerando PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  Exportar PDF
+                </>
+              )}
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
