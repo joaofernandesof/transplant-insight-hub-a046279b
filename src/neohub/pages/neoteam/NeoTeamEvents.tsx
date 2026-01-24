@@ -193,83 +193,60 @@ export default function NeoTeamEvents() {
         </Alert>
       )}
 
-      {/* Events Selection - Horizontal on top */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" />
-              Eventos
-            </CardTitle>
-            {upcomingClasses && upcomingClasses.length > 0 && (
-              <Badge variant="outline" className="text-xs">
-                {upcomingClasses.length} turmas sem checklist
-              </Badge>
-            )}
+      {/* Events Selection - Compact Horizontal Bar */}
+      <div className="flex items-center gap-3 overflow-x-auto pb-2">
+        <div className="flex items-center gap-2 shrink-0">
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-muted-foreground">Evento:</span>
+        </div>
+        
+        {checklists && checklists.length > 0 ? (
+          <div className="flex gap-2">
+            {checklists.map((checklist) => {
+              const daysUntil = differenceInDays(parseISO(checklist.event_start_date), new Date());
+              const isSelected = selectedChecklist?.id === checklist.id;
+              
+              return (
+                <button
+                  key={checklist.id}
+                  onClick={() => {
+                    setSelectedChecklist(checklist);
+                    setActiveTab("dashboard");
+                  }}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all shrink-0",
+                    isSelected 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-muted hover:bg-muted/80"
+                  )}
+                >
+                  <span className="font-medium">{checklist.event_name}</span>
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "text-[10px] px-1.5 py-0",
+                      isSelected ? "bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30" :
+                      daysUntil <= 0 ? "bg-destructive/10 text-destructive border-destructive/30" :
+                      daysUntil <= 7 ? "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300" :
+                      "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300"
+                    )}
+                  >
+                    {daysUntil === 0 ? "Hoje" : daysUntil < 0 ? `D+${Math.abs(daysUntil)}` : `D-${daysUntil}`}
+                  </Badge>
+                </button>
+              );
+            })}
           </div>
-        </CardHeader>
-        <CardContent className="pb-4">
-          <ScrollArea className="w-full">
-            <div className="flex gap-3 pb-2">
-              {checklists && checklists.length > 0 ? (
-                checklists.map((checklist) => {
-                  const daysUntil = differenceInDays(parseISO(checklist.event_start_date), new Date());
-                  const isSelected = selectedChecklist?.id === checklist.id;
-                  
-                  return (
-                    <button
-                      key={checklist.id}
-                      onClick={() => {
-                        setSelectedChecklist(checklist);
-                        setActiveTab("dashboard");
-                      }}
-                      className={cn(
-                        "flex-shrink-0 p-3 rounded-lg text-left transition-all min-w-[200px] max-w-[260px]",
-                        isSelected 
-                          ? "bg-primary/10 border-2 border-primary" 
-                          : "hover:bg-muted border-2 border-border"
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm truncate">{checklist.event_name}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                            <Calendar className="h-3 w-3" />
-                            {format(parseISO(checklist.event_start_date), "dd/MM/yyyy")}
-                          </p>
-                          {checklist.location && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {checklist.location}
-                            </p>
-                          )}
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            "text-xs shrink-0",
-                            daysUntil <= 0 ? "bg-destructive/10 text-destructive border-destructive/30" :
-                            daysUntil <= 7 ? "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300" :
-                            "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300"
-                          )}
-                        >
-                          {daysUntil === 0 ? "Hoje" : daysUntil < 0 ? `D+${Math.abs(daysUntil)}` : `D-${daysUntil}`}
-                        </Badge>
-                      </div>
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="text-center py-4 text-muted-foreground w-full">
-                  <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Nenhum checklist cadastrado</p>
-                  <p className="text-xs">Clique em "Novo Checklist" para começar</p>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+        ) : (
+          <span className="text-sm text-muted-foreground">Nenhum evento cadastrado</span>
+        )}
+        
+        {upcomingClasses && upcomingClasses.length > 0 && (
+          <Badge variant="outline" className="text-xs shrink-0 ml-auto">
+            {upcomingClasses.length} turmas sem checklist
+          </Badge>
+        )}
+      </div>
 
       {/* Main Content - Full Width */}
       <div className="w-full">
