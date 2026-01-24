@@ -190,14 +190,7 @@ export function AcademyClassDetail() {
         </Card>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(val) => {
-          // If clicking photos and survey not completed, open survey dialog
-          if (val === 'photos' && !hasDay1Completed && !isAdmin) {
-            setDay1SurveyDialogOpen(true);
-            return;
-          }
-          setActiveTab(val);
-        }} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className={`grid w-full h-auto ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="schedule" className="flex-col gap-1 py-2 px-1">
               <Calendar className="h-4 w-4" />
@@ -207,15 +200,7 @@ export function AcademyClassDetail() {
               <FileText className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Provas</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="photos" 
-              className={`flex-col gap-1 py-2 px-1 relative ${!hasDay1Completed && !isAdmin ? 'opacity-70' : ''}`}
-            >
-              {!hasDay1Completed && !isAdmin && (
-                <div className="absolute -top-1 -right-1 bg-muted rounded-full p-0.5">
-                  <Lock className="h-3 w-3 text-muted-foreground" />
-                </div>
-              )}
+            <TabsTrigger value="photos" className="flex-col gap-1 py-2 px-1">
               <Camera className="h-4 w-4" />
               <span className="text-[10px] sm:text-xs">Fotos</span>
             </TabsTrigger>
@@ -252,28 +237,11 @@ export function AcademyClassDetail() {
 
           {/* Photos Tab */}
           <TabsContent value="photos" className="space-y-4">
-            {!hasDay1Completed && !isAdmin ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                    <Lock className="h-10 w-10 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Galeria Bloqueada</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                    Para acessar as fotos do curso, primeiro responda à Pesquisa de Satisfação do Dia 1.
-                  </p>
-                  <Button 
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => setDay1SurveyDialogOpen(true)}
-                  >
-                    <ClipboardList className="h-4 w-4 mr-2" />
-                    Responder Pesquisa
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <CourseGalleryViewer classId={classId || ''} />
-            )}
+            <CourseGalleryViewer 
+              classId={classId || ''} 
+              isLocked={!hasDay1Completed && !isAdmin}
+              onUnlockRequest={() => setDay1SurveyDialogOpen(true)}
+            />
           </TabsContent>
           
           {/* Survey Tab */}
