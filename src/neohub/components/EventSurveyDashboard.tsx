@@ -2343,12 +2343,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         </div>
         
         {/* Header Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200/50">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-blue-500/20">
-                  <Users className="h-4 w-4 text-blue-600" />
+                  <Users className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{analytics.totalResponses}</p>
@@ -2360,9 +2360,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
           <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200/50">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-500/20">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{analytics.completionRate}%</p>
@@ -2380,11 +2380,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               : 'from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200/50'
           }`}>
             <CardContent className="p-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${
                   analytics.overallSatisfactionPercent >= 80 ? 'bg-emerald-500/20' : analytics.overallSatisfactionPercent >= 60 ? 'bg-yellow-500/20' : 'bg-red-500/20'
                 }`}>
-                  <TrendingUp className={`h-4 w-4 ${
+                  <TrendingUp className={`h-5 w-5 ${
                     analytics.overallSatisfactionPercent >= 80 ? 'text-emerald-600' : analytics.overallSatisfactionPercent >= 60 ? 'text-yellow-600' : 'text-red-600'
                   }`} />
                 </div>
@@ -2402,9 +2402,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
           <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200/50">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-purple-500/20">
-                  <Award className="h-4 w-4 text-purple-600" />
+                  <Award className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">{analytics.overallSatisfaction.toFixed(1)}</p>
@@ -2413,7 +2413,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               </div>
             </CardContent>
           </Card>
-
         </div>
 
 
