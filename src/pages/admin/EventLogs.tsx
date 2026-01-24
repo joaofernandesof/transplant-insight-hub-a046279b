@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useEventLogs, useEventLogsStats, EventLogsFilters } from '@/hooks/useEventLogs';
+import { useEventLogs, useEventLogsStats, EventLogsFilters, EventLog } from '@/hooks/useEventLogs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Activity,
   Search,
@@ -21,10 +33,15 @@ import {
   AlertTriangle,
   Zap,
   Clock,
-  Users,
   BarChart3,
   Layers,
   Calendar,
+  ChevronDown,
+  ChevronRight,
+  Globe,
+  Monitor,
+  User,
+  Hash,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -46,10 +63,167 @@ const eventCategoryConfig: Record<string, string> = {
   system: 'Sistema',
 };
 
+interface ExpandableRowProps {
+  log: EventLog;
+  isExpanded: boolean;
+  onToggle: () => void;
+}
+
+function ExpandableRow({ log, isExpanded, onToggle }: ExpandableRowProps) {
+  const typeConfig = eventTypeConfig[log.event_type] || { icon: Activity, color: 'bg-gray-500', label: log.event_type };
+  const categoryLabel = eventCategoryConfig[log.event_category] || log.event_category;
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <TableRow className="hover:bg-muted/50 cursor-pointer" onClick={onToggle}>
+        <TableCell className="w-10 p-2">
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+        </TableCell>
+        <TableCell className="font-mono text-xs text-muted-foreground p-2">
+          {format(new Date(log.created_at), 'dd/MM HH:mm:ss')}
+        </TableCell>
+        <TableCell className="p-2">
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1 whitespace-nowrap">
+            <div className={`w-1.5 h-1.5 rounded-full ${typeConfig.color}`} />
+            {typeConfig.label}
+          </Badge>
+        </TableCell>
+        <TableCell className="p-2">
+          <span className="text-xs text-muted-foreground">{categoryLabel}</span>
+        </TableCell>
+        <TableCell className="p-2 max-w-[200px]">
+          <span className="text-sm truncate block">{log.event_name}</span>
+        </TableCell>
+        <TableCell className="p-2">
+          <span className="text-sm truncate block max-w-[120px]">{log.user_name || 'Sistema'}</span>
+        </TableCell>
+        <TableCell className="p-2">
+          {log.module && (
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+              {log.module}
+            </Badge>
+          )}
+        </TableCell>
+        <TableCell className="p-2">
+          <span className="text-xs text-muted-foreground truncate block max-w-[150px]">
+            {log.page_path || '-'}
+          </span>
+        </TableCell>
+      </TableRow>
+
+      <CollapsibleContent asChild>
+        <TableRow className="bg-muted/30 hover:bg-muted/30">
+          <TableCell colSpan={8} className="p-0">
+            <div className="p-4 space-y-3 border-l-2 border-primary/30 ml-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                {/* User Info */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <User className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">Usuário</span>
+                  </div>
+                  <div className="pl-5 space-y-0.5">
+                    <p className="font-medium">{log.user_name || 'Anônimo'}</p>
+                    <p className="text-xs text-muted-foreground">{log.user_email || 'Sem email'}</p>
+                    {log.user_id && (
+                      <p className="text-xs font-mono text-muted-foreground">ID: {log.user_id.slice(0, 8)}...</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Session Info */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Hash className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">Sessão</span>
+                  </div>
+                  <div className="pl-5 space-y-0.5">
+                    <p className="text-xs font-mono">{log.session_id || 'Sem sessão'}</p>
+                  </div>
+                </div>
+
+                {/* Time Info */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">Data/Hora</span>
+                  </div>
+                  <div className="pl-5 space-y-0.5">
+                    <p>{format(new Date(log.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(log.created_at), 'HH:mm:ss')} ({formatDistanceToNow(new Date(log.created_at), { addSuffix: true, locale: ptBR })})
+                    </p>
+                  </div>
+                </div>
+
+                {/* Page/Path Info */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Globe className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">Página</span>
+                  </div>
+                  <div className="pl-5">
+                    <p className="font-mono text-xs break-all">{log.page_path || 'Não registrada'}</p>
+                  </div>
+                </div>
+
+                {/* Device Info */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Monitor className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">Dispositivo</span>
+                  </div>
+                  <div className="pl-5">
+                    <p className="text-xs text-muted-foreground break-all line-clamp-2">
+                      {log.user_agent || 'Não registrado'}
+                    </p>
+                    {log.ip_address && (
+                      <p className="text-xs font-mono mt-1">IP: {log.ip_address}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Metadata */}
+                {log.metadata && Object.keys(log.metadata).length > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Layers className="h-3.5 w-3.5" />
+                      <span className="text-xs font-medium">Metadados</span>
+                    </div>
+                    <div className="pl-5">
+                      <pre className="text-xs bg-muted/50 p-2 rounded-md overflow-x-auto max-w-full">
+                        {JSON.stringify(log.metadata, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Event ID */}
+              <div className="pt-2 border-t flex items-center justify-between text-xs text-muted-foreground">
+                <span className="font-mono">ID: {log.id}</span>
+              </div>
+            </div>
+          </TableCell>
+        </TableRow>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export default function EventLogs() {
   const [filters, setFilters] = useState<EventLogsFilters>({});
   const [searchInput, setSearchInput] = useState('');
   const [limit, setLimit] = useState(100);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const { data: logs, isLoading, refetch, isFetching } = useEventLogs(filters, limit);
   const { data: stats, isLoading: statsLoading } = useEventLogsStats();
@@ -67,9 +241,16 @@ export default function EventLogs() {
     setSearchInput('');
   };
 
-  const getInitials = (name: string | null) => {
-    if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const toggleRow = (id: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   const uniqueModules = useMemo(() => {
@@ -255,13 +436,16 @@ export default function EventLogs() {
         </CardContent>
       </Card>
 
-      {/* Logs List */}
+      {/* Logs Table */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Eventos Recentes
+              {logs && logs.length > 0 && (
+                <Badge variant="secondary" className="ml-2">{logs.length}</Badge>
+              )}
             </span>
             <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v))}>
               <SelectTrigger className="w-[100px] h-8">
@@ -281,76 +465,36 @@ export default function EventLogs() {
             <div className="p-4 space-y-3">
               {[...Array(10)].map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </div>
+                  <Skeleton className="h-8 w-full" />
                 </div>
               ))}
             </div>
           ) : logs && logs.length > 0 ? (
             <ScrollArea className="h-[600px]">
-              <div className="divide-y">
-                {logs.map((log) => {
-                  const typeConfig = eventTypeConfig[log.event_type] || { icon: Activity, color: 'bg-gray-500', label: log.event_type };
-                  const TypeIcon = typeConfig.icon;
-
-                  return (
-                    <div key={log.id} className="p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-start gap-3">
-                        {/* User Avatar */}
-                        <Avatar className="h-10 w-10 border">
-                          <AvatarFallback className="text-xs bg-muted">
-                            {log.user_name ? getInitials(log.user_name) : <Users className="h-4 w-4" />}
-                          </AvatarFallback>
-                        </Avatar>
-
-                        {/* Event Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-medium text-sm truncate">
-                              {log.user_name || 'Anônimo'}
-                            </span>
-                            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 gap-1`}>
-                              <div className={`w-1.5 h-1.5 rounded-full ${typeConfig.color}`} />
-                              {typeConfig.label}
-                            </Badge>
-                            {log.module && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                {log.module}
-                              </Badge>
-                            )}
-                          </div>
-
-                          <p className="text-sm text-muted-foreground mt-0.5 truncate">
-                            {log.event_name}
-                          </p>
-
-                          <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-                            {log.page_path && (
-                              <span className="flex items-center gap-1 truncate">
-                                <Eye className="h-3 w-3" />
-                                {log.page_path}
-                              </span>
-                            )}
-                            <span className="flex items-center gap-1 shrink-0">
-                              <Clock className="h-3 w-3" />
-                              {formatDistanceToNow(new Date(log.created_at), { addSuffix: true, locale: ptBR })}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Timestamp */}
-                        <div className="text-xs text-muted-foreground text-right shrink-0">
-                          <div>{format(new Date(log.created_at), 'dd/MM/yyyy')}</div>
-                          <div>{format(new Date(log.created_at), 'HH:mm:ss')}</div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <Table>
+                <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableRow>
+                    <TableHead className="w-10 p-2"></TableHead>
+                    <TableHead className="p-2 text-xs">Data/Hora</TableHead>
+                    <TableHead className="p-2 text-xs">Tipo</TableHead>
+                    <TableHead className="p-2 text-xs">Categoria</TableHead>
+                    <TableHead className="p-2 text-xs">Evento</TableHead>
+                    <TableHead className="p-2 text-xs">Usuário</TableHead>
+                    <TableHead className="p-2 text-xs">Módulo</TableHead>
+                    <TableHead className="p-2 text-xs">Página</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {logs.map((log) => (
+                    <ExpandableRow
+                      key={log.id}
+                      log={log}
+                      isExpanded={expandedRows.has(log.id)}
+                      onToggle={() => toggleRow(log.id)}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
             </ScrollArea>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
