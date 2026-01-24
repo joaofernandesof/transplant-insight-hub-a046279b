@@ -6180,6 +6180,44 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_ai_insights: {
+        Row: {
+          class_id: string
+          created_at: string
+          generated_at: string
+          generated_by: string | null
+          id: string
+          insights: Json
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          insights: Json
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          insights?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_ai_insights_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_alerts: {
         Row: {
           created_at: string
