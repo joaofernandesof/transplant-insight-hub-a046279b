@@ -6499,6 +6499,57 @@ export type Database = {
           },
         ]
       }
+      system_event_logs: {
+        Row: {
+          created_at: string
+          event_category: string
+          event_name: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          module: string | null
+          page_path: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_category: string
+          event_name: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          module?: string | null
+          page_path?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_category?: string
+          event_name?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          module?: string | null
+          page_path?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       system_health_checks: {
         Row: {
           checked_at: string

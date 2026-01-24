@@ -63,6 +63,7 @@ import SystemMetrics from "./pages/SystemMetrics";
 import SystemSentinel from "./pages/admin/SystemSentinel";
 import ModuleOverridesAdmin from "./pages/admin/ModuleOverridesAdmin";
 import ReferralsAdmin from "./pages/admin/ReferralsAdmin";
+import EventLogs from "./pages/admin/EventLogs";
 import WeeklyReports from "./pages/WeeklyReports";
 import SurgerySchedule from "./pages/SurgerySchedule";
 import SalaTecnica from "./pages/SalaTecnica";
@@ -491,6 +492,7 @@ function AppRoutes() {
       <Route path="/admin/banners" element={<AdminRoute><SidebarWrapper><BannersAdmin /></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/module-overrides" element={<AdminRoute><SidebarWrapper><ModuleOverridesAdmin /></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/referrals" element={<AdminRoute><SidebarWrapper><ReferralsAdmin /></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><EventLogs /></SidebarWrapper></AdminRoute>} />
       <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><WeeklyReports /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/surgery-schedule" element={<ProtectedRoute><SidebarWrapper><SurgerySchedule /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><SalaTecnica /></SidebarWrapper></ProtectedRoute>} />

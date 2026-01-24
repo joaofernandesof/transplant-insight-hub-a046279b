@@ -107,6 +107,7 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
 export const ADMIN_MENU_ITEMS: MenuItem[] = [
   { id: 'licensees', code: 'licensees_panel', title: 'Gerenciar Licenciados', icon: Users, route: '/licensees', adminOnly: true },
   { id: 'monitoring', code: 'user_monitoring', title: 'Monitoramento de Usuários', icon: Crown, route: '/monitoring', adminOnly: true },
+  { id: 'event-logs', code: 'event_logs', title: 'Log de Eventos', icon: Activity, route: '/admin/event-logs', adminOnly: true },
   { id: 'system-metrics', code: 'system_metrics', title: 'Métricas do Sistema', icon: TrendingUp, route: '/system-metrics', adminOnly: true },
   { id: 'system-sentinel', code: 'system_sentinel', title: 'System Sentinel', icon: Activity, route: '/admin/sentinel', adminOnly: true },
   { id: 'admin-panel', code: 'admin_panel', title: 'Configurações do Sistema', icon: Settings, route: '/admin', adminOnly: true },
