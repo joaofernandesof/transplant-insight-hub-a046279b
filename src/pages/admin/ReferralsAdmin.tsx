@@ -44,6 +44,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { ReferralsTable, UnifiedReferral } from '@/components/admin/ReferralsTable';
+import { printCurrentView } from '@/utils/printPdf';
 import { 
   BarChart, 
   Bar, 
@@ -507,9 +508,9 @@ export default function ReferralsAdmin() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={exportToCSV} variant="outline" className="gap-2">
+          <Button onClick={() => printCurrentView('Relatório de Indicações IBRAMEC')} variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
-            Exportar
+            Exportar PDF
           </Button>
           <Button onClick={fetchAllData} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
