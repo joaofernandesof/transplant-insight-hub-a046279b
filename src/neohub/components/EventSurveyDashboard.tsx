@@ -891,15 +891,20 @@ function QuestionDetailView({
                   </div>
                   <Badge 
                     variant="secondary"
-                    className={`text-xs ${
-                      r.value.toLowerCase().includes('excelente') || r.value.toLowerCase().includes('totalmente') || r.value.toLowerCase().includes('muito satisfeito')
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                        : r.value.toLowerCase().includes('ruim') || r.value.toLowerCase().includes('insuficiente') || r.value.toLowerCase().includes('não atendeu')
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                        : r.value.toLowerCase().includes('neutro') || r.value.toLowerCase().includes('parcialmente')
-                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                    }`}
+                    className={`text-xs ${(() => {
+                      const val = r.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                      // ÓTIMO - Verde (excelente, totalmente, muito satisfeito, mais do que suficiente, superou)
+                      if (val.includes('excelente') || val.includes('totalmente') || val.includes('muito satisfeito') || val.includes('mais do que suficiente') || val.includes('superou') || val.includes('otimo') || val.includes('perfeito'))
+                        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+                      // RUIM - Vermelho (insuficiente, ruim, péssimo, não atendeu, muito insatisfeito)
+                      if (val.includes('ruim') || val.includes('insuficiente') || val.includes('nao atendeu') || val.includes('pessimo') || val.includes('muito insatisfeito') || val.includes('discordo'))
+                        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+                      // MÉDIO - Amarelo/Laranja (neutro, parcialmente, regular)
+                      if (val.includes('neutro') || val.includes('parcialmente') || val.includes('regular') || val.includes('medio'))
+                        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+                      // BOM - Azul (adequado, bom, satisfeito, suficiente, concordo)
+                      return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+                    })()}`}
                   >
                     {r.value || '—'}
                   </Badge>
