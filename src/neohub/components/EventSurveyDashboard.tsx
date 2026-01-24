@@ -607,85 +607,102 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
     return '#64748b';
   };
 
-  // Generate all students in a single HTML for one PDF
-  const studentsHtml = students.map((student, studentIndex) => {
-    const groupedResponses = student.responses.reduce((acc, r) => {
-      if (!acc[r.category]) acc[r.category] = [];
-      acc[r.category].push(r);
-      return acc;
-    }, {} as Record<string, typeof student.responses>);
+  // Render per-page to avoid html2canvas max canvas height (which leads to blank PDFs when many students)
+  const filename = `relatorios-alunos-${new Date().toISOString().split('T')[0]}.pdf`;
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+  const usableWidth = pdfWidth - (PDF_MARGIN * 2);
+  const usableHeight = pdfHeight - (PDF_MARGIN * 2) - 8;
 
-    const totalResponded = student.responses.filter(r => r.value).length;
-    const totalQuestions = student.responses.length;
+  const waitForDOMStabilize = async () => {
+    // Let layout settle + fonts load (when available)
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    // @ts-expect-error document.fonts may not exist in older browsers
+    if (document.fonts?.ready) {
+      try {
+        // @ts-expect-error document.fonts typing varies
+        await document.fonts.ready;
+      } catch {
+        // ignore
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 80));
+  };
 
-    return `
-      <div style="page-break-before: ${studentIndex > 0 ? 'always' : 'auto'}; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; min-height: 100vh;">
-        <!-- Page wrapper with subtle gray background like the site -->
-        <div style="max-width: 900px; margin: 0 auto; padding: 32px;">
-          
-          <!-- Header Card with Gradient - exactly like site -->
-          <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 16px; padding: 32px 40px; margin-bottom: 24px; text-align: center;">
-            <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
-            <h1 style="color: white; font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px;">
-              Relatório Individual #${studentIndex + 1}
-            </h1>
-            <p style="color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 500; margin: 0;">
-              ${student.userName}
-            </p>
-          </div>
-          
-          <!-- Stats Cards Row - exactly matching site layout -->
-          <div style="display: flex; gap: 16px; margin-bottom: 32px;">
-            <div style="flex: 1; background: #f1f5f9; border-radius: 16px; padding: 24px; text-align: center;">
-              <div style="font-size: 42px; font-weight: 800; color: #6366f1; line-height: 1;">
-                ${student.overallScore.toFixed(1)}
-              </div>
-              <div style="font-size: 13px; color: #64748b; font-weight: 500; margin-top: 8px;">
-                Nota Média
-              </div>
-            </div>
-            <div style="flex: 1; background: #f1f5f9; border-radius: 16px; padding: 24px; text-align: center;">
-              <div style="font-size: 42px; font-weight: 800; color: #6366f1; line-height: 1;">
-                ${totalResponded}/${totalQuestions}
-              </div>
-              <div style="font-size: 13px; color: #64748b; font-weight: 500; margin-top: 8px;">
-                Perguntas Respondidas
-              </div>
-            </div>
-          </div>
-          
-          <!-- Response Categories - mimicking the site exactly -->
-          ${Object.entries(groupedResponses).map(([category, responses]) => `
-            <div style="margin-bottom: 28px;">
-              <!-- Category Title with underline like site -->
-              <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">
-                ${category}
-              </h2>
-              
-              <!-- Response Rows - exactly like site table -->
-              <div style="background: #ffffff; border-radius: 12px; overflow: hidden;">
-                ${(responses as typeof student.responses).map((r, idx) => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: ${idx % 2 === 0 ? '#f8fafc' : '#ffffff'}; ${idx > 0 ? 'border-top: 1px solid #f1f5f9;' : ''}">
-                    <span style="font-size: 14px; color: #475569; font-weight: 400;">
-                      ${r.questionLabel}
-                    </span>
-                    <span style="font-size: 14px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#94a3b8'}; text-align: right;">
-                      ${r.value || '—'}
-                    </span>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          `).join('')}
-          
-        </div>
-      </div>
-    `;
-  }).join('');
+  const appendHtmlToPdf = async (html: string, startOnNewPage: boolean) => {
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '750px';
+    container.style.minHeight = '100px';
+    container.style.background = '#ffffff';
+    container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    container.style.lineHeight = '1.5';
+    container.style.color = '#1f2937';
+    container.style.padding = '20px';
+    container.style.overflow = 'visible';
 
-  const fullHtml = `
+    document.body.appendChild(container);
+    container.innerHTML = html;
+
+    try {
+      await waitForDOMStabilize();
+
+      const contentHeight = container.scrollHeight;
+      const contentWidth = container.scrollWidth;
+
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        allowTaint: true,
+        imageTimeout: 0,
+        height: contentHeight,
+        width: Math.max(contentWidth, 750),
+        windowHeight: contentHeight + 100,
+        scrollY: 0,
+        scrollX: 0,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      const imgWidth = usableWidth;
+      const imgHeight = (canvas.height * usableWidth) / canvas.width;
+      const totalPages = Math.max(1, Math.ceil(imgHeight / usableHeight));
+
+      let needsNewPage = startOnNewPage;
+      for (let page = 0; page < totalPages; page++) {
+        if (needsNewPage) {
+          pdf.addPage();
+        }
+        needsNewPage = true; // next loop always adds a new page
+
+        const srcY = page * usableHeight;
+        const position = PDF_MARGIN - srcY;
+
+        pdf.addImage(imgData, 'JPEG', PDF_MARGIN, position, imgWidth, imgHeight);
+
+        // Clip by painting margins white (prevents bleed from the full-height image)
+        pdf.setFillColor(255, 255, 255);
+        // Top margin
+        pdf.rect(0, 0, pdfWidth, PDF_MARGIN, 'F');
+        // Bottom margin (+ page number space)
+        pdf.rect(0, pdfHeight - PDF_MARGIN - 8, pdfWidth, PDF_MARGIN + 8, 'F');
+        // Left margin
+        pdf.rect(0, 0, PDF_MARGIN, pdfHeight, 'F');
+        // Right margin
+        pdf.rect(pdfWidth - PDF_MARGIN, 0, PDF_MARGIN, pdfHeight, 'F');
+      }
+    } finally {
+      document.body.removeChild(container);
+    }
+  };
+
+  // Cover + index (usually 1-2 pages)
+  const coverAndIndexHtml = `
     <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <!-- Cover page -->
       <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); min-height: 200px; padding: 40px; text-align: center;">
         <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
         <h1 style="color: white; font-size: 28px; font-weight: 700; margin: 0 0 12px 0;">
@@ -695,8 +712,6 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
           ${students.length} alunos • Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
         </p>
       </div>
-      
-      <!-- Index of students -->
       <div style="padding: 24px 32px; background: #f8fafc;">
         <h2 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 16px 0;">📋 Índice de Alunos</h2>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
@@ -709,13 +724,81 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
           `).join('')}
         </div>
       </div>
-      
-      ${studentsHtml}
     </div>
   `;
-    
-  // Generate a single consolidated PDF
-  await createPDFFromHTML(fullHtml, `relatorios-alunos-${new Date().toISOString().split('T')[0]}.pdf`);
+
+  await appendHtmlToPdf(coverAndIndexHtml, false);
+
+  // Each student starts on a new page (and may span multiple pages if needed)
+  for (let studentIndex = 0; studentIndex < students.length; studentIndex++) {
+    const student = students[studentIndex];
+    const groupedResponses = student.responses.reduce((acc, r) => {
+      if (!acc[r.category]) acc[r.category] = [];
+      acc[r.category].push(r);
+      return acc;
+    }, {} as Record<string, typeof student.responses>);
+
+    const totalResponded = student.responses.filter(r => r.value).length;
+    const totalQuestions = student.responses.length;
+
+    const studentHtml = `
+      <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; min-height: 100vh;">
+        <div style="max-width: 900px; margin: 0 auto; padding: 32px;">
+          <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 16px; padding: 32px 40px; margin-bottom: 24px; text-align: center;">
+            <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
+            <h1 style="color: white; font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px;">
+              Relatório Individual #${studentIndex + 1}
+            </h1>
+            <p style="color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 500; margin: 0;">
+              ${student.userName}
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 16px; margin-bottom: 32px;">
+            <div style="flex: 1; background: #f1f5f9; border-radius: 16px; padding: 24px; text-align: center;">
+              <div style="font-size: 42px; font-weight: 800; color: #6366f1; line-height: 1;">
+                ${student.overallScore.toFixed(1)}
+              </div>
+              <div style="font-size: 13px; color: #64748b; font-weight: 500; margin-top: 8px;">Nota Média</div>
+            </div>
+            <div style="flex: 1; background: #f1f5f9; border-radius: 16px; padding: 24px; text-align: center;">
+              <div style="font-size: 42px; font-weight: 800; color: #6366f1; line-height: 1;">
+                ${totalResponded}/${totalQuestions}
+              </div>
+              <div style="font-size: 13px; color: #64748b; font-weight: 500; margin-top: 8px;">Perguntas Respondidas</div>
+            </div>
+          </div>
+
+          ${Object.entries(groupedResponses).map(([category, responses]) => `
+            <div style="margin-bottom: 28px;">
+              <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">${category}</h2>
+              <div style="background: #ffffff; border-radius: 12px; overflow: hidden;">
+                ${(responses as typeof student.responses).map((r, idx) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: ${idx % 2 === 0 ? '#f8fafc' : '#ffffff'}; ${idx > 0 ? 'border-top: 1px solid #f1f5f9;' : ''}">
+                    <span style="font-size: 14px; color: #475569; font-weight: 400;">${r.questionLabel}</span>
+                    <span style="font-size: 14px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#94a3b8'}; text-align: right;">${r.value || '—'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    await appendHtmlToPdf(studentHtml, true);
+  }
+
+  // Add page numbers globally (consistent total)
+  const totalPages = pdf.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    pdf.setPage(p);
+    pdf.setFontSize(8);
+    pdf.setTextColor(156, 163, 175);
+    pdf.text(`Página ${p} de ${totalPages}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+  }
+
+  pdf.save(filename);
 };
 
 // MATRIX PDF - High-fidelity heatmap export
