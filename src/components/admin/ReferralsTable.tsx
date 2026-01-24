@@ -405,8 +405,10 @@ export function ReferralsTable({
               <p>Nenhuma indicação encontrada</p>
             </div>
           ) : (
-            <ScrollArea className="h-[550px]">
-              <Table>
+            <div className="overflow-x-auto">
+              <ScrollArea className="h-[550px]">
+                <div className="min-w-[1200px]">
+                  <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <ColumnHeader field="name" label="Indicado" />
@@ -552,7 +554,9 @@ export function ReferralsTable({
                   })}
                 </TableBody>
               </Table>
-            </ScrollArea>
+                </div>
+              </ScrollArea>
+            </div>
           )}
         </CardContent>
       </Card>
