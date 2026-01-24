@@ -2105,21 +2105,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               </Card>
             )}
 
-            {/* Resumo Executivo */}
-            {aiInsights.resumoExecutivo && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-blue-600" />
-                    Resumo Executivo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm leading-relaxed">{aiInsights.resumoExecutivo}</p>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Grid Pontos Críticos + Ações Sugeridas */}
             <div className="grid md:grid-cols-2 gap-6">
               {/* Pontos Críticos */}
@@ -2269,6 +2254,21 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </div>
               )}
             </div>
+
+            {/* Resumo Executivo - junto com os demais resumos */}
+            {aiInsights.resumoExecutivo && (
+              <Card className="border-blue-200/50 bg-blue-50/30 dark:bg-blue-950/10">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-blue-700">
+                    <FileText className="h-5 w-5" />
+                    Resumo Executivo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-sm leading-relaxed">{aiInsights.resumoExecutivo}</p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Análise dos Professores */}
             {aiInsights.analiseProfessores && (
