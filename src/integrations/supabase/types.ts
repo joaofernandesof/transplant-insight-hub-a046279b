@@ -1166,6 +1166,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           current_section: number | null
+          effective_time_seconds: number | null
           id: string
           is_completed: boolean | null
           q1_satisfaction_level: string | null
@@ -1236,6 +1237,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_section?: number | null
+          effective_time_seconds?: number | null
           id?: string
           is_completed?: boolean | null
           q1_satisfaction_level?: string | null
@@ -1306,6 +1308,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_section?: number | null
+          effective_time_seconds?: number | null
           id?: string
           is_completed?: boolean | null
           q1_satisfaction_level?: string | null
@@ -5342,6 +5345,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           current_block: number | null
+          effective_time_seconds: number | null
           evolution_path_clarity: string | null
           expectations_met: string | null
           full_name: string | null
@@ -5381,6 +5385,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_block?: number | null
+          effective_time_seconds?: number | null
           evolution_path_clarity?: string | null
           expectations_met?: string | null
           full_name?: string | null
@@ -5420,6 +5425,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_block?: number | null
+          effective_time_seconds?: number | null
           evolution_path_clarity?: string | null
           expectations_met?: string | null
           full_name?: string | null

@@ -244,9 +244,10 @@ export function useSatisfactionSurvey(classId?: string) {
   
   // Submit completed survey
   const submitSurveyMutation = useMutation({
-    mutationFn: async ({ surveyId, data }: { 
+    mutationFn: async ({ surveyId, data, effectiveTimeSeconds }: { 
       surveyId: string; 
       data: Partial<SurveyFormData>;
+      effectiveTimeSeconds?: number;
     }) => {
       const { tags, score, isPriority } = calculateLeadClassification(data);
       
@@ -264,6 +265,7 @@ export function useSatisfactionSurvey(classId?: string) {
           is_priority_lead: isPriority,
           current_block: 9, // All blocks done
           partial_data: null, // Clear partial data
+          effective_time_seconds: effectiveTimeSeconds || null, // Store effective time
         })
         .eq('id', surveyId);
       

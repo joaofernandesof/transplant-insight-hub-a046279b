@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,48 @@ export function SatisfactionSurveyDialog({
   const [formData, setFormData] = useState<Partial<SurveyFormData>>({});
   const [isInitializing, setIsInitializing] = useState(false);
   
+  // Track effective time (only when page is visible)
+  const effectiveTimeRef = useRef(0);
+  const lastVisibleTimeRef = useRef<number | null>(null);
+  
+  // Start/stop tracking visibility
+  const updateEffectiveTime = useCallback(() => {
+    if (lastVisibleTimeRef.current !== null) {
+      effectiveTimeRef.current += Math.round((Date.now() - lastVisibleTimeRef.current) / 1000);
+    }
+    lastVisibleTimeRef.current = document.visibilityState === 'visible' ? Date.now() : null;
+  }, []);
+  
+  // Track page visibility
+  useEffect(() => {
+    if (!open) return;
+    
+    // Start tracking when dialog opens
+    if (document.visibilityState === 'visible') {
+      lastVisibleTimeRef.current = Date.now();
+    }
+    
+    const handleVisibilityChange = () => {
+      updateEffectiveTime();
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      // Capture final time when unmounting
+      updateEffectiveTime();
+    };
+  }, [open, updateEffectiveTime]);
+  
+  // Get current effective time
+  const getEffectiveTime = useCallback(() => {
+    if (lastVisibleTimeRef.current !== null && document.visibilityState === 'visible') {
+      return effectiveTimeRef.current + Math.round((Date.now() - lastVisibleTimeRef.current) / 1000);
+    }
+    return effectiveTimeRef.current;
+  }, []);
+  
   // Initialize survey when dialog opens
   useEffect(() => {
     if (open && !hasCompleted && !surveyId) {
@@ -67,6 +109,9 @@ export function SatisfactionSurveyDialog({
       setSurveyId(null);
       setFormData({});
       setCurrentBlock(1);
+      // Reset effective time tracking
+      effectiveTimeRef.current = 0;
+      lastVisibleTimeRef.current = null;
     }
   }, [open]);
   
@@ -88,7 +133,11 @@ export function SatisfactionSurveyDialog({
   const handleSubmit = async () => {
     if (!surveyId) return;
     
-    await submitSurvey({ surveyId, data: formData });
+    // Capture final effective time
+    updateEffectiveTime();
+    const effectiveTime = getEffectiveTime();
+    
+    await submitSurvey({ surveyId, data: formData, effectiveTimeSeconds: effectiveTime });
     onComplete?.();
     onOpenChange(false);
   };

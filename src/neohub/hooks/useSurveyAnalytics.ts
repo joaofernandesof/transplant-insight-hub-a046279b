@@ -851,19 +851,25 @@ export function useSurveyAnalytics(classId: string | null) {
           };
         });
 
-        // Calculate timing
+        // Calculate timing - prefer effective_time_seconds (actual visible time) over calculated time
         const createdAt = r.created_at;
         const completedAt = r.completed_at;
         let totalTimeSeconds: number | null = null;
         let avgTimePerQuestion: number | null = null;
         
-        if (createdAt && completedAt) {
+        // Use effective time if available (excludes minimized/hidden time)
+        const effectiveTime = (r as any).effective_time_seconds;
+        if (effectiveTime && effectiveTime > 0) {
+          totalTimeSeconds = effectiveTime;
+        } else if (createdAt && completedAt) {
+          // Fallback to calculated time
           const startDate = new Date(createdAt);
           const endDate = new Date(completedAt);
           totalTimeSeconds = Math.round((endDate.getTime() - startDate.getTime()) / 1000);
-          if (progress.answered > 0) {
-            avgTimePerQuestion = Math.round(totalTimeSeconds / progress.answered);
-          }
+        }
+        
+        if (totalTimeSeconds && progress.answered > 0) {
+          avgTimePerQuestion = Math.round(totalTimeSeconds / progress.answered);
         }
         
         const credibility = calculateCredibility(totalTimeSeconds, progress.answered);
