@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -137,328 +137,388 @@ export function AcademyClassDetail() {
           Voltar para Meus Cursos
         </Button>
 
-        {/* Header Card */}
+        {/* Header Card - Compact for mobile */}
         <Card className="overflow-hidden">
-          <div className={`h-40 bg-gradient-to-br ${isFormacao360 ? 'from-emerald-600 to-green-700' : 'from-blue-600 to-indigo-700'} p-6 flex flex-col items-center justify-center relative`}>
-            {isFormacao360 ? (
-              <img src={logoFormacao360} alt="Formação 360" className="h-16 object-contain" />
-            ) : (
-              <GraduationCap className="h-16 w-16 text-white/80" />
-            )}
-          </div>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold">{classDetails.courseName || classDetails.name}</h1>
-                <p className="text-muted-foreground mt-1">{classDetails.name}</p>
-                <div className="flex flex-wrap items-center gap-3 mt-4">
-                  {classDetails.startDate && (
-                    <Badge variant="outline" className="gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {format(parseISO(classDetails.startDate), "dd MMM", { locale: ptBR })}
-                      {classDetails.endDate && classDetails.endDate !== classDetails.startDate && (
-                        <> - {format(parseISO(classDetails.endDate), "dd MMM yyyy", { locale: ptBR })}</>
-                      )}
-                    </Badge>
-                  )}
-                  {classDetails.location && (
-                    <Badge variant="outline" className="gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {classDetails.location}
-                    </Badge>
-                  )}
-                  <Badge variant="outline" className="gap-1">
-                    <Users className="h-3 w-3" />
-                    {classDetails.enrolledCount} alunos
-                  </Badge>
-                </div>
+          <div className={`h-20 sm:h-32 bg-gradient-to-br ${isFormacao360 ? 'from-emerald-600 to-green-700' : 'from-blue-600 to-indigo-700'} p-4 flex items-center justify-between relative`}>
+            <div className="flex items-center gap-3">
+              {isFormacao360 ? (
+                <img src={logoFormacao360} alt="Formação 360" className="h-10 sm:h-14 object-contain" />
+              ) : (
+                <GraduationCap className="h-10 sm:h-14 w-10 sm:w-14 text-white/80" />
+              )}
+              <div className="text-white">
+                <h1 className="text-lg sm:text-xl font-bold leading-tight">{classDetails.courseName || classDetails.name}</h1>
+                <p className="text-white/80 text-xs sm:text-sm">{classDetails.name}</p>
               </div>
-              <Badge 
-                className={`${
-                  classDetails.status === 'in_progress' 
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' 
-                    : classDetails.status === 'confirmed' || classDetails.status === 'active'
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'
-                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
-                } border-0`}
-              >
-                {classDetails.status === 'in_progress' ? 'Em Andamento' : 
-                 classDetails.status === 'confirmed' || classDetails.status === 'active' ? 'Confirmado' : 'Pendente'}
+            </div>
+            <Badge 
+              className={`${
+                classDetails.status === 'in_progress' 
+                  ? 'bg-blue-100 text-blue-700' 
+                  : classDetails.status === 'confirmed' || classDetails.status === 'active'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-100 text-amber-700'
+              } border-0 flex-shrink-0`}
+            >
+              {classDetails.status === 'in_progress' ? 'Em Andamento' : 
+               classDetails.status === 'confirmed' || classDetails.status === 'active' ? 'Confirmado' : 'Pendente'}
+            </Badge>
+          </div>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              {classDetails.startDate && (
+                <Badge variant="outline" className="gap-1 text-xs rounded-full bg-muted/50">
+                  <Calendar className="h-3 w-3" />
+                  {format(parseISO(classDetails.startDate), "dd MMM", { locale: ptBR })}
+                  {classDetails.endDate && classDetails.endDate !== classDetails.startDate && (
+                    <> - {format(parseISO(classDetails.endDate), "dd MMM yyyy", { locale: ptBR })}</>
+                  )}
+                </Badge>
+              )}
+              {classDetails.location && (
+                <Badge variant="outline" className="gap-1 text-xs rounded-full bg-muted/50">
+                  <MapPin className="h-3 w-3" />
+                  <span className="hidden sm:inline">Presencial - </span>{classDetails.location}
+                </Badge>
+              )}
+              <Badge variant="outline" className="gap-1 text-xs rounded-full bg-muted/50">
+                <Users className="h-3 w-3" />
+                {classDetails.enrolledCount} alunos
               </Badge>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className={`grid w-full h-auto ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
-            <TabsTrigger value="schedule" className="flex-col gap-1 py-2 px-1">
-              <Calendar className="h-4 w-4" />
-              <span className="text-[10px] sm:text-xs">Cronograma</span>
-            </TabsTrigger>
-            <TabsTrigger value="exams" className="flex-col gap-1 py-2 px-1">
-              <FileText className="h-4 w-4" />
-              <span className="text-[10px] sm:text-xs">Provas</span>
-            </TabsTrigger>
-            <TabsTrigger value="photos" className="flex-col gap-1 py-2 px-1">
-              <Camera className="h-4 w-4" />
-              <span className="text-[10px] sm:text-xs">Fotos</span>
-            </TabsTrigger>
-            <TabsTrigger value="network" className="flex-col gap-1 py-2 px-1">
-              <Users className="h-4 w-4" />
-              <span className="text-[10px] sm:text-xs">Network</span>
-            </TabsTrigger>
-            <TabsTrigger value="survey" className="flex-col gap-1 py-2 px-1">
-              <ClipboardList className="h-4 w-4" />
-              <span className="text-[10px] sm:text-xs">Pesquisa</span>
-            </TabsTrigger>
+        {/* Navigation Buttons - Two rows of pills */}
+        <div className="space-y-2">
+          {/* First row */}
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              onClick={() => setActiveTab('schedule')}
+              className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl border-2 transition-all ${
+                activeTab === 'schedule' 
+                  ? 'bg-primary border-primary text-primary-foreground shadow-md' 
+                  : 'bg-card border-border hover:bg-muted hover:border-muted-foreground/30'
+              }`}
+            >
+              <Calendar className="h-5 w-5" />
+              <span className="text-xs font-medium">Cronograma</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('exams')}
+              className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl border-2 transition-all ${
+                activeTab === 'exams' 
+                  ? 'bg-primary border-primary text-primary-foreground shadow-md' 
+                  : 'bg-card border-border hover:bg-muted hover:border-muted-foreground/30'
+              }`}
+            >
+              <FileText className="h-5 w-5" />
+              <span className="text-xs font-medium">Provas</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('photos')}
+              className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl border-2 transition-all ${
+                activeTab === 'photos' 
+                  ? 'bg-primary border-primary text-primary-foreground shadow-md' 
+                  : 'bg-card border-border hover:bg-muted hover:border-muted-foreground/30'
+              }`}
+            >
+              <Camera className="h-5 w-5" />
+              <span className="text-xs font-medium">Fotos</span>
+            </button>
+          </div>
+          
+          {/* Second row */}
+          <div className={`grid gap-2 ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <button
+              onClick={() => setActiveTab('network')}
+              className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl border-2 transition-all ${
+                activeTab === 'network' 
+                  ? 'bg-primary border-primary text-primary-foreground shadow-md' 
+                  : 'bg-card border-border hover:bg-muted hover:border-muted-foreground/30'
+              }`}
+            >
+              <Users className="h-5 w-5" />
+              <span className="text-xs font-medium">Network</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('survey')}
+              className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl border-2 transition-all ${
+                activeTab === 'survey' 
+                  ? 'bg-primary border-primary text-primary-foreground shadow-md' 
+                  : 'bg-card border-border hover:bg-muted hover:border-muted-foreground/30'
+              }`}
+            >
+              <ClipboardList className="h-5 w-5" />
+              <span className="text-xs font-medium">Pesquisa</span>
+            </button>
             {isAdmin && (
-              <TabsTrigger value="admin" className="flex-col gap-1 py-2 px-1">
-                <Settings className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs">Gestão</span>
-              </TabsTrigger>
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl border-2 transition-all ${
+                  activeTab === 'admin' 
+                    ? 'bg-primary border-primary text-primary-foreground shadow-md' 
+                    : 'bg-card border-border hover:bg-muted hover:border-muted-foreground/30'
+                }`}
+              >
+                <Settings className="h-5 w-5" />
+                <span className="text-xs font-medium">Gestão</span>
+              </button>
             )}
-          </TabsList>
+          </div>
+        </div>
+
+        {/* Tab Contents - Use conditional rendering instead of Tabs */}
+        <div className="space-y-4">
 
           {/* Schedule Tab */}
-          <TabsContent value="schedule" className="space-y-4">
-            {classDetails.schedule.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium">Cronograma não disponível</p>
-                  <p className="text-sm text-muted-foreground">O cronograma será disponibilizado em breve.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <ScheduleTimeline schedule={classDetails.schedule} />
-            )}
-          </TabsContent>
+          {activeTab === 'schedule' && (
+            <div className="space-y-4">
+              {classDetails.schedule.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-lg font-medium">Cronograma não disponível</p>
+                    <p className="text-sm text-muted-foreground">O cronograma será disponibilizado em breve.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <ScheduleTimeline schedule={classDetails.schedule} />
+              )}
+            </div>
+          )}
 
           {/* Photos Tab */}
-          <TabsContent value="photos" className="space-y-4">
-            <CourseGalleryViewer 
-              classId={classId || ''} 
-              isLocked={!hasDay1Completed && !isAdmin}
-              onUnlockRequest={() => setDay1SurveyDialogOpen(true)}
-            />
-          </TabsContent>
+          {activeTab === 'photos' && (
+            <div className="space-y-4">
+              <CourseGalleryViewer 
+                classId={classId || ''} 
+                isLocked={!hasDay1Completed && !isAdmin}
+                onUnlockRequest={() => setDay1SurveyDialogOpen(true)}
+              />
+            </div>
+          )}
           
           {/* Survey Tab */}
-          <TabsContent value="survey" className="space-y-4">
-            {/* Day 1 Survey Card - Single survey */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-primary" />
-                  Pesquisa de Satisfação
-                </CardTitle>
-                <CardDescription>
-                  Sua opinião é muito importante para continuarmos evoluindo a formação
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {hasDay1Completed ? (
-                  <div className="text-center py-4">
-                    <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
-                    <p className="font-medium">Pesquisa já respondida</p>
-                    <p className="text-sm text-muted-foreground">Obrigado pela sua contribuição!</p>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                    <p className="font-medium mb-2">Responda nossa pesquisa</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      37 perguntas sobre as aulas, professores, monitores e infraestrutura.
-                    </p>
-                    <Button onClick={() => setDay1SurveyDialogOpen(true)}>
-                      Responder Pesquisa
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Exams Tab */}
-          <TabsContent value="exams" className="space-y-4">
-            {classDetails.exams.length === 0 ? (
+          {activeTab === 'survey' && (
+            <div className="space-y-4">
               <Card>
-                <CardContent className="p-8 text-center">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg font-medium">Nenhuma prova disponível</p>
-                  <p className="text-sm text-muted-foreground">As provas serão liberadas durante o curso.</p>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-primary" />
+                    Pesquisa de Satisfação
+                  </CardTitle>
+                  <CardDescription>
+                    Sua opinião é muito importante para continuarmos evoluindo a formação
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {hasDay1Completed ? (
+                    <div className="text-center py-4">
+                      <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
+                      <p className="font-medium">Pesquisa já respondida</p>
+                      <p className="text-sm text-muted-foreground">Obrigado pela sua contribuição!</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                      <p className="font-medium mb-2">Responda nossa pesquisa</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        37 perguntas sobre as aulas, professores, monitores e infraestrutura.
+                      </p>
+                      <Button onClick={() => setDay1SurveyDialogOpen(true)}>
+                        Responder Pesquisa
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            ) : (
-              <div className="space-y-3">
-                {classDetails.exams.map((exam) => {
-                  const passed = exam.bestScore !== null && exam.bestScore >= (exam.passingScore || 70);
-                  const attempted = exam.attemptCount > 0;
-                  
-                  return (
-                    <Card key={exam.id} className="hover:shadow-md transition-all">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          {/* Icon */}
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            passed
-                              ? 'bg-gradient-to-br from-emerald-400 to-green-500'
-                              : attempted
-                              ? 'bg-gradient-to-br from-amber-400 to-orange-500'
-                              : 'bg-gradient-to-br from-blue-400 to-indigo-500'
-                          }`}>
-                            {passed ? (
-                              <Award className="h-6 w-6 text-white" />
-                            ) : (
-                              <FileText className="h-6 w-6 text-white" />
-                            )}
-                          </div>
+            </div>
+          )}
 
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <h3 className="font-semibold">{exam.title}</h3>
-                              {exam.bestScore !== null && (
-                                <Badge className={
-                                  passed 
-                                    ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
-                                    : 'bg-red-500 text-white hover:bg-red-600'
-                                }>
-                                  {passed ? (
-                                    <>
-                                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                                      Aprovado • {exam.bestScore}%
-                                    </>
-                                  ) : (
-                                    <>
-                                      <AlertCircle className="h-3 w-3 mr-1" />
-                                      Reprovado • {exam.bestScore}% — Tente novamente
-                                    </>
-                                  )}
-                                </Badge>
+          {/* Exams Tab */}
+          {activeTab === 'exams' && (
+            <div className="space-y-4">
+              {classDetails.exams.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-lg font-medium">Nenhuma prova disponível</p>
+                    <p className="text-sm text-muted-foreground">As provas serão liberadas durante o curso.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {classDetails.exams.map((exam) => {
+                    const passed = exam.bestScore !== null && exam.bestScore >= (exam.passingScore || 70);
+                    const attempted = exam.attemptCount > 0;
+                    
+                    return (
+                      <Card key={exam.id} className="hover:shadow-md transition-all">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            {/* Icon */}
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                              passed
+                                ? 'bg-gradient-to-br from-emerald-400 to-green-500'
+                                : attempted
+                                ? 'bg-gradient-to-br from-amber-400 to-orange-500'
+                                : 'bg-gradient-to-br from-blue-400 to-indigo-500'
+                            }`}>
+                              {passed ? (
+                                <Award className="h-6 w-6 text-white" />
+                              ) : (
+                                <FileText className="h-6 w-6 text-white" />
                               )}
                             </div>
 
-                            {exam.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{exam.description}</p>
-                            )}
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <h3 className="font-semibold">{exam.title}</h3>
+                                {exam.bestScore !== null && (
+                                  <Badge className={
+                                    passed 
+                                      ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                                      : 'bg-red-500 text-white hover:bg-red-600'
+                                  }>
+                                    {passed ? (
+                                      <>
+                                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                                        Aprovado • {exam.bestScore}%
+                                      </>
+                                    ) : (
+                                      <>
+                                        <AlertCircle className="h-3 w-3 mr-1" />
+                                        Reprovado • {exam.bestScore}% — Tente novamente
+                                      </>
+                                    )}
+                                  </Badge>
+                                )}
+                              </div>
 
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              {exam.durationMinutes && (
+                              {exam.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{exam.description}</p>
+                              )}
+
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                {exam.durationMinutes && (
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {exam.durationMinutes} min
+                                  </span>
+                                )}
                                 <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {exam.durationMinutes} min
+                                  <Award className="h-3 w-3" />
+                                  Mínimo: {exam.passingScore || 70}%
                                 </span>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex flex-col gap-2 flex-shrink-0">
+                              <Button 
+                                className="bg-primary hover:bg-primary/90"
+                                onClick={() => navigate(`/academy/exams/${exam.id}/take`)}
+                              >
+                                {attempted ? 'Refazer' : 'Iniciar'}
+                              </Button>
+                              {attempted && exam.lastAttemptId && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate(`/academy/exams/${exam.id}/results/${exam.lastAttemptId}`)}
+                                >
+                                  Ver Resultado
+                                </Button>
                               )}
-                              <span className="flex items-center gap-1">
-                                <Award className="h-3 w-3" />
-                                Mínimo: {exam.passingScore || 70}%
-                              </span>
                             </div>
                           </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
-                          {/* Actions */}
-                          <div className="flex flex-col gap-2 flex-shrink-0">
-                            <Button 
-                              className="bg-blue-600 hover:bg-blue-700"
-                              onClick={() => navigate(`/academy/exams/${exam.id}/take`)}
-                            >
-                              {attempted ? 'Refazer' : 'Iniciar'}
-                            </Button>
-                            {attempted && exam.lastAttemptId && (
-                              <Button
-                                variant="outline"
+          {/* Network Tab - Classmates */}
+          {activeTab === 'network' && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Network da Turma ({classDetails.students.length} alunos)
+                  </CardTitle>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Conheça seus colegas de turma e amplie sua rede de contatos profissionais
+                  </p>
+                </CardHeader>
+                <CardContent className="px-3 sm:px-6">
+                  {classDetails.students.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-lg font-medium">Nenhum aluno matriculado</p>
+                      <p className="text-sm text-muted-foreground">Os alunos aparecerão aqui quando forem matriculados</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {classDetails.students.map((student) => {
+                        const isCurrentUser = student.id === user?.id;
+                        return (
+                          <div 
+                            key={student.id} 
+                            className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/50 transition-all"
+                          >
+                            <Avatar className="h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0">
+                              <AvatarImage src={student.avatarUrl || undefined} />
+                              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold text-sm">
+                                {student.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{student.name}</p>
+                              {(student.city || student.state) && (
+                                <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                  <MapPin className="h-3 w-3 flex-shrink-0" />
+                                  {student.city}{student.city && student.state ? ', ' : ''}{student.state}
+                                </p>
+                              )}
+                            </div>
+                            {!isCurrentUser && (
+                              <Button 
                                 size="sm"
-                                onClick={() => navigate(`/academy/exams/${exam.id}/results/${exam.lastAttemptId}`)}
+                                variant="outline"
+                                className="flex-shrink-0 gap-1.5 h-8 px-2 sm:px-3"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/academy/chat/${student.id}?name=${encodeURIComponent(student.name)}`);
+                                }}
                               >
-                                Ver Resultado
+                                <MessageCircle className="h-4 w-4" />
+                                <span className="hidden sm:inline text-xs">Mensagem</span>
                               </Button>
                             )}
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Network Tab - Classmates */}
-          <TabsContent value="network" className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Network da Turma ({classDetails.students.length} alunos)
-                </CardTitle>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Conheça seus colegas de turma e amplie sua rede de contatos profissionais
-                </p>
-              </CardHeader>
-              <CardContent className="px-3 sm:px-6">
-                {classDetails.students.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg font-medium">Nenhum aluno matriculado</p>
-                    <p className="text-sm text-muted-foreground">Os alunos aparecerão aqui quando forem matriculados</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {classDetails.students.map((student) => {
-                      const isCurrentUser = student.id === user?.id;
-                      return (
-                        <div 
-                          key={student.id} 
-                          className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/50 transition-all"
-                        >
-                          <Avatar className="h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0">
-                            <AvatarImage src={student.avatarUrl || undefined} />
-                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold text-sm">
-                              {student.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{student.name}</p>
-                            {(student.city || student.state) && (
-                              <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                                <MapPin className="h-3 w-3 flex-shrink-0" />
-                                {student.city}{student.city && student.state ? ', ' : ''}{student.state}
-                              </p>
-                            )}
-                          </div>
-                          {!isCurrentUser && (
-                            <Button 
-                              size="sm"
-                              variant="outline"
-                              className="flex-shrink-0 gap-1.5 h-8 px-2 sm:px-3"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/academy/chat/${student.id}?name=${encodeURIComponent(student.name)}`);
-                              }}
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                              <span className="hidden sm:inline text-xs">Mensagem</span>
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Admin Tab - Only for administrators */}
-          {isAdmin && (
-            <TabsContent value="admin" className="space-y-4">
+          {isAdmin && activeTab === 'admin' && (
+            <div className="space-y-4">
               {/* Linked Exams Management */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-amber-600" />
+                    <FileText className="h-5 w-5 text-primary" />
                     Provas Vinculadas à Turma ({classDetails.exams.length})
                   </CardTitle>
                   <CardDescription>Gerencie as provas disponíveis para esta turma</CardDescription>
@@ -497,7 +557,7 @@ export function AcademyClassDetail() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleUnlinkExam(exam.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
                               Desvincular
                             </Button>
@@ -547,8 +607,8 @@ export function AcademyClassDetail() {
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-2xl font-bold">{classDetails.enrolledCount}</p>
@@ -560,8 +620,8 @@ export function AcademyClassDetail() {
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-2xl font-bold">{classDetails.exams.length}</p>
@@ -573,8 +633,8 @@ export function AcademyClassDetail() {
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                        <Calendar className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-2xl font-bold">{classDetails.schedule.length}</p>
@@ -584,9 +644,9 @@ export function AcademyClassDetail() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
+            </div>
           )}
-        </Tabs>
+        </div>
         
         {/* Day 1 Survey Dialog */}
         <Day1SurveyDialog
