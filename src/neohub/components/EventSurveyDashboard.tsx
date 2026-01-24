@@ -545,147 +545,111 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   await createPDFFromHTML(html, `perguntas-${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
-// STUDENTS PDF - High fidelity site replica
+// STUDENTS PDF - High fidelity site replica (looks like a screenshot)
 const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) => {
   // Helper function to get semantic color for responses
   const getValueColor = (value: string): string => {
     const key = value.toLowerCase().trim();
     
-    // Excellent - Green
+    // Excellent - Emerald Green
     const excellentWords = ['excelente', 'muito satisfeito', 'totalmente', 'atendeu plenamente', 
       'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 'concordo totalmente', 'muito bom', 'superou'];
-    if (excellentWords.some(w => key.includes(w))) return '#059669';
+    if (excellentWords.some(w => key.includes(w))) return '#10b981';
     
     // Good - Blue
     const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu', 'de 5 a 10', 'suficiente', 'sim'];
-    if (goodWords.some(w => key.includes(w))) return '#2563eb';
+    if (goodWords.some(w => key.includes(w))) return '#3b82f6';
     
-    // Medium - Yellow/Amber
+    // Medium - Amber
     const mediumWords = ['neutro', 'parcialmente', 'regular', 'médio', 'até 5', 'razoável', 'moderado'];
-    if (mediumWords.some(w => key.includes(w))) return '#d97706';
+    if (mediumWords.some(w => key.includes(w))) return '#f59e0b';
     
     // Bad - Red
     const badWords = ['insuficiente', 'insatisfeito', 'ruim', 'péssimo', 'não', 'discordo', 'fraco', 'baixo', 'nunca'];
-    if (badWords.some(w => key.includes(w))) return '#dc2626';
+    if (badWords.some(w => key.includes(w))) return '#ef4444';
     
-    return '#475569';
+    return '#64748b';
   };
 
-  // Get badge colors for PDF based on satisfaction class
-  const getSatisfactionBadgeStyleForClass = (satisfactionClass: 'promotor' | 'neutro' | 'detrator') => {
-    const config = SATISFACTION_CLASS_CONFIG[satisfactionClass];
-    return { bg: config.bgHex, color: config.textHex, border: config.borderHex, label: config.label };
-  };
+  // Generate one PDF per student to match the site exactly
+  for (const student of students) {
+    const groupedResponses = student.responses.reduce((acc, r) => {
+      if (!acc[r.category]) acc[r.category] = [];
+      acc[r.category].push(r);
+      return acc;
+    }, {} as Record<string, typeof student.responses>);
 
-  // Stats
-  const totalStudents = students.length;
-  const completedStudents = students.filter(s => s.isCompleted).length;
-  const hotLeads = students.filter(s => s.isHotLead).length;
+    const totalResponded = student.responses.filter(r => r.value).length;
+    const totalQuestions = student.responses.length;
 
-  // Build high-fidelity HTML matching the site exactly
-  const html = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #ffffff; color: #0f172a;">
-      <!-- Header with gradient -->
-      <div style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); padding: 32px 40px;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-          <span style="font-size: 32px;">👥</span>
-          <h1 style="color: white; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">
-            Análise Individual por Aluno
-          </h1>
-        </div>
-        <p style="text-align: center; color: rgba(255,255,255,0.8); font-size: 13px; margin: 10px 0 0 0;">
-          Pesquisa de Satisfação • Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
-        </p>
-      </div>
-      
-      <div style="padding: 28px 36px;">
-        <!-- Stats Cards - exactly like site -->
-        <div style="display: flex; gap: 16px; margin-bottom: 32px;">
-          <div style="flex: 1; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #bfdbfe;">
-            <div style="font-size: 36px; font-weight: 800; color: #1d4ed8; line-height: 1;">${totalStudents}</div>
-            <div style="font-size: 12px; color: #3b82f6; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Total Alunos</div>
-          </div>
-          <div style="flex: 1; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #a7f3d0;">
-            <div style="font-size: 36px; font-weight: 800; color: #059669; line-height: 1;">${completedStudents}</div>
-            <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Completos</div>
-          </div>
-        </div>
-        
-        <!-- Student Cards - matching site design -->
-        ${students.map((student, studentIdx) => {
-          const groupedResponses = student.responses.reduce((acc, r) => {
-            if (!acc[r.category]) acc[r.category] = [];
-            acc[r.category].push(r);
-            return acc;
-          }, {} as Record<string, typeof student.responses>);
+    const html = `
+      <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; min-height: 100vh;">
+        <!-- Page wrapper with subtle gray background like the site -->
+        <div style="max-width: 900px; margin: 0 auto; padding: 32px;">
           
-          const satisfactionStyle = getSatisfactionBadgeStyleForClass(student.satisfactionClass);
-
-          return `
-            <div style="margin-bottom: 24px; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
-              <!-- Student header - exactly like Card component -->
-              <div style="background: #f8fafc; padding: 18px 24px; border-bottom: 1px solid #e5e7eb;">
-                <div style="display: flex; align-items: center;">
-                  <!-- Avatar -->
-                  <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 700; margin-right: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    ${student.userName.charAt(0).toUpperCase()}
-                  </div>
-                  
-                  <!-- Name and status -->
-                  <div style="flex: 1;">
-                    <div style="font-size: 18px; font-weight: 700; color: #0f172a;">
-                      ${student.userName}
-                    </div>
-                    <div style="font-size: 13px; color: ${student.isCompleted ? '#059669' : '#d97706'}; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
-                      ${student.isCompleted 
-                        ? '<span style="color: #059669;">✓</span> Completou a pesquisa' 
-                        : `<span style="color: #d97706;">⏳</span> Em andamento (${student.progressPercent}%)`}
-                    </div>
-                  </div>
-                  
-                  <!-- Satisfaction badge -->
-                  <div style="background: ${satisfactionStyle.bg}; color: ${satisfactionStyle.color}; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid ${satisfactionStyle.border};">
-                    ${satisfactionStyle.label} (${student.overallScore.toFixed(1)})
-                  </div>
-                </div>
+          <!-- Header Card with Gradient - exactly like site -->
+          <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 16px; padding: 32px 40px; margin-bottom: 24px; text-align: center;">
+            <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
+            <h1 style="color: white; font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px;">
+              Relatório Individual
+            </h1>
+            <p style="color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 500; margin: 0;">
+              ${student.userName}
+            </p>
+          </div>
+          
+          <!-- Stats Cards Row - exactly matching site layout -->
+          <div style="display: flex; gap: 16px; margin-bottom: 32px;">
+            <div style="flex: 1; background: #f1f5f9; border-radius: 16px; padding: 24px; text-align: center;">
+              <div style="font-size: 42px; font-weight: 800; color: #6366f1; line-height: 1;">
+                ${student.overallScore.toFixed(1)}
               </div>
+              <div style="font-size: 13px; color: #64748b; font-weight: 500; margin-top: 8px;">
+                Nota Média
+              </div>
+            </div>
+            <div style="flex: 1; background: #f1f5f9; border-radius: 16px; padding: 24px; text-align: center;">
+              <div style="font-size: 42px; font-weight: 800; color: #6366f1; line-height: 1;">
+                ${totalResponded}/${totalQuestions}
+              </div>
+              <div style="font-size: 13px; color: #64748b; font-weight: 500; margin-top: 8px;">
+                Perguntas Respondidas
+              </div>
+            </div>
+          </div>
+          
+          <!-- Response Categories - mimicking the site exactly -->
+          ${Object.entries(groupedResponses).map(([category, responses]) => `
+            <div style="margin-bottom: 28px;">
+              <!-- Category Title with underline like site -->
+              <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">
+                ${category}
+              </h2>
               
-              <!-- Responses section -->
-              <div style="padding: 20px 24px; background: #ffffff;">
-                ${Object.entries(groupedResponses).map(([category, responses]) => `
-                  <div style="margin-bottom: 20px;">
-                    <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 6px;">
-                      <span style="width: 4px; height: 4px; background: #94a3b8; border-radius: 50%;"></span>
-                      ${category}
-                    </div>
-                    <div style="border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
-                      ${(responses as typeof student.responses).map((r, idx) => `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: ${idx % 2 === 0 ? '#f8fafc' : '#ffffff'}; ${idx > 0 ? 'border-top: 1px solid #f1f5f9;' : ''}">
-                          <span style="font-size: 13px; color: #475569; flex: 1; padding-right: 12px;">${r.questionLabel}</span>
-                          <span style="font-size: 13px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#94a3b8'}; white-space: nowrap; text-align: right; max-width: 200px;">
-                            ${r.value || '—'}
-                          </span>
-                        </div>
-                      `).join('')}
-                    </div>
+              <!-- Response Rows - exactly like site table -->
+              <div style="background: #ffffff; border-radius: 12px; overflow: hidden;">
+                ${(responses as typeof student.responses).map((r, idx) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: ${idx % 2 === 0 ? '#f8fafc' : '#ffffff'}; ${idx > 0 ? 'border-top: 1px solid #f1f5f9;' : ''}">
+                    <span style="font-size: 14px; color: #475569; font-weight: 400;">
+                      ${r.questionLabel}
+                    </span>
+                    <span style="font-size: 14px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#94a3b8'}; text-align: right;">
+                      ${r.value || '—'}
+                    </span>
                   </div>
                 `).join('')}
               </div>
             </div>
-          `;
-        }).join('')}
+          `).join('')}
+          
+        </div>
       </div>
-      
-      <!-- Footer -->
-      <div style="background: #f8fafc; padding: 16px 36px; border-top: 1px solid #e5e7eb; text-align: center;">
-        <p style="margin: 0; font-size: 11px; color: #94a3b8;">
-          Relatório gerado automaticamente pelo Sistema de Pesquisa de Satisfação
-        </p>
-      </div>
-    </div>
-  `;
-  
-  await createPDFFromHTML(html, `alunos-pesquisa-${new Date().toISOString().split('T')[0]}.pdf`);
+    `;
+    
+    // Generate individual PDF for each student
+    const safeName = student.userName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    await createPDFFromHTML(html, `relatorio-${safeName}-${new Date().toISOString().split('T')[0]}.pdf`);
+  }
 };
 
 // MATRIX PDF - High-fidelity heatmap export
