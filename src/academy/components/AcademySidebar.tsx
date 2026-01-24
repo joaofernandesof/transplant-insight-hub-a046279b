@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, BookOpen, Award,
-  Settings, LogOut, User, Users, CalendarDays, Menu, UserCog, FileText, Gift
+  Settings, LogOut, User, Users, CalendarDays, Menu, UserCog, FileText, Gift, Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -121,6 +121,22 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               <p className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Administração
               </p>
+              {/* Início Admin */}
+              <NavLink
+                to="/admin-dashboard"
+                onClick={onClose}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
+                    isActive
+                      ? "bg-red-100 text-red-700 font-medium dark:bg-red-900/50 dark:text-red-300"
+                      : "text-muted-foreground hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/50 dark:hover:text-red-400"
+                  )
+                }
+              >
+                <Shield className="h-4 w-4" />
+                Início Admin
+              </NavLink>
               {adminItems.map((item) => (
                 <NavLink
                   key={item.path}

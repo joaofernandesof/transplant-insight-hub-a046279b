@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, FileText, BookOpen, Newspaper,
   Settings, LogOut, User,
-  ChevronLeft
+  ChevronLeft, Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,8 +27,9 @@ const navItems = [
 ];
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
-  const { user, logout, hasProfile } = useUnifiedAuth();
+  const { user, logout, hasProfile, activeProfile } = useUnifiedAuth();
   const navigate = useNavigate();
+  const isAdmin = activeProfile === 'administrador';
 
   const handleLogout = async () => {
     await logout();
@@ -71,6 +72,25 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       {/* Navigation */}
       <ScrollArea className="flex-1 p-2">
         <nav className="space-y-1">
+          {/* Admin Home Button */}
+          {isAdmin && (
+            <NavLink
+              to="/admin-dashboard"
+              onClick={onClose}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-2",
+                  isActive
+                    ? "bg-red-100 text-red-700 font-medium dark:bg-red-900/50 dark:text-red-300"
+                    : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50"
+                )
+              }
+            >
+              <Shield className="h-4 w-4" />
+              Início Admin
+            </NavLink>
+          )}
+          
           {navItems.map((item) => (
             <NavLink
               key={item.path}

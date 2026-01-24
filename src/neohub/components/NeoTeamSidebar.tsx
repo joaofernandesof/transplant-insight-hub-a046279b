@@ -10,7 +10,7 @@ import {
   Settings, LogOut, Menu, X, ChevronLeft,
   Bell, Folder, Stethoscope, BarChart3, CheckSquare,
   UserCog, Building2, ChevronDown, ChevronRight,
-  List, Ticket, CalendarDays, Images, ClipboardList
+  List, Ticket, CalendarDays, Images, ClipboardList, Shield
 } from 'lucide-react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { cn } from '@/lib/utils';
@@ -192,6 +192,24 @@ export function NeoTeamSidebar({ children }: NeoTeamSidebarProps) {
           {/* Navigation */}
           <ScrollArea className="flex-1 p-2">
             <nav className="space-y-1">
+              {/* Admin Home Button */}
+              {isAdmin && (
+                <Button
+                  variant={location.pathname === '/admin-dashboard' ? "secondary" : "ghost"}
+                  className={cn(
+                    "w-full justify-start gap-3 h-11 mb-2",
+                    isCollapsed && "justify-center px-2",
+                    location.pathname === '/admin-dashboard' 
+                      ? "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+                      : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50"
+                  )}
+                  onClick={() => navigate('/admin-dashboard')}
+                >
+                  <Shield className="h-5 w-5 flex-shrink-0" />
+                  {!isCollapsed && <span className="flex-1 text-left">Início Admin</span>}
+                </Button>
+              )}
+              
               {filteredMenuItems.map((item) => {
                 const hasChildren = item.children && item.children.length > 0;
                 const isItemActive = isActive(item.route);
