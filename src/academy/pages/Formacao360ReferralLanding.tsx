@@ -281,7 +281,7 @@ export function Formacao360ReferralLanding() {
             {/* Location Badge */}
             <div className="flex items-center gap-2 text-gray-300">
               <MapPin className="h-5 w-5 text-blue-400" />
-              <span>Localização: Alphaville - São Paulo (SP)</span>
+              <span>Localização: São Paulo (SP)</span>
             </div>
 
             {/* Key Highlights */}
@@ -526,7 +526,7 @@ export function Formacao360ReferralLanding() {
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <MapPin className="h-4 w-4 text-blue-400" />
-                  <span className="text-sm">Alphaville/SP</span>
+                  <span className="text-sm">São Paulo/SP</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <ShieldCheck className="h-4 w-4 text-emerald-400" />
