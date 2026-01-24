@@ -161,24 +161,39 @@ export function ScheduleTimeline({ schedule }: ScheduleTimelineProps) {
 
   return (
     <div className="space-y-4">
+      {/* View Mode Toggle - Outside cards */}
+      <div className="flex items-center justify-end">
+        <ToggleGroup 
+          type="single" 
+          value={viewMode} 
+          onValueChange={(value) => value && setViewMode(value as 'timeline' | 'list')}
+          className="bg-muted rounded-lg p-0.5"
+        >
+          <ToggleGroupItem 
+            value="timeline" 
+            aria-label="Ver como timeline" 
+            className="gap-1 px-3 h-8 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm"
+          >
+            <CalendarClock className="h-4 w-4" />
+            <span className="text-xs">Timeline</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem 
+            value="list" 
+            aria-label="Ver como lista" 
+            className="gap-1 px-3 h-8 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm"
+          >
+            <List className="h-4 w-4" />
+            <span className="text-xs">Lista</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+
       {/* Schedule Content */}
       <div className="space-y-6">
-        {schedule.map((day, index) => (
+        {schedule.map((day) => (
           viewMode === 'timeline' 
-            ? <DayTimeline 
-                key={day.id} 
-                day={day} 
-                showViewToggle={index === 0}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-              />
-            : <DayList 
-                key={day.id} 
-                day={day}
-                showViewToggle={index === 0}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-              />
+            ? <DayTimeline key={day.id} day={day} />
+            : <DayList key={day.id} day={day} />
         ))}
       </div>
     </div>
@@ -188,12 +203,9 @@ export function ScheduleTimeline({ schedule }: ScheduleTimelineProps) {
 // List View Component
 interface DayListProps {
   day: ScheduleDay;
-  showViewToggle?: boolean;
-  viewMode?: 'timeline' | 'list';
-  onViewModeChange?: (mode: 'timeline' | 'list') => void;
 }
 
-function DayList({ day, showViewToggle, viewMode, onViewModeChange }: DayListProps) {
+function DayList({ day }: DayListProps) {
   const sortedItems = useMemo(() => 
     [...day.items].sort((a, b) => parseTimeToHours(a.startTime) - parseTimeToHours(b.startTime)),
     [day.items]
@@ -201,45 +213,22 @@ function DayList({ day, showViewToggle, viewMode, onViewModeChange }: DayListPro
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 px-3 sm:px-6">
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg">{day.dayTitle}</CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-semibold flex-shrink-0">Dia {day.dayNumber}</Badge>
+              <CardTitle className="text-sm sm:text-base truncate">{day.dayTitle}</CardTitle>
+            </div>
             {day.dayDate && (
-              <CardDescription>
-                {format(parseISO(day.dayDate), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              <CardDescription className="text-xs mt-1">
+                {format(parseISO(day.dayDate), "EEE, dd/MM/yyyy", { locale: ptBR })}
               </CardDescription>
             )}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {showViewToggle && onViewModeChange && (
-              <ToggleGroup 
-                type="single" 
-                value={viewMode} 
-                onValueChange={(value) => value && onViewModeChange(value as 'timeline' | 'list')}
-                className="bg-muted rounded-lg p-0.5"
-              >
-                <ToggleGroupItem 
-                  value="timeline" 
-                  aria-label="Ver como timeline" 
-                  className="gap-1 px-2 h-7 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm"
-                >
-                  <CalendarClock className="h-3.5 w-3.5" />
-                </ToggleGroupItem>
-                <ToggleGroupItem 
-                  value="list" 
-                  aria-label="Ver como lista" 
-                  className="gap-1 px-2 h-7 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm"
-                >
-                  <List className="h-3.5 w-3.5" />
-                </ToggleGroupItem>
-              </ToggleGroup>
-            )}
-            <Badge variant="outline" className="font-semibold">Dia {day.dayNumber}</Badge>
-          </div>
         </div>
         {day.dayTheme && (
-          <p className="text-sm text-muted-foreground mt-2 italic">{day.dayTheme}</p>
+          <p className="text-xs text-muted-foreground mt-1.5 italic line-clamp-2">{day.dayTheme}</p>
         )}
       </CardHeader>
       <CardContent className="pb-6">
@@ -396,12 +385,9 @@ function groupParallelActivities(items: ScheduleItem[]): { item: ScheduleItem; c
 
 interface DayTimelineProps {
   day: ScheduleDay;
-  showViewToggle?: boolean;
-  viewMode?: 'timeline' | 'list';
-  onViewModeChange?: (mode: 'timeline' | 'list') => void;
 }
 
-function DayTimeline({ day, showViewToggle, viewMode, onViewModeChange }: DayTimelineProps) {
+function DayTimeline({ day }: DayTimelineProps) {
   // Separate all-day activities from regular activities
   const { allDayItems, regularItems } = useMemo(() => {
     const allDay: ScheduleItem[] = [];
@@ -437,45 +423,22 @@ function DayTimeline({ day, showViewToggle, viewMode, onViewModeChange }: DayTim
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 px-3 sm:px-6">
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg">{day.dayTitle}</CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-semibold flex-shrink-0">Dia {day.dayNumber}</Badge>
+              <CardTitle className="text-sm sm:text-base truncate">{day.dayTitle}</CardTitle>
+            </div>
             {day.dayDate && (
-              <CardDescription>
-                {format(parseISO(day.dayDate), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              <CardDescription className="text-xs mt-1">
+                {format(parseISO(day.dayDate), "EEE, dd/MM/yyyy", { locale: ptBR })}
               </CardDescription>
             )}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {showViewToggle && onViewModeChange && (
-              <ToggleGroup 
-                type="single" 
-                value={viewMode} 
-                onValueChange={(value) => value && onViewModeChange(value as 'timeline' | 'list')}
-                className="bg-muted rounded-lg p-0.5"
-              >
-                <ToggleGroupItem 
-                  value="timeline" 
-                  aria-label="Ver como timeline" 
-                  className="gap-1 px-2 h-7 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm"
-                >
-                  <CalendarClock className="h-3.5 w-3.5" />
-                </ToggleGroupItem>
-                <ToggleGroupItem 
-                  value="list" 
-                  aria-label="Ver como lista" 
-                  className="gap-1 px-2 h-7 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm"
-                >
-                  <List className="h-3.5 w-3.5" />
-                </ToggleGroupItem>
-              </ToggleGroup>
-            )}
-            <Badge variant="outline" className="font-semibold">Dia {day.dayNumber}</Badge>
-          </div>
         </div>
         {day.dayTheme && (
-          <p className="text-sm text-muted-foreground mt-2 italic">{day.dayTheme}</p>
+          <p className="text-xs text-muted-foreground mt-1.5 italic line-clamp-2">{day.dayTheme}</p>
         )}
       </CardHeader>
       <CardContent className="pb-6 space-y-4">
