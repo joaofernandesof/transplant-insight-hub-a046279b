@@ -1739,17 +1739,17 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       name="Dr. Hygor" 
                       dataKey="Dr. Hygor" 
                       stroke="hsl(217, 91%, 60%)" 
-                      fill="hsl(217, 91%, 60%)" 
-                      fillOpacity={0.35}
-                      strokeWidth={2}
+                      fill="transparent" 
+                      fillOpacity={0}
+                      strokeWidth={3}
                     />
                     <Radar 
                       name="Dr. Patrick" 
                       dataKey="Dr. Patrick" 
                       stroke="hsl(160, 84%, 39%)" 
-                      fill="hsl(160, 84%, 39%)" 
-                      fillOpacity={0.35}
-                      strokeWidth={2}
+                      fill="transparent" 
+                      fillOpacity={0}
+                      strokeWidth={3}
                     />
                     <Legend 
                       wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
@@ -1816,17 +1816,17 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     name="Dr. Eder" 
                     dataKey="Dr. Eder" 
                     stroke="hsl(262, 83%, 58%)" 
-                    fill="hsl(262, 83%, 58%)" 
-                    fillOpacity={0.35}
-                    strokeWidth={2}
+                    fill="transparent" 
+                    fillOpacity={0}
+                    strokeWidth={3}
                   />
                   <Radar 
                     name="Dr. Patrick M" 
                     dataKey="Dr. Patrick M" 
                     stroke="hsl(25, 95%, 53%)" 
-                    fill="hsl(25, 95%, 53%)" 
-                    fillOpacity={0.35}
-                    strokeWidth={2}
+                    fill="transparent" 
+                    fillOpacity={0}
+                    strokeWidth={3}
                   />
                   <Legend 
                     wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
