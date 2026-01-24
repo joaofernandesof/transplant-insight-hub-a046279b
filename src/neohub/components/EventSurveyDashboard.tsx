@@ -2153,32 +2153,65 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   </RadarChart>
                 </ResponsiveContainer>
                 <div className="flex flex-col gap-3 min-w-[220px]">
-                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="h-4 w-4 text-primary" />
-                      <span className="font-semibold text-primary">Média Geral</span>
-                    </div>
-                    <div className="text-3xl font-bold text-primary">
-                      {infrastructureAvg.toFixed(1)}/5
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">Todas as dimensões</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {infrastructureRadarData.slice(0, 4).map((d, i) => (
-                      <div key={i} className="p-2 rounded-lg bg-muted/50 text-center">
-                        <div className="text-lg font-bold">{d.value.toFixed(1)}</div>
-                        <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {infrastructureRadarData.slice(4).map((d, i) => (
-                      <div key={i} className="p-2 rounded-lg bg-muted/50 text-center">
-                        <div className="text-lg font-bold">{d.value.toFixed(1)}</div>
-                        <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {(() => {
+                    // Color scale function: red (0) → yellow (2.5) → green (5)
+                    const getScoreColor = (value: number) => {
+                      const ratio = value / 5; // 0-1 scale
+                      if (ratio < 0.5) {
+                        // Red to Yellow
+                        return {
+                          bg: ratio < 0.3 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30',
+                          text: ratio < 0.3 ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400',
+                          border: ratio < 0.3 ? 'border-red-200 dark:border-red-800' : 'border-amber-200 dark:border-amber-800',
+                        };
+                      } else {
+                        // Yellow to Green
+                        return {
+                          bg: ratio >= 0.8 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-lime-100 dark:bg-lime-900/30',
+                          text: ratio >= 0.8 ? 'text-emerald-700 dark:text-emerald-400' : 'text-lime-700 dark:text-lime-400',
+                          border: ratio >= 0.8 ? 'border-emerald-200 dark:border-emerald-800' : 'border-lime-200 dark:border-lime-800',
+                        };
+                      }
+                    };
+                    const avgColor = getScoreColor(infrastructureAvg);
+                    
+                    return (
+                      <>
+                        <div className={`p-4 rounded-xl ${avgColor.bg} border ${avgColor.border}`}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Target className={`h-4 w-4 ${avgColor.text}`} />
+                            <span className={`font-semibold ${avgColor.text}`}>Média Geral</span>
+                          </div>
+                          <div className={`text-3xl font-bold ${avgColor.text}`}>
+                            {infrastructureAvg.toFixed(1)}/5
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Todas as dimensões</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {infrastructureRadarData.slice(0, 4).map((d, i) => {
+                            const color = getScoreColor(d.value);
+                            return (
+                              <div key={i} className={`p-2 rounded-lg ${color.bg} border ${color.border} text-center`}>
+                                <div className={`text-lg font-bold ${color.text}`}>{d.value.toFixed(1)}</div>
+                                <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {infrastructureRadarData.slice(4).map((d, i) => {
+                            const color = getScoreColor(d.value);
+                            return (
+                              <div key={i} className={`p-2 rounded-lg ${color.bg} border ${color.border} text-center`}>
+                                <div className={`text-lg font-bold ${color.text}`}>{d.value.toFixed(1)}</div>
+                                <p className="text-[10px] text-muted-foreground truncate">{d.metric}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </CardContent>
