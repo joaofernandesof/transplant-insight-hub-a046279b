@@ -6218,6 +6218,51 @@ export type Database = {
           },
         ]
       }
+      survey_questions_config: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_required: boolean
+          is_visible: boolean
+          options: Json | null
+          order_index: number
+          question_key: string
+          question_label: string
+          question_type: string
+          target_person: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          is_visible?: boolean
+          options?: Json | null
+          order_index?: number
+          question_key: string
+          question_label: string
+          question_type?: string
+          target_person?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          is_visible?: boolean
+          options?: Json | null
+          order_index?: number
+          question_key?: string
+          question_label?: string
+          question_type?: string
+          target_person?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_alerts: {
         Row: {
           created_at: string

@@ -57,7 +57,9 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  Settings2,
 } from "lucide-react";
+import { SurveyQuestionsManager } from "./SurveyQuestionsManager";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -2065,38 +2067,48 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     return `${mins}m ${secs}s`;
   };
 
+  const [showQuestionsManager, setShowQuestionsManager] = useState(false);
+
   return (
+    <>
+    <SurveyQuestionsManager open={showQuestionsManager} onOpenChange={setShowQuestionsManager} />
     <Tabs defaultValue="overview" className="space-y-4">
-      <TabsList className="grid grid-cols-7 w-full max-w-4xl">
-        <TabsTrigger value="overview" className="flex items-center gap-1.5">
-          <BarChart3 className="h-4 w-4" />
-          <span className="hidden sm:inline">Visão Geral</span>
-        </TabsTrigger>
-        <TabsTrigger value="matrix" className="flex items-center gap-1.5">
-          <ArrowUpDown className="h-4 w-4" />
-          <span className="hidden sm:inline">Matriz</span>
-        </TabsTrigger>
-        <TabsTrigger value="ranking" className="flex items-center gap-1.5">
-          <ListOrdered className="h-4 w-4" />
-          <span className="hidden sm:inline">Ranking</span>
-        </TabsTrigger>
-        <TabsTrigger value="questions" className="flex items-center gap-1.5">
-          <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">Perguntas</span>
-        </TabsTrigger>
-        <TabsTrigger value="students" className="flex items-center gap-1.5">
-          <User className="h-4 w-4" />
-          <span className="hidden sm:inline">Alunos</span>
-        </TabsTrigger>
-        <TabsTrigger value="timing" className="flex items-center gap-1.5">
-          <Clock className="h-4 w-4" />
-          <span className="hidden sm:inline">Tempos</span>
-        </TabsTrigger>
-        <TabsTrigger value="insights" className="flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4" />
-          <span className="hidden sm:inline">Insights IA</span>
-        </TabsTrigger>
-      </TabsList>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+          <TabsTrigger value="overview" className="flex items-center gap-1.5">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Visão Geral</span>
+          </TabsTrigger>
+          <TabsTrigger value="matrix" className="flex items-center gap-1.5">
+            <ArrowUpDown className="h-4 w-4" />
+            <span className="hidden sm:inline">Matriz</span>
+          </TabsTrigger>
+          <TabsTrigger value="ranking" className="flex items-center gap-1.5">
+            <ListOrdered className="h-4 w-4" />
+            <span className="hidden sm:inline">Ranking</span>
+          </TabsTrigger>
+          <TabsTrigger value="questions" className="flex items-center gap-1.5">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">Perguntas</span>
+          </TabsTrigger>
+          <TabsTrigger value="students" className="flex items-center gap-1.5">
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">Alunos</span>
+          </TabsTrigger>
+          <TabsTrigger value="timing" className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4" />
+            <span className="hidden sm:inline">Tempos</span>
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="flex items-center gap-1.5">
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">Insights IA</span>
+          </TabsTrigger>
+        </TabsList>
+        <Button variant="outline" onClick={() => setShowQuestionsManager(true)} className="gap-2">
+          <Settings2 className="h-4 w-4" />
+          Gerenciar Perguntas
+        </Button>
+      </div>
 
       {/* ============== MATRIX HEATMAP TAB ============== */}
       <TabsContent value="matrix" className="space-y-4">
@@ -4189,5 +4201,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         </DialogContent>
       </Dialog>
     </Tabs>
+    </>
   );
 }
