@@ -688,12 +688,7 @@ export function useSurveyAnalytics(classId: string | null) {
         { key: 'q18_infrastructure', label: 'Infraestrutura física', category: 'Infraestrutura' },
         { key: 'q19_support_team', label: 'Equipe de apoio', category: 'Infraestrutura' },
         { key: 'q20_coffee_break', label: 'Coffee Break', category: 'Infraestrutura' },
-        { key: 'q30_monitor_technical', label: 'Monitor - Conhecimento técnico', category: 'Monitor' },
-        { key: 'q31_monitor_interest', label: 'Monitor - Interesse', category: 'Monitor' },
-        { key: 'q32_monitor_engagement', label: 'Monitor - Engajamento', category: 'Monitor' },
-        { key: 'q33_monitor_posture', label: 'Monitor - Postura', category: 'Monitor' },
-        { key: 'q34_monitor_communication', label: 'Monitor - Comunicação', category: 'Monitor' },
-        { key: 'q35_monitor_contribution', label: 'Monitor - Contribuição', category: 'Monitor' },
+        // Monitor questions will be generated dynamically below based on q29_monitor_name
         { key: 'q38_eder_technical', label: 'Dr. Eder - Conhecimento técnico', category: 'Dr. Eder' },
         { key: 'q39_eder_interest', label: 'Dr. Eder - Interesse', category: 'Dr. Eder' },
         { key: 'q40_eder_engagement', label: 'Dr. Eder - Engajamento', category: 'Dr. Eder' },
@@ -702,8 +697,44 @@ export function useSurveyAnalytics(classId: string | null) {
         { key: 'q43_eder_contribution', label: 'Dr. Eder - Contribuição', category: 'Dr. Eder' },
       ];
 
-      // Calculate all question ratings
-      const allQuestions: QuestionRating[] = questionDefinitions.map(qDef => {
+      // Generate dynamic monitor questions based on unique monitor names
+      const uniqueMonitorNames = [...new Set(completed.map(r => r.q29_monitor_name).filter(Boolean))] as string[];
+      
+      const monitorQuestionFields: { fieldKey: keyof SurveyResponse; suffix: string }[] = [
+        { fieldKey: 'q30_monitor_technical', suffix: 'Conhecimento técnico' },
+        { fieldKey: 'q31_monitor_interest', suffix: 'Interesse' },
+        { fieldKey: 'q32_monitor_engagement', suffix: 'Engajamento' },
+        { fieldKey: 'q33_monitor_posture', suffix: 'Postura' },
+        { fieldKey: 'q34_monitor_communication', suffix: 'Comunicação' },
+        { fieldKey: 'q35_monitor_contribution', suffix: 'Contribuição' },
+      ];
+
+      // Create question entries per monitor
+      const dynamicMonitorQuestions: QuestionRating[] = [];
+      uniqueMonitorNames.forEach(monitorName => {
+        monitorQuestionFields.forEach(field => {
+          // Get only responses from students who evaluated this monitor
+          const relevantResponses = completed.filter(r => r.q29_monitor_name === monitorName);
+          const values = relevantResponses.map(r => r[field.fieldKey] as string | null);
+          const numericValues = values.map(v => getRatingValue(v));
+          const distribution: Record<string, number> = {};
+          values.forEach(v => {
+            if (v) distribution[v] = (distribution[v] || 0) + 1;
+          });
+          
+          dynamicMonitorQuestions.push({
+            questionKey: field.fieldKey,
+            questionLabel: `${monitorName} - ${field.suffix}`,
+            category: monitorName, // Use monitor name as category
+            avgRating: calculateAverage(numericValues),
+            responseCount: numericValues.filter(v => v !== null).length,
+            distribution,
+          });
+        });
+      });
+
+      // Calculate all question ratings (static questions)
+      const staticQuestions: QuestionRating[] = questionDefinitions.map(qDef => {
         const values = completed.map(r => r[qDef.key] as string | null);
         const numericValues = values.map(v => getRatingValue(v));
         const distribution: Record<string, number> = {};
@@ -719,6 +750,9 @@ export function useSurveyAnalytics(classId: string | null) {
           distribution,
         };
       });
+
+      // Combine static and dynamic questions
+      const allQuestions: QuestionRating[] = [...staticQuestions, ...dynamicMonitorQuestions];
 
       // Ranking sorted by avg rating (best to worst)
       const questionRankings = [...allQuestions]
@@ -794,13 +828,24 @@ export function useSurveyAnalytics(classId: string | null) {
       // Responses by student with full detail
       const responsesByStudent: StudentDetailedResponse[] = responses.map(r => {
         const progress = countAnsweredQuestions(r);
+        const monitorName = r.q29_monitor_name;
+        
         const studentResponses = allQuestionKeys.map(qDef => {
           const value = r[qDef.key];
           const strValue = typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : (value as string | null);
+          
+          // Dynamic label for monitor questions
+          let dynamicLabel = qDef.label;
+          let dynamicCategory = qDef.category;
+          if (qDef.category === 'Monitor' && monitorName && qDef.key.startsWith('q3') && qDef.key !== 'q36_monitor_strength' && qDef.key !== 'q37_monitor_improve' && qDef.key !== 'q29_monitor_name') {
+            dynamicLabel = qDef.label.replace('Monitor', monitorName);
+            dynamicCategory = monitorName;
+          }
+          
           return {
             questionKey: qDef.key,
-            questionLabel: qDef.label,
-            category: qDef.category,
+            questionLabel: dynamicLabel,
+            category: dynamicCategory,
             value: strValue,
             numericValue: typeof value === 'string' ? getRatingValue(value) : null,
           };
