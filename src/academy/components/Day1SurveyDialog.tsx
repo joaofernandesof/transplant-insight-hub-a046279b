@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Frown, Meh, Smile, ThumbsUp, Heart, XCircle, MinusCircle, CheckCircle, ThumbsDown, Clock, Timer, Zap, Hourglass, Calendar, HelpCircle } from 'lucide-react';
-import { useDay1Survey, Day1SurveyFormData } from '../hooks/useDay1Survey';
+import { useDay1Survey, Day1SurveyFormData, Day1SurveyData } from '../hooks/useDay1Survey';
 import { cn } from '@/lib/utils';
 
 // Import instructor photos
@@ -606,27 +606,42 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Day1SurveyFormData>>({});
   
+  // Initialize survey when dialog opens
   useEffect(() => {
     if (open && !surveyId && !hasCompleted) {
       startSurvey(classId || null).then((survey) => {
         setSurveyId(survey.id);
         setFormData(survey as unknown as Partial<Day1SurveyFormData>);
-        // Find first unanswered question
-        const surveyRecord = survey as unknown as Record<string, unknown>;
-        const firstUnanswered = QUESTIONS.findIndex(q => {
-          const val = surveyRecord[q.key];
-          return val === null || val === undefined || val === '';
-        });
-        setCurrentQuestion(firstUnanswered >= 0 ? firstUnanswered : 0);
+        
+        // Resume from saved position: use current_section if available, otherwise find first unanswered
+        const savedSection = (survey as Day1SurveyData).current_section;
+        if (savedSection && savedSection > 0 && savedSection <= TOTAL_QUESTIONS) {
+          // Resume from the saved section (current_section is 1-indexed, so -1 for array index)
+          const resumeIndex = Math.min(savedSection - 1, TOTAL_QUESTIONS - 1);
+          setCurrentQuestion(resumeIndex);
+        } else {
+          // Fallback: find first unanswered question
+          const surveyRecord = survey as unknown as Record<string, unknown>;
+          const firstUnanswered = QUESTIONS.findIndex(q => {
+            const val = surveyRecord[q.key];
+            return val === null || val === undefined || val === '';
+          });
+          setCurrentQuestion(firstUnanswered >= 0 ? firstUnanswered : 0);
+        }
       });
     }
   }, [open, surveyId, hasCompleted, classId, startSurvey]);
   
+  // Reset state only when dialog closes completely
   useEffect(() => {
     if (!open) {
-      setSurveyId(null);
-      setCurrentQuestion(0);
-      setFormData({});
+      // Delay reset to allow for animation
+      const timer = setTimeout(() => {
+        setSurveyId(null);
+        setCurrentQuestion(0);
+        setFormData({});
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [open]);
   
