@@ -892,6 +892,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   
   // AI Insights state
   const [aiInsights, setAiInsights] = useState<any>(null);
+  const [aiInsightsGeneratedAt, setAiInsightsGeneratedAt] = useState<Date | null>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
   
   // Drill-down dialog state
@@ -1062,6 +1063,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
       if (error) throw error;
       
       setAiInsights(data.insights);
+      setAiInsightsGeneratedAt(new Date());
       toast.success("Insights gerados com sucesso!");
     } catch (err) {
       console.error("Error generating insights:", err);
@@ -1264,15 +1266,26 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Card>
         ) : (
           <div className="space-y-6">
-            {/* Header with regenerate button */}
-            <div className="flex items-center justify-between">
+            {/* Header with regenerate button and timestamp */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/20">
                   <Brain className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold">Insights Gerados por IA</h2>
-                  <p className="text-xs text-muted-foreground">Baseado em {analytics.totalResponses} respostas analisadas</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>Baseado em {analytics.totalResponses} respostas</span>
+                    {aiInsightsGeneratedAt && (
+                      <>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Gerado em {format(aiInsightsGeneratedAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
               <Button 
@@ -1280,13 +1293,17 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 size="sm"
                 onClick={generateAIInsights}
                 disabled={isLoadingInsights}
+                className="gap-2"
               >
                 {isLoadingInsights ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Regenerando...
+                  </>
                 ) : (
                   <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Regenerar
+                    <RefreshCw className="h-4 w-4" />
+                    Regenerar Análise
                   </>
                 )}
               </Button>
