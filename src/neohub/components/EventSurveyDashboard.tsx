@@ -195,9 +195,6 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
             <CardTitle className="text-lg flex items-center gap-2">
               {student.userName}
               {student.isHotLead && <Flame className="h-4 w-4 text-orange-500" />}
-              {student.isFirstTime && (
-                <Badge variant="outline" className="text-[10px]">1ª vez</Badge>
-              )}
             </CardTitle>
             <CardDescription>
               {student.isCompleted ? (
@@ -366,7 +363,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
       {/* ============== OVERVIEW TAB ============== */}
       <TabsContent value="overview" className="space-y-6">
         {/* Header Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
@@ -451,19 +448,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-950/30 dark:to-cyan-900/20 border-cyan-200/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-cyan-500/20">
-                  <Star className="h-4 w-4 text-cyan-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-cyan-700 dark:text-cyan-400">{analytics.studentProfile.firstTimers}</p>
-                  <p className="text-xs text-muted-foreground">1ª Vez</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Charts Row 1 */}
