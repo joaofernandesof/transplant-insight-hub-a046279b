@@ -62,6 +62,7 @@ import {
 import { SurveyQuestionsManager } from "./SurveyQuestionsManager";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { printCurrentView } from "@/utils/printPdf";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useSurveyAnalytics, type QuestionRating, type StudentDetailedResponse } from "@/neohub/hooks/useSurveyAnalytics";
@@ -1637,6 +1638,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [studentSortBy, setStudentSortBy] = useState<'name' | 'score' | 'date'>('name');
   const [questionSortBy, setQuestionSortBy] = useState<'original' | 'name' | 'score'>('original');
   const [isExporting, setIsExporting] = useState(false);
+  const [showQuestionsManager, setShowQuestionsManager] = useState(false);
   const [exportingTab, setExportingTab] = useState<string | null>(null);
   
   // AI Insights state
@@ -2067,8 +2069,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     return `${mins}m ${secs}s`;
   };
 
-  const [showQuestionsManager, setShowQuestionsManager] = useState(false);
-
   return (
     <>
     <SurveyQuestionsManager open={showQuestionsManager} onOpenChange={setShowQuestionsManager} />
@@ -2104,10 +2104,20 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <span className="hidden sm:inline">Insights IA</span>
           </TabsTrigger>
         </TabsList>
-        <Button variant="outline" onClick={() => setShowQuestionsManager(true)} className="gap-2">
-          <Settings2 className="h-4 w-4" />
-          Gerenciar Perguntas
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => printCurrentView('Relatório de Pesquisa de Satisfação')} 
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Exportar PDF
+          </Button>
+          <Button variant="outline" onClick={() => setShowQuestionsManager(true)} className="gap-2">
+            <Settings2 className="h-4 w-4" />
+            Gerenciar Perguntas
+          </Button>
+        </div>
       </div>
 
       {/* ============== MATRIX HEATMAP TAB ============== */}
