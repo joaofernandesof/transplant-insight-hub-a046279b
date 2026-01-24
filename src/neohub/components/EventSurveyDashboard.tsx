@@ -471,16 +471,19 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   // Get semantic color for response value
   const getValueColor = (value: string): string => {
     const key = value.toLowerCase().trim();
-    const excellentWords = ['excelente', 'muito satisfeito', 'totalmente', 'atendeu plenamente', 
-      'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 'concordo totalmente', 'muito bom', 'superou'];
-    if (excellentWords.some(w => key.includes(w))) return '#059669';
-    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu', 'de 5 a 10', 'suficiente', 'sim'];
-    if (goodWords.some(w => key.includes(w))) return '#2563eb';
-    const mediumWords = ['neutro', 'parcialmente', 'regular', 'médio', 'até 5', 'razoável', 'moderado'];
-    if (mediumWords.some(w => key.includes(w))) return '#d97706';
-    const badWords = ['insuficiente', 'insatisfeito', 'ruim', 'péssimo', 'não', 'discordo', 'fraco', 'baixo', 'nunca'];
-    if (badWords.some(w => key.includes(w))) return '#dc2626';
-    return '#475569';
+    // Excellent - Green (only truly exceptional)
+    const excellentWords = ['excelente', 'muito satisfeito', 'superou expectativas', 'superou', 'mais de 10', 'perfeito', 'alta urgência'];
+    if (excellentWords.some(w => key.includes(w))) return '#10b981';
+    // Good - Blue (met expectations fully)
+    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu plenamente', 'atendeu totalmente', 'totalmente', 'de 5 a 10', 'suficiente', 'média urgência', 'sim', 'muito bom', 'ótimo', 'mais do que suficiente', 'concordo totalmente'];
+    if (goodWords.some(w => key.includes(w))) return '#3b82f6';
+    // Medium - Orange (partially met)
+    const mediumWords = ['neutro', 'parcialmente', 'atendeu parcialmente', 'regular', 'médio', 'até 5', 'razoável', 'moderado', 'indiferente'];
+    if (mediumWords.some(w => key.includes(w))) return '#f59e0b';
+    // Bad - Red (did not meet)
+    const badWords = ['insuficiente', 'insatisfeito', 'muito insatisfeito', 'ruim', 'péssimo', 'não atendeu', 'discordo', 'fraco', 'baixo', 'nunca', 'sem urgência', 'não concordo'];
+    if (badWords.some(w => key.includes(w))) return '#ef4444';
+    return '#64748b';
   };
   
   const categories = [...new Set(analytics.allQuestions.map(q => q.category))];
@@ -578,21 +581,20 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
   const getValueColor = (value: string): string => {
     const key = value.toLowerCase().trim();
     
-    // Excellent - Emerald Green
-    const excellentWords = ['excelente', 'muito satisfeito', 'totalmente', 'atendeu plenamente', 
-      'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 'concordo totalmente', 'muito bom', 'superou'];
+    // Excellent - Green (only truly exceptional)
+    const excellentWords = ['excelente', 'muito satisfeito', 'superou expectativas', 'superou', 'mais de 10', 'perfeito', 'alta urgência'];
     if (excellentWords.some(w => key.includes(w))) return '#10b981';
     
-    // Good - Blue
-    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu', 'de 5 a 10', 'suficiente', 'sim'];
+    // Good - Blue (met expectations fully)
+    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu plenamente', 'atendeu totalmente', 'totalmente', 'de 5 a 10', 'suficiente', 'média urgência', 'sim', 'muito bom', 'ótimo', 'mais do que suficiente', 'concordo totalmente'];
     if (goodWords.some(w => key.includes(w))) return '#3b82f6';
     
-    // Medium - Amber
-    const mediumWords = ['neutro', 'parcialmente', 'regular', 'médio', 'até 5', 'razoável', 'moderado'];
+    // Medium - Orange (partially met)
+    const mediumWords = ['neutro', 'parcialmente', 'atendeu parcialmente', 'regular', 'médio', 'até 5', 'razoável', 'moderado', 'indiferente'];
     if (mediumWords.some(w => key.includes(w))) return '#f59e0b';
     
-    // Bad - Red
-    const badWords = ['insuficiente', 'insatisfeito', 'ruim', 'péssimo', 'não', 'discordo', 'fraco', 'baixo', 'nunca'];
+    // Bad - Red (did not meet)
+    const badWords = ['insuficiente', 'insatisfeito', 'muito insatisfeito', 'ruim', 'péssimo', 'não atendeu', 'discordo', 'fraco', 'baixo', 'nunca', 'sem urgência', 'não concordo'];
     if (badWords.some(w => key.includes(w))) return '#ef4444';
     
     return '#64748b';
@@ -913,33 +915,34 @@ const buildDistributionData = (
 const getSemanticColor = (responseKey: string): string => {
   const key = responseKey.toLowerCase().trim();
   
-  // EXCELLENT / VERY GOOD - GREEN
+  // EXCELLENT - GREEN (only truly exceptional)
   const excellentWords = [
-    'excelente', 'muito satisfeito', 'totalmente', 'atendeu plenamente', 
-    'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 
-    'concordo totalmente', 'alta urgência', 'muito bom', 'superou'
+    'excelente', 'muito satisfeito', 'superou expectativas', 'superou',
+    'mais de 10', 'perfeito', 'alta urgência'
   ];
   if (excellentWords.some(w => key.includes(w))) return '#10b981'; // emerald-500
   
-  // GOOD - BLUE
+  // GOOD - BLUE (met expectations fully)
   const goodWords = [
-    'satisfeito', 'adequado', 'bom', 'concordo', 'atendeu', 
-    'de 5 a 10', 'suficiente', 'média urgência', 'sim'
+    'satisfeito', 'adequado', 'bom', 'concordo', 'atendeu plenamente',
+    'atendeu totalmente', 'totalmente', 'de 5 a 10', 'suficiente', 
+    'média urgência', 'sim', 'muito bom', 'ótimo', 'mais do que suficiente',
+    'concordo totalmente'
   ];
   if (goodWords.some(w => key.includes(w))) return '#3b82f6'; // blue-500
   
-  // MEDIUM / NEUTRAL - YELLOW/ORANGE
+  // MEDIUM / NEUTRAL - ORANGE (partially met or neutral)
   const mediumWords = [
-    'neutro', 'parcialmente', 'regular', 'médio', 'até 5', 
-    'razoável', 'moderado', 'indiferente'
+    'neutro', 'parcialmente', 'atendeu parcialmente', 'regular', 'médio', 
+    'até 5', 'razoável', 'moderado', 'indiferente'
   ];
   if (mediumWords.some(w => key.includes(w))) return '#f59e0b'; // amber-500
   
-  // BAD / POOR - RED
+  // BAD / POOR - RED (did not meet)
   const badWords = [
     'insuficiente', 'insatisfeito', 'muito insatisfeito', 'ruim', 'péssimo', 
-    'não', 'discordo', 'fraco', 'baixo', 'nunca', 'sem urgência',
-    'não atendeu', 'não concordo'
+    'não atendeu', 'discordo', 'fraco', 'baixo', 'nunca', 'sem urgência',
+    'não concordo'
   ];
   if (badWords.some(w => key.includes(w))) return '#ef4444'; // red-500
   
