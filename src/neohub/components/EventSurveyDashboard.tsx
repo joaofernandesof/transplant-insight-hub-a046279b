@@ -750,39 +750,40 @@ function QuestionDetailView({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[200px]">
-              <div className="space-y-1">
-                {respondents.map((r, idx) => (
-                  <div 
-                    key={idx}
-                    className={`flex items-center justify-between p-2 rounded-md ${
-                      idx % 2 === 0 ? 'bg-muted/30' : ''
+            {/* Full list without scroll */}
+            <div className="space-y-1">
+              {respondents.map((r, idx) => (
+                <div 
+                  key={idx}
+                  className={`flex items-center justify-between p-2 rounded-md ${
+                    idx % 2 === 0 ? 'bg-muted/30' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-xs font-medium text-primary">
+                        {r.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="text-sm">{r.name}</span>
+                  </div>
+                  <Badge 
+                    variant="secondary"
+                    className={`text-xs ${
+                      r.value.toLowerCase().includes('excelente') || r.value.toLowerCase().includes('totalmente') || r.value.toLowerCase().includes('muito satisfeito')
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                        : r.value.toLowerCase().includes('ruim') || r.value.toLowerCase().includes('insuficiente') || r.value.toLowerCase().includes('não atendeu')
+                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                        : r.value.toLowerCase().includes('neutro') || r.value.toLowerCase().includes('parcialmente')
+                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">
-                          {r.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <span className="text-sm">{r.name}</span>
-                    </div>
-                    <Badge 
-                      variant="secondary"
-                      className={`text-xs ${
-                        r.value.toLowerCase().includes('excelente') || r.value.toLowerCase().includes('totalmente') 
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                          : r.value.toLowerCase().includes('ruim') || r.value.toLowerCase().includes('insuficiente')
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                      }`}
-                    >
-                      {r.value || '—'}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+                    {r.value || '—'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
