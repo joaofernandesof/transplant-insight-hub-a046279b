@@ -904,6 +904,207 @@ async function exportMatrixPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   await createPDFFromHTML(html, `matriz-notas-${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
+// TIMING PDF
+async function exportTimingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
+  const formatTimeFn = (seconds: number): string => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+  };
+  
+  const timing = analytics.timingAnalytics;
+  const students = analytics.responsesByStudent
+    .filter(s => s.totalTimeSeconds !== null && s.totalTimeSeconds !== undefined)
+    .sort((a, b) => (a.totalTimeSeconds ?? 0) - (b.totalTimeSeconds ?? 0));
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff;">
+      <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 24px 32px;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span style="font-size: 28px;">⏱️</span>
+          <h1 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">ANÁLISE DE TEMPOS DE RESPOSTA</h1>
+        </div>
+        <p style="text-align: center; color: rgba(255,255,255,0.85); font-size: 12px; margin: 8px 0 0 0;">
+          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </p>
+      </div>
+      
+      <div style="padding: 24px 32px;">
+        <!-- Summary Stats -->
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+          <div style="flex: 1; background: #f1f5f9; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #64748b;">Menor Tempo</p>
+            <p style="margin: 0; font-size: 24px; font-weight: 700; color: #475569;">${formatTimeFn(timing.minTotalTime)}</p>
+          </div>
+          <div style="flex: 1; background: #dbeafe; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #1d4ed8;">Tempo Médio</p>
+            <p style="margin: 0; font-size: 24px; font-weight: 700; color: #1d4ed8;">${formatTimeFn(timing.avgTotalTime)}</p>
+          </div>
+          <div style="flex: 1; background: #f3e8ff; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #7c3aed;">Maior Tempo</p>
+            <p style="margin: 0; font-size: 24px; font-weight: 700; color: #7c3aed;">${formatTimeFn(timing.maxTotalTime)}</p>
+          </div>
+          <div style="flex: 1; background: #dcfce7; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #16a34a;">Respostas Genuínas</p>
+            <p style="margin: 0; font-size: 24px; font-weight: 700; color: #16a34a;">${timing.genuineCount}</p>
+          </div>
+          <div style="flex: 1; background: #fee2e2; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="margin: 0 0 4px 0; font-size: 12px; color: #dc2626;">Suspeitas/Apressadas</p>
+            <p style="margin: 0; font-size: 24px; font-weight: 700; color: #dc2626;">${timing.suspiciousCount}</p>
+          </div>
+        </div>
+        
+        <!-- Student Time Table -->
+        <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 12px 0; color: #1f2937;">Tempo por Aluno</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="text-align: left; padding: 10px 12px; border: 1px solid #e2e8f0;">#</th>
+              <th style="text-align: left; padding: 10px 12px; border: 1px solid #e2e8f0;">Aluno</th>
+              <th style="text-align: center; padding: 10px 12px; border: 1px solid #e2e8f0;">Tempo Total</th>
+              <th style="text-align: center; padding: 10px 12px; border: 1px solid #e2e8f0;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${students.map((s, idx) => {
+              const time = s.totalTimeSeconds ?? 0;
+              const isSuspicious = time < 60;
+              return `
+                <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f9fafb'};">
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; color: #6b7280;">${idx + 1}</td>
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 500;">${s.userName}</td>
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center; font-weight: 600; color: ${isSuspicious ? '#dc2626' : '#059669'};">${formatTimeFn(time)}</td>
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center;">
+                    <span style="background: ${isSuspicious ? '#fee2e2' : '#dcfce7'}; color: ${isSuspicious ? '#dc2626' : '#16a34a'}; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                      ${isSuspicious ? '⚠️ Apressada' : '✓ Genuína'}
+                    </span>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      
+      <div style="background: #f8fafc; padding: 12px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+        <p style="margin: 0; font-size: 10px; color: #94a3b8;">Relatório de Análise de Tempos • Sistema de Pesquisa de Satisfação</p>
+      </div>
+    </div>
+  `;
+  
+  await createPDFFromHTML(html, `tempos-resposta-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// AI INSIGHTS PDF
+interface AIInsightsData {
+  scoreGeral?: number;
+  pontosCriticos?: { area: string; descricao: string; urgencia: string; impacto: string }[];
+  acoesSugeridas?: { acao: string; responsavel: string; prazo: string; prioridade: number }[];
+  pontosPositivos?: string[];
+  analiseGeral?: string;
+}
+
+async function exportInsightsPDF(analytics: NonNullable<SurveyAnalyticsData>, insights: AIInsightsData, generatedAt: Date | null) {
+  const score = insights.scoreGeral ?? 0;
+  const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : score >= 40 ? '#f59e0b' : '#ef4444';
+  const scoreBg = score >= 80 ? '#dcfce7' : score >= 60 ? '#dbeafe' : score >= 40 ? '#fef3c7' : '#fee2e2';
+  
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff;">
+      <div style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); padding: 24px 32px;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span style="font-size: 28px;">🤖</span>
+          <h1 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">INSIGHTS GERADOS POR IA</h1>
+        </div>
+        <p style="text-align: center; color: rgba(255,255,255,0.85); font-size: 12px; margin: 8px 0 0 0;">
+          Baseado em ${analytics.totalResponses} respostas • ${generatedAt ? `Gerado em ${generatedAt.toLocaleDateString('pt-BR')} às ${generatedAt.toLocaleTimeString('pt-BR')}` : 'Data não disponível'}
+        </p>
+      </div>
+      
+      <div style="padding: 24px 32px;">
+        <!-- Score Geral -->
+        <div style="background: ${scoreBg}; border-radius: 16px; padding: 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">Score Geral da Turma</p>
+            <p style="margin: 0; font-size: 48px; font-weight: 800; color: ${scoreColor};">${score}/100</p>
+          </div>
+          <div style="font-size: 48px;">${score >= 80 ? '👍' : score >= 60 ? '📈' : '⚠️'}</div>
+        </div>
+        
+        <!-- Two columns -->
+        <div style="display: flex; gap: 24px;">
+          <!-- Pontos Críticos -->
+          <div style="flex: 1;">
+            <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 12px 0; color: #dc2626; display: flex; align-items: center; gap: 8px;">
+              ⚠️ Pontos Críticos
+              <span style="background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 10px; font-size: 11px;">${insights.pontosCriticos?.length || 0}</span>
+            </h2>
+            ${insights.pontosCriticos?.map(p => `
+              <div style="background: #fef2f2; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 3px solid #dc2626;">
+                <div style="display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                  <span style="background: #fecaca; color: #991b1b; padding: 2px 8px; border-radius: 8px; font-size: 10px;">${p.area}</span>
+                  <span style="background: ${p.urgencia === 'Urgente' ? '#dc2626' : '#f97316'}; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px;">${p.urgencia}</span>
+                  <span style="background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 8px; font-size: 10px;">Impacto ${p.impacto}</span>
+                </div>
+                <p style="margin: 0; font-size: 12px; color: #374151;">${p.descricao}</p>
+              </div>
+            `).join('') || '<p style="color: #6b7280; font-size: 12px;">Nenhum ponto crítico identificado</p>'}
+          </div>
+          
+          <!-- Ações Sugeridas -->
+          <div style="flex: 1;">
+            <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 12px 0; color: #16a34a; display: flex; align-items: center; gap: 8px;">
+              ✅ Ações Sugeridas
+              <span style="background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 10px; font-size: 11px;">${insights.acoesSugeridas?.length || 0}</span>
+            </h2>
+            ${insights.acoesSugeridas?.map((a, idx) => `
+              <div style="background: #f0fdf4; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 3px solid #16a34a;">
+                <div style="display: flex; align-items: start; gap: 10px;">
+                  <span style="background: #16a34a; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;">${a.prioridade || idx + 1}</span>
+                  <div style="flex: 1;">
+                    <p style="margin: 0 0 6px 0; font-size: 12px; color: #374151;">${a.acao}</p>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                      <span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 8px; font-size: 10px;">👤 ${a.responsavel}</span>
+                      <span style="background: ${a.prazo === 'Imediato' ? '#fef3c7' : '#e0e7ff'}; color: ${a.prazo === 'Imediato' ? '#d97706' : '#4f46e5'}; padding: 2px 8px; border-radius: 8px; font-size: 10px;">📅 ${a.prazo}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('') || '<p style="color: #6b7280; font-size: 12px;">Nenhuma ação sugerida</p>'}
+          </div>
+        </div>
+        
+        ${insights.pontosPositivos && insights.pontosPositivos.length > 0 ? `
+          <!-- Pontos Positivos -->
+          <div style="margin-top: 24px;">
+            <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 12px 0; color: #059669;">🌟 Pontos Positivos</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              ${insights.pontosPositivos.map(p => `
+                <span style="background: #d1fae5; color: #065f46; padding: 6px 12px; border-radius: 10px; font-size: 12px;">${p}</span>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+        
+        ${insights.analiseGeral ? `
+          <!-- Análise Geral -->
+          <div style="margin-top: 24px; background: #f8fafc; border-radius: 12px; padding: 16px;">
+            <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: #374151;">📝 Análise Geral</h2>
+            <p style="margin: 0; font-size: 13px; color: #4b5563; line-height: 1.6;">${insights.analiseGeral}</p>
+          </div>
+        ` : ''}
+      </div>
+      
+      <div style="background: #f8fafc; padding: 12px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+        <p style="margin: 0; font-size: 10px; color: #94a3b8;">Relatório de Insights IA • Sistema de Pesquisa de Satisfação</p>
+      </div>
+    </div>
+  `;
+  
+  await createPDFFromHTML(html, `insights-ia-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
 /**
  * Universal gradient color function
  * Creates smooth red→yellow→green gradient based on percentage (0-100%)
@@ -1578,7 +1779,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     setDrilldownOpen(true);
   };
 
-  const handleExportPDF = async (tab: 'overview' | 'ranking' | 'questions' | 'students' | 'matrix') => {
+  const handleExportPDF = async (tab: 'overview' | 'ranking' | 'questions' | 'students' | 'matrix' | 'timing' | 'insights') => {
     if (!analytics) return;
     setExportingTab(tab);
     try {
@@ -1597,6 +1798,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           break;
         case 'matrix':
           await exportMatrixPDF(analytics);
+          break;
+        case 'timing':
+          await exportTimingPDF(analytics);
+          break;
+        case 'insights':
+          if (aiInsights) await exportInsightsPDF(analytics, aiInsights, aiInsightsGeneratedAt);
           break;
       }
     } finally {
@@ -2233,25 +2440,46 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   </div>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={generateAIInsights}
-                disabled={isLoadingInsights}
-                className="gap-2"
-              >
-                {isLoadingInsights ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Regenerando...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4" />
-                    Regenerar Análise
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleExportPDF('insights')}
+                  disabled={exportingTab === 'insights'}
+                  className="gap-2"
+                >
+                  {exportingTab === 'insights' ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Gerando PDF...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Exportar PDF
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={generateAIInsights}
+                  disabled={isLoadingInsights}
+                  className="gap-2"
+                >
+                  {isLoadingInsights ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Regenerando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4" />
+                      Regenerar Análise
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {/* Score Geral */}
@@ -2974,6 +3202,33 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
       {/* ============== TIMING ANALYSIS TAB ============== */}
       <TabsContent value="timing" className="space-y-4">
+        {/* Header with export button */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Análise de Tempos</h3>
+            <p className="text-sm text-muted-foreground">Tempo de resposta e credibilidade</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportPDF('timing')}
+            disabled={exportingTab === 'timing'}
+            className="flex items-center gap-2"
+          >
+            {exportingTab === 'timing' ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
+        </div>
+
         {/* Summary Stats - Single Row with all metrics */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-950/30 dark:to-slate-900/20 border-slate-200 dark:border-slate-800">
