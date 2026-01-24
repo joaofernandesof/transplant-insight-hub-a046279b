@@ -141,6 +141,25 @@ export default function ReferralLanding() {
         return;
       }
 
+      // Notify admin about new referral (fire and forget)
+      try {
+        await supabase.functions.invoke('notify-referral', {
+          body: {
+            name: formData.name.trim(),
+            email: formData.email.trim().toLowerCase(),
+            phone: formData.phone.trim(),
+            referrer_name: referrerName,
+            type: 'referral_lead',
+            city: formData.city.trim(),
+            state: formData.state,
+            interest: formData.interest,
+          }
+        });
+      } catch (notifyError) {
+        console.error('Error notifying admin:', notifyError);
+        // Don't throw - notification is not critical
+      }
+
       setIsSubmitted(true);
       toast.success('Cadastro realizado com sucesso!');
     } catch (error) {
