@@ -86,54 +86,65 @@ interface SurveyResponse {
   };
 }
 
-// Rating scale mapping (worst to best)
+// Rating scale mapping - NORMALIZED TO 0-10 scale
+// The scale for each answer option depends on how many options exist:
+// - 5 options: 0, 2.5, 5, 7.5, 10
+// - 4 options: 0, 3.33, 6.67, 10
+// - 3 options: 0, 5, 10
 const ratingScaleMap: Record<string, number> = {
-  // Qualidade (1-5)
-  pessimo: 1,
-  muito_ruim: 1,
-  ruim: 2,
-  regular: 3,
-  bom: 4,
-  excelente: 5,
+  // Qualidade 5 options (0, 2.5, 5, 7.5, 10)
+  pessimo: 0,
+  muito_ruim: 0,
+  ruim: 2.5,
+  regular: 5,
+  bom: 7.5,
+  excelente: 10,
 
-  // Satisfação geral (1-5)
-  muito_insatisfeito: 1,
-  insatisfeito: 2,
-  neutro: 3,
-  satisfeito: 4,
-  muito_satisfeito: 5,
+  // Satisfação geral 5 options (0, 2.5, 5, 7.5, 10)
+  muito_insatisfeito: 0,
+  insatisfeito: 2.5,
+  neutro: 5,
+  satisfeito: 7.5,
+  muito_satisfeito: 10,
 
-  // Concordância (1-5)
-  discordo_totalmente: 1,
-  discordo: 2,
-  concordo: 4,
-  concordo_totalmente: 5,
+  // Concordância 5 options (0, 2.5, 5, 7.5, 10)
+  discordo_totalmente: 0,
+  discordo: 2.5,
+  concordo: 7.5,
+  concordo_totalmente: 10,
 
-  // Expectativas (normalizado para 1/3/5)
-  nao_atendeu: 1,
-  atendeu_parcialmente: 3,
-  atendeu_totalmente: 5,
+  // Expectativas 3 options (0, 5, 10)
+  nao_atendeu: 0,
+  atendeu_parcialmente: 5,
+  atendeu_totalmente: 10,
 
-  // Tempo (normalizado para 1/3/5)
-  insuficiente: 1,
-  adequado: 3,
-  mais_do_que_suficiente: 5,
+  // Tempo 3 options (0, 5, 10)
+  insuficiente: 0,
+  adequado: 5,
+  mais_do_que_suficiente: 10,
 
-  // Legado / outras escalas usadas em outros formulários
-  muito_baixo: 1,
-  baixo: 2,
-  medio: 3,
-  alto: 4,
-  muito_alto: 5,
-  nenhum: 1,
-  pouco: 2,
-  moderado: 3,
-  bastante: 4,
-  total: 5,
-  parcialmente: 2,
-  atendeu: 3,
-  superou: 4,
-  superou_muito: 5,
+  // Níveis 5 options (0, 2.5, 5, 7.5, 10)
+  muito_baixo: 0,
+  baixo: 2.5,
+  medio: 5,
+  alto: 7.5,
+  muito_alto: 10,
+
+  // Quantidade 5 options
+  nenhum: 0,
+  pouco: 2.5,
+  moderado: 5,
+  bastante: 7.5,
+  total: 10,
+
+  // Expectativas alternativas
+  parcialmente: 2.5,
+  atendeu: 5,
+  superou: 7.5,
+  superou_muito: 10,
+
+  // Média urgência específica (3 options - meio da escala)
+  media_urgencia: 5,
 };
 
 const normalizeRatingKey = (value: string): string => {
@@ -160,6 +171,63 @@ const calculateAverage = (values: (number | null)[]): number => {
   const validValues = values.filter((v): v is number => v !== null);
   if (validValues.length === 0) return 0;
   return validValues.reduce((sum, v) => sum + v, 0) / validValues.length;
+};
+
+// Calculate student's overall score (0-10) from ALL their numeric responses
+const calculateStudentOverallScore = (r: SurveyResponse): number => {
+  const numericQuestions = [
+    r.q1_satisfaction_level,
+    r.q3_hygor_expectations,
+    r.q4_hygor_clarity,
+    r.q5_hygor_time,
+    r.q8_patrick_expectations,
+    r.q9_patrick_clarity,
+    r.q10_patrick_time,
+    r.q13_organization,
+    r.q14_content_relevance,
+    r.q15_teacher_competence,
+    r.q16_material_quality,
+    r.q17_punctuality,
+    r.q18_infrastructure,
+    r.q19_support_team,
+    r.q20_coffee_break,
+    r.q30_monitor_technical,
+    r.q31_monitor_interest,
+    r.q32_monitor_engagement,
+    r.q33_monitor_posture,
+    r.q34_monitor_communication,
+    r.q35_monitor_contribution,
+    r.q38_eder_technical,
+    r.q39_eder_interest,
+    r.q40_eder_engagement,
+    r.q41_eder_posture,
+    r.q42_eder_communication,
+    r.q43_eder_contribution,
+    r.q46_patrick_m_technical,
+    r.q47_patrick_m_interest,
+    r.q48_patrick_m_engagement,
+    r.q49_patrick_m_posture,
+    r.q50_patrick_m_communication,
+    r.q51_patrick_m_contribution,
+    r.q54_eder_m_technical,
+    r.q55_eder_m_interest,
+    r.q56_eder_m_engagement,
+    r.q57_eder_m_posture,
+    r.q58_eder_m_communication,
+    r.q59_eder_m_contribution,
+  ];
+
+  const scores = numericQuestions.map(q => getRatingValue(q)).filter((v): v is number => v !== null);
+  if (scores.length === 0) return 0;
+  return scores.reduce((sum, v) => sum + v, 0) / scores.length;
+};
+
+// Classify based on 0-10 score: 0-6 = Detrator, 7-8 = Neutro, 9-10 = Promotor
+type SatisfactionClassification = 'promotor' | 'neutro' | 'detrator';
+const classifyScore = (score: number): SatisfactionClassification => {
+  if (score >= 9) return 'promotor';
+  if (score >= 7) return 'neutro';
+  return 'detrator';
 };
 
 const calculateNPS = (satisfactionLevels: (string | null)[]): { score: number; promoters: number; passives: number; detractors: number } => {
@@ -246,6 +314,8 @@ export interface StudentDetailedResponse {
   avgTimePerQuestion: number | null;
   isCompleted: boolean;
   satisfaction: string | null;
+  overallScore: number; // 0-10 calculated from all numeric responses
+  satisfactionClass: 'promotor' | 'neutro' | 'detrator'; // Based on overallScore
   isFirstTime: boolean;
   isHotLead: boolean;
   answeredQuestions: number;
@@ -752,6 +822,10 @@ export function useSurveyAnalytics(classId: string | null) {
         }
         
         const credibility = calculateCredibility(totalTimeSeconds, progress.answered);
+        
+        // Calculate overall score (0-10) from all numeric responses
+        const overallScore = calculateStudentOverallScore(r);
+        const satisfactionClass = classifyScore(overallScore);
 
         return {
           userId: r.user_id,
@@ -762,6 +836,8 @@ export function useSurveyAnalytics(classId: string | null) {
           avgTimePerQuestion,
           isCompleted: r.is_completed || false,
           satisfaction: r.q1_satisfaction_level,
+          overallScore,
+          satisfactionClass,
           isFirstTime: r.q2_first_time_course || false,
           isHotLead: isHighUrgency(r.q25_urgency_level),
           answeredQuestions: progress.answered,
