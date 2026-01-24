@@ -383,27 +383,30 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   await createPDFFromHTML(html, `perguntas-${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
-// STUDENTS PDF (existing)
+// STUDENTS PDF - Fixed to work with html2canvas
 const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) => {
-  // Create a hidden container to render the content
-  const container = document.createElement('div');
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.style.top = '0';
-  container.style.width = '800px';
-  container.style.background = '#ffffff';
-  container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-  document.body.appendChild(container);
-
   // Helper function to get response color
   const getValueColor = (value: string): string => {
-    const positiveWords = ['excelente', 'ótimo', 'muito', 'totalmente', 'concordo', 'atendeu', 'perfeito', 'alta', 'bom', 'sim', 'mais de'];
-    const negativeWords = ['ruim', 'péssimo', 'não', 'insatisfeito', 'discordo', 'baixo', 'fraco', 'insuficiente'];
+    const key = value.toLowerCase().trim();
     
-    const lowerValue = value.toLowerCase();
-    if (positiveWords.some(w => lowerValue.includes(w))) return '#16a34a'; // green-600
-    if (negativeWords.some(w => lowerValue.includes(w))) return '#ea580c'; // orange-600
-    return '#3b82f6'; // blue-500
+    // Excellent - Green
+    const excellentWords = ['excelente', 'muito satisfeito', 'totalmente', 'atendeu plenamente', 
+      'mais do que suficiente', 'perfeito', 'ótimo', 'mais de 10', 'concordo totalmente', 'muito bom'];
+    if (excellentWords.some(w => key.includes(w))) return '#10b981';
+    
+    // Good - Blue
+    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu', 'de 5 a 10', 'suficiente', 'sim'];
+    if (goodWords.some(w => key.includes(w))) return '#3b82f6';
+    
+    // Medium - Yellow
+    const mediumWords = ['neutro', 'parcialmente', 'regular', 'médio', 'até 5', 'razoável'];
+    if (mediumWords.some(w => key.includes(w))) return '#f59e0b';
+    
+    // Bad - Red
+    const badWords = ['insuficiente', 'insatisfeito', 'ruim', 'péssimo', 'não', 'discordo', 'fraco', 'baixo'];
+    if (badWords.some(w => key.includes(w))) return '#ef4444';
+    
+    return '#64748b';
   };
 
   // Summary stats
@@ -411,141 +414,100 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
   const completedStudents = students.filter(s => s.isCompleted).length;
   const hotLeads = students.filter(s => s.isHotLead).length;
 
-  // Build the HTML content that mirrors the website
-  container.innerHTML = `
-    <div style="padding: 0;">
-      <!-- Green header bar -->
-      <div style="background: #16a34a; height: 20px; margin-bottom: 30px;"></div>
-      
-      <!-- Title section -->
-      <div style="text-align: center; margin-bottom: 25px; padding: 0 40px;">
-        <h1 style="font-size: 28px; font-weight: bold; color: #1f2937; margin: 0 0 8px 0;">Pesquisa de Satisfação</h1>
-        <p style="font-size: 14px; color: #6b7280; margin: 0 0 15px 0;">Respostas Detalhadas por Aluno</p>
-        
-        <!-- Date badge -->
-        <div style="display: inline-block; background: #f3f4f6; border-radius: 20px; padding: 6px 16px; font-size: 12px; color: #6b7280;">
-          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
-        </div>
-        
-        <!-- Stats -->
-        <p style="font-size: 13px; color: #1f2937; margin-top: 15px;">
-          ${totalStudents} alunos  •  ${completedStudents} completos  •  ${hotLeads} hot leads
-        </p>
+  // Build HTML
+  const html = `
+    <div style="padding: 0; font-family: system-ui, -apple-system, sans-serif;">
+      <!-- Header -->
+      <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); height: 80px; display: flex; align-items: center; justify-content: center;">
+        <h1 style="color: white; font-size: 24px; margin: 0;">👥 Análise Individual por Aluno</h1>
       </div>
       
-      <!-- Divider -->
-      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0 40px 30px 40px;">
-      
-      <!-- Student cards -->
-      ${students.map(student => {
-        const groupedResponses = student.responses.reduce((acc, r) => {
-          if (!acc[r.category]) acc[r.category] = [];
-          acc[r.category].push(r);
-          return acc;
-        }, {} as Record<string, typeof student.responses>);
+      <div style="padding: 30px 40px;">
+        <p style="text-align: center; color: #6b7280; font-size: 12px; margin-bottom: 20px;">
+          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </p>
+        
+        <!-- Stats -->
+        <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+          <div style="flex: 1; background: #eff6ff; border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; font-weight: bold; color: #1d4ed8;">${totalStudents}</div>
+            <div style="font-size: 11px; color: #6b7280;">Total Alunos</div>
+          </div>
+          <div style="flex: 1; background: #ecfdf5; border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; font-weight: bold; color: #059669;">${completedStudents}</div>
+            <div style="font-size: 11px; color: #6b7280;">Completos</div>
+          </div>
+          <div style="flex: 1; background: #fff7ed; border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; font-weight: bold; color: #ea580c;">${hotLeads}</div>
+            <div style="font-size: 11px; color: #6b7280;">Hot Leads</div>
+          </div>
+        </div>
+        
+        <!-- Student cards -->
+        ${students.map(student => {
+          const groupedResponses = student.responses.reduce((acc, r) => {
+            if (!acc[r.category]) acc[r.category] = [];
+            acc[r.category].push(r);
+            return acc;
+          }, {} as Record<string, typeof student.responses>);
 
-        return `
-          <div style="margin: 0 40px 30px 40px;">
-            <!-- Student header card -->
-            <div style="background: #f3f4f6; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; margin-bottom: 16px;">
-              <!-- Avatar -->
-              <div style="width: 48px; height: 48px; border-radius: 50%; background: #16a34a; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold; margin-right: 15px;">
-                ${student.userName.charAt(0).toUpperCase()}
-              </div>
-              
-              <!-- Name and status -->
-              <div style="flex: 1;">
-                <div style="font-size: 16px; font-weight: bold; color: #1f2937;">${student.userName}</div>
-                <div style="font-size: 12px; color: #16a34a; font-family: monospace;">
-                  ${student.isCompleted && student.completedAt ? `✓ Completou em ${student.completedAt}` : `Em andamento (${student.progressPercent}%)`}
+          return `
+            <div style="margin-bottom: 30px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+              <!-- Student header -->
+              <div style="background: ${student.isHotLead ? '#fff7ed' : '#f9fafb'}; padding: 16px 20px; display: flex; align-items: center; border-bottom: 1px solid #e5e7eb;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: ${student.isHotLead ? '#f97316' : '#3b82f6'}; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold; margin-right: 15px;">
+                  ${student.userName.charAt(0).toUpperCase()}
                 </div>
+                <div style="flex: 1;">
+                  <div style="font-size: 16px; font-weight: bold; color: #1f2937;">
+                    ${student.userName}
+                    ${student.isHotLead ? ' 🔥' : ''}
+                  </div>
+                  <div style="font-size: 12px; color: ${student.isCompleted ? '#16a34a' : '#ca8a04'};">
+                    ${student.isCompleted ? '✓ Completou' : `Em andamento (${student.progressPercent}%)`}
+                  </div>
+                </div>
+                ${student.satisfaction ? `
+                  <div style="background: ${
+                    student.satisfaction.toLowerCase().includes('muito satisfeito') ? '#dcfce7' :
+                    student.satisfaction.toLowerCase().includes('satisfeito') ? '#dbeafe' :
+                    student.satisfaction.toLowerCase().includes('neutro') ? '#fef9c3' :
+                    '#fee2e2'
+                  }; color: ${
+                    student.satisfaction.toLowerCase().includes('muito satisfeito') ? '#166534' :
+                    student.satisfaction.toLowerCase().includes('satisfeito') ? '#1e40af' :
+                    student.satisfaction.toLowerCase().includes('neutro') ? '#854d0e' :
+                    '#b91c1c'
+                  }; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                    ${student.satisfaction}
+                  </div>
+                ` : ''}
               </div>
               
-              <!-- Badges -->
-              <div style="display: flex; gap: 8px;">
-                ${student.isHotLead ? `
-                  <span style="background: #ffedd5; color: #ea580c; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">
-                    🔥 Hot Lead
-                  </span>
-                ` : ''}
-                <span style="background: ${student.isCompleted ? '#dcfce7' : '#e5e7eb'}; color: ${student.isCompleted ? '#16a34a' : '#6b7280'}; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">
-                  ${student.isCompleted ? 'Completo' : `${student.progressPercent}%`}
-                </span>
-              </div>
-            </div>
-            
-            <!-- Responses by category -->
-            ${Object.entries(groupedResponses).map(([category, responses]) => `
-              <div style="margin-bottom: 16px;">
-                <h3 style="font-size: 13px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">${category}</h3>
-                ${(responses as typeof student.responses).map((r, idx) => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: ${idx % 2 === 0 ? '#f9fafb' : 'transparent'}; border-radius: 6px;">
-                    <span style="font-size: 13px; color: #6b7280;">${r.questionLabel}</span>
-                    <span style="font-size: 13px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#9ca3af'};">
-                      ${r.value || '—'}
-                    </span>
+              <!-- Responses -->
+              <div style="padding: 16px 20px;">
+                ${Object.entries(groupedResponses).map(([category, responses]) => `
+                  <div style="margin-bottom: 16px;">
+                    <h3 style="font-size: 12px; font-weight: 600; color: #6b7280; margin: 0 0 8px 0; text-transform: uppercase;">${category}</h3>
+                    ${(responses as typeof student.responses).map((r, idx) => `
+                      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: ${idx % 2 === 0 ? '#f9fafb' : 'white'}; border-radius: 6px;">
+                        <span style="font-size: 12px; color: #4b5563;">${r.questionLabel}</span>
+                        <span style="font-size: 12px; font-weight: 600; color: ${r.value ? getValueColor(r.value) : '#9ca3af'};">
+                          ${r.value || '—'}
+                        </span>
+                      </div>
+                    `).join('')}
                   </div>
                 `).join('')}
               </div>
-            `).join('')}
-          </div>
-          
-          <!-- Divider between students -->
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0 80px 30px 80px;">
-        `;
-      }).join('')}
+            </div>
+          `;
+        }).join('')}
+      </div>
     </div>
   `;
-
-  try {
-    // Capture the container as canvas
-    const canvas = await html2canvas(container, {
-      scale: 2, // Higher quality
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-    });
-
-    // Calculate PDF dimensions (A4)
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    
-    // Convert canvas to image
-    const imgData = canvas.toDataURL('image/png');
-    const imgWidth = pdfWidth;
-    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-    
-    // Add pages as needed
-    let heightLeft = imgHeight;
-    let position = 0;
-    
-    // First page
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pdfHeight;
-    
-    // Additional pages if content is longer
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-    }
-    
-    // Add page numbers
-    const pageCount = pdf.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      pdf.setPage(i);
-      pdf.setFontSize(8);
-      pdf.setTextColor(107, 114, 128);
-      pdf.text(`Página ${i} de ${pageCount}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
-    }
-    
-    pdf.save(`pesquisa-satisfacao-${new Date().toISOString().split('T')[0]}.pdf`);
-  } finally {
-    // Clean up
-    document.body.removeChild(container);
-  }
+  
+  await createPDFFromHTML(html, `alunos-pesquisa-${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
 const getRatingColor = (value: number): string => {
@@ -1567,72 +1529,71 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               />
             </div>
 
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-1.5">
-                {filteredStudents.map((student) => (
-                  <div
-                    key={student.userId}
-                    className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
-                      selectedStudent?.userId === student.userId
-                        ? 'border-primary bg-primary/5'
-                        : student.isHotLead
-                        ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 hover:bg-orange-100'
-                        : 'hover:bg-muted/50'
-                    }`}
-                    onClick={() => setSelectedStudent(student)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className={student.isHotLead ? 'bg-orange-100 text-orange-700' : ''}>
-                          {student.userName.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium flex items-center gap-1.5">
-                          {student.userName}
-                          {student.isHotLead && <Flame className="h-3 w-3 text-orange-500" />}
-                          {student.isFirstTime && (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0">1ª vez</Badge>
-                          )}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {student.isCompleted ? (
-                            <span className="text-emerald-600">Completou</span>
-                          ) : (
-                            <span className="text-yellow-600">
-                              {student.answeredQuestions}/{student.totalQuestions} ({student.progressPercent}%)
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!student.isCompleted && (
-                        <Progress value={student.progressPercent} className="w-12 h-1.5" />
-                      )}
-                      {student.satisfaction && (
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] ${
-                            student.satisfaction.toLowerCase().includes('muito satisfeito') ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
-                            student.satisfaction.toLowerCase().includes('satisfeito') ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                            student.satisfaction.toLowerCase().includes('neutro') ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                            'bg-red-100 text-red-700 border-red-200'
-                          }`}
-                        >
-                          {student.satisfaction}
-                        </Badge>
-                      )}
-                      {student.isCompleted ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      ) : (
-                        <Clock className="h-4 w-4 text-yellow-500" />
-                      )}
+            {/* Students List - Full list without scroll */}
+            <div className="space-y-1.5">
+              {filteredStudents.map((student) => (
+                <div
+                  key={student.userId}
+                  className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
+                    selectedStudent?.userId === student.userId
+                      ? 'border-primary bg-primary/5'
+                      : student.isHotLead
+                      ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 hover:bg-orange-100'
+                      : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => setSelectedStudent(student)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className={student.isHotLead ? 'bg-orange-100 text-orange-700' : ''}>
+                        {student.userName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium flex items-center gap-1.5">
+                        {student.userName}
+                        {student.isHotLead && <Flame className="h-3 w-3 text-orange-500" />}
+                        {student.isFirstTime && (
+                          <Badge variant="outline" className="text-[10px] px-1 py-0">1ª vez</Badge>
+                        )}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {student.isCompleted ? (
+                          <span className="text-emerald-600">Completou</span>
+                        ) : (
+                          <span className="text-yellow-600">
+                            {student.answeredQuestions}/{student.totalQuestions} ({student.progressPercent}%)
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
+                  <div className="flex items-center gap-2">
+                    {!student.isCompleted && (
+                      <Progress value={student.progressPercent} className="w-12 h-1.5" />
+                    )}
+                    {student.satisfaction && (
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] ${
+                          student.satisfaction.toLowerCase().includes('muito satisfeito') ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                          student.satisfaction.toLowerCase().includes('satisfeito') ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                          student.satisfaction.toLowerCase().includes('neutro') ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                          'bg-red-100 text-red-700 border-red-200'
+                        }`}
+                      >
+                        {student.satisfaction}
+                      </Badge>
+                    )}
+                    {student.isCompleted ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                      <Clock className="h-4 w-4 text-yellow-500" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
