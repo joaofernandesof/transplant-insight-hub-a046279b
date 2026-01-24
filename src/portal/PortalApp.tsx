@@ -6,6 +6,7 @@ import PortalLanding from './pages/PortalLanding';
 import PortalRegister from './pages/PortalRegister';
 import PortalHome from './pages/PortalHome';
 import PortalSettings from './pages/PortalSettings';
+import InventoryDashboard from './pages/dashboards/InventoryDashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import MyAppointments from './pages/MyAppointments';
@@ -72,6 +73,7 @@ function PortalRoutes() {
       <Route path="reports/financial" element={<ProtectedRoute><PlaceholderPage title="Relatórios Financeiros" /></ProtectedRoute>} />
 
       {/* Inventory */}
+      <Route path="inventory" element={<ProtectedRoute><InventoryDashboard /></ProtectedRoute>} />
       <Route path="inventory/items" element={<ProtectedRoute><PlaceholderPage title="Itens de Estoque" /></ProtectedRoute>} />
       <Route path="inventory/movements" element={<ProtectedRoute><PlaceholderPage title="Movimentações" /></ProtectedRoute>} />
       <Route path="inventory/suppliers" element={<ProtectedRoute><PlaceholderPage title="Fornecedores" /></ProtectedRoute>} />
