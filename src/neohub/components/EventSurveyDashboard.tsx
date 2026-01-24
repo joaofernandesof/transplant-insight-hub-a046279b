@@ -96,6 +96,294 @@ const getWordFrequency = (texts: string[]): { word: string; count: number }[] =>
     .slice(0, 30);
 };
 
+// ============== PDF EXPORT HELPERS ==============
+type SurveyAnalyticsData = ReturnType<typeof useSurveyAnalytics>['data'];
+
+async function createPDFFromHTML(htmlContent: string, filename: string) {
+  const container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = '800px';
+  container.style.background = '#ffffff';
+  container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+  document.body.appendChild(container);
+  container.innerHTML = htmlContent;
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    
+    const imgData = canvas.toDataURL('image/png');
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+    
+    let heightLeft = imgHeight;
+    let position = 0;
+    
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+    
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+    
+    const pageCount = pdf.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(8);
+      pdf.setTextColor(107, 114, 128);
+      pdf.text(`Página ${i} de ${pageCount}`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+    }
+    
+    pdf.save(filename);
+  } finally {
+    document.body.removeChild(container);
+  }
+}
+
+// OVERVIEW PDF
+async function exportOverviewPDF(analytics: NonNullable<SurveyAnalyticsData>) {
+  const satisfactionData = [
+    { label: 'Muito satisfeito', value: 0, color: '#10b981' },
+    { label: 'Satisfeito', value: 0, color: '#22c55e' },
+    { label: 'Neutro', value: 0, color: '#f59e0b' },
+    { label: 'Insatisfeito', value: 0, color: '#f97316' },
+    { label: 'Muito insatisfeito', value: 0, color: '#ef4444' },
+  ];
+  
+  analytics.responsesByStudent.forEach(r => {
+    if (r.satisfaction) {
+      const item = satisfactionData.find(s => s.label.toLowerCase() === r.satisfaction?.toLowerCase());
+      if (item) item.value++;
+    }
+  });
+
+  const html = `
+    <div style="padding: 0;">
+      <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); height: 80px; display: flex; align-items: center; justify-content: center;">
+        <h1 style="color: white; font-size: 24px; margin: 0;">📊 Visão Geral - Pesquisa de Satisfação</h1>
+      </div>
+      
+      <div style="padding: 30px 40px;">
+        <p style="text-align: center; color: #6b7280; font-size: 12px; margin-bottom: 30px;">
+          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </p>
+        
+        <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+          <div style="flex: 1; background: #eff6ff; border-radius: 12px; padding: 20px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #1d4ed8;">${analytics.totalResponses}</div>
+            <div style="font-size: 12px; color: #6b7280;">Respostas</div>
+          </div>
+          <div style="flex: 1; background: #ecfdf5; border-radius: 12px; padding: 20px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #059669;">${analytics.completionRate}%</div>
+            <div style="font-size: 12px; color: #6b7280;">Conclusão</div>
+          </div>
+          <div style="flex: 1; background: ${analytics.nps.score >= 50 ? '#ecfdf5' : analytics.nps.score >= 0 ? '#fef9c3' : '#fee2e2'}; border-radius: 12px; padding: 20px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: ${analytics.nps.score >= 50 ? '#059669' : analytics.nps.score >= 0 ? '#ca8a04' : '#dc2626'};">${analytics.nps.score}</div>
+            <div style="font-size: 12px; color: #6b7280;">NPS</div>
+          </div>
+          <div style="flex: 1; background: #f3e8ff; border-radius: 12px; padding: 20px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #7c3aed;">${analytics.overallSatisfaction.toFixed(1)}</div>
+            <div style="font-size: 12px; color: #6b7280;">Satisfação</div>
+          </div>
+        </div>
+        
+        <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 16px 0;">Distribuição de Satisfação</h3>
+          ${satisfactionData.map(s => `
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+              <span style="width: 140px; font-size: 12px; color: #6b7280;">${s.label}</span>
+              <div style="flex: 1; height: 24px; background: #e5e7eb; border-radius: 4px; margin-right: 12px; overflow: hidden;">
+                <div style="width: ${analytics.totalResponses > 0 ? (s.value / analytics.totalResponses) * 100 : 0}%; height: 100%; background: ${s.color}; border-radius: 4px;"></div>
+              </div>
+              <span style="font-size: 14px; font-weight: 600; color: #1f2937; width: 30px; text-align: right;">${s.value}</span>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 16px 0;">Distribuição NPS</h3>
+          <div style="display: flex; gap: 16px;">
+            <div style="flex: 1; text-align: center; padding: 16px; background: #ecfdf5; border-radius: 8px;">
+              <div style="font-size: 24px; font-weight: bold; color: #10b981;">${analytics.nps.promoters}</div>
+              <div style="font-size: 11px; color: #6b7280;">Promotores</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 16px; background: #fef9c3; border-radius: 8px;">
+              <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${analytics.nps.passives}</div>
+              <div style="font-size: 11px; color: #6b7280;">Passivos</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 16px; background: #fee2e2; border-radius: 8px;">
+              <div style="font-size: 24px; font-weight: bold; color: #ef4444;">${analytics.nps.detractors}</div>
+              <div style="font-size: 11px; color: #6b7280;">Detratores</div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 20px;">
+          <div style="flex: 1; background: #ecfdf5; border-radius: 12px; padding: 20px;">
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 12px 0; color: #059669;">💚 O Que Mais Gostaram</h3>
+            ${analytics.openFeedback.likedMost.slice(0, 5).map(f => `
+              <div style="background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 12px;">
+                <p style="margin: 0 0 4px 0; color: #1f2937;">"${f.text}"</p>
+                <p style="margin: 0; font-size: 11px; color: #059669; font-weight: 500;">— ${f.author}</p>
+              </div>
+            `).join('') || '<p style="font-size: 12px; color: #6b7280;">Nenhum feedback</p>'}
+          </div>
+          <div style="flex: 1; background: #fef9c3; border-radius: 12px; padding: 20px;">
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 12px 0; color: #ca8a04;">💡 Sugestões de Melhoria</h3>
+            ${analytics.openFeedback.suggestions.slice(0, 5).map(f => `
+              <div style="background: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 12px;">
+                <p style="margin: 0 0 4px 0; color: #1f2937;">"${f.text}"</p>
+                <p style="margin: 0; font-size: 11px; color: #ca8a04; font-weight: 500;">— ${f.author}</p>
+              </div>
+            `).join('') || '<p style="font-size: 12px; color: #6b7280;">Nenhuma sugestão</p>'}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  await createPDFFromHTML(html, `visao-geral-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// RANKING PDF
+async function exportRankingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
+  const sortedRankings = [...analytics.questionRankings].sort((a, b) => b.avgRating - a.avgRating);
+  
+  const getRatingColorFn = (value: number): string => {
+    if (value >= 4.5) return '#10b981';
+    if (value >= 3.5) return '#3b82f6';
+    if (value >= 2.5) return '#f59e0b';
+    if (value >= 1.5) return '#f97316';
+    return '#ef4444';
+  };
+
+  const html = `
+    <div style="padding: 0;">
+      <div style="background: linear-gradient(135deg, #f59e0b, #ea580c); height: 80px; display: flex; align-items: center; justify-content: center;">
+        <h1 style="color: white; font-size: 24px; margin: 0;">🏆 Ranking de Perguntas</h1>
+      </div>
+      
+      <div style="padding: 30px 40px;">
+        <p style="text-align: center; color: #6b7280; font-size: 12px; margin-bottom: 30px;">
+          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </p>
+        
+        ${sortedRankings.map((q, idx) => `
+          <div style="display: flex; align-items: center; padding: 12px 16px; background: ${idx % 2 === 0 ? '#f9fafb' : 'white'}; border-radius: 8px; margin-bottom: 4px;">
+            <span style="width: 40px; font-size: 18px; font-weight: bold; color: ${idx === 0 ? '#f59e0b' : idx === 1 ? '#94a3b8' : idx === 2 ? '#cd7f32' : '#6b7280'};">
+              #${idx + 1}
+            </span>
+            <div style="flex: 1;">
+              <p style="margin: 0; font-size: 13px; font-weight: 500; color: #1f2937;">${q.questionLabel}</p>
+              <span style="font-size: 11px; color: #6b7280; background: #e5e7eb; padding: 2px 8px; border-radius: 10px;">${q.category}</span>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 11px; color: #6b7280;">${q.responseCount} respostas</span>
+              <div style="font-size: 20px; font-weight: bold; color: ${getRatingColorFn(q.avgRating)};">${q.avgRating.toFixed(1)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  
+  await createPDFFromHTML(html, `ranking-perguntas-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// QUESTIONS PDF
+async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
+  const getRatingColorFn = (value: number): string => {
+    if (value >= 4.5) return '#10b981';
+    if (value >= 3.5) return '#3b82f6';
+    if (value >= 2.5) return '#f59e0b';
+    if (value >= 1.5) return '#f97316';
+    return '#ef4444';
+  };
+  
+  const categories = [...new Set(analytics.allQuestions.map(q => q.category))];
+
+  const html = `
+    <div style="padding: 0;">
+      <div style="background: linear-gradient(135deg, #8b5cf6, #6366f1); height: 80px; display: flex; align-items: center; justify-content: center;">
+        <h1 style="color: white; font-size: 24px; margin: 0;">📝 Análise por Perguntas</h1>
+      </div>
+      
+      <div style="padding: 30px 40px;">
+        <p style="text-align: center; color: #6b7280; font-size: 12px; margin-bottom: 30px;">
+          Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+          <br/>${analytics.allQuestions.length} perguntas analisadas
+        </p>
+        
+        ${categories.map(category => {
+          const questionsInCategory = analytics.allQuestions.filter(q => q.category === category);
+          return `
+            <div style="margin-bottom: 30px;">
+              <h2 style="font-size: 16px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;">
+                ${category}
+              </h2>
+              ${questionsInCategory.map((q, idx) => {
+                const respondents = analytics.responsesByStudent
+                  .map(student => {
+                    const response = student.responses.find(r => r.questionKey === q.questionKey);
+                    return response ? { name: student.userName, value: response.value || '' } : null;
+                  })
+                  .filter((r): r is { name: string; value: string } => r !== null && r.value !== '');
+                
+                return `
+                  <div style="background: ${idx % 2 === 0 ? '#f9fafb' : 'white'}; padding: 16px; border-radius: 8px; margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                      <p style="margin: 0; font-size: 13px; font-weight: 500; color: #1f2937; flex: 1;">${q.questionLabel}</p>
+                      <div style="background: ${q.avgRating >= 4.5 ? '#ecfdf5' : q.avgRating >= 3.5 ? '#eff6ff' : q.avgRating >= 2.5 ? '#fef9c3' : '#fee2e2'}; padding: 6px 12px; border-radius: 8px; margin-left: 12px;">
+                        <span style="font-size: 18px; font-weight: bold; color: ${getRatingColorFn(q.avgRating)};">${q.avgRating.toFixed(1)}</span>
+                      </div>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                      ${Object.entries(q.distribution).map(([key, value]) => `
+                        <span style="background: #e5e7eb; padding: 4px 8px; border-radius: 12px; font-size: 11px; color: #374151;">
+                          ${key}: <strong>${value}</strong>
+                        </span>
+                      `).join('')}
+                    </div>
+                    ${respondents.length > 0 ? `
+                      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e5e7eb;">
+                        <p style="margin: 0 0 6px 0; font-size: 11px; color: #6b7280;">Quem respondeu:</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                          ${respondents.slice(0, 10).map(r => `
+                            <span style="background: #f3e8ff; color: #7c3aed; padding: 2px 8px; border-radius: 10px; font-size: 10px;">
+                              ${r.name}
+                            </span>
+                          `).join('')}
+                          ${respondents.length > 10 ? `<span style="font-size: 10px; color: #6b7280;">+${respondents.length - 10} mais</span>` : ''}
+                        </div>
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+  
+  await createPDFFromHTML(html, `perguntas-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// STUDENTS PDF (existing)
 const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) => {
   // Create a hidden container to render the content
   const container = document.createElement('div');
@@ -560,14 +848,28 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [selectedStudent, setSelectedStudent] = useState<StudentDetailedResponse | null>(null);
   const [studentSearch, setStudentSearch] = useState("");
   const [isExporting, setIsExporting] = useState(false);
+  const [exportingTab, setExportingTab] = useState<string | null>(null);
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = async (tab: 'overview' | 'ranking' | 'questions' | 'students') => {
     if (!analytics) return;
-    setIsExporting(true);
+    setExportingTab(tab);
     try {
-      await exportStudentResponsesPDF(analytics.responsesByStudent);
+      switch (tab) {
+        case 'overview':
+          await exportOverviewPDF(analytics);
+          break;
+        case 'ranking':
+          await exportRankingPDF(analytics);
+          break;
+        case 'questions':
+          await exportQuestionsPDF(analytics);
+          break;
+        case 'students':
+          await exportStudentResponsesPDF(analytics.responsesByStudent);
+          break;
+      }
     } finally {
-      setIsExporting(false);
+      setExportingTab(null);
     }
   };
 
@@ -682,6 +984,29 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
       {/* ============== OVERVIEW TAB ============== */}
       <TabsContent value="overview" className="space-y-6">
+        {/* Header with export button */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportPDF('overview')}
+            disabled={exportingTab === 'overview'}
+            className="flex items-center gap-2"
+          >
+            {exportingTab === 'overview' ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
+        </div>
+        
         {/* Header Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200/50">
@@ -930,6 +1255,29 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
       {/* ============== RANKING TAB ============== */}
       <TabsContent value="ranking" className="space-y-4">
+        {/* Header with export button */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportPDF('ranking')}
+            disabled={exportingTab === 'ranking'}
+            className="flex items-center gap-2"
+          >
+            {exportingTab === 'ranking' ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
+        </div>
+        
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -992,6 +1340,29 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
       {/* ============== QUESTIONS TAB ============== */}
       <TabsContent value="questions" className="space-y-4">
+        {/* Header with export button */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExportPDF('questions')}
+            disabled={exportingTab === 'questions'}
+            className="flex items-center gap-2"
+          >
+            {exportingTab === 'questions' ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           {/* LEFT SIDE - Questions List */}
           <Card className="h-fit">
@@ -1141,11 +1512,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleExportPDF}
-              disabled={isExporting}
+              onClick={() => handleExportPDF('students')}
+              disabled={exportingTab === 'students'}
               className="flex items-center gap-2"
             >
-              {isExporting ? (
+              {exportingTab === 'students' ? (
                 <>
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   Gerando PDF...
