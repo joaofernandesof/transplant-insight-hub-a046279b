@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -1212,6 +1212,35 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [aiInsights, setAiInsights] = useState<any>(null);
   const [aiInsightsGeneratedAt, setAiInsightsGeneratedAt] = useState<Date | null>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+
+  // Load persisted AI insights on mount
+  useEffect(() => {
+    const loadPersistedInsights = async () => {
+      if (!classId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('survey_ai_insights')
+          .select('insights, generated_at')
+          .eq('class_id', classId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error loading persisted insights:', error);
+          return;
+        }
+        
+        if (data) {
+          setAiInsights(data.insights);
+          setAiInsightsGeneratedAt(new Date(data.generated_at));
+        }
+      } catch (err) {
+        console.error('Error loading insights:', err);
+      }
+    };
+    
+    loadPersistedInsights();
+  }, [classId]);
   
   // Drill-down dialog state
   const [drilldownOpen, setDrilldownOpen] = useState(false);
@@ -1388,7 +1417,22 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
       if (error) throw error;
       
       setAiInsights(data.insights);
-      setAiInsightsGeneratedAt(new Date());
+      const generatedAt = new Date();
+      setAiInsightsGeneratedAt(generatedAt);
+      
+      // Persist insights to database
+      if (classId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase
+          .from('survey_ai_insights')
+          .upsert({
+            class_id: classId,
+            insights: data.insights,
+            generated_at: generatedAt.toISOString(),
+            generated_by: user?.id || null,
+          }, { onConflict: 'class_id' });
+      }
+      
       toast.success("Insights gerados com sucesso!");
     } catch (err) {
       console.error("Error generating insights:", err);
