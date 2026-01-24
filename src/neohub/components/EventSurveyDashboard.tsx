@@ -79,12 +79,53 @@ interface EventSurveyDashboardProps {
 
 const NPS_COLORS = { promoters: '#10b981', passives: '#f59e0b', detractors: '#ef4444' };
 
+// Classification labels based on score (0-10)
+// 0-6 = Detrator, 7-8 = Neutro, 9-10 = Promotor
+const SATISFACTION_CLASS_CONFIG = {
+  promotor: { 
+    label: 'Promotor', 
+    shortLabel: 'Promotor', 
+    color: '#10b981', 
+    bg: 'bg-emerald-100', 
+    text: 'text-emerald-700', 
+    border: 'border-emerald-200',
+    bgHex: '#dcfce7',
+    textHex: '#166534',
+    borderHex: '#86efac',
+  },
+  neutro: { 
+    label: 'Neutro', 
+    shortLabel: 'Neutro', 
+    color: '#f59e0b', 
+    bg: 'bg-yellow-100', 
+    text: 'text-yellow-700', 
+    border: 'border-yellow-200',
+    bgHex: '#fef3c7',
+    textHex: '#92400e',
+    borderHex: '#fcd34d',
+  },
+  detrator: { 
+    label: 'Detrator', 
+    shortLabel: 'Detrator', 
+    color: '#ef4444', 
+    bg: 'bg-red-100', 
+    text: 'text-red-700', 
+    border: 'border-red-200',
+    bgHex: '#fee2e2',
+    textHex: '#991b1b',
+    borderHex: '#fca5a5',
+  },
+};
+
+// Get classification config for a student based on their calculated satisfactionClass
+const getSatisfactionClassConfig = (satisfactionClass: 'promotor' | 'neutro' | 'detrator') => {
+  return SATISFACTION_CLASS_CONFIG[satisfactionClass];
+};
+
 const ALL_SATISFACTION_LEVELS = [
-  { key: 'Muito satisfeito', label: 'Muito satisfeito', color: '#10b981' },
-  { key: 'Satisfeito', label: 'Satisfeito', color: '#22c55e' },
-  { key: 'Neutro', label: 'Neutro', color: '#f59e0b' },
-  { key: 'Insatisfeito', label: 'Insatisfeito', color: '#f97316' },
-  { key: 'Muito insatisfeito', label: 'Muito insatisfeito', color: '#ef4444' },
+  { key: 'promotor', label: 'Promotor (9-10)', color: '#10b981' },
+  { key: 'neutro', label: 'Neutro (7-8)', color: '#f59e0b' },
+  { key: 'detrator', label: 'Detrator (0-6)', color: '#ef4444' },
 ];
 
 const ALL_URGENCY_LEVELS = [
@@ -439,13 +480,10 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
     return '#475569';
   };
 
-  // Get badge colors matching the site exactly
-  const getSatisfactionBadgeStyle = (satisfaction: string) => {
-    const s = satisfaction.toLowerCase();
-    if (s.includes('muito satisfeito')) return { bg: '#dcfce7', color: '#166534', border: '#86efac' };
-    if (s.includes('satisfeito')) return { bg: '#dbeafe', color: '#1e40af', border: '#93c5fd' };
-    if (s.includes('neutro')) return { bg: '#fef3c7', color: '#92400e', border: '#fcd34d' };
-    return { bg: '#fee2e2', color: '#991b1b', border: '#fca5a5' };
+  // Get badge colors for PDF based on satisfaction class
+  const getSatisfactionBadgeStyleForClass = (satisfactionClass: 'promotor' | 'neutro' | 'detrator') => {
+    const config = SATISFACTION_CLASS_CONFIG[satisfactionClass];
+    return { bg: config.bgHex, color: config.textHex, border: config.borderHex, label: config.label };
   };
 
   // Stats
@@ -490,7 +528,7 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
             return acc;
           }, {} as Record<string, typeof student.responses>);
           
-          const satisfactionStyle = student.satisfaction ? getSatisfactionBadgeStyle(student.satisfaction) : null;
+          const satisfactionStyle = getSatisfactionBadgeStyleForClass(student.satisfactionClass);
 
           return `
             <div style="margin-bottom: 24px; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
@@ -515,11 +553,9 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
                   </div>
                   
                   <!-- Satisfaction badge -->
-                  ${satisfactionStyle ? `
-                    <div style="background: ${satisfactionStyle.bg}; color: ${satisfactionStyle.color}; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid ${satisfactionStyle.border};">
-                      ${student.satisfaction}
-                    </div>
-                  ` : ''}
+                  <div style="background: ${satisfactionStyle.bg}; color: ${satisfactionStyle.color}; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid ${satisfactionStyle.border};">
+                    ${satisfactionStyle.label} (${student.overallScore.toFixed(1)})
+                  </div>
                 </div>
               </div>
               
@@ -817,6 +853,8 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
     return acc;
   }, {} as Record<string, typeof student.responses>);
 
+  const classConfig = getSatisfactionClassConfig(student.satisfactionClass);
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -844,16 +882,14 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
               )}
             </CardDescription>
           </div>
-          {student.satisfaction && (
-            <Badge className={`${
-              student.satisfaction.toLowerCase().includes('muito satisfeito') ? 'bg-emerald-100 text-emerald-700' :
-              student.satisfaction.toLowerCase().includes('satisfeito') ? 'bg-blue-100 text-blue-700' :
-              student.satisfaction.toLowerCase().includes('neutro') ? 'bg-yellow-100 text-yellow-700' :
-              'bg-red-100 text-red-700'
-            }`}>
-              {student.satisfaction}
+          <div className="flex items-center gap-2">
+            <Badge className={`${classConfig.bg} ${classConfig.text}`}>
+              {classConfig.label}
             </Badge>
-          )}
+            <span className="text-sm font-semibold text-muted-foreground">
+              {student.overallScore.toFixed(1)}
+            </span>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -1096,26 +1132,25 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     );
   }
 
-  // Build chart data
-  const satisfactionDistribution: Record<string, number> = {};
+  // Build chart data - use new classification based on overallScore
+  const classificationDistribution: Record<string, number> = { promotor: 0, neutro: 0, detrator: 0 };
   analytics.responsesByStudent.forEach(r => {
-    if (r.satisfaction) {
-      satisfactionDistribution[r.satisfaction] = (satisfactionDistribution[r.satisfaction] || 0) + 1;
-    }
+    classificationDistribution[r.satisfactionClass] = (classificationDistribution[r.satisfactionClass] || 0) + 1;
   });
 
-  const satisfactionData = buildDistributionData(satisfactionDistribution, ALL_SATISFACTION_LEVELS);
+  const satisfactionData = [
+    { name: 'Promotor (9-10)', value: classificationDistribution.promotor, fill: '#10b981' },
+    { name: 'Neutro (7-8)', value: classificationDistribution.neutro, fill: '#f59e0b' },
+    { name: 'Detrator (0-6)', value: classificationDistribution.detrator, fill: '#ef4444' },
+  ].filter(s => s.value > 0);
+  
   const urgencyData = buildDistributionData(analytics.studentProfile.urgencyLevel, ALL_URGENCY_LEVELS);
   const weeklyTimeData = buildDistributionData(analytics.studentProfile.weeklyTime, ALL_WEEKLY_TIME);
 
-  // Distribuição de satisfação por nível
-  const satisfactionLevelDistribution = [
-    { name: 'Excelente (5)', value: satisfactionData.find(s => s.name.includes('Excelente'))?.value || 0, fill: '#10b981' },
-    { name: 'Bom (4)', value: satisfactionData.find(s => s.name.includes('Bom'))?.value || 0, fill: '#22c55e' },
-    { name: 'Neutro (3)', value: satisfactionData.find(s => s.name.includes('Neutro'))?.value || 0, fill: '#f59e0b' },
-    { name: 'Ruim (2)', value: satisfactionData.find(s => s.name.includes('Ruim') && !s.name.includes('Muito'))?.value || 0, fill: '#f97316' },
-    { name: 'Muito Ruim (1)', value: satisfactionData.find(s => s.name.includes('Muito Ruim'))?.value || 0, fill: '#ef4444' },
-  ];
+  // Satisfação média global (0-10)
+  const overallAvgScore = analytics.responsesByStudent.length > 0
+    ? analytics.responsesByStudent.reduce((sum, s) => sum + s.overallScore, 0) / analytics.responsesByStudent.length
+    : 0;
 
   const infrastructureData = [
     { name: 'Organização', value: analytics.infrastructure.organization },
@@ -1693,16 +1728,16 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardHeader>
             <CardContent className="pt-0">
               <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={satisfactionLevelDistribution} layout="vertical" margin={{ left: 10, right: 30 }}>
+                <BarChart data={satisfactionData} layout="vertical" margin={{ left: 10, right: 30 }}>
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 11 }} />
                   <Tooltip />
                   <Bar 
                     dataKey="value" 
                     radius={[0, 4, 4, 0]}
                     style={{ cursor: 'pointer' }}
                   >
-                    {satisfactionLevelDistribution.map((entry, index) => (
+                    {satisfactionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                     <LabelList dataKey="value" position="right" className="text-xs font-medium" />
@@ -2815,19 +2850,17 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     {!student.isCompleted && (
                       <Progress value={student.progressPercent} className="w-12 h-1.5" />
                     )}
-                    {student.satisfaction && (
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] ${
-                          student.satisfaction.toLowerCase().includes('muito satisfeito') ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
-                          student.satisfaction.toLowerCase().includes('satisfeito') ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                          student.satisfaction.toLowerCase().includes('neutro') ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                          'bg-red-100 text-red-700 border-red-200'
-                        }`}
-                      >
-                        {student.satisfaction}
-                      </Badge>
-                    )}
+                    {(() => {
+                      const classConfig = getSatisfactionClassConfig(student.satisfactionClass);
+                      return (
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] ${classConfig.bg} ${classConfig.text} ${classConfig.border}`}
+                        >
+                          {classConfig.label} ({student.overallScore.toFixed(1)})
+                        </Badge>
+                      );
+                    })()}
                     {student.isCompleted ? (
                       <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     ) : (
