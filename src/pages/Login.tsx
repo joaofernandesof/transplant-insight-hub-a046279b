@@ -5,7 +5,6 @@ import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft, Heart, Users, Gr
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
-import logoNeofolic from '@/assets/logo-byneofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PROFILE_ROUTES, NeoHubProfile } from '@/neohub/lib/permissions';
 
@@ -552,14 +551,6 @@ export default function Login() {
             )}
           </div>
 
-          {/* Footer logo */}
-          <div className="mt-6 flex justify-center">
-            <img 
-              src={logoNeofolic} 
-              alt="ByNeofolic" 
-              className="h-6 opacity-50 invert lg:invert-0 lg:dark:invert"
-            />
-          </div>
           
           {/* Safe area spacer for mobile */}
           <div className="h-4 sm:h-0" />
