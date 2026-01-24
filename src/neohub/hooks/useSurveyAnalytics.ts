@@ -240,7 +240,10 @@ export interface QuestionRating {
 export interface StudentDetailedResponse {
   userId: string;
   userName: string;
+  createdAt: string | null;
   completedAt: string | null;
+  totalTimeSeconds: number | null;
+  avgTimePerQuestion: number | null;
   isCompleted: boolean;
   satisfaction: string | null;
   isFirstTime: boolean;
@@ -248,12 +251,31 @@ export interface StudentDetailedResponse {
   answeredQuestions: number;
   totalQuestions: number;
   progressPercent: number;
+  credibilityScore: number; // 0-100, higher = more likely genuine
+  credibilityLevel: 'high' | 'medium' | 'low' | 'suspicious';
   responses: {
     questionKey: string;
     questionLabel: string;
     category: string;
     value: string | null;
     numericValue: number | null;
+  }[];
+}
+
+export interface TimingAnalytics {
+  avgTotalTime: number;
+  minTotalTime: number;
+  maxTotalTime: number;
+  avgTimePerQuestion: number;
+  suspiciousCount: number;
+  genuineCount: number;
+  studentsByCredibility: {
+    userId: string;
+    userName: string;
+    totalTimeSeconds: number;
+    avgTimePerQuestion: number;
+    credibilityScore: number;
+    credibilityLevel: 'high' | 'medium' | 'low' | 'suspicious';
   }[];
 }
 
@@ -283,6 +305,7 @@ export interface SurveyAnalytics {
   responsesByStudent: StudentDetailedResponse[];
   questionRankings: QuestionRating[];
   allQuestions: QuestionRating[];
+  timingAnalytics: TimingAnalytics;
 }
 
 export function useSurveyAnalytics(classId: string | null) {
@@ -674,6 +697,31 @@ export function useSurveyAnalytics(classId: string | null) {
         { key: 'q37_monitor_improve', label: 'Monitor - Melhoria', category: 'Monitor' },
       ];
 
+      // Helper to calculate credibility based on timing
+      const calculateCredibility = (totalTimeSeconds: number | null, answeredQuestions: number): { score: number; level: 'high' | 'medium' | 'low' | 'suspicious' } => {
+        if (totalTimeSeconds === null || answeredQuestions === 0) {
+          return { score: 50, level: 'medium' };
+        }
+        
+        const avgTimePerQuestion = totalTimeSeconds / answeredQuestions;
+        
+        // Thresholds: 
+        // < 3 seconds per question = suspicious (just clicking)
+        // 3-6 seconds = low credibility
+        // 6-12 seconds = medium credibility
+        // > 12 seconds = high credibility (actually reading)
+        
+        if (avgTimePerQuestion < 3) {
+          return { score: Math.max(0, Math.round(avgTimePerQuestion * 10)), level: 'suspicious' };
+        } else if (avgTimePerQuestion < 6) {
+          return { score: Math.round(30 + (avgTimePerQuestion - 3) * 10), level: 'low' };
+        } else if (avgTimePerQuestion < 12) {
+          return { score: Math.round(60 + (avgTimePerQuestion - 6) * 5), level: 'medium' };
+        } else {
+          return { score: Math.min(100, Math.round(90 + Math.min(avgTimePerQuestion - 12, 2) * 5)), level: 'high' };
+        }
+      };
+
       // Responses by student with full detail
       const responsesByStudent: StudentDetailedResponse[] = responses.map(r => {
         const progress = countAnsweredQuestions(r);
@@ -689,10 +737,30 @@ export function useSurveyAnalytics(classId: string | null) {
           };
         });
 
+        // Calculate timing
+        const createdAt = r.created_at;
+        const completedAt = r.completed_at;
+        let totalTimeSeconds: number | null = null;
+        let avgTimePerQuestion: number | null = null;
+        
+        if (createdAt && completedAt) {
+          const startDate = new Date(createdAt);
+          const endDate = new Date(completedAt);
+          totalTimeSeconds = Math.round((endDate.getTime() - startDate.getTime()) / 1000);
+          if (progress.answered > 0) {
+            avgTimePerQuestion = Math.round(totalTimeSeconds / progress.answered);
+          }
+        }
+        
+        const credibility = calculateCredibility(totalTimeSeconds, progress.answered);
+
         return {
           userId: r.user_id,
           userName: r.user_profiles?.full_name || 'Aluno',
+          createdAt,
           completedAt: r.completed_at,
+          totalTimeSeconds,
+          avgTimePerQuestion,
           isCompleted: r.is_completed || false,
           satisfaction: r.q1_satisfaction_level,
           isFirstTime: r.q2_first_time_course || false,
@@ -700,9 +768,41 @@ export function useSurveyAnalytics(classId: string | null) {
           answeredQuestions: progress.answered,
           totalQuestions: progress.total,
           progressPercent: Math.round((progress.answered / progress.total) * 100),
+          credibilityScore: credibility.score,
+          credibilityLevel: credibility.level,
           responses: studentResponses,
         };
       });
+
+      // Calculate timing analytics
+      const completedWithTiming = responsesByStudent.filter(s => s.totalTimeSeconds !== null && s.totalTimeSeconds > 0);
+      const timingAnalytics: TimingAnalytics = {
+        avgTotalTime: completedWithTiming.length > 0 
+          ? Math.round(completedWithTiming.reduce((sum, s) => sum + (s.totalTimeSeconds || 0), 0) / completedWithTiming.length)
+          : 0,
+        minTotalTime: completedWithTiming.length > 0 
+          ? Math.min(...completedWithTiming.map(s => s.totalTimeSeconds || 0))
+          : 0,
+        maxTotalTime: completedWithTiming.length > 0 
+          ? Math.max(...completedWithTiming.map(s => s.totalTimeSeconds || 0))
+          : 0,
+        avgTimePerQuestion: completedWithTiming.length > 0
+          ? Math.round(completedWithTiming.reduce((sum, s) => sum + (s.avgTimePerQuestion || 0), 0) / completedWithTiming.length)
+          : 0,
+        suspiciousCount: responsesByStudent.filter(s => s.credibilityLevel === 'suspicious' || s.credibilityLevel === 'low').length,
+        genuineCount: responsesByStudent.filter(s => s.credibilityLevel === 'high' || s.credibilityLevel === 'medium').length,
+        studentsByCredibility: responsesByStudent
+          .filter(s => s.totalTimeSeconds !== null)
+          .map(s => ({
+            userId: s.userId,
+            userName: s.userName,
+            totalTimeSeconds: s.totalTimeSeconds || 0,
+            avgTimePerQuestion: s.avgTimePerQuestion || 0,
+            credibilityScore: s.credibilityScore,
+            credibilityLevel: s.credibilityLevel,
+          }))
+          .sort((a, b) => b.credibilityScore - a.credibilityScore),
+      };
 
       return {
         totalResponses: responses.length,
@@ -727,6 +827,7 @@ export function useSurveyAnalytics(classId: string | null) {
         responsesByStudent,
         questionRankings,
         allQuestions,
+        timingAnalytics,
       };
     },
     enabled: !!classId,

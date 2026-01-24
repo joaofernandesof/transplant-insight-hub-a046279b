@@ -1193,28 +1193,40 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     s.userName.toLowerCase().includes(studentSearch.toLowerCase())
   );
 
+  // Format time helper
+  const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
   return (
     <Tabs defaultValue="overview" className="space-y-4">
-      <TabsList className="grid grid-cols-5 w-full max-w-3xl">
+      <TabsList className="grid grid-cols-6 w-full max-w-4xl">
         <TabsTrigger value="overview" className="flex items-center gap-1.5">
           <BarChart3 className="h-4 w-4" />
-          Visão Geral
+          <span className="hidden sm:inline">Visão Geral</span>
         </TabsTrigger>
         <TabsTrigger value="insights" className="flex items-center gap-1.5">
           <Sparkles className="h-4 w-4" />
-          Insights IA
+          <span className="hidden sm:inline">Insights IA</span>
+        </TabsTrigger>
+        <TabsTrigger value="timing" className="flex items-center gap-1.5">
+          <Clock className="h-4 w-4" />
+          <span className="hidden sm:inline">Tempos</span>
         </TabsTrigger>
         <TabsTrigger value="ranking" className="flex items-center gap-1.5">
           <ListOrdered className="h-4 w-4" />
-          Ranking
+          <span className="hidden sm:inline">Ranking</span>
         </TabsTrigger>
         <TabsTrigger value="questions" className="flex items-center gap-1.5">
           <FileText className="h-4 w-4" />
-          Perguntas
+          <span className="hidden sm:inline">Perguntas</span>
         </TabsTrigger>
         <TabsTrigger value="students" className="flex items-center gap-1.5">
           <User className="h-4 w-4" />
-          Alunos
+          <span className="hidden sm:inline">Alunos</span>
         </TabsTrigger>
       </TabsList>
 
@@ -1976,6 +1988,263 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
         )}
+      </TabsContent>
+
+      {/* ============== TIMING ANALYSIS TAB ============== */}
+      <TabsContent value="timing" className="space-y-4">
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/20 rounded-lg">
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Tempo Médio Total</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {formatTime(analytics.timingAnalytics.avgTotalTime)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Target className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Média por Pergunta</p>
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {formatTime(analytics.timingAnalytics.avgTimePerQuestion)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/20 rounded-lg">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Respostas Genuínas</p>
+                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {analytics.timingAnalytics.genuineCount}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-500/20 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Suspeitas/Apressadas</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    {analytics.timingAnalytics.suspiciousCount}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Credibility Distribution */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Análise de Credibilidade
+            </CardTitle>
+            <CardDescription>
+              Classificação baseada no tempo médio por pergunta: &lt;3s = Suspeito, 3-6s = Baixo, 6-12s = Médio, &gt;12s = Alto
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const credibilityLevels = [
+                { label: 'Alta Credibilidade', level: 'high' as const, color: 'bg-emerald-500', textColor: 'text-emerald-600', description: 'Leu e respondeu com cuidado (>12s/pergunta)' },
+                { label: 'Média Credibilidade', level: 'medium' as const, color: 'bg-blue-500', textColor: 'text-blue-600', description: 'Provavelmente leu as perguntas (6-12s/pergunta)' },
+                { label: 'Baixa Credibilidade', level: 'low' as const, color: 'bg-amber-500', textColor: 'text-amber-600', description: 'Respostas apressadas (3-6s/pergunta)' },
+                { label: 'Suspeito', level: 'suspicious' as const, color: 'bg-red-500', textColor: 'text-red-600', description: 'Apenas clicou para finalizar (<3s/pergunta)' },
+              ];
+              
+              const distribution = credibilityLevels.map(c => ({
+                ...c,
+                count: analytics.timingAnalytics.studentsByCredibility.filter(s => s.credibilityLevel === c.level).length
+              }));
+              
+              const maxCount = Math.max(...distribution.map(d => d.count), 1);
+              const total = analytics.timingAnalytics.studentsByCredibility.length;
+              
+              return (
+                <div className="space-y-4">
+                  {distribution.map((item) => (
+                    <div key={item.level} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className={`font-medium ${item.textColor}`}>{item.label}</span>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                        <span className="text-lg font-bold">{item.count}</span>
+                      </div>
+                      <div className="h-4 bg-muted/50 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${item.color} transition-all duration-500`}
+                          style={{ width: `${(item.count / maxCount) * 100}%`, minWidth: item.count > 0 ? '1rem' : '0' }}
+                        />
+                      </div>
+                      <p className="text-right text-xs text-muted-foreground">
+                        {total > 0 ? ((item.count / total) * 100).toFixed(0) : 0}% do total
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Student Credibility Ranking */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Ranking de Credibilidade por Aluno
+            </CardTitle>
+            <CardDescription>
+              Ordenado do mais confiável ao mais suspeito
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {analytics.timingAnalytics.studentsByCredibility.map((student, idx) => {
+                const levelConfig = {
+                  high: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', icon: CheckCircle2, label: 'Genuíno' },
+                  medium: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', icon: Clock, label: 'OK' },
+                  low: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', icon: AlertTriangle, label: 'Apressado' },
+                  suspicious: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400', icon: AlertTriangle, label: 'Suspeito' },
+                }[student.credibilityLevel];
+                
+                const IconComponent = levelConfig.icon;
+                
+                return (
+                  <div
+                    key={student.userId}
+                    className={`flex items-center justify-between p-3 rounded-xl border ${levelConfig.bg} transition-all hover:shadow-md`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-8 text-center">
+                        {idx === 0 ? (
+                          <Trophy className="h-5 w-5 text-yellow-500 mx-auto" />
+                        ) : idx === 1 ? (
+                          <Medal className="h-5 w-5 text-slate-400 mx-auto" />
+                        ) : idx === 2 ? (
+                          <Medal className="h-5 w-5 text-amber-600 mx-auto" />
+                        ) : (
+                          <span className="text-sm font-bold text-muted-foreground">#{idx + 1}</span>
+                        )}
+                      </div>
+                      
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback>{student.userName.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      
+                      <div>
+                        <p className="font-medium text-sm">{student.userName}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>Tempo total: {formatTime(student.totalTimeSeconds)}</span>
+                          <span>•</span>
+                          <span>Média/pergunta: {formatTime(student.avgTimePerQuestion)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      {/* Credibility Score Bar */}
+                      <div className="w-24 hidden sm:block">
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              student.credibilityScore >= 80 ? 'bg-emerald-500' :
+                              student.credibilityScore >= 60 ? 'bg-blue-500' :
+                              student.credibilityScore >= 30 ? 'bg-amber-500' :
+                              'bg-red-500'
+                            }`}
+                            style={{ width: `${student.credibilityScore}%` }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-center text-muted-foreground mt-0.5">
+                          {student.credibilityScore}%
+                        </p>
+                      </div>
+                      
+                      <Badge variant="secondary" className={`${levelConfig.bg} ${levelConfig.text} border-0 text-xs`}>
+                        <IconComponent className="h-3 w-3 mr-1" />
+                        {levelConfig.label}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {analytics.timingAnalytics.studentsByCredibility.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  Nenhum dado de timing disponível
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Time Range Analysis */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-3">
+                  <TrendingDown className="h-6 w-6 text-blue-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">Menor Tempo</p>
+                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.minTotalTime)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-3">
+                  <BarChart3 className="h-6 w-6 text-purple-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">Tempo Médio</p>
+                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.avgTotalTime)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-3">
+                  <TrendingUp className="h-6 w-6 text-emerald-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">Maior Tempo</p>
+                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.maxTotalTime)}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </TabsContent>
 
       {/* ============== RANKING TAB ============== */}
