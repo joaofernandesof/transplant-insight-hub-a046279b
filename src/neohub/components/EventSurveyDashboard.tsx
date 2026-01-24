@@ -3443,8 +3443,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </Select>
               </div>
 
-              <ScrollArea className="h-[500px]">
-                <div className="space-y-1 pr-2">
+              <div className="space-y-1">
                   {filteredStudents.map((student) => {
                     const classConfig = getSatisfactionClassConfig(student.satisfactionClass);
                     const isSelected = selectedStudent?.userId === student.userId;
@@ -3485,7 +3484,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     </p>
                   )}
                 </div>
-              </ScrollArea>
             </CardContent>
           </Card>
 
