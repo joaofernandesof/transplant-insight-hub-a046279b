@@ -156,13 +156,25 @@ export default function ReferralsAdmin() {
         ])
       ];
 
-      // Fetch referrer names
+      // Fetch referrer names from neohub_users (primary) and profiles (fallback)
+      const { data: neohubUsers } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name')
+        .in('user_id', referrerIds);
+
       const { data: profiles } = await supabase
         .from('profiles')
         .select('user_id, name')
         .in('user_id', referrerIds);
 
-      const profileMap = new Map(profiles?.map(p => [p.user_id, p.name]) || []);
+      // Create map: neohub_users takes priority over profiles
+      const profileMap = new Map<string, string>();
+      profiles?.forEach(p => {
+        if (p.name) profileMap.set(p.user_id, p.name);
+      });
+      neohubUsers?.forEach(u => {
+        if (u.full_name) profileMap.set(u.user_id, u.full_name);
+      });
 
       // Unify data
       const unified: UnifiedReferral[] = [
