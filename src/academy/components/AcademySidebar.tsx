@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, BookOpen, Award,
-  Settings, LogOut, User, Users, CalendarDays, Menu, UserCog
+  Settings, LogOut, User, Users, CalendarDays, Menu, UserCog, FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ const navItems = [
 ];
 
 const adminItems = [
+  { icon: FileText, label: 'Gestão de Provas', path: '/admin/exams' },
   { icon: UserCog, label: 'Gestão de Matrículas', path: '/academy/admin/enrollments' },
   { icon: Users, label: 'Alunos x Turmas', path: '/academy/admin/students' },
 ];
