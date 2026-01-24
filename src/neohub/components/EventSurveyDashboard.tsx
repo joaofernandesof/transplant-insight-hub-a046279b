@@ -1476,7 +1476,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       {analytics.responsesByStudent.map((student) => (
                         <th 
                           key={student.userId} 
-                          className="p-2 font-medium border-b text-center min-w-[120px] cursor-pointer hover:bg-muted/70 transition-colors"
+                          className="p-2 font-medium border-b text-center w-[130px] max-w-[130px] cursor-pointer hover:bg-muted/70 transition-colors"
                           title={`Clique para ordenar por ${student.userName}`}
                         >
                           <div className="flex flex-col items-center gap-1">
@@ -1491,7 +1491,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                               </Avatar>
                               <SortIndicator columnId={student.userId} />
                             </div>
-                            <span className="text-xs whitespace-nowrap">
+                            <span className="text-xs text-center leading-tight break-words w-full max-w-[110px]">
                               {student.userName}
                             </span>
                             <Button 
