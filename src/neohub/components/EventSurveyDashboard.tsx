@@ -95,50 +95,164 @@ const getWordFrequency = (texts: string[]): { word: string; count: number }[] =>
     .slice(0, 30);
 };
 
-const exportStudentResponsesPDF = (students: StudentDetailedResponse[]) => {
+const exportStudentResponsesPDF = (students: StudentDetailedResponse[], eventName?: string) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 15;
-  let y = 20;
+  const margin = 20;
+  let y = 25;
 
+  // Colors (RGB)
+  const colors = {
+    primary: { r: 22, g: 163, b: 74 },      // Green-600
+    primaryLight: { r: 220, g: 252, b: 231 }, // Green-100
+    secondary: { r: 59, g: 130, b: 246 },    // Blue-500
+    orange: { r: 234, g: 88, b: 12 },        // Orange-600
+    gray: { r: 107, g: 114, b: 128 },        // Gray-500
+    grayLight: { r: 243, g: 244, b: 246 },   // Gray-100
+    grayMedium: { r: 229, g: 231, b: 235 },  // Gray-200
+    dark: { r: 31, g: 41, b: 55 },           // Gray-800
+    white: { r: 255, g: 255, b: 255 },
+  };
+
+  // Helper: Draw rounded rectangle
+  const drawRoundedRect = (x: number, y: number, w: number, h: number, r: number, fill: boolean, stroke: boolean) => {
+    doc.roundedRect(x, y, w, h, r, r, fill ? 'F' : stroke ? 'S' : 'FD');
+  };
+
+  // Helper: Get rating color based on sentiment
+  const getValueColor = (value: string) => {
+    const positiveWords = ['excelente', 'ótimo', 'muito', 'totalmente', 'concordo', 'atendeu', 'perfeito', 'alta', 'bom'];
+    const negativeWords = ['ruim', 'péssimo', 'não', 'insatisfeito', 'discordo', 'baixo', 'fraco'];
+    
+    const lowerValue = value.toLowerCase();
+    if (positiveWords.some(w => lowerValue.includes(w))) return colors.primary;
+    if (negativeWords.some(w => lowerValue.includes(w))) return colors.orange;
+    return colors.secondary;
+  };
+
+  // ========== HEADER ==========
+  // Top gradient bar
+  doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+  doc.rect(0, 0, pageWidth, 8, 'F');
+  
   // Title
-  doc.setFontSize(18);
+  doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("Respostas da Pesquisa de Satisfação", pageWidth / 2, y, { align: "center" });
+  doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
+  doc.text("Pesquisa de Satisfação", pageWidth / 2, y, { align: "center" });
+  y += 8;
+  
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
+  doc.text("Respostas Detalhadas por Aluno", pageWidth / 2, y, { align: "center" });
   y += 10;
+
+  // Generation date badge
+  const dateText = `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
+  const dateWidth = doc.getTextWidth(dateText) + 12;
+  doc.setFillColor(colors.grayLight.r, colors.grayLight.g, colors.grayLight.b);
+  drawRoundedRect((pageWidth - dateWidth) / 2, y - 4, dateWidth, 8, 2, true, false);
+  doc.setFontSize(9);
+  doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
+  doc.text(dateText, pageWidth / 2, y + 1, { align: "center" });
+  y += 18;
+
+  // Summary stats
+  const totalStudents = students.length;
+  const completedStudents = students.filter(s => s.isCompleted).length;
+  const hotLeads = students.filter(s => s.isHotLead).length;
   
   doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, pageWidth / 2, y, { align: "center" });
+  doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
+  doc.text(`${totalStudents} alunos  •  ${completedStudents} completos  •  ${hotLeads} hot leads`, pageWidth / 2, y, { align: "center" });
   y += 15;
 
+  // Divider line
+  doc.setDrawColor(colors.grayMedium.r, colors.grayMedium.g, colors.grayMedium.b);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 12;
+
+  // ========== STUDENT CARDS ==========
   students.forEach((student, studentIndex) => {
     // Check if we need a new page
-    if (y > 250) {
+    if (y > 240) {
       doc.addPage();
+      // Add top bar on new pages
+      doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+      doc.rect(0, 0, pageWidth, 5, 'F');
       y = 20;
     }
 
-    // Student header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(margin, y - 5, pageWidth - margin * 2, 12, 'F');
+    // ===== Student Header Card =====
+    // Background card
+    doc.setFillColor(colors.grayLight.r, colors.grayLight.g, colors.grayLight.b);
+    drawRoundedRect(margin, y - 5, pageWidth - margin * 2, 22, 3, true, false);
+    
+    // Avatar circle with initial
+    const avatarX = margin + 10;
+    const avatarY = y + 6;
+    doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+    doc.circle(avatarX, avatarY, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    const initial = student.userName.charAt(0).toUpperCase();
+    doc.text(initial, avatarX, avatarY + 3.5, { align: "center" });
+    
+    // Student name
+    doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.text(`${studentIndex + 1}. ${student.userName}`, margin + 3, y + 3);
+    doc.text(student.userName, margin + 22, y + 4);
     
-    // Status badge
-    const status = student.isCompleted ? "Completo" : `${student.progressPercent}%`;
-    const statusX = pageWidth - margin - 25;
-    doc.setFontSize(9);
-    doc.text(status, statusX, y + 3);
-    
-    if (student.isHotLead) {
-      doc.setTextColor(234, 88, 12);
-      doc.text("🔥 Hot Lead", margin + 3, y + 10);
-      doc.setTextColor(0, 0, 0);
+    // Completion date
+    if (student.completedAt) {
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(colors.primary.r, colors.primary.g, colors.primary.b);
+      doc.text(`✓ Completou em ${student.completedAt}`, margin + 22, y + 11);
+    } else {
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
+      doc.text(`Em andamento (${student.progressPercent}%)`, margin + 22, y + 11);
     }
     
-    y += student.isHotLead ? 18 : 12;
+    // Status badge
+    const statusText = student.isCompleted ? "Completo" : `${student.progressPercent}%`;
+    const statusWidth = doc.getTextWidth(statusText) + 10;
+    const badgeX = pageWidth - margin - statusWidth - 5;
+    
+    if (student.isCompleted) {
+      doc.setFillColor(colors.primaryLight.r, colors.primaryLight.g, colors.primaryLight.b);
+    } else {
+      doc.setFillColor(colors.grayMedium.r, colors.grayMedium.g, colors.grayMedium.b);
+    }
+    drawRoundedRect(badgeX, y - 1, statusWidth, 7, 2, true, false);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    if (student.isCompleted) {
+      doc.setTextColor(colors.primary.r, colors.primary.g, colors.primary.b);
+    } else {
+      doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
+    }
+    doc.text(statusText, badgeX + 5, y + 3.5);
+    
+    // Hot Lead badge
+    if (student.isHotLead) {
+      const hotLeadText = "🔥 Hot Lead";
+      const hotLeadWidth = doc.getTextWidth(hotLeadText) + 8;
+      const hotLeadX = badgeX - hotLeadWidth - 5;
+      doc.setFillColor(255, 237, 213);
+      drawRoundedRect(hotLeadX, y - 1, hotLeadWidth, 7, 2, true, false);
+      doc.setFontSize(8);
+      doc.setTextColor(colors.orange.r, colors.orange.g, colors.orange.b);
+      doc.text(hotLeadText, hotLeadX + 4, y + 3.5);
+    }
+    
+    y += 22;
 
     // Group responses by category
     const groupedResponses = student.responses.reduce((acc, r) => {
@@ -147,48 +261,78 @@ const exportStudentResponsesPDF = (students: StudentDetailedResponse[]) => {
       return acc;
     }, {} as Record<string, typeof student.responses>);
 
+    // ===== Category Sections =====
     Object.entries(groupedResponses).forEach(([category, responses]) => {
-      if (y > 270) {
+      if (y > 265) {
         doc.addPage();
+        doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+        doc.rect(0, 0, pageWidth, 5, 'F');
         y = 20;
       }
 
       // Category header
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(100, 100, 100);
+      doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
       doc.text(category, margin, y);
-      doc.setTextColor(0, 0, 0);
       y += 6;
 
-      responses.forEach(r => {
+      // Response rows (zebra striping)
+      responses.forEach((r, idx) => {
         if (y > 280) {
           doc.addPage();
+          doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+          doc.rect(0, 0, pageWidth, 5, 'F');
           y = 20;
         }
 
+        // Zebra stripe background
+        if (idx % 2 === 0) {
+          doc.setFillColor(colors.grayLight.r, colors.grayLight.g, colors.grayLight.b);
+          doc.rect(margin, y - 4, pageWidth - margin * 2, 7, 'F');
+        }
+
+        // Question text (full, with word wrap if needed)
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
+        doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
         
-        const questionText = r.questionLabel.length > 50 
-          ? r.questionLabel.substring(0, 50) + "..." 
-          : r.questionLabel;
-        doc.text(`• ${questionText}`, margin + 3, y);
+        const maxQuestionWidth = (pageWidth - margin * 2) * 0.55;
+        const questionLines = doc.splitTextToSize(r.questionLabel, maxQuestionWidth);
+        doc.text(questionLines[0], margin + 3, y);
         
+        // Value text (colored based on sentiment)
         const valueText = r.value || "—";
-        const truncatedValue = valueText.length > 40 ? valueText.substring(0, 40) + "..." : valueText;
+        const maxValueWidth = (pageWidth - margin * 2) * 0.4;
+        const valueColor = r.value ? getValueColor(r.value) : colors.gray;
+        doc.setTextColor(valueColor.r, valueColor.g, valueColor.b);
         doc.setFont("helvetica", "bold");
-        doc.text(truncatedValue, pageWidth - margin - doc.getTextWidth(truncatedValue), y);
-        doc.setFont("helvetica", "normal");
         
-        y += 5;
+        const valueLines = doc.splitTextToSize(valueText, maxValueWidth);
+        doc.text(valueLines[0], pageWidth - margin - 3, y, { align: "right" });
+        
+        y += 7;
       });
 
-      y += 3;
+      y += 4;
     });
 
-    y += 8;
+    // Divider between students
+    y += 4;
+    doc.setDrawColor(colors.grayMedium.r, colors.grayMedium.g, colors.grayMedium.b);
+    doc.setLineWidth(0.3);
+    doc.line(margin + 20, y, pageWidth - margin - 20, y);
+    y += 10;
   });
+
+  // Footer on last page
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(colors.gray.r, colors.gray.g, colors.gray.b);
+    doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, 290, { align: "center" });
+  }
 
   doc.save(`pesquisa-satisfacao-${new Date().toISOString().split('T')[0]}.pdf`);
 };
