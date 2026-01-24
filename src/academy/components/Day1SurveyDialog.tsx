@@ -725,11 +725,19 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>📋 Pesquisa de Satisfação - Dia 1</DialogTitle>
-          <div className="space-y-2">
-            <div className="flex justify-end text-sm font-medium text-primary">
+          <div className="space-y-3">
+            <div className="flex justify-end text-sm font-semibold text-emerald-600">
               <span>{displayProgress}% concluído</span>
             </div>
-            <Progress value={displayProgress} className="h-2" />
+            <div className="relative h-4 w-full overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+              <div 
+                className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500 ease-out relative overflow-hidden"
+                style={{ width: `${displayProgress}%` }}
+              >
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
+              </div>
+            </div>
           </div>
         </DialogHeader>
         
@@ -741,17 +749,17 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           <div className="space-y-6 py-4">
             {/* Show instructor info for relevant categories */}
             {currentQ.category && INSTRUCTORS[currentQ.category] && (
-              <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-5 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20">
                 {INSTRUCTORS[currentQ.category].photo && (
                   <img 
                     src={INSTRUCTORS[currentQ.category].photo} 
                     alt={INSTRUCTORS[currentQ.category].name}
-                    className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20"
+                    className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/30 shadow-lg"
                   />
                 )}
                 <div>
-                  <p className="text-lg font-bold text-foreground">{INSTRUCTORS[currentQ.category].name}</p>
-                  <p className="text-sm text-muted-foreground">{INSTRUCTORS[currentQ.category].role}</p>
+                  <p className="text-xl font-bold text-foreground">{INSTRUCTORS[currentQ.category].name}</p>
+                  <p className="text-sm text-muted-foreground font-medium">{INSTRUCTORS[currentQ.category].role}</p>
                 </div>
               </div>
             )}
