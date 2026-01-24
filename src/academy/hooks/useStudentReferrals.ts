@@ -140,12 +140,15 @@ export function useSubmitReferral() {
       const isPromoActive = now < new Date('2026-01-26T02:59:00.000Z');
       const commissionRate = isPromoActive ? 10 : 5;
 
+      const referrerName = profiles?.[0]?.name || 'Desconhecido';
+      const referrerUserId = profiles?.[0]?.user_id || '00000000-0000-0000-0000-000000000000';
+
       // For now, we'll store the referral with the code
       // The referrer_user_id will need to be matched later
       const { data: result, error } = await supabase
         .from('student_referrals')
         .insert({
-          referrer_user_id: profiles?.[0]?.user_id || '00000000-0000-0000-0000-000000000000',
+          referrer_user_id: referrerUserId,
           referral_code: data.referralCode.toUpperCase(),
           referred_name: data.name,
           referred_email: data.email,
@@ -159,6 +162,26 @@ export function useSubmitReferral() {
         .single();
 
       if (error) throw error;
+
+      // Notify admin about new referral (fire and forget)
+      try {
+        await supabase.functions.invoke('notify-referral', {
+          body: {
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            referrer_name: referrerName,
+            referral_code: data.referralCode.toUpperCase(),
+            type: 'student_referral',
+            has_crm: data.hasCrm,
+            crm: data.crm,
+          }
+        });
+      } catch (notifyError) {
+        console.error('Error notifying admin:', notifyError);
+        // Don't throw - notification is not critical
+      }
+
       return result;
     },
     onSuccess: () => {

@@ -83,6 +83,7 @@ const moduleCategories = [
     modules: [
       { id: 'crm', title: 'CRM Vendas', description: 'Gestão comercial', icon: DollarSign, path: '/crm', color: 'bg-emerald-500' },
       { id: 'hotleads', title: 'HotLeads', description: 'Leads quentes', icon: Flame, path: '/hotleads', color: 'bg-orange-500' },
+      { id: 'referrals', title: 'Indicações', description: 'Programa de indicação', icon: Users, path: '/admin/referrals', color: 'bg-green-500' },
       { id: 'consolidated', title: 'Resultados', description: 'VGV e métricas', icon: BarChart3, path: '/consolidated-results', color: 'bg-indigo-500' },
     ]
   },
