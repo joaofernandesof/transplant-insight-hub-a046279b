@@ -618,10 +618,8 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
   const waitForDOMStabilize = async () => {
     // Let layout settle + fonts load (when available)
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    // @ts-expect-error document.fonts may not exist in older browsers
     if (document.fonts?.ready) {
       try {
-        // @ts-expect-error document.fonts typing varies
         await document.fonts.ready;
       } catch {
         // ignore
