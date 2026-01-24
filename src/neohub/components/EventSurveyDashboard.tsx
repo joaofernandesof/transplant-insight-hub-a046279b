@@ -1994,10 +1994,16 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
       return { ...colorConfig, name, metrics };
     });
 
-  // Combine and dedupe by name - prioritize dynamic data
+  // Combine and dedupe by key - prioritize dynamic data
+  // Use key-based matching to avoid substring collisions (e.g., "eder" matching "ederM")
   const allMonitors = [...fixedMonitorsData];
   dynamicMonitors.forEach(dm => {
-    const existingIdx = allMonitors.findIndex(m => m.name.toLowerCase().includes(dm.name.toLowerCase().split(' ')[1] || dm.name.toLowerCase()));
+    // Exact key matching - normalize the name to find the right key
+    const dmNameNormalized = dm.name.toLowerCase().replace(/[^a-z]/g, '');
+    const existingIdx = allMonitors.findIndex(m => {
+      const mNameNormalized = m.name.toLowerCase().replace(/[^a-z]/g, '');
+      return mNameNormalized === dmNameNormalized || m.key === dm.key;
+    });
     if (existingIdx === -1) {
       allMonitors.push(dm);
     } else {
