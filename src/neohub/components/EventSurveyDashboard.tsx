@@ -2413,6 +2413,45 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
       {/* ============== TIMING ANALYSIS TAB ============== */}
       <TabsContent value="timing" className="space-y-4">
+        {/* Time Range Analysis - Top */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-3">
+                  <TrendingDown className="h-6 w-6 text-blue-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">Menor Tempo</p>
+                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.minTotalTime)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-3">
+                  <BarChart3 className="h-6 w-6 text-purple-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">Tempo Médio</p>
+                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.avgTotalTime)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-3">
+                  <TrendingUp className="h-6 w-6 text-emerald-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">Maior Tempo</p>
+                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.maxTotalTime)}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
@@ -2631,44 +2670,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </CardContent>
         </Card>
 
-        {/* Time Range Analysis */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-3">
-                  <TrendingDown className="h-6 w-6 text-blue-600" />
-                </div>
-                <p className="text-sm text-muted-foreground">Menor Tempo</p>
-                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.minTotalTime)}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-3">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
-                </div>
-                <p className="text-sm text-muted-foreground">Tempo Médio</p>
-                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.avgTotalTime)}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-3">
-                  <TrendingUp className="h-6 w-6 text-emerald-600" />
-                </div>
-                <p className="text-sm text-muted-foreground">Maior Tempo</p>
-                <p className="text-2xl font-bold">{formatTime(analytics.timingAnalytics.maxTotalTime)}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </TabsContent>
 
       {/* ============== RANKING TAB ============== */}
