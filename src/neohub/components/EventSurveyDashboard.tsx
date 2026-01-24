@@ -1528,19 +1528,21 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   // Build monitor radar data from all available monitors (dynamic from monitorsByName)
   const MONITOR_COLORS = [
     { key: 'eder', name: 'Dr. Eder', stroke: 'hsl(262, 83%, 58%)', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200 dark:border-violet-800', text: 'text-violet-700 dark:text-violet-400', dot: 'bg-violet-500' },
-    { key: 'patrick', name: 'Dr. Patrick M', stroke: 'hsl(25, 95%, 53%)', bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-700 dark:text-orange-400', dot: 'bg-orange-500' },
+    { key: 'patrickM', name: 'Dr. Patrick M', stroke: 'hsl(25, 95%, 53%)', bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-700 dark:text-orange-400', dot: 'bg-orange-500' },
+    { key: 'ederM', name: 'Dr. Eder M', stroke: 'hsl(170, 70%, 45%)', bg: 'bg-teal-50 dark:bg-teal-950/30', border: 'border-teal-200 dark:border-teal-800', text: 'text-teal-700 dark:text-teal-400', dot: 'bg-teal-500' },
     { key: 'gleyldes', name: 'Dra. Gleyldes', stroke: 'hsl(330, 80%, 50%)', bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200 dark:border-pink-800', text: 'text-pink-700 dark:text-pink-400', dot: 'bg-pink-500' },
     { key: 'elenilton', name: 'Dr. Elenilton', stroke: 'hsl(190, 70%, 45%)', bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-200 dark:border-cyan-800', text: 'text-cyan-700 dark:text-cyan-400', dot: 'bg-cyan-500' },
   ];
 
   // Monitors are now handled via dynamicMonitors below
 
-  // Include all 4 fixed monitors from analytics.monitors if they have data
+  // Include all 5 fixed monitors from analytics.monitors if they have data
   const fixedMonitorsData = [
     { ...MONITOR_COLORS[0], metrics: analytics.monitors.eder },
     { ...MONITOR_COLORS[1], metrics: analytics.monitors.patrickM },
-    { ...MONITOR_COLORS[2], metrics: analytics.monitors.gleyldes },
-    { ...MONITOR_COLORS[3], metrics: analytics.monitors.elenilton },
+    { ...MONITOR_COLORS[2], metrics: analytics.monitors.ederM },
+    { ...MONITOR_COLORS[3], metrics: analytics.monitors.gleyldes },
+    { ...MONITOR_COLORS[4], metrics: analytics.monitors.elenilton },
   ].filter(m => m.metrics && m.metrics.overallAvg > 0);
 
   // Add monitors from monitorsByName with proper color matching (includes Gleyldes and Elenilton)
