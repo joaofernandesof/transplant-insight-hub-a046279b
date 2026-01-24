@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useEventChecklists, useChecklistItems, EventChecklist } from "@/neohub/hooks/useEventChecklists";
 import { NewChecklistDialog } from "@/neohub/components/NewChecklistDialog";
-import { EventScheduleEditor } from "@/neohub/components/EventScheduleEditor";
+import { VisualScheduleEditor } from "@/neohub/components/VisualScheduleEditor";
 import { EventExamsPanel } from "@/neohub/components/EventExamsPanel";
 import { EventStudentsPanel } from "@/neohub/components/EventStudentsPanel";
 import { EventSurveyDashboard } from "@/neohub/components/EventSurveyDashboard";
@@ -269,7 +269,7 @@ export default function NeoTeamEvents() {
 
                 {/* Schedule Tab */}
                 <TabsContent value="schedule" className="mt-4">
-                  <EventScheduleEditor classId={selectedChecklist.class_id} />
+                  <VisualScheduleEditor classId={selectedChecklist.class_id} />
                 </TabsContent>
 
                 {/* Exams Tab */}
