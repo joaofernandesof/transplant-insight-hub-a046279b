@@ -19,6 +19,7 @@ export interface StudentReferral {
   created_at: string;
   converted_at: string | null;
   updated_at: string;
+  referrer_name?: string;
 }
 
 // Promotion deadline: 25/01/2026 at 23:59 BRT (UTC-3)
@@ -54,18 +55,38 @@ export function useStudentReferrals() {
     return { hours, minutes, seconds, totalMs: diff };
   };
 
-  // Generate referral code from user data
-  const generateReferralCode = (userId: string, userName?: string) => {
-    const namePart = userName?.split(' ')[0]?.toUpperCase().substring(0, 4) || 'REF';
-    const idPart = userId.substring(0, 4).toUpperCase();
-    return `${namePart}${idPart}`;
-  };
-
-  // Get user's referral code
-  const getUserReferralCode = () => {
-    if (!user) return null;
-    return generateReferralCode(user.id, user.fullName);
-  };
+  // Query to get user's referral code from neohub_users
+  const { data: userReferralData } = useQuery({
+    queryKey: ['user-referral-code', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      // Try neohub_users first
+      const { data: neohubUser, error: neohubError } = await supabase
+        .from('neohub_users')
+        .select('referral_code, full_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (neohubUser?.referral_code) {
+        return { code: neohubUser.referral_code, name: neohubUser.full_name };
+      }
+      
+      // Fallback to profiles
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('referral_code, name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (profile?.referral_code) {
+        return { code: profile.referral_code, name: profile.name };
+      }
+      
+      return null;
+    },
+    enabled: !!user?.id,
+  });
 
   // Fetch user's referrals
   const { data: referrals, isLoading } = useQuery({
@@ -103,7 +124,7 @@ export function useStudentReferrals() {
     isPromoActive: isPromoActive(),
     currentCommissionRate: getCurrentCommissionRate(),
     promoTimeRemaining: getPromoTimeRemaining(),
-    userReferralCode: getUserReferralCode(),
+    userReferralCode: userReferralData?.code || null,
     promoDeadline: PROMO_DEADLINE,
     normalCommission: NORMAL_COMMISSION,
     promoCommission: PROMO_COMMISSION,
@@ -121,35 +142,51 @@ export function useSubmitReferral() {
       hasCrm: boolean;
       crm?: string;
     }) => {
-      // Find the referrer by code
-      const { data: existingReferrals, error: findError } = await supabase
-        .from('student_referrals')
-        .select('referrer_user_id')
-        .eq('referral_code', data.referralCode)
-        .limit(1);
-
-      // Get referrer user id from profile
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_id, name, referral_code')
-        .ilike('referral_code', `%${data.referralCode.substring(0, 4)}%`)
-        .limit(1);
+      const upperCode = data.referralCode.toUpperCase();
+      
+      // First try to find referrer in neohub_users by exact code match
+      let referrerUserId: string | null = null;
+      let referrerName: string = 'Desconhecido';
+      
+      const { data: neohubUser } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name')
+        .eq('referral_code', upperCode)
+        .maybeSingle();
+      
+      if (neohubUser) {
+        referrerUserId = neohubUser.user_id;
+        referrerName = neohubUser.full_name;
+      } else {
+        // Fallback to profiles table
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_id, name')
+          .eq('referral_code', upperCode)
+          .maybeSingle();
+        
+        if (profile) {
+          referrerUserId = profile.user_id;
+          referrerName = profile.name || 'Desconhecido';
+        }
+      }
+      
+      // If no referrer found, throw error
+      if (!referrerUserId) {
+        throw new Error('Código de indicação inválido');
+      }
       
       // Determine commission rate based on promotion
       const now = new Date();
       const isPromoActive = now < new Date('2026-01-26T02:59:00.000Z');
       const commissionRate = isPromoActive ? 10 : 5;
 
-      const referrerName = profiles?.[0]?.name || 'Desconhecido';
-      const referrerUserId = profiles?.[0]?.user_id || '00000000-0000-0000-0000-000000000000';
-
-      // For now, we'll store the referral with the code
-      // The referrer_user_id will need to be matched later
+      // Insert the referral
       const { data: result, error } = await supabase
         .from('student_referrals')
         .insert({
           referrer_user_id: referrerUserId,
-          referral_code: data.referralCode.toUpperCase(),
+          referral_code: upperCode,
           referred_name: data.name,
           referred_email: data.email,
           referred_phone: data.phone,
@@ -171,7 +208,7 @@ export function useSubmitReferral() {
             email: data.email,
             phone: data.phone,
             referrer_name: referrerName,
-            referral_code: data.referralCode.toUpperCase(),
+            referral_code: upperCode,
             type: 'student_referral',
             has_crm: data.hasCrm,
             crm: data.crm,
@@ -187,11 +224,62 @@ export function useSubmitReferral() {
     onSuccess: () => {
       toast.success('Indicação enviada com sucesso! Entraremos em contato em breve.');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error submitting referral:', error);
-      toast.error('Erro ao enviar indicação. Tente novamente.');
+      if (error.message === 'Código de indicação inválido') {
+        toast.error('Código de indicação inválido. Verifique o link.');
+      } else {
+        toast.error('Erro ao enviar indicação. Tente novamente.');
+      }
     },
   });
 
   return submitReferral;
+}
+
+// Hook to validate referral code (for landing page)
+export function useValidateReferralCode(code: string | undefined) {
+  return useQuery({
+    queryKey: ['validate-referral-code', code],
+    queryFn: async () => {
+      if (!code) return null;
+      
+      const upperCode = code.toUpperCase();
+      
+      // Try neohub_users first
+      const { data: neohubUser } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name, referral_code')
+        .eq('referral_code', upperCode)
+        .maybeSingle();
+      
+      if (neohubUser) {
+        return {
+          isValid: true,
+          referrerUserId: neohubUser.user_id,
+          referrerName: neohubUser.full_name,
+          referralCode: neohubUser.referral_code,
+        };
+      }
+      
+      // Fallback to profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_id, name, referral_code')
+        .eq('referral_code', upperCode)
+        .maybeSingle();
+      
+      if (profile) {
+        return {
+          isValid: true,
+          referrerUserId: profile.user_id,
+          referrerName: profile.name || 'Desconhecido',
+          referralCode: profile.referral_code,
+        };
+      }
+      
+      return { isValid: false, referrerUserId: null, referrerName: null, referralCode: null };
+    },
+    enabled: !!code,
+  });
 }

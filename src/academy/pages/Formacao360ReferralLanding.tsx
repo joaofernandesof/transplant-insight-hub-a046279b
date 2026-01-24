@@ -25,9 +25,10 @@ import {
   Percent,
   Scissors,
   Briefcase,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from 'lucide-react';
-import { useSubmitReferral } from '../hooks/useStudentReferrals';
+import { useSubmitReferral, useValidateReferralCode } from '../hooks/useStudentReferrals';
 
 // Promotion deadline: 25/01/2026 at 23:59 BRT (UTC-3)
 const PROMO_DEADLINE = new Date('2026-01-26T02:59:00.000Z');
@@ -37,6 +38,9 @@ export function Formacao360ReferralLanding() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const submitReferral = useSubmitReferral();
+  
+  // Validate the referral code
+  const { data: validation, isLoading: isValidating } = useValidateReferralCode(code);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -106,6 +110,38 @@ export function Formacao360ReferralLanding() {
     return value;
   };
 
+  // Loading state
+  if (isValidating) {
+    return (
+      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      </div>
+    );
+  }
+
+  // Invalid code state
+  if (!validation?.isValid) {
+    return (
+      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-4">
+        <Card className="max-w-md w-full text-center bg-[#0d1e36] border-blue-900/50">
+          <CardContent className="p-8">
+            <div className="w-20 h-20 mx-auto bg-red-900/50 rounded-full flex items-center justify-center mb-6">
+              <GraduationCap className="h-10 w-10 text-red-400" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2 text-white">Link Inválido</h1>
+            <p className="text-gray-400 mb-6">
+              Este link de indicação não é válido ou expirou.
+            </p>
+            <Button onClick={() => navigate('/')} variant="outline">
+              Ir para o site
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-4">
@@ -171,7 +207,7 @@ export function Formacao360ReferralLanding() {
             <div>
               <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 mb-4">
                 <Sparkles className="h-3 w-3 mr-1" />
-                Você foi indicado por um aluno!
+                Você foi indicado por {validation?.referrerName || 'um aluno'}!
               </Badge>
               <h1 className="text-4xl sm:text-5xl font-bold mb-2">
                 <span className="text-blue-400">FORMAÇÃO 360°</span> EM

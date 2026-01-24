@@ -75,20 +75,37 @@ export default function ReferralLanding() {
 
   const validateReferralCode = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, name')
-        .eq('referral_code', code?.toUpperCase())
+      const upperCode = code?.toUpperCase();
+      
+      // Try neohub_users first
+      const { data: neohubUser } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name')
+        .eq('referral_code', upperCode)
         .maybeSingle();
-
-      if (error || !data) {
-        setIsValidCode(false);
+      
+      if (neohubUser) {
+        setReferrerName(neohubUser.full_name);
+        setReferrerUserId(neohubUser.user_id);
+        setIsValidCode(true);
         return;
       }
+      
+      // Fallback to profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_id, name')
+        .eq('referral_code', upperCode)
+        .maybeSingle();
 
-      setReferrerName(data.name);
-      setReferrerUserId(data.user_id);
-      setIsValidCode(true);
+      if (profile) {
+        setReferrerName(profile.name);
+        setReferrerUserId(profile.user_id);
+        setIsValidCode(true);
+        return;
+      }
+      
+      setIsValidCode(false);
     } catch (error) {
       console.error('Error validating referral code:', error);
       setIsValidCode(false);
