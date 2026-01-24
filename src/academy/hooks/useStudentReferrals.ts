@@ -56,16 +56,19 @@ export function useStudentReferrals() {
   };
 
   // Query to get user's referral code from neohub_users
+  // CRITICAL: Use authUserId (auth.users UUID) instead of id (neohub_users UUID)
+  const authUserId = user?.authUserId || user?.userId;
+  
   const { data: userReferralData } = useQuery({
-    queryKey: ['user-referral-code', user?.id],
+    queryKey: ['user-referral-code', authUserId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!authUserId) return null;
       
-      // Try neohub_users first
+      // Try neohub_users first using auth user_id
       const { data: neohubUser, error: neohubError } = await supabase
         .from('neohub_users')
         .select('referral_code, full_name')
-        .eq('user_id', user.id)
+        .eq('user_id', authUserId)
         .maybeSingle();
       
       if (neohubUser?.referral_code) {
@@ -76,7 +79,7 @@ export function useStudentReferrals() {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('referral_code, name')
-        .eq('user_id', user.id)
+        .eq('user_id', authUserId)
         .maybeSingle();
       
       if (profile?.referral_code) {
@@ -85,25 +88,26 @@ export function useStudentReferrals() {
       
       return null;
     },
-    enabled: !!user?.id,
+    enabled: !!authUserId,
   });
 
   // Fetch user's referrals
+  // Use authUserId to match referrer_user_id (which stores auth.users UUID)
   const { data: referrals, isLoading } = useQuery({
-    queryKey: ['student-referrals', user?.id],
+    queryKey: ['student-referrals', authUserId],
     queryFn: async () => {
-      if (!user) return [];
+      if (!authUserId) return [];
       
       const { data, error } = await supabase
         .from('student_referrals')
         .select('*')
-        .eq('referrer_user_id', user.id)
+        .eq('referrer_user_id', authUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as StudentReferral[];
     },
-    enabled: !!user,
+    enabled: !!authUserId,
   });
 
   // Stats
@@ -182,7 +186,8 @@ export function useSubmitReferral() {
       const commissionRate = isPromoActive ? 10 : 5;
 
       // Insert the referral
-      const { data: result, error } = await supabase
+      // IMPORTANT: Don't use .select().single() - anonymous users can INSERT but cannot SELECT
+      const { error } = await supabase
         .from('student_referrals')
         .insert({
           referrer_user_id: referrerUserId,
@@ -194,9 +199,7 @@ export function useSubmitReferral() {
           referred_crm: data.crm || null,
           commission_rate: commissionRate,
           status: 'pending',
-        })
-        .select()
-        .single();
+        });
 
       if (error) throw error;
 
@@ -219,7 +222,7 @@ export function useSubmitReferral() {
         // Don't throw - notification is not critical
       }
 
-      return result;
+      return { success: true };
     },
     onSuccess: () => {
       toast.success('Indicação enviada com sucesso! Entraremos em contato em breve.');
