@@ -228,6 +228,35 @@ export interface StudentProfileMetrics {
   returning: number;
 }
 
+export interface QuestionRating {
+  questionKey: string;
+  questionLabel: string;
+  category: string;
+  avgRating: number;
+  responseCount: number;
+  distribution: Record<string, number>;
+}
+
+export interface StudentDetailedResponse {
+  userId: string;
+  userName: string;
+  completedAt: string | null;
+  isCompleted: boolean;
+  satisfaction: string | null;
+  isFirstTime: boolean;
+  isHotLead: boolean;
+  answeredQuestions: number;
+  totalQuestions: number;
+  progressPercent: number;
+  responses: {
+    questionKey: string;
+    questionLabel: string;
+    category: string;
+    value: string | null;
+    numericValue: number | null;
+  }[];
+}
+
 export interface SurveyAnalytics {
   totalResponses: number;
   completedResponses: number;
@@ -251,14 +280,9 @@ export interface SurveyAnalytics {
     likedMost: string[];
     suggestions: string[];
   };
-  responsesByStudent: {
-    userId: string;
-    userName: string;
-    completedAt: string | null;
-    satisfaction: string | null;
-    isFirstTime: boolean;
-    isHotLead: boolean;
-  }[];
+  responsesByStudent: StudentDetailedResponse[];
+  questionRankings: QuestionRating[];
+  allQuestions: QuestionRating[];
 }
 
 export function useSurveyAnalytics(classId: string | null) {
@@ -527,19 +551,128 @@ export function useSurveyAnalytics(classId: string | null) {
         return { answered, total };
       };
 
-      // Responses by student
-      const responsesByStudent = responses.map(r => {
+      // Question definitions for all ratable questions
+      const questionDefinitions: { key: keyof SurveyResponse; label: string; category: string }[] = [
+        { key: 'q1_satisfaction_level', label: 'Nível de satisfação geral', category: 'Satisfação' },
+        { key: 'q3_hygor_expectations', label: 'Dr. Hygor - Expectativas', category: 'Dr. Hygor' },
+        { key: 'q4_hygor_clarity', label: 'Dr. Hygor - Clareza', category: 'Dr. Hygor' },
+        { key: 'q5_hygor_time', label: 'Dr. Hygor - Tempo', category: 'Dr. Hygor' },
+        { key: 'q8_patrick_expectations', label: 'Dr. Patrick - Expectativas', category: 'Dr. Patrick' },
+        { key: 'q9_patrick_clarity', label: 'Dr. Patrick - Clareza', category: 'Dr. Patrick' },
+        { key: 'q10_patrick_time', label: 'Dr. Patrick - Tempo', category: 'Dr. Patrick' },
+        { key: 'q13_organization', label: 'Organização geral', category: 'Infraestrutura' },
+        { key: 'q14_content_relevance', label: 'Relevância do conteúdo', category: 'Infraestrutura' },
+        { key: 'q15_teacher_competence', label: 'Competência dos professores', category: 'Infraestrutura' },
+        { key: 'q16_material_quality', label: 'Qualidade do material', category: 'Infraestrutura' },
+        { key: 'q17_punctuality', label: 'Pontualidade', category: 'Infraestrutura' },
+        { key: 'q18_infrastructure', label: 'Infraestrutura física', category: 'Infraestrutura' },
+        { key: 'q19_support_team', label: 'Equipe de apoio', category: 'Infraestrutura' },
+        { key: 'q20_coffee_break', label: 'Coffee Break', category: 'Infraestrutura' },
+        { key: 'q30_monitor_technical', label: 'Monitor - Conhecimento técnico', category: 'Monitor' },
+        { key: 'q31_monitor_interest', label: 'Monitor - Interesse', category: 'Monitor' },
+        { key: 'q32_monitor_engagement', label: 'Monitor - Engajamento', category: 'Monitor' },
+        { key: 'q33_monitor_posture', label: 'Monitor - Postura', category: 'Monitor' },
+        { key: 'q34_monitor_communication', label: 'Monitor - Comunicação', category: 'Monitor' },
+        { key: 'q35_monitor_contribution', label: 'Monitor - Contribuição', category: 'Monitor' },
+        { key: 'q38_eder_technical', label: 'Dr. Eder - Conhecimento técnico', category: 'Dr. Eder' },
+        { key: 'q39_eder_interest', label: 'Dr. Eder - Interesse', category: 'Dr. Eder' },
+        { key: 'q40_eder_engagement', label: 'Dr. Eder - Engajamento', category: 'Dr. Eder' },
+        { key: 'q41_eder_posture', label: 'Dr. Eder - Postura', category: 'Dr. Eder' },
+        { key: 'q42_eder_communication', label: 'Dr. Eder - Comunicação', category: 'Dr. Eder' },
+        { key: 'q43_eder_contribution', label: 'Dr. Eder - Contribuição', category: 'Dr. Eder' },
+      ];
+
+      // Calculate all question ratings
+      const allQuestions: QuestionRating[] = questionDefinitions.map(qDef => {
+        const values = completed.map(r => r[qDef.key] as string | null);
+        const numericValues = values.map(v => getRatingValue(v));
+        const distribution: Record<string, number> = {};
+        values.forEach(v => {
+          if (v) distribution[v] = (distribution[v] || 0) + 1;
+        });
+        return {
+          questionKey: qDef.key,
+          questionLabel: qDef.label,
+          category: qDef.category,
+          avgRating: calculateAverage(numericValues),
+          responseCount: numericValues.filter(v => v !== null).length,
+          distribution,
+        };
+      });
+
+      // Ranking sorted by avg rating (best to worst)
+      const questionRankings = [...allQuestions]
+        .filter(q => q.responseCount > 0)
+        .sort((a, b) => b.avgRating - a.avgRating);
+
+      // All question keys for individual responses
+      const allQuestionKeys: { key: keyof SurveyResponse; label: string; category: string }[] = [
+        { key: 'q1_satisfaction_level', label: 'Nível de satisfação', category: 'Satisfação' },
+        { key: 'q2_first_time_course', label: 'Primeira vez no curso?', category: 'Perfil' },
+        { key: 'q3_hygor_expectations', label: 'Dr. Hygor - Expectativas', category: 'Dr. Hygor' },
+        { key: 'q4_hygor_clarity', label: 'Dr. Hygor - Clareza', category: 'Dr. Hygor' },
+        { key: 'q5_hygor_time', label: 'Dr. Hygor - Tempo', category: 'Dr. Hygor' },
+        { key: 'q6_hygor_liked_most', label: 'Dr. Hygor - Melhor ponto', category: 'Dr. Hygor' },
+        { key: 'q7_hygor_improve', label: 'Dr. Hygor - Melhoria', category: 'Dr. Hygor' },
+        { key: 'q8_patrick_expectations', label: 'Dr. Patrick - Expectativas', category: 'Dr. Patrick' },
+        { key: 'q9_patrick_clarity', label: 'Dr. Patrick - Clareza', category: 'Dr. Patrick' },
+        { key: 'q10_patrick_time', label: 'Dr. Patrick - Tempo', category: 'Dr. Patrick' },
+        { key: 'q11_patrick_liked_most', label: 'Dr. Patrick - Melhor ponto', category: 'Dr. Patrick' },
+        { key: 'q12_patrick_improve', label: 'Dr. Patrick - Melhoria', category: 'Dr. Patrick' },
+        { key: 'q13_organization', label: 'Organização', category: 'Infraestrutura' },
+        { key: 'q14_content_relevance', label: 'Relevância do conteúdo', category: 'Infraestrutura' },
+        { key: 'q15_teacher_competence', label: 'Competência professores', category: 'Infraestrutura' },
+        { key: 'q16_material_quality', label: 'Qualidade material', category: 'Infraestrutura' },
+        { key: 'q17_punctuality', label: 'Pontualidade', category: 'Infraestrutura' },
+        { key: 'q18_infrastructure', label: 'Infraestrutura', category: 'Infraestrutura' },
+        { key: 'q19_support_team', label: 'Equipe de apoio', category: 'Infraestrutura' },
+        { key: 'q20_coffee_break', label: 'Coffee Break', category: 'Infraestrutura' },
+        { key: 'q21_liked_most_today', label: 'O que mais gostou', category: 'Feedback' },
+        { key: 'q22_suggestions', label: 'Sugestões', category: 'Feedback' },
+        { key: 'q23_start_preference', label: 'Preferência de horário', category: 'Perfil' },
+        { key: 'q24_hunger_level', label: 'Nível de fome/desejo', category: 'Perfil' },
+        { key: 'q25_urgency_level', label: 'Nível de urgência', category: 'Perfil' },
+        { key: 'q26_investment_level', label: 'Nível de investimento', category: 'Perfil' },
+        { key: 'q27_weekly_time', label: 'Tempo semanal disponível', category: 'Perfil' },
+        { key: 'q28_current_reality', label: 'Realidade atual', category: 'Perfil' },
+        { key: 'q29_monitor_name', label: 'Nome do monitor', category: 'Monitor' },
+        { key: 'q30_monitor_technical', label: 'Monitor - Técnico', category: 'Monitor' },
+        { key: 'q31_monitor_interest', label: 'Monitor - Interesse', category: 'Monitor' },
+        { key: 'q32_monitor_engagement', label: 'Monitor - Engajamento', category: 'Monitor' },
+        { key: 'q33_monitor_posture', label: 'Monitor - Postura', category: 'Monitor' },
+        { key: 'q34_monitor_communication', label: 'Monitor - Comunicação', category: 'Monitor' },
+        { key: 'q35_monitor_contribution', label: 'Monitor - Contribuição', category: 'Monitor' },
+        { key: 'q36_monitor_strength', label: 'Monitor - Ponto forte', category: 'Monitor' },
+        { key: 'q37_monitor_improve', label: 'Monitor - Melhoria', category: 'Monitor' },
+      ];
+
+      // Responses by student with full detail
+      const responsesByStudent: StudentDetailedResponse[] = responses.map(r => {
         const progress = countAnsweredQuestions(r);
+        const studentResponses = allQuestionKeys.map(qDef => {
+          const value = r[qDef.key];
+          const strValue = typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : (value as string | null);
+          return {
+            questionKey: qDef.key,
+            questionLabel: qDef.label,
+            category: qDef.category,
+            value: strValue,
+            numericValue: typeof value === 'string' ? getRatingValue(value) : null,
+          };
+        });
+
         return {
           userId: r.user_id,
           userName: r.user_profiles?.full_name || 'Aluno',
           completedAt: r.completed_at,
+          isCompleted: r.is_completed || false,
           satisfaction: r.q1_satisfaction_level,
           isFirstTime: r.q2_first_time_course || false,
           isHotLead: isHighUrgency(r.q25_urgency_level),
           answeredQuestions: progress.answered,
           totalQuestions: progress.total,
           progressPercent: Math.round((progress.answered / progress.total) * 100),
+          responses: studentResponses,
         };
       });
 
@@ -564,6 +697,8 @@ export function useSurveyAnalytics(classId: string | null) {
         hotLeads,
         openFeedback,
         responsesByStudent,
+        questionRankings,
+        allQuestions,
       };
     },
     enabled: !!classId,
