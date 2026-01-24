@@ -2124,27 +2124,25 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Pontos Críticos */}
               {aiInsights.pontosCriticos && aiInsights.pontosCriticos.length > 0 && (
-                <Card className="border-red-200/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2 text-red-700">
-                      <AlertTriangle className="h-4 w-4" />
-                      Pontos Críticos
-                      <Badge className="ml-1 bg-red-100 text-red-700 border-red-200">{aiInsights.pontosCriticos.length}</Badge>
-                    </CardTitle>
-                    <CardDescription>Áreas que precisam de atenção imediata</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {[...aiInsights.pontosCriticos]
-                        .sort((a: any, b: any) => {
-                          const impactOrder: Record<string, number> = { alto: 0, medio: 1, baixo: 2 };
-                          return (impactOrder[a.impacto] ?? 3) - (impactOrder[b.impacto] ?? 3);
-                        })
-                        .map((ponto: any, idx: number) => (
-                        <div key={idx} className="p-4 rounded-lg bg-red-50/50 dark:bg-red-900/10 border border-red-100">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                    <h3 className="font-semibold text-red-700">Pontos Críticos</h3>
+                    <Badge className="bg-red-100 text-red-700 border-red-200">{aiInsights.pontosCriticos.length}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground -mt-2">Áreas que precisam de atenção imediata</p>
+                  <div className="space-y-3">
+                    {[...aiInsights.pontosCriticos]
+                      .sort((a: any, b: any) => {
+                        const impactOrder: Record<string, number> = { alto: 0, medio: 1, baixo: 2 };
+                        return (impactOrder[a.impacto] ?? 3) - (impactOrder[b.impacto] ?? 3);
+                      })
+                      .map((ponto: any, idx: number) => (
+                      <Card key={idx} className="border-red-200/50 bg-red-50/30 dark:bg-red-950/10">
+                        <CardContent className="p-4">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-2">
                                 <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-200">
                                   {ponto.area}
                                 </Badge>
@@ -2162,34 +2160,32 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                               Impacto {ponto.impacto}
                             </Badge>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Ações Sugeridas */}
               {aiInsights.acoesSugeridas && aiInsights.acoesSugeridas.length > 0 && (
-                <Card className="border-emerald-200/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2 text-emerald-700">
-                      <Target className="h-4 w-4" />
-                      Ações Sugeridas
-                      <Badge className="ml-1 bg-emerald-100 text-emerald-700 border-emerald-200">{aiInsights.acoesSugeridas.length}</Badge>
-                    </CardTitle>
-                    <CardDescription>Passos concretos para melhorar a experiência</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {[...aiInsights.acoesSugeridas]
-                        .sort((a: any, b: any) => {
-                          const prazoOrder: Record<string, number> = { imediato: 0, proximo_dia: 1, fim_curso: 2 };
-                          return (prazoOrder[a.prazo] ?? 3) - (prazoOrder[b.prazo] ?? 3);
-                        })
-                        .slice(0, 8)
-                        .map((acao: any, idx: number) => (
-                        <div key={idx} className="p-4 rounded-lg bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-emerald-600" />
+                    <h3 className="font-semibold text-emerald-700">Ações Sugeridas</h3>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{aiInsights.acoesSugeridas.length}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground -mt-2">Passos concretos para melhorar a experiência</p>
+                  <div className="space-y-3">
+                    {[...aiInsights.acoesSugeridas]
+                      .sort((a: any, b: any) => {
+                        const prazoOrder: Record<string, number> = { imediato: 0, proximo_dia: 1, fim_curso: 2 };
+                        return (prazoOrder[a.prazo] ?? 3) - (prazoOrder[b.prazo] ?? 3);
+                      })
+                      .slice(0, 8)
+                      .map((acao: any, idx: number) => (
+                      <Card key={idx} className="border-emerald-200/50 bg-emerald-50/30 dark:bg-emerald-950/10">
+                        <CardContent className="p-4">
                           <div className="flex items-start gap-4">
                             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm shrink-0">
                               {acao.prioridade || idx + 1}
@@ -2216,60 +2212,61 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
+
             <div className="grid md:grid-cols-2 gap-6">
               {/* Pontos Fortes */}
               {aiInsights.pontosFortes && aiInsights.pontosFortes.length > 0 && (
-                <Card className="border-blue-200/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2 text-blue-700">
-                      <ThumbsUp className="h-4 w-4" />
-                      Pontos Fortes
-                      <Badge className="ml-1 bg-blue-100 text-blue-700 border-blue-200">{aiInsights.pontosFortes.length}</Badge>
-                    </CardTitle>
-                    <CardDescription>Destaques positivos do curso</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {aiInsights.pontosFortes.map((ponto: string, idx: number) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                          <span>{ponto}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <ThumbsUp className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-semibold text-blue-700">Pontos Fortes</h3>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">{aiInsights.pontosFortes.length}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground -mt-2">Destaques positivos do curso</p>
+                  <div className="space-y-3">
+                    {aiInsights.pontosFortes.map((ponto: string, idx: number) => (
+                      <Card key={idx} className="border-blue-200/50 bg-blue-50/30 dark:bg-blue-950/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                            <p className="text-sm">{ponto}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Tendências */}
               {aiInsights.tendencias && aiInsights.tendencias.length > 0 && (
-                <Card className="border-purple-200/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2 text-purple-700">
-                      <TrendingUp className="h-4 w-4" />
-                      Tendências Identificadas
-                      <Badge className="ml-1 bg-purple-100 text-purple-700 border-purple-200">{aiInsights.tendencias.length}</Badge>
-                    </CardTitle>
-                    <CardDescription>Padrões observados nas respostas</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {aiInsights.tendencias.map((tendencia: string, idx: number) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
-                          <Zap className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
-                          <span>{tendencia}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-purple-600" />
+                    <h3 className="font-semibold text-purple-700">Tendências Identificadas</h3>
+                    <Badge className="bg-purple-100 text-purple-700 border-purple-200">{aiInsights.tendencias.length}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground -mt-2">Padrões observados nas respostas</p>
+                  <div className="space-y-3">
+                    {aiInsights.tendencias.map((tendencia: string, idx: number) => (
+                      <Card key={idx} className="border-purple-200/50 bg-purple-50/30 dark:bg-purple-950/10">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <Zap className="h-5 w-5 text-purple-500 shrink-0 mt-0.5" />
+                            <p className="text-sm">{tendencia}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 
