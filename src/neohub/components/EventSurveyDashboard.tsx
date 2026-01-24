@@ -717,7 +717,7 @@ async function exportMatrixPDF(analytics: NonNullable<SurveyAnalyticsData>) {
       <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 24px 32px;">
         <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
           <span style="font-size: 28px;">📊</span>
-          <h1 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">Mapa de Notas - Matriz Completa</h1>
+          <h1 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">MATRIZ DE NOTAS - Matriz Completa</h1>
         </div>
         <p style="text-align: center; color: rgba(255,255,255,0.85); font-size: 12px; margin: 8px 0 0 0;">
           Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} • ${students.length} alunos • ${questions.length} perguntas
@@ -1669,7 +1669,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <ArrowUpDown className="h-5 w-5 text-primary" />
-                  Mapa de Notas
+                  MATRIZ DE NOTAS
                 </CardTitle>
                 <CardDescription>
                   Visualize todas as notas por aluno e pergunta em formato de matriz
@@ -1745,8 +1745,16 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
                   };
                   
-                  // Sort questions
-                  const sortedQuestions = [...analytics.allQuestions].sort((a, b) => {
+                  // Sort questions - FILTER OUT QUESTIONS WITH NO DATA
+                  const questionsWithData = analytics.allQuestions.filter(q => {
+                    const hasAnyData = analytics.responsesByStudent.some(s => {
+                      const response = s.responses.find(r => r.questionKey === q.questionKey);
+                      return response?.numericValue !== null && response?.numericValue !== undefined;
+                    });
+                    return hasAnyData;
+                  });
+                  
+                  const sortedQuestions = [...questionsWithData].sort((a, b) => {
                     if (!matrixSortColumn) return 0;
                     
                     let aVal: number | string;
