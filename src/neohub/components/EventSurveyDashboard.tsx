@@ -2109,12 +2109,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Pontos Críticos */}
               {aiInsights.pontosCriticos && aiInsights.pontosCriticos.length > 0 && (
-                <Card className="border-red-200/50">
+                <Card className="border-red-300 bg-red-50/60 dark:bg-red-950/30">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-5 w-5 text-red-600" />
-                      <CardTitle className="text-base text-red-700">Pontos Críticos</CardTitle>
-                      <Badge className="bg-red-100 text-red-700 border-red-200">{aiInsights.pontosCriticos.length}</Badge>
+                      <CardTitle className="text-base text-red-700 dark:text-red-400">Pontos Críticos</CardTitle>
+                      <Badge className="bg-red-200 text-red-800 border-red-300">{aiInsights.pontosCriticos.length}</Badge>
                     </div>
                     <CardDescription>Áreas que precisam de atenção imediata</CardDescription>
                   </CardHeader>
@@ -2125,11 +2125,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                         return (impactOrder[a.impacto] ?? 3) - (impactOrder[b.impacto] ?? 3);
                       })
                       .map((ponto: any, idx: number) => (
-                      <div key={idx} className="p-3 rounded-lg bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30">
+                      <div key={idx} className="p-3 rounded-lg bg-white dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 shadow-sm">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-200">
+                              <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">
                                 {ponto.area}
                               </Badge>
                               {ponto.urgencia === 'alta' && (
@@ -2154,12 +2154,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
               {/* Ações Sugeridas */}
               {aiInsights.acoesSugeridas && aiInsights.acoesSugeridas.length > 0 && (
-                <Card className="border-emerald-200/50">
+                <Card className="border-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/30">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
                       <Target className="h-5 w-5 text-emerald-600" />
-                      <CardTitle className="text-base text-emerald-700">Ações Sugeridas</CardTitle>
-                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{aiInsights.acoesSugeridas.length}</Badge>
+                      <CardTitle className="text-base text-emerald-700 dark:text-emerald-400">Ações Sugeridas</CardTitle>
+                      <Badge className="bg-emerald-200 text-emerald-800 border-emerald-300">{aiInsights.acoesSugeridas.length}</Badge>
                     </div>
                     <CardDescription>Passos concretos para melhorar a experiência</CardDescription>
                   </CardHeader>
@@ -2171,9 +2171,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       })
                       .slice(0, 8)
                       .map((acao: any, idx: number) => (
-                      <div key={idx} className="p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30">
+                      <div key={idx} className="p-3 rounded-lg bg-white dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 shadow-sm">
                         <div className="flex items-start gap-4">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm shrink-0">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-200 text-emerald-700 font-bold text-sm shrink-0">
                             {acao.prioridade || idx + 1}
                           </div>
                           <div className="flex-1">
@@ -2186,9 +2186,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                               )}
                               {acao.prazo && (
                                 <Badge variant="outline" className={`text-[10px] ${
-                                  acao.prazo === 'imediato' ? 'bg-red-50 text-red-600' :
-                                  acao.prazo === 'proximo_dia' ? 'bg-yellow-50 text-yellow-600' :
-                                  'bg-blue-50 text-blue-600'
+                                  acao.prazo === 'imediato' ? 'bg-red-100 text-red-600 border-red-300' :
+                                  acao.prazo === 'proximo_dia' ? 'bg-yellow-100 text-yellow-700 border-yellow-300' :
+                                  'bg-blue-100 text-blue-600 border-blue-300'
                                 }`}>
                                   {acao.prazo === 'imediato' ? '⚡ Imediato' :
                                    acao.prazo === 'proximo_dia' ? '📅 Próximo dia' :
@@ -2208,18 +2208,18 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Pontos Fortes */}
               {aiInsights.pontosFortes && aiInsights.pontosFortes.length > 0 && (
-                <Card className="border-blue-200/50">
+                <Card className="border-blue-300 bg-blue-50/60 dark:bg-blue-950/30">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
                       <ThumbsUp className="h-5 w-5 text-blue-600" />
-                      <CardTitle className="text-base text-blue-700">Pontos Fortes</CardTitle>
-                      <Badge className="bg-blue-100 text-blue-700 border-blue-200">{aiInsights.pontosFortes.length}</Badge>
+                      <CardTitle className="text-base text-blue-700 dark:text-blue-400">Pontos Fortes</CardTitle>
+                      <Badge className="bg-blue-200 text-blue-800 border-blue-300">{aiInsights.pontosFortes.length}</Badge>
                     </div>
                     <CardDescription>Destaques positivos do curso</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {aiInsights.pontosFortes.map((ponto: string, idx: number) => (
-                      <div key={idx} className="p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30">
+                      <div key={idx} className="p-3 rounded-lg bg-white dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 shadow-sm">
                         <div className="flex items-start gap-3">
                           <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
                           <p className="text-sm">{ponto}</p>
@@ -2232,18 +2232,18 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
               {/* Tendências */}
               {aiInsights.tendencias && aiInsights.tendencias.length > 0 && (
-                <Card className="border-purple-200/50">
+                <Card className="border-purple-300 bg-purple-50/60 dark:bg-purple-950/30">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5 text-purple-600" />
-                      <CardTitle className="text-base text-purple-700">Tendências Identificadas</CardTitle>
-                      <Badge className="bg-purple-100 text-purple-700 border-purple-200">{aiInsights.tendencias.length}</Badge>
+                      <CardTitle className="text-base text-purple-700 dark:text-purple-400">Tendências Identificadas</CardTitle>
+                      <Badge className="bg-purple-200 text-purple-800 border-purple-300">{aiInsights.tendencias.length}</Badge>
                     </div>
                     <CardDescription>Padrões observados nas respostas</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {aiInsights.tendencias.map((tendencia: string, idx: number) => (
-                      <div key={idx} className="p-3 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                      <div key={idx} className="p-3 rounded-lg bg-white dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/50 shadow-sm">
                         <div className="flex items-start gap-3">
                           <Zap className="h-5 w-5 text-purple-500 shrink-0 mt-0.5" />
                           <p className="text-sm">{tendencia}</p>
@@ -2257,9 +2257,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
             {/* Resumo Executivo - junto com os demais resumos */}
             {aiInsights.resumoExecutivo && (
-              <Card className="border-blue-200/50 bg-blue-50/30 dark:bg-blue-950/10">
+              <Card className="border-indigo-300 bg-indigo-50/60 dark:bg-indigo-950/30">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2 text-blue-700">
+                  <CardTitle className="text-base flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
                     <FileText className="h-5 w-5" />
                     Resumo Executivo
                   </CardTitle>
