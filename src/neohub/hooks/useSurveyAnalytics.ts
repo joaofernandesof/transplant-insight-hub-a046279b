@@ -431,12 +431,12 @@ export function useSurveyAnalytics(classId: string | null) {
       // All responses are already completed (filtered above)
       const completed = responses;
 
-      // Overall satisfaction - média simples (não NPS)
+      // Overall satisfaction - média simples (0-10 scale from getRatingValue)
       const overallSatisfaction = calculateAverage(
         completed.map(r => getRatingValue(r.q1_satisfaction_level))
       );
-      // Converte para percentual (1-5 → 0-100%)
-      const overallSatisfactionPercent = overallSatisfaction > 0 ? ((overallSatisfaction - 1) / 4) * 100 : 0;
+      // Converte para percentual (0-10 → 0-100%)
+      const overallSatisfactionPercent = overallSatisfaction > 0 ? (overallSatisfaction / 10) * 100 : 0;
 
       // Instructor metrics - Hygor
       const hygorMetrics: InstructorMetrics = {
