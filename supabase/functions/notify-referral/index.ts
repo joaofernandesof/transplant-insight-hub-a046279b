@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
 
     const isStudentReferral = referral.type === 'student_referral';
     // Use verified domain ibramec.com (same as send-student-credentials)
-    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "indicacoes@ibramec.com";
+    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "contato@ibramec.com";
     const fromAddress = `IBRAMEC <${fromEmail}>`;
 
     // ============ EMAIL 1: Para o ADMIN ============
