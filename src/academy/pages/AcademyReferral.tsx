@@ -111,6 +111,51 @@ export function AcademyReferral() {
         </p>
       </div>
 
+      {/* Promo Banner - Always first when active */}
+      {isPromoActive && countdown && (
+        <Card className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 overflow-hidden relative">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
+          <CardContent className="p-6 relative">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                  <Zap className="h-8 w-8" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    PROMOÇÃO ESPECIAL
+                  </h2>
+                  <p className="text-white/90">
+                    Comissão em <span className="font-bold text-2xl">{promoCommission}%</span> no PIX!
+                    <span className="text-white/70 ml-2 line-through">({normalCommission}% normal)</span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-white/20 rounded-xl px-4 py-3">
+                <Timer className="h-5 w-5" />
+                <div className="text-center">
+                  <p className="text-xs text-white/80 uppercase tracking-wide">Acaba em</p>
+                  <p className="text-2xl font-mono font-bold">
+                    {String(countdown.hours).padStart(2, '0')}:
+                    {String(countdown.minutes).padStart(2, '0')}:
+                    {String(countdown.seconds).padStart(2, '0')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Expired Promo - Minimized notice */}
+      {!isPromoActive && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
+          <Clock className="h-4 w-4" />
+          <span>Promoção encerrada. Comissão atual: <strong className="text-foreground">{normalCommission}%</strong> por matrícula.</span>
+        </div>
+      )}
+
       {/* How It Works - Flipchart Style */}
       <Card className="bg-gradient-to-br from-background to-muted/30 border-dashed">
         <CardHeader className="pb-2">
@@ -181,43 +226,6 @@ export function AcademyReferral() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Promo Banner */}
-      {isPromoActive && countdown && (
-        <Card className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 overflow-hidden relative">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-          <CardContent className="p-6 relative">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                  <Zap className="h-8 w-8" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    PROMOÇÃO ESPECIAL
-                  </h2>
-                  <p className="text-white/90">
-                    Comissão em <span className="font-bold text-2xl">{promoCommission}%</span> no PIX!
-                    <span className="text-white/70 ml-2 line-through">({normalCommission}% normal)</span>
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 bg-white/20 rounded-xl px-4 py-3">
-                <Timer className="h-5 w-5" />
-                <div className="text-center">
-                  <p className="text-xs text-white/80 uppercase tracking-wide">Acaba em</p>
-                  <p className="text-2xl font-mono font-bold">
-                    {String(countdown.hours).padStart(2, '0')}:
-                    {String(countdown.minutes).padStart(2, '0')}:
-                    {String(countdown.seconds).padStart(2, '0')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Link Section */}
       <Card>
