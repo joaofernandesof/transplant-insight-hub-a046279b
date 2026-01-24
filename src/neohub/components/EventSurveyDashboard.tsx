@@ -3521,7 +3521,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold">Análise Individual por Aluno</h3>
-            <p className="text-sm text-muted-foreground">Selecione um aluno para ver todas as respostas</p>
+            <p className="text-sm text-muted-foreground">Todas as respostas de cada aluno</p>
           </div>
           <Button
             variant="outline"
@@ -3544,42 +3544,44 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Button>
         </div>
 
-        {/* Two-column layout: student list + detail panel */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* LEFT - Student List (compact) */}
-          <Card className="lg:col-span-1">
-            <CardContent className="p-3 space-y-3">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar aluno..."
-                    value={studentSearch}
-                    onChange={(e) => setStudentSearch(e.target.value)}
-                    className="pl-9 h-9"
-                  />
-                </div>
-                <Select value={studentSortBy} onValueChange={(v) => setStudentSortBy(v as 'name' | 'score' | 'date')}>
-                  <SelectTrigger className="w-[110px] h-9">
-                    <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name">Nome</SelectItem>
-                    <SelectItem value="score">Média</SelectItem>
-                    <SelectItem value="date">Data</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Search and Sort controls */}
+        <div className="flex gap-3 max-w-md">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar aluno..."
+              value={studentSearch}
+              onChange={(e) => setStudentSearch(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
+          <Select value={studentSortBy} onValueChange={(v) => setStudentSortBy(v as 'name' | 'score' | 'date')}>
+            <SelectTrigger className="w-[120px] h-9">
+              <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Nome</SelectItem>
+              <SelectItem value="score">Média</SelectItem>
+              <SelectItem value="date">Data</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-              <div className="space-y-1">
-                  {filteredStudents.map((student) => {
+        {/* Two-column layout: student list + all responses */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* LEFT - Student List (compact, scrollable) */}
+          <Card className="lg:col-span-1">
+            <CardContent className="p-3">
+              <ScrollArea className="h-[600px]">
+                <div className="space-y-1 pr-2">
+                  {filteredStudents.map((student, idx) => {
                     const isSelected = selectedStudent?.userId === student.userId;
                     
                     return (
                       <div
                         key={student.userId}
-                        className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${
+                        className={`flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-all ${
                           isSelected
                             ? 'bg-primary/10 border-l-2 border-primary'
                             : 'hover:bg-muted/50'
@@ -3587,6 +3589,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                         onClick={() => setSelectedStudent(student)}
                       >
                         <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-xs text-muted-foreground w-5 shrink-0">
+                            {idx + 1}.
+                          </span>
                           <Avatar className="h-7 w-7 shrink-0">
                             <AvatarFallback className="text-xs">
                               {student.userName.charAt(0)}
@@ -3616,119 +3621,117 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     </p>
                   )}
                 </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
-          {/* RIGHT - Student Detail Panel */}
+          {/* RIGHT - All Student Responses Inline (scrollable) */}
           <Card className="lg:col-span-2">
-            {selectedStudent ? (
-              <>
-                <CardHeader className="pb-3 flex flex-row items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback>
-                        {selectedStudent.userName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        {selectedStudent.userName}
-                        {selectedStudent.isFirstTime && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">1ª vez</Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription className="flex items-center gap-2">
-                        {selectedStudent.isCompleted ? (
-                          <span className="flex items-center gap-1 text-emerald-600">
-                            <CheckCircle2 className="h-3 w-3" /> Completou
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-yellow-600">
-                            <Clock className="h-3 w-3" /> {selectedStudent.progressPercent}% concluído
-                          </span>
-                        )}
-                        <span>•</span>
-                        <span>Média: <strong>{selectedStudent.overallScore.toFixed(1)}</strong></span>
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => {
-                      const classConfig = getSatisfactionClassConfig(selectedStudent.satisfactionClass);
-                      const groupedResponses = selectedStudent.responses.reduce((acc, r) => {
-                        if (!acc[r.category]) acc[r.category] = [];
-                        acc[r.category].push(r);
-                        return acc;
-                      }, {} as Record<string, typeof selectedStudent.responses>);
-                      
-                      const html = `
-                        <div style="padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-                          <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 30px; text-align: center;">
-                            <h1 style="color: white; font-size: 22px; margin: 0;">📋 Relatório Individual</h1>
-                            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">${selectedStudent.userName}</p>
-                          </div>
-                          
-                          <div style="padding: 30px;">
-                            <div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
-                              <div style="flex: 1; min-width: 200px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 32px; font-weight: bold; color: #6366f1;">${selectedStudent.overallScore.toFixed(1)}</div>
-                                <div style="font-size: 12px; color: #6b7280;">Nota Média</div>
-                              </div>
-                              <div style="flex: 1; min-width: 200px; background: #f3f4f6; padding: 20px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 24px; font-weight: bold; color: #6366f1;">${selectedStudent.answeredQuestions}/${selectedStudent.totalQuestions}</div>
-                                <div style="font-size: 12px; color: #6b7280;">Perguntas Respondidas</div>
-                              </div>
-                            </div>
-                            
-                            ${Object.entries(groupedResponses).map(([category, responses]) => `
-                              <div style="margin-bottom: 24px;">
-                                <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;">${category}</h3>
-                                ${(responses as any[]).map(r => `
-                                  <div style="display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: #f9fafb; border-radius: 8px;">
-                                    <span style="color: #6b7280; font-size: 13px;">${r.questionLabel}</span>
-                                    <span style="font-weight: 500; font-size: 13px; color: ${r.numericValue && r.numericValue >= 8 ? '#10b981' : r.numericValue && r.numericValue >= 5 ? '#f59e0b' : '#6b7280'};">${r.value || '—'}</span>
-                                  </div>
-                                `).join('')}
-                              </div>
-                            `).join('')}
-                            
-                            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #9ca3af; font-size: 11px;">
-                              Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} • IBRAMEC
+            <CardContent className="p-4">
+              <ScrollArea className="h-[600px]">
+                <div className="space-y-6 pr-4">
+                  {filteredStudents.map((student, studentIdx) => {
+                    const groupedResponses = student.responses.reduce((acc, r) => {
+                      if (!acc[r.category]) acc[r.category] = [];
+                      acc[r.category].push(r);
+                      return acc;
+                    }, {} as Record<string, typeof student.responses>);
+
+                    return (
+                      <div 
+                        key={student.userId} 
+                        id={`student-${student.userId}`}
+                        className="border rounded-lg overflow-hidden"
+                      >
+                        {/* Student Header */}
+                        <div className="bg-muted/50 px-4 py-3 flex items-center justify-between border-b">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-bold text-muted-foreground">
+                              #{studentIdx + 1}
+                            </span>
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="text-sm">
+                                {student.userName.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-sm flex items-center gap-2">
+                                {student.userName}
+                                {student.isFirstTime && (
+                                  <Badge variant="outline" className="text-[9px] px-1 py-0">1ª vez</Badge>
+                                )}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {student.answeredQuestions}/{student.totalQuestions} perguntas
+                                {student.isCompleted ? (
+                                  <span className="ml-2 text-emerald-600">• Completou</span>
+                                ) : (
+                                  <span className="ml-2 text-yellow-600">• {student.progressPercent}%</span>
+                                )}
+                              </p>
                             </div>
                           </div>
+                          <Badge
+                            className="text-sm font-bold px-3 py-1"
+                            style={{ 
+                              backgroundColor: getGradientBgStyle(student.overallScore, 0, 10),
+                              color: getGradientColorStyle(student.overallScore, 0, 10)
+                            }}
+                          >
+                            {student.overallScore.toFixed(1)}
+                          </Badge>
                         </div>
-                      `;
-                      createPDFFromHTML(html, `relatorio-${selectedStudent.userName.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
-                    }}
-                  >
-                    <Download className="h-4 w-4" />
-                    PDF
-                  </Button>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <ScrollArea className="h-[430px]">
-                    <div className="pr-4">
-                      <StudentDetailView student={selectedStudent} />
+
+                        {/* Student Responses Grid */}
+                        <div className="p-4">
+                          {Object.entries(groupedResponses).map(([category, responses]) => (
+                            <div key={category} className="mb-4 last:mb-0">
+                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                {category}
+                              </p>
+                              <div className="grid gap-1">
+                                {responses.map((r, rIdx) => (
+                                  <div 
+                                    key={rIdx} 
+                                    className="flex items-center justify-between py-1.5 px-2 rounded bg-muted/30 text-sm"
+                                  >
+                                    <span className="text-muted-foreground truncate pr-3 flex-1">
+                                      {r.questionLabel}
+                                    </span>
+                                    <span 
+                                      className="font-medium shrink-0"
+                                      style={{
+                                        color: r.numericValue !== null && r.numericValue !== undefined
+                                          ? getGradientColorStyle(r.numericValue, 0, 10)
+                                          : undefined
+                                      }}
+                                    >
+                                      {r.value || '—'}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {filteredStudents.length === 0 && (
+                    <div className="flex flex-col items-center justify-center h-[400px] text-center">
+                      <User className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                      <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                        Nenhum aluno encontrado
+                      </h3>
+                      <p className="text-sm text-muted-foreground/70 max-w-xs">
+                        Ajuste a busca para ver os alunos
+                      </p>
                     </div>
-                  </ScrollArea>
-                </CardContent>
-              </>
-            ) : (
-              <CardContent className="flex flex-col items-center justify-center h-[520px] text-center">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <User className="h-8 w-8 text-muted-foreground/50" />
+                  )}
                 </div>
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  Selecione um aluno
-                </h3>
-                <p className="text-sm text-muted-foreground/70 max-w-xs">
-                  Clique em um aluno à esquerda para visualizar todas as suas respostas e detalhes
-                </p>
-              </CardContent>
-            )}
+              </ScrollArea>
+            </CardContent>
           </Card>
         </div>
       </TabsContent>
