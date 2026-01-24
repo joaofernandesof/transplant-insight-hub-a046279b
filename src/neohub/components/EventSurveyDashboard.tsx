@@ -2072,7 +2072,13 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {aiInsights.acoesSugeridas.slice(0, 8).map((acao: any, idx: number) => (
+                    {[...aiInsights.acoesSugeridas]
+                      .sort((a: any, b: any) => {
+                        const prazoOrder: Record<string, number> = { imediato: 0, proximo_dia: 1, fim_curso: 2 };
+                        return (prazoOrder[a.prazo] ?? 3) - (prazoOrder[b.prazo] ?? 3);
+                      })
+                      .slice(0, 8)
+                      .map((acao: any, idx: number) => (
                       <div key={idx} className="p-4 rounded-lg bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100">
                         <div className="flex items-start gap-4">
                           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-sm shrink-0">
