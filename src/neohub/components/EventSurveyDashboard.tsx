@@ -1400,7 +1400,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="w-full">
+            <div className="w-full overflow-x-auto scrollbar-visible" style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--muted-foreground)) hsl(var(--muted))' }}>
               <div className="min-w-max">
                 {/* Sorting helper function */}
                 {(() => {
@@ -1625,7 +1625,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   );
                 })()}
               </div>
-            </ScrollArea>
+            </div>
           </CardContent>
         </Card>
       </TabsContent>
