@@ -126,3 +126,4 @@ curl -X POST https://tubzywibnielhcjeswww.supabase.co/functions/v1/notify-referr
 | Data | Versão | Descrição |
 |------|--------|-----------|
 | 2026-01-24 | 1.0 | Criação inicial com envio dual (admin + indicado) |
+| 2026-01-24 | 1.1 | Corrigido logo quebrado - substituído por logo estilizado em texto ("🎓 IBRAMEC") para máxima compatibilidade |

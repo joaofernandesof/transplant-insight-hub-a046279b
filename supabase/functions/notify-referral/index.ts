@@ -194,7 +194,10 @@ Deno.serve(async (req) => {
       <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
           <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 32px; text-align: center; border-radius: 16px 16px 0 0;">
-            <img src="https://transplant-insight-hub.lovable.app/images/ibramec-logo.png" alt="IBRAMEC" style="height: 50px; margin-bottom: 16px;" />
+            <!-- Logo com fallback para texto estilizado -->
+            <div style="margin-bottom: 16px;">
+              <span style="font-size: 28px; font-weight: 800; color: white; letter-spacing: 2px;">🎓 IBRAMEC</span>
+            </div>
             <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 700;">
               ${isStudentReferral ? '✅ Recebemos sua inscrição!' : '✅ Recebemos seu interesse!'}
             </h1>
