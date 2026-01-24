@@ -300,8 +300,8 @@ export function ReferralsTable({
         </CardHeader>
         <CardContent className="p-0">
           {/* Filters Row - Always visible */}
-          <div className="p-4 border-b bg-muted/30 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="p-4 border-b bg-muted/30 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="p-4 border-b bg-muted/30">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Indicado</label>
                 <div className="relative">
@@ -396,22 +396,22 @@ export function ReferralsTable({
           ) : (
             <div className="overflow-x-auto">
               <ScrollArea className="h-[550px]">
-                <div className="min-w-[1200px]">
+                <div className="min-w-[900px]">
                   <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <ColumnHeader field="name" label="Indicado" />
-                    <ColumnHeader field="email" label="Email" className="hidden md:table-cell" />
-                    <ColumnHeader field="phone" label="Telefone" className="hidden lg:table-cell" />
-                    <ColumnHeader field="referrer_name" label="Indicador" />
-                    <ColumnHeader field="source" label="Origem" className="hidden sm:table-cell" />
-                    <ColumnHeader field="status" label="Status" />
-                    <ColumnHeader field="created_at" label="Data/Hora" />
-                    <ColumnHeader field="ganho_indicador" label="Ganho Indicador" className="hidden xl:table-cell" />
-                    <ColumnHeader field="ganho_indicado" label="Ganho Indicado" className="hidden xl:table-cell" />
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <ColumnHeader field="name" label="Indicado" />
+                        <ColumnHeader field="email" label="Email" />
+                        <ColumnHeader field="phone" label="Telefone" />
+                        <ColumnHeader field="referrer_name" label="Indicador" />
+                        <ColumnHeader field="source" label="Origem" />
+                        <ColumnHeader field="status" label="Status" />
+                        <ColumnHeader field="created_at" label="Data/Hora" />
+                        <ColumnHeader field="ganho_indicador" label="Ganho Indicador" />
+                        <ColumnHeader field="ganho_indicado" label="Ganho Indicado" />
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
                 <TableBody>
                   {filteredAndSortedData.map((referral) => {
                     const gains = calculateGains(referral);
@@ -428,12 +428,12 @@ export function ReferralsTable({
                         <TableCell>
                           <div className="font-medium">{referral.name}</div>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">
+                        <TableCell>
                           <div className="text-sm text-muted-foreground truncate max-w-[180px]">
                             {referral.email}
                           </div>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell">
+                        <TableCell>
                           <div className="text-sm">{referral.phone}</div>
                         </TableCell>
                         <TableCell>
@@ -444,7 +444,7 @@ export function ReferralsTable({
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell">
+                        <TableCell>
                           <Badge 
                             variant="outline" 
                             className={`${sourceConfig.bgColor} ${sourceConfig.color} border text-xs`}
@@ -473,7 +473,7 @@ export function ReferralsTable({
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="hidden xl:table-cell">
+                        <TableCell>
                           <div className={`text-sm font-medium ${isConverted ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                             <span className="flex items-center gap-1">
                               5%
@@ -482,7 +482,7 @@ export function ReferralsTable({
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="hidden xl:table-cell">
+                        <TableCell>
                           <div className={`text-sm font-medium ${isConverted ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
                             <span className="flex items-center gap-1">
                               5%
