@@ -2941,12 +2941,13 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <CardContent>
             <div className="space-y-3">
               {analytics.questionRankings.map((q, idx) => {
-                // Calculate distribution percentages
+                // Calculate distribution percentages (scale 0-10)
                 const totalResponses = q.responseCount;
                 const dist = q.distribution || {};
-                const highRatings = (dist['5'] || 0) + (dist['4'] || 0);
-                const medRatings = dist['3'] || 0;
-                const lowRatings = (dist['2'] || 0) + (dist['1'] || 0);
+                // High: 8-10, Medium: 5-7, Low: 0-4
+                const highRatings = (dist['10'] || 0) + (dist['9'] || 0) + (dist['8'] || 0) + (dist['7.5'] || 0);
+                const medRatings = (dist['7'] || 0) + (dist['6'] || 0) + (dist['5'] || 0);
+                const lowRatings = (dist['4'] || 0) + (dist['3'] || 0) + (dist['2.5'] || 0) + (dist['2'] || 0) + (dist['1'] || 0) + (dist['0'] || 0);
                 
                 const highPercent = totalResponses > 0 ? (highRatings / totalResponses) * 100 : 0;
                 const medPercent = totalResponses > 0 ? (medRatings / totalResponses) * 100 : 0;
@@ -2992,7 +2993,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                           <div className="text-right flex-shrink-0">
                             <div 
                               className="text-2xl font-bold"
-                              style={{ color: getGradientColorStyle(q.avgRating, 0, 5) }}
+                              style={{ color: getGradientColorStyle(q.avgRating, 0, 10) }}
                             >
                               {q.avgRating.toFixed(1)}
                             </div>
@@ -3010,36 +3011,36 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                               <div 
                                 className="h-full bg-emerald-500 transition-all"
                                 style={{ width: `${highPercent}%` }}
-                                title={`Notas 4-5: ${highRatings} (${highPercent.toFixed(0)}%)`}
+                                title={`Notas 7.5-10: ${highRatings} (${highPercent.toFixed(0)}%)`}
                               />
                             )}
                             {medPercent > 0 && (
                               <div 
                                 className="h-full bg-amber-400 transition-all"
                                 style={{ width: `${medPercent}%` }}
-                                title={`Nota 3: ${medRatings} (${medPercent.toFixed(0)}%)`}
+                                title={`Notas 5-7: ${medRatings} (${medPercent.toFixed(0)}%)`}
                               />
                             )}
                             {lowPercent > 0 && (
                               <div 
                                 className="h-full bg-red-400 transition-all"
                                 style={{ width: `${lowPercent}%` }}
-                                title={`Notas 1-2: ${lowRatings} (${lowPercent.toFixed(0)}%)`}
+                                title={`Notas 0-4: ${lowRatings} (${lowPercent.toFixed(0)}%)`}
                               />
                             )}
                           </div>
                           <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                              <span>{highPercent.toFixed(0)}% (4-5)</span>
+                              <span>{highPercent.toFixed(0)}% (7.5-10)</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <div className="w-2 h-2 rounded-full bg-amber-400" />
-                              <span>{medPercent.toFixed(0)}% (3)</span>
+                              <span>{medPercent.toFixed(0)}% (5-7)</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <div className="w-2 h-2 rounded-full bg-red-400" />
-                              <span>{lowPercent.toFixed(0)}% (1-2)</span>
+                              <span>{lowPercent.toFixed(0)}% (0-4)</span>
                             </div>
                           </div>
                         </div>
