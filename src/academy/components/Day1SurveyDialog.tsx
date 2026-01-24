@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Frown, Meh, Smile, ThumbsUp, Heart, XCircle, MinusCircle, CheckCircle, ThumbsDown, Clock, Timer, Zap, Hourglass, Calendar } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Frown, Meh, Smile, ThumbsUp, Heart, XCircle, MinusCircle, CheckCircle, ThumbsDown, Clock, Timer, Zap, Hourglass, Calendar, HelpCircle } from 'lucide-react';
 import { useDay1Survey, Day1SurveyFormData } from '../hooks/useDay1Survey';
 import { cn } from '@/lib/utils';
 
@@ -92,6 +92,7 @@ const monitorQualityOptions: QuestionOption[] = [
   { value: 'Regular', label: 'Regular', icon: qualityIcons[2] },
   { value: 'Bom', label: 'Bom', icon: qualityIcons[3] },
   { value: 'Excelente', label: 'Excelente', icon: qualityIcons[4] },
+  { value: 'Ainda não sei responder', label: 'Ainda não sei responder', icon: <HelpCircle key="help" className="h-5 w-5 text-muted-foreground" /> },
 ];
 
 const QUESTIONS: Question[] = [
