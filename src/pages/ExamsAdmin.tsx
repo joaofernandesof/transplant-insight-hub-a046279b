@@ -131,13 +131,15 @@ export default function ExamsAdmin() {
   const exportGabaritoExcel = async () => {
     setIsExportingGabarito(true);
     try {
-      // Buscar todas as questões com as provas
+      // Buscar todas as questões com as provas (incluindo question_text e options)
       const { data: questions, error } = await supabase
         .from('exam_questions')
         .select(`
           id,
           exam_id,
           order_index,
+          question_text,
+          options,
           correct_answer,
           exams!inner(title)
         `)
@@ -162,24 +164,37 @@ export default function ExamsAdmin() {
       // Criar workbook
       const wb = XLSX.utils.book_new();
 
-      // Criar uma aba para cada prova - apenas nº e resposta correta
+      // Criar uma aba para cada prova - com pergunta e resposta correta
       Object.entries(examGroups).forEach(([examTitle, examQuestions]) => {
         // Ordenar por order_index para garantir ordem correta
         const sortedQuestions = [...examQuestions].sort((a, b) => 
           (a.order_index || 0) - (b.order_index || 0)
         );
         
-        const sheetData = sortedQuestions.map((q, idx) => ({
-          'Questão': q.order_index || idx + 1,
-          'Resposta': q.correct_answer
-        }));
+        const sheetData = sortedQuestions.map((q, idx) => {
+          // Obter o texto da resposta correta a partir do array de options
+          const options = q.options as string[] | null;
+          const letterIndex = q.correct_answer ? q.correct_answer.charCodeAt(0) - 65 : -1; // A=0, B=1, C=2, D=3
+          const correctAnswerText = options && letterIndex >= 0 && letterIndex < options.length 
+            ? options[letterIndex] 
+            : q.correct_answer;
+          
+          return {
+            'Nº': q.order_index || idx + 1,
+            'Pergunta': q.question_text,
+            'Letra': q.correct_answer,
+            'Resposta Correta': correctAnswerText
+          };
+        });
 
         const ws = XLSX.utils.json_to_sheet(sheetData);
         
         // Ajustar largura das colunas
         ws['!cols'] = [
-          { wch: 10 },  // Questão
-          { wch: 10 },  // Resposta
+          { wch: 5 },   // Nº
+          { wch: 80 },  // Pergunta
+          { wch: 8 },   // Letra
+          { wch: 60 },  // Resposta Correta
         ];
 
         // Nome da aba (max 31 chars)
