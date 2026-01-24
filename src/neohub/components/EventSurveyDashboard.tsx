@@ -2039,7 +2039,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         </div>
 
         {/* Charts Row 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {/* Satisfaction Distribution */}
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
@@ -2058,48 +2058,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     dataKey="value" 
                     radius={[0, 4, 4, 0]} 
                     onClick={(data) => handleSatisfactionBarClick(data)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {satisfactionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                    <LabelList dataKey="value" position="right" className="text-xs font-medium" />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Satisfaction Distribution */}
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
-            setDrilldownData({
-              title: 'Distribuição de Notas',
-              category: 'satisfaction',
-              students: analytics.responsesByStudent
-                .map(s => ({
-                  name: s.userName,
-                  response: s.overallScore.toFixed(1),
-                  value: s.overallScore
-                }))
-                .sort((a, b) => (b.value || 0) - (a.value || 0))
-            });
-            setDrilldownOpen(true);
-          }}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center justify-between">
-                Distribuição por Nota
-                <Badge variant="outline" className="text-[10px] font-normal">Clique para detalhar</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={satisfactionData} layout="vertical" margin={{ left: 10, right: 30 }}>
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar 
-                    dataKey="value" 
-                    radius={[0, 4, 4, 0]}
                     style={{ cursor: 'pointer' }}
                   >
                     {satisfactionData.map((entry, index) => (
