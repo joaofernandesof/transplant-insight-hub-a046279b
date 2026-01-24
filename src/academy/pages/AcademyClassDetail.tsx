@@ -345,9 +345,10 @@ export function AcademyClassDetail() {
                     return (
                       <Card key={exam.id} className="hover:shadow-md transition-all">
                         <CardContent className="p-4">
-                          <div className="flex items-start gap-4">
+                          {/* Header row: Icon + Title + Action Button */}
+                          <div className="flex items-start gap-3 mb-3">
                             {/* Icon */}
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                               passed
                                 ? 'bg-gradient-to-br from-emerald-400 to-green-500'
                                 : attempted
@@ -355,73 +356,78 @@ export function AcademyClassDetail() {
                                 : 'bg-gradient-to-br from-blue-400 to-indigo-500'
                             }`}>
                               {passed ? (
-                                <Award className="h-6 w-6 text-white" />
+                                <Award className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                               ) : (
-                                <FileText className="h-6 w-6 text-white" />
+                                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                               )}
                             </div>
 
-                            {/* Content */}
+                            {/* Title */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <h3 className="font-semibold">{exam.title}</h3>
-                                {exam.bestScore !== null && (
-                                  <Badge className={
-                                    passed 
-                                      ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
-                                      : 'bg-red-500 text-white hover:bg-red-600'
-                                  }>
-                                    {passed ? (
-                                      <>
-                                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                                        Aprovado • {exam.bestScore}%
-                                      </>
-                                    ) : (
-                                      <>
-                                        <AlertCircle className="h-3 w-3 mr-1" />
-                                        Reprovado • {exam.bestScore}% — Tente novamente
-                                      </>
-                                    )}
-                                  </Badge>
-                                )}
-                              </div>
-
+                              <h3 className="font-semibold text-sm sm:text-base leading-tight">{exam.title}</h3>
                               {exam.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{exam.description}</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 mt-0.5">{exam.description}</p>
                               )}
+                            </div>
 
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                {exam.durationMinutes && (
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    {exam.durationMinutes} min
-                                  </span>
+                            {/* Main Action Button */}
+                            <Button 
+                              size="sm"
+                              className="bg-primary hover:bg-primary/90 flex-shrink-0"
+                              onClick={() => navigate(`/academy/exams/${exam.id}/take`)}
+                            >
+                              {attempted ? 'Refazer' : 'Iniciar'}
+                            </Button>
+                          </div>
+
+                          {/* Status Badge - full width */}
+                          {exam.bestScore !== null && (
+                            <div className="mb-3">
+                              <Badge className={`w-full justify-center py-1.5 text-xs ${
+                                passed 
+                                  ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                                  : 'bg-red-500 text-white hover:bg-red-600'
+                              }`}>
+                                {passed ? (
+                                  <>
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    Aprovado • {exam.bestScore}%
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="h-3 w-3 mr-1" />
+                                    Reprovado • {exam.bestScore}% — Tente novamente
+                                  </>
                                 )}
+                              </Badge>
+                            </div>
+                          )}
+
+                          {/* Footer: Meta info + Ver Resultado */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              {exam.durationMinutes && (
                                 <span className="flex items-center gap-1">
-                                  <Award className="h-3 w-3" />
-                                  Mínimo: {exam.passingScore || 70}%
+                                  <Clock className="h-3 w-3" />
+                                  {exam.durationMinutes} min
                                 </span>
-                              </div>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Award className="h-3 w-3" />
+                                Mínimo: {exam.passingScore || 70}%
+                              </span>
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex flex-col gap-2 flex-shrink-0">
-                              <Button 
-                                className="bg-primary hover:bg-primary/90"
-                                onClick={() => navigate(`/academy/exams/${exam.id}/take`)}
+                            {attempted && exam.lastAttemptId && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs h-7 px-2"
+                                onClick={() => navigate(`/academy/exams/${exam.id}/results/${exam.lastAttemptId}`)}
                               >
-                                {attempted ? 'Refazer' : 'Iniciar'}
+                                Ver Resultado
                               </Button>
-                              {attempted && exam.lastAttemptId && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => navigate(`/academy/exams/${exam.id}/results/${exam.lastAttemptId}`)}
-                                >
-                                  Ver Resultado
-                                </Button>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
