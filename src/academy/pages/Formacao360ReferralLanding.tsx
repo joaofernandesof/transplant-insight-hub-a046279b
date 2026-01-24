@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,16 +26,27 @@ import {
   Scissors,
   Briefcase,
   TrendingUp,
-  Loader2
+  Loader2,
+  CreditCard,
+  ShieldCheck
 } from 'lucide-react';
 import { useSubmitReferral, useValidateReferralCode } from '../hooks/useStudentReferrals';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Promotion deadline: 25/01/2026 at 23:59 BRT (UTC-3)
 const PROMO_DEADLINE = new Date('2026-01-26T02:59:00.000Z');
 const DISCOUNT_PERCENTAGE = 10;
 
+// Pricing
+const ORIGINAL_PRICE = 39900;
+const DISCOUNTED_PRICE = ORIGINAL_PRICE * (1 - DISCOUNT_PERCENTAGE / 100); // 35.910
+const DEPOSIT_AMOUNT = 1000;
+const REMAINING_AMOUNT = DISCOUNTED_PRICE - DEPOSIT_AMOUNT; // 34.910
+
 export function Formacao360ReferralLanding() {
   const { code } = useParams<{ code: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const submitReferral = useSubmitReferral();
   
@@ -49,8 +60,16 @@ export function Formacao360ReferralLanding() {
     hasCrm: false,
     crm: '',
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [countdown, setCountdown] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
+
+  // Check payment status from URL
+  useEffect(() => {
+    if (searchParams.get('payment') === 'success') {
+      setPaymentSuccess(true);
+    }
+  }, [searchParams]);
 
   // Check if promo is active
   const isPromoActive = new Date() < PROMO_DEADLINE;
@@ -84,10 +103,14 @@ export function Formacao360ReferralLanding() {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.phone) {
+      toast.error('Preencha todos os campos obrigatórios');
       return;
     }
 
+    setIsProcessing(true);
+
     try {
+      // First, submit the referral to database
       await submitReferral.mutateAsync({
         referralCode: code || 'DIRECT',
         name: formData.name,
@@ -96,10 +119,40 @@ export function Formacao360ReferralLanding() {
         hasCrm: formData.hasCrm,
         crm: formData.crm,
       });
-      setSubmitted(true);
+
+      // Then, create Stripe checkout session
+      const { data, error } = await supabase.functions.invoke('create-referral-checkout', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          referralCode: code || 'DIRECT',
+          hasCrm: formData.hasCrm,
+          crm: formData.crm,
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de checkout não retornada');
+      }
     } catch (error) {
-      console.error('Error submitting:', error);
+      console.error('Error:', error);
+      toast.error('Erro ao processar. Tente novamente.');
+      setIsProcessing(false);
     }
+  };
+
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+    }).format(value);
   };
 
   const formatPhone = (value: string) => {
@@ -141,8 +194,8 @@ export function Formacao360ReferralLanding() {
     );
   }
 
-
-  if (submitted) {
+  // Payment success state
+  if (paymentSuccess) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-4">
         <Card className="max-w-lg w-full text-center bg-[#0d1e36] border-blue-900/50">
@@ -150,17 +203,22 @@ export function Formacao360ReferralLanding() {
             <div className="w-20 h-20 mx-auto bg-emerald-900/50 rounded-full flex items-center justify-center mb-6">
               <CheckCircle2 className="h-10 w-10 text-emerald-400" />
             </div>
-            <h1 className="text-2xl font-bold mb-2 text-white">Inscrição Recebida!</h1>
-            <p className="text-gray-400 mb-6">
-              Obrigado pelo seu interesse na Formação 360° em Transplante Capilar.
-              Nossa equipe entrará em contato em breve para apresentar todos os detalhes do curso
-              e seu <strong className="text-emerald-400">desconto exclusivo de {DISCOUNT_PERCENTAGE}%</strong> na matrícula!
+            <h1 className="text-2xl font-bold mb-2 text-white">Reserva Confirmada!</h1>
+            <p className="text-gray-400 mb-4">
+              Parabéns! Sua vaga na <strong className="text-white">Formação 360° em Transplante Capilar</strong> foi reservada com sucesso!
             </p>
+            <div className="bg-emerald-900/30 border border-emerald-700/50 rounded-lg p-4 mb-6">
+              <p className="text-emerald-400 font-semibold mb-2">Resumo do Pagamento:</p>
+              <div className="text-gray-300 text-sm space-y-1">
+                <p>Taxa de reserva: <strong>{formatPrice(DEPOSIT_AMOUNT)}</strong></p>
+                <p>Saldo a pagar no dia do curso: <strong>{formatPrice(REMAINING_AMOUNT)}</strong></p>
+              </div>
+            </div>
             <Badge className="bg-blue-600 text-white mb-4">
               Código de indicação: {code}
             </Badge>
             <p className="text-sm text-gray-500">
-              Aguarde nosso contato via WhatsApp ou e-mail nas próximas 24 horas.
+              Nossa equipe entrará em contato via WhatsApp para confirmar os detalhes da sua participação.
             </p>
           </CardContent>
         </Card>
@@ -308,16 +366,42 @@ export function Formacao360ReferralLanding() {
           {/* Right - Form */}
           <div className="lg:sticky lg:top-8">
             <Card className="shadow-2xl bg-white border-0">
-              <CardHeader className="text-center pb-4">
+              <CardHeader className="text-center pb-2">
                 <div className="w-14 h-14 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-3">
                   <Percent className="h-7 w-7 text-emerald-600" />
                 </div>
-                <CardTitle className="text-2xl">Garanta seu Desconto!</CardTitle>
-                <CardDescription className="text-base">
-                  Você foi indicado e tem direito a <strong className="text-emerald-600">{DISCOUNT_PERCENTAGE}% de desconto</strong> na matrícula
-                </CardDescription>
+                <CardTitle className="text-2xl">Reserve Sua Vaga!</CardTitle>
+                
+                {/* Pricing Display */}
+                <div className="mt-4 p-4 bg-gradient-to-br from-gray-50 to-emerald-50 rounded-xl border border-emerald-100">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="text-gray-400 line-through text-lg">{formatPrice(ORIGINAL_PRICE)}</span>
+                    <Badge className="bg-red-500 text-white text-xs">-{DISCOUNT_PERCENTAGE}%</Badge>
+                  </div>
+                  <p className="text-3xl font-bold text-emerald-600">{formatPrice(DISCOUNTED_PRICE)}</p>
+                  <p className="text-xs text-gray-500 mt-1">Valor com desconto de indicado</p>
+                </div>
+
+                {/* Payment Breakdown */}
+                <div className="mt-4 text-left bg-blue-50 rounded-lg p-3 border border-blue-100">
+                  <p className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Como funciona o pagamento:
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Taxa de reserva (agora):</span>
+                      <span className="font-bold text-blue-700">{formatPrice(DEPOSIT_AMOUNT)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Saldo (no dia do curso):</span>
+                      <span className="font-semibold text-gray-700">{formatPrice(REMAINING_AMOUNT)}</span>
+                    </div>
+                  </div>
+                </div>
+
                 {code && (
-                  <Badge variant="outline" className="mt-2 border-blue-500 text-blue-600">
+                  <Badge variant="outline" className="mt-3 border-blue-500 text-blue-600">
                     Indicado pelo código: {code}
                   </Badge>
                 )}
@@ -403,22 +487,30 @@ export function Formacao360ReferralLanding() {
 
                   <Button 
                     type="submit" 
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-base font-semibold"
-                    disabled={submitReferral.isPending}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 h-14 text-base font-semibold"
+                    disabled={isProcessing}
                   >
-                    {submitReferral.isPending ? (
-                      'Enviando...'
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processando...
+                      </>
                     ) : (
                       <>
-                        Garantir Meu Desconto de {DISCOUNT_PERCENTAGE}%
-                        <ArrowRight className="ml-2 h-5 w-5" />
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        Reservar Vaga por {formatPrice(DEPOSIT_AMOUNT)}
                       </>
                     )}
                   </Button>
 
+                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    <span>Pagamento seguro via Stripe</span>
+                  </div>
+
                   <p className="text-xs text-center text-muted-foreground">
-                    Ao enviar, você concorda em receber contato da equipe IBRAMEC.
-                    O desconto é aplicado sobre o valor da matrícula.
+                    O saldo de {formatPrice(REMAINING_AMOUNT)} será pago apenas no dia do curso.
+                    Ao continuar, você concorda em receber contato da equipe IBRAMEC.
                   </p>
                 </form>
               </CardContent>
@@ -427,7 +519,7 @@ export function Formacao360ReferralLanding() {
             {/* Trust Badges */}
             <div className="mt-4 bg-[#0d1e36] border border-blue-900/50 rounded-xl p-4 text-center">
               <p className="text-sm text-gray-400 mb-3">Evento exclusivo para médicos</p>
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center justify-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2 text-gray-300">
                   <Calendar className="h-4 w-4 text-blue-400" />
                   <span className="text-sm">3 dias presenciais</span>
@@ -435,6 +527,10 @@ export function Formacao360ReferralLanding() {
                 <div className="flex items-center gap-2 text-gray-300">
                   <MapPin className="h-4 w-4 text-blue-400" />
                   <span className="text-sm">Alphaville/SP</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300">
+                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                  <span className="text-sm">Garantia total</span>
                 </div>
               </div>
             </div>
