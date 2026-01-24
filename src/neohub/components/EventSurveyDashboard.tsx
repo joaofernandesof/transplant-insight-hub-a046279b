@@ -646,12 +646,21 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                         {student.completedAt ? (
                           <>Respondeu em {format(parseISO(student.completedAt), "dd/MM 'às' HH:mm", { locale: ptBR })}</>
                         ) : (
-                          <span className="text-yellow-600">Não completou</span>
+                          <span className="text-yellow-600 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {student.answeredQuestions}/{student.totalQuestions} perguntas ({student.progressPercent}%)
+                          </span>
                         )}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {!student.completedAt && (
+                      <div className="flex items-center gap-1.5 mr-2">
+                        <Progress value={student.progressPercent} className="w-16 h-1.5" />
+                        <span className="text-[10px] text-muted-foreground font-medium">{student.progressPercent}%</span>
+                      </div>
+                    )}
                     {student.satisfaction && (
                       <Badge 
                         variant="outline"
