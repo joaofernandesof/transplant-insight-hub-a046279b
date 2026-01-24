@@ -2405,9 +2405,8 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Card>
         )}
 
-        {/* Feedback Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
+        {/* Feedback Section - O Que Mais Gostaram */}
+        {analytics.openFeedback.likedMost.length > 0 && (
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -2416,27 +2415,19 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <ScrollArea className="h-48">
-                <div className="space-y-2">
-                  {analytics.openFeedback.likedMost.length > 0 ? (
-                    analytics.openFeedback.likedMost.slice(0, 8).map((feedback, idx) => (
-                      <div key={idx} className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
-                        <p className="text-sm text-foreground">"{feedback.text}"</p>
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium">
-                          — {feedback.author}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-4">
-                      Nenhum feedback registrado
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {analytics.openFeedback.likedMost.slice(0, 9).map((feedback, idx) => (
+                  <div key={idx} className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
+                    <p className="text-sm text-foreground">"{feedback.text}"</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium">
+                      — {feedback.author}
                     </p>
-                  )}
-                </div>
-              </ScrollArea>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
-        </div>
+        )}
 
         {/* Suggestions */}
         {analytics.openFeedback.suggestions.length > 0 && (
