@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Users,
@@ -33,7 +34,11 @@ import {
   PieChart,
   ArrowRight,
   MessageCircle,
-  Send
+  Send,
+  Copy,
+  Check,
+  Link,
+  ExternalLink
 } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -101,6 +106,19 @@ interface ReferralStats {
   byStatus: { name: string; value: number; color: string }[];
 }
 
+// Referrer user with link info
+interface ReferrerUser {
+  id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  referral_code: string;
+  referral_link: string;
+  total_referrals: number;
+  converted_referrals: number;
+  pending_referrals: number;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: '#f59e0b',
   contacted: '#3b82f6',
@@ -125,9 +143,13 @@ export default function ReferralsAdmin() {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [referrerFilter, setReferrerFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [referrerSearchTerm, setReferrerSearchTerm] = useState('');
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   
   const [referrals, setReferrals] = useState<UnifiedReferral[]>([]);
   const [stats, setStats] = useState<ReferralStats | null>(null);
+  const [allReferrers, setAllReferrers] = useState<ReferrerUser[]>([]);
 
   useEffect(() => {
     fetchAllData();
@@ -217,6 +239,32 @@ export default function ReferralsAdmin() {
 
       setReferrals(unified);
       calculateStats(unified);
+
+      // Fetch all users with referral codes for the Referrers tab
+      const { data: allNeohubUsers } = await supabase
+        .from('neohub_users')
+        .select('id, user_id, full_name, email, referral_code')
+        .not('referral_code', 'is', null)
+        .order('full_name');
+
+      // Build referrer stats
+      const baseUrl = window.location.origin;
+      const referrersWithStats: ReferrerUser[] = (allNeohubUsers || []).map(user => {
+        const userReferrals = unified.filter(r => r.referrer_user_id === user.user_id);
+        return {
+          id: user.id,
+          user_id: user.user_id,
+          full_name: user.full_name || 'Sem nome',
+          email: user.email || '',
+          referral_code: user.referral_code,
+          referral_link: `${baseUrl}/indicacao-formacao360/${user.referral_code}`,
+          total_referrals: userReferrals.length,
+          converted_referrals: userReferrals.filter(r => r.status === 'converted').length,
+          pending_referrals: userReferrals.filter(r => r.status === 'pending').length
+        };
+      });
+
+      setAllReferrers(referrersWithStats);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Erro ao carregar dados');
@@ -408,6 +456,27 @@ export default function ReferralsAdmin() {
     });
   }, [referrals, searchTerm, statusFilter, sourceFilter, dateFilter, referrerFilter]);
 
+  // Filtered referrers for the management tab
+  const filteredReferrers = useMemo(() => {
+    if (!referrerSearchTerm) return allReferrers;
+    return allReferrers.filter(r =>
+      r.full_name.toLowerCase().includes(referrerSearchTerm.toLowerCase()) ||
+      r.email.toLowerCase().includes(referrerSearchTerm.toLowerCase()) ||
+      r.referral_code.toLowerCase().includes(referrerSearchTerm.toLowerCase())
+    );
+  }, [allReferrers, referrerSearchTerm]);
+
+  const copyToClipboard = async (text: string, code: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCode(code);
+      toast.success('Link copiado!');
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch {
+      toast.error('Erro ao copiar');
+    }
+  };
+
   const exportToCSV = () => {
     const headers = ['Nome', 'Email', 'Telefone', 'Indicador', 'Origem', 'Status', 'Data', 'Convertido em'];
     const rows = filteredReferrals.map(r => [
@@ -472,8 +541,23 @@ export default function ReferralsAdmin() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      {stats && (
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="dashboard" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="referrers" className="gap-2">
+            <Users className="h-4 w-4" />
+            Indicadores ({allReferrers.length})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Dashboard Tab */}
+        <TabsContent value="dashboard" className="space-y-4">
+          {/* KPI Cards */}
+          {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <Card className="col-span-1">
             <CardContent className="p-4">
@@ -954,6 +1038,158 @@ export default function ReferralsAdmin() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        {/* Referrers Management Tab */}
+        <TabsContent value="referrers" className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Link className="h-5 w-5 text-emerald-500" />
+                    Gestão de Indicadores
+                  </CardTitle>
+                  <CardDescription>
+                    Todos os usuários do sistema com seus links de indicação
+                  </CardDescription>
+                </div>
+                <Badge variant="secondary" className="text-sm">
+                  {allReferrers.length} indicadores
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Search */}
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome, email ou código..."
+                  value={referrerSearchTerm}
+                  onChange={(e) => setReferrerSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Stats Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">{allReferrers.length}</p>
+                  <p className="text-xs text-muted-foreground">Total Indicadores</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">{allReferrers.filter(r => r.total_referrals > 0).length}</p>
+                  <p className="text-xs text-muted-foreground">Com Indicações</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">{allReferrers.reduce((acc, r) => acc + r.total_referrals, 0)}</p>
+                  <p className="text-xs text-muted-foreground">Total Indicações</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                  <p className="text-2xl font-bold">{allReferrers.reduce((acc, r) => acc + r.converted_referrals, 0)}</p>
+                  <p className="text-xs text-muted-foreground">Convertidos</p>
+                </div>
+              </div>
+
+              {/* Table */}
+              <ScrollArea className="h-[500px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Indicador</TableHead>
+                      <TableHead className="hidden md:table-cell">Email</TableHead>
+                      <TableHead>Código</TableHead>
+                      <TableHead className="hidden lg:table-cell">Link</TableHead>
+                      <TableHead className="text-center">Indicações</TableHead>
+                      <TableHead className="text-center hidden sm:table-cell">Convertidos</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredReferrers.map((referrer) => (
+                      <TableRow key={referrer.id}>
+                        <TableCell>
+                          <p className="font-medium">{referrer.full_name}</p>
+                          <p className="text-xs text-muted-foreground md:hidden truncate max-w-[120px]">
+                            {referrer.email}
+                          </p>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <span className="text-sm text-muted-foreground truncate max-w-[180px] block">
+                            {referrer.email}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {referrer.referral_code}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="flex items-center gap-1 max-w-[200px]">
+                            <span className="text-xs text-muted-foreground truncate">
+                              {referrer.referral_link.replace(window.location.origin, '')}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={referrer.total_referrals > 0 ? 'default' : 'secondary'}>
+                            {referrer.total_referrals}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center hidden sm:table-cell">
+                          <Badge variant={referrer.converted_referrals > 0 ? 'default' : 'secondary'} className={referrer.converted_referrals > 0 ? 'bg-emerald-500' : ''}>
+                            {referrer.converted_referrals}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => copyToClipboard(referrer.referral_link, referrer.referral_code)}
+                              title="Copiar link"
+                            >
+                              {copiedCode === referrer.referral_code ? (
+                                <Check className="h-3.5 w-3.5 text-emerald-500" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => window.open(referrer.referral_link, '_blank')}
+                              title="Abrir link"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </Button>
+                            {referrer.total_referrals > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => {
+                                  setReferrerFilter(referrer.user_id);
+                                  setActiveTab('dashboard');
+                                }}
+                                title="Ver indicações"
+                              >
+                                <Users className="h-3.5 w-3.5 text-primary" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
