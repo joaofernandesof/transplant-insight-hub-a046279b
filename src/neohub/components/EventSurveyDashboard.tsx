@@ -1346,14 +1346,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <ArrowUpDown className="h-4 w-4" />
           <span className="hidden sm:inline">Matriz</span>
         </TabsTrigger>
-        <TabsTrigger value="insights" className="flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4" />
-          <span className="hidden sm:inline">Insights IA</span>
-        </TabsTrigger>
-        <TabsTrigger value="timing" className="flex items-center gap-1.5">
-          <Clock className="h-4 w-4" />
-          <span className="hidden sm:inline">Tempos</span>
-        </TabsTrigger>
         <TabsTrigger value="ranking" className="flex items-center gap-1.5">
           <ListOrdered className="h-4 w-4" />
           <span className="hidden sm:inline">Ranking</span>
@@ -1365,6 +1357,14 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         <TabsTrigger value="students" className="flex items-center gap-1.5">
           <User className="h-4 w-4" />
           <span className="hidden sm:inline">Alunos</span>
+        </TabsTrigger>
+        <TabsTrigger value="timing" className="flex items-center gap-1.5">
+          <Clock className="h-4 w-4" />
+          <span className="hidden sm:inline">Tempos</span>
+        </TabsTrigger>
+        <TabsTrigger value="insights" className="flex items-center gap-1.5">
+          <Sparkles className="h-4 w-4" />
+          <span className="hidden sm:inline">Insights IA</span>
         </TabsTrigger>
       </TabsList>
 
