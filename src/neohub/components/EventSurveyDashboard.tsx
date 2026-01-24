@@ -471,11 +471,14 @@ async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   // Get semantic color for response value
   const getValueColor = (value: string): string => {
     const key = value.toLowerCase().trim();
-    // Excellent - Green (only truly exceptional)
-    const excellentWords = ['excelente', 'muito satisfeito', 'superou expectativas', 'superou', 'mais de 10', 'perfeito', 'alta urgência'];
+    // Excellent - Dark Green (truly exceptional)
+    const excellentWords = ['excelente', 'superou expectativas', 'superou', 'perfeito', 'alta urgência'];
     if (excellentWords.some(w => key.includes(w))) return '#10b981';
+    // Very Good - Light Green
+    const veryGoodWords = ['muito bom', 'muito satisfeito', 'mais de 10', 'ótimo'];
+    if (veryGoodWords.some(w => key.includes(w))) return '#4ade80';
     // Good - Blue (met expectations fully)
-    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu plenamente', 'atendeu totalmente', 'totalmente', 'de 5 a 10', 'suficiente', 'média urgência', 'sim', 'muito bom', 'ótimo', 'mais do que suficiente', 'concordo totalmente'];
+    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu plenamente', 'atendeu totalmente', 'totalmente', 'de 5 a 10', 'suficiente', 'média urgência', 'sim', 'mais do que suficiente', 'concordo totalmente'];
     if (goodWords.some(w => key.includes(w))) return '#3b82f6';
     // Medium - Orange (partially met)
     const mediumWords = ['neutro', 'parcialmente', 'atendeu parcialmente', 'regular', 'médio', 'até 5', 'razoável', 'moderado', 'indiferente'];
@@ -581,12 +584,16 @@ const exportStudentResponsesPDF = async (students: StudentDetailedResponse[]) =>
   const getValueColor = (value: string): string => {
     const key = value.toLowerCase().trim();
     
-    // Excellent - Green (only truly exceptional)
-    const excellentWords = ['excelente', 'muito satisfeito', 'superou expectativas', 'superou', 'mais de 10', 'perfeito', 'alta urgência'];
+    // Excellent - Dark Green (truly exceptional)
+    const excellentWords = ['excelente', 'superou expectativas', 'superou', 'perfeito', 'alta urgência'];
     if (excellentWords.some(w => key.includes(w))) return '#10b981';
     
+    // Very Good - Light Green
+    const veryGoodWords = ['muito bom', 'muito satisfeito', 'mais de 10', 'ótimo'];
+    if (veryGoodWords.some(w => key.includes(w))) return '#4ade80';
+    
     // Good - Blue (met expectations fully)
-    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu plenamente', 'atendeu totalmente', 'totalmente', 'de 5 a 10', 'suficiente', 'média urgência', 'sim', 'muito bom', 'ótimo', 'mais do que suficiente', 'concordo totalmente'];
+    const goodWords = ['satisfeito', 'adequado', 'bom', 'concordo', 'atendeu plenamente', 'atendeu totalmente', 'totalmente', 'de 5 a 10', 'suficiente', 'média urgência', 'sim', 'mais do que suficiente', 'concordo totalmente'];
     if (goodWords.some(w => key.includes(w))) return '#3b82f6';
     
     // Medium - Orange (partially met)
@@ -915,19 +922,23 @@ const buildDistributionData = (
 const getSemanticColor = (responseKey: string): string => {
   const key = responseKey.toLowerCase().trim();
   
-  // EXCELLENT - GREEN (only truly exceptional)
+  // EXCELLENT - DARK GREEN (truly exceptional)
   const excellentWords = [
-    'excelente', 'muito satisfeito', 'superou expectativas', 'superou',
-    'mais de 10', 'perfeito', 'alta urgência'
+    'excelente', 'superou expectativas', 'superou', 'perfeito', 'alta urgência'
   ];
   if (excellentWords.some(w => key.includes(w))) return '#10b981'; // emerald-500
+  
+  // VERY GOOD - LIGHT GREEN
+  const veryGoodWords = [
+    'muito bom', 'muito satisfeito', 'mais de 10', 'ótimo'
+  ];
+  if (veryGoodWords.some(w => key.includes(w))) return '#4ade80'; // green-400 (lighter)
   
   // GOOD - BLUE (met expectations fully)
   const goodWords = [
     'satisfeito', 'adequado', 'bom', 'concordo', 'atendeu plenamente',
     'atendeu totalmente', 'totalmente', 'de 5 a 10', 'suficiente', 
-    'média urgência', 'sim', 'muito bom', 'ótimo', 'mais do que suficiente',
-    'concordo totalmente'
+    'média urgência', 'sim', 'mais do que suficiente', 'concordo totalmente'
   ];
   if (goodWords.some(w => key.includes(w))) return '#3b82f6'; // blue-500
   
