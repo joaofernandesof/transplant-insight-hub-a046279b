@@ -1243,10 +1243,14 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
   return (
     <Tabs defaultValue="overview" className="space-y-4">
-      <TabsList className="grid grid-cols-6 w-full max-w-4xl">
+      <TabsList className="grid grid-cols-7 w-full max-w-4xl">
         <TabsTrigger value="overview" className="flex items-center gap-1.5">
           <BarChart3 className="h-4 w-4" />
           <span className="hidden sm:inline">Visão Geral</span>
+        </TabsTrigger>
+        <TabsTrigger value="matrix" className="flex items-center gap-1.5">
+          <ArrowUpDown className="h-4 w-4" />
+          <span className="hidden sm:inline">Matriz</span>
         </TabsTrigger>
         <TabsTrigger value="insights" className="flex items-center gap-1.5">
           <Sparkles className="h-4 w-4" />
@@ -1269,6 +1273,181 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <span className="hidden sm:inline">Alunos</span>
         </TabsTrigger>
       </TabsList>
+
+      {/* ============== MATRIX HEATMAP TAB ============== */}
+      <TabsContent value="matrix" className="space-y-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowUpDown className="h-5 w-5 text-primary" />
+                  Mapa de Notas
+                </CardTitle>
+                <CardDescription>
+                  Visualize todas as notas por aluno e pergunta em formato de matriz
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded bg-emerald-500" />
+                  <span>Ótimo (9-10)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded bg-blue-500" />
+                  <span>Bom (7-8)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded bg-amber-400" />
+                  <span>Médio (5-6)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded bg-red-500" />
+                  <span>Ruim (0-4)</span>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ScrollArea className="w-full">
+              <div className="min-w-max">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50 sticky top-0 z-10">
+                    <tr>
+                      <th className="text-left p-2 font-semibold border-b min-w-[200px] sticky left-0 bg-muted/80 z-20">
+                        Pergunta
+                      </th>
+                      {analytics.responsesByStudent.map((student) => (
+                        <th 
+                          key={student.userId} 
+                          className="p-2 font-medium border-b text-center min-w-[80px] max-w-[100px]"
+                          title={student.userName}
+                        >
+                          <div className="flex flex-col items-center gap-1">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[10px]">
+                                {student.userName.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="truncate max-w-[70px]">
+                              {student.userName.split(' ')[0]}
+                            </span>
+                          </div>
+                        </th>
+                      ))}
+                      <th className="p-2 font-semibold border-b text-center min-w-[60px] bg-muted/50">
+                        Média
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Filter to only numeric questions */}
+                    {analytics.allQuestions.map((question, qIdx) => {
+                      const rowValues: (number | null)[] = [];
+                      
+                      return (
+                        <tr key={question.questionKey} className={qIdx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                          <td className="p-2 border-b font-medium sticky left-0 bg-inherit z-10">
+                            <div className="flex flex-col">
+                              <span className="truncate max-w-[190px]" title={question.questionLabel}>
+                                {question.questionLabel}
+                              </span>
+                              <Badge variant="outline" className="text-[9px] w-fit mt-0.5">
+                                {question.category}
+                              </Badge>
+                            </div>
+                          </td>
+                          {analytics.responsesByStudent.map((student) => {
+                            const response = student.responses.find(r => r.questionKey === question.questionKey);
+                            const score = response?.numericValue;
+                            rowValues.push(score);
+                            
+                            // Color based on 0-10 score
+                            let bgColor = 'bg-muted/30';
+                            let textColor = 'text-muted-foreground';
+                            
+                            if (score !== null && score !== undefined) {
+                              if (score >= 9) {
+                                bgColor = 'bg-emerald-500';
+                                textColor = 'text-white';
+                              } else if (score >= 7) {
+                                bgColor = 'bg-blue-500';
+                                textColor = 'text-white';
+                              } else if (score >= 5) {
+                                bgColor = 'bg-amber-400';
+                                textColor = 'text-amber-900';
+                              } else {
+                                bgColor = 'bg-red-500';
+                                textColor = 'text-white';
+                              }
+                            }
+                            
+                            return (
+                              <td 
+                                key={student.userId} 
+                                className="p-1 border-b text-center"
+                              >
+                                <div 
+                                  className={`w-full h-8 rounded flex items-center justify-center font-bold ${bgColor} ${textColor} transition-all hover:scale-110 hover:shadow-lg cursor-default`}
+                                  title={`${student.userName}: ${response?.value || 'Sem resposta'}`}
+                                >
+                                  {score !== null && score !== undefined ? score.toFixed(0) : '—'}
+                                </div>
+                              </td>
+                            );
+                          })}
+                          {/* Row average */}
+                          <td className="p-1 border-b text-center bg-muted/30">
+                            {(() => {
+                              const validScores = rowValues.filter((v): v is number => v !== null);
+                              if (validScores.length === 0) return '—';
+                              const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+                              const avgColor = avg >= 9 ? 'text-emerald-600' : avg >= 7 ? 'text-blue-600' : avg >= 5 ? 'text-amber-600' : 'text-red-600';
+                              return (
+                                <span className={`font-bold ${avgColor}`}>
+                                  {avg.toFixed(1)}
+                                </span>
+                              );
+                            })()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {/* Footer row with student averages */}
+                    <tr className="bg-muted/50 font-semibold sticky bottom-0">
+                      <td className="p-2 border-t sticky left-0 bg-muted/80 z-10">
+                        <span className="font-bold">Média do Aluno</span>
+                      </td>
+                      {analytics.responsesByStudent.map((student) => {
+                        const score = student.overallScore;
+                        const config = getSatisfactionClassConfig(student.satisfactionClass);
+                        
+                        return (
+                          <td key={student.userId} className="p-1 border-t text-center">
+                            <div className={`flex flex-col items-center gap-0.5`}>
+                              <span className={`font-bold text-sm ${config.text}`}>
+                                {score.toFixed(1)}
+                              </span>
+                              <Badge className={`text-[8px] ${config.bg} ${config.text} px-1 py-0`}>
+                                {config.shortLabel}
+                              </Badge>
+                            </div>
+                          </td>
+                        );
+                      })}
+                      <td className="p-1 border-t text-center bg-muted/50">
+                        <span className="font-bold text-primary">
+                          {overallAvgScore.toFixed(1)}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </TabsContent>
 
       {/* ============== AI INSIGHTS TAB ============== */}
       <TabsContent value="insights" className="space-y-6">
