@@ -267,7 +267,7 @@ async function exportOverviewPDF(analytics: NonNullable<SurveyAnalyticsData>) {
             <div style="font-size: 12px; color: #6b7280;">Satisfação</div>
           </div>
           <div style="flex: 1; background: #f3e8ff; border-radius: 12px; padding: 20px; text-align: center;">
-            <div style="font-size: 32px; font-weight: bold; color: #7c3aed;">${analytics.overallSatisfaction.toFixed(1)}/5</div>
+            <div style="font-size: 32px; font-weight: bold; color: #7c3aed;">${analytics.overallSatisfaction.toFixed(1)}/10</div>
             <div style="font-size: 12px; color: #6b7280;">Média</div>
           </div>
         </div>
@@ -2188,7 +2188,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                             <span className={`font-semibold ${avgColor.text}`}>Média Geral</span>
                           </div>
                           <div className={`text-3xl font-bold ${avgColor.text}`}>
-                            {infrastructureAvg.toFixed(1)}/5
+                            {infrastructureAvg.toFixed(1)}/10
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">Todas as dimensões</p>
                         </div>
