@@ -812,8 +812,11 @@ export type Database = {
           description: string | null
           id: string
           photo_count: number | null
+          required_exam_id: string | null
+          required_survey_type: string | null
           status: string | null
           title: string
+          unlock_requirement: string | null
           updated_at: string | null
         }
         Insert: {
@@ -825,8 +828,11 @@ export type Database = {
           description?: string | null
           id?: string
           photo_count?: number | null
+          required_exam_id?: string | null
+          required_survey_type?: string | null
           status?: string | null
           title: string
+          unlock_requirement?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -838,8 +844,11 @@ export type Database = {
           description?: string | null
           id?: string
           photo_count?: number | null
+          required_exam_id?: string | null
+          required_survey_type?: string | null
           status?: string | null
           title?: string
+          unlock_requirement?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -855,6 +864,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_galleries_required_exam_id_fkey"
+            columns: ["required_exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
             referencedColumns: ["id"]
           },
         ]

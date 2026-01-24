@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useStudentGalleries, useGalleryPhotos, useGalleryManagement, CourseGallery, GalleryPhoto } from '../hooks/useCourseGalleries';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Images, ChevronLeft, ChevronRight, X, Camera, Calendar, Upload, Loader2, UserSearch, ImageIcon, Lock, ClipboardList } from 'lucide-react';
+import { Images, ChevronLeft, ChevronRight, X, Camera, Calendar, Upload, Loader2, UserSearch, ImageIcon, Lock, ClipboardList, FileCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { SelfieCaptureDialog } from './SelfieCaptureDialog';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { CoverPhotoCropper } from './CoverPhotoCropper';
 
@@ -21,18 +22,106 @@ interface CourseGalleryViewerProps {
   onUnlockRequest?: () => void;
 }
 
+// Survey table name mapping
+const SURVEY_TABLE_MAP: Record<string, string> = {
+  'day1_satisfaction': 'day1_satisfaction_surveys',
+  'day2_satisfaction': 'day2_satisfaction_surveys',
+  'day3_satisfaction': 'day3_satisfaction_surveys',
+  'final_satisfaction': 'final_satisfaction_surveys',
+};
+
 export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest }: CourseGalleryViewerProps) {
   const { galleries, isLoading } = useStudentGalleries(classId);
-  const { isAdmin, canAccessModule } = useUnifiedAuth();
+  const { isAdmin, canAccessModule, user } = useUnifiedAuth();
   const navigate = useNavigate();
   const [selectedGallery, setSelectedGallery] = useState<CourseGallery | null>(null);
   
   const canManageGalleries = isAdmin || canAccessModule('neoteam_galleries', 'write');
 
-  // Handle gallery click - show lock message if locked
+  // Check completed exams for the user
+  const { data: completedExams } = useQuery({
+    queryKey: ['user-completed-exams', user?.authUserId],
+    queryFn: async () => {
+      if (!user?.authUserId) return [];
+      const { data } = await supabase
+        .from('exam_attempts')
+        .select('exam_id')
+        .eq('user_id', user.authUserId)
+        .eq('status', 'completed');
+      return data?.map(a => a.exam_id) || [];
+    },
+    enabled: !!user?.authUserId,
+  });
+
+  // Check completed surveys for the user
+  const { data: completedSurveys } = useQuery({
+    queryKey: ['user-completed-surveys', user?.authUserId, classId],
+    queryFn: async () => {
+      if (!user?.authUserId) return [];
+      const completed: string[] = [];
+      
+      // Check day1 survey
+      const { data: day1 } = await supabase
+        .from('day1_satisfaction_surveys')
+        .select('id')
+        .eq('user_id', user.authUserId)
+        .eq('class_id', classId)
+        .eq('is_completed', true)
+        .limit(1);
+      if (day1 && day1.length > 0) completed.push('day1_satisfaction');
+      
+      return completed;
+    },
+    enabled: !!user?.authUserId && !!classId,
+  });
+
+  // Calculate which galleries are locked based on their requirements
+  const galleryLockStatus = useMemo(() => {
+    const status: Record<string, { locked: boolean; reason?: string; action?: () => void }> = {};
+    
+    galleries.forEach(gallery => {
+      if (isAdmin || canManageGalleries) {
+        // Admins always have access
+        status[gallery.id] = { locked: false };
+        return;
+      }
+      
+      if (!gallery.unlock_requirement || gallery.unlock_requirement === 'none') {
+        status[gallery.id] = { locked: isLocked }; // Use global lock if no specific requirement
+        return;
+      }
+      
+      if (gallery.unlock_requirement === 'exam') {
+        const isCompleted = completedExams?.includes(gallery.required_exam_id || '');
+        status[gallery.id] = {
+          locked: !isCompleted,
+          reason: `Complete a prova "${gallery.exam_title || 'vinculada'}" para desbloquear`,
+          action: () => navigate(`/university/exams`)
+        };
+      } else if (gallery.unlock_requirement === 'survey') {
+        const isCompleted = completedSurveys?.includes(gallery.required_survey_type || '');
+        status[gallery.id] = {
+          locked: !isCompleted,
+          reason: 'Complete a pesquisa de satisfação para desbloquear',
+          action: () => onUnlockRequest?.() // Trigger the survey form
+        };
+      }
+    });
+    
+    return status;
+  }, [galleries, completedExams, completedSurveys, isLocked, isAdmin, canManageGalleries, navigate, onUnlockRequest]);
+
+  // Handle gallery click - check specific lock status
   const handleGalleryClick = (gallery: CourseGallery) => {
-    if (isLocked) {
-      onUnlockRequest?.();
+    const lockStatus = galleryLockStatus[gallery.id];
+    
+    if (lockStatus?.locked) {
+      if (lockStatus.action) {
+        toast.info(lockStatus.reason || 'Esta galeria está bloqueada');
+        lockStatus.action();
+      } else {
+        onUnlockRequest?.();
+      }
       return;
     }
     setSelectedGallery(gallery);
@@ -80,14 +169,18 @@ export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {galleries.map((gallery) => (
-          <GalleryCard
-            key={gallery.id}
-            gallery={gallery}
-            onClick={() => handleGalleryClick(gallery)}
-            isLocked={isLocked}
-          />
-        ))}
+        {galleries.map((gallery) => {
+          const lockStatus = galleryLockStatus[gallery.id];
+          return (
+            <GalleryCard
+              key={gallery.id}
+              gallery={gallery}
+              onClick={() => handleGalleryClick(gallery)}
+              isLocked={lockStatus?.locked || false}
+              lockReason={lockStatus?.reason}
+            />
+          );
+        })}
       </div>
 
       {selectedGallery && (
@@ -104,9 +197,12 @@ interface GalleryCardProps {
   gallery: CourseGallery;
   onClick: () => void;
   isLocked?: boolean;
+  lockReason?: string;
 }
 
-function GalleryCard({ gallery, onClick, isLocked = false }: GalleryCardProps) {
+function GalleryCard({ gallery, onClick, isLocked = false, lockReason }: GalleryCardProps) {
+  const requirementType = gallery.unlock_requirement;
+  
   return (
     <Card
       className="cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative"
@@ -125,10 +221,22 @@ function GalleryCard({ gallery, onClick, isLocked = false }: GalleryCardProps) {
           </div>
         )}
         {isLocked && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="bg-background/90 rounded-full p-3">
+          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
+            <div className="bg-background/90 rounded-full p-3 mb-2">
               <Lock className="h-6 w-6 text-muted-foreground" />
             </div>
+            {requirementType === 'exam' && (
+              <div className="flex items-center gap-1 text-xs px-2 py-1 bg-blue-600/80 rounded">
+                <FileCheck className="h-3 w-3" />
+                <span>Prova pendente</span>
+              </div>
+            )}
+            {requirementType === 'survey' && (
+              <div className="flex items-center gap-1 text-xs px-2 py-1 bg-amber-600/80 rounded">
+                <ClipboardList className="h-3 w-3" />
+                <span>Pesquisa pendente</span>
+              </div>
+            )}
           </div>
         )}
         <div className="absolute bottom-2 right-2">

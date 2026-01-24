@@ -14,9 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
-  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop
+  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop, Lock, LockOpen
 } from 'lucide-react';
 import { ImageCropper } from '@/components/ImageCropper';
+import { LinkGalleryRequirementDialog } from '@/neohub/components/LinkGalleryRequirementDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -39,6 +40,7 @@ export default function NeoTeamGalleries() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedGallery, setSelectedGallery] = useState<CourseGallery | null>(null);
   const [galleryToDelete, setGalleryToDelete] = useState<CourseGallery | null>(null);
+  const [galleryForRequirement, setGalleryForRequirement] = useState<CourseGallery | null>(null);
 
   // Fetch courses and classes for the create form
   const { data: courses } = useQuery({
@@ -166,6 +168,7 @@ export default function NeoTeamGalleries() {
               onEdit={() => setSelectedGallery(gallery)}
               onDelete={() => setGalleryToDelete(gallery)}
               onToggleStatus={() => toggleStatus(gallery)}
+              onLinkRequirement={() => setGalleryForRequirement(gallery)}
             />
           ))}
         </div>
@@ -227,6 +230,20 @@ export default function NeoTeamGalleries() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Link Requirement Dialog */}
+      {galleryForRequirement && (
+        <LinkGalleryRequirementDialog
+          open={!!galleryForRequirement}
+          onOpenChange={(open) => !open && setGalleryForRequirement(null)}
+          galleryId={galleryForRequirement.id}
+          galleryTitle={galleryForRequirement.title}
+          classId={galleryForRequirement.class_id}
+          currentRequirement={galleryForRequirement.unlock_requirement || 'none'}
+          currentExamId={galleryForRequirement.required_exam_id}
+          currentSurveyType={galleryForRequirement.required_survey_type}
+        />
+      )}
     </div>
   );
 }
@@ -240,6 +257,7 @@ interface GalleryManagementCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onToggleStatus: () => void;
+  onLinkRequirement: () => void;
 }
 
 function GalleryManagementCard({
@@ -249,7 +267,10 @@ function GalleryManagementCard({
   onEdit,
   onDelete,
   onToggleStatus,
+  onLinkRequirement,
 }: GalleryManagementCardProps) {
+  const hasRequirement = gallery.unlock_requirement && gallery.unlock_requirement !== 'none';
+  
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative aspect-video bg-muted">
@@ -273,6 +294,13 @@ function GalleryManagementCard({
         >
           {gallery.status === 'published' ? 'Publicada' : 'Rascunho'}
         </Badge>
+        {/* Requirement badge */}
+        {hasRequirement && (
+          <Badge className="absolute top-2 left-2 bg-blue-600 hover:bg-blue-700 gap-1">
+            <Lock className="h-3 w-3" />
+            {gallery.unlock_requirement === 'exam' ? 'Prova' : 'Pesquisa'}
+          </Badge>
+        )}
         <div className="absolute bottom-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-sm">
           {gallery.photo_count} fotos
         </div>
@@ -297,18 +325,32 @@ function GalleryManagementCard({
             Gerenciar
           </Button>
           {canWrite && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleStatus}
-              title={gallery.status === 'published' ? 'Ocultar' : 'Publicar'}
-            >
-              {gallery.status === 'published' ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onLinkRequirement}
+                title={hasRequirement ? 'Editar requisito de desbloqueio' : 'Vincular requisito de desbloqueio'}
+              >
+                {hasRequirement ? (
+                  <Lock className="h-4 w-4 text-blue-600" />
+                ) : (
+                  <LockOpen className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleStatus}
+                title={gallery.status === 'published' ? 'Ocultar' : 'Publicar'}
+              >
+                {gallery.status === 'published' ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </>
           )}
           {canDelete && (
             <Button variant="ghost" size="sm" onClick={onDelete}>
