@@ -28,6 +28,7 @@ import {
 import {
   Users,
   TrendingUp,
+  TrendingDown,
   Award,
   MessageSquare,
   Star,
@@ -48,6 +49,8 @@ import {
   Zap,
   Brain,
   RefreshCw,
+  Trophy,
+  Medal,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -2000,48 +2003,257 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Button>
         </div>
         
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/20 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Nota Máxima</p>
+                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {analytics.questionRankings.length > 0 
+                      ? Math.max(...analytics.questionRankings.map(q => q.avgRating)).toFixed(1)
+                      : '-'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/20 rounded-lg">
+                  <BarChart3 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Média Geral</p>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                    {analytics.questionRankings.length > 0 
+                      ? (analytics.questionRankings.reduce((acc, q) => acc + q.avgRating, 0) / analytics.questionRankings.length).toFixed(1)
+                      : '-'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-500/20 rounded-lg">
+                  <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Nota Mínima</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    {analytics.questionRankings.length > 0 
+                      ? Math.min(...analytics.questionRankings.map(q => q.avgRating)).toFixed(1)
+                      : '-'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Perguntas</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {analytics.questionRankings.length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Distribution Chart */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ArrowUpDown className="h-5 w-5" />
-              Ranking de Perguntas (Melhor → Pior)
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Distribuição por Faixa de Nota
             </CardTitle>
             <CardDescription>
-              Todas as perguntas ordenadas pela média de avaliação
+              Quantidade de perguntas em cada faixa de avaliação
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {analytics.questionRankings.map((q, idx) => (
-                <div
-                  key={q.questionKey}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${getRatingBgColor(q.avgRating)} cursor-pointer hover:opacity-80 transition-opacity`}
-                  onClick={() => {
-                    setSelectedQuestion(q);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`text-lg font-bold w-8 ${
-                      idx === 0 ? 'text-yellow-500' :
-                      idx === 1 ? 'text-slate-400' :
-                      idx === 2 ? 'text-amber-600' :
-                      'text-muted-foreground'
-                    }`}>
-                      #{idx + 1}
-                    </span>
-                    <div>
-                      <p className="font-medium text-sm">{q.questionLabel}</p>
-                      <Badge variant="outline" className="text-[10px] mt-0.5">{q.category}</Badge>
+            {(() => {
+              const ranges = [
+                { label: '5.0', min: 5.0, max: 5.0, color: 'bg-emerald-500', textColor: 'text-emerald-600' },
+                { label: '4.5-4.9', min: 4.5, max: 4.9, color: 'bg-emerald-400', textColor: 'text-emerald-500' },
+                { label: '4.0-4.4', min: 4.0, max: 4.4, color: 'bg-lime-400', textColor: 'text-lime-600' },
+                { label: '3.5-3.9', min: 3.5, max: 3.9, color: 'bg-amber-400', textColor: 'text-amber-600' },
+                { label: '3.0-3.4', min: 3.0, max: 3.4, color: 'bg-orange-400', textColor: 'text-orange-600' },
+                { label: '< 3.0', min: 0, max: 2.9, color: 'bg-red-400', textColor: 'text-red-600' },
+              ];
+              
+              const distribution = ranges.map(range => ({
+                ...range,
+                count: analytics.questionRankings.filter(q => 
+                  q.avgRating >= range.min && q.avgRating <= range.max
+                ).length
+              }));
+              
+              const maxCount = Math.max(...distribution.map(d => d.count), 1);
+              
+              return (
+                <div className="space-y-3">
+                  {distribution.map((range) => (
+                    <div key={range.label} className="flex items-center gap-3">
+                      <span className={`w-20 text-sm font-medium ${range.textColor}`}>{range.label}</span>
+                      <div className="flex-1 h-8 bg-muted/50 rounded-lg overflow-hidden relative">
+                        <div 
+                          className={`h-full ${range.color} transition-all duration-500 flex items-center justify-end pr-2`}
+                          style={{ width: `${(range.count / maxCount) * 100}%`, minWidth: range.count > 0 ? '2rem' : '0' }}
+                        >
+                          {range.count > 0 && (
+                            <span className="text-sm font-bold text-white">{range.count}</span>
+                          )}
+                        </div>
+                        {range.count === 0 && (
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">0</span>
+                        )}
+                      </div>
+                      <span className="w-16 text-xs text-muted-foreground text-right">
+                        {((range.count / analytics.questionRankings.length) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Ranking List */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              Ranking Completo
+            </CardTitle>
+            <CardDescription>
+              Clique em uma pergunta para ver quem deu cada nota
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {analytics.questionRankings.map((q, idx) => {
+                // Calculate distribution percentages
+                const totalResponses = q.responseCount;
+                const dist = q.distribution || {};
+                const highRatings = (dist['5'] || 0) + (dist['4'] || 0);
+                const medRatings = dist['3'] || 0;
+                const lowRatings = (dist['2'] || 0) + (dist['1'] || 0);
+                
+                const highPercent = totalResponses > 0 ? (highRatings / totalResponses) * 100 : 0;
+                const medPercent = totalResponses > 0 ? (medRatings / totalResponses) * 100 : 0;
+                const lowPercent = totalResponses > 0 ? (lowRatings / totalResponses) * 100 : 0;
+                
+                return (
+                  <div
+                    key={q.questionKey}
+                    className="group p-4 rounded-xl border bg-card hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => setSelectedQuestion(q)}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Ranking Medal/Position */}
+                      <div className="flex-shrink-0">
+                        {idx === 0 ? (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center shadow-lg">
+                            <Trophy className="h-6 w-6 text-yellow-800" />
+                          </div>
+                        ) : idx === 1 ? (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center shadow-lg">
+                            <Medal className="h-6 w-6 text-slate-700" />
+                          </div>
+                        ) : idx === 2 ? (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg">
+                            <Medal className="h-6 w-6 text-amber-100" />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm leading-tight mb-1">{q.questionLabel}</h4>
+                            <Badge variant="secondary" className="text-[10px]">{q.category}</Badge>
+                          </div>
+                          
+                          {/* Score */}
+                          <div className="text-right flex-shrink-0">
+                            <div className={`text-2xl font-bold ${getRatingColor(q.avgRating)}`}>
+                              {q.avgRating.toFixed(1)}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground">{q.responseCount} respostas</p>
+                          </div>
+                        </div>
+                        
+                        {/* Distribution Bar */}
+                        <div className="mt-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] text-muted-foreground">Distribuição:</span>
+                          </div>
+                          <div className="h-3 rounded-full overflow-hidden flex bg-muted/50">
+                            {highPercent > 0 && (
+                              <div 
+                                className="h-full bg-emerald-500 transition-all"
+                                style={{ width: `${highPercent}%` }}
+                                title={`Notas 4-5: ${highRatings} (${highPercent.toFixed(0)}%)`}
+                              />
+                            )}
+                            {medPercent > 0 && (
+                              <div 
+                                className="h-full bg-amber-400 transition-all"
+                                style={{ width: `${medPercent}%` }}
+                                title={`Nota 3: ${medRatings} (${medPercent.toFixed(0)}%)`}
+                              />
+                            )}
+                            {lowPercent > 0 && (
+                              <div 
+                                className="h-full bg-red-400 transition-all"
+                                style={{ width: `${lowPercent}%` }}
+                                title={`Notas 1-2: ${lowRatings} (${lowPercent.toFixed(0)}%)`}
+                              />
+                            )}
+                          </div>
+                          <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span>{highPercent.toFixed(0)}% (4-5)</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-full bg-amber-400" />
+                              <span>{medPercent.toFixed(0)}% (3)</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-full bg-red-400" />
+                              <span>{lowPercent.toFixed(0)}% (1-2)</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground">{q.responseCount} respostas</span>
-                    <span className={`text-xl font-bold ${getRatingColor(q.avgRating)}`}>
-                      {q.avgRating.toFixed(1)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
