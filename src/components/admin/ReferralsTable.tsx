@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Users,
   Gift,
@@ -28,12 +29,17 @@ import {
   User,
   MapPin,
   FileText,
-  ChevronsUpDown
+  ChevronsUpDown,
+  LayoutList,
+  LayoutGrid,
+  Columns
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { ReferralsKanban } from './ReferralsKanban';
+import { ReferralsCards } from './ReferralsCards';
 
 // Commission constants
 const INDICADOR_COMMISSION_RATE = 0.05; // 5%
@@ -136,6 +142,7 @@ export function ReferralsTable({
   onOpenWhatsApp, 
   onResendEmail 
 }: ReferralsTableProps) {
+  const [viewMode, setViewMode] = useState<'table' | 'kanban' | 'cards'>('table');
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [showFilters, setShowFilters] = useState(false);
@@ -286,17 +293,36 @@ export function ReferralsTable({
     <>
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Users className="h-4 w-4" />
               Indicações ({filteredAndSortedData.length})
             </CardTitle>
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
-                <X className="h-3 w-3 mr-1" />
-                Limpar Filtros
-              </Button>
-            )}
+            
+            <div className="flex items-center gap-2">
+              {/* View Mode Toggle */}
+              <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as 'table' | 'kanban' | 'cards')}>
+                <ToggleGroupItem value="table" size="sm" aria-label="Lista" className="h-8 px-3 gap-1.5">
+                  <LayoutList className="h-4 w-4" />
+                  <span className="hidden sm:inline text-xs">Lista</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="kanban" size="sm" aria-label="Kanban" className="h-8 px-3 gap-1.5">
+                  <Columns className="h-4 w-4" />
+                  <span className="hidden sm:inline text-xs">Kanban</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="cards" size="sm" aria-label="Cards" className="h-8 px-3 gap-1.5">
+                  <LayoutGrid className="h-4 w-4" />
+                  <span className="hidden sm:inline text-xs">Cards</span>
+                </ToggleGroupItem>
+              </ToggleGroup>
+
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
+                  <X className="h-3 w-3 mr-1" />
+                  Limpar
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -388,11 +414,26 @@ export function ReferralsTable({
             </div>
           </div>
 
+          {/* View Mode Content */}
           {filteredAndSortedData.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Gift className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Nenhuma indicação encontrada</p>
             </div>
+          ) : viewMode === 'kanban' ? (
+            <ReferralsKanban
+              referrals={filteredAndSortedData}
+              onStatusChange={onStatusChange}
+              onOpenWhatsApp={onOpenWhatsApp}
+              onOpenDetails={setSelectedReferral}
+            />
+          ) : viewMode === 'cards' ? (
+            <ReferralsCards
+              referrals={filteredAndSortedData}
+              onStatusChange={onStatusChange}
+              onOpenWhatsApp={onOpenWhatsApp}
+              onOpenDetails={setSelectedReferral}
+            />
           ) : (
             <ScrollArea className="h-[550px]">
               <Table className="table-fixed w-full">
