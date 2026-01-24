@@ -29,6 +29,7 @@ import {
   BookOpen,
   GraduationCap,
   Settings,
+  ClipboardList,
 } from "lucide-react";
 import { useEventChecklists, useChecklistItems, EventChecklist } from "@/neohub/hooks/useEventChecklists";
 import { NewChecklistDialog } from "@/neohub/components/NewChecklistDialog";
@@ -37,6 +38,7 @@ import { EventDashboard } from "@/neohub/components/EventDashboard";
 import { EventScheduleEditor } from "@/neohub/components/EventScheduleEditor";
 import { EventExamsPanel } from "@/neohub/components/EventExamsPanel";
 import { EventStudentsPanel } from "@/neohub/components/EventStudentsPanel";
+import { EventSurveyDashboard } from "@/neohub/components/EventSurveyDashboard";
 import { format, differenceInDays, parseISO, isToday, isPast } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -296,10 +298,14 @@ export default function NeoTeamEvents() {
             <div className="space-y-4">
               {/* Main Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-5 h-auto">
+                <TabsList className="grid w-full grid-cols-6 h-auto">
                   <TabsTrigger value="dashboard" className="gap-1.5 py-2.5">
                     <LayoutDashboard className="h-4 w-4" />
                     <span className="hidden sm:inline">Dashboard</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="surveys" className="gap-1.5 py-2.5">
+                    <ClipboardList className="h-4 w-4" />
+                    <span className="hidden sm:inline">Pesquisas</span>
                   </TabsTrigger>
                   <TabsTrigger value="checklist" className="gap-1.5 py-2.5">
                     <ListTodo className="h-4 w-4" />
@@ -325,6 +331,12 @@ export default function NeoTeamEvents() {
                     checklist={selectedChecklist} 
                     stats={stats}
                     classDetails={classDetails}
+                  />
+                </TabsContent>
+
+                {/* Surveys Tab */}
+                <TabsContent value="surveys" className="mt-4">
+                  <EventSurveyDashboard classId={selectedChecklist.class_id}
                   />
                 </TabsContent>
 
