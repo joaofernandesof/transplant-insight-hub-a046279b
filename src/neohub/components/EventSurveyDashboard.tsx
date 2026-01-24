@@ -1036,10 +1036,16 @@ function QuestionInlineCard({
 
       const matchOption = (value: string) => {
         const nv = normalizeText(value);
-        return allOptions.find((opt) => {
-          const no = normalizeText(opt);
-          return no === nv || no.includes(nv) || nv.includes(no);
-        });
+        // First try exact match
+        const exactMatch = allOptions.find((opt) => normalizeText(opt) === nv);
+        if (exactMatch) return exactMatch;
+        // Then try partial match, but prefer shorter matches to avoid "Bom" matching "Muito Bom"
+        return allOptions
+          .filter((opt) => {
+            const no = normalizeText(opt);
+            return no.includes(nv) || nv.includes(no);
+          })
+          .sort((a, b) => a.length - b.length)[0];
       };
 
       for (const r of safeRespondents) {
