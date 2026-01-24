@@ -3470,7 +3470,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
               <div className="space-y-1">
                   {filteredStudents.map((student) => {
-                    const classConfig = getSatisfactionClassConfig(student.satisfactionClass);
                     const isSelected = selectedStudent?.userId === student.userId;
                     
                     return (
@@ -3495,7 +3494,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                         </div>
                         <Badge
                           variant="outline"
-                          className={`text-[10px] shrink-0 ml-2 ${classConfig.bg} ${classConfig.text} border-0`}
+                          className="text-[10px] shrink-0 ml-2 border-0 font-semibold"
+                          style={{ 
+                            backgroundColor: getGradientBgStyle(student.overallScore, 0, 10),
+                            color: getGradientColorStyle(student.overallScore, 0, 10)
+                          }}
                         >
                           {student.overallScore.toFixed(1)}
                         </Badge>
