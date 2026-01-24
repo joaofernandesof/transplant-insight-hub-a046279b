@@ -3163,9 +3163,32 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </CardContent>
         </Card>
 
-        {selectedStudent && (
-          <StudentDetailView student={selectedStudent} />
-        )}
+        {/* Student Detail Dialog */}
+        <Dialog open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback>
+                    {selectedStudent?.userName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <span>{selectedStudent?.userName}</span>
+                  <p className="text-sm text-muted-foreground font-normal">
+                    {selectedStudent?.isCompleted ? 'Pesquisa completa' : `${selectedStudent?.progressPercent}% concluído`}
+                  </p>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedStudent && (
+              <ScrollArea className="flex-1 max-h-[70vh] pr-4">
+                <StudentDetailView student={selectedStudent} />
+              </ScrollArea>
+            )}
+          </DialogContent>
+        </Dialog>
       </TabsContent>
 
       {/* Drilldown Dialog */}
