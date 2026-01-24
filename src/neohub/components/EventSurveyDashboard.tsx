@@ -3128,9 +3128,8 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                 </Select>
               </div>
 
-              {/* Questions List */}
-              <ScrollArea className="h-[500px] pr-2">
-                <div className="space-y-2">
+              {/* Questions List - Full list without scroll limit */}
+              <div className="space-y-2">
                   {filteredQuestions.map((q, idx) => {
                     const isSelected = selectedQuestion?.questionKey === q.questionKey;
                     const ratingColorClass = getRatingColor(q.avgRating);
@@ -3193,7 +3192,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                     );
                   })}
                 </div>
-              </ScrollArea>
             </CardContent>
           </Card>
 
