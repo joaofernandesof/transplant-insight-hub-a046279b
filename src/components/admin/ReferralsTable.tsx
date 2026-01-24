@@ -32,7 +32,8 @@ import {
   ChevronsUpDown,
   LayoutList,
   LayoutGrid,
-  Columns
+  Columns,
+  Bell
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -40,6 +41,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ReferralsKanban } from './ReferralsKanban';
 import { ReferralsCards } from './ReferralsCards';
+import { ReferralNotificationDialog } from './ReferralNotificationDialog';
 
 // Commission constants
 const INDICADOR_COMMISSION_RATE = 0.05; // 5%
@@ -155,6 +157,7 @@ export function ReferralsTable({
     status: 'all'
   });
   const [selectedReferral, setSelectedReferral] = useState<UnifiedReferral | null>(null);
+  const [notificationReferral, setNotificationReferral] = useState<UnifiedReferral | null>(null);
 
   // Calculate gains - reward only after "paid_off" (Quitado)
   const calculateGains = (referral: UnifiedReferral) => {
@@ -558,16 +561,34 @@ export function ReferralsTable({
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => onOpenWhatsApp(referral.phone, referral.name)}
-                              title="WhatsApp"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNotificationReferral(referral);
+                              }}
+                              title="Enviar notificação"
                             >
-                              <MessageCircle className="h-3.5 w-3.5 text-green-600" />
+                              <Bell className="h-3.5 w-3.5 text-primary" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => onResendEmail(referral)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenWhatsApp(referral.phone, referral.name);
+                              }}
+                              title="WhatsApp"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onResendEmail(referral);
+                              }}
                               title="Reenviar e-mail"
                             >
                               <Send className="h-3.5 w-3.5 text-blue-600" />
@@ -770,6 +791,13 @@ export function ReferralsTable({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Notification Dialog */}
+      <ReferralNotificationDialog
+        open={!!notificationReferral}
+        onOpenChange={(open) => !open && setNotificationReferral(null)}
+        referral={notificationReferral}
+      />
     </>
   );
 }
