@@ -13,9 +13,12 @@ import {
   Lock,
   GraduationCap,
   Trophy,
-  Share2
+  Share2,
+  MessageCircle
 } from "lucide-react";
 import { toast } from "sonner";
+
+const WHATSAPP_COMMERCIAL = "5511503914006";
 
 interface Certificate {
   id: string;
@@ -112,6 +115,11 @@ export function AcademyCertificates() {
     toast.success('Link copiado!', {
       description: 'Compartilhe seu certificado nas redes sociais',
     });
+  };
+
+  const handleEnrollWhatsApp = (courseName: string) => {
+    const message = encodeURIComponent(`Olá! Tenho interesse em me matricular no curso "${courseName}". Gostaria de mais informações.`);
+    window.open(`https://wa.me/${WHATSAPP_COMMERCIAL}?text=${message}`, '_blank');
   };
 
   return (
@@ -253,10 +261,15 @@ export function AcademyCertificates() {
                     )}
                     
                     {certificate.status === 'locked' && (
-                      <Badge variant="secondary" className="text-xs">
-                        <Lock className="h-3 w-3 mr-1" />
-                        Bloqueado
-                      </Badge>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEnrollWhatsApp(certificate.courseName)}
+                        className="flex items-center gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        Inscrever-se
+                      </Button>
                     )}
                   </div>
                 </div>
