@@ -79,6 +79,24 @@ interface SurveyResponse {
   q59_eder_m_contribution: string | null;
   q60_eder_m_strength: string | null;
   q61_eder_m_improve: string | null;
+  // Gleyldes monitor evaluation (q62-q69)
+  q62_gleyldes_technical: string | null;
+  q63_gleyldes_interest: string | null;
+  q64_gleyldes_engagement: string | null;
+  q65_gleyldes_posture: string | null;
+  q66_gleyldes_communication: string | null;
+  q67_gleyldes_contribution: string | null;
+  q68_gleyldes_strength: string | null;
+  q69_gleyldes_improve: string | null;
+  // Elenilton monitor evaluation (q70-q77)
+  q70_elenilton_technical: string | null;
+  q71_elenilton_interest: string | null;
+  q72_elenilton_engagement: string | null;
+  q73_elenilton_posture: string | null;
+  q74_elenilton_communication: string | null;
+  q75_elenilton_contribution: string | null;
+  q76_elenilton_strength: string | null;
+  q77_elenilton_improve: string | null;
   // User info (joined)
   user_profiles?: {
     full_name: string | null;
@@ -363,6 +381,8 @@ export interface SurveyAnalytics {
     eder: MonitorMetrics;
     patrickM: MonitorMetrics;
     ederM: MonitorMetrics;
+    gleyldes: MonitorMetrics;
+    elenilton: MonitorMetrics;
   };
   monitorsByName: Record<string, MonitorMetrics>;
   infrastructure: InfrastructureMetrics;
@@ -509,6 +529,38 @@ export function useSurveyAnalytics(classId: string | null) {
       };
       ederMMetrics.overallAvg = (ederMMetrics.avgTechnical + ederMMetrics.avgInterest + ederMMetrics.avgEngagement + 
                                   ederMMetrics.avgPosture + ederMMetrics.avgCommunication + ederMMetrics.avgContribution) / 6;
+
+      // Monitor metrics - Gleyldes (q62-q69)
+      const gleyldesMetrics: MonitorMetrics = {
+        name: 'Dra. Gleyldes',
+        avgTechnical: calculateAverage(completed.map(r => getRatingValue(r.q62_gleyldes_technical))),
+        avgInterest: calculateAverage(completed.map(r => getRatingValue(r.q63_gleyldes_interest))),
+        avgEngagement: calculateAverage(completed.map(r => getRatingValue(r.q64_gleyldes_engagement))),
+        avgPosture: calculateAverage(completed.map(r => getRatingValue(r.q65_gleyldes_posture))),
+        avgCommunication: calculateAverage(completed.map(r => getRatingValue(r.q66_gleyldes_communication))),
+        avgContribution: calculateAverage(completed.map(r => getRatingValue(r.q67_gleyldes_contribution))),
+        overallAvg: 0,
+        strengths: completed.map(r => r.q68_gleyldes_strength).filter((v): v is string => !!v),
+        improvements: completed.map(r => r.q69_gleyldes_improve).filter((v): v is string => !!v),
+      };
+      gleyldesMetrics.overallAvg = (gleyldesMetrics.avgTechnical + gleyldesMetrics.avgInterest + gleyldesMetrics.avgEngagement + 
+                                    gleyldesMetrics.avgPosture + gleyldesMetrics.avgCommunication + gleyldesMetrics.avgContribution) / 6;
+
+      // Monitor metrics - Elenilton (q70-q77)
+      const eleniltonMetrics: MonitorMetrics = {
+        name: 'Dr. Elenilton',
+        avgTechnical: calculateAverage(completed.map(r => getRatingValue(r.q70_elenilton_technical))),
+        avgInterest: calculateAverage(completed.map(r => getRatingValue(r.q71_elenilton_interest))),
+        avgEngagement: calculateAverage(completed.map(r => getRatingValue(r.q72_elenilton_engagement))),
+        avgPosture: calculateAverage(completed.map(r => getRatingValue(r.q73_elenilton_posture))),
+        avgCommunication: calculateAverage(completed.map(r => getRatingValue(r.q74_elenilton_communication))),
+        avgContribution: calculateAverage(completed.map(r => getRatingValue(r.q75_elenilton_contribution))),
+        overallAvg: 0,
+        strengths: completed.map(r => r.q76_elenilton_strength).filter((v): v is string => !!v),
+        improvements: completed.map(r => r.q77_elenilton_improve).filter((v): v is string => !!v),
+      };
+      eleniltonMetrics.overallAvg = (eleniltonMetrics.avgTechnical + eleniltonMetrics.avgInterest + eleniltonMetrics.avgEngagement + 
+                                     eleniltonMetrics.avgPosture + eleniltonMetrics.avgCommunication + eleniltonMetrics.avgContribution) / 6;
 
       // Custom monitor evaluation (q29-q37) - with full metrics calculation
       const monitorsByName: Record<string, MonitorMetrics & { 
@@ -1002,6 +1054,8 @@ export function useSurveyAnalytics(classId: string | null) {
           eder: ederMetrics,
           patrickM: patrickMMetrics,
           ederM: ederMMetrics,
+          gleyldes: gleyldesMetrics,
+          elenilton: eleniltonMetrics,
         },
         monitorsByName: cleanMonitorsByName,
         infrastructure,

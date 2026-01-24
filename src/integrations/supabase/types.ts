@@ -1227,7 +1227,23 @@ export type Database = {
           q6_hygor_liked_most: string | null
           q60_eder_m_strength: string | null
           q61_eder_m_improve: string | null
+          q62_gleyldes_technical: string | null
+          q63_gleyldes_interest: string | null
+          q64_gleyldes_engagement: string | null
+          q65_gleyldes_posture: string | null
+          q66_gleyldes_communication: string | null
+          q67_gleyldes_contribution: string | null
+          q68_gleyldes_strength: string | null
+          q69_gleyldes_improve: string | null
           q7_hygor_improve: string | null
+          q70_elenilton_technical: string | null
+          q71_elenilton_interest: string | null
+          q72_elenilton_engagement: string | null
+          q73_elenilton_posture: string | null
+          q74_elenilton_communication: string | null
+          q75_elenilton_contribution: string | null
+          q76_elenilton_strength: string | null
+          q77_elenilton_improve: string | null
           q8_patrick_expectations: string | null
           q9_patrick_clarity: string | null
           user_id: string
@@ -1298,7 +1314,23 @@ export type Database = {
           q6_hygor_liked_most?: string | null
           q60_eder_m_strength?: string | null
           q61_eder_m_improve?: string | null
+          q62_gleyldes_technical?: string | null
+          q63_gleyldes_interest?: string | null
+          q64_gleyldes_engagement?: string | null
+          q65_gleyldes_posture?: string | null
+          q66_gleyldes_communication?: string | null
+          q67_gleyldes_contribution?: string | null
+          q68_gleyldes_strength?: string | null
+          q69_gleyldes_improve?: string | null
           q7_hygor_improve?: string | null
+          q70_elenilton_technical?: string | null
+          q71_elenilton_interest?: string | null
+          q72_elenilton_engagement?: string | null
+          q73_elenilton_posture?: string | null
+          q74_elenilton_communication?: string | null
+          q75_elenilton_contribution?: string | null
+          q76_elenilton_strength?: string | null
+          q77_elenilton_improve?: string | null
           q8_patrick_expectations?: string | null
           q9_patrick_clarity?: string | null
           user_id: string
@@ -1369,7 +1401,23 @@ export type Database = {
           q6_hygor_liked_most?: string | null
           q60_eder_m_strength?: string | null
           q61_eder_m_improve?: string | null
+          q62_gleyldes_technical?: string | null
+          q63_gleyldes_interest?: string | null
+          q64_gleyldes_engagement?: string | null
+          q65_gleyldes_posture?: string | null
+          q66_gleyldes_communication?: string | null
+          q67_gleyldes_contribution?: string | null
+          q68_gleyldes_strength?: string | null
+          q69_gleyldes_improve?: string | null
           q7_hygor_improve?: string | null
+          q70_elenilton_technical?: string | null
+          q71_elenilton_interest?: string | null
+          q72_elenilton_engagement?: string | null
+          q73_elenilton_posture?: string | null
+          q74_elenilton_communication?: string | null
+          q75_elenilton_contribution?: string | null
+          q76_elenilton_strength?: string | null
+          q77_elenilton_improve?: string | null
           q8_patrick_expectations?: string | null
           q9_patrick_clarity?: string | null
           user_id?: string
