@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import {
   Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop, Lock, LockOpen
 } from 'lucide-react';
-import { ImageCropper } from '@/components/ImageCropper';
+import { CoverPhotoCropper } from '@/academy/components/CoverPhotoCropper';
 import { LinkGalleryRequirementDialog } from '@/neohub/components/LinkGalleryRequirementDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -691,9 +691,9 @@ function GalleryEditDialog({
         </DialogFooter>
       </DialogContent>
 
-      {/* Image Cropper for cover photo */}
+      {/* Cover Photo Cropper (16:9 aspect ratio) */}
       {selectedPhotoForCrop && (
-        <ImageCropper
+        <CoverPhotoCropper
           open={cropperOpen}
           onClose={() => {
             setCropperOpen(false);
