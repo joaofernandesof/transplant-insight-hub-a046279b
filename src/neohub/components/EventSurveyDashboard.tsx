@@ -1470,7 +1470,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   <thead className="bg-muted/50 sticky top-0 z-10">
                     <tr>
                       <th 
-                        className="text-left p-2 font-semibold border-b min-w-[200px] sticky left-0 bg-muted/80 z-20 cursor-pointer hover:bg-muted"
+                        className="text-left p-2 font-semibold border-b min-w-[200px] sticky left-0 bg-muted z-20 cursor-pointer hover:bg-muted/90"
                         onClick={() => handleSort('question')}
                       >
                         <div className="flex items-center gap-1">
@@ -1529,7 +1529,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       
                       return (
                         <tr key={question.questionKey} className={qIdx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
-                          <td className="p-2 border-b font-medium sticky left-0 bg-inherit z-10">
+                          <td className="p-2 border-b font-medium sticky left-0 z-10 bg-background dark:bg-background">
                             <div className="flex flex-col">
                               <span className="truncate max-w-[190px]" title={question.questionLabel}>
                                 {question.questionLabel}
