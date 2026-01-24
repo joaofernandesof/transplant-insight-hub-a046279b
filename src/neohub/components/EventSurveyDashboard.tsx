@@ -1043,24 +1043,6 @@ function QuestionInlineCard({
               </BarChart>
             </ResponsiveContainer>
 
-            {/* Legend with percentages - compact */}
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {distributionData.filter(item => item.value > 0).map((item, idx) => (
-                <div 
-                  key={idx}
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-[10px]"
-                >
-                  <div 
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: item.fill }}
-                  />
-                  <span className="font-medium truncate max-w-[80px]">{item.name}</span>
-                  <span className="text-muted-foreground">
-                    ({Math.round((item.value / totalResponses) * 100)}%)
-                  </span>
-                </div>
-              ))}
-            </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-6 text-center">
