@@ -3346,18 +3346,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <CardContent>
             <div className="space-y-3">
               {analytics.questionRankings.map((q, idx) => {
-                // Calculate distribution percentages (scale 0-10)
-                const totalResponses = q.responseCount;
-                const dist = q.distribution || {};
-                // High: 8-10, Medium: 5-7, Low: 0-4
-                const highRatings = (dist['10'] || 0) + (dist['9'] || 0) + (dist['8'] || 0) + (dist['7.5'] || 0);
-                const medRatings = (dist['7'] || 0) + (dist['6'] || 0) + (dist['5'] || 0);
-                const lowRatings = (dist['4'] || 0) + (dist['3'] || 0) + (dist['2.5'] || 0) + (dist['2'] || 0) + (dist['1'] || 0) + (dist['0'] || 0);
-                
-                const highPercent = totalResponses > 0 ? (highRatings / totalResponses) * 100 : 0;
-                const medPercent = totalResponses > 0 ? (medRatings / totalResponses) * 100 : 0;
-                const lowPercent = totalResponses > 0 ? (lowRatings / totalResponses) * 100 : 0;
-                
                 return (
                   <div
                     key={q.questionKey}
@@ -3403,50 +3391,6 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                               {q.avgRating.toFixed(1)}
                             </div>
                             <p className="text-[10px] text-muted-foreground">{q.responseCount} respostas</p>
-                          </div>
-                        </div>
-                        
-                        {/* Distribution Bar */}
-                        <div className="mt-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[10px] text-muted-foreground">Distribuição:</span>
-                          </div>
-                          <div className="h-3 rounded-full overflow-hidden flex bg-muted/50">
-                            {highPercent > 0 && (
-                              <div 
-                                className="h-full bg-emerald-500 transition-all"
-                                style={{ width: `${highPercent}%` }}
-                                title={`Notas 7.5-10: ${highRatings} (${highPercent.toFixed(0)}%)`}
-                              />
-                            )}
-                            {medPercent > 0 && (
-                              <div 
-                                className="h-full bg-amber-400 transition-all"
-                                style={{ width: `${medPercent}%` }}
-                                title={`Notas 5-7: ${medRatings} (${medPercent.toFixed(0)}%)`}
-                              />
-                            )}
-                            {lowPercent > 0 && (
-                              <div 
-                                className="h-full bg-red-400 transition-all"
-                                style={{ width: `${lowPercent}%` }}
-                                title={`Notas 0-4: ${lowRatings} (${lowPercent.toFixed(0)}%)`}
-                              />
-                            )}
-                          </div>
-                          <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                              <span>{highPercent.toFixed(0)}% (7.5-10)</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-full bg-amber-400" />
-                              <span>{medPercent.toFixed(0)}% (5-7)</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-full bg-red-400" />
-                              <span>{lowPercent.toFixed(0)}% (0-4)</span>
-                            </div>
                           </div>
                         </div>
                       </div>
