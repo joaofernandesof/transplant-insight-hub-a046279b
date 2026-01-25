@@ -295,7 +295,11 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         if (value) savedData[q.key] = value as string;
       });
       setFormData(savedData);
-      setCurrentQuestion(Math.min((existingSurvey.current_section || 1) - 1, QUESTIONS.length - 1));
+      // current_section is saved as currentQuestion + 2, so resume at current_section - 2
+      // But ensure we don't go below 0 or above the last question
+      const savedSection = existingSurvey.current_section || 1;
+      const resumeIndex = Math.max(0, Math.min(savedSection - 2, QUESTIONS.length - 1));
+      setCurrentQuestion(resumeIndex);
       effectiveTimeRef.current = existingSurvey.effective_time_seconds || 0;
     }
   }, [open, user, existingSurvey, isLoading, classId]);
