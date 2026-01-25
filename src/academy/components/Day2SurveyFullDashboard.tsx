@@ -227,6 +227,45 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
     <Tabs defaultValue="overview" className="w-full space-y-4">
       {/* Sticky header with KPIs and tabs */}
       <div className="sticky top-0 z-30 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-1 border-b">
+        {/* Score Cards by Theme - IA, Licença, Jurídico */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <Card className="border-l-4 border-l-blue-500">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Zap className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">IA Avivar</p>
+                <p className="text-xl font-bold">{analytics.avgScoreIA.toFixed(1)}/18</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-l-4 border-l-gray-400">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gray-500/10">
+                <Target className="h-5 w-5 text-gray-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Licença</p>
+                <p className="text-xl font-bold">{analytics.avgScoreLicense.toFixed(1)}/18</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-l-4 border-l-destructive bg-destructive/5">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <Shield className="h-5 w-5 text-destructive" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Jurídico</p>
+                <p className="text-xl font-bold">{analytics.avgScoreLegal.toFixed(1)}/18</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
           <Card>
