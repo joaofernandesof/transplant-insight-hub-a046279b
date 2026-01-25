@@ -336,29 +336,6 @@ export default function AdminDashboard() {
           onOpenChange={setIsNotificationDialogOpen}
         />
 
-        {/* Quick Access Grid - All modules as buttons */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-              {moduleCategories.flatMap((cat) => 
-                cat.modules.map((mod) => (
-                  <button
-                    key={`${cat.id}-${mod.id}`}
-                    onClick={() => navigate(mod.path)}
-                    className="group flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all bg-muted/30"
-                  >
-                    <div className={`p-3.5 rounded-xl ${mod.color} text-white shadow-md`}>
-                      <mod.icon className="h-7 w-7" />
-                    </div>
-                    <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{mod.title}</span>
-                  </button>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-
         {/* Portals Quick Access Widget */}
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
           <CardHeader className="pb-3">
@@ -388,6 +365,28 @@ export default function AdminDashboard() {
                   <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{portal.title}</span>
                 </button>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Access Grid - All modules as buttons */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {moduleCategories.flatMap((cat) => 
+                cat.modules.map((mod) => (
+                  <button
+                    key={`${cat.id}-${mod.id}`}
+                    onClick={() => navigate(mod.path)}
+                    className="group flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all bg-muted/30"
+                  >
+                    <div className={`p-3.5 rounded-xl ${mod.color} text-white shadow-md`}>
+                      <mod.icon className="h-7 w-7" />
+                    </div>
+                    <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{mod.title}</span>
+                  </button>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
