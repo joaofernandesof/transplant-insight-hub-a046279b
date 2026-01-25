@@ -7,15 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Flame, Thermometer, Snowflake, Search, Download, Filter,
-  Zap, Target, Shield, TrendingUp, Users, Award, Clock, AlertCircle
+  Zap, Target, Shield, TrendingUp, Users, Award, Clock, AlertCircle, Sparkles, BarChart3
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Day2AIInsightsPanel } from './Day2AIInsightsPanel';
 
 interface Day2SurveyWithUser {
   id: string;
@@ -265,11 +267,11 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
   const getClassificationBadge = (classification: string) => {
     switch (classification) {
       case 'hot':
-        return <Badge className="bg-red-500 text-white"><Flame className="h-3 w-3 mr-1" />Quente</Badge>;
+        return <Badge className="bg-destructive text-destructive-foreground"><Flame className="h-3 w-3 mr-1" />Quente</Badge>;
       case 'warm':
-        return <Badge className="bg-orange-500 text-white"><Thermometer className="h-3 w-3 mr-1" />Morno</Badge>;
+        return <Badge className="bg-warning text-warning-foreground"><Thermometer className="h-3 w-3 mr-1" />Morno</Badge>;
       case 'cold':
-        return <Badge className="bg-blue-500 text-white"><Snowflake className="h-3 w-3 mr-1" />Frio</Badge>;
+        return <Badge className="bg-accent text-accent-foreground"><Snowflake className="h-3 w-3 mr-1" />Frio</Badge>;
       default:
         return <Badge variant="outline">{classification}</Badge>;
     }
@@ -277,10 +279,10 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
 
   const getScoreColor = (score: number, max: number) => {
     const percentage = (score / max) * 100;
-    if (percentage >= 75) return 'bg-green-500';
-    if (percentage >= 50) return 'bg-yellow-500';
-    if (percentage >= 25) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (percentage >= 75) return 'bg-primary';
+    if (percentage >= 50) return 'bg-warning';
+    if (percentage >= 25) return 'bg-warning/70';
+    return 'bg-destructive';
   };
 
   const exportToPDF = () => {
@@ -345,12 +347,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-500/10">
-                <Flame className="h-5 w-5 text-red-500" />
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <Flame className="h-5 w-5 text-destructive" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Quentes</p>
-                <p className="text-2xl font-bold text-red-500">{hotLeads}</p>
+                <p className="text-2xl font-bold text-destructive">{hotLeads}</p>
               </div>
             </div>
           </CardContent>
@@ -359,12 +361,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-500/10">
-                <Thermometer className="h-5 w-5 text-orange-500" />
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Thermometer className="h-5 w-5 text-warning" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Mornos</p>
-                <p className="text-2xl font-bold text-orange-500">{warmLeads}</p>
+                <p className="text-2xl font-bold text-warning">{warmLeads}</p>
               </div>
             </div>
           </CardContent>
@@ -373,12 +375,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <Snowflake className="h-5 w-5 text-blue-500" />
+              <div className="p-2 rounded-lg bg-accent/30">
+                <Snowflake className="h-5 w-5 text-accent-foreground" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Frios</p>
-                <p className="text-2xl font-bold text-blue-500">{coldLeads}</p>
+                <p className="text-2xl font-bold text-accent-foreground">{coldLeads}</p>
               </div>
             </div>
           </CardContent>
@@ -387,8 +389,8 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <TrendingUp className="h-5 w-5 text-green-500" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Média</p>
@@ -399,36 +401,50 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
         </Card>
       </div>
 
-      {/* Filters and Export */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome ou email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+      {/* Tabs: Ranking vs AI Insights */}
+      <Tabs defaultValue="ranking" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="ranking" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Ranking de Leads
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Análise de IA
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ranking" className="mt-4 space-y-4">
+          {/* Filters and Export */}
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome ou email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={classificationFilter} onValueChange={setClassificationFilter}>
+                <SelectTrigger className="w-32">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filtrar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="hot">Quentes</SelectItem>
+                  <SelectItem value="warm">Mornos</SelectItem>
+                  <SelectItem value="cold">Frios</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={exportToPDF} variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar PDF
+            </Button>
           </div>
-          <Select value={classificationFilter} onValueChange={setClassificationFilter}>
-            <SelectTrigger className="w-32">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="hot">Quentes</SelectItem>
-              <SelectItem value="warm">Mornos</SelectItem>
-              <SelectItem value="cold">Frios</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button onClick={exportToPDF} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Exportar PDF
-        </Button>
-      </div>
 
       {/* Ranking Table */}
       <Card>
@@ -501,7 +517,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{survey.neohub_users.full_name}</p>
                           {!survey.is_completed && (
-                            <Badge variant="outline" className="text-yellow-600 border-yellow-400 text-[10px]">
+                            <Badge variant="outline" className="text-warning border-warning/50 text-[10px]">
                               <Clock className="h-3 w-3 mr-1" />
                               {survey.current_section}/20
                             </Badge>
@@ -572,9 +588,9 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
 
       {/* Partial Responses Section */}
       {(partialSurveys && partialSurveys.length > 0) && (
-        <Card className="border-yellow-200 dark:border-yellow-900">
+        <Card className="border-warning/50">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
+            <CardTitle className="flex items-center gap-2 text-warning">
               <AlertCircle className="h-5 w-5" />
               Respostas Parciais ({partialSurveys.length})
             </CardTitle>
@@ -588,13 +604,13 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                 return (
                   <div 
                     key={survey.id}
-                    className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-100 dark:border-yellow-900"
+                    className="p-4 rounded-lg bg-warning/10 border border-warning/30"
                   >
                     {/* Header with user info */}
                     <div className="flex items-center gap-4 mb-4">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={survey.neohub_users.avatar_url || ''} />
-                        <AvatarFallback className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-400">
+                        <AvatarFallback className="bg-warning/20 text-warning">
                           {survey.neohub_users.full_name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
@@ -602,7 +618,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-medium truncate">{survey.neohub_users.full_name}</p>
-                          <Badge variant="outline" className="shrink-0 text-yellow-700 border-yellow-300 dark:text-yellow-400 dark:border-yellow-700">
+                          <Badge variant="outline" className="shrink-0 border-warning/50 text-warning">
                             <Clock className="h-3 w-3 mr-1" />
                             Questão {survey.current_section}/{TOTAL_DAY2_QUESTIONS}
                           </Badge>
@@ -611,12 +627,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                       </div>
                       
                       <div className="text-right shrink-0">
-                        <p className="text-lg font-bold text-yellow-700 dark:text-yellow-400">
+                        <p className="text-lg font-bold text-warning">
                           {progressPercent}%
                         </p>
                         <Progress 
                           value={progressPercent} 
-                          className="h-2 w-20 bg-yellow-100 dark:bg-yellow-900" 
+                          className="h-2 w-20" 
                         />
                       </div>
                     </div>
@@ -624,28 +640,28 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                     {/* Partial scores by category */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {/* Questions answered */}
-                      <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                      <div className="bg-background/50 rounded-lg p-3">
                         <p className="text-xs text-muted-foreground mb-1">Perguntas Respondidas</p>
                         <div className="flex flex-wrap gap-1 text-xs">
-                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.satisfaction ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.satisfaction ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                             Satisfação: {scores.answered.satisfaction}/1
                           </span>
-                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.joao > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.joao > 0 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                             João: {scores.answered.joao}/5
                           </span>
-                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.larissa > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.larissa > 0 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                             Larissa: {scores.answered.larissa}/5
                           </span>
                         </div>
                       </div>
 
                       {/* IA Avivar Score */}
-                      <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                      <div className="bg-background/50 rounded-lg p-3">
                         <div className="flex items-center gap-1 mb-1">
-                          <Zap className="h-3 w-3 text-purple-500" />
+                          <Zap className="h-3 w-3 text-primary" />
                           <p className="text-xs text-muted-foreground">IA Avivar</p>
                         </div>
-                        <p className={`text-lg font-bold ${scores.iaScore >= 12 ? 'text-green-600' : scores.iaScore >= 6 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+                        <p className={`text-lg font-bold ${scores.iaScore >= 12 ? 'text-primary' : scores.iaScore >= 6 ? 'text-warning' : 'text-muted-foreground'}`}>
                           {scores.iaScore}/18
                         </p>
                         <p className="text-[10px] text-muted-foreground">
@@ -654,12 +670,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                       </div>
 
                       {/* License Score */}
-                      <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                      <div className="bg-background/50 rounded-lg p-3">
                         <div className="flex items-center gap-1 mb-1">
-                          <Target className="h-3 w-3 text-emerald-500" />
+                          <Target className="h-3 w-3 text-primary" />
                           <p className="text-xs text-muted-foreground">Licença</p>
                         </div>
-                        <p className={`text-lg font-bold ${scores.licenseScore >= 12 ? 'text-green-600' : scores.licenseScore >= 6 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+                        <p className={`text-lg font-bold ${scores.licenseScore >= 12 ? 'text-primary' : scores.licenseScore >= 6 ? 'text-warning' : 'text-muted-foreground'}`}>
                           {scores.licenseScore}/18
                         </p>
                         <p className="text-[10px] text-muted-foreground">
@@ -668,12 +684,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                       </div>
 
                       {/* Legal Score */}
-                      <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                      <div className="bg-background/50 rounded-lg p-3">
                         <div className="flex items-center gap-1 mb-1">
-                          <Shield className="h-3 w-3 text-blue-500" />
+                          <Shield className="h-3 w-3 text-primary" />
                           <p className="text-xs text-muted-foreground">Jurídico</p>
                         </div>
-                        <p className={`text-lg font-bold ${scores.legalScore >= 12 ? 'text-green-600' : scores.legalScore >= 6 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+                        <p className={`text-lg font-bold ${scores.legalScore >= 12 ? 'text-primary' : scores.legalScore >= 6 ? 'text-warning' : 'text-muted-foreground'}`}>
                           {scores.legalScore}/18
                         </p>
                         <p className="text-[10px] text-muted-foreground">
@@ -684,11 +700,11 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                     
                     {/* Partial total */}
                     {scores.total > 0 && (
-                      <div className="mt-3 pt-3 border-t border-yellow-200 dark:border-yellow-800 flex items-center justify-between">
+                      <div className="mt-3 pt-3 border-t border-warning/30 flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Score Parcial Total:</span>
                         <span className={`text-lg font-bold ${
-                          scores.total >= 40 ? 'text-red-500' :
-                          scores.total >= 25 ? 'text-orange-500' : 'text-blue-500'
+                          scores.total >= 40 ? 'text-destructive' :
+                          scores.total >= 25 ? 'text-warning' : 'text-primary'
                         }`}>
                           {scores.total}/54
                           <span className="text-xs text-muted-foreground ml-2">
@@ -704,6 +720,15 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="insights" className="mt-4">
+          <Day2AIInsightsPanel 
+            surveys={surveys || []} 
+            className={classId ? `Turma ${classId}` : 'Todas as turmas'} 
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
