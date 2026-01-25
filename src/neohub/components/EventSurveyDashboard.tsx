@@ -61,7 +61,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { SurveyQuestionsManager } from "./SurveyQuestionsManager";
-import { Day2LeadRankingDashboard } from "@/academy/components/Day2LeadRankingDashboard";
+import { Day2SurveyFullDashboard } from "@/academy/components/Day2SurveyFullDashboard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { printCurrentView } from "@/utils/printPdf";
@@ -1961,12 +1961,12 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     );
   }
 
-  // For Day 2, show the lead dashboard directly
+  // For Day 2, show the full dashboard with all 7 tabs
   if (dayFilter === 'day2') {
     return (
       <div className="space-y-4">
         <SurveyFilterBar />
-        <Day2LeadRankingDashboard classId={effectiveClassId || undefined} />
+        <Day2SurveyFullDashboard classId={effectiveClassId} />
       </div>
     );
   }
