@@ -133,7 +133,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "IBRAMEC <notificacoes@ibramec.com>",
-      to: ["joao.fernandes@neofolic.com.br"],
+      to: ["joao.fernandes@neofolic.com.br", "adm@neofolic.com.br"],
       subject: `${isHotLead ? "🔥 " : ""}Pesquisa Dia 1 - ${studentName} (${className})`,
       html: emailHtml,
     });
