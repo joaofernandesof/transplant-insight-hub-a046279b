@@ -518,6 +518,7 @@ function GalleryEditDialog({
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleSelectCover = (photoUrl: string) => {
     setSelectedPhotoForCrop(photoUrl);
@@ -676,7 +677,7 @@ function GalleryEditDialog({
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={handleDeleteSelected}
+                      onClick={() => setShowDeleteConfirm(true)}
                       disabled={isDeletingSelected}
                       className="gap-2"
                     >
@@ -990,6 +991,31 @@ function GalleryEditDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você está prestes a excluir {selectedPhotos.size} foto{selectedPhotos.size > 1 ? 's' : ''}.
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleDeleteSelected();
+                setShowDeleteConfirm(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sim, excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Cover Photo Cropper (16:9 aspect ratio) */}
       {selectedPhotoForCrop && (
