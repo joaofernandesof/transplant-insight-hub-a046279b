@@ -347,16 +347,25 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const canProceed = isTextQuestion || formData[currentQ?.key];
 
   const handleNext = async () => {
+    // For radio questions, require a selection before proceeding
+    if (currentQ.type === 'radio' && !formData[currentQ.key]) {
+      return;
+    }
+    
     if (currentQuestion < QUESTIONS.length - 1) {
-      // Save progress
+      const nextQuestion = currentQuestion + 1;
+      
+      // Immediately advance to next question for better UX
+      setCurrentQuestion(nextQuestion);
+      
+      // Save progress in background (don't block navigation)
       if (surveyId) {
-        await saveProgress.mutateAsync({
+        saveProgress.mutate({
           surveyId,
           data: formData,
-          currentSection: currentQuestion + 2
+          currentSection: nextQuestion + 1
         });
       }
-      setCurrentQuestion(currentQuestion + 1);
     }
   };
 
