@@ -9,6 +9,7 @@ import { useDay2Survey } from '../hooks/useDay2Survey';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield, Calendar, MessageSquare } from 'lucide-react';
 import joaoFernandesImg from '@/assets/joao-fernandes.png';
+import larissaGuerreiroImg from '@/assets/larissa-guerreiro.png';
 
 interface Day2SurveyDialogProps {
   open: boolean;
@@ -92,6 +93,7 @@ const QUESTIONS = [
     text: 'O tema abordado atendeu às suas expectativas?',
     type: 'radio',
     category: 'Aula Larissa Guerreiro - Blindagem Jurídica para Clínicas Médicas',
+    speakerImage: larissaGuerreiroImg,
     options: [
       { value: 'Não atendeu', icon: <ThumbsDown className="h-5 w-5 text-red-500" /> },
       { value: 'Atendeu parcialmente', icon: <Meh className="h-5 w-5 text-yellow-500" /> },
@@ -103,6 +105,7 @@ const QUESTIONS = [
     text: 'A professora conseguiu explicar os conceitos de forma clara e compreensível?',
     type: 'radio',
     category: 'Aula Larissa Guerreiro - Blindagem Jurídica para Clínicas Médicas',
+    speakerImage: larissaGuerreiroImg,
     options: [
       { value: 'Discordo totalmente', icon: <Frown className="h-5 w-5 text-red-500" /> },
       { value: 'Discordo', icon: <Frown className="h-5 w-5 text-orange-500" /> },
@@ -116,6 +119,7 @@ const QUESTIONS = [
     text: 'Você sentiu que o tempo da aula foi suficiente para abordar o tema?',
     type: 'radio',
     category: 'Aula Larissa Guerreiro - Blindagem Jurídica para Clínicas Médicas',
+    speakerImage: larissaGuerreiroImg,
     options: [
       { value: 'Insuficiente', icon: <Clock className="h-5 w-5 text-red-500" /> },
       { value: 'Adequado', icon: <Clock className="h-5 w-5 text-green-500" /> },
@@ -126,13 +130,15 @@ const QUESTIONS = [
     key: 'q10_larissa_liked_most',
     text: 'O que você mais gostou na aula da Larissa Guerreiro?',
     type: 'text',
-    category: 'Aula Larissa Guerreiro - Blindagem Jurídica para Clínicas Médicas'
+    category: 'Aula Larissa Guerreiro - Blindagem Jurídica para Clínicas Médicas',
+    speakerImage: larissaGuerreiroImg
   },
   {
     key: 'q11_larissa_improve',
     text: 'O que poderia melhorar na aula da Larissa Guerreiro?',
     type: 'text',
-    category: 'Aula Larissa Guerreiro - Blindagem Jurídica para Clínicas Médicas'
+    category: 'Aula Larissa Guerreiro - Blindagem Jurídica para Clínicas Médicas',
+    speakerImage: larissaGuerreiroImg
   },
   // Section 4: IA Avivar
   {
