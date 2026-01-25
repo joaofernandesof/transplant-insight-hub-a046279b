@@ -534,23 +534,24 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{displayScoreIA}/18</span>
+                      <span className="font-medium">{displayScoreIA} pts</span>
                       <Progress 
                         value={(displayScoreIA / 18) * 100} 
                         className={`h-1.5 w-16 ${getScoreColor(displayScoreIA, 18)}`}
                       />
+                      <span className="text-[9px] text-muted-foreground">3q × 6pts</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{displayScoreLicense}/18</span>
+                      <span className="font-medium">{displayScoreLicense} pts</span>
                       <Progress 
                         value={(displayScoreLicense / 18) * 100} 
                         className={`h-1.5 w-16 ${getScoreColor(displayScoreLicense, 18)}`}
                       />
                       <span className={`text-[10px] ${
-                        displayScoreLicense >= 12 ? 'text-green-600' :
-                        displayScoreLicense >= 6 ? 'text-yellow-600' : 'text-muted-foreground'
+                        displayScoreLicense >= 12 ? 'text-primary' :
+                        displayScoreLicense >= 6 ? 'text-warning' : 'text-muted-foreground'
                       }`}>
                         {displayScoreLicense >= 12 ? 'Extremamente qualificado' :
                          displayScoreLicense >= 6 ? 'Precisa construção' : 'Fora do timing'}
@@ -559,11 +560,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{displayScoreLegal}/18</span>
+                      <span className="font-medium">{displayScoreLegal} pts</span>
                       <Progress 
                         value={(displayScoreLegal / 18) * 100} 
                         className={`h-1.5 w-16 ${getScoreColor(displayScoreLegal, 18)}`}
                       />
+                      <span className="text-[9px] text-muted-foreground">3q × 6pts</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
@@ -667,10 +669,10 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                           <p className="text-xs text-muted-foreground">IA Avivar</p>
                         </div>
                         <p className={`text-lg font-bold ${scores.iaScore >= 12 ? 'text-primary' : scores.iaScore >= 6 ? 'text-warning' : 'text-muted-foreground'}`}>
-                          {scores.iaScore}/18
+                          {scores.iaScore} pts
                         </p>
                         <p className="text-[10px] text-muted-foreground">
-                          {scores.answered.ia}/3 perguntas
+                          {scores.answered.ia}/3 resp. (max 18)
                         </p>
                       </div>
 
@@ -681,10 +683,10 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                           <p className="text-xs text-muted-foreground">Licença</p>
                         </div>
                         <p className={`text-lg font-bold ${scores.licenseScore >= 12 ? 'text-primary' : scores.licenseScore >= 6 ? 'text-warning' : 'text-muted-foreground'}`}>
-                          {scores.licenseScore}/18
+                          {scores.licenseScore} pts
                         </p>
                         <p className="text-[10px] text-muted-foreground">
-                          {scores.answered.license}/3 perguntas
+                          {scores.answered.license}/3 resp. (max 18)
                         </p>
                       </div>
 
@@ -695,10 +697,10 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                           <p className="text-xs text-muted-foreground">Jurídico</p>
                         </div>
                         <p className={`text-lg font-bold ${scores.legalScore >= 12 ? 'text-primary' : scores.legalScore >= 6 ? 'text-warning' : 'text-muted-foreground'}`}>
-                          {scores.legalScore}/18
+                          {scores.legalScore} pts
                         </p>
                         <p className="text-[10px] text-muted-foreground">
-                          {scores.answered.legal}/3 perguntas
+                          {scores.answered.legal}/3 resp. (max 18)
                         </p>
                       </div>
                     </div>
