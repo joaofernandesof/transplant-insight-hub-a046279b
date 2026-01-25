@@ -47,10 +47,17 @@ import {
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { 
   MAIN_MENU_CATEGORIES, 
   PORTAL_MENUS,
+  PORTAL_MENU_CATEGORIES,
   filterMenuByPermissions,
   type MenuItem,
+  type MenuCategory,
 } from "@/config/menuConfig";
 import type { ProfileKey } from "@/contexts/UnifiedAuthContext";
 
@@ -188,12 +195,23 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     );
   }, [currentPortal, isAdmin]);
 
-  // Group menu items by category for main portal
-  const groupedMenuItems = useMemo(() => {
+  // Group menu items by category - use categorized menu if available
+  const groupedMenuItems = useMemo((): MenuCategory[] => {
+    // Check if portal has categorized menu
+    const categorizedMenu = PORTAL_MENU_CATEGORIES[currentPortal];
+    if (categorizedMenu) {
+      return categorizedMenu.map(category => ({
+        ...category,
+        items: filterMenuByPermissions(category.items, hasPermission, isAdmin),
+      })).filter(category => category.items.length > 0);
+    }
+    
+    // For portals without categorized menu, use flat list
     if (currentPortal !== 'main' && currentPortal !== 'admin') {
       return [{ id: 'portal', title: '', items: menuItems }];
     }
     
+    // For main/admin, use main menu categories
     return MAIN_MENU_CATEGORIES.map(category => ({
       ...category,
       items: filterMenuByPermissions(category.items, hasPermission, isAdmin).filter(item => {
@@ -202,6 +220,24 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
       })
     })).filter(category => category.items.length > 0);
   }, [currentPortal, menuItems, isAdmin]);
+
+  // Track open state of collapsible categories
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    groupedMenuItems.forEach(cat => {
+      if (cat.collapsible) {
+        initial[cat.id] = cat.defaultOpen ?? true;
+      }
+    });
+    return initial;
+  });
+
+  const toggleCategory = (categoryId: string) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId],
+    }));
+  };
 
   return (
     <div className="min-h-screen flex w-full overflow-x-hidden">
@@ -384,31 +420,79 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
 
             {groupedMenuItems.map((category) => (
               <div key={category.id}>
-                {/* Category Header */}
-                {category.title && !isCollapsed && (
-                  <div className="pt-4 pb-2 px-3">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      {category.title}
-                    </p>
-                  </div>
-                )}
-                
-                {/* Category Items */}
-                {category.items.map((item) => (
-                  <Button
-                    key={item.id}
-                    variant={isActive(item.route) ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full justify-start gap-3 h-10",
-                      isCollapsed && "justify-center px-2",
-                      isActive(item.route) && "bg-primary/10 text-primary font-medium"
+                {/* Non-collapsible category */}
+                {(!category.collapsible || isCollapsed) ? (
+                  <>
+                    {/* Category Header */}
+                    {category.title && !isCollapsed && (
+                      <div className="pt-4 pb-2 px-3">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          {category.title}
+                        </p>
+                      </div>
                     )}
-                    onClick={() => navigate(item.route)}
+                    
+                    {/* Category Items */}
+                    {category.items.map((item) => (
+                      <Button
+                        key={item.id}
+                        variant={isActive(item.route) ? "secondary" : "ghost"}
+                        className={cn(
+                          "w-full justify-start gap-3 h-10",
+                          isCollapsed && "justify-center px-2",
+                          isActive(item.route) && "bg-primary/10 text-primary font-medium"
+                        )}
+                        onClick={() => navigate(item.route)}
+                      >
+                        {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
+                        {!isCollapsed && <span className="truncate">{item.title}</span>}
+                      </Button>
+                    ))}
+                  </>
+                ) : (
+                  /* Collapsible category */
+                  <Collapsible
+                    open={openCategories[category.id] ?? category.defaultOpen ?? true}
+                    onOpenChange={() => toggleCategory(category.id)}
+                    className="mt-2"
                   >
-                    {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
-                    {!isCollapsed && <span className="truncate">{item.title}</span>}
-                  </Button>
-                ))}
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-between gap-2 h-9 px-3 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      >
+                        <div className="flex items-center gap-2">
+                          {category.icon && <category.icon className="h-4 w-4" />}
+                          <span className="text-xs font-semibold uppercase tracking-wider">
+                            {category.title}
+                          </span>
+                        </div>
+                        <ChevronRight 
+                          className={cn(
+                            "h-4 w-4 transition-transform duration-200",
+                            (openCategories[category.id] ?? category.defaultOpen ?? true) && "rotate-90"
+                          )} 
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pl-2 space-y-0.5">
+                      {category.items.map((item) => (
+                        <Button
+                          key={item.id}
+                          variant={isActive(item.route) ? "secondary" : "ghost"}
+                          className={cn(
+                            "w-full justify-start gap-3 h-9",
+                            isActive(item.route) && "bg-primary/10 text-primary font-medium"
+                          )}
+                          onClick={() => navigate(item.route)}
+                        >
+                          {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
+                          <span className="truncate text-sm">{item.title}</span>
+                        </Button>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
               </div>
             ))}
             
