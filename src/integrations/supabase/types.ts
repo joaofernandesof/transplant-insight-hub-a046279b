@@ -1564,6 +1564,95 @@ export type Database = {
           },
         ]
       }
+      day3_satisfaction_surveys: {
+        Row: {
+          class_id: string | null
+          completed_at: string | null
+          created_at: string
+          current_section: number | null
+          effective_time_seconds: number | null
+          id: string
+          is_completed: boolean | null
+          q1_satisfaction_level: string | null
+          q10_organization: string | null
+          q11_support_quality: string | null
+          q12_improvements: string | null
+          q13_highlights: string | null
+          q14_best_technical_monitor: string | null
+          q15_best_caring_monitor: string | null
+          q16_monitor_comments: string | null
+          q2_promise_met: string | null
+          q3_technical_foundations: string | null
+          q4_practical_load: string | null
+          q5_theory_practice_balance: string | null
+          q6_execution_clarity: string | null
+          q7_confidence_level: string | null
+          q8_management_classes: string | null
+          q9_legal_security: string | null
+          user_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_section?: number | null
+          effective_time_seconds?: number | null
+          id?: string
+          is_completed?: boolean | null
+          q1_satisfaction_level?: string | null
+          q10_organization?: string | null
+          q11_support_quality?: string | null
+          q12_improvements?: string | null
+          q13_highlights?: string | null
+          q14_best_technical_monitor?: string | null
+          q15_best_caring_monitor?: string | null
+          q16_monitor_comments?: string | null
+          q2_promise_met?: string | null
+          q3_technical_foundations?: string | null
+          q4_practical_load?: string | null
+          q5_theory_practice_balance?: string | null
+          q6_execution_clarity?: string | null
+          q7_confidence_level?: string | null
+          q8_management_classes?: string | null
+          q9_legal_security?: string | null
+          user_id: string
+        }
+        Update: {
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_section?: number | null
+          effective_time_seconds?: number | null
+          id?: string
+          is_completed?: boolean | null
+          q1_satisfaction_level?: string | null
+          q10_organization?: string | null
+          q11_support_quality?: string | null
+          q12_improvements?: string | null
+          q13_highlights?: string | null
+          q14_best_technical_monitor?: string | null
+          q15_best_caring_monitor?: string | null
+          q16_monitor_comments?: string | null
+          q2_promise_met?: string | null
+          q3_technical_foundations?: string | null
+          q4_practical_load?: string | null
+          q5_theory_practice_balance?: string | null
+          q6_execution_clarity?: string | null
+          q7_confidence_level?: string | null
+          q8_management_classes?: string | null
+          q9_legal_security?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "day3_satisfaction_surveys_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_checklist_items: {
         Row: {
           category: string | null
