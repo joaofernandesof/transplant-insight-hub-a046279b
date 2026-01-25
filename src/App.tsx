@@ -313,33 +313,42 @@ import {
   Formacao360ReferralLanding,
   SurveyManagement
 } from './academy';
+import Day2SurveyPage from './academy/pages/Day2SurveyPage';
 
 function AcademyRoutes() {
   return (
     <ProfileGuard allowedProfiles={['aluno', 'administrador']}>
-      <AcademySidebar>
-        <Routes>
-          <Route index element={<AcademyHome />} />
-          <Route path="courses" element={<AcademyCourses />} />
-          <Route path="classes/:classId" element={<AcademyClassDetail />} />
-          <Route path="schedule" element={<AcademySchedule />} />
-          <Route path="materials" element={<Materials />} />
-          <Route path="exams" element={<AcademyExams />} />
-          <Route path="exams/:examId/take" element={<AcademyExamTaking />} />
-          <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
-          <Route path="certificates" element={<AcademyCertificates />} />
-          <Route path="community" element={<AcademyCommunity />} />
-          <Route path="chat" element={<AcademyChat />} />
-          <Route path="chat/:recipientId" element={<AcademyChat />} />
-          <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />
-          <Route path="referral" element={<AcademyReferral />} />
-          <Route path="profile" element={<AcademySettings />} />
-          <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
-          <Route path="admin/students" element={<AcademyStudentsAdmin />} />
-          <Route path="admin/surveys" element={<SurveyManagement />} />
-          <Route path="*" element={<Navigate to="/academy" replace />} />
-        </Routes>
-      </AcademySidebar>
+      <Routes>
+        {/* Direct survey route - no sidebar wrapper */}
+        <Route path="pesquisa-dia2/:classId" element={<Day2SurveyPage />} />
+        
+        {/* All other routes with sidebar */}
+        <Route path="*" element={
+          <AcademySidebar>
+            <Routes>
+              <Route index element={<AcademyHome />} />
+              <Route path="courses" element={<AcademyCourses />} />
+              <Route path="classes/:classId" element={<AcademyClassDetail />} />
+              <Route path="schedule" element={<AcademySchedule />} />
+              <Route path="materials" element={<Materials />} />
+              <Route path="exams" element={<AcademyExams />} />
+              <Route path="exams/:examId/take" element={<AcademyExamTaking />} />
+              <Route path="exams/:examId/results/:attemptId" element={<AcademyExamResults />} />
+              <Route path="certificates" element={<AcademyCertificates />} />
+              <Route path="community" element={<AcademyCommunity />} />
+              <Route path="chat" element={<AcademyChat />} />
+              <Route path="chat/:recipientId" element={<AcademyChat />} />
+              <Route path="career" element={<PlaceholderPage title="Plano de Carreira" />} />
+              <Route path="referral" element={<AcademyReferral />} />
+              <Route path="profile" element={<AcademySettings />} />
+              <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
+              <Route path="admin/students" element={<AcademyStudentsAdmin />} />
+              <Route path="admin/surveys" element={<SurveyManagement />} />
+              <Route path="*" element={<Navigate to="/academy" replace />} />
+            </Routes>
+          </AcademySidebar>
+        } />
+      </Routes>
     </ProfileGuard>
   );
 }
