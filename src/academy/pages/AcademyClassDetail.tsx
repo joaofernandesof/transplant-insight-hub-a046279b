@@ -39,8 +39,11 @@ import { ScheduleTimeline } from "../components/ScheduleTimeline";
 import { CourseGalleryViewer } from "../components/CourseGalleryViewer";
 import { SatisfactionSurveyDialog } from "../components/SatisfactionSurveyDialog";
 import { Day1SurveyDialog } from "../components/Day1SurveyDialog";
+import { Day2SurveyDialog } from "../components/Day2SurveyDialog";
+import { ClassSurveyList } from "../components/ClassSurveyList";
 import { useSatisfactionSurvey } from "../hooks/useSatisfactionSurvey";
 import { useDay1Survey } from "../hooks/useDay1Survey";
+import { useDay2Survey } from "../hooks/useDay2Survey";
 
 export function AcademyClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -53,9 +56,11 @@ export function AcademyClassDetail() {
   
   // Satisfaction survey state
   const { hasCompleted: hasSurveyCompleted, refetch: refetchSurvey } = useSatisfactionSurvey(classId);
-  const { hasCompleted: hasDay1Completed, refetch: refetchDay1 } = useDay1Survey(classId);
+  const { hasCompleted: hasDay1Completed, isLoading: isDay1Loading, refetch: refetchDay1 } = useDay1Survey(classId);
+  const { isCompleted: hasDay2Completed, isLoading: isDay2Loading } = useDay2Survey(classId);
   const [surveyDialogOpen, setSurveyDialogOpen] = useState(false);
   const [day1SurveyDialogOpen, setDay1SurveyDialogOpen] = useState(false);
+  const [day2SurveyDialogOpen, setDay2SurveyDialogOpen] = useState(false);
   const [surveyTriggeredByPhotos, setSurveyTriggeredByPhotos] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
 
@@ -286,37 +291,28 @@ export function AcademyClassDetail() {
           {/* Survey Tab */}
           {activeTab === 'survey' && (
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                    Pesquisa de Satisfação
-                  </CardTitle>
-                  <CardDescription>
-                    Sua opinião é muito importante para continuarmos evoluindo a formação
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {hasDay1Completed ? (
-                    <div className="text-center py-4">
-                      <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
-                      <p className="font-medium">Pesquisa já respondida</p>
-                      <p className="text-sm text-muted-foreground">Obrigado pela sua contribuição!</p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                      <p className="font-medium mb-2">Responda nossa pesquisa</p>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        37 perguntas sobre as aulas, professores, monitores e infraestrutura.
-                      </p>
-                      <Button onClick={() => setDay1SurveyDialogOpen(true)}>
-                        Responder Pesquisa
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <ClassSurveyList
+                surveys={[
+                  {
+                    id: 'day1',
+                    title: 'Pesquisa Dia 1',
+                    description: 'Avaliação das aulas, professores, monitores e infraestrutura.',
+                    questionCount: 57,
+                    isCompleted: hasDay1Completed,
+                    isLoading: isDay1Loading,
+                    onOpen: () => setDay1SurveyDialogOpen(true)
+                  },
+                  {
+                    id: 'day2',
+                    title: 'Pesquisa Dia 2',
+                    description: 'Avaliação do segundo dia e interesses profissionais.',
+                    questionCount: 20,
+                    isCompleted: hasDay2Completed,
+                    isLoading: isDay2Loading,
+                    onOpen: () => setDay2SurveyDialogOpen(true)
+                  }
+                ]}
+              />
             </div>
           )}
 
@@ -658,6 +654,13 @@ export function AcademyClassDetail() {
               setActiveTab('photos');
             }
           }}
+        />
+        
+        {/* Day 2 Survey Dialog */}
+        <Day2SurveyDialog
+          open={day2SurveyDialogOpen}
+          onOpenChange={setDay2SurveyDialogOpen}
+          classId={classId || ''}
         />
       </div>
     </div>
