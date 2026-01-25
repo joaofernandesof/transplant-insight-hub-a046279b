@@ -25,7 +25,6 @@ import {
   X,
   LogOut,
   Layers,
-  Eye,
   User,
   Users,
   Stethoscope,
@@ -319,79 +318,46 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           </div>
         )}
 
-        {/* Profile & Module Selector (Admin only) */}
+        {/* Module Selector (Admin only) */}
         {isAdmin && !isCollapsed && (
-          <div className="p-3 border-b bg-muted/30 space-y-3">
-            {/* Profile Selector */}
-            <div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                <Eye className="h-3.5 w-3.5" />
-                <span>Perfil:</span>
-              </div>
-              <Select value={activeProfile} onValueChange={(value) => setActiveProfile(value as ProfileKey)}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    { key: 'administrador' as ProfileKey, label: 'Administrador', icon: Crown },
-                    { key: 'licenciado' as ProfileKey, label: 'Licenciado', icon: Building2 },
-                    { key: 'colaborador' as ProfileKey, label: 'Colaborador', icon: Users },
-                    { key: 'medico' as ProfileKey, label: 'Médico', icon: Stethoscope },
-                    { key: 'aluno' as ProfileKey, label: 'Aluno', icon: GraduationCap },
-                    { key: 'paciente' as ProfileKey, label: 'Paciente', icon: Heart },
-                  ].map(({ key, label, icon: Icon }) => (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4" />
-                        <span>{label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="p-3 border-b bg-muted/30">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+              <Layers className="h-3.5 w-3.5" />
+              <span>Módulo:</span>
             </div>
-            
-            {/* Module Selector */}
-            <div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                <Layers className="h-3.5 w-3.5" />
-                <span>Módulo:</span>
-              </div>
-              <Select value={currentPortal} onValueChange={(value) => {
-                const portalRoutes: Record<PortalKey, string> = {
-                  admin: '/admin-dashboard',
-                  neocare: '/neocare',
-                  neoteam: '/neoteam',
-                  academy: '/academy',
-                  neolicense: '/neolicense',
-                  avivar: '/avivar',
-                  main: '/admin-dashboard',
-                };
-                navigate(portalRoutes[value as PortalKey] || '/admin-dashboard');
-              }}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    { key: 'admin' as PortalKey, label: 'Administração', icon: LayoutDashboard },
-                    { key: 'neoteam' as PortalKey, label: 'NeoTeam', icon: Clipboard },
-                    { key: 'neocare' as PortalKey, label: 'NeoCare', icon: HeartPulse },
-                    { key: 'academy' as PortalKey, label: 'Academy IBRAMEC', icon: BookOpen },
-                    { key: 'neolicense' as PortalKey, label: 'NeoLicense', icon: Building2 },
-                    { key: 'avivar' as PortalKey, label: 'Avivar', icon: Sparkles },
-                  ].map(({ key, label, icon: Icon }) => (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4" />
-                        <span>{label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={currentPortal} onValueChange={(value) => {
+              const portalRoutes: Record<PortalKey, string> = {
+                admin: '/admin-dashboard',
+                neocare: '/neocare',
+                neoteam: '/neoteam',
+                academy: '/academy',
+                neolicense: '/neolicense',
+                avivar: '/avivar',
+                main: '/admin-dashboard',
+              };
+              navigate(portalRoutes[value as PortalKey] || '/admin-dashboard');
+            }}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  { key: 'admin' as PortalKey, label: 'Administração', icon: LayoutDashboard },
+                  { key: 'neoteam' as PortalKey, label: 'NeoTeam', icon: Clipboard },
+                  { key: 'neocare' as PortalKey, label: 'NeoCare', icon: HeartPulse },
+                  { key: 'academy' as PortalKey, label: 'Academy IBRAMEC', icon: BookOpen },
+                  { key: 'neolicense' as PortalKey, label: 'NeoLicense', icon: Building2 },
+                  { key: 'avivar' as PortalKey, label: 'Avivar', icon: Sparkles },
+                ].map(({ key, label, icon: Icon }) => (
+                  <SelectItem key={key} value={key}>
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-4 w-4" />
+                      <span>{label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
