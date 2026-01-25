@@ -1945,17 +1945,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     </div>
   );
 
-  // Show Day 2 Lead Ranking when Day 2 filter is selected
-  if (dayFilter === 'day2') {
-    return (
-      <div className="space-y-4">
-        <SurveyFilterBar />
-        <Day2LeadRankingDashboard classId={effectiveClassId || undefined} />
-      </div>
-    );
-  }
+  // For Day 2, we'll show both the lead ranking AND the standard analytics
+  // The useSurveyAnalytics hook handles day1 data, so for day2 we need a different approach
+  // Show the lead ranking section within the main dashboard instead of replacing it entirely
 
-  if (isLoading) {
+  if (isLoading && dayFilter === 'day1') {
     return (
       <div className="space-y-4">
         <SurveyFilterBar />
@@ -1963,6 +1957,16 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
         </div>
+      </div>
+    );
+  }
+
+  // For Day 2, show the lead dashboard directly
+  if (dayFilter === 'day2') {
+    return (
+      <div className="space-y-4">
+        <SurveyFilterBar />
+        <Day2LeadRankingDashboard classId={effectiveClassId || undefined} />
       </div>
     );
   }
