@@ -391,25 +391,6 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Profile Quick Access - Compact Row */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Eye className="h-3.5 w-3.5" />
-            Simular perfil:
-          </span>
-          {profileAccess.map((profile) => (
-            <Button
-              key={profile.profile}
-              onClick={() => navigate(profile.path)}
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs gap-1.5"
-            >
-              <profile.icon className="h-3 w-3" />
-              {profile.title}
-            </Button>
-          ))}
-        </div>
 
         {/* Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
