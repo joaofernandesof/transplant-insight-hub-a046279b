@@ -6420,6 +6420,104 @@ export type Database = {
           },
         ]
       }
+      survey_answers: {
+        Row: {
+          answer_choices: Json | null
+          answer_rating: number | null
+          answer_text: string | null
+          answered_at: string | null
+          id: string
+          question_id: string
+          submission_id: string
+        }
+        Insert: {
+          answer_choices?: Json | null
+          answer_rating?: number | null
+          answer_text?: string | null
+          answered_at?: string | null
+          id?: string
+          question_id: string
+          submission_id: string
+        }
+        Update: {
+          answer_choices?: Json | null
+          answer_rating?: number | null
+          answer_text?: string | null
+          answered_at?: string | null
+          id?: string
+          question_id?: string
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "survey_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_answers_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "survey_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_questions: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          is_required: boolean | null
+          options: Json | null
+          order_index: number | null
+          question_text: string
+          question_type: string | null
+          scale_labels: Json | null
+          scale_max: number | null
+          scale_min: number | null
+          survey_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_required?: boolean | null
+          options?: Json | null
+          order_index?: number | null
+          question_text: string
+          question_type?: string | null
+          scale_labels?: Json | null
+          scale_max?: number | null
+          scale_min?: number | null
+          survey_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_required?: boolean | null
+          options?: Json | null
+          order_index?: number | null
+          question_text?: string
+          question_type?: string | null
+          scale_labels?: Json | null
+          scale_max?: number | null
+          scale_min?: number | null
+          survey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_questions_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       survey_questions_config: {
         Row: {
           category: string
@@ -6464,6 +6562,123 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      survey_submissions: {
+        Row: {
+          class_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          is_completed: boolean | null
+          started_at: string | null
+          survey_id: string
+          time_spent_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          started_at?: string | null
+          survey_id: string
+          time_spent_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          started_at?: string | null
+          survey_id?: string
+          time_spent_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_submissions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_submissions_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surveys: {
+        Row: {
+          available_from: string | null
+          available_until: string | null
+          class_id: string | null
+          course_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_required: boolean | null
+          show_results_to_students: boolean | null
+          survey_type: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          available_from?: string | null
+          available_until?: string | null
+          class_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          show_results_to_students?: boolean | null
+          survey_type?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          available_from?: string | null
+          available_until?: string | null
+          class_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          show_results_to_students?: boolean | null
+          survey_type?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surveys_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surveys_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_alerts: {
         Row: {

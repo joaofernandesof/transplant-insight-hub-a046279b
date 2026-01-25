@@ -310,7 +310,8 @@ import {
   AcademySettings,
   AcademyChat,
   AcademyReferral,
-  Formacao360ReferralLanding
+  Formacao360ReferralLanding,
+  SurveyManagement
 } from './academy';
 
 function AcademyRoutes() {
@@ -335,6 +336,7 @@ function AcademyRoutes() {
           <Route path="profile" element={<AcademySettings />} />
           <Route path="admin/enrollments" element={<AcademyEnrollmentsAdmin />} />
           <Route path="admin/students" element={<AcademyStudentsAdmin />} />
+          <Route path="admin/surveys" element={<SurveyManagement />} />
           <Route path="*" element={<Navigate to="/academy" replace />} />
         </Routes>
       </AcademySidebar>

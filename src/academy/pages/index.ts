@@ -13,3 +13,4 @@ export { AcademySettings } from './AcademySettings';
 export { AcademyChat } from './AcademyChat';
 export { AcademyReferral } from './AcademyReferral';
 export { Formacao360ReferralLanding } from './Formacao360ReferralLanding';
+export { SurveyManagement } from './SurveyManagement';

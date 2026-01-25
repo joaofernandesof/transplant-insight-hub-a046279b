@@ -110,6 +110,7 @@ const moduleCategories = [
       { id: 'university', title: 'Universidade', description: 'Cursos e aulas', icon: GraduationCap, path: '/university', color: 'bg-fuchsia-500' },
       { id: 'materials', title: 'Central de Materiais', description: 'POPs e scripts', icon: FileText, path: '/materials', color: 'bg-teal-500' },
       { id: 'exams', title: 'Provas', description: 'Avaliações alunos', icon: BookOpen, path: '/exams', color: 'bg-blue-500' },
+      { id: 'surveys', title: 'Pesquisas', description: 'Satisfação turmas', icon: FileText, path: '/academy/admin/surveys', color: 'bg-emerald-500' },
     ]
   },
   {
