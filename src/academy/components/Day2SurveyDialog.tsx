@@ -279,15 +279,23 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   useEffect(() => {
     if (open && user && !existingSurvey && !isLoading && !isInitializing) {
       setIsInitializing(true);
-      startSurvey.mutateAsync(classId).then((data) => {
-        if (data) {
-          setSurveyId(data.id);
-        }
-        setIsInitializing(false);
-      }).catch(() => {
-        setIsInitializing(false);
-      });
-    } else if (existingSurvey) {
+      startSurvey.mutateAsync(classId)
+        .then((data) => {
+          if (data?.id) {
+            console.log('[Day2] Survey initialized:', data.id);
+            setSurveyId(data.id);
+          } else {
+            console.error('[Day2] No ID returned');
+            toast.error('Erro ao iniciar. Recarregue a página.');
+          }
+        })
+        .catch((error) => {
+          console.error('[Day2] Init error:', error);
+          toast.error('Erro ao iniciar. Recarregue a página.');
+        })
+        .finally(() => setIsInitializing(false));
+    } else if (existingSurvey?.id) {
+      console.log('[Day2] Resuming:', existingSurvey.id);
       setSurveyId(existingSurvey.id);
       // Resume from saved progress
       const savedData: Record<string, string> = {};
@@ -296,24 +304,17 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         if (value) savedData[q.key] = value as string;
       });
       setFormData(savedData);
-      
-      // Find the first unanswered question to resume from there
-      // This is more reliable than using current_section
       let resumeIndex = 0;
       for (let i = 0; i < QUESTIONS.length; i++) {
         const q = QUESTIONS[i];
-        // For radio questions, check if there's an answer
         if (q.type === 'radio' && !savedData[q.key]) {
           resumeIndex = i;
           break;
         }
-        // For text questions, they're optional so continue
         if (i === QUESTIONS.length - 1) {
-          // User answered all required questions, go to last one
           resumeIndex = QUESTIONS.length - 1;
         }
       }
-      
       setCurrentQuestion(resumeIndex);
       effectiveTimeRef.current = existingSurvey.effective_time_seconds || 0;
     }
@@ -362,31 +363,27 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const canProceed = isTextQuestion || formData[currentQ?.key];
 
   const handleNext = useCallback(() => {
-    // For radio questions, require a selection before proceeding
     if (currentQ.type === 'radio' && !formData[currentQ.key]) {
       toast.error('Por favor, selecione uma opção antes de continuar.');
       return;
     }
     
+    if (!surveyId) {
+      console.error('[Day2] No ID in handleNext');
+      toast.error('Erro: ID não encontrado. Recarregue a página.');
+      return;
+    }
+    
     if (currentQuestion < QUESTIONS.length - 1) {
       const nextQuestion = currentQuestion + 1;
-      
-      // Immediately advance to next question for better UX
       setCurrentQuestion(nextQuestion);
-      
-      // Save progress in background (don't block navigation)
-      if (surveyId) {
-        saveProgress.mutate({
-          surveyId,
-          data: formData,
-          currentSection: nextQuestion + 1
-        }, {
-          onError: (error) => {
-            console.error('Erro ao salvar progresso:', error);
-            // Don't block navigation, just log
-          }
-        });
-      }
+      saveProgress.mutate({
+        surveyId,
+        data: formData,
+        currentSection: nextQuestion + 1
+      }, {
+        onError: (error) => console.error('[Day2] Save error:', error)
+      });
     }
   }, [currentQ, currentQuestion, formData, surveyId, saveProgress]);
 
@@ -398,37 +395,31 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
 
   const handleSubmit = useCallback(() => {
     if (!surveyId) {
-      toast.error('Erro: ID da pesquisa não encontrado. Por favor, recarregue a página.');
+      console.error('[Day2] No ID in handleSubmit');
+      toast.error('Erro: ID não encontrado. Recarregue e tente novamente.');
       return;
     }
     
     if (submitSurvey.isPending) return;
     
-    // Calculate final effective time
     if (!document.hidden) {
       effectiveTimeRef.current += Math.floor((Date.now() - lastVisibleTimeRef.current) / 1000);
     }
     
-    console.log('Submitting survey with data:', {
-      surveyId,
-      formDataKeys: Object.keys(formData),
-      effectiveTime: effectiveTimeRef.current
-    });
-    
-    // Use mutate with proper error handling
+    console.log('[Day2] Submitting:', surveyId);
     submitSurvey.mutate({
       surveyId,
       data: formData,
       effectiveTime: effectiveTimeRef.current
     }, {
       onSuccess: () => {
-        console.log('Survey submitted successfully');
+        console.log('[Day2] Success');
         toast.success('Pesquisa enviada com sucesso!');
         onComplete?.();
         onOpenChange(false);
       },
       onError: (error) => {
-        console.error('Erro ao enviar pesquisa:', error);
+        console.error('[Day2] Submit error:', error);
         toast.error('Erro ao enviar pesquisa. Tente novamente.');
       }
     });
@@ -437,20 +428,21 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const handleOptionSelect = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, [currentQ.key]: value }));
     
-    // Auto-advance to next question for radio questions (not on last question)
     if (currentQ.type === 'radio' && currentQuestion < QUESTIONS.length - 1) {
-      // Small delay for visual feedback before advancing
+      if (!surveyId) {
+        console.warn('[Day2] No ID in auto-advance');
+      }
       setTimeout(() => {
         const nextQuestion = currentQuestion + 1;
         setCurrentQuestion(nextQuestion);
-        
-        // Save progress in background
         if (surveyId) {
           const updatedData = { ...formData, [currentQ.key]: value };
           saveProgress.mutate({
             surveyId,
             data: updatedData,
             currentSection: nextQuestion + 1
+          }, {
+            onError: (error) => console.error('[Day2] Auto-save error:', error)
           });
         }
       }, 250);
