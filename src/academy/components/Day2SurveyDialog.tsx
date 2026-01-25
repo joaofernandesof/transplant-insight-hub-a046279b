@@ -330,7 +330,12 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   }, [open]);
 
   const currentQ = QUESTIONS[currentQuestion];
-  const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
+  // Progress with easing: fast at start, slow at end (last 30%)
+  const linearProgress = (currentQuestion + 1) / QUESTIONS.length;
+  const easedProgress = linearProgress <= 0.7 
+    ? (linearProgress / 0.7) * 0.85  // First 70% of questions = 85% of bar
+    : 0.85 + ((linearProgress - 0.7) / 0.3) * 0.15; // Last 30% of questions = 15% of bar
+  const progress = easedProgress * 100;
   const isTextQuestion = currentQ?.type === 'text';
   const canProceed = isTextQuestion || formData[currentQ?.key];
 
@@ -413,8 +418,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
             📋 Pesquisa de Satisfação - Dia 2
           </DialogTitle>
           <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Pergunta {currentQuestion + 1} de {QUESTIONS.length}</span>
+            <div className="flex items-center justify-end text-sm text-muted-foreground">
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />
