@@ -97,13 +97,13 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     }
   });
 
-  // Fetch partial (incomplete) surveys
+  // Fetch partial (incomplete) surveys with all answer fields
   const { data: partialSurveys, isLoading: isLoadingPartial } = useQuery({
     queryKey: ['day2-partial-surveys', classId],
     queryFn: async () => {
       let query = supabase
         .from('day2_satisfaction_surveys')
-        .select('id, user_id, class_id, created_at, current_section, is_completed')
+        .select('*')
         .eq('is_completed', false)
         .order('current_section', { ascending: false });
       
@@ -131,9 +131,92 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
         }
       })) || [];
 
-      return merged as PartialSurveyWithUser[];
+      return merged;
     }
   });
+
+  // Helper function to calculate partial scores
+  const calculatePartialScores = (survey: any) => {
+    let iaScore = 0;
+    let licenseScore = 0;
+    let legalScore = 0;
+    
+    // IA Avivar scores (Q12-Q14)
+    const iaScoreMap: Record<string, number> = {
+      'Tudo depende de pessoas e memória': 0,
+      'Tenho organização básica, mas com falhas frequentes': 2,
+      'Consigo organizar, mas sinto limites claros': 4,
+      'Tenho estrutura e quero ganhar escala e previsibilidade': 6,
+      'Funciona bem do jeito que está': 0,
+      'Funciona, mas gera desgaste': 2,
+      'Funciona com perda de oportunidades': 4,
+      'É um gargalo claro no crescimento': 6,
+      'Não é prioridade agora': 0,
+      'Quando tiver mais tempo': 2,
+      'Nos próximos meses': 4,
+      'O quanto antes': 6,
+    };
+    
+    if (survey.q12_avivar_current_process) iaScore += iaScoreMap[survey.q12_avivar_current_process] || 0;
+    if (survey.q13_avivar_opportunity_loss) iaScore += iaScoreMap[survey.q13_avivar_opportunity_loss] || 0;
+    if (survey.q14_avivar_timing) iaScore += iaScoreMap[survey.q14_avivar_timing] || 0;
+    
+    // License scores (Q15-Q17)
+    const licenseScoreMap: Record<string, number> = {
+      'Não é viável para mim hoje': 0,
+      'Seria viável apenas com muito planejamento': 2,
+      'É viável se o modelo fizer sentido': 4,
+      'É totalmente viável para mim': 6,
+      'Não me expõe': 0,
+      'Me expõe pouco': 2,
+      'Me expõe bastante': 4,
+      'É um dos meus principais gargalos': 6,
+      'Não penso nisso no momento': 0,
+      'Talvez em um futuro distante': 2,
+      'Nos próximos meses': 4,
+      'Agora é o momento certo': 6,
+    };
+    
+    if (survey.q15_license_path) licenseScore += licenseScoreMap[survey.q15_license_path] || 0;
+    if (survey.q16_license_pace) licenseScore += licenseScoreMap[survey.q16_license_pace] || 0;
+    if (survey.q17_license_timing) licenseScore += licenseScoreMap[survey.q17_license_timing] || 0;
+    
+    // Legal scores (Q18-Q20)
+    const legalScoreMap: Record<string, number> = {
+      'Tranquilo e seguro': 0,
+      'Um pouco inseguro': 2,
+      'Inseguro em alguns pontos': 4,
+      'Exposto a riscos que me preocupam': 6,
+      'Não influenciam': 0,
+      'Influenciam pouco': 2,
+      'Influenciam bastante': 4,
+      'Travaram ou quase travaram decisões importantes': 6,
+      'Não vejo isso como prioridade': 0,
+      'Quando o negócio estiver maior': 2,
+    };
+    
+    if (survey.q18_legal_feeling) legalScore += legalScoreMap[survey.q18_legal_feeling] || 0;
+    if (survey.q19_legal_influence) legalScore += legalScoreMap[survey.q19_legal_influence] || 0;
+    if (survey.q20_legal_timing) legalScore += legalScoreMap[survey.q20_legal_timing] || 0;
+    
+    // Count answered questions
+    const answeredQuestions = {
+      satisfaction: survey.q1_satisfaction_level ? 1 : 0,
+      joao: [survey.q2_joao_expectations, survey.q3_joao_clarity, survey.q4_joao_time, survey.q5_joao_liked_most, survey.q6_joao_improve].filter(Boolean).length,
+      larissa: [survey.q7_larissa_expectations, survey.q8_larissa_clarity, survey.q9_larissa_time, survey.q10_larissa_liked_most, survey.q11_larissa_improve].filter(Boolean).length,
+      ia: [survey.q12_avivar_current_process, survey.q13_avivar_opportunity_loss, survey.q14_avivar_timing].filter(Boolean).length,
+      license: [survey.q15_license_path, survey.q16_license_pace, survey.q17_license_timing].filter(Boolean).length,
+      legal: [survey.q18_legal_feeling, survey.q19_legal_influence, survey.q20_legal_timing].filter(Boolean).length,
+    };
+    
+    return {
+      iaScore,
+      licenseScore,
+      legalScore,
+      total: iaScore + licenseScore + legalScore,
+      answered: answeredQuestions,
+    };
+  };
 
   const filteredSurveys = surveys?.filter(survey => {
     const matchesSearch = survey.neohub_users.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -450,48 +533,123 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3">
+            <div className="grid gap-4">
               {partialSurveys.map((survey) => {
                 const progressPercent = Math.round((survey.current_section / TOTAL_DAY2_SECTIONS) * 100);
+                const scores = calculatePartialScores(survey);
+                
                 return (
                   <div 
                     key={survey.id}
-                    className="flex items-center gap-4 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-100 dark:border-yellow-900"
+                    className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-100 dark:border-yellow-900"
                   >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={survey.neohub_users.avatar_url || ''} />
-                      <AvatarFallback className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-400">
-                        {survey.neohub_users.full_name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium truncate">{survey.neohub_users.full_name}</p>
-                        <Badge variant="outline" className="shrink-0 text-yellow-700 border-yellow-300 dark:text-yellow-400 dark:border-yellow-700">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Em andamento
-                        </Badge>
+                    {/* Header with user info */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={survey.neohub_users.avatar_url || ''} />
+                        <AvatarFallback className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-400">
+                          {survey.neohub_users.full_name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium truncate">{survey.neohub_users.full_name}</p>
+                          <Badge variant="outline" className="shrink-0 text-yellow-700 border-yellow-300 dark:text-yellow-400 dark:border-yellow-700">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Seção {survey.current_section}/{TOTAL_DAY2_SECTIONS}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{survey.neohub_users.email}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{survey.neohub_users.email}</p>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                      
+                      <div className="text-right shrink-0">
+                        <p className="text-lg font-bold text-yellow-700 dark:text-yellow-400">
                           {progressPercent}%
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          Seção {survey.current_section}/{TOTAL_DAY2_SECTIONS}
-                        </p>
-                      </div>
-                      <div className="w-20">
                         <Progress 
                           value={progressPercent} 
-                          className="h-2 bg-yellow-100 dark:bg-yellow-900" 
+                          className="h-2 w-20 bg-yellow-100 dark:bg-yellow-900" 
                         />
                       </div>
                     </div>
+                    
+                    {/* Partial scores by category */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {/* Questions answered */}
+                      <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Perguntas Respondidas</p>
+                        <div className="flex flex-wrap gap-1 text-xs">
+                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.satisfaction ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                            Satisfação: {scores.answered.satisfaction}/1
+                          </span>
+                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.joao > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                            João: {scores.answered.joao}/5
+                          </span>
+                          <span className={`px-1.5 py-0.5 rounded ${scores.answered.larissa > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                            Larissa: {scores.answered.larissa}/5
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* IA Avivar Score */}
+                      <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Zap className="h-3 w-3 text-purple-500" />
+                          <p className="text-xs text-muted-foreground">IA Avivar</p>
+                        </div>
+                        <p className={`text-lg font-bold ${scores.iaScore >= 12 ? 'text-green-600' : scores.iaScore >= 6 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+                          {scores.iaScore}/18
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {scores.answered.ia}/3 perguntas
+                        </p>
+                      </div>
+
+                      {/* License Score */}
+                      <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Target className="h-3 w-3 text-emerald-500" />
+                          <p className="text-xs text-muted-foreground">Licença</p>
+                        </div>
+                        <p className={`text-lg font-bold ${scores.licenseScore >= 12 ? 'text-green-600' : scores.licenseScore >= 6 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+                          {scores.licenseScore}/18
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {scores.answered.license}/3 perguntas
+                        </p>
+                      </div>
+
+                      {/* Legal Score */}
+                      <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Shield className="h-3 w-3 text-blue-500" />
+                          <p className="text-xs text-muted-foreground">Jurídico</p>
+                        </div>
+                        <p className={`text-lg font-bold ${scores.legalScore >= 12 ? 'text-green-600' : scores.legalScore >= 6 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+                          {scores.legalScore}/18
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {scores.answered.legal}/3 perguntas
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Partial total */}
+                    {scores.total > 0 && (
+                      <div className="mt-3 pt-3 border-t border-yellow-200 dark:border-yellow-800 flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Score Parcial Total:</span>
+                        <span className={`text-lg font-bold ${
+                          scores.total >= 40 ? 'text-red-500' :
+                          scores.total >= 25 ? 'text-orange-500' : 'text-blue-500'
+                        }`}>
+                          {scores.total}/54
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({scores.total >= 40 ? '🔥 Quente' : scores.total >= 25 ? '🌡️ Morno' : '❄️ Frio'})
+                          </span>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
