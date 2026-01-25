@@ -21,12 +21,24 @@ interface Day2SurveyWithUser {
   id: string;
   user_id: string;
   class_id: string | null;
-  completed_at: string;
+  completed_at: string | null;
+  is_completed: boolean;
+  current_section: number;
   score_ia_avivar: number;
   score_license: number;
   score_legal: number;
   score_total: number;
   lead_classification: string;
+  // Question fields for recalculation
+  q12_avivar_current_process?: string | null;
+  q13_avivar_opportunity_loss?: string | null;
+  q14_avivar_timing?: string | null;
+  q15_license_path?: string | null;
+  q16_license_pace?: string | null;
+  q17_license_timing?: string | null;
+  q18_legal_feeling?: string | null;
+  q19_legal_influence?: string | null;
+  q20_legal_timing?: string | null;
   neohub_users: {
     full_name: string;
     email: string;
@@ -60,13 +72,13 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
   const [classificationFilter, setClassificationFilter] = useState<string>('all');
 
   // Fetch completed surveys
+  // Fetch ALL surveys (both completed and partial) - treat partial as valid leads
   const { data: surveys, isLoading } = useQuery({
     queryKey: ['day2-lead-ranking', classId],
     queryFn: async () => {
       let query = supabase
         .from('day2_satisfaction_surveys')
         .select('*')
-        .eq('is_completed', true)
         .order('score_total', { ascending: false });
       
       if (classId) {
@@ -143,15 +155,22 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     
     // IA Avivar scores (Q12-Q14) - 6 points each, max 18
     const iaScoreMap: Record<string, number> = {
-      // Q12
+      // Q12 - Multiple variations
       'Tudo depende de pessoas e memória': 0,
+      'Tudo manual, depende de pessoas': 0,
+      'Uso WhatsApp, mas sem padrão definido': 2,
       'Tenho organização básica, mas com falhas frequentes': 2,
+      'Tenho algum sistema, mas é pouco eficiente': 2,
       'Consigo organizar, mas sinto limites claros': 4,
       'Tenho estrutura e quero ganhar escala e previsibilidade': 6,
-      // Q13
+      // Q13 - Multiple variations
       'Funciona bem do jeito que está': 0,
+      'Não vejo perda de oportunidades': 0,
+      'Perco poucas oportunidades': 2,
       'Funciona, mas gera desgaste': 2,
+      'Perco bastante, mas consigo lidar': 4,
       'Funciona com perda de oportunidades': 4,
+      'Perco muitas oportunidades e isso trava meu crescimento': 6,
       'É um gargalo claro no crescimento': 6,
       // Q14
       'Não é prioridade agora': 0,
@@ -448,7 +467,16 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSurveys?.map((survey, idx) => (
+              {filteredSurveys?.map((survey, idx) => {
+                // Recalculate scores to handle different answer variations
+                const recalculated = calculatePartialScores(survey);
+                const displayScoreIA = recalculated.iaScore;
+                const displayScoreLicense = recalculated.licenseScore;
+                const displayScoreLegal = recalculated.legalScore;
+                const displayScoreTotal = recalculated.total;
+                const displayClassification = displayScoreTotal >= 40 ? 'hot' : displayScoreTotal >= 25 ? 'warm' : 'cold';
+                
+                return (
                 <TableRow key={survey.id} className={idx < 3 ? 'bg-primary/5' : ''}>
                   <TableCell>
                     {idx < 3 ? (
@@ -463,65 +491,73 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-10 w-10">
                         <AvatarImage src={survey.neohub_users.avatar_url || ''} />
-                        <AvatarFallback>
-                          {survey.neohub_users.full_name.charAt(0)}
+                        <AvatarFallback className="text-sm">
+                          {survey.neohub_users.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{survey.neohub_users.full_name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{survey.neohub_users.full_name}</p>
+                          {!survey.is_completed && (
+                            <Badge variant="outline" className="text-yellow-600 border-yellow-400 text-[10px]">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {survey.current_section}/20
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground">{survey.neohub_users.email}</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{survey.score_ia_avivar}/18</span>
+                      <span className="font-medium">{displayScoreIA}/18</span>
                       <Progress 
-                        value={(survey.score_ia_avivar / 18) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(survey.score_ia_avivar, 18)}`}
+                        value={(displayScoreIA / 18) * 100} 
+                        className={`h-1.5 w-16 ${getScoreColor(displayScoreIA, 18)}`}
                       />
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{survey.score_license}/18</span>
+                      <span className="font-medium">{displayScoreLicense}/18</span>
                       <Progress 
-                        value={(survey.score_license / 18) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(survey.score_license, 18)}`}
+                        value={(displayScoreLicense / 18) * 100} 
+                        className={`h-1.5 w-16 ${getScoreColor(displayScoreLicense, 18)}`}
                       />
                       <span className={`text-[10px] ${
-                        survey.score_license >= 12 ? 'text-green-600' :
-                        survey.score_license >= 6 ? 'text-yellow-600' : 'text-muted-foreground'
+                        displayScoreLicense >= 12 ? 'text-green-600' :
+                        displayScoreLicense >= 6 ? 'text-yellow-600' : 'text-muted-foreground'
                       }`}>
-                        {survey.score_license >= 12 ? 'Extremamente qualificado' :
-                         survey.score_license >= 6 ? 'Precisa construção' : 'Fora do timing'}
+                        {displayScoreLicense >= 12 ? 'Extremamente qualificado' :
+                         displayScoreLicense >= 6 ? 'Precisa construção' : 'Fora do timing'}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{survey.score_legal}/18</span>
+                      <span className="font-medium">{displayScoreLegal}/18</span>
                       <Progress 
-                        value={(survey.score_legal / 18) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(survey.score_legal, 18)}`}
+                        value={(displayScoreLegal / 18) * 100} 
+                        className={`h-1.5 w-16 ${getScoreColor(displayScoreLegal, 18)}`}
                       />
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <span className={`text-lg font-bold ${
-                      survey.score_total >= 40 ? 'text-red-500' :
-                      survey.score_total >= 25 ? 'text-orange-500' : 'text-blue-500'
+                      displayScoreTotal >= 40 ? 'text-red-500' :
+                      displayScoreTotal >= 25 ? 'text-orange-500' : 'text-blue-500'
                     }`}>
-                      {survey.score_total}
+                      {displayScoreTotal}
                     </span>
                   </TableCell>
                   <TableCell className="text-center">
-                    {getClassificationBadge(survey.lead_classification)}
+                    {getClassificationBadge(displayClassification)}
                   </TableCell>
                 </TableRow>
-              ))}
+              )})}
               {(!filteredSurveys || filteredSurveys.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
