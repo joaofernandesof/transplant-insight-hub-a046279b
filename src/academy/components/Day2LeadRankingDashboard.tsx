@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Day2AIInsightsPanel } from './Day2AIInsightsPanel';
+import { Day2CallProfilesPanel } from './Day2CallProfilesPanel';
 
 interface Day2SurveyWithUser {
   id: string;
@@ -401,16 +402,20 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
         </Card>
       </div>
 
-      {/* Tabs: Ranking vs AI Insights */}
+      {/* Tabs: Ranking vs AI Insights vs Call Profiles */}
       <Tabs defaultValue="ranking" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="ranking" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Ranking de Leads
+            <span className="hidden sm:inline">Ranking</span>
           </TabsTrigger>
           <TabsTrigger value="insights" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            Análise de IA
+            <span className="hidden sm:inline">IA Insights</span>
+          </TabsTrigger>
+          <TabsTrigger value="calls" className="flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            <span className="hidden sm:inline">Perfil Calls</span>
           </TabsTrigger>
         </TabsList>
 
@@ -727,6 +732,10 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
             surveys={surveys || []} 
             className={classId ? `Turma ${classId}` : 'Todas as turmas'} 
           />
+        </TabsContent>
+
+        <TabsContent value="calls" className="mt-4">
+          <Day2CallProfilesPanel />
         </TabsContent>
       </Tabs>
     </div>
