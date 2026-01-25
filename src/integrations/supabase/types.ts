@@ -1448,6 +1448,125 @@ export type Database = {
           },
         ]
       }
+      day2_satisfaction_surveys: {
+        Row: {
+          class_id: string | null
+          completed_at: string | null
+          created_at: string
+          current_section: number | null
+          effective_time_seconds: number | null
+          id: string
+          is_completed: boolean | null
+          lead_classification: string | null
+          q1_satisfaction_level: string | null
+          q10_larissa_liked_most: string | null
+          q11_larissa_improve: string | null
+          q12_avivar_current_process: string | null
+          q13_avivar_opportunity_loss: string | null
+          q14_license_current_structure: string | null
+          q15_license_acceleration: string | null
+          q16_legal_current_structure: string | null
+          q17_legal_limitations: string | null
+          q18_timing_next_60_days: string | null
+          q19_timing_individual_interest: string | null
+          q2_joao_expectations: string | null
+          q20_insight_final: string | null
+          q3_joao_clarity: string | null
+          q4_joao_time: string | null
+          q5_joao_liked_most: string | null
+          q6_joao_improve: string | null
+          q7_larissa_expectations: string | null
+          q8_larissa_clarity: string | null
+          q9_larissa_time: string | null
+          score_ia_avivar: number | null
+          score_legal: number | null
+          score_license: number | null
+          score_timing: number | null
+          score_total: number | null
+          user_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_section?: number | null
+          effective_time_seconds?: number | null
+          id?: string
+          is_completed?: boolean | null
+          lead_classification?: string | null
+          q1_satisfaction_level?: string | null
+          q10_larissa_liked_most?: string | null
+          q11_larissa_improve?: string | null
+          q12_avivar_current_process?: string | null
+          q13_avivar_opportunity_loss?: string | null
+          q14_license_current_structure?: string | null
+          q15_license_acceleration?: string | null
+          q16_legal_current_structure?: string | null
+          q17_legal_limitations?: string | null
+          q18_timing_next_60_days?: string | null
+          q19_timing_individual_interest?: string | null
+          q2_joao_expectations?: string | null
+          q20_insight_final?: string | null
+          q3_joao_clarity?: string | null
+          q4_joao_time?: string | null
+          q5_joao_liked_most?: string | null
+          q6_joao_improve?: string | null
+          q7_larissa_expectations?: string | null
+          q8_larissa_clarity?: string | null
+          q9_larissa_time?: string | null
+          score_ia_avivar?: number | null
+          score_legal?: number | null
+          score_license?: number | null
+          score_timing?: number | null
+          score_total?: number | null
+          user_id: string
+        }
+        Update: {
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_section?: number | null
+          effective_time_seconds?: number | null
+          id?: string
+          is_completed?: boolean | null
+          lead_classification?: string | null
+          q1_satisfaction_level?: string | null
+          q10_larissa_liked_most?: string | null
+          q11_larissa_improve?: string | null
+          q12_avivar_current_process?: string | null
+          q13_avivar_opportunity_loss?: string | null
+          q14_license_current_structure?: string | null
+          q15_license_acceleration?: string | null
+          q16_legal_current_structure?: string | null
+          q17_legal_limitations?: string | null
+          q18_timing_next_60_days?: string | null
+          q19_timing_individual_interest?: string | null
+          q2_joao_expectations?: string | null
+          q20_insight_final?: string | null
+          q3_joao_clarity?: string | null
+          q4_joao_time?: string | null
+          q5_joao_liked_most?: string | null
+          q6_joao_improve?: string | null
+          q7_larissa_expectations?: string | null
+          q8_larissa_clarity?: string | null
+          q9_larissa_time?: string | null
+          score_ia_avivar?: number | null
+          score_legal?: number | null
+          score_license?: number | null
+          score_timing?: number | null
+          score_total?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "day2_satisfaction_surveys_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "course_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_checklist_items: {
         Row: {
           category: string | null
