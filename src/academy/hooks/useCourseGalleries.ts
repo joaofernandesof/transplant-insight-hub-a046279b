@@ -4,8 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 
-// Batch size for parallel uploads
-const UPLOAD_BATCH_SIZE = 10;
+// Batch size for parallel uploads - smaller batches for stability
+const UPLOAD_BATCH_SIZE = 8;
+// Delay between batches (ms) to avoid rate limiting
+const BATCH_DELAY = 300;
 
 export interface CourseGallery {
   id: string;
@@ -117,6 +119,12 @@ export function useGalleryManagement() {
   const { user, canAccessModule } = useUnifiedAuth();
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{
+    current: number;
+    total: number;
+    successCount: number;
+    failCount: number;
+  } | null>(null);
 
   const canWrite = canAccessModule('academy_course_gallery', 'write');
   const canDelete = canAccessModule('academy_course_gallery', 'delete');
@@ -224,7 +232,7 @@ export function useGalleryManagement() {
     },
   });
 
-  // Upload photos to gallery - optimized for bulk uploads
+  // Upload photos to gallery - optimized for bulk uploads with progress tracking
   const uploadPhotos = useCallback(
     async (galleryId: string, files: File[]) => {
       if (!canWrite) {
@@ -235,22 +243,35 @@ export function useGalleryManagement() {
       if (files.length === 0) return [];
 
       setIsUploading(true);
+      setUploadProgress({ current: 0, total: files.length, successCount: 0, failCount: 0 });
+      
       const uploadedPhotos: GalleryPhoto[] = [];
       const failedUploads: string[] = [];
       const totalFiles = files.length;
       
-      // Show initial toast
-      const toastId = toast.loading(`Preparando upload de ${totalFiles} foto(s)...`);
+      // Show initial toast with progress info
+      const toastId = toast.loading(`Iniciando upload de ${totalFiles} foto(s)...`, {
+        description: 'Processando em lotes para melhor estabilidade',
+      });
 
       try {
+        let processedCount = 0;
+        
         // Process in batches for better performance
         for (let i = 0; i < files.length; i += UPLOAD_BATCH_SIZE) {
           const batch = files.slice(i, i + UPLOAD_BATCH_SIZE);
           const batchNumber = Math.floor(i / UPLOAD_BATCH_SIZE) + 1;
           const totalBatches = Math.ceil(files.length / UPLOAD_BATCH_SIZE);
           
-          // Update progress toast
-          toast.loading(`Enviando lote ${batchNumber}/${totalBatches} (${i + 1}-${Math.min(i + UPLOAD_BATCH_SIZE, totalFiles)} de ${totalFiles})...`, { id: toastId });
+          // Update progress toast with more detail
+          const progress = Math.round((processedCount / totalFiles) * 100);
+          toast.loading(
+            `Lote ${batchNumber}/${totalBatches} • ${processedCount}/${totalFiles} fotos (${progress}%)`, 
+            { 
+              id: toastId,
+              description: `Enviando ${batch.length} foto(s) em paralelo...`,
+            }
+          );
           
           // Upload batch in parallel
           const batchPromises = batch.map(async (file) => {
@@ -290,22 +311,35 @@ export function useGalleryManagement() {
                 .single();
 
               if (dbError) throw dbError;
-              return photo;
+              return { success: true, photo };
             } catch (error: any) {
               console.error(`Failed to upload ${file.name}:`, error);
-              failedUploads.push(file.name);
-              return null;
+              return { success: false, fileName: file.name };
             }
           });
 
           const batchResults = await Promise.all(batchPromises);
-          batchResults.forEach(photo => {
-            if (photo) uploadedPhotos.push(photo);
+          
+          batchResults.forEach(result => {
+            processedCount++;
+            if (result.success && result.photo) {
+              uploadedPhotos.push(result.photo);
+            } else if (!result.success && result.fileName) {
+              failedUploads.push(result.fileName);
+            }
           });
           
-          // Small delay between batches to avoid rate limiting
+          // Update progress state
+          setUploadProgress({
+            current: processedCount,
+            total: totalFiles,
+            successCount: uploadedPhotos.length,
+            failCount: failedUploads.length,
+          });
+          
+          // Delay between batches to avoid rate limiting
           if (i + UPLOAD_BATCH_SIZE < files.length) {
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
           }
         }
 
@@ -314,9 +348,15 @@ export function useGalleryManagement() {
         
         // Final success/warning toast
         if (failedUploads.length === 0) {
-          toast.success(`${uploadedPhotos.length} foto(s) enviada(s) com sucesso!`, { id: toastId });
+          toast.success(`✅ ${uploadedPhotos.length} foto(s) enviada(s) com sucesso!`, { 
+            id: toastId,
+            description: 'Todas as fotos foram processadas',
+          });
         } else {
-          toast.warning(`${uploadedPhotos.length} foto(s) enviada(s), ${failedUploads.length} falhou(aram)`, { id: toastId });
+          toast.warning(`⚠️ ${uploadedPhotos.length} OK, ${failedUploads.length} falha(s)`, { 
+            id: toastId,
+            description: `Fotos com erro: ${failedUploads.slice(0, 3).join(', ')}${failedUploads.length > 3 ? '...' : ''}`,
+          });
         }
         
         return uploadedPhotos;
@@ -325,6 +365,7 @@ export function useGalleryManagement() {
         return uploadedPhotos;
       } finally {
         setIsUploading(false);
+        setUploadProgress(null);
       }
     },
     [canWrite, user, queryClient]
@@ -407,6 +448,7 @@ export function useGalleryManagement() {
     galleries: allGalleries || [],
     isLoading,
     isUploading,
+    uploadProgress,
     canWrite,
     canDelete,
     createGallery,

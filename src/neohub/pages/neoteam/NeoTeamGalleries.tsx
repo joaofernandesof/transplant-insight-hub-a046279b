@@ -29,6 +29,7 @@ export default function NeoTeamGalleries() {
     galleries,
     isLoading,
     isUploading,
+    uploadProgress,
     canWrite,
     canDelete,
     createGallery,
@@ -202,6 +203,7 @@ export default function NeoTeamGalleries() {
           onDeletePhoto={(photo) => deletePhoto.mutate(photo)}
           onSetCover={(galleryId, croppedBlob) => setCoverPhoto.mutate({ galleryId, croppedBlob })}
           isUploading={isUploading}
+          uploadProgress={uploadProgress}
           canWrite={canWrite}
           canDelete={canDelete}
         />
@@ -494,6 +496,7 @@ interface GalleryEditDialogProps {
   onDeletePhoto: (photo: any) => void;
   onSetCover: (galleryId: string, croppedBlob: Blob) => void;
   isUploading: boolean;
+  uploadProgress: { current: number; total: number; successCount: number; failCount: number } | null;
   canWrite: boolean;
   canDelete: boolean;
 }
@@ -505,6 +508,7 @@ function GalleryEditDialog({
   onDeletePhoto,
   onSetCover,
   isUploading,
+  uploadProgress,
   canWrite,
   canDelete,
 }: GalleryEditDialogProps) {
@@ -619,29 +623,54 @@ function GalleryEditDialog({
                     className="hidden"
                     onChange={handleFileSelect}
                   />
-                  <Camera className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Arraste fotos aqui ou clique para selecionar
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Suporta upload de até 300 fotos por vez
-                  </p>
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                  >
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Enviando fotos...
-                      </>
-                    ) : (
-                      <>
+                  
+                  {isUploading && uploadProgress ? (
+                    <>
+                      {/* Progress UI */}
+                      <Loader2 className="h-8 w-8 mx-auto text-primary mb-2 animate-spin" />
+                      <p className="text-sm font-medium mb-2">
+                        Enviando {uploadProgress.current}/{uploadProgress.total} fotos
+                      </p>
+                      
+                      {/* Progress bar */}
+                      <div className="w-full max-w-xs mx-auto mb-3">
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary transition-all duration-300"
+                            style={{ width: `${Math.round((uploadProgress.current / uploadProgress.total) * 100)}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                          <span>{Math.round((uploadProgress.current / uploadProgress.total) * 100)}%</span>
+                          <span className="text-emerald-600">✓ {uploadProgress.successCount}</span>
+                          {uploadProgress.failCount > 0 && (
+                            <span className="text-destructive">✗ {uploadProgress.failCount}</span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-muted-foreground">
+                        Processando em lotes de 8 fotos em paralelo...
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Arraste fotos aqui ou clique para selecionar
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Suporta upload de <strong>centenas de fotos</strong> por vez (processadas em lotes)
+                      </p>
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                      >
                         <Upload className="h-4 w-4 mr-2" />
                         Selecionar Fotos
-                      </>
-                    )}
-                  </Button>
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
 
