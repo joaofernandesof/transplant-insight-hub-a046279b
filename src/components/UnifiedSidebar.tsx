@@ -1,6 +1,7 @@
 // ====================================
-// UnifiedSidebar - Sidebar Dinâmica Unificada
+// UnifiedSidebar - Sidebar Única do Sistema
 // ====================================
+// Detecta automaticamente o portal ativo baseado na rota
 // Menu derivado de menuConfig.ts - fonte única de verdade
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -24,21 +25,21 @@ import {
   X,
   LogOut,
   Layers,
-  RefreshCw,
   Eye,
   User,
   Users,
   Stethoscope,
   GraduationCap,
   Heart,
+  Home,
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { 
   MAIN_MENU_CATEGORIES, 
+  PORTAL_MENUS,
   filterMenuByPermissions,
   type MenuItem,
-  type MenuCategory,
 } from "@/config/menuConfig";
 import type { ProfileKey } from "@/contexts/UnifiedAuthContext";
 
@@ -66,6 +67,35 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
   };
   return tierMap[userId] || 'basic';
 };
+
+// Portal detection and metadata
+type PortalKey = 'admin' | 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'main';
+
+interface PortalConfig {
+  name: string;
+  color: string;
+  bgColor: string;
+}
+
+const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
+  admin: { name: 'Administração', color: 'text-purple-700', bgColor: 'bg-purple-100' },
+  neocare: { name: 'NeoCare', color: 'text-rose-700', bgColor: 'bg-rose-100' },
+  neoteam: { name: 'NeoTeam', color: 'text-blue-700', bgColor: 'bg-blue-100' },
+  academy: { name: 'Academy IBRAMEC', color: 'text-emerald-700', bgColor: 'bg-emerald-100' },
+  neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100' },
+  avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100' },
+  main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10' },
+};
+
+function detectPortal(pathname: string): PortalKey {
+  if (pathname.startsWith('/neocare')) return 'neocare';
+  if (pathname.startsWith('/neoteam')) return 'neoteam';
+  if (pathname.startsWith('/academy')) return 'academy';
+  if (pathname.startsWith('/neolicense')) return 'neolicense';
+  if (pathname.startsWith('/avivar')) return 'avivar';
+  if (pathname.startsWith('/admin')) return 'admin';
+  return 'main';
+}
 
 // Prevent nested sidebars (causes doubled left offset and large blank space)
 const UnifiedSidebarNestingContext = createContext(false);
@@ -96,6 +126,10 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     navigate('/login');
   };
 
+  // Detect current portal based on route
+  const currentPortal = useMemo(() => detectPortal(location.pathname), [location.pathname]);
+  const portalConfig = PORTAL_CONFIG[currentPortal];
+
   // Tier é apenas para licenciados, não para admins
   const tier = (!isAdmin && user) ? getLicenseeTier(user.id) : null;
   const tierInfo = tier ? tierConfig[tier] : null;
@@ -115,25 +149,48 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     return () => window.removeEventListener('openSidebar', handleOpenSidebar);
   }, []);
 
-  const isActive = (route: string) => location.pathname === route;
+  const isActive = (route: string) => {
+    if (route === location.pathname) return true;
+    // Match parent routes for nested paths
+    if (route !== '/' && location.pathname.startsWith(route + '/')) return true;
+    return false;
+  };
 
   // Função de verificação de permissão (TODO: integrar com sistema real)
   const hasPermission = (moduleCode: string, action?: string): boolean => {
-    // Por enquanto, todos têm acesso se não for adminOnly
     return true;
   };
 
-  // Filtrar categorias e itens baseado em permissões
-  const visibleCategories = useMemo(() => {
+  // Get menu items based on current portal
+  const menuItems = useMemo((): MenuItem[] => {
+    // For portal-specific routes, use portal menu
+    if (currentPortal !== 'main' && currentPortal !== 'admin') {
+      return PORTAL_MENUS[currentPortal] || [];
+    }
+    
+    // For main/admin, flatten all categories
+    return MAIN_MENU_CATEGORIES.flatMap(category => 
+      filterMenuByPermissions(category.items, hasPermission, isAdmin).filter(item => {
+        if (isAdmin && item.id === 'home') return false;
+        return true;
+      })
+    );
+  }, [currentPortal, isAdmin]);
+
+  // Group menu items by category for main portal
+  const groupedMenuItems = useMemo(() => {
+    if (currentPortal !== 'main' && currentPortal !== 'admin') {
+      return [{ id: 'portal', title: '', items: menuItems }];
+    }
+    
     return MAIN_MENU_CATEGORIES.map(category => ({
       ...category,
       items: filterMenuByPermissions(category.items, hasPermission, isAdmin).filter(item => {
-        // Para admins, esconder o item "Início" (home) pois o Dashboard Admin é a home
         if (isAdmin && item.id === 'home') return false;
         return true;
       })
     })).filter(category => category.items.length > 0);
-  }, [isAdmin]);
+  }, [currentPortal, menuItems, isAdmin]);
 
   return (
     <div className="min-h-screen flex w-full overflow-x-hidden">
@@ -163,13 +220,18 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo */}
+        {/* Logo & Portal indicator */}
         <div className={cn(
           "p-4 border-b flex items-center",
           isCollapsed ? "justify-center" : "justify-between"
         )}>
           {!isCollapsed && (
-            <ThemedLogo className="h-8 object-contain" />
+            <div className="flex items-center gap-2">
+              <ThemedLogo className="h-8 object-contain" />
+              <Badge className={cn("text-[10px] px-1.5 py-0", portalConfig.bgColor, portalConfig.color)}>
+                {portalConfig.name}
+              </Badge>
+            </div>
           )}
           <Button
             variant="ghost"
@@ -260,7 +322,25 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
         {/* Navigation */}
         <ScrollArea className="flex-1 py-2">
           <nav className="px-2 space-y-1">
-            {visibleCategories.map((category) => (
+            {/* Admin shortcut when in a portal (not main/admin) */}
+            {isAdmin && currentPortal !== 'main' && currentPortal !== 'admin' && (
+              <>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 h-10 text-destructive hover:text-destructive hover:bg-destructive/10",
+                    isCollapsed && "justify-center px-2"
+                  )}
+                  onClick={() => navigate('/admin-dashboard')}
+                >
+                  <Shield className="h-4 w-4 flex-shrink-0" />
+                  {!isCollapsed && <span className="truncate">Início Admin</span>}
+                </Button>
+                <div className="my-2 border-t border-border" />
+              </>
+            )}
+
+            {groupedMenuItems.map((category) => (
               <div key={category.id}>
                 {/* Category Header */}
                 {category.title && !isCollapsed && (
@@ -281,15 +361,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                       isCollapsed && "justify-center px-2",
                       isActive(item.route) && "bg-primary/10 text-primary font-medium"
                     )}
-                    onClick={() => {
-                      // Salvar posição do scroll antes de navegar
-                      const scrollY = window.scrollY;
-                      navigate(item.route);
-                      // Restaurar posição após a navegação
-                      requestAnimationFrame(() => {
-                        window.scrollTo(0, scrollY);
-                      });
-                    }}
+                    onClick={() => navigate(item.route)}
                   >
                     {item.icon && <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive(item.route) && "text-primary")} />}
                     {!isCollapsed && <span className="truncate">{item.title}</span>}
@@ -312,19 +384,6 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
             >
               <Layers className="h-4 w-4 flex-shrink-0" />
               {!isCollapsed && <span className="truncate text-sm">Alternar Módulo</span>}
-            </Button>
-
-            {/* Switch Profile */}
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-3 h-9 text-muted-foreground hover:text-foreground",
-                isCollapsed && "justify-center px-2"
-              )}
-              onClick={() => navigate('/select-profile')}
-            >
-              <RefreshCw className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span className="truncate text-sm">Alternar Perfil</span>}
             </Button>
             
             {/* Logout Button */}

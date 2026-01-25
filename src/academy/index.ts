@@ -1,5 +1,4 @@
 // Academy Module (Portal do Aluno - IBRAMEC)
-export { AcademySidebar } from './components/AcademySidebar';
 export { ConectaCapilarCard } from './components/ConectaCapilarCard';
 export { PresentialCourseCard } from './components/PresentialCourseCard';
 export { IbramecLogo } from './components/IbramecLogo';
