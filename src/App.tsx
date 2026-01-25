@@ -79,7 +79,6 @@ import BannersAdmin from "./pages/BannersAdmin";
 // ====================================
 // Pages - NeoCare (Portal do Paciente)
 // ====================================
-import { NeoCareSidebar } from "./neohub/components/NeoCareSidebar";
 import { 
   NeoCareHome, 
   NeoCareAppointments, 
@@ -94,8 +93,7 @@ import {
 // ====================================
 // Pages - NeoTeam (Portal do Colaborador)
 // ====================================
-import { NeoTeamSidebar } from "./neohub/components/NeoTeamSidebar";
-import { 
+import {
   NeoTeamHome, 
   NeoTeamSchedule, 
   NeoTeamWaitingRoom,
@@ -134,7 +132,6 @@ import { MarketplaceDiscovery } from "./marketplace/pages/MarketplaceDiscovery";
 // Pós-Venda
 // ====================================
 import { PostVendaHome, ChamadoListPage, ChamadoDetailPage, PostVendaSlaPage, PostVendaNpsPage } from "./postvenda/pages";
-import { PostVendaSidebar } from "./postvenda/components";
 
 // ====================================
 // External Apps (temporário - serão migrados)
@@ -236,7 +233,7 @@ function HomeRouter() {
 function NeoCareRoutes() {
   return (
     <ProfileGuard allowedProfiles={['paciente', 'administrador']}>
-      <NeoCareSidebar>
+      <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoCareHome />} />
           <Route path="appointments" element={<NeoCareAppointments />} />
@@ -248,7 +245,7 @@ function NeoCareRoutes() {
           <Route path="news" element={<PlaceholderPage title="Notícias" />} />
           <Route path="*" element={<Navigate to="/neocare" replace />} />
         </Routes>
-      </NeoCareSidebar>
+      </UnifiedSidebar>
     </ProfileGuard>
   );
 }
@@ -262,7 +259,7 @@ function NeoTeamRoutes() {
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
-      <NeoTeamSidebar>
+      <UnifiedSidebar>
         <Routes>
           <Route index element={<NeoTeamHome />} />
           <Route path="schedule" element={<NeoTeamSchedule />} />
@@ -286,7 +283,7 @@ function NeoTeamRoutes() {
           <Route path="settings" element={<NeoTeamSettings />} />
           <Route path="*" element={<Navigate to="/neoteam" replace />} />
         </Routes>
-      </NeoTeamSidebar>
+      </UnifiedSidebar>
     </ProfileGuard>
   );
 }
@@ -295,7 +292,6 @@ function NeoTeamRoutes() {
 // Academy Routes (Portal do Aluno - IBRAMEC)
 // ====================================
 import {
-  AcademySidebar, 
   AcademyHome, 
   AcademyCourses, 
   AcademyCertificates, 
@@ -324,7 +320,7 @@ function AcademyRoutes() {
         
         {/* All other routes with sidebar */}
         <Route path="*" element={
-          <AcademySidebar>
+          <UnifiedSidebar>
             <Routes>
               <Route index element={<AcademyHome />} />
               <Route path="courses" element={<AcademyCourses />} />
@@ -346,7 +342,7 @@ function AcademyRoutes() {
               <Route path="admin/surveys" element={<SurveyManagement />} />
               <Route path="*" element={<Navigate to="/academy" replace />} />
             </Routes>
-          </AcademySidebar>
+          </UnifiedSidebar>
         } />
       </Routes>
     </ProfileGuard>
