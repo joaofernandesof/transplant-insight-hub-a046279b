@@ -23,6 +23,8 @@ import {
   Menu,
   X,
   LogOut,
+  Layers,
+  RefreshCw,
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
@@ -258,30 +260,49 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
               </div>
             ))}
             
-            {/* Separator before logout */}
+            {/* Separator before footer actions */}
             <div className="my-3 border-t border-border" />
+            
+            {/* Switch Module */}
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-3 h-9 text-muted-foreground hover:text-foreground",
+                isCollapsed && "justify-center px-2"
+              )}
+              onClick={() => navigate('/select-profile')}
+            >
+              <Layers className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span className="truncate text-sm">Alternar Módulo</span>}
+            </Button>
+
+            {/* Switch Profile */}
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-3 h-9 text-muted-foreground hover:text-foreground",
+                isCollapsed && "justify-center px-2"
+              )}
+              onClick={() => navigate('/select-profile')}
+            >
+              <RefreshCw className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span className="truncate text-sm">Alternar Perfil</span>}
+            </Button>
             
             {/* Logout Button */}
             <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start gap-3 h-10 text-destructive hover:text-destructive hover:bg-destructive/10",
+                "w-full justify-start gap-3 h-9 text-destructive hover:text-destructive hover:bg-destructive/10",
                 isCollapsed && "justify-center px-2"
               )}
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span className="truncate">Sair</span>}
+              {!isCollapsed && <span className="truncate text-sm">Sair</span>}
             </Button>
           </nav>
         </ScrollArea>
-
-        {/* Footer */}
-        <div className={cn("p-4 border-t", isCollapsed && "flex flex-col items-center")}>
-          <p className="text-[10px] text-muted-foreground text-center">
-            {isAdmin ? 'Painel Administrativo' : 'Portal do Licenciado'}
-          </p>
-        </div>
       </aside>
 
       {/* Main Content */}
