@@ -436,7 +436,26 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
 
   const handleOptionSelect = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, [currentQ.key]: value }));
-  }, [currentQ?.key]);
+    
+    // Auto-advance to next question for radio questions (not on last question)
+    if (currentQ.type === 'radio' && currentQuestion < QUESTIONS.length - 1) {
+      // Small delay for visual feedback before advancing
+      setTimeout(() => {
+        const nextQuestion = currentQuestion + 1;
+        setCurrentQuestion(nextQuestion);
+        
+        // Save progress in background
+        if (surveyId) {
+          const updatedData = { ...formData, [currentQ.key]: value };
+          saveProgress.mutate({
+            surveyId,
+            data: updatedData,
+            currentSection: nextQuestion + 1
+          });
+        }
+      }, 250);
+    }
+  }, [currentQ?.key, currentQ?.type, currentQuestion, surveyId, formData, saveProgress]);
 
   if (isLoading || isInitializing) {
     return (
