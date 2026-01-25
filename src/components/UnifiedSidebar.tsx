@@ -32,7 +32,19 @@ import {
   GraduationCap,
   Heart,
   Home,
+  LayoutDashboard,
+  Building2,
+  Clipboard,
+  BookOpen,
+  HeartPulse,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { 
@@ -220,28 +232,47 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo & Portal indicator */}
-        <div className={cn(
-          "p-4 border-b flex items-center",
-          isCollapsed ? "justify-center" : "justify-between"
-        )}>
-          {!isCollapsed && (
-            <div className="flex items-center gap-2">
-              <ThemedLogo className="h-8 object-contain" />
-              <Badge className={cn("text-[10px] px-1.5 py-0", portalConfig.bgColor, portalConfig.color)}>
-                {portalConfig.name}
-              </Badge>
-            </div>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden lg:flex h-8 w-8"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
-        </div>
+        {/* Logo & Portal indicator - hide logo on admin dashboard */}
+        {(currentPortal !== 'admin' && currentPortal !== 'main') && (
+          <div className={cn(
+            "p-4 border-b flex items-center",
+            isCollapsed ? "justify-center" : "justify-between"
+          )}>
+            {!isCollapsed && (
+              <div className="flex items-center gap-2">
+                <ThemedLogo className="h-8 object-contain" />
+                <Badge className={cn("text-[10px] px-1.5 py-0", portalConfig.bgColor, portalConfig.color)}>
+                  {portalConfig.name}
+                </Badge>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden lg:flex h-8 w-8"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
+        
+        {/* Collapse button when no logo header (admin/main) */}
+        {(currentPortal === 'admin' || currentPortal === 'main') && (
+          <div className={cn(
+            "p-2 border-b flex",
+            isCollapsed ? "justify-center" : "justify-end"
+          )}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden lg:flex h-8 w-8"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
 
         {/* User Info */}
         {!isCollapsed && (
@@ -260,8 +291,8 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                 <p className="text-sm font-medium truncate">{user?.fullName}</p>
                 {isAdmin ? (
                   <Badge className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary">
-                    <Crown className="h-3 w-3" />
-                    <span className="ml-1">Admin</span>
+                    <Crown className="h-3 w-3 mr-1" />
+                    Administrador
                   </Badge>
                 ) : tierInfo && (
                   <Badge className={cn("text-[10px] px-1.5 py-0", tierInfo.bgColor, tierInfo.color)}>
@@ -288,33 +319,78 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           </div>
         )}
 
-        {/* Profile Simulator (Admin only) */}
+        {/* Profile & Module Selector (Admin only) */}
         {isAdmin && !isCollapsed && (
-          <div className="p-3 border-b bg-muted/30">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-              <Eye className="h-3.5 w-3.5" />
-              <span>Simular perfil:</span>
+          <div className="p-3 border-b bg-muted/30 space-y-3">
+            {/* Profile Selector */}
+            <div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                <Eye className="h-3.5 w-3.5" />
+                <span>Perfil:</span>
+              </div>
+              <Select value={activeProfile} onValueChange={(value) => setActiveProfile(value as ProfileKey)}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { key: 'administrador' as ProfileKey, label: 'Administrador', icon: Crown },
+                    { key: 'licenciado' as ProfileKey, label: 'Licenciado', icon: Building2 },
+                    { key: 'colaborador' as ProfileKey, label: 'Colaborador', icon: Users },
+                    { key: 'medico' as ProfileKey, label: 'Médico', icon: Stethoscope },
+                    { key: 'aluno' as ProfileKey, label: 'Aluno', icon: GraduationCap },
+                    { key: 'paciente' as ProfileKey, label: 'Paciente', icon: Heart },
+                  ].map(({ key, label, icon: Icon }) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <span>{label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { key: 'administrador' as ProfileKey, label: 'Admin', icon: Crown },
-                { key: 'licenciado' as ProfileKey, label: 'Licenciado', icon: User },
-                { key: 'colaborador' as ProfileKey, label: 'Colaborador', icon: Users },
-                { key: 'medico' as ProfileKey, label: 'Médico', icon: Stethoscope },
-                { key: 'aluno' as ProfileKey, label: 'Aluno', icon: GraduationCap },
-                { key: 'paciente' as ProfileKey, label: 'Paciente', icon: Heart },
-              ].map(({ key, label, icon: Icon }) => (
-                <Button
-                  key={key}
-                  variant={activeProfile === key ? "default" : "outline"}
-                  size="sm"
-                  className="h-7 text-xs gap-1.5 px-2"
-                  onClick={() => setActiveProfile(key)}
-                >
-                  <Icon className="h-3 w-3" />
-                  {label}
-                </Button>
-              ))}
+            
+            {/* Module Selector */}
+            <div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                <Layers className="h-3.5 w-3.5" />
+                <span>Módulo:</span>
+              </div>
+              <Select value={currentPortal} onValueChange={(value) => {
+                const portalRoutes: Record<PortalKey, string> = {
+                  admin: '/admin-dashboard',
+                  neocare: '/neocare',
+                  neoteam: '/neoteam',
+                  academy: '/academy',
+                  neolicense: '/neolicense',
+                  avivar: '/avivar',
+                  main: '/admin-dashboard',
+                };
+                navigate(portalRoutes[value as PortalKey] || '/admin-dashboard');
+              }}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { key: 'admin' as PortalKey, label: 'Administração', icon: LayoutDashboard },
+                    { key: 'neoteam' as PortalKey, label: 'NeoTeam', icon: Clipboard },
+                    { key: 'neocare' as PortalKey, label: 'NeoCare', icon: HeartPulse },
+                    { key: 'academy' as PortalKey, label: 'Academy IBRAMEC', icon: BookOpen },
+                    { key: 'neolicense' as PortalKey, label: 'NeoLicense', icon: Building2 },
+                    { key: 'avivar' as PortalKey, label: 'Avivar', icon: Sparkles },
+                  ].map(({ key, label, icon: Icon }) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <span>{label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
