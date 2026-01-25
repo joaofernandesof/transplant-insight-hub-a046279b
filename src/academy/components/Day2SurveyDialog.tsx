@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useDay2Survey } from '../hooks/useDay2Survey';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield, Calendar, MessageSquare } from 'lucide-react';
+import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield, Calendar, MessageSquare, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import joaoFernandesImg from '@/assets/joao-fernandes.png';
 import larissaGuerreiroImg from '@/assets/larissa-guerreiro.png';
 
@@ -346,9 +347,10 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const isTextQuestion = currentQ?.type === 'text';
   const canProceed = isTextQuestion || formData[currentQ?.key];
 
-  const handleNext = async () => {
+  const handleNext = useCallback(() => {
     // For radio questions, require a selection before proceeding
     if (currentQ.type === 'radio' && !formData[currentQ.key]) {
+      toast.error('Por favor, selecione uma opção antes de continuar.');
       return;
     }
     
@@ -364,41 +366,63 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           surveyId,
           data: formData,
           currentSection: nextQuestion + 1
+        }, {
+          onError: (error) => {
+            console.error('Erro ao salvar progresso:', error);
+            // Don't block navigation, just log
+          }
         });
       }
     }
-  };
+  }, [currentQ, currentQuestion, formData, surveyId, saveProgress]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
     }
-  };
+  }, [currentQuestion]);
 
-  const handleSubmit = () => {
-    if (!surveyId || submitSurvey.isPending) return;
+  const handleSubmit = useCallback(() => {
+    if (!surveyId) {
+      toast.error('Erro: ID da pesquisa não encontrado. Por favor, recarregue a página.');
+      return;
+    }
+    
+    if (submitSurvey.isPending) return;
     
     // Calculate final effective time
     if (!document.hidden) {
       effectiveTimeRef.current += Math.floor((Date.now() - lastVisibleTimeRef.current) / 1000);
     }
     
-    // Use mutate instead of mutateAsync to avoid blocking
+    console.log('Submitting survey with data:', {
+      surveyId,
+      formDataKeys: Object.keys(formData),
+      effectiveTime: effectiveTimeRef.current
+    });
+    
+    // Use mutate with proper error handling
     submitSurvey.mutate({
       surveyId,
       data: formData,
       effectiveTime: effectiveTimeRef.current
     }, {
       onSuccess: () => {
+        console.log('Survey submitted successfully');
+        toast.success('Pesquisa enviada com sucesso!');
         onComplete?.();
         onOpenChange(false);
+      },
+      onError: (error) => {
+        console.error('Erro ao enviar pesquisa:', error);
+        toast.error('Erro ao enviar pesquisa. Tente novamente.');
       }
     });
-  };
+  }, [surveyId, formData, submitSurvey, onComplete, onOpenChange]);
 
-  const handleOptionSelect = (value: string) => {
+  const handleOptionSelect = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, [currentQ.key]: value }));
-  };
+  }, [currentQ?.key]);
 
   if (isLoading || isInitializing) {
     return (
