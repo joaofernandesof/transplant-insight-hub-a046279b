@@ -25,6 +25,12 @@ import {
   LogOut,
   Layers,
   RefreshCw,
+  Eye,
+  User,
+  Users,
+  Stethoscope,
+  GraduationCap,
+  Heart,
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
@@ -34,6 +40,7 @@ import {
   type MenuItem,
   type MenuCategory,
 } from "@/config/menuConfig";
+import type { ProfileKey } from "@/contexts/UnifiedAuthContext";
 
 interface UnifiedSidebarProps {
   children: React.ReactNode;
@@ -78,7 +85,7 @@ export function UnifiedSidebar({ children }: UnifiedSidebarProps) {
 }
 
 function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
-  const { user, isAdmin, logout } = useUnifiedAuth();
+  const { user, isAdmin, logout, activeProfile, setActiveProfile } = useUnifiedAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -216,6 +223,37 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                 {user?.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
+          </div>
+        )}
+
+        {/* Profile Simulator (Admin only) */}
+        {isAdmin && !isCollapsed && (
+          <div className="p-3 border-b bg-muted/30">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+              <Eye className="h-3.5 w-3.5" />
+              <span>Simular perfil:</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { key: 'administrador' as ProfileKey, label: 'Admin', icon: Crown },
+                { key: 'licenciado' as ProfileKey, label: 'Licenciado', icon: User },
+                { key: 'colaborador' as ProfileKey, label: 'Colaborador', icon: Users },
+                { key: 'medico' as ProfileKey, label: 'Médico', icon: Stethoscope },
+                { key: 'aluno' as ProfileKey, label: 'Aluno', icon: GraduationCap },
+                { key: 'paciente' as ProfileKey, label: 'Paciente', icon: Heart },
+              ].map(({ key, label, icon: Icon }) => (
+                <Button
+                  key={key}
+                  variant={activeProfile === key ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs gap-1.5 px-2"
+                  onClick={() => setActiveProfile(key)}
+                >
+                  <Icon className="h-3 w-3" />
+                  {label}
+                </Button>
+              ))}
+            </div>
           </div>
         )}
 
