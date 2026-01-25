@@ -441,6 +441,197 @@ const callProfiles: CallProfile[] = [
       'Modelo de início sem capital próprio',
       'Pacote com assessoria jurídica básica'
     ]
+  },
+  {
+    id: 'marcia-dertkigil',
+    name: 'Dra. Márcia San Juan Dertkigil',
+    role: 'Médica Tricologista',
+    callDate: '27/10/2025',
+    callDuration: '38 min',
+    summary: 'Médica há 28 ANOS! Formada pela UNICAMP. Fez gineco, depois imagem por 20 anos. Na pandemia fez longevidade e conheceu Priscila Barreto (HAT). Hoje SÓ trabalha com tricologia clínica. NÃO QUER operar, quer entender transplante para INDICAR melhor.',
+    
+    currentSituation: 'Tricologista clínica há 3 anos. Não quer fazer transplante, quer saber indicar. Speaker de marcas, escreveu livro.',
+    location: 'São Paulo, SP',
+    experience: '28 anos de medicina. Gineco → Imagem (20 anos) → Longevidade → Tricologia. Aluna da Priscila Barreto.',
+    
+    iaAvivarPotential: 'low',
+    iaAvivarNotes: 'Não vai operar, só indicar. IA Avivar não faz sentido para o perfil dela.',
+    licensePotential: 'low',
+    licenseNotes: 'Não quer operar transplante. Perfil de encaminhadora, não operadora.',
+    legalPotential: 'low',
+    legalNotes: 'Já tem estrutura jurídica consolidada após 28 anos de mercado.',
+    
+    painPoints: [
+      'Precisa entender melhor o transplante para indicar',
+      'Quer saber todos os "fasos" do procedimento',
+      'Atende pré e pós transplante mas não sabe tudo'
+    ],
+    objectives: [
+      'Entender transplante para indicar melhor',
+      'Conhecer processo completo mesmo sem operar',
+      'Agregar valor no pré e pós operatório'
+    ],
+    objections: [
+      'Não quer operar, só quer conhecimento',
+      'Já trabalha só com tricologia clínica'
+    ],
+    decisionFactors: [
+      'Conhece a estrutura de Alphaville',
+      'Quer hands-on mesmo sem querer operar depois',
+      'Formação completa em 3 dias'
+    ],
+    
+    recommendedApproach: 'Curso como investimento em conhecimento, não em prática. Pode encaminhar pacientes para Neofolic. Parceria de indicação pode ser interessante.',
+    urgencyLevel: 'low',
+    nextSteps: [
+      'Verificar interesse em parceria de indicação',
+      'Oferecer condição especial como formadora de opinião',
+      'Network com Priscila Barreto'
+    ]
+  },
+  {
+    id: 'robister-moreno',
+    name: 'Dr. Robister Moreno',
+    role: 'Cirurgião Geral / Médico da Marinha',
+    callDate: '22-23/10/2025',
+    callDuration: '60+ min (2 calls)',
+    summary: 'Formado desde 2002! Cirurgião geral desde 2016. Médico da Marinha em Ladário (próximo a Corumbá, MS). JÁ FEZ TRANSPLANTE como paciente e colegas notaram resultado. Ninguém faz transplante em Corumbá! Oceano azul total.',
+    
+    currentSituation: 'Médico da Marinha, atua também fora. Não tem nada próprio. Corumbá não tem ninguém fazendo transplante.',
+    location: 'Corumbá, MS (fronteira Bolívia/Paraguai)',
+    experience: 'Formado 2002. Cirurgião geral desde 2016. Experiência em emergência. Já foi paciente de transplante.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Corumbá é região isolada, vai precisar de automação para escalar. IA Avivar essencial para região de fronteira.',
+    licensePotential: 'high',
+    licenseNotes: 'Região sem concorrência! Licença pode ser caminho para dominar MS/fronteira. Alto potencial de sociedade.',
+    legalPotential: 'medium',
+    legalNotes: 'Precisa de estrutura jurídica para começar do zero. Contratos e regulamentação.',
+    
+    painPoints: [
+      'Quer ampliar atuação além da Marinha',
+      'Vida de emergência desgastante',
+      'Nenhuma oferta de transplante na região'
+    ],
+    objectives: [
+      'Ser o médico do cabelo de Corumbá e região',
+      'Diversificar fonte de renda',
+      'Atuar com algo menos desgastante'
+    ],
+    objections: [
+      'Não tem estrutura própria ainda',
+      'Precisa entender como montar equipe'
+    ],
+    decisionFactors: [
+      'É cirurgião geral (diferencial competitivo)',
+      'Já fez transplante como paciente (prova social)',
+      'Corumbá sem concorrência (demanda reprimida)',
+      'Equipe Neofolic pode ir até lá',
+      'Possibilidade de sociedade com Neofolic'
+    ],
+    
+    recommendedApproach: 'Destacar que será PRIMEIRO da região. RQE como diferencial. Oferecer sociedade/franquia para região. Usar experiência como paciente na comunicação.',
+    urgencyLevel: 'high',
+    nextSteps: [
+      'Proposta de sociedade/franquia para região',
+      'Simulação de mercado Corumbá + região',
+      'Definir turma mais próxima'
+    ]
+  },
+  {
+    id: 'flavio-felipe',
+    name: 'Dr. Flávio Machado + Dr. Felipe Telles',
+    role: 'Oftalmo + Radioterapeuta (Parceiros)',
+    callDate: '08/10/2025',
+    callDuration: '42 min',
+    summary: 'DUPLA de médicos! Flávio (oftalmo) em São Paulo, Felipe (radioterapeuta) em Curvelo-MG. Já têm parcerias fora da medicina. Querem entender se podem fazer parceria futura no capilar também.',
+    
+    currentSituation: 'Flávio: Oftalmo em SP. Felipe: Radioterapeuta em Curvelo-MG. Já são parceiros em negócios fora medicina.',
+    location: 'São Paulo, SP + Curvelo, MG',
+    experience: 'Ambos com RQE (especialização). Experiência em parcerias empresariais.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Dois mercados (SP e MG interior). IA Avivar para gerenciar operação à distância entre os dois.',
+    licensePotential: 'medium',
+    licenseNotes: 'Já têm mentalidade de parceria. Podem considerar modelo conjunto de licença.',
+    legalPotential: 'high',
+    legalNotes: 'Vão precisar de estrutura jurídica para sociedade médica + operação em dois estados.',
+    
+    painPoints: [
+      'Curva de aprendizado é muito rápida? (3 dias só)',
+      'Querem entender se podem estudar juntos para parceria futura',
+      'Comparando com pós de 6-8 meses'
+    ],
+    objectives: [
+      'Fazer curso juntos',
+      'Montar parceria no capilar como já fazem em outros negócios',
+      'Atuar em duas cidades (SP e MG)'
+    ],
+    objections: [
+      'Preocupados se 3 dias é suficiente',
+      'Não têm estrutura própria ainda'
+    ],
+    decisionFactors: [
+      'Curso perto de SP (Alphaville)',
+      '24 cirurgias para praticar',
+      'Mentoria individual no terceiro dia',
+      'Materiais prontos (metodologia)'
+    ],
+    
+    recommendedApproach: 'Vender como investimento de parceria. Destacar que podem operar em duas cidades. 4 pilares do curso (conhecimento + local + equipe + pacientes). Assessoria jurídica para sociedade médica.',
+    urgencyLevel: 'medium',
+    nextSteps: [
+      'Proposta especial para dupla',
+      'Modelo de operação multi-cidade',
+      'Assessoria para sociedade médica'
+    ]
+  },
+  {
+    id: 'joselio-alves-full',
+    name: 'Dr. Josélio Alves (Atualizado)',
+    role: 'Cirurgião + Nutrólogo',
+    callDate: '05/11/2025',
+    callDuration: '56 min',
+    summary: 'CIRURGIÃO com +15 anos de formado! Também é nutrólogo. Tem clínica própria no Maranhão. Quer adicionar transplante capilar para agregar valor. Viu Amatland 60 e gostou da parte de marketing.',
+    
+    currentSituation: 'Cirurgião + Nutrólogo com clínica própria no Maranhão. Quer adicionar transplante ao portfólio.',
+    location: 'Maranhão',
+    experience: '+15 anos de formado. Cirurgião + Nutrólogo. Tem clínica própria.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Já tem clínica! IA Avivar perfeita para adicionar novo serviço sem aumentar equipe.',
+    licensePotential: 'medium',
+    licenseNotes: 'Já tem estrutura própria. Pode considerar licença para padronizar operação capilar.',
+    legalPotential: 'medium',
+    legalNotes: 'Precisa de contratos específicos para adicionar transplante à clínica existente.',
+    
+    painPoints: [
+      'Quer agregar valor à clínica existente',
+      'Interesse na parte de marketing além da técnica',
+      'Maranhão tem poucos profissionais de transplante'
+    ],
+    objectives: [
+      'Adicionar transplante à clínica',
+      'Aprender marketing e captação',
+      'Ser referência no Maranhão'
+    ],
+    objections: [
+      'Correria do dia a dia',
+      'Precisa ver se encaixa na rotina'
+    ],
+    decisionFactors: [
+      'Dr. Elenilton é franqueado no Maranhão (prova social local)',
+      'Formação inclui marketing e gestão',
+      'Equipe Neofolic pode auxiliar'
+    ],
+    
+    recommendedApproach: 'Destacar que já tem estrutura, só precisa adicionar o serviço. Conectar com Dr. Elenilton do Maranhão. IA Avivar como diferencial para gerenciar novo serviço.',
+    urgencyLevel: 'high',
+    nextSteps: [
+      'Conectar com Dr. Elenilton (franqueado MA)',
+      'Demonstração IA Avivar',
+      'Proposta para adicionar transplante à clínica'
+    ]
   }
 ];
 
