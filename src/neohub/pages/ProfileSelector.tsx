@@ -1,60 +1,140 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUnifiedAuth, ProfileKey, PROFILE_NAMES, PROFILE_ROUTES } from '@/contexts/UnifiedAuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, Briefcase, GraduationCap, User, ChevronRight, LogOut, Shield, TrendingUp, Stethoscope } from 'lucide-react';
+import { 
+  LogOut, 
+  Shield, 
+  Building2, 
+  Stethoscope, 
+  GraduationCap, 
+  Heart,
+  Users,
+  TrendingUp,
+  Lock
+} from 'lucide-react';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
+import { cn } from '@/lib/utils';
 
-const PROFILE_ICONS: Partial<Record<ProfileKey, React.ElementType>> = {
-  administrador: Shield,
-  paciente: Heart,
-  colaborador: Briefcase,
-  medico: Stethoscope,
-  aluno: GraduationCap,
-  licenciado: User,
-  cliente_avivar: TrendingUp,
-};
+// Definição dos módulos do sistema
+interface SystemModule {
+  key: string;
+  name: string;
+  description: string;
+  icon: React.ElementType;
+  route: string;
+  color: string;
+  requiredProfiles: string[];
+  adminOnly?: boolean;
+}
 
-const PROFILE_COLORS: Partial<Record<ProfileKey, string>> = {
-  administrador: 'bg-red-500',
-  paciente: 'bg-rose-500',
-  colaborador: 'bg-blue-500',
-  medico: 'bg-teal-500',
-  aluno: 'bg-emerald-500',
-  licenciado: 'bg-amber-500',
-  cliente_avivar: 'bg-orange-500',
-};
-
-const PROFILE_DESCRIPTIONS: Partial<Record<ProfileKey, string>> = {
-  administrador: 'Acesso total ao sistema e configurações',
-  paciente: 'Acesse seus agendamentos, histórico e documentos médicos',
-  colaborador: 'Gerencie pacientes, agenda e operações da clínica',
-  medico: 'Acesse prontuários, agenda médica e cirurgias',
-  aluno: 'Cursos, materiais e certificados do IBRAMEC',
-  licenciado: 'Dashboard completo da sua Licença ByNeoFolic',
-  cliente_avivar: 'Marketing, leads e crescimento do seu negócio',
-};
+const SYSTEM_MODULES: SystemModule[] = [
+  {
+    key: 'admin',
+    name: 'Painel Admin',
+    description: 'Gestão completa do sistema',
+    icon: Shield,
+    route: '/admin',
+    color: 'bg-purple-500',
+    requiredProfiles: [],
+    adminOnly: true,
+  },
+  {
+    key: 'academy',
+    name: 'Academy IBRAMEC',
+    description: 'Cursos, aulas e certificações',
+    icon: GraduationCap,
+    route: '/academy',
+    color: 'bg-emerald-500',
+    requiredProfiles: ['aluno', 'administrador'],
+  },
+  {
+    key: 'neoteam',
+    name: 'NeoTeam',
+    description: 'Operações e gestão de equipe',
+    icon: Building2,
+    route: '/neoteam',
+    color: 'bg-blue-500',
+    requiredProfiles: ['colaborador', 'medico', 'licenciado', 'administrador'],
+  },
+  {
+    key: 'neocare',
+    name: 'NeoCare',
+    description: 'Portal do paciente',
+    icon: Heart,
+    route: '/neocare',
+    color: 'bg-rose-500',
+    requiredProfiles: ['paciente', 'administrador'],
+  },
+  {
+    key: 'neolicense',
+    name: 'NeoLicense',
+    description: 'Portal do licenciado ByNeoFolic',
+    icon: Users,
+    route: '/home',
+    color: 'bg-amber-500',
+    requiredProfiles: ['licenciado', 'administrador'],
+  },
+  {
+    key: 'avivar',
+    name: 'Avivar',
+    description: 'Marketing e crescimento',
+    icon: TrendingUp,
+    route: '/avivar',
+    color: 'bg-orange-500',
+    requiredProfiles: ['cliente_avivar', 'administrador'],
+  },
+];
 
 export default function ProfileSelector() {
   const navigate = useNavigate();
-  const { user, setActiveProfile, logout } = useUnifiedAuth();
+  const { user, logout, setActiveProfile } = useUnifiedAuth();
 
   if (!user) {
     navigate('/login');
     return null;
   }
 
-  const handleSelectProfile = (profile: ProfileKey) => {
-    setActiveProfile(profile);
-    navigate(PROFILE_ROUTES[profile] || '/');
+  const handleSelectModule = (module: SystemModule) => {
+    // Se for admin, definir perfil como administrador
+    if (module.adminOnly && user.isAdmin) {
+      setActiveProfile('administrador');
+      navigate(module.route);
+      return;
+    }
+
+    // Encontrar o primeiro perfil que dá acesso ao módulo
+    const matchingProfile = user.profiles.find(profile => 
+      module.requiredProfiles.includes(profile)
+    );
+
+    if (matchingProfile) {
+      setActiveProfile(matchingProfile);
+      navigate(module.route);
+    }
+  };
+
+  const canAccessModule = (module: SystemModule): boolean => {
+    if (module.adminOnly) return user.isAdmin;
+    if (user.isAdmin) return true;
+    return module.requiredProfiles.some(profile => user.profiles.includes(profile as any));
   };
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
+
+  // Ordenar módulos: acessíveis primeiro, depois bloqueados
+  const sortedModules = [...SYSTEM_MODULES].sort((a, b) => {
+    const aAccess = canAccessModule(a);
+    const bAccess = canAccessModule(b);
+    if (aAccess && !bAccess) return -1;
+    if (!aAccess && bAccess) return 1;
+    return 0;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col">
@@ -73,7 +153,7 @@ export default function ProfileSelector() {
 
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl">
+        <Card className="w-full max-w-lg shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Avatar className="h-16 w-16">
@@ -85,56 +165,63 @@ export default function ProfileSelector() {
             </div>
             <CardTitle className="text-xl">Olá, {user.fullName.split(' ')[0]}!</CardTitle>
             <CardDescription>
-              Selecione o portal que deseja acessar
+              Selecione o módulo que deseja acessar
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-3">
-            {user.profiles.map(profile => {
-              const Icon = PROFILE_ICONS[profile] || User;
-              const color = PROFILE_COLORS[profile] || 'bg-gray-500';
-              const description = PROFILE_DESCRIPTIONS[profile] || '';
-              return (
-                <button
-                  key={profile}
-                  onClick={() => handleSelectProfile(profile)}
-                  className="w-full p-4 rounded-xl border-2 border-border hover:border-primary transition-all flex items-center gap-4 text-left group hover:bg-muted/50"
-                >
-                  <div className={`p-3 rounded-lg ${color} text-white`}>
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">
-                      {PROFILE_NAMES[profile]}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {description}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                </button>
-              );
-            })}
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              {sortedModules.map(module => {
+                const Icon = module.icon;
+                const hasAccess = canAccessModule(module);
 
-            {user.isAdmin && (
-              <button
-                onClick={() => navigate('/admin')}
-                className="w-full p-4 rounded-xl border-2 border-dashed border-border hover:border-primary transition-all flex items-center gap-4 text-left group hover:bg-muted/50"
-              >
-                <div className="p-3 rounded-lg bg-purple-500 text-white">
-                  <User className="h-6 w-6" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">
-                    Painel Admin
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Gestão completa do sistema
-                  </p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </button>
-            )}
+                return (
+                  <button
+                    key={module.key}
+                    onClick={() => hasAccess && handleSelectModule(module)}
+                    disabled={!hasAccess}
+                    className={cn(
+                      "p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 text-center group relative",
+                      hasAccess 
+                        ? "border-border hover:border-primary hover:bg-muted/50 cursor-pointer"
+                        : "border-border/50 bg-muted/30 cursor-not-allowed opacity-60"
+                    )}
+                  >
+                    {/* Lock icon for inaccessible modules */}
+                    {!hasAccess && (
+                      <div className="absolute top-2 right-2">
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+
+                    <div className={cn(
+                      "p-3 rounded-lg text-white transition-transform",
+                      module.color,
+                      hasAccess ? "group-hover:scale-110" : "grayscale"
+                    )}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    
+                    <div>
+                      <h3 className={cn(
+                        "font-semibold text-sm",
+                        hasAccess ? "text-foreground" : "text-muted-foreground"
+                      )}>
+                        {module.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                        {module.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Hint for locked modules */}
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              Módulos com <Lock className="h-3 w-3 inline-block mx-0.5" /> requerem permissão adicional
+            </p>
           </CardContent>
         </Card>
       </main>
