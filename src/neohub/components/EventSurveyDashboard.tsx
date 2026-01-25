@@ -62,6 +62,7 @@ import {
 } from "lucide-react";
 import { SurveyQuestionsManager } from "./SurveyQuestionsManager";
 import { Day2SurveyFullDashboard } from "@/academy/components/Day2SurveyFullDashboard";
+import { Day3SurveyFullDashboard } from "@/academy/components/Day3SurveyFullDashboard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { printCurrentView } from "@/utils/printPdf";
@@ -77,7 +78,7 @@ interface EventSurveyDashboardProps {
 }
 
 // Survey day filter options
-type DayFilter = 'day1' | 'day2';
+type DayFilter = 'day1' | 'day2' | 'day3';
 
 // Drill-down dialog state type
 interface DrilldownData {
@@ -1924,6 +1925,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           <SelectContent>
             <SelectItem value="day1">📋 Pesquisa Dia 1</SelectItem>
             <SelectItem value="day2">📊 Pesquisa Dia 2</SelectItem>
+            <SelectItem value="day3">🏆 Pesquisa Final (Dia 3)</SelectItem>
           </SelectContent>
         </Select>
         
@@ -1967,6 +1969,16 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
       <div className="space-y-4">
         <SurveyFilterBar />
         <Day2SurveyFullDashboard classId={effectiveClassId} />
+      </div>
+    );
+  }
+
+  // For Day 3 (Final Survey), show the full dashboard
+  if (dayFilter === 'day3') {
+    return (
+      <div className="space-y-4">
+        <SurveyFilterBar />
+        <Day3SurveyFullDashboard classId={effectiveClassId} />
       </div>
     );
   }
