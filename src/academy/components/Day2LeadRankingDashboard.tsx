@@ -38,8 +38,8 @@ interface Day2LeadRankingDashboardProps {
   classId?: string;
 }
 
-// Total sections in Day 2 survey (for progress calculation)
-const TOTAL_DAY2_SECTIONS = 5;
+// Total questions in Day 2 survey (for progress calculation)
+const TOTAL_DAY2_QUESTIONS = 20;
 
 interface PartialSurveyWithUser {
   id: string;
@@ -141,16 +141,19 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     let licenseScore = 0;
     let legalScore = 0;
     
-    // IA Avivar scores (Q12-Q14)
+    // IA Avivar scores (Q12-Q14) - 6 points each, max 18
     const iaScoreMap: Record<string, number> = {
+      // Q12
       'Tudo depende de pessoas e memória': 0,
       'Tenho organização básica, mas com falhas frequentes': 2,
       'Consigo organizar, mas sinto limites claros': 4,
       'Tenho estrutura e quero ganhar escala e previsibilidade': 6,
+      // Q13
       'Funciona bem do jeito que está': 0,
       'Funciona, mas gera desgaste': 2,
       'Funciona com perda de oportunidades': 4,
       'É um gargalo claro no crescimento': 6,
+      // Q14
       'Não é prioridade agora': 0,
       'Quando tiver mais tempo': 2,
       'Nos próximos meses': 4,
@@ -161,16 +164,19 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     if (survey.q13_avivar_opportunity_loss) iaScore += iaScoreMap[survey.q13_avivar_opportunity_loss] || 0;
     if (survey.q14_avivar_timing) iaScore += iaScoreMap[survey.q14_avivar_timing] || 0;
     
-    // License scores (Q15-Q17)
+    // License scores (Q15-Q17) - 6 points each, max 18
     const licenseScoreMap: Record<string, number> = {
+      // Q15
       'Não é viável para mim hoje': 0,
       'Seria viável apenas com muito planejamento': 2,
       'É viável se o modelo fizer sentido': 4,
       'É totalmente viável para mim': 6,
+      // Q16
       'Não me expõe': 0,
       'Me expõe pouco': 2,
       'Me expõe bastante': 4,
       'É um dos meus principais gargalos': 6,
+      // Q17
       'Não penso nisso no momento': 0,
       'Talvez em um futuro distante': 2,
       'Nos próximos meses': 4,
@@ -181,25 +187,30 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     if (survey.q16_license_pace) licenseScore += licenseScoreMap[survey.q16_license_pace] || 0;
     if (survey.q17_license_timing) licenseScore += licenseScoreMap[survey.q17_license_timing] || 0;
     
-    // Legal scores (Q18-Q20)
+    // Legal scores (Q18-Q20) - 6 points each, max 18
     const legalScoreMap: Record<string, number> = {
+      // Q18
       'Tranquilo e seguro': 0,
       'Um pouco inseguro': 2,
       'Inseguro em alguns pontos': 4,
       'Exposto a riscos que me preocupam': 6,
+      // Q19
       'Não influenciam': 0,
       'Influenciam pouco': 2,
       'Influenciam bastante': 4,
       'Travaram ou quase travaram decisões importantes': 6,
+      // Q20
       'Não vejo isso como prioridade': 0,
       'Quando o negócio estiver maior': 2,
+      'Nos próximos meses': 4,
+      'O quanto antes': 6,
     };
     
     if (survey.q18_legal_feeling) legalScore += legalScoreMap[survey.q18_legal_feeling] || 0;
     if (survey.q19_legal_influence) legalScore += legalScoreMap[survey.q19_legal_influence] || 0;
     if (survey.q20_legal_timing) legalScore += legalScoreMap[survey.q20_legal_timing] || 0;
     
-    // Count answered questions
+    // Count answered questions per section
     const answeredQuestions = {
       satisfaction: survey.q1_satisfaction_level ? 1 : 0,
       joao: [survey.q2_joao_expectations, survey.q3_joao_clarity, survey.q4_joao_time, survey.q5_joao_liked_most, survey.q6_joao_improve].filter(Boolean).length,
@@ -535,7 +546,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
           <CardContent>
             <div className="grid gap-4">
               {partialSurveys.map((survey) => {
-                const progressPercent = Math.round((survey.current_section / TOTAL_DAY2_SECTIONS) * 100);
+                const progressPercent = Math.round((survey.current_section / TOTAL_DAY2_QUESTIONS) * 100);
                 const scores = calculatePartialScores(survey);
                 
                 return (
@@ -557,7 +568,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                           <p className="font-medium truncate">{survey.neohub_users.full_name}</p>
                           <Badge variant="outline" className="shrink-0 text-yellow-700 border-yellow-300 dark:text-yellow-400 dark:border-yellow-700">
                             <Clock className="h-3 w-3 mr-1" />
-                            Seção {survey.current_section}/{TOTAL_DAY2_SECTIONS}
+                            Questão {survey.current_section}/{TOTAL_DAY2_QUESTIONS}
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{survey.neohub_users.email}</p>
