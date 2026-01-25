@@ -12,13 +12,14 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Flame, Thermometer, Snowflake, Search, Download, Filter,
-  Zap, Target, Shield, TrendingUp, Users, Award, Clock, AlertCircle, Sparkles, BarChart3
+  Zap, Target, Shield, TrendingUp, Users, Award, Clock, AlertCircle, Sparkles, BarChart3, Eye
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Day2AIInsightsPanel } from './Day2AIInsightsPanel';
 import { Day2CallProfilesPanel } from './Day2CallProfilesPanel';
+import { Day2SurveyDetailsDialog } from './Day2SurveyDetailsDialog';
 
 interface Day2SurveyWithUser {
   id: string;
@@ -73,6 +74,8 @@ interface PartialSurveyWithUser {
 export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [classificationFilter, setClassificationFilter] = useState<string>('all');
+  const [selectedSurvey, setSelectedSurvey] = useState<Day2SurveyWithUser | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   // Fetch completed surveys
   // Fetch ALL surveys (both completed and partial) - treat partial as valid leads
@@ -485,6 +488,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                 </TableHead>
                 <TableHead className="text-center">Total</TableHead>
                 <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -578,6 +582,20 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                   </TableCell>
                   <TableCell className="text-center">
                     {getClassificationBadge(displayClassification)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        setSelectedSurvey(survey);
+                        setDetailsDialogOpen(true);
+                      }}
+                      title="Ver pesquisa completa"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               )})}
@@ -740,6 +758,13 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
           <Day2CallProfilesPanel />
         </TabsContent>
       </Tabs>
+
+      {/* Survey Details Dialog */}
+      <Day2SurveyDetailsDialog
+        survey={selectedSurvey}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+      />
     </div>
   );
 }
