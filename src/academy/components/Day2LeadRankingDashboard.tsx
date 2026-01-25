@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   Flame, Thermometer, Snowflake, Search, Download, Filter,
   Zap, Target, Shield, TrendingUp, Users, Award, Clock, AlertCircle, Sparkles, BarChart3, Eye,
-  ArrowUpDown, ArrowUp, ArrowDown
+  ArrowUpDown, ArrowUp, ArrowDown, MessageSquare, Phone
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -22,6 +22,7 @@ import { Day2AIInsightsPanel } from './Day2AIInsightsPanel';
 import { Day2CallProfilesPanel } from './Day2CallProfilesPanel';
 import { Day2SurveyDetailsDialog } from './Day2SurveyDetailsDialog';
 import { Day2ScorePopover } from './Day2ScorePopover';
+import { Day2CallInsightsPopover } from './Day2CallInsightsPopover';
 
 type SortField = 'ia' | 'license' | 'legal' | 'total' | null;
 type SortDirection = 'asc' | 'desc';
@@ -570,6 +571,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                     {getSortIcon('total')}
                   </button>
                 </TableHead>
+                <TableHead className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <MessageSquare className="h-4 w-4" />
+                    Call
+                  </div>
+                </TableHead>
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead className="text-center w-12"></TableHead>
               </TableRow>
@@ -669,6 +676,14 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                       {displayScoreTotal}
                     </span>
                   </TableCell>
+                  <TableCell className="text-center p-1">
+                    <Day2CallInsightsPopover survey={survey}>
+                      <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                        <Phone className="h-3.5 w-3.5" />
+                        <span className="text-xs">Resumo</span>
+                      </Button>
+                    </Day2CallInsightsPopover>
+                  </TableCell>
                   <TableCell className="text-center">
                     {getClassificationBadge(displayClassification)}
                   </TableCell>
@@ -690,7 +705,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
               )})}
               {(!filteredAndSortedSurveys || filteredAndSortedSurveys.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Nenhum lead encontrado
                   </TableCell>
                 </TableRow>
