@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,7 +73,7 @@ interface ProfileData {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUser } = useUnifiedAuth();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -163,7 +163,8 @@ export default function Profile() {
     
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      // Update profiles table
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           name: profile.name,
@@ -181,8 +182,23 @@ export default function Profile() {
         })
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Also update neohub_users to keep in sync
+      await supabase
+        .from('neohub_users')
+        .update({
+          full_name: profile.name,
+          phone: profile.phone,
+          address_city: profile.city,
+          address_state: profile.state
+        })
+        .eq('user_id', user.id);
+
       toast.success('Perfil atualizado com sucesso!');
+      
+      // Refresh user context to update sidebar
+      await refreshUser();
     } catch (error) {
       console.error('Error saving profile:', error);
       toast.error('Erro ao salvar perfil');
@@ -254,8 +270,21 @@ export default function Profile() {
 
       if (updateError) throw updateError;
 
+      // Also update neohub_users if it's avatar
+      if (isAvatar) {
+        await supabase
+          .from('neohub_users')
+          .update({ avatar_url: imageUrl })
+          .eq('user_id', user.id);
+      }
+
       setProfile(prev => ({ ...prev, [updateField]: imageUrl }));
       toast.success(isAvatar ? 'Foto atualizada com sucesso!' : 'Logo atualizada com sucesso!');
+      
+      // Refresh user context to update sidebar
+      if (isAvatar) {
+        await refreshUser();
+      }
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error(isAvatar ? 'Erro ao enviar foto' : 'Erro ao enviar logo');
