@@ -421,7 +421,10 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
             <div className="flex items-center justify-end text-sm text-muted-foreground">
               <span>{Math.round(progress)}%</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress 
+              value={progress} 
+              className="h-4 [&>div]:bg-green-500 [&>div]:transition-all [&>div]:duration-500 [&>div]:ease-out" 
+            />
           </div>
         </DialogHeader>
 
