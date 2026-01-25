@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useDay2Survey } from '../hooks/useDay2Survey';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield, Calendar, MessageSquare } from 'lucide-react';
 import joaoFernandesImg from '@/assets/joao-fernandes.png';
 import larissaGuerreiroImg from '@/assets/larissa-guerreiro.png';
@@ -263,7 +263,7 @@ const QUESTIONS = [
 ];
 
 export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Day2SurveyDialogProps) {
-  const { user } = useAuth();
+  const { user } = useUnifiedAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [surveyId, setSurveyId] = useState<string | null>(null);
@@ -375,22 +375,25 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     }
   };
 
-  const handleSubmit = async () => {
-    if (!surveyId) return;
+  const handleSubmit = () => {
+    if (!surveyId || submitSurvey.isPending) return;
     
     // Calculate final effective time
     if (!document.hidden) {
       effectiveTimeRef.current += Math.floor((Date.now() - lastVisibleTimeRef.current) / 1000);
     }
     
-    await submitSurvey.mutateAsync({
+    // Use mutate instead of mutateAsync to avoid blocking
+    submitSurvey.mutate({
       surveyId,
       data: formData,
       effectiveTime: effectiveTimeRef.current
+    }, {
+      onSuccess: () => {
+        onComplete?.();
+        onOpenChange(false);
+      }
     });
-    
-    onComplete?.();
-    onOpenChange(false);
   };
 
   const handleOptionSelect = (value: string) => {
@@ -526,13 +529,9 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           ) : (
             <Button 
               onClick={handleNext}
-              disabled={!canProceed || saveProgress.isPending}
+              disabled={!canProceed}
             >
-              {saveProgress.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                'Próximo'
-              )}
+              Próximo
             </Button>
           )}
         </div>

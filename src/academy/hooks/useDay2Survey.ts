@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 
 export interface Day2SurveyResponse {
@@ -53,7 +53,7 @@ export type Day2SurveyFormData = Omit<Day2SurveyResponse,
 >;
 
 export function useDay2Survey(classId?: string) {
-  const { user } = useAuth();
+  const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
 
   const { data: existingSurvey, isLoading } = useQuery({
