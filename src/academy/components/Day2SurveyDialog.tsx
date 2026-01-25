@@ -296,10 +296,24 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         if (value) savedData[q.key] = value as string;
       });
       setFormData(savedData);
-      // current_section is saved as currentQuestion + 2, so resume at current_section - 2
-      // But ensure we don't go below 0 or above the last question
-      const savedSection = existingSurvey.current_section || 1;
-      const resumeIndex = Math.max(0, Math.min(savedSection - 2, QUESTIONS.length - 1));
+      
+      // Find the first unanswered question to resume from there
+      // This is more reliable than using current_section
+      let resumeIndex = 0;
+      for (let i = 0; i < QUESTIONS.length; i++) {
+        const q = QUESTIONS[i];
+        // For radio questions, check if there's an answer
+        if (q.type === 'radio' && !savedData[q.key]) {
+          resumeIndex = i;
+          break;
+        }
+        // For text questions, they're optional so continue
+        if (i === QUESTIONS.length - 1) {
+          // User answered all required questions, go to last one
+          resumeIndex = QUESTIONS.length - 1;
+        }
+      }
+      
       setCurrentQuestion(resumeIndex);
       effectiveTimeRef.current = existingSurvey.effective_time_seconds || 0;
     }
