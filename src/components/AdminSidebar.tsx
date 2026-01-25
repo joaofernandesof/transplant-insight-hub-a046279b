@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { 
   Users,
@@ -32,7 +33,9 @@ import {
   Crown,
   PieChart,
   CalendarDays,
-  LayoutDashboard
+  LayoutDashboard,
+  RefreshCw,
+  Layers
 } from "lucide-react";
 import logoByNeofolic from "@/assets/logo-byneofolic.png";
 import { useState, useEffect } from "react";
@@ -213,28 +216,49 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
           </nav>
         </ScrollArea>
 
-        {/* Footer with Logout */}
-        <div className="p-2 border-t">
+        {/* Footer Actions */}
+        <div className="p-2 border-t space-y-1">
+          {/* Switch Module */}
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start gap-3 h-10 text-destructive hover:text-destructive hover:bg-destructive/10",
+              "w-full justify-start gap-3 h-9 text-muted-foreground hover:text-foreground",
+              isCollapsed && "justify-center px-2"
+            )}
+            onClick={() => navigate('/select-profile')}
+          >
+            <Layers className="h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && <span className="text-sm">Alternar Módulo</span>}
+          </Button>
+
+          {/* Switch Profile */}
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 h-9 text-muted-foreground hover:text-foreground",
+              isCollapsed && "justify-center px-2"
+            )}
+            onClick={() => navigate('/select-profile')}
+          >
+            <RefreshCw className="h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && <span className="text-sm">Alternar Perfil</span>}
+          </Button>
+
+          <Separator className="my-1" />
+
+          {/* Logout */}
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 h-9 text-destructive hover:text-destructive hover:bg-destructive/10",
               isCollapsed && "justify-center px-2"
             )}
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 flex-shrink-0" />
-            {!isCollapsed && <span>Sair</span>}
+            {!isCollapsed && <span className="text-sm">Sair</span>}
           </Button>
         </div>
-        
-        {!isCollapsed && (
-          <div className="px-4 pb-4">
-            <p className="text-[10px] text-muted-foreground text-center">
-              Painel Administrativo
-            </p>
-          </div>
-        )}
       </aside>
 
       {/* Main Content */}
