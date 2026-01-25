@@ -227,7 +227,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
     <Tabs defaultValue="overview" className="w-full space-y-4">
       {/* Sticky header with KPIs and tabs */}
       <div className="sticky top-0 z-30 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-1 border-b">
-        {/* Score Cards by Theme - IA, Licença, Jurídico */}
+        {/* Score Cards by Theme - IA, Licença, Jurídico (escala 0-10) */}
         <div className="grid grid-cols-3 gap-4 mb-4">
           <Card className="border-l-4 border-l-blue-500">
             <CardContent className="p-3 flex items-center gap-3">
@@ -236,7 +236,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">IA Avivar</p>
-                <p className="text-xl font-bold">{analytics.avgScoreIA.toFixed(1)}/18</p>
+                <p className="text-xl font-bold">{((analytics.avgScoreIA / 18) * 10).toFixed(1)}</p>
               </div>
             </CardContent>
           </Card>
@@ -248,7 +248,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Licença</p>
-                <p className="text-xl font-bold">{analytics.avgScoreLicense.toFixed(1)}/18</p>
+                <p className="text-xl font-bold">{((analytics.avgScoreLicense / 18) * 10).toFixed(1)}</p>
               </div>
             </CardContent>
           </Card>
@@ -260,7 +260,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Jurídico</p>
-                <p className="text-xl font-bold">{analytics.avgScoreLegal.toFixed(1)}/18</p>
+                <p className="text-xl font-bold">{((analytics.avgScoreLegal / 18) * 10).toFixed(1)}</p>
               </div>
             </CardContent>
           </Card>
