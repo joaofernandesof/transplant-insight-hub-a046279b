@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -75,15 +76,8 @@ interface EventSurveyDashboardProps {
   classId: string | null;
 }
 
-// Survey filter options
-type SurveyFilter = 'day1' | 'day2' | 'class_all' | 'global_all';
-
-const SURVEY_FILTER_OPTIONS: { value: SurveyFilter; label: string; description: string }[] = [
-  { value: 'day1', label: 'Pesquisa Dia 1', description: 'Avaliação do primeiro dia do curso' },
-  { value: 'day2', label: 'Pesquisa Dia 2', description: 'Avaliação do segundo dia (scoring comercial)' },
-  { value: 'class_all', label: 'Geral da Turma', description: 'Dados consolidados desta turma' },
-  { value: 'global_all', label: 'Geral (Todas Turmas)', description: 'Dados de todas as turmas' },
-];
+// Survey day filter options
+type DayFilter = 'day1' | 'day2';
 
 // Drill-down dialog state type
 interface DrilldownData {
@@ -1636,16 +1630,28 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
 
 // ============== MAIN DASHBOARD ==============
 export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
-  // Survey filter state
-  const [surveyFilter, setSurveyFilter] = useState<SurveyFilter>('day1');
+  // Filter states
+  const [dayFilter, setDayFilter] = useState<DayFilter>('day1');
+  const [classFilter, setClassFilter] = useState<string>(classId || 'all');
   
-  // Determine effective classId and global mode based on filter
-  const isGlobalMode = surveyFilter === 'global_all';
-  const effectiveClassId = isGlobalMode ? null : classId;
+  // Fetch all classes for the filter dropdown
+  const { data: allClasses } = useQuery({
+    queryKey: ['all-classes-for-filter'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('course_classes')
+        .select('id, name, code')
+        .order('start_date', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
   
-  // Use appropriate analytics hook based on survey type
-  // For now, day1 and day2 both use the same hook (day1_satisfaction_surveys)
-  // but day2 will eventually use day2_satisfaction_surveys
+  // Determine effective classId based on filter
+  const effectiveClassId = classFilter === 'all' ? null : classFilter;
+  const isGlobalMode = classFilter === 'all';
+  
+  // Use analytics hook
   const { data: analytics, isLoading, error } = useSurveyAnalytics(
     effectiveClassId,
     { globalMode: isGlobalMode }
@@ -1902,41 +1908,49 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     }
   };
 
+  // Reusable filter component
+  const SurveyFilterBar = () => (
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <FileText className="h-4 w-4" />
+        Filtros:
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Day Filter */}
+        <Select value={dayFilter} onValueChange={(v) => setDayFilter(v as DayFilter)}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Selecione o dia" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="day1">📋 Pesquisa Dia 1</SelectItem>
+            <SelectItem value="day2">📊 Pesquisa Dia 2</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        {/* Class Filter */}
+        <Select value={classFilter} onValueChange={setClassFilter}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Selecione a turma" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">🌐 Todas as turmas</SelectItem>
+            {allClasses?.map((cls) => (
+              <SelectItem key={cls.id} value={cls.id}>
+                {cls.code} - {cls.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
   // Show Day 2 Lead Ranking when Day 2 filter is selected
-  if (surveyFilter === 'day2') {
+  if (dayFilter === 'day2') {
     return (
       <div className="space-y-4">
-        {/* Survey Filter Selector */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <FileText className="h-4 w-4" />
-            Visualizando:
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {SURVEY_FILTER_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                variant={surveyFilter === option.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSurveyFilter(option.value)}
-                className="gap-1.5"
-                title={option.description}
-              >
-                {option.value === 'day1' && <span>📋</span>}
-                {option.value === 'day2' && <span>📊</span>}
-                {option.value === 'class_all' && <span>🎓</span>}
-                {option.value === 'global_all' && <span>🌐</span>}
-                {option.label}
-              </Button>
-            ))}
-          </div>
-          <div className="ml-auto text-xs text-muted-foreground">
-            {SURVEY_FILTER_OPTIONS.find(o => o.value === surveyFilter)?.description}
-          </div>
-        </div>
-        
-        {/* Import and render Day2LeadRankingDashboard */}
-        <Day2LeadRankingDashboard classId={classId || undefined} />
+        <SurveyFilterBar />
+        <Day2LeadRankingDashboard classId={effectiveClassId || undefined} />
       </div>
     );
   }
@@ -1944,31 +1958,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {/* Survey Filter Selector even when loading */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <FileText className="h-4 w-4" />
-            Visualizando:
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {SURVEY_FILTER_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                variant={surveyFilter === option.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSurveyFilter(option.value)}
-                className="gap-1.5"
-                title={option.description}
-              >
-                {option.value === 'day1' && <span>📋</span>}
-                {option.value === 'day2' && <span>📊</span>}
-                {option.value === 'class_all' && <span>🎓</span>}
-                {option.value === 'global_all' && <span>🌐</span>}
-                {option.label}
-              </Button>
-            ))}
-          </div>
-        </div>
+        <SurveyFilterBar />
         <Skeleton className="h-32 w-full" />
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
@@ -1980,37 +1970,13 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   if (error || !analytics) {
     return (
       <div className="space-y-4">
-        {/* Survey Filter Selector even when no data */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <FileText className="h-4 w-4" />
-            Visualizando:
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {SURVEY_FILTER_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                variant={surveyFilter === option.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSurveyFilter(option.value)}
-                className="gap-1.5"
-                title={option.description}
-              >
-                {option.value === 'day1' && <span>📋</span>}
-                {option.value === 'day2' && <span>📊</span>}
-                {option.value === 'class_all' && <span>🎓</span>}
-                {option.value === 'global_all' && <span>🌐</span>}
-                {option.label}
-              </Button>
-            ))}
-          </div>
-        </div>
+        <SurveyFilterBar />
         <Card className="p-8">
           <div className="text-center text-muted-foreground">
             <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <h3 className="font-semibold mb-1">Nenhuma resposta ainda</h3>
             <p className="text-sm">
-              {surveyFilter === 'global_all' 
+              {isGlobalMode 
                 ? 'Nenhuma pesquisa de satisfação foi respondida em nenhuma turma.' 
                 : 'As respostas da pesquisa de satisfação aparecerão aqui.'}
             </p>
@@ -2195,34 +2161,8 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     <>
     <SurveyQuestionsManager open={showQuestionsManager} onOpenChange={setShowQuestionsManager} />
     <Tabs defaultValue="overview" className="space-y-4">
-      {/* Survey Filter Selector */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <FileText className="h-4 w-4" />
-          Visualizando:
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {SURVEY_FILTER_OPTIONS.map((option) => (
-            <Button
-              key={option.value}
-              variant={surveyFilter === option.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSurveyFilter(option.value)}
-              className="gap-1.5"
-              title={option.description}
-            >
-              {option.value === 'day1' && <span>📋</span>}
-              {option.value === 'day2' && <span>📊</span>}
-              {option.value === 'class_all' && <span>🎓</span>}
-              {option.value === 'global_all' && <span>🌐</span>}
-              {option.label}
-            </Button>
-          ))}
-        </div>
-        <div className="ml-auto text-xs text-muted-foreground">
-          {SURVEY_FILTER_OPTIONS.find(o => o.value === surveyFilter)?.description}
-        </div>
-      </div>
+      {/* Survey Filter Bar */}
+      <SurveyFilterBar />
 
       <div className="flex items-center justify-between flex-wrap gap-3">
         <TabsList className="grid grid-cols-7 w-full max-w-4xl">
