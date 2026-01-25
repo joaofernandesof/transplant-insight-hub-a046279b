@@ -140,7 +140,7 @@ const QUESTIONS = [
     category: 'Aula Larissa Guerreiro - Blindagem Jurídica para Clínicas Médicas',
     speakerImage: larissaGuerreiroImg
   },
-  // Section 4: IA Avivar
+  // Section 4: IA Avivar (q12-q14)
   {
     key: 'q12_avivar_current_process',
     text: 'Hoje, como acontece o atendimento inicial e o acompanhamento dos seus leads e pacientes?',
@@ -148,10 +148,10 @@ const QUESTIONS = [
     category: 'IA de Atendimento - Avivar',
     icon: <Zap className="h-5 w-5" />,
     options: [
-      { value: 'Tudo manual, depende de pessoas' },
-      { value: 'Uso WhatsApp, mas sem padrão definido' },
-      { value: 'Tenho algum sistema, mas é pouco eficiente' },
-      { value: 'Tenho processo estruturado e quero automatizar para escalar' }
+      { value: 'Tudo depende de pessoas e memória' },
+      { value: 'Tenho organização básica, mas com falhas frequentes' },
+      { value: 'Consigo organizar, mas sinto limites claros' },
+      { value: 'Tenho estrutura e quero ganhar escala e previsibilidade' }
     ]
   },
   {
@@ -161,13 +161,26 @@ const QUESTIONS = [
     category: 'IA de Atendimento - Avivar',
     icon: <Zap className="h-5 w-5" />,
     options: [
-      { value: 'Não sinto que perco oportunidades' },
-      { value: 'Perco poucas oportunidades' },
-      { value: 'Perco bastante, mas consigo lidar' },
-      { value: 'Perco muitas oportunidades e isso trava meu crescimento' }
+      { value: 'Funciona bem do jeito que está' },
+      { value: 'Funciona, mas gera desgaste' },
+      { value: 'Funciona com perda de oportunidades' },
+      { value: 'É um gargalo claro no crescimento' }
     ]
   },
-  // Section 5: Licença ByNeofolic - BNT Direto com valor explícito
+  {
+    key: 'q14_avivar_timing',
+    text: 'Em que momento faria sentido implementar uma solução de IA para atendimento?',
+    type: 'radio',
+    category: 'IA de Atendimento - Avivar',
+    icon: <Zap className="h-5 w-5" />,
+    options: [
+      { value: 'Não é prioridade agora' },
+      { value: 'Quando tiver mais tempo' },
+      { value: 'Nos próximos meses' },
+      { value: 'O quanto antes' }
+    ]
+  },
+  // Section 5: Licença ByNeofolic (q15-q17)
   {
     key: 'q15_license_path',
     text: 'Considerando um investimento inicial de R$ 80.000 para operar sob uma licença estruturada, qual dessas opções mais se aproxima da sua realidade atual?',
@@ -207,67 +220,45 @@ const QUESTIONS = [
       { value: 'Agora é o momento certo' }
     ]
   },
-  // Section 6: Assessoria Jurídica
+  // Section 6: Assessoria Jurídica (q18-q20)
   {
-    key: 'q16_legal_current_structure',
-    text: 'Hoje, como está a estrutura jurídica da sua clínica ou atuação profissional?',
+    key: 'q18_legal_feeling',
+    text: 'Como você se sente em relação à estrutura jurídica da sua clínica ou atuação profissional?',
     type: 'radio',
     category: 'Assessoria Jurídica',
     icon: <Shield className="h-5 w-5" />,
     options: [
-      { value: 'Não tenho praticamente nada estruturado' },
-      { value: 'Tenho contratos básicos e termos genéricos' },
-      { value: 'Tenho estrutura razoável, mas com inseguranças' },
-      { value: 'Tenho tudo estruturado e revisado por especialista' }
+      { value: 'Tranquilo e seguro' },
+      { value: 'Um pouco inseguro' },
+      { value: 'Inseguro em alguns pontos' },
+      { value: 'Exposto a riscos que me preocupam' }
     ]
   },
   {
-    key: 'q17_legal_limitations',
-    text: 'O quanto questões jurídicas hoje limitam ou te deixam inseguro para crescer e escalar?',
+    key: 'q19_legal_influence',
+    text: 'O quanto questões jurídicas influenciam suas decisões de crescimento?',
     type: 'radio',
     category: 'Assessoria Jurídica',
     icon: <Shield className="h-5 w-5" />,
     options: [
-      { value: 'Não limitam' },
-      { value: 'Limitam um pouco' },
-      { value: 'Limitam bastante' },
-      { value: 'São um risco real para minha operação' }
+      { value: 'Não influenciam' },
+      { value: 'Influenciam pouco' },
+      { value: 'Influenciam bastante' },
+      { value: 'Travaram ou quase travaram decisões importantes' }
     ]
   },
-  // Section 7: Timing e Decisão
   {
-    key: 'q18_timing_next_60_days',
-    text: 'Nos próximos 60 dias, qual dessas opções melhor representa seu momento?',
+    key: 'q20_legal_timing',
+    text: 'Em que momento faria sentido buscar uma assessoria jurídica especializada?',
     type: 'radio',
-    category: 'Timing e Decisão',
-    icon: <Calendar className="h-5 w-5" />,
+    category: 'Assessoria Jurídica',
+    icon: <Shield className="h-5 w-5" />,
     options: [
-      { value: 'Estou apenas absorvendo conhecimento' },
-      { value: 'Quero estruturar com calma' },
-      { value: 'Quero acelerar com apoio certo' },
-      { value: 'Quero avançar agora' }
+      { value: 'Não vejo isso como prioridade' },
+      { value: 'Quando o negócio estiver maior' },
+      { value: 'Nos próximos meses' },
+      { value: 'O quanto antes' }
     ]
-  },
-  {
-    key: 'q19_timing_individual_interest',
-    text: 'Você teria interesse em conversar individualmente para montar um plano envolvendo IA de atendimento, licença de marca e assessoria jurídica?',
-    type: 'radio',
-    category: 'Timing e Decisão',
-    icon: <Calendar className="h-5 w-5" />,
-    options: [
-      { value: 'Não' },
-      { value: 'Talvez mais para frente' },
-      { value: 'Sim, quero entender melhor' },
-      { value: 'Sim, quero avançar nisso agora' }
-    ]
-  },
-  // Section 8: Insight Final
-  {
-    key: 'q20_insight_final',
-    text: 'Quando você vê outros médicos se destacando nessa área, o que você acha que eles fizeram de diferente?',
-    type: 'text',
-    category: 'Insight Final',
-    icon: <MessageSquare className="h-5 w-5" />
   }
 ];
 
