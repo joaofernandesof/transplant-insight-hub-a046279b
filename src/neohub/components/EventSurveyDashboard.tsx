@@ -2165,53 +2165,56 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     <>
     <SurveyQuestionsManager open={showQuestionsManager} onOpenChange={setShowQuestionsManager} />
     <Tabs defaultValue="overview" className="space-y-4">
-      {/* Survey Filter Bar */}
-      <SurveyFilterBar />
+      {/* Sticky header with filter bar and tabs */}
+      <div className="sticky top-0 z-30 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-1 border-b">
+        {/* Survey Filter Bar */}
+        <SurveyFilterBar />
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <TabsList className="grid grid-cols-7 w-full max-w-4xl">
-          <TabsTrigger value="overview" className="flex items-center gap-1.5">
-            <BarChart3 className="h-4 w-4" />
-            <span className="hidden sm:inline">Visão Geral</span>
-          </TabsTrigger>
-          <TabsTrigger value="matrix" className="flex items-center gap-1.5">
-            <ArrowUpDown className="h-4 w-4" />
-            <span className="hidden sm:inline">Matriz</span>
-          </TabsTrigger>
-          <TabsTrigger value="ranking" className="flex items-center gap-1.5">
-            <ListOrdered className="h-4 w-4" />
-            <span className="hidden sm:inline">Ranking</span>
-          </TabsTrigger>
-          <TabsTrigger value="questions" className="flex items-center gap-1.5">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Perguntas</span>
-          </TabsTrigger>
-          <TabsTrigger value="students" className="flex items-center gap-1.5">
-            <User className="h-4 w-4" />
-            <span className="hidden sm:inline">Alunos</span>
-          </TabsTrigger>
-          <TabsTrigger value="timing" className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4" />
-            <span className="hidden sm:inline">Tempos</span>
-          </TabsTrigger>
-          <TabsTrigger value="insights" className="flex items-center gap-1.5">
-            <Sparkles className="h-4 w-4" />
-            <span className="hidden sm:inline">Insights IA</span>
-          </TabsTrigger>
-        </TabsList>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => printCurrentView('Relatório de Pesquisa de Satisfação')} 
-            className="gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Exportar PDF
-          </Button>
-          <Button variant="outline" onClick={() => setShowQuestionsManager(true)} className="gap-2">
-            <Settings2 className="h-4 w-4" />
-            Gerenciar Perguntas
-          </Button>
+        <div className="flex items-center justify-between flex-wrap gap-3 mt-4">
+          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+            <TabsTrigger value="overview" className="flex items-center gap-1.5">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Visão Geral</span>
+            </TabsTrigger>
+            <TabsTrigger value="matrix" className="flex items-center gap-1.5">
+              <ArrowUpDown className="h-4 w-4" />
+              <span className="hidden sm:inline">Matriz</span>
+            </TabsTrigger>
+            <TabsTrigger value="ranking" className="flex items-center gap-1.5">
+              <ListOrdered className="h-4 w-4" />
+              <span className="hidden sm:inline">Ranking</span>
+            </TabsTrigger>
+            <TabsTrigger value="questions" className="flex items-center gap-1.5">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Perguntas</span>
+            </TabsTrigger>
+            <TabsTrigger value="students" className="flex items-center gap-1.5">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Alunos</span>
+            </TabsTrigger>
+            <TabsTrigger value="timing" className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              <span className="hidden sm:inline">Tempos</span>
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Insights IA</span>
+            </TabsTrigger>
+          </TabsList>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => printCurrentView('Relatório de Pesquisa de Satisfação')} 
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Exportar PDF
+            </Button>
+            <Button variant="outline" onClick={() => setShowQuestionsManager(true)} className="gap-2">
+              <Settings2 className="h-4 w-4" />
+              Gerenciar Perguntas
+            </Button>
+          </div>
         </div>
       </div>
 
