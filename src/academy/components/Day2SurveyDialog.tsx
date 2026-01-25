@@ -441,22 +441,22 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         </DialogHeader>
 
         <div className="py-6">
-          {/* Category Badge with Speaker Image */}
-          <div className="flex items-center gap-3 mb-4">
+          {/* Category Title with Speaker Image */}
+          <div className="flex items-center gap-3 mb-6">
             {'speakerImage' in currentQ && currentQ.speakerImage && (
               <img 
                 src={currentQ.speakerImage} 
                 alt="Speaker" 
-                className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
               />
             )}
-            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+            <h2 className="text-xl font-bold text-foreground">
               {currentQ.category}
-            </span>
+            </h2>
           </div>
 
           {/* Question */}
-          <h3 className="text-lg font-medium mb-6">{currentQ.text}</h3>
+          <p className="text-base text-muted-foreground mb-6">{currentQ.text}</p>
 
           {/* Options or Text Input */}
           {currentQ.type === 'radio' && currentQ.options && (
