@@ -224,7 +224,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Média</p>
-                <p className="text-2xl font-bold">{avgScore}/48</p>
+                <p className="text-2xl font-bold">{avgScore}/54</p>
               </div>
             </div>
           </CardContent>
@@ -328,28 +328,35 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{survey.score_ia_avivar}/12</span>
+                      <span className="font-medium">{survey.score_ia_avivar}/18</span>
                       <Progress 
-                        value={(survey.score_ia_avivar / 12) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(survey.score_ia_avivar, 12)}`}
+                        value={(survey.score_ia_avivar / 18) * 100} 
+                        className={`h-1.5 w-16 ${getScoreColor(survey.score_ia_avivar, 18)}`}
                       />
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{survey.score_license}/12</span>
+                      <span className="font-medium">{survey.score_license}/18</span>
                       <Progress 
-                        value={(survey.score_license / 12) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(survey.score_license, 12)}`}
+                        value={(survey.score_license / 18) * 100} 
+                        className={`h-1.5 w-16 ${getScoreColor(survey.score_license, 18)}`}
                       />
+                      <span className={`text-[10px] ${
+                        survey.score_license >= 12 ? 'text-green-600' :
+                        survey.score_license >= 6 ? 'text-yellow-600' : 'text-muted-foreground'
+                      }`}>
+                        {survey.score_license >= 12 ? 'Extremamente qualificado' :
+                         survey.score_license >= 6 ? 'Precisa construção' : 'Fora do timing'}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{survey.score_legal}/12</span>
+                      <span className="font-medium">{survey.score_legal}/18</span>
                       <Progress 
-                        value={(survey.score_legal / 12) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(survey.score_legal, 12)}`}
+                        value={(survey.score_legal / 18) * 100} 
+                        className={`h-1.5 w-16 ${getScoreColor(survey.score_legal, 18)}`}
                       />
                     </div>
                   </TableCell>
