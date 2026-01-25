@@ -20,6 +20,8 @@ interface CourseGalleryViewerProps {
   classId: string;
   isLocked?: boolean;
   onUnlockRequest?: () => void;
+  onOpenDay1Survey?: () => void;
+  onOpenDay2Survey?: () => void;
 }
 
 // Survey table name mapping
@@ -30,7 +32,7 @@ const SURVEY_TABLE_MAP: Record<string, string> = {
   'final_satisfaction': 'final_satisfaction_surveys',
 };
 
-export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest }: CourseGalleryViewerProps) {
+export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest, onOpenDay1Survey, onOpenDay2Survey }: CourseGalleryViewerProps) {
   const { galleries, isLoading } = useStudentGalleries(classId);
   const { isAdmin, canAccessModule, user } = useUnifiedAuth();
   const navigate = useNavigate();
@@ -70,6 +72,16 @@ export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest
         .limit(1);
       if (day1 && day1.length > 0) completed.push('day1_satisfaction');
       
+      // Check day2 survey
+      const { data: day2 } = await supabase
+        .from('day2_satisfaction_surveys')
+        .select('id')
+        .eq('user_id', user.authUserId)
+        .eq('class_id', classId)
+        .eq('is_completed', true)
+        .limit(1);
+      if (day2 && day2.length > 0) completed.push('day2_satisfaction');
+      
       return completed;
     },
     enabled: !!user?.authUserId && !!classId,
@@ -99,17 +111,33 @@ export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest
           action: () => navigate(`/university/exams`)
         };
       } else if (gallery.unlock_requirement === 'survey') {
-        const isCompleted = completedSurveys?.includes(gallery.required_survey_type || '');
+        const surveyType = gallery.required_survey_type || '';
+        const isCompleted = completedSurveys?.includes(surveyType);
+        
+        // Determine which survey dialog to open based on required_survey_type
+        let surveyAction: (() => void) | undefined;
+        let surveyName = 'pesquisa de satisfação';
+        
+        if (surveyType === 'day1_satisfaction') {
+          surveyAction = onOpenDay1Survey || onUnlockRequest;
+          surveyName = 'Pesquisa de Satisfação do Dia 1';
+        } else if (surveyType === 'day2_satisfaction') {
+          surveyAction = onOpenDay2Survey || onUnlockRequest;
+          surveyName = 'Pesquisa de Satisfação do Dia 2';
+        } else {
+          surveyAction = onUnlockRequest;
+        }
+        
         status[gallery.id] = {
           locked: !isCompleted,
-          reason: 'Complete a pesquisa de satisfação para desbloquear',
-          action: () => onUnlockRequest?.() // Trigger the survey form
+          reason: `Complete a ${surveyName} para desbloquear`,
+          action: surveyAction
         };
       }
     });
     
     return status;
-  }, [galleries, completedExams, completedSurveys, isLocked, isAdmin, canManageGalleries, navigate, onUnlockRequest]);
+  }, [galleries, completedExams, completedSurveys, isLocked, isAdmin, canManageGalleries, navigate, onUnlockRequest, onOpenDay1Survey, onOpenDay2Survey]);
 
   // Handle gallery click - check specific lock status
   const handleGalleryClick = (gallery: CourseGallery) => {
