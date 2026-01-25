@@ -284,6 +284,8 @@ export function AcademyClassDetail() {
                 classId={classId || ''} 
                 isLocked={!hasDay1Completed && !isAdmin}
                 onUnlockRequest={() => setDay1SurveyDialogOpen(true)}
+                onOpenDay1Survey={() => setDay1SurveyDialogOpen(true)}
+                onOpenDay2Survey={() => setDay2SurveyDialogOpen(true)}
               />
             </div>
           )}
