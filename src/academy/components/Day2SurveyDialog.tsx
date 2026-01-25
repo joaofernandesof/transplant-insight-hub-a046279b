@@ -155,31 +155,44 @@ const QUESTIONS = [
       { value: 'Perco muitas oportunidades e isso trava meu crescimento' }
     ]
   },
-  // Section 5: Licença ByNeofolic
+  // Section 5: Licença ByNeofolic - BNT Direto com valor explícito
   {
-    key: 'q14_license_current_structure',
-    text: 'Hoje, como você estruturou sua clínica ou projeto na área capilar?',
+    key: 'q15_license_path',
+    text: 'Considerando um investimento inicial de R$ 80.000 para operar sob uma licença estruturada, qual dessas opções mais se aproxima da sua realidade atual?',
     type: 'radio',
     category: 'Licença ByNeofolic',
     icon: <Target className="h-5 w-5" />,
     options: [
-      { value: 'Tudo foi construído sozinho, sem modelo' },
-      { value: 'Tenho referências, mas adaptei por conta própria' },
-      { value: 'Sigo parcialmente um modelo validado' },
-      { value: 'Opero ou quero operar com um modelo testado e acompanhado' }
+      { value: 'Não é viável para mim hoje' },
+      { value: 'Seria viável apenas com muito planejamento' },
+      { value: 'É viável se o modelo fizer sentido' },
+      { value: 'É totalmente viável para mim' }
     ]
   },
   {
-    key: 'q15_license_acceleration',
-    text: 'O quanto ter acompanhamento, processos prontos e uma marca validada aceleraria seus resultados?',
+    key: 'q16_license_pace',
+    text: 'Pensando no estágio atual da sua clínica ou projeto, o quanto operar sem um modelo licenciado e padronizado te expõe a erros, retrabalho ou crescimento lento?',
     type: 'radio',
     category: 'Licença ByNeofolic',
     icon: <Target className="h-5 w-5" />,
     options: [
-      { value: 'Não faria diferença' },
-      { value: 'Ajudaria um pouco' },
-      { value: 'Ajudaria bastante' },
-      { value: 'Seria decisivo para crescer mais rápido' }
+      { value: 'Não me expõe' },
+      { value: 'Me expõe pouco' },
+      { value: 'Me expõe bastante' },
+      { value: 'É um dos meus principais gargalos' }
+    ]
+  },
+  {
+    key: 'q17_license_timing',
+    text: 'Em que momento faria sentido para você avaliar seriamente a entrada em uma licença com investimento nessa faixa?',
+    type: 'radio',
+    category: 'Licença ByNeofolic',
+    icon: <Target className="h-5 w-5" />,
+    options: [
+      { value: 'Não penso nisso no momento' },
+      { value: 'Talvez em um futuro distante' },
+      { value: 'Nos próximos meses' },
+      { value: 'Agora é o momento certo' }
     ]
   },
   // Section 6: Assessoria Jurídica
