@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useGalleryManagement, useGalleryPhotos, CourseGallery } from '@/academy/hooks/useCourseGalleries';
+import { useGalleryManagement, useGalleryPhotos, CourseGallery, GalleryPhoto } from '@/academy/hooks/useCourseGalleries';
+import { useGalleryStats, usePhotoStats, useGalleryLogs, useTrackPhotoAction } from '@/academy/hooks/useGalleryAnalytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,14 +13,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
-  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop, Lock, LockOpen, CheckSquare, Square
+  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop, Lock, LockOpen, CheckSquare, Square, Download, BarChart3, Activity, User
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CoverPhotoCropper } from '@/academy/components/CoverPhotoCropper';
 import { LinkGalleryRequirementDialog } from '@/neohub/components/LinkGalleryRequirementDialog';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function NeoTeamGalleries() {
@@ -507,6 +509,9 @@ function GalleryEditDialog({
   canDelete,
 }: GalleryEditDialogProps) {
   const { photos, isLoading, refetch } = useGalleryPhotos(gallery.id);
+  const { stats: galleryStats, isLoading: statsLoading } = useGalleryStats(gallery.id);
+  const { statsMap: photoStatsMap } = usePhotoStats(gallery.id);
+  const { logs, isLoading: logsLoading } = useGalleryLogs(gallery.id, 100);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [selectedPhotoForCrop, setSelectedPhotoForCrop] = useState<string | null>(null);
@@ -588,9 +593,13 @@ function GalleryEditDialog({
         </DialogHeader>
 
         <Tabs defaultValue="photos" className="flex-1 overflow-hidden flex flex-col">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="photos">
               Fotos ({gallery.photo_count})
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              <BarChart3 className="h-4 w-4 mr-1" />
+              Analytics
             </TabsTrigger>
             <TabsTrigger value="info">Informações</TabsTrigger>
           </TabsList>
@@ -702,6 +711,7 @@ function GalleryEditDialog({
                   {photos.map((photo) => {
                     const isCover = gallery.cover_photo_url === photo.full_url;
                     const isSelected = selectedPhotos.has(photo.id);
+                    const photoStats = photoStatsMap.get(photo.id);
                     return (
                       <div
                         key={photo.id}
@@ -737,6 +747,17 @@ function GalleryEditDialog({
                             Capa
                           </div>
                         )}
+                        {/* Stats badge - views and downloads */}
+                        <div className="absolute bottom-1 left-1 flex items-center gap-1.5">
+                          <div className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1">
+                            <Eye className="h-3 w-3" />
+                            {photoStats?.view_count || 0}
+                          </div>
+                          <div className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1">
+                            <Download className="h-3 w-3" />
+                            {photoStats?.download_count || 0}
+                          </div>
+                        </div>
                         {/* Hover overlay for selecting cover */}
                         {canWrite && !isCover && (
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -761,6 +782,101 @@ function GalleryEditDialog({
                   })}
                 </div>
               )}
+            </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="flex-1 overflow-auto">
+            <div className="space-y-6">
+              {/* Stats Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+                      <Eye className="h-4 w-4" />
+                      Visualizações
+                    </div>
+                    <p className="text-2xl font-bold">{galleryStats?.total_views || 0}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+                      <Download className="h-4 w-4" />
+                      Downloads
+                    </div>
+                    <p className="text-2xl font-bold">{galleryStats?.total_downloads || 0}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+                      <Users className="h-4 w-4" />
+                      Usuários Únicos
+                    </div>
+                    <p className="text-2xl font-bold">{galleryStats?.unique_users || 0}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+                      <Images className="h-4 w-4" />
+                      Fotos Baixadas
+                    </div>
+                    <p className="text-2xl font-bold">{galleryStats?.photos_downloaded || 0}</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Activity Log */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  Histórico de Atividades
+                </h3>
+                
+                {logsLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-12" />)}
+                  </div>
+                ) : logs.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhuma atividade registrada ainda
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[300px] border rounded-lg">
+                    <div className="divide-y">
+                      {logs.map((log) => (
+                        <div key={log.id} className="p-3 flex items-center gap-3 hover:bg-muted/50">
+                          <div className={`p-2 rounded-full ${
+                            log.action_type === 'download' 
+                              ? 'bg-emerald-100 text-emerald-700' 
+                              : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {log.action_type === 'download' 
+                              ? <Download className="h-4 w-4" /> 
+                              : <Eye className="h-4 w-4" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {log.user_name || log.user_email || 'Usuário anônimo'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {log.action_type === 'download' ? 'Baixou' : 'Visualizou'} uma foto
+                            </p>
+                          </div>
+                          <div className="text-right text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(log.created_at), { 
+                              addSuffix: true, 
+                              locale: ptBR 
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
             </div>
           </TabsContent>
 
