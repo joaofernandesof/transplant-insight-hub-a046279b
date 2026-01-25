@@ -244,13 +244,38 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     if (survey.q20_legal_timing) legalScore += legalScoreMap[survey.q20_legal_timing] || 0;
     
     // Count answered questions per section
+    const iaAnswered = [survey.q12_avivar_current_process, survey.q13_avivar_opportunity_loss, survey.q14_avivar_timing].filter(Boolean).length;
+    const licenseAnswered = [survey.q15_license_path, survey.q16_license_pace, survey.q17_license_timing].filter(Boolean).length;
+    const legalAnswered = [survey.q18_legal_feeling, survey.q19_legal_influence, survey.q20_legal_timing].filter(Boolean).length;
+
     const answeredQuestions = {
       satisfaction: survey.q1_satisfaction_level ? 1 : 0,
       joao: [survey.q2_joao_expectations, survey.q3_joao_clarity, survey.q4_joao_time, survey.q5_joao_liked_most, survey.q6_joao_improve].filter(Boolean).length,
       larissa: [survey.q7_larissa_expectations, survey.q8_larissa_clarity, survey.q9_larissa_time, survey.q10_larissa_liked_most, survey.q11_larissa_improve].filter(Boolean).length,
-      ia: [survey.q12_avivar_current_process, survey.q13_avivar_opportunity_loss, survey.q14_avivar_timing].filter(Boolean).length,
-      license: [survey.q15_license_path, survey.q16_license_pace, survey.q17_license_timing].filter(Boolean).length,
-      legal: [survey.q18_legal_feeling, survey.q19_legal_influence, survey.q20_legal_timing].filter(Boolean).length,
+      ia: iaAnswered,
+      license: licenseAnswered,
+      legal: legalAnswered,
+    };
+
+    // Calculate max possible score based on answered questions (6pts per question)
+    const iaMaxPossible = iaAnswered * 6;
+    const licenseMaxPossible = licenseAnswered * 6;
+    const legalMaxPossible = legalAnswered * 6;
+    const totalMaxPossible = iaMaxPossible + licenseMaxPossible + legalMaxPossible;
+
+    // Calculate percentages (avoid division by zero)
+    const iaPercent = iaMaxPossible > 0 ? (iaScore / iaMaxPossible) * 100 : 0;
+    const licensePercent = licenseMaxPossible > 0 ? (licenseScore / licenseMaxPossible) * 100 : 0;
+    const legalPercent = legalMaxPossible > 0 ? (legalScore / legalMaxPossible) * 100 : 0;
+    const totalPercent = totalMaxPossible > 0 ? ((iaScore + licenseScore + legalScore) / totalMaxPossible) * 100 : 0;
+
+    // Determine weighted classification based on percentages (not absolute scores)
+    // Hot = 66%+, Warm = 33-66%, Cold = <33%
+    const getLevel = (percent: number, answered: number): 'hot' | 'warm' | 'cold' | 'pending' => {
+      if (answered === 0) return 'pending';
+      if (percent >= 66) return 'hot';
+      if (percent >= 33) return 'warm';
+      return 'cold';
     };
     
     return {
@@ -259,6 +284,19 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
       legalScore,
       total: iaScore + licenseScore + legalScore,
       answered: answeredQuestions,
+      // New weighted fields
+      iaMaxPossible,
+      licenseMaxPossible,
+      legalMaxPossible,
+      totalMaxPossible,
+      iaPercent,
+      licensePercent,
+      legalPercent,
+      totalPercent,
+      iaLevel: getLevel(iaPercent, iaAnswered),
+      licenseLevel: getLevel(licensePercent, licenseAnswered),
+      legalLevel: getLevel(legalPercent, legalAnswered),
+      totalAnswered: iaAnswered + licenseAnswered + legalAnswered,
     };
   };
 

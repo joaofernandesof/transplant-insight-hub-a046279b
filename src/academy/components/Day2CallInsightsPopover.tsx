@@ -14,33 +14,73 @@ interface Day2CallInsightsPopoverProps {
   children: React.ReactNode;
 }
 
-const getInsightLevel = (score: number, max: number): 'hot' | 'warm' | 'cold' => {
-  const pct = (score / max) * 100;
+const getInsightLevel = (score: number, answeredCount: number): 'hot' | 'warm' | 'cold' | 'pending' => {
+  if (answeredCount === 0) return 'pending';
+  const maxPossible = answeredCount * 6; // 6pts per question
+  const pct = (score / maxPossible) * 100;
   if (pct >= 66) return 'hot';
   if (pct >= 33) return 'warm';
   return 'cold';
 };
 
-const InsightBadge = ({ level }: { level: 'hot' | 'warm' | 'cold' }) => {
+const InsightBadge = ({ level }: { level: 'hot' | 'warm' | 'cold' | 'pending' }) => {
   const config = {
     hot: { label: 'QUENTE', className: 'bg-red-500 text-white' },
     warm: { label: 'MORNO', className: 'bg-amber-500 text-white' },
     cold: { label: 'FRIO', className: 'bg-blue-400 text-white' },
+    pending: { label: 'PENDENTE', className: 'bg-gray-400 text-white' },
   };
   return <Badge className={config[level].className}>{config[level].label}</Badge>;
 };
 
 export function Day2CallInsightsPopover({ survey, day1Survey, children }: Day2CallInsightsPopoverProps) {
-  // Extract scores
-  const iaScore = survey.score_ia_avivar || 0;
-  const licenseScore = survey.score_license || 0;
-  const legalScore = survey.score_legal || 0;
-  const totalScore = survey.score_total || 0;
+  // Count answered questions per section
+  const iaAnswered = [survey.q12_avivar_current_process, survey.q13_avivar_opportunity_loss, survey.q14_avivar_timing].filter(Boolean).length;
+  const licenseAnswered = [survey.q15_license_path, survey.q16_license_pace, survey.q17_license_timing].filter(Boolean).length;
+  const legalAnswered = [survey.q18_legal_feeling, survey.q19_legal_influence, survey.q20_legal_timing].filter(Boolean).length;
 
-  // Determine levels
-  const iaLevel = getInsightLevel(iaScore, 18);
-  const licenseLevel = getInsightLevel(licenseScore, 18);
-  const legalLevel = getInsightLevel(legalScore, 18);
+  // Calculate scores from responses
+  const iaScoreMap: Record<string, number> = {
+    'Tudo depende de pessoas e memória': 0, 'Tudo manual, depende de pessoas': 0,
+    'Uso WhatsApp, mas sem padrão definido': 2, 'Tenho organização básica, mas com falhas frequentes': 2,
+    'Tenho algum sistema, mas é pouco eficiente': 2, 'Consigo organizar, mas sinto limites claros': 4,
+    'Tenho estrutura e quero ganhar escala e previsibilidade': 6,
+    'Funciona bem do jeito que está': 0, 'Não vejo perda de oportunidades': 0,
+    'Perco poucas oportunidades': 2, 'Funciona, mas gera desgaste': 2,
+    'Perco bastante, mas consigo lidar': 4, 'Funciona com perda de oportunidades': 4,
+    'Perco muitas oportunidades e isso trava meu crescimento': 6, 'É um gargalo claro no crescimento': 6,
+    'Não é prioridade agora': 0, 'Quando tiver mais tempo': 2, 'Nos próximos meses': 4, 'O quanto antes': 6,
+  };
+  const licenseScoreMap: Record<string, number> = {
+    'Não é viável para mim hoje': 0, 'Seria viável apenas com muito planejamento': 2,
+    'É viável se o modelo fizer sentido': 4, 'É totalmente viável para mim': 6,
+    'Não me expõe': 0, 'Me expõe pouco': 2, 'Me expõe bastante': 4, 'É um dos meus principais gargalos': 6,
+    'Não penso nisso no momento': 0, 'Talvez em um futuro distante': 2, 'Nos próximos meses': 4, 'Agora é o momento certo': 6,
+  };
+  const legalScoreMap: Record<string, number> = {
+    'Tranquilo e seguro': 0, 'Um pouco inseguro': 2, 'Inseguro em alguns pontos': 4, 'Exposto a riscos que me preocupam': 6,
+    'Não influenciam': 0, 'Influenciam pouco': 2, 'Influenciam bastante': 4, 'Travaram ou quase travaram decisões importantes': 6,
+    'Não vejo isso como prioridade': 0, 'Quando o negócio estiver maior': 2, 'Nos próximos meses': 4, 'O quanto antes': 6,
+  };
+
+  let iaScore = 0, licenseScore = 0, legalScore = 0;
+  if (survey.q12_avivar_current_process) iaScore += iaScoreMap[survey.q12_avivar_current_process] || 0;
+  if (survey.q13_avivar_opportunity_loss) iaScore += iaScoreMap[survey.q13_avivar_opportunity_loss] || 0;
+  if (survey.q14_avivar_timing) iaScore += iaScoreMap[survey.q14_avivar_timing] || 0;
+  if (survey.q15_license_path) licenseScore += licenseScoreMap[survey.q15_license_path] || 0;
+  if (survey.q16_license_pace) licenseScore += licenseScoreMap[survey.q16_license_pace] || 0;
+  if (survey.q17_license_timing) licenseScore += licenseScoreMap[survey.q17_license_timing] || 0;
+  if (survey.q18_legal_feeling) legalScore += legalScoreMap[survey.q18_legal_feeling] || 0;
+  if (survey.q19_legal_influence) legalScore += legalScoreMap[survey.q19_legal_influence] || 0;
+  if (survey.q20_legal_timing) legalScore += legalScoreMap[survey.q20_legal_timing] || 0;
+
+  const totalScore = iaScore + licenseScore + legalScore;
+  const totalAnswered = iaAnswered + licenseAnswered + legalAnswered;
+
+  // Determine levels based on WEIGHTED percentage (not absolute)
+  const iaLevel = getInsightLevel(iaScore, iaAnswered);
+  const licenseLevel = getInsightLevel(licenseScore, licenseAnswered);
+  const legalLevel = getInsightLevel(legalScore, legalAnswered);
 
   // Key responses for call preparation
   const keyInsights = {
@@ -130,33 +170,39 @@ export function Day2CallInsightsPopover({ survey, day1Survey, children }: Day2Ca
             <p className="text-xs text-muted-foreground">Insights combinados D1 + D2</p>
           </div>
           <Badge variant="outline" className="font-bold">
-            {totalScore}/54 pts
+            {totalScore}/{totalAnswered * 6} pts
           </Badge>
         </div>
 
         {/* Product Interest Summary */}
         <div className="p-3 border-b">
           <h5 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-            Interesse por Produto
+            Interesse por Produto (ponderado)
           </h5>
           <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-yellow-500/10">
-              <Zap className="h-4 w-4 text-yellow-500" />
+            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-amber-500/10">
+              <Zap className="h-4 w-4 text-amber-500" />
               <span className="text-xs font-medium">IA Avivar</span>
               <InsightBadge level={iaLevel} />
-              <span className="text-[10px] text-muted-foreground">{iaScore}/18</span>
+              <span className="text-[10px] text-muted-foreground">
+                {iaScore}/{iaAnswered * 6} ({iaAnswered}/3 resp)
+              </span>
             </div>
-            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-green-500/10">
-              <Target className="h-4 w-4 text-green-500" />
+            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-emerald-500/10">
+              <Target className="h-4 w-4 text-emerald-500" />
               <span className="text-xs font-medium">Licença</span>
               <InsightBadge level={licenseLevel} />
-              <span className="text-[10px] text-muted-foreground">{licenseScore}/18</span>
+              <span className="text-[10px] text-muted-foreground">
+                {licenseScore}/{licenseAnswered * 6} ({licenseAnswered}/3 resp)
+              </span>
             </div>
-            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-red-500/10">
-              <Shield className="h-4 w-4 text-red-500" />
+            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-rose-500/10">
+              <Shield className="h-4 w-4 text-rose-500" />
               <span className="text-xs font-medium">Jurídico</span>
               <InsightBadge level={legalLevel} />
-              <span className="text-[10px] text-muted-foreground">{legalScore}/18</span>
+              <span className="text-[10px] text-muted-foreground">
+                {legalScore}/{legalAnswered * 6} ({legalAnswered}/3 resp)
+              </span>
             </div>
           </div>
         </div>
