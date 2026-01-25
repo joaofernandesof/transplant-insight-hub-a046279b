@@ -346,8 +346,8 @@ export default function AdminDashboard() {
                     onClick={() => navigate(mod.path)}
                     className="group flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all bg-muted/30"
                   >
-                    <div className={`p-2.5 rounded-xl ${mod.color} text-white shadow-sm`}>
-                      <mod.icon className="h-5 w-5" />
+                    <div className={`p-3.5 rounded-xl ${mod.color} text-white shadow-md`}>
+                      <mod.icon className="h-7 w-7" />
                     </div>
                     <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{mod.title}</span>
                   </button>
