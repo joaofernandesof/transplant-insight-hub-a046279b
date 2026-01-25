@@ -632,6 +632,302 @@ const callProfiles: CallProfile[] = [
       'Demonstração IA Avivar',
       'Proposta para adicionar transplante à clínica'
     ]
+  },
+  {
+    id: 'alef-marchezi',
+    name: 'Dr. Alef Marchezi Pereira',
+    role: 'Médico Estético (Harmonização)',
+    callDate: '01-05/09/2025',
+    callDuration: '60+ min (2 calls)',
+    summary: 'PERFIL OURO! Já trabalha com estética (harmonização, toxina, estimuladores). Perde pacientes que perguntam sobre capilar. Tem consultório interior SP + co-work em São Paulo capital. Família tem agência de marketing! Plano de negócio já elaborado. Quer ir para Maringá-PR.',
+    
+    currentSituation: 'Atua com estética (injetáveis, harmonização). Consultório no interior SP + aluga hora em SP capital. Iniciando pós-dermatologia.',
+    location: 'Interior de São Paulo → Maringá, PR (plano)',
+    experience: 'Médico estético. Harmonização, toxina, estimuladores. Pacientes já perguntam sobre capilar.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Família tem agência de marketing! IA Avivar + marketing da família = combinação perfeita para escalar.',
+    licensePotential: 'high',
+    licenseNotes: 'Já tem plano de negócio elaborado. Estrutura familiar de marketing. Perfil empreendedor forte. Alto potencial de licença.',
+    legalPotential: 'medium',
+    legalNotes: 'Precisa de estrutura jurídica para montar operação entre duas cidades.',
+    
+    painPoints: [
+      'Perde pacientes que perguntam sobre capilar',
+      'Indica para outros médicos quando poderia fazer',
+      'Precisa ampliar portfólio de serviços'
+    ],
+    objectives: [
+      'Parar de perder pacientes de capilar',
+      'Ampliar portfólio com transplante',
+      'Mudar para Maringá final do ano que vem',
+      'Usar estrutura familiar de marketing'
+    ],
+    objections: [
+      'Custo de centro cirúrgico pode ser alto',
+      'Precisa entender precificação por região'
+    ],
+    decisionFactors: [
+      'Família tem agência de marketing (vantagem enorme)',
+      'Já tem pacientes que confiam nele',
+      'Plano de negócio já elaborado',
+      'Equipe Neofolic pode ir até ele',
+      'Centro cirúrgico pode alugar por dia, não hora'
+    ],
+    
+    recommendedApproach: 'LEAD PRIORITÁRIO! Família com agência de marketing + pacientes existentes + plano de negócio = combinação perfeita. Oferecer licença com condições especiais. IA Avivar como upgrade natural.',
+    urgencyLevel: 'high',
+    nextSteps: [
+      'Proposta de licença com condições especiais',
+      'Conectar marketing da família com IA Avivar',
+      'Definir turma mais próxima'
+    ]
+  },
+  {
+    id: 'livia-ana',
+    name: 'Dra. Lívia Alana',
+    role: 'Dermatologista + Tricologista + Nutróloga',
+    callDate: '05/01/2026',
+    callDuration: '62 min',
+    summary: 'JÁ FEZ CURSO de transplante antes mas engravidou e parou! Tem 2 consultórios (Pocrane 8mil hab + Luaçu 80mil hab). Tem laser, Dermapen, equipamentos. Diretora de hospital + SUS + plantões. Quer sair dessa vida. Fatura R$50k mas lucra pouco.',
+    
+    currentSituation: 'Dois consultórios montados para transplante. Engravidou e parou. Trabalha SUS + diretora hospital + plantões. Fatura R$50k, lucra pouco.',
+    location: 'Pocrane, MG (8mil hab) + Luaçu, MG (80mil hab)',
+    experience: '6 anos de formada. Dermatologia, cirurgia, nutrologia. JÁ FEZ CURSO de transplante. Tem equipamentos.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Dois consultórios prontos! IA Avivar para gerenciar operação em duas cidades sem aumentar equipe.',
+    licensePotential: 'medium',
+    licenseNotes: 'Estrutura já montada. Pode considerar licença para padronizar operação.',
+    legalPotential: 'medium',
+    legalNotes: 'Precisa de contratos para operação em duas cidades diferentes.',
+    
+    painPoints: [
+      'Fez curso mas engravidou e parou',
+      'Perdeu confiança após muito tempo parada',
+      'Fatura R$50k mas sobra quase nada',
+      'Custo fixo R$20k + parcelas de equipamentos',
+      'Vida de plantão + SUS + diretora hospital'
+    ],
+    objectives: [
+      'Retomar transplante capilar',
+      'Sair do SUS e plantões',
+      'Dobrar faturamento (R$50k → R$100k)',
+      'Abrir cidade nova com R$150k faturamento',
+      'Ter qualidade de vida'
+    ],
+    objections: [
+      'Já fez curso antes (precisa ver diferencial)',
+      'Perdeu segurança técnica após pausa',
+      'Investiu em equipamentos que ainda está pagando'
+    ],
+    decisionFactors: [
+      'Já tem estrutura montada para transplante',
+      'Já tem equipamentos (laser, Dermapen, motor)',
+      'Interior de MG sem concorrência',
+      'Mentoria contínua para retomar confiança'
+    ],
+    
+    recommendedApproach: 'Destacar que é RECICLAGEM, não curso do zero. Ela já tem tudo, só precisa retomar confiança. Mentoria intensiva pós-curso. IA Avivar para gerenciar duas cidades.',
+    urgencyLevel: 'high',
+    nextSteps: [
+      'Proposta de reciclagem com mentoria intensiva',
+      'Demonstração IA Avivar para duas cidades',
+      'Plano para sair do SUS em 6 meses'
+    ]
+  },
+  {
+    id: 'mariane-torres',
+    name: 'Dra. Mariane Torres',
+    role: 'Dentista + Médica Recém-Formada',
+    callDate: '19/12/2025',
+    callDuration: '30 min',
+    summary: 'DENTISTA HÁ 16 ANOS + Médica há 6 meses! Vive de plantão. Mora no interior de SP (Santa Fé do Sul), quase divisa com MS. Cidade de 180km de Rio Preto. Quer sair do plantão.',
+    
+    currentSituation: 'Dentista há 16 anos. Médica há 6 meses. Vive de plantão. Interior de SP, quase MS.',
+    location: 'Santa Fé do Sul, SP (divisa MS, 180km de Rio Preto)',
+    experience: '16 anos de odontologia. 6 meses de medicina. Experiência manual excelente.',
+    
+    iaAvivarPotential: 'medium',
+    iaAvivarNotes: 'Recém-formada em medicina, ainda fazendo pé de meia. IA Avivar para quando estruturar.',
+    licensePotential: 'low',
+    licenseNotes: 'Recém-formada, ainda sem estrutura. Foco no curso primeiro.',
+    legalPotential: 'medium',
+    legalNotes: 'Vai precisar de estrutura jurídica para começar do zero.',
+    
+    painPoints: [
+      'Vive de plantão há 6 meses',
+      'Não tem nada fixo ainda',
+      'Cidade pequena, poucas opções',
+      'Quer sair da correria de plantão'
+    ],
+    objectives: [
+      'Sair da vida de plantão',
+      'Aproveitar experiência manual da odontologia',
+      'Ser referência na região (interior SP/MS)'
+    ],
+    objections: [
+      'Muito nova na medicina (6 meses)',
+      'Precisa fazer pé de meia'
+    ],
+    decisionFactors: [
+      '16 anos de odontologia = mão treinada',
+      'Região sem concorrência',
+      'Modelo de terceirização permite começar sem investimento'
+    ],
+    
+    recommendedApproach: 'Destacar que 16 anos de odontologia dão vantagem enorme na parte manual. Região sem concorrência. Modelo terceirizado para começar.',
+    urgencyLevel: 'medium',
+    nextSteps: [
+      'Simulação de custos para região',
+      'Modelo de início terceirizado',
+      'Definir turma'
+    ]
+  },
+  {
+    id: 'carlos-schlischka',
+    name: 'Dr. Carlos Rodolfo Schlischka',
+    role: 'Otorrinolaringologista',
+    callDate: '15-20/10/2025',
+    callDuration: '40+ min (2 calls)',
+    summary: 'JÁ FEZ PÓS em tricologia (BWS)! Já trabalhava com transplante em SP antes da pandemia. Voltou para Cuiabá, parou, virou preceptor de otorrino. Quer RECICLAGEM para voltar. Quer faturar mais.',
+    
+    currentSituation: 'Otorrino, preceptor de residência em Cuiabá. Fez pós em tricologia na BWS. Parou na pandemia.',
+    location: 'Cuiabá, MT',
+    experience: 'Otorrino. Pós em tricologia BWS. Já fez transplante, barba, sobrancelha em SP.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Já tem experiência, só precisa retomar. IA Avivar para escalar quando retomar operação.',
+    licensePotential: 'medium',
+    licenseNotes: 'Já tem experiência prévia. Pode considerar licença para acelerar retorno.',
+    legalPotential: 'low',
+    legalNotes: 'Já tem experiência com estrutura jurídica de quando atuava em SP.',
+    
+    painPoints: [
+      'Parou na pandemia, ficou 4-5 anos sem fazer',
+      'Quer faturar mais do que otorrino permite',
+      'Precisa de reciclagem para pegar a mão'
+    ],
+    objectives: [
+      'Voltar a atuar com transplante',
+      'Reciclagem técnica (4-5 anos parado)',
+      'Ver novidades da área',
+      'Faturar mais'
+    ],
+    objections: [
+      'Já tem formação, quer apenas reciclar'
+    ],
+    decisionFactors: [
+      'Já tem experiência prévia (vantagem)',
+      'Cuiabá tem mercado aquecido',
+      '24 cirurgias para retomar prática'
+    ],
+    
+    recommendedApproach: 'Vender como reciclagem intensiva. Destacar que 24 cirurgias em 3 dias = retomar confiança rápido. Cuiabá é mercado promissor.',
+    urgencyLevel: 'medium',
+    nextSteps: [
+      'Proposta de reciclagem',
+      'Comparativo: o que mudou em 4-5 anos',
+      'Definir turma'
+    ]
+  },
+  {
+    id: 'alexandre-orlandi',
+    name: 'Dr. Alexandre Orlandi',
+    role: 'Cirurgião Experiente',
+    callDate: '15/01/2026',
+    callDuration: '47 min',
+    summary: 'EXPERIENTE! Já tem certificado do CFM de cirurgia. Já fez cursos mas NUNCA FEZ FIO A FIO. Fez outros cursos que enrolaram. De Belo Horizonte. Filho é administrador e tá botando fogo. Já teve centro cirúrgico próprio!',
+    
+    currentSituation: 'Cirurgião com certificado CFM. Já fez cursos, nunca fez fio a fio. Já teve centro cirúrgico próprio. Filho administrador.',
+    location: 'Belo Horizonte, MG',
+    experience: 'Cirurgião certificado CFM. Fez cursos antes. Já teve centro cirúrgico próprio.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Filho é administrador! IA Avivar + gestão do filho = combinação perfeita.',
+    licensePotential: 'high',
+    licenseNotes: 'Experiente, já teve estrutura própria. Filho administrador pode gerenciar. Alto potencial.',
+    legalPotential: 'low',
+    legalNotes: 'Experiente, já conhece estrutura jurídica de ter tido centro cirúrgico.',
+    
+    painPoints: [
+      'Fez cursos que enrolaram e não entregaram',
+      'Nunca aprendeu fio a fio direito',
+      'Desorientado, quer recomeçar',
+      'Terceirizava tudo menos equipe'
+    ],
+    objectives: [
+      'Aprender fio a fio de verdade',
+      'Recomeçar com sistema mais focado',
+      'Filho administrador quer ajudar'
+    ],
+    objections: [
+      'Já gastou com cursos ruins',
+      'Precisa ver diferencial claro'
+    ],
+    decisionFactors: [
+      'Filho administrador (gestão garantida)',
+      '24 cirurgias para aprender fio a fio',
+      'Estrutura hospitalar de verdade',
+      'Mentoria contínua'
+    ],
+    
+    recommendedApproach: 'Comparar com cursos anteriores que enrolaram. Destacar 24 cirurgias reais. Envolver filho administrador na conversa. Licença pode ser caminho para pai + filho.',
+    urgencyLevel: 'high',
+    nextSteps: [
+      'Call com filho administrador junto',
+      'Proposta de licença pai + filho',
+      'Definir turma próxima semana'
+    ]
+  },
+  {
+    id: 'paulo-batista',
+    name: 'Dr. Paulo Batista',
+    role: 'Médico Recém-Formado (Plantões)',
+    callDate: '16/01/2026',
+    callDuration: '46 min',
+    summary: '30 anos, formou há 6 meses! Fazendo pós em urgência/emergência. Vê teto nos plantões. Quer escalar. De MACAPÁ! Região Norte sem concorrência.',
+    
+    currentSituation: 'Formado há 6 meses. Vive de plantões. Fazendo pós em urgência. Satisfeito com ganho atual mas vê teto.',
+    location: 'Macapá, AP (Região Norte)',
+    experience: '6 meses de formado. Fazendo pós em urgência/emergência.',
+    
+    iaAvivarPotential: 'medium',
+    iaAvivarNotes: 'Recém-formado, vai precisar de IA Avivar quando escalar operação.',
+    licensePotential: 'low',
+    licenseNotes: 'Muito novo, ainda fazendo pé de meia. Licença é para fase posterior.',
+    legalPotential: 'high',
+    legalNotes: 'Vai começar do zero, precisa de toda estrutura jurídica.',
+    
+    painPoints: [
+      'Plantão tem teto de ganho',
+      '20-30 plantões/mês é insustentável',
+      'Novo, quer ter vida além de plantão',
+      'Cidade pequena, poucas opções locais'
+    ],
+    objectives: [
+      'Escalar ganhos além do plantão',
+      'Ter liberdade e qualidade de vida',
+      'Ser referência em Macapá/Norte'
+    ],
+    objections: [
+      'Muito nova na medicina',
+      'Não vê realidade em cidade pequena'
+    ],
+    decisionFactors: [
+      'Macapá sem concorrência (Região Norte)',
+      '30 mil pacientes por médico no Brasil',
+      'Terceirização permite começar sem investimento',
+      '72% dos alunos operam em 30 dias'
+    ],
+    
+    recommendedApproach: 'Destacar que Macapá = oceano azul. Região Norte praticamente sem concorrência. Modelo terceirizado para começar sem investimento. Assessoria jurídica completa.',
+    urgencyLevel: 'high',
+    nextSteps: [
+      'Mapeamento de mercado Macapá/Norte',
+      'Modelo terceirizado para região',
+      'Pacote com assessoria jurídica'
+    ]
   }
 ];
 
