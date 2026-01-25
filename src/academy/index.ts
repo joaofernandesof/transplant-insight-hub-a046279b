@@ -18,7 +18,8 @@ export {
   AcademySettings,
   AcademyChat,
   AcademyReferral,
-  Formacao360ReferralLanding
+  Formacao360ReferralLanding,
+  SurveyManagement
 } from './pages';
 export { useAcademyEnrollments } from './hooks/useAcademyEnrollments';
 export { useClassDetails } from './hooks/useClassDetails';
