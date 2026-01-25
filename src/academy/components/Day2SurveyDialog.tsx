@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useDay2Survey } from '../hooks/useDay2Survey';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield, Calendar, MessageSquare } from 'lucide-react';
+import joaoFernandesImg from '@/assets/joao-fernandes.png';
 
 interface Day2SurveyDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ const QUESTIONS = [
     text: 'O tema abordado atendeu às suas expectativas?',
     type: 'radio',
     category: 'Aula João Fernandes - Gestão Inteligente e Expansão Clínica',
+    speakerImage: joaoFernandesImg,
     options: [
       { value: 'Não atendeu', icon: <ThumbsDown className="h-5 w-5 text-red-500" /> },
       { value: 'Atendeu parcialmente', icon: <Meh className="h-5 w-5 text-yellow-500" /> },
@@ -49,6 +51,7 @@ const QUESTIONS = [
     text: 'O professor conseguiu explicar os conceitos de forma clara e compreensível?',
     type: 'radio',
     category: 'Aula João Fernandes - Gestão Inteligente e Expansão Clínica',
+    speakerImage: joaoFernandesImg,
     options: [
       { value: 'Discordo totalmente', icon: <Frown className="h-5 w-5 text-red-500" /> },
       { value: 'Discordo', icon: <Frown className="h-5 w-5 text-orange-500" /> },
@@ -62,6 +65,7 @@ const QUESTIONS = [
     text: 'Você sentiu que o tempo da aula foi suficiente para abordar o tema?',
     type: 'radio',
     category: 'Aula João Fernandes - Gestão Inteligente e Expansão Clínica',
+    speakerImage: joaoFernandesImg,
     options: [
       { value: 'Insuficiente', icon: <Clock className="h-5 w-5 text-red-500" /> },
       { value: 'Adequado', icon: <Clock className="h-5 w-5 text-green-500" /> },
@@ -72,13 +76,15 @@ const QUESTIONS = [
     key: 'q5_joao_liked_most',
     text: 'O que você mais gostou na aula do João Fernandes?',
     type: 'text',
-    category: 'Aula João Fernandes - Gestão Inteligente e Expansão Clínica'
+    category: 'Aula João Fernandes - Gestão Inteligente e Expansão Clínica',
+    speakerImage: joaoFernandesImg
   },
   {
     key: 'q6_joao_improve',
     text: 'O que poderia melhorar na aula do João Fernandes?',
     type: 'text',
-    category: 'Aula João Fernandes - Gestão Inteligente e Expansão Clínica'
+    category: 'Aula João Fernandes - Gestão Inteligente e Expansão Clínica',
+    speakerImage: joaoFernandesImg
   },
   // Section 3: Aula Larissa Guerreiro
   {
@@ -429,8 +435,15 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         </DialogHeader>
 
         <div className="py-6">
-          {/* Category Badge */}
-          <div className="flex items-center gap-2 mb-4">
+          {/* Category Badge with Speaker Image */}
+          <div className="flex items-center gap-3 mb-4">
+            {'speakerImage' in currentQ && currentQ.speakerImage && (
+              <img 
+                src={currentQ.speakerImage} 
+                alt="Speaker" 
+                className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+              />
+            )}
             <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
               {currentQ.category}
             </span>
