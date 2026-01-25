@@ -398,18 +398,25 @@ export interface SurveyAnalytics {
   timingAnalytics: TimingAnalytics;
 }
 
-export function useSurveyAnalytics(classId: string | null) {
+export function useSurveyAnalytics(classId: string | null, options?: { globalMode?: boolean }) {
   return useQuery({
-    queryKey: ['survey-analytics', classId],
+    queryKey: ['survey-analytics', classId, options?.globalMode],
     queryFn: async (): Promise<SurveyAnalytics | null> => {
-      if (!classId) return null;
+      // For global mode (all classes), we don't need a classId
+      // For class-specific mode, we need a classId
+      if (!options?.globalMode && !classId) return null;
 
-      // First fetch COMPLETED surveys only (exclude admin test data)
-      const { data: surveys, error } = await supabase
+      // Build query - filter by class if classId provided
+      let query = supabase
         .from('day1_satisfaction_surveys')
         .select('*')
-        .eq('class_id', classId)
         .eq('is_completed', true);
+      
+      if (classId && !options?.globalMode) {
+        query = query.eq('class_id', classId);
+      }
+
+      const { data: surveys, error } = await query;
 
       if (error) throw error;
       if (!surveys || surveys.length === 0) return null;
