@@ -288,31 +288,43 @@ export function AcademyClassDetail() {
             </div>
           )}
           
-          {/* Survey Tab */}
+          {/* Survey Tab - Only show surveys for Formação 360° - Turma 01/2026 (Janeiro 2026) */}
           {activeTab === 'survey' && (
             <div className="space-y-4">
-              <ClassSurveyList
-                surveys={[
-                  {
-                    id: 'day1',
-                    title: 'Pesquisa Dia 1',
-                    description: 'Avaliação das aulas, professores, monitores e infraestrutura.',
-                    questionCount: 57,
-                    isCompleted: hasDay1Completed,
-                    isLoading: isDay1Loading,
-                    onOpen: () => setDay1SurveyDialogOpen(true)
-                  },
-                  {
-                    id: 'day2',
-                    title: 'Pesquisa Dia 2',
-                    description: 'Avaliação do segundo dia e interesses profissionais.',
-                    questionCount: 20,
-                    isCompleted: hasDay2Completed,
-                    isLoading: isDay2Loading,
-                    onOpen: () => setDay2SurveyDialogOpen(true)
-                  }
-                ]}
-              />
+              {classId === '287a83b9-a329-4f6c-b0c3-5ecc868c27c3' ? (
+                <ClassSurveyList
+                  surveys={[
+                    {
+                      id: 'day1',
+                      title: 'Pesquisa Dia 1',
+                      description: 'Avaliação das aulas, professores, monitores e infraestrutura.',
+                      questionCount: 57,
+                      isCompleted: hasDay1Completed,
+                      isLoading: isDay1Loading,
+                      onOpen: () => setDay1SurveyDialogOpen(true)
+                    },
+                    {
+                      id: 'day2',
+                      title: 'Pesquisa Dia 2',
+                      description: 'Avaliação do segundo dia e interesses profissionais.',
+                      questionCount: 20,
+                      isCompleted: hasDay2Completed,
+                      isLoading: isDay2Loading,
+                      onOpen: () => setDay2SurveyDialogOpen(true)
+                    }
+                  ]}
+                />
+              ) : (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-lg font-medium">Nenhuma pesquisa vinculada</p>
+                    <p className="text-sm text-muted-foreground">
+                      As pesquisas serão disponibilizadas quando vinculadas a esta turma.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
 
