@@ -7,12 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Flame, Thermometer, Snowflake, Search, Download, Filter,
-  Zap, Target, Shield, Calendar, TrendingUp, Users, Award
+  Zap, Target, Shield, TrendingUp, Users, Award
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -26,10 +25,8 @@ interface Day2SurveyWithUser {
   score_ia_avivar: number;
   score_license: number;
   score_legal: number;
-  score_timing: number;
   score_total: number;
   lead_classification: string;
-  q19_timing_individual_interest: string | null;
   neohub_users: {
     full_name: string;
     email: string;
@@ -135,13 +132,12 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
       survey.score_ia_avivar,
       survey.score_license,
       survey.score_legal,
-      survey.score_timing,
       survey.lead_classification === 'hot' ? 'Quente' : 
         survey.lead_classification === 'warm' ? 'Morno' : 'Frio'
     ]) || [];
 
     autoTable(doc, {
-      head: [['#', 'Nome', 'Total', 'IA', 'Licença', 'Jurídico', 'Timing', 'Status']],
+      head: [['#', 'Nome', 'Total', 'IA', 'Licença', 'Jurídico', 'Status']],
       body: tableData,
       startY: 42,
       styles: { fontSize: 8 },
@@ -298,12 +294,6 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                     Jurídico
                   </div>
                 </TableHead>
-                <TableHead className="text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    Timing
-                  </div>
-                </TableHead>
                 <TableHead className="text-center">Total</TableHead>
                 <TableHead className="text-center">Status</TableHead>
               </TableRow>
@@ -364,18 +354,9 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{survey.score_timing}/12</span>
-                      <Progress 
-                        value={(survey.score_timing / 12) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(survey.score_timing, 12)}`}
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
                     <span className={`text-lg font-bold ${
-                      survey.score_total >= 36 ? 'text-red-500' :
-                      survey.score_total >= 24 ? 'text-orange-500' : 'text-blue-500'
+                      survey.score_total >= 40 ? 'text-red-500' :
+                      survey.score_total >= 25 ? 'text-orange-500' : 'text-blue-500'
                     }`}>
                       {survey.score_total}
                     </span>

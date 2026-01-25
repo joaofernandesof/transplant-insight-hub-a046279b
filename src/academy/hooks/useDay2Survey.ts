@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,28 +25,30 @@ export interface Day2SurveyResponse {
   q9_larissa_time: string | null;
   q10_larissa_liked_most: string | null;
   q11_larissa_improve: string | null;
+  // IA Avivar (3 questions)
   q12_avivar_current_process: string | null;
   q13_avivar_opportunity_loss: string | null;
-  q14_license_current_structure: string | null;
-  q15_license_acceleration: string | null;
-  q16_legal_current_structure: string | null;
-  q17_legal_limitations: string | null;
-  q18_timing_next_60_days: string | null;
-  q19_timing_individual_interest: string | null;
-  q20_insight_final: string | null;
+  q14_avivar_timing: string | null;
+  // Licença ByNeofolic (3 questions)
+  q15_license_path: string | null;
+  q16_license_pace: string | null;
+  q17_license_timing: string | null;
+  // Assessoria Jurídica (3 questions)
+  q18_legal_feeling: string | null;
+  q19_legal_influence: string | null;
+  q20_legal_timing: string | null;
   
-  // Scores
+  // Scores (max 18 each, 54 total)
   score_ia_avivar: number;
   score_license: number;
   score_legal: number;
-  score_timing: number;
   score_total: number;
   lead_classification: string | null;
 }
 
 export type Day2SurveyFormData = Omit<Day2SurveyResponse, 
   'id' | 'user_id' | 'created_at' | 'completed_at' | 'is_completed' | 
-  'score_ia_avivar' | 'score_license' | 'score_legal' | 'score_timing' | 
+  'score_ia_avivar' | 'score_license' | 'score_legal' | 
   'score_total' | 'lead_classification'
 >;
 

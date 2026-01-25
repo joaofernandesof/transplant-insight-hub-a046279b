@@ -1463,14 +1463,14 @@ export type Database = {
           q11_larissa_improve: string | null
           q12_avivar_current_process: string | null
           q13_avivar_opportunity_loss: string | null
-          q14_license_current_structure: string | null
-          q15_license_acceleration: string | null
-          q16_legal_current_structure: string | null
-          q17_legal_limitations: string | null
-          q18_timing_next_60_days: string | null
-          q19_timing_individual_interest: string | null
+          q14_avivar_timing: string | null
+          q15_license_path: string | null
+          q16_license_pace: string | null
+          q17_license_timing: string | null
+          q18_legal_feeling: string | null
+          q19_legal_influence: string | null
           q2_joao_expectations: string | null
-          q20_insight_final: string | null
+          q20_legal_timing: string | null
           q3_joao_clarity: string | null
           q4_joao_time: string | null
           q5_joao_liked_most: string | null
@@ -1481,7 +1481,6 @@ export type Database = {
           score_ia_avivar: number | null
           score_legal: number | null
           score_license: number | null
-          score_timing: number | null
           score_total: number | null
           user_id: string
         }
@@ -1499,14 +1498,14 @@ export type Database = {
           q11_larissa_improve?: string | null
           q12_avivar_current_process?: string | null
           q13_avivar_opportunity_loss?: string | null
-          q14_license_current_structure?: string | null
-          q15_license_acceleration?: string | null
-          q16_legal_current_structure?: string | null
-          q17_legal_limitations?: string | null
-          q18_timing_next_60_days?: string | null
-          q19_timing_individual_interest?: string | null
+          q14_avivar_timing?: string | null
+          q15_license_path?: string | null
+          q16_license_pace?: string | null
+          q17_license_timing?: string | null
+          q18_legal_feeling?: string | null
+          q19_legal_influence?: string | null
           q2_joao_expectations?: string | null
-          q20_insight_final?: string | null
+          q20_legal_timing?: string | null
           q3_joao_clarity?: string | null
           q4_joao_time?: string | null
           q5_joao_liked_most?: string | null
@@ -1517,7 +1516,6 @@ export type Database = {
           score_ia_avivar?: number | null
           score_legal?: number | null
           score_license?: number | null
-          score_timing?: number | null
           score_total?: number | null
           user_id: string
         }
@@ -1535,14 +1533,14 @@ export type Database = {
           q11_larissa_improve?: string | null
           q12_avivar_current_process?: string | null
           q13_avivar_opportunity_loss?: string | null
-          q14_license_current_structure?: string | null
-          q15_license_acceleration?: string | null
-          q16_legal_current_structure?: string | null
-          q17_legal_limitations?: string | null
-          q18_timing_next_60_days?: string | null
-          q19_timing_individual_interest?: string | null
+          q14_avivar_timing?: string | null
+          q15_license_path?: string | null
+          q16_license_pace?: string | null
+          q17_license_timing?: string | null
+          q18_legal_feeling?: string | null
+          q19_legal_influence?: string | null
           q2_joao_expectations?: string | null
-          q20_insight_final?: string | null
+          q20_legal_timing?: string | null
           q3_joao_clarity?: string | null
           q4_joao_time?: string | null
           q5_joao_liked_most?: string | null
@@ -1553,7 +1551,6 @@ export type Database = {
           score_ia_avivar?: number | null
           score_legal?: number | null
           score_license?: number | null
-          score_timing?: number | null
           score_total?: number | null
           user_id?: string
         }
