@@ -1907,6 +1907,60 @@ export type Database = {
           },
         ]
       }
+      gallery_photo_analytics: {
+        Row: {
+          action_type: string
+          created_at: string
+          gallery_id: string
+          id: string
+          ip_address: string | null
+          photo_id: string
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          gallery_id: string
+          id?: string
+          ip_address?: string | null
+          photo_id: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          gallery_id?: string
+          id?: string
+          ip_address?: string | null
+          photo_id?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_photo_analytics_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "course_galleries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gallery_photo_analytics_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "course_gallery_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jon_jobs_nps: {
         Row: {
           closed_by: string | null
@@ -7537,6 +7591,52 @@ export type Database = {
             columns: ["exam_id"]
             isOneToOne: false
             referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_photo_stats: {
+        Row: {
+          download_count: number | null
+          gallery_id: string | null
+          last_downloaded_at: string | null
+          last_viewed_at: string | null
+          photo_id: string | null
+          view_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_photo_analytics_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "course_galleries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gallery_photo_analytics_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "course_gallery_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_stats: {
+        Row: {
+          gallery_id: string | null
+          last_activity_at: string | null
+          photos_downloaded: number | null
+          photos_viewed: number | null
+          total_downloads: number | null
+          total_views: number | null
+          unique_users: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_photo_analytics_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "course_galleries"
             referencedColumns: ["id"]
           },
         ]
