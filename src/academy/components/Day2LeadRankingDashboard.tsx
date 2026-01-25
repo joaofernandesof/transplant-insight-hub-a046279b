@@ -11,7 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Flame, Thermometer, Snowflake, Search, Download, Filter,
-  Zap, Target, Shield, TrendingUp, Users, Award
+  Zap, Target, Shield, TrendingUp, Users, Award, Clock, AlertCircle
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -38,14 +38,31 @@ interface Day2LeadRankingDashboardProps {
   classId?: string;
 }
 
+// Total sections in Day 2 survey (for progress calculation)
+const TOTAL_DAY2_SECTIONS = 5;
+
+interface PartialSurveyWithUser {
+  id: string;
+  user_id: string;
+  class_id: string | null;
+  created_at: string;
+  current_section: number;
+  is_completed: boolean;
+  neohub_users: {
+    full_name: string;
+    email: string;
+    avatar_url: string | null;
+  };
+}
+
 export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [classificationFilter, setClassificationFilter] = useState<string>('all');
 
+  // Fetch completed surveys
   const { data: surveys, isLoading } = useQuery({
     queryKey: ['day2-lead-ranking', classId],
     queryFn: async () => {
-      // First get surveys
       let query = supabase
         .from('day2_satisfaction_surveys')
         .select('*')
@@ -59,14 +76,14 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
       const { data: surveysData, error: surveysError } = await query;
       if (surveysError) throw surveysError;
 
-      // Get user info for each survey
       const userIds = surveysData?.map(s => s.user_id) || [];
+      if (userIds.length === 0) return [];
+      
       const { data: usersData } = await supabase
         .from('neohub_users')
         .select('user_id, full_name, email, avatar_url')
         .in('user_id', userIds);
 
-      // Merge data
       const merged = surveysData?.map(survey => ({
         ...survey,
         neohub_users: usersData?.find(u => u.user_id === survey.user_id) || {
@@ -77,6 +94,44 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
       })) || [];
 
       return merged as Day2SurveyWithUser[];
+    }
+  });
+
+  // Fetch partial (incomplete) surveys
+  const { data: partialSurveys, isLoading: isLoadingPartial } = useQuery({
+    queryKey: ['day2-partial-surveys', classId],
+    queryFn: async () => {
+      let query = supabase
+        .from('day2_satisfaction_surveys')
+        .select('id, user_id, class_id, created_at, current_section, is_completed')
+        .eq('is_completed', false)
+        .order('current_section', { ascending: false });
+      
+      if (classId) {
+        query = query.eq('class_id', classId);
+      }
+      
+      const { data: surveysData, error: surveysError } = await query;
+      if (surveysError) throw surveysError;
+
+      const userIds = surveysData?.map(s => s.user_id) || [];
+      if (userIds.length === 0) return [];
+      
+      const { data: usersData } = await supabase
+        .from('neohub_users')
+        .select('user_id, full_name, email, avatar_url')
+        .in('user_id', userIds);
+
+      const merged = surveysData?.map(survey => ({
+        ...survey,
+        neohub_users: usersData?.find(u => u.user_id === survey.user_id) || {
+          full_name: 'Usuário',
+          email: '',
+          avatar_url: null
+        }
+      })) || [];
+
+      return merged as PartialSurveyWithUser[];
     }
   });
 
@@ -384,6 +439,66 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
           </Table>
         </CardContent>
       </Card>
+
+      {/* Partial Responses Section */}
+      {(partialSurveys && partialSurveys.length > 0) && (
+        <Card className="border-yellow-200 dark:border-yellow-900">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
+              <AlertCircle className="h-5 w-5" />
+              Respostas Parciais ({partialSurveys.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {partialSurveys.map((survey) => {
+                const progressPercent = Math.round((survey.current_section / TOTAL_DAY2_SECTIONS) * 100);
+                return (
+                  <div 
+                    key={survey.id}
+                    className="flex items-center gap-4 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-100 dark:border-yellow-900"
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={survey.neohub_users.avatar_url || ''} />
+                      <AvatarFallback className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-400">
+                        {survey.neohub_users.full_name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium truncate">{survey.neohub_users.full_name}</p>
+                        <Badge variant="outline" className="shrink-0 text-yellow-700 border-yellow-300 dark:text-yellow-400 dark:border-yellow-700">
+                          <Clock className="h-3 w-3 mr-1" />
+                          Em andamento
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{survey.neohub_users.email}</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                          {progressPercent}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Seção {survey.current_section}/{TOTAL_DAY2_SECTIONS}
+                        </p>
+                      </div>
+                      <div className="w-20">
+                        <Progress 
+                          value={progressPercent} 
+                          className="h-2 bg-yellow-100 dark:bg-yellow-900" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
