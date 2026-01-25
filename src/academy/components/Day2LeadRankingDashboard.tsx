@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Flame, Thermometer, Snowflake, Search, Download, Filter,
-  Zap, Target, Shield, TrendingUp, Users, Award, Clock, AlertCircle, Sparkles, BarChart3, Eye
+  Zap, Target, Shield, TrendingUp, Users, Award, Clock, AlertCircle, Sparkles, BarChart3, Eye,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -20,6 +21,10 @@ import autoTable from 'jspdf-autotable';
 import { Day2AIInsightsPanel } from './Day2AIInsightsPanel';
 import { Day2CallProfilesPanel } from './Day2CallProfilesPanel';
 import { Day2SurveyDetailsDialog } from './Day2SurveyDetailsDialog';
+import { Day2ScorePopover } from './Day2ScorePopover';
+
+type SortField = 'ia' | 'license' | 'legal' | 'total' | null;
+type SortDirection = 'asc' | 'desc';
 
 interface Day2SurveyWithUser {
   id: string;
@@ -76,6 +81,8 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
   const [classificationFilter, setClassificationFilter] = useState<string>('all');
   const [selectedSurvey, setSelectedSurvey] = useState<Day2SurveyWithUser | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('total');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Fetch completed surveys
   // Fetch ALL surveys (both completed and partial) - treat partial as valid leads
@@ -254,12 +261,64 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     };
   };
 
-  const filteredSurveys = surveys?.filter(survey => {
-    const matchesSearch = survey.neohub_users.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          survey.neohub_users.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = classificationFilter === 'all' || survey.lead_classification === classificationFilter;
-    return matchesSearch && matchesFilter;
-  });
+  // Filter and sort surveys
+  const filteredAndSortedSurveys = useMemo(() => {
+    let result = surveys?.filter(survey => {
+      const matchesSearch = survey.neohub_users.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            survey.neohub_users.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFilter = classificationFilter === 'all' || survey.lead_classification === classificationFilter;
+      return matchesSearch && matchesFilter;
+    }) || [];
+
+    // Apply sorting
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        const scoresA = calculatePartialScores(a);
+        const scoresB = calculatePartialScores(b);
+        
+        let valueA = 0, valueB = 0;
+        switch (sortField) {
+          case 'ia':
+            valueA = scoresA.iaScore;
+            valueB = scoresB.iaScore;
+            break;
+          case 'license':
+            valueA = scoresA.licenseScore;
+            valueB = scoresB.licenseScore;
+            break;
+          case 'legal':
+            valueA = scoresA.legalScore;
+            valueB = scoresB.legalScore;
+            break;
+          case 'total':
+            valueA = scoresA.total;
+            valueB = scoresB.total;
+            break;
+        }
+        
+        return sortDirection === 'desc' ? valueB - valueA : valueA - valueB;
+      });
+    }
+    
+    return result;
+  }, [surveys, searchTerm, classificationFilter, sortField, sortDirection, calculatePartialScores]);
+
+  // Toggle sort
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 opacity-50" />;
+    return sortDirection === 'desc' 
+      ? <ArrowDown className="h-3 w-3" /> 
+      : <ArrowUp className="h-3 w-3" />;
+  };
 
   // Stats
   const totalLeads = surveys?.length || 0;
@@ -299,7 +358,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
     doc.text(`Total de Leads: ${totalLeads} | Quentes: ${hotLeads} | Mornos: ${warmLeads} | Frios: ${coldLeads}`, 14, 34);
 
-    const tableData = filteredSurveys?.map((survey, idx) => [
+    const tableData = filteredAndSortedSurveys?.map((survey, idx) => [
       idx + 1,
       survey.neohub_users.full_name,
       survey.score_total,
@@ -473,30 +532,50 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                 <TableHead className="w-12">#</TableHead>
                 <TableHead>Aluno</TableHead>
                 <TableHead className="text-center">
-                  <div className="flex items-center justify-center gap-1">
+                  <button 
+                    onClick={() => handleSort('ia')}
+                    className="flex items-center justify-center gap-1 w-full hover:text-primary transition-colors"
+                  >
                     <Zap className="h-4 w-4" />
                     IA
-                  </div>
+                    {getSortIcon('ia')}
+                  </button>
                 </TableHead>
                 <TableHead className="text-center">
-                  <div className="flex items-center justify-center gap-1">
+                  <button 
+                    onClick={() => handleSort('license')}
+                    className="flex items-center justify-center gap-1 w-full hover:text-primary transition-colors"
+                  >
                     <Target className="h-4 w-4" />
                     Licença
-                  </div>
+                    {getSortIcon('license')}
+                  </button>
                 </TableHead>
                 <TableHead className="text-center">
-                  <div className="flex items-center justify-center gap-1">
+                  <button 
+                    onClick={() => handleSort('legal')}
+                    className="flex items-center justify-center gap-1 w-full hover:text-primary transition-colors"
+                  >
                     <Shield className="h-4 w-4" />
                     Jurídico
-                  </div>
+                    {getSortIcon('legal')}
+                  </button>
                 </TableHead>
-                <TableHead className="text-center">Total</TableHead>
+                <TableHead className="text-center">
+                  <button 
+                    onClick={() => handleSort('total')}
+                    className="flex items-center justify-center gap-1 w-full hover:text-primary transition-colors"
+                  >
+                    Total
+                    {getSortIcon('total')}
+                  </button>
+                </TableHead>
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead className="text-center w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSurveys?.map((survey, idx) => {
+              {filteredAndSortedSurveys?.map((survey, idx) => {
                 // Recalculate scores to handle different answer variations
                 const recalculated = calculatePartialScores(survey);
                 const displayScoreIA = recalculated.iaScore;
@@ -540,41 +619,47 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{displayScoreIA} pts</span>
-                      <Progress 
-                        value={(displayScoreIA / 18) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(displayScoreIA, 18)}`}
-                      />
-                      <span className="text-[9px] text-muted-foreground">3q × 6pts</span>
-                    </div>
+                  <TableCell className="text-center p-1">
+                    <Day2ScorePopover section="ia" score={displayScoreIA} maxScore={18} survey={survey}>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-medium">{displayScoreIA} pts</span>
+                        <Progress 
+                          value={(displayScoreIA / 18) * 100} 
+                          className={`h-1.5 w-16 ${getScoreColor(displayScoreIA, 18)}`}
+                        />
+                        <span className="text-[9px] text-muted-foreground">3q × 6pts</span>
+                      </div>
+                    </Day2ScorePopover>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{displayScoreLicense} pts</span>
-                      <Progress 
-                        value={(displayScoreLicense / 18) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(displayScoreLicense, 18)}`}
-                      />
-                      <span className={`text-[10px] ${
-                        displayScoreLicense >= 12 ? 'text-primary' :
-                        displayScoreLicense >= 6 ? 'text-warning' : 'text-muted-foreground'
-                      }`}>
-                        {displayScoreLicense >= 12 ? 'Extremamente qualificado' :
-                         displayScoreLicense >= 6 ? 'Precisa construção' : 'Fora do timing'}
-                      </span>
-                    </div>
+                  <TableCell className="text-center p-1">
+                    <Day2ScorePopover section="license" score={displayScoreLicense} maxScore={18} survey={survey}>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-medium">{displayScoreLicense} pts</span>
+                        <Progress 
+                          value={(displayScoreLicense / 18) * 100} 
+                          className={`h-1.5 w-16 ${getScoreColor(displayScoreLicense, 18)}`}
+                        />
+                        <span className={`text-[10px] ${
+                          displayScoreLicense >= 12 ? 'text-primary' :
+                          displayScoreLicense >= 6 ? 'text-warning' : 'text-muted-foreground'
+                        }`}>
+                          {displayScoreLicense >= 12 ? 'Extremamente qualificado' :
+                           displayScoreLicense >= 6 ? 'Precisa construção' : 'Fora do timing'}
+                        </span>
+                      </div>
+                    </Day2ScorePopover>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="font-medium">{displayScoreLegal} pts</span>
-                      <Progress 
-                        value={(displayScoreLegal / 18) * 100} 
-                        className={`h-1.5 w-16 ${getScoreColor(displayScoreLegal, 18)}`}
-                      />
-                      <span className="text-[9px] text-muted-foreground">3q × 6pts</span>
-                    </div>
+                  <TableCell className="text-center p-1">
+                    <Day2ScorePopover section="legal" score={displayScoreLegal} maxScore={18} survey={survey}>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-medium">{displayScoreLegal} pts</span>
+                        <Progress 
+                          value={(displayScoreLegal / 18) * 100} 
+                          className={`h-1.5 w-16 ${getScoreColor(displayScoreLegal, 18)}`}
+                        />
+                        <span className="text-[9px] text-muted-foreground">3q × 6pts</span>
+                      </div>
+                    </Day2ScorePopover>
                   </TableCell>
                   <TableCell className="text-center">
                     <span className={`text-lg font-bold ${
@@ -603,7 +688,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                   </TableCell>
                 </TableRow>
               )})}
-              {(!filteredSurveys || filteredSurveys.length === 0) && (
+              {(!filteredAndSortedSurveys || filteredAndSortedSurveys.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nenhum lead encontrado
