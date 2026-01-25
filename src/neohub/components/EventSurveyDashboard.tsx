@@ -60,6 +60,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { SurveyQuestionsManager } from "./SurveyQuestionsManager";
+import { Day2LeadRankingDashboard } from "@/academy/components/Day2LeadRankingDashboard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { printCurrentView } from "@/utils/printPdf";
@@ -74,15 +75,21 @@ interface EventSurveyDashboardProps {
   classId: string | null;
 }
 
+// Survey filter options
+type SurveyFilter = 'day1' | 'day2' | 'class_all' | 'global_all';
+
+const SURVEY_FILTER_OPTIONS: { value: SurveyFilter; label: string; description: string }[] = [
+  { value: 'day1', label: 'Pesquisa Dia 1', description: 'Avaliação do primeiro dia do curso' },
+  { value: 'day2', label: 'Pesquisa Dia 2', description: 'Avaliação do segundo dia (scoring comercial)' },
+  { value: 'class_all', label: 'Geral da Turma', description: 'Dados consolidados desta turma' },
+  { value: 'global_all', label: 'Geral (Todas Turmas)', description: 'Dados de todas as turmas' },
+];
+
 // Drill-down dialog state type
 interface DrilldownData {
   title: string;
   category: string;
   students: { name: string; response: string; value?: number | null }[];
-}
-
-interface EventSurveyDashboardProps {
-  classId: string | null;
 }
 
 const NPS_COLORS = { promoters: '#10b981', passives: '#f59e0b', detractors: '#ef4444' };
@@ -1629,7 +1636,21 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
 
 // ============== MAIN DASHBOARD ==============
 export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
-  const { data: analytics, isLoading, error } = useSurveyAnalytics(classId);
+  // Survey filter state
+  const [surveyFilter, setSurveyFilter] = useState<SurveyFilter>('day1');
+  
+  // Determine effective classId and global mode based on filter
+  const isGlobalMode = surveyFilter === 'global_all';
+  const effectiveClassId = isGlobalMode ? null : classId;
+  
+  // Use appropriate analytics hook based on survey type
+  // For now, day1 and day2 both use the same hook (day1_satisfaction_surveys)
+  // but day2 will eventually use day2_satisfaction_surveys
+  const { data: analytics, isLoading, error } = useSurveyAnalytics(
+    effectiveClassId,
+    { globalMode: isGlobalMode }
+  );
+  
   const [questionSearch, setQuestionSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionRating | null>(null);
@@ -1881,9 +1902,73 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     }
   };
 
+  // Show Day 2 Lead Ranking when Day 2 filter is selected
+  if (surveyFilter === 'day2') {
+    return (
+      <div className="space-y-4">
+        {/* Survey Filter Selector */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            Visualizando:
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {SURVEY_FILTER_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                variant={surveyFilter === option.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSurveyFilter(option.value)}
+                className="gap-1.5"
+                title={option.description}
+              >
+                {option.value === 'day1' && <span>📋</span>}
+                {option.value === 'day2' && <span>📊</span>}
+                {option.value === 'class_all' && <span>🎓</span>}
+                {option.value === 'global_all' && <span>🌐</span>}
+                {option.label}
+              </Button>
+            ))}
+          </div>
+          <div className="ml-auto text-xs text-muted-foreground">
+            {SURVEY_FILTER_OPTIONS.find(o => o.value === surveyFilter)?.description}
+          </div>
+        </div>
+        
+        {/* Import and render Day2LeadRankingDashboard */}
+        <Day2LeadRankingDashboard classId={classId || undefined} />
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
+        {/* Survey Filter Selector even when loading */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            Visualizando:
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {SURVEY_FILTER_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                variant={surveyFilter === option.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSurveyFilter(option.value)}
+                className="gap-1.5"
+                title={option.description}
+              >
+                {option.value === 'day1' && <span>📋</span>}
+                {option.value === 'day2' && <span>📊</span>}
+                {option.value === 'class_all' && <span>🎓</span>}
+                {option.value === 'global_all' && <span>🌐</span>}
+                {option.label}
+              </Button>
+            ))}
+          </div>
+        </div>
         <Skeleton className="h-32 w-full" />
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
@@ -1894,13 +1979,44 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
 
   if (error || !analytics) {
     return (
-      <Card className="p-8">
-        <div className="text-center text-muted-foreground">
-          <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <h3 className="font-semibold mb-1">Nenhuma resposta ainda</h3>
-          <p className="text-sm">As respostas da pesquisa de satisfação aparecerão aqui.</p>
+      <div className="space-y-4">
+        {/* Survey Filter Selector even when no data */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            Visualizando:
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {SURVEY_FILTER_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                variant={surveyFilter === option.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSurveyFilter(option.value)}
+                className="gap-1.5"
+                title={option.description}
+              >
+                {option.value === 'day1' && <span>📋</span>}
+                {option.value === 'day2' && <span>📊</span>}
+                {option.value === 'class_all' && <span>🎓</span>}
+                {option.value === 'global_all' && <span>🌐</span>}
+                {option.label}
+              </Button>
+            ))}
+          </div>
         </div>
-      </Card>
+        <Card className="p-8">
+          <div className="text-center text-muted-foreground">
+            <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <h3 className="font-semibold mb-1">Nenhuma resposta ainda</h3>
+            <p className="text-sm">
+              {surveyFilter === 'global_all' 
+                ? 'Nenhuma pesquisa de satisfação foi respondida em nenhuma turma.' 
+                : 'As respostas da pesquisa de satisfação aparecerão aqui.'}
+            </p>
+          </div>
+        </Card>
+      </div>
     );
   }
 
@@ -2079,6 +2195,35 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     <>
     <SurveyQuestionsManager open={showQuestionsManager} onOpenChange={setShowQuestionsManager} />
     <Tabs defaultValue="overview" className="space-y-4">
+      {/* Survey Filter Selector */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/30 rounded-lg border">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <FileText className="h-4 w-4" />
+          Visualizando:
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {SURVEY_FILTER_OPTIONS.map((option) => (
+            <Button
+              key={option.value}
+              variant={surveyFilter === option.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSurveyFilter(option.value)}
+              className="gap-1.5"
+              title={option.description}
+            >
+              {option.value === 'day1' && <span>📋</span>}
+              {option.value === 'day2' && <span>📊</span>}
+              {option.value === 'class_all' && <span>🎓</span>}
+              {option.value === 'global_all' && <span>🌐</span>}
+              {option.label}
+            </Button>
+          ))}
+        </div>
+        <div className="ml-auto text-xs text-muted-foreground">
+          {SURVEY_FILTER_OPTIONS.find(o => o.value === surveyFilter)?.description}
+        </div>
+      </div>
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <TabsList className="grid grid-cols-7 w-full max-w-4xl">
           <TabsTrigger value="overview" className="flex items-center gap-1.5">
