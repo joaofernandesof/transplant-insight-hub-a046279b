@@ -115,6 +115,10 @@ export function Day2ScorePopover({ section, score, maxScore, survey, children }:
   const config = sectionConfig[section];
   const Icon = config.icon;
 
+  // Count answered questions for this section
+  const answeredQuestions = config.questions.filter(q => survey[q.key]).length;
+  const actualMaxScore = answeredQuestions * 6; // 6pts per answered question
+
   const getAnswerPoints = (answer: string | null): number => {
     if (!answer) return 0;
     return scoreMapping[answer] || 0;
@@ -122,10 +126,13 @@ export function Day2ScorePopover({ section, score, maxScore, survey, children }:
 
   const getPointsColor = (points: number): string => {
     if (points >= 6) return 'text-primary';
-    if (points >= 4) return 'text-green-600';
-    if (points >= 2) return 'text-warning';
+    if (points >= 4) return 'text-emerald-600';
+    if (points >= 2) return 'text-amber-600';
     return 'text-muted-foreground';
   };
+
+  // Calculate percentage based on answered questions only
+  const percentScore = actualMaxScore > 0 ? Math.round((score / actualMaxScore) * 100) : 0;
 
   return (
     <Popover>
@@ -140,11 +147,13 @@ export function Day2ScorePopover({ section, score, maxScore, survey, children }:
           <Icon className={`h-5 w-5 ${config.color}`} />
           <div className="flex-1">
             <h4 className="font-semibold">{config.title}</h4>
-            <p className="text-xs text-muted-foreground">Respostas detalhadas</p>
+            <p className="text-xs text-muted-foreground">
+              {answeredQuestions}/3 perguntas respondidas
+            </p>
           </div>
           <div className="text-right">
             <span className={`text-xl font-bold ${config.color}`}>{score}</span>
-            <span className="text-muted-foreground text-sm">/{maxScore}</span>
+            <span className="text-muted-foreground text-sm">/{actualMaxScore}</span>
           </div>
         </div>
 
@@ -188,10 +197,15 @@ export function Day2ScorePopover({ section, score, maxScore, survey, children }:
         {/* Footer with progress */}
         <div className="p-3 border-t bg-muted/30">
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-            <span>Pontuação da seção</span>
-            <span>{Math.round((score / maxScore) * 100)}%</span>
+            <span>Pontuação ponderada</span>
+            <span>{actualMaxScore > 0 ? percentScore : 0}%</span>
           </div>
-          <Progress value={(score / maxScore) * 100} className="h-2" />
+          <Progress value={actualMaxScore > 0 ? percentScore : 0} className="h-2" />
+          {answeredQuestions < 3 && (
+            <p className="text-[10px] text-muted-foreground mt-1 italic">
+              * Baseado em {answeredQuestions} de 3 perguntas
+            </p>
+          )}
         </div>
       </PopoverContent>
     </Popover>
