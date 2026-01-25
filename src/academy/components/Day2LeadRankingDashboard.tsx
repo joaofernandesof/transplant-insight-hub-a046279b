@@ -507,53 +507,55 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
             </Card>
           </div>
 
-          {/* Tabs navigation */}
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
-            <TabsTrigger value="ranking" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Ranking</span>
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">IA Insights</span>
-            </TabsTrigger>
-            <TabsTrigger value="calls" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              <span className="hidden sm:inline">Perfil Calls</span>
-            </TabsTrigger>
-          </TabsList>
+          {/* Tabs navigation with action buttons */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <TabsList className="grid grid-cols-3 w-full max-w-lg">
+              <TabsTrigger value="ranking" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Ranking</span>
+              </TabsTrigger>
+              <TabsTrigger value="insights" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline">IA Insights</span>
+              </TabsTrigger>
+              <TabsTrigger value="calls" className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                <span className="hidden sm:inline">Perfil Calls</span>
+              </TabsTrigger>
+            </TabsList>
+            <div className="flex items-center gap-2">
+              <Button onClick={exportToPDF} variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Exportar PDF
+              </Button>
+            </div>
+          </div>
         </div>
 
         <TabsContent value="ranking" className="mt-4 space-y-4">
-          {/* Filters and Export */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="flex gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={classificationFilter} onValueChange={setClassificationFilter}>
-                <SelectTrigger className="w-32">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filtrar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="hot">Quentes</SelectItem>
-                  <SelectItem value="warm">Mornos</SelectItem>
-                  <SelectItem value="cold">Frios</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Filters */}
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome ou email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <Button onClick={exportToPDF} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar PDF
-            </Button>
+            <Select value={classificationFilter} onValueChange={setClassificationFilter}>
+              <SelectTrigger className="w-32">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filtrar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="hot">Quentes</SelectItem>
+                <SelectItem value="warm">Mornos</SelectItem>
+                <SelectItem value="cold">Frios</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
       {/* Ranking Table */}
