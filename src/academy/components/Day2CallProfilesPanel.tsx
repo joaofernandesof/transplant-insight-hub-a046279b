@@ -48,104 +48,398 @@ interface CallProfile {
 // Hardcoded call profiles extracted from the transcriptions
 const callProfiles: CallProfile[] = [
   {
-    id: 'maria-pereira',
-    name: 'Maria Pereira',
-    role: 'Instrumentadora',
-    callDate: '16/12/2025',
-    callDuration: '22 min',
-    summary: 'Instrumentadora experiente que trabalhou com Dr. Elvis (aluno sucesso). Busca transição para o mercado de transplante capilar como instrumentadora elite. Demonstra visão de crescimento e entende o potencial do mercado.',
+    id: 'nilson-paula-silva',
+    name: 'Dr. Nilson Paula da Silva Junior',
+    role: 'Estudante de Medicina / Advogado',
+    callDate: '16/01/2026',
+    callDuration: '39 min',
+    summary: 'Estudante de medicina (forma em junho/2026) que já é advogado de erro médico há 10 anos. Perfil empreendedor forte: quer montar clínica de saúde masculina em Florianópolis unindo esporte, transplante capilar e saúde sexual. 33 anos, já tem visão comercial clara.',
     
-    currentSituation: 'Trabalhou como instrumentadora em ortopedia e com Dr. Elvis em transplante. Busca especialização formal no mercado de transplante capilar.',
-    location: 'Não especificado',
-    experience: 'Experiência prévia com transplante capilar (Dr. Elvis), atuação em ortopedia, deu aula em escola de instrumentação.',
+    currentSituation: 'Acadêmico de medicina (último ano), já formado em Direito e atua com erro médico. Forma em junho/2026.',
+    location: 'Florianópolis, SC',
+    experience: 'Advogado de erro médico por 10 anos. Sem experiência médica prática ainda.',
     
-    iaAvivarPotential: 'medium',
-    iaAvivarNotes: 'Como instrumentadora, não é decisora direta do uso de IA na clínica, mas pode influenciar médicos com quem trabalha. Conhece o sucesso do Dr. Elvis que usa a IA Avivar.',
-    licensePotential: 'low',
-    licenseNotes: 'R$ 80k não é viável para instrumentadora. Foco deve ser em conexão com médicos que podem comprar.',
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Perfil empreendedor com visão comercial. Ao montar a clínica, vai precisar de automação desde o início para escalar. Background empresarial facilita a absorção.',
+    licensePotential: 'medium',
+    licenseNotes: 'Ainda acadêmico, mas com visão clara de negócio. Pode ser target para licença 6-12 meses após formatura quando estiver operando.',
     legalPotential: 'low',
-    legalNotes: 'Não é decisora de assessoria jurídica. Perfil de empregada/contratada, não empresária.',
+    legalNotes: 'É advogado! Já domina a parte jurídica. Não vai precisar de assessoria externa.',
     
     painPoints: [
-      'Mercado de ortopedia não paga bem',
-      'Dificuldade de encontrar cursos de qualidade',
-      'Precisa de credenciamento formal para o mercado'
+      'Faculdade não oferece prática em transplante capilar',
+      'Quer sair formado já pronto para atuar',
+      'Precisa de credenciamento antes do CRM'
     ],
     objectives: [
-      'Ser instrumentadora elite em transplante capilar',
-      'Ter carteira de médicos para trabalhar',
-      'Possivelmente montar equipe neofólica própria'
+      'Montar clínica de saúde masculina em Florianópolis',
+      'Unir esporte, transplante capilar e saúde sexual',
+      'Ter estrutura pronta ao receber o CRM em junho',
+      'Já sair operando os primeiros pacientes'
     ],
     objections: [
-      'Investimento de R$ 15k parece alto para instrumentador',
-      'Precisa validar retorno financeiro'
+      'Depende do preço do investimento',
+      'Ainda é acadêmico, precisa validar se pode participar'
     ],
     decisionFactors: [
-      'ROI: 4 cirurgias/dia = R$ 8k/dia',
-      'Escassez de profissionais qualificados',
-      'Acesso a rede de 20+ médicos',
-      'Influência de Dr. Elvis (conhece e confia)'
+      'João confirmou que acadêmico pode participar normalmente',
+      'Possibilidade de acompanhar por mais tempo após curso',
+      'Cashback para quem fechar na turma de janeiro',
+      'Visão empresarial já desenvolvida como advogado'
     ],
     
-    recommendedApproach: 'Usar case do Dr. Elvis como prova social. Focar no potencial de faturamento como instrumentadora elite. Destacar a possibilidade de montar equipe neofólica futura.',
-    urgencyLevel: 'medium',
+    recommendedApproach: 'Destacar que pode começar antes de formar e já sair pronto. Oferecer acompanhamento estendido pós-curso. Ressaltar a vantagem de já ter background jurídico. IA Avivar no momento de estruturação da clínica.',
+    urgencyLevel: 'high',
     nextSteps: [
-      'Follow-up após conversa com Dr. Elvis',
-      'Enviar material sobre equipe neofólica',
-      'Confirmar fechamento da matrícula R$ 1.000'
+      'Confirmar matrícula para turma de janeiro',
+      'Alinhar programa de acompanhamento estendido',
+      'Follow-up sobre plano de negócio da clínica'
     ]
   },
   {
-    id: 'alef-marchezi',
-    name: 'Dr. Alef Marchezi',
-    role: 'Médico (Estética)',
-    callDate: '05/09/2025',
-    callDuration: '43 min',
-    summary: 'Médico já atuando com estética (harmonização, toxina, preenchimento). Esposa tem empresa de tráfego pago. Possui amigo fazendo 4 cirurgias/semana com ticket de R$ 20k. Plano de sair do interior de SP para Maringá. Perfil muito qualificado com estrutura empresarial familiar.',
+    id: 'luis-kiyomura',
+    name: 'Dr. Luis Kiyomura',
+    role: 'Médico Recém-Formado',
+    callDate: '14/01/2026',
+    callDuration: '14 min',
+    summary: 'Recém-formado do interior de São Paulo que já dava plantões. Pesquisou a área antes de formar e tem interesse em ter consultório próprio. Perfil iniciante com visão de longo prazo.',
     
-    currentSituation: 'Atua no interior de SP com estética. Planeja migrar para Maringá no fim do ano. Já tem centro cirúrgico alugado na região atual.',
-    location: 'Presidente Prudente, SP → Maringá, PR (plano)',
-    experience: 'Harmonização facial, injetáveis, toxina botulínica. Não tem experiência em transplante.',
+    currentSituation: 'Recém-formado dando plantões. Quer migrar para área mais rentável.',
+    location: 'Interior de São Paulo',
+    experience: 'Recém-formado, sem experiência em estética/transplante.',
     
-    iaAvivarPotential: 'high',
-    iaAvivarNotes: 'Perfil ideal! Esposa tem empresa de tráfego pago e já trabalham juntos. Podem absorver 80k+ em tráfego com estrutura automatizada. Dr. Igor mencionou que gastam 80k/mês em tráfego com automação.',
-    licensePotential: 'high',
-    licenseNotes: 'Perfil empreendedor forte. Tem visão de escala, planeja montar clínica própria em Maringá. R$ 80k é viável considerando o ticket de R$ 20-30k por cirurgia.',
-    legalPotential: 'high',
-    legalNotes: 'Está estruturando negócio novo. Vai precisar de assessoria para montar clínica, contratos com equipe, regulamentação. Momento ideal para oferecer.',
+    iaAvivarPotential: 'medium',
+    iaAvivarNotes: 'Perfil iniciante. Vai precisar de IA quando escalar, mas no início talvez não absorva. Cultivar para 6-12 meses.',
+    licensePotential: 'low',
+    licenseNotes: 'Recém-formado, ainda fazendo pé de meia. R$ 80k não é viável no curto prazo.',
+    legalPotential: 'medium',
+    legalNotes: 'Vai precisar de assessoria para estruturar primeiro consultório. Oferecer pacote básico.',
     
     painPoints: [
-      'Não acha profissional qualificado na região',
-      'Amigo em Maringá tem dificuldade com tráfego local',
-      'Precisa se planejar financeiramente para o investimento',
-      'Indeciso entre residência e tricologia'
+      'Cansado da vida de plantões',
+      'Mercado de medicina geral saturado',
+      'Não sabe por onde começar no transplante'
     ],
     objectives: [
-      'Iniciar no mercado de transplante capilar',
-      'Montar estrutura própria em Maringá',
-      'Fazer pós-dermatologia em paralelo',
-      'Escalar faturamento significativamente'
+      'Ter consultório próprio',
+      'Migrar para área mais rentável',
+      'Atuar no interior onde há menos concorrência'
     ],
     objections: [
-      'Ainda considerando fazer prova de residência (Enar)',
-      'Precisa de tempo para decidir (fim de semana)',
-      'Quer entender investimento inicial completo'
+      'Não sabe se tem dinheiro para investir',
+      'Precisa entender se consegue pagar equipe'
     ],
     decisionFactors: [
-      'Amigo faturando 100k+ limpo com modelo similar',
-      'Estrutura de mentoria contínua (não só curso)',
-      'Equipe neofólica para primeiras cirurgias',
-      'Esposa pode ajudar com marketing/tráfego',
-      'Pode começar com R$ 20k (materiais + aluguel + marketing)'
+      'Interior tem menos concorrência',
+      'Equipe Neofolic pode ser alugada',
+      'Conecta Capilar para gerar pacientes',
+      'Mentoria contínua pós-curso'
     ],
     
-    recommendedApproach: 'Enfatizar estrutura de mentoria contínua e acesso à equipe. Mostrar que não precisa escolher entre residência e tricologia (são complementares). Incluir esposa nas conversas sobre tráfego/marketing. Oferecer pacote completo: IA + mentoria + equipe.',
+    recommendedApproach: 'Focar no modelo de terceirização total no início (centro cirúrgico alugado, equipe neofolic). Mostrar que não precisa de investimento inicial alto. IA Avivar como upgrade após primeiros meses.',
+    urgencyLevel: 'medium',
+    nextSteps: [
+      'Enviar simulação de custos para iniciar',
+      'Apresentar modelo de terceirização',
+      'Definir turma para matrícula'
+    ]
+  },
+  {
+    id: 'andre-valente',
+    name: 'Dr. André Valente',
+    role: 'Médico Otorrinolaringologista',
+    callDate: '28/11/2025',
+    callDuration: '42 min',
+    summary: 'Otorrino com 26 anos de experiência, especialista em cirurgias de ouvido complexas. Atende em Arapiraca (AL) mas mora em Maceió. Mercado de rinoplastia saturado, busca "carta na manga". Transplante capilar é oportunidade no interior onde ninguém atua.',
+    
+    currentSituation: '26 anos de medicina. Atende 2 dias/semana em Arapiraca. Faz cirurgias de ouvido, base de crânio. Mercado de rino saturado.',
+    location: 'Arapiraca, AL (trabalho) / Maceió, AL (mora)',
+    experience: '26 anos de cirurgia otorrino. Base de crânio, mastodectomia. Experiência cirúrgica sólida.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Perfil experiente que quer escala. Já tem consultório estruturado. IA Avivar para reduzir custos comerciais em 70% como mencionado na call. Pode absorver imediatamente.',
+    licensePotential: 'medium',
+    licenseNotes: 'Já tem estrutura própria e 26 anos de mercado. Pode considerar licença para acelerar no novo mercado, mas perfil mais independente.',
+    legalPotential: 'medium',
+    legalNotes: 'Precisa de contratos específicos para transplante (TCI, termo de imagem). Assessoria para transição de especialidade.',
+    
+    painPoints: [
+      'Mercado de rinoplastia saturado',
+      'Insatisfação de pacientes com rinoplastia é alta',
+      'Quer "carta na manga" diferenciada',
+      'Ninguém faz transplante de qualidade em Alagoas'
+    ],
+    objectives: [
+      'Adicionar transplante capilar ao portfólio',
+      'Não migrar totalmente, apenas ampliar',
+      'Ser referência em Alagoas',
+      'Manter qualidade de vida'
+    ],
+    objections: [
+      'Custo de R$ 5-6k por cirurgia parece alto',
+      'Quer entender se já tem equipe preparada'
+    ],
+    decisionFactors: [
+      'Já tem experiência cirúrgica sólida',
+      'Já tem consultório estruturado',
+      'Interior de Alagoas sem concorrência',
+      'Faturamento de R$ 15-18k por cirurgia'
+    ],
+    
+    recommendedApproach: 'Destacar que experiência cirúrgica acelera curva de aprendizado. Enfatizar que pode capacitar própria equipe atual. Mostrar potencial de dominar mercado alagoano. IA Avivar para escalar no interior.',
     urgencyLevel: 'high',
     nextSteps: [
-      'Confirmação até segunda-feira sobre matrícula',
-      'Enviar acesso ao Conecta Capilar (curso online)',
-      'Agendar reunião com esposa sobre marketing',
-      'Definir turma: novembro vs janeiro'
+      'Enviar proposta com condições especiais',
+      'Agendar demonstração da IA Avivar',
+      'Definir turma mais próxima'
+    ]
+  },
+  {
+    id: 'gelson-nei-vaz',
+    name: 'Dr. Gelson Nei Vaz dos Santos',
+    role: 'Cirurgião Geral',
+    callDate: '18/11/2025',
+    callDuration: '30 min',
+    summary: 'Cirurgião geral com 40 ANOS de formado! Trabalha com cirurgia plástica e grupo Gabriel Almeida (emagrecimento, implante hormonal). Perfil "onde tem vaga para ganhar mais, eu estou". Opera 750 pacientes/ano. Mato Grosso.',
+    
+    currentSituation: '40 anos de medicina. Cirurgião geral. Atende em 4 hospitais. Trabalha com grupo Gabriel Almeida (emagrecimento).',
+    location: 'Mato Grosso',
+    experience: '40 anos como cirurgião geral. Volume altíssimo: 750 cirurgias/ano. Cirurgia plástica.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Volume de 750 pacientes/ano! IA Avivar essencial para gerenciar esse fluxo. Perfil que entende de escala.',
+    licensePotential: 'medium',
+    licenseNotes: 'Perfil independente, mas pode considerar licença para acelerar entrada no mercado capilar. Já tem estrutura.',
+    legalPotential: 'low',
+    legalNotes: '40 anos de mercado, provavelmente já tem assessoria jurídica estabelecida.',
+    
+    painPoints: [
+      'Vida de cirurgião geral é muito corrida',
+      'Quer diversificar faturamento',
+      'Área de cirurgia geral desgastante'
+    ],
+    objectives: [
+      'Aprender transplante capilar',
+      'Diversificar fontes de receita',
+      'Ganhar mais com menos desgaste',
+      'Aproveitar experiência cirúrgica'
+    ],
+    objections: [
+      'Quer ver "o esquema todo" de marketing e gestão',
+      'Preocupado com cursos "picaretas"'
+    ],
+    decisionFactors: [
+      'Formação 360 diferente de cursos tradicionais',
+      'Parte de marketing e gestão incluída',
+      'Equipe Neofolic pode ir ao Mato Grosso',
+      'Case do Dr. Patrick: 600-800k/mês em 6 meses'
+    ],
+    
+    recommendedApproach: 'Valorizar 40 anos de experiência cirúrgica. Mostrar case do Patrick que também era iniciante. Destacar que equipe Neofolic vai até o Mato Grosso. IA Avivar como diferencial para gerenciar alto volume.',
+    urgencyLevel: 'medium',
+    nextSteps: [
+      'Enviar cases de médicos experientes',
+      'Detalhar logística da equipe para MT',
+      'Confirmar disponibilidade de turma'
+    ]
+  },
+  {
+    id: 'julio-moyses',
+    name: 'Dr. Julio Moyses',
+    role: 'Médico (PSF + CTI)',
+    callDate: '10-12/11/2025',
+    callDuration: '60+ min (2 calls)',
+    summary: 'Formou na Argentina, revalidou em 2024. Trabalha PSF de dia e CTI à noite/fins de semana. Terminando pós de intensiva e medicina familiar. NÃO tem consultório nem é cirurgião. Interesse antigo no transplante. São Borja, RS (fronteira).',
+    
+    currentSituation: 'PSF de dia, CTI noite/fim de semana. Sem consultório próprio. Pós em intensiva e medicina familiar.',
+    location: 'São Borja, RS (fronteira com Argentina)',
+    experience: 'Formado 2022 (Argentina). Revalidou 2024. Não é cirurgião nem dermatologista.',
+    
+    iaAvivarPotential: 'medium',
+    iaAvivarNotes: 'Perfil iniciante sem estrutura. IA Avivar será relevante quando começar a operar, mas não no curto prazo.',
+    licensePotential: 'low',
+    licenseNotes: 'Não tem consultório, não tem estrutura. R$ 80k totalmente inviável no momento atual.',
+    legalPotential: 'medium',
+    legalNotes: 'Vai precisar de orientação jurídica básica para começar do zero. Contratos iniciais.',
+    
+    painPoints: [
+      'Vida de plantão cansativa e sem qualidade',
+      'Não tem consultório nem estrutura',
+      'Indeciso se transplante é para ele',
+      'Não é cirurgião (insegurança)'
+    ],
+    objectives: [
+      'Sair da vida de plantão',
+      'Área rentável sem residência longa',
+      'Qualidade de vida melhor',
+      'Começar negócio próprio'
+    ],
+    objections: [
+      'Dr. Igor fala que é para quem já tem estrutura',
+      'Não tem capital inicial',
+      'Não é cirurgião/dermatologista'
+    ],
+    decisionFactors: [
+      'CRM ativo é único requisito',
+      'Pode terceirizar tudo no início',
+      'Interior do RS é oceano azul',
+      'Case Patrick: começou do zero'
+    ],
+    
+    recommendedApproach: 'Quebrar objeção de que precisa ser cirurgião. Mostrar modelo de terceirização total. Enfatizar que interior do RS é oceano azul. Começar com expectativas realistas de investimento inicial baixo.',
+    urgencyLevel: 'medium',
+    nextSteps: [
+      'Enviar modelo de início terceirizado',
+      'Cases de médicos não-cirurgiões',
+      'Simular custos para começar em São Borja'
+    ]
+  },
+  {
+    id: 'mario-cezar-motta',
+    name: 'Dr. Mario Cezar da Motta',
+    role: 'Médico (Plantões)',
+    callDate: '10/11/2025',
+    callDuration: '49 min',
+    summary: 'Formado 2020, queria fazer neurocirurgia mas não pode por questão financeira. Sócio já equipou clínica com 2 salas cirúrgicas. JÁ FEZ CURSO (R$ 53k!) mas ficou insatisfeito. Ficou 96 dias internado com pneumonia severa em 2025. Quer retomar.',
+    
+    currentSituation: 'Voltando de doença grave (96 dias internado). Sócio tem clínica pronta. Já fez outro curso (ruim).',
+    location: 'Novo Hamburgo, RS',
+    experience: 'Formado 2020. Fez hands-on com Leonardo Sauer (R$ 53k). Conhece Dr. Tony (ex-aluno Ibramec).',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Sócio já tem clínica estruturada! IA Avivar seria diferencial para retomar com força. Estrutura pronta.',
+    licensePotential: 'high',
+    licenseNotes: 'Já tem sócio com clínica montada (2 salas cirúrgicas). Licença pode ser caminho para padronizar operação.',
+    legalPotential: 'medium',
+    legalNotes: 'Precisa de contratos para sociedade e operação da clínica. Assessoria pode ajudar.',
+    
+    painPoints: [
+      'Investiu R$ 53k em curso que não entregou teoria',
+      'Ficou 96 dias internado, perdeu pacientes',
+      'Precisa de educação continuada e protocolos',
+      'Não sabe vender/comercializar transplante'
+    ],
+    objectives: [
+      'Sair da vida de plantão definitivamente',
+      'Completar formação teórica que faltou',
+      'Aprender a comercializar e vender',
+      'Ser referência na região metropolitana'
+    ],
+    objections: [
+      'Já gastou R$ 53k em curso anterior ruim',
+      'Precisa ver diferencial claro'
+    ],
+    decisionFactors: [
+      'Conhece Dr. Tony que virou licenciado',
+      'Formação entrega teoria + prática + comercial',
+      'RS é oceano azul no transplante',
+      '24 pacientes reais no hands-on vs 1 que fez antes'
+    ],
+    
+    recommendedApproach: 'Usar frustração do curso anterior como alavanca. Comparar: 1 paciente (R$ 53k) vs 24 pacientes (Formação 360). Envolver Dr. Tony como prova social. Licença pode ser caminho para operação da clínica do sócio.',
+    urgencyLevel: 'high',
+    nextSteps: [
+      'Conectar com Dr. Tony para conversa',
+      'Proposta especial considerando investimento anterior',
+      'Apresentar opção de licença para a clínica'
+    ]
+  },
+  {
+    id: 'joselio-alves',
+    name: 'Dr. Josélio Alves',
+    role: 'Médico',
+    callDate: '05/11/2025',
+    callDuration: '56 min',
+    summary: 'Atendido durante correria (dirigindo). Perfil de médico muito ocupado buscando alternativa rentável. Interessado na parte comercial e captação de pacientes além da técnica.',
+    
+    currentSituation: 'Correria intensa de trabalho. Buscando diversificar.',
+    location: 'Não especificado',
+    experience: 'Médico em atividade, experiência não detalhada na call.',
+    
+    iaAvivarPotential: 'high',
+    iaAvivarNotes: 'Perfil corrido que precisa de automação. IA Avivar resolve o problema de tempo.',
+    licensePotential: 'medium',
+    licenseNotes: 'Perfil interessado em modelo estruturado. Pode considerar licença se demonstrar ROI.',
+    legalPotential: 'medium',
+    legalNotes: 'Precisa de estrutura jurídica básica para nova operação.',
+    
+    painPoints: [
+      'Correria intensa no dia a dia',
+      'Falta tempo para gerenciar novos negócios',
+      'Precisa de modelo que funcione sem ele'
+    ],
+    objectives: [
+      'Diversificar fonte de renda',
+      'Modelo que funcione mesmo ocupado',
+      'Aprender captação de pacientes'
+    ],
+    objections: [
+      'Tempo é principal barreira',
+      'Precisa ver modelo que funcione sem dedicação integral'
+    ],
+    decisionFactors: [
+      'Equipe Neofolic opera por ele inicialmente',
+      'IA Avivar reduz necessidade de pessoal',
+      'Mentoria contínua mesmo à distância'
+    ],
+    
+    recommendedApproach: 'Enfatizar modelo de terceirização que permite atuar sem abandonar rotina atual. IA Avivar como multiplicador de tempo. Mentoria assíncrona.',
+    urgencyLevel: 'medium',
+    nextSteps: [
+      'Enviar material sobre modelo terceirizado',
+      'Demonstração de IA Avivar',
+      'Agendar call com mais tempo'
+    ]
+  },
+  {
+    id: 'deibson-santos',
+    name: 'Dr. Deibson Santos Lisboa',
+    role: 'Médico (UTIs)',
+    callDate: '29/10/2025',
+    callDuration: '50 min',
+    summary: '30 anos, formou maio/2024. Trabalha em 3 UTIs. INICIOU pós na RedeStanding (NÃO recomenda!). Viu que método lá é quantitativo, não qualitativo. Apenas 4-5 práticas, desligou. Quer formação de verdade. Salvador, BA.',
+    
+    currentSituation: 'Trabalha em 3 UTIs. Desistiu de pós da RedeStanding (ruim). Sem consultório, fazendo pé de meia.',
+    location: 'Salvador, BA (natural do Maranhão)',
+    experience: 'Formado maio/2024. Fez 4-5 práticas na RedeStanding (insatisfatório). Faz curso com Priscila Barreto.',
+    
+    iaAvivarPotential: 'medium',
+    iaAvivarNotes: 'Ainda fazendo pé de meia, sem estrutura. IA Avivar para quando começar a operar.',
+    licensePotential: 'low',
+    licenseNotes: 'Não tem estrutura nem capital. Foco no curso e mentoria primeiro. Licença é para fase posterior.',
+    legalPotential: 'high',
+    legalNotes: 'Vai começar do zero, precisa de toda estrutura jurídica: contratos, termos, regulamentação.',
+    
+    painPoints: [
+      'Pós da RedeStanding não ensina direito',
+      'Equipe de lá só quer terminar rápido (quantitativo)',
+      'Não tem networking em Salvador',
+      'Não sabe como se estabilizar no mercado'
+    ],
+    objectives: [
+      'Formação de verdade com qualidade',
+      'Aprender a operar corretamente',
+      'Montar clínica própria no futuro',
+      'Sair da vida de UTI'
+    ],
+    objections: [
+      'Já gastou com pós que não entregou',
+      'Precisa terminar pós ruim para pegar certificado',
+      'Não tem capital para investir'
+    ],
+    decisionFactors: [
+      'Neofolic: +1000 avaliações 5 estrelas Google',
+      '24 cirurgias no curso vs 10 da pós',
+      'Comunidade de ex-alunos ativa',
+      'Mentoria contínua pós-curso'
+    ],
+    
+    recommendedApproach: 'Comparar qualidade: RedeStanding vs Formação 360. Mostrar que não precisa de estrutura própria para começar. Destacar comunidade e network. Assessoria jurídica como diferencial para começar certo.',
+    urgencyLevel: 'high',
+    nextSteps: [
+      'Comparativo RedeStanding vs Formação 360',
+      'Modelo de início sem capital próprio',
+      'Pacote com assessoria jurídica básica'
     ]
   }
 ];
@@ -400,10 +694,15 @@ export function Day2CallProfilesPanel({ className }: Day2CallProfilesPanelProps)
                   </p>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                <strong>Dr. Alef Marchezi</strong> é o lead mais qualificado: médico empreendedor com estrutura familiar de marketing, 
-                amigo já operando com sucesso, e plano claro de expansão. Foco máximo!
-              </p>
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium">🔥 Leads Prioritários:</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li><strong>Dr. Mario Cezar da Motta</strong> - Sócio já tem clínica pronta. Frustrado com curso anterior (R$53k). Alto potencial licença.</li>
+                  <li><strong>Dr. André Valente</strong> - 26 anos de experiência, quer dominar Alagoas. Alto potencial IA + licença.</li>
+                  <li><strong>Dr. Deibson Santos</strong> - Jovem motivado, insatisfeito com RedeStanding. Precisa de assessoria jurídica completa.</li>
+                  <li><strong>Dr. Nilson Silva</strong> - Advogado + futuro médico em Floripa. Alto potencial IA quando montar clínica.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </CardContent>
