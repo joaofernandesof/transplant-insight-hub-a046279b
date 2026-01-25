@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
-  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop, Lock, LockOpen, CheckSquare, Square, Download, BarChart3, Activity, User
+  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop, Lock, LockOpen, CheckSquare, Square, Download, BarChart3, Activity, User, ChevronLeft, ChevronRight, ImageIcon
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CoverPhotoCropper } from '@/academy/components/CoverPhotoCropper';
@@ -517,6 +517,7 @@ function GalleryEditDialog({
   const [selectedPhotoForCrop, setSelectedPhotoForCrop] = useState<string | null>(null);
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
+  const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
 
   const handleSelectCover = (photoUrl: string) => {
     setSelectedPhotoForCrop(photoUrl);
@@ -706,9 +707,73 @@ function GalleryEditDialog({
                 <div className="text-center py-8 text-muted-foreground">
                   Nenhuma foto nesta galeria
                 </div>
+              ) : viewingPhotoIndex !== null ? (
+                /* Single Photo Viewer / Lightbox */
+                <div className="relative flex items-center justify-center bg-black min-h-[60vh] rounded-lg">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                    onClick={() => setViewingPhotoIndex(prev => 
+                      prev !== null && prev > 0 ? prev - 1 : photos.length - 1
+                    )}
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+
+                  <img
+                    src={photos[viewingPhotoIndex]?.full_url}
+                    alt={photos[viewingPhotoIndex]?.caption || `Foto ${viewingPhotoIndex + 1}`}
+                    className="max-w-full max-h-[70vh] object-contain"
+                  />
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                    onClick={() => setViewingPhotoIndex(prev => 
+                      prev !== null && prev < photos.length - 1 ? prev + 1 : 0
+                    )}
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </Button>
+
+                  {/* Close button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-4 right-4 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full h-10 w-10"
+                    onClick={() => setViewingPhotoIndex(null)}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+
+                  {/* Counter */}
+                  <div className="absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm">
+                    {viewingPhotoIndex + 1} / {photos.length}
+                  </div>
+
+                  {/* Navigation dots */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {photos.slice(0, 10).map((_, index) => (
+                      <button
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          index === viewingPhotoIndex ? 'bg-white' : 'bg-white/40'
+                        }`}
+                        onClick={() => setViewingPhotoIndex(index)}
+                      />
+                    ))}
+                    {photos.length > 10 && (
+                      <span className="text-white/60 text-xs ml-1">
+                        +{photos.length - 10}
+                      </span>
+                    )}
+                  </div>
+                </div>
               ) : (
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                  {photos.map((photo) => {
+                  {photos.map((photo, index) => {
                     const isCover = gallery.cover_photo_url === photo.full_url;
                     const isSelected = selectedPhotos.has(photo.id);
                     const photoStats = photoStatsMap.get(photo.id);
@@ -718,12 +783,12 @@ function GalleryEditDialog({
                         className={`relative aspect-square rounded-lg overflow-hidden group cursor-pointer ${
                           isCover ? 'ring-2 ring-primary ring-offset-2' : ''
                         } ${isSelected ? 'ring-2 ring-destructive ring-offset-2' : ''}`}
-                        onClick={() => canWrite && handleSelectCover(photo.full_url)}
+                        onClick={() => setViewingPhotoIndex(index)}
                       >
                         <img
                           src={photo.thumbnail_url || photo.full_url}
                           alt={photo.caption || 'Foto'}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform"
                         />
                         {/* Checkbox for selection */}
                         {canDelete && (
@@ -758,11 +823,20 @@ function GalleryEditDialog({
                             {photoStats?.download_count || 0}
                           </div>
                         </div>
-                        {/* Hover overlay for selecting cover */}
+                        {/* Set as cover button */}
                         {canWrite && !isCover && (
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-white text-xs font-medium">Definir como capa</span>
-                          </div>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="absolute bottom-1 right-1 h-6 px-2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] gap-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectCover(photo.full_url);
+                            }}
+                          >
+                            <ImageIcon className="h-3 w-3" />
+                            Capa
+                          </Button>
                         )}
                         {canDelete && (
                           <Button
