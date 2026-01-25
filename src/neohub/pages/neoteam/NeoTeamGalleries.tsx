@@ -14,8 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
-  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop, Lock, LockOpen
+  Plus, Images, Upload, Trash2, Eye, EyeOff, Calendar, Users, X, Loader2, Camera, Star, Crop, Lock, LockOpen, CheckSquare, Square
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CoverPhotoCropper } from '@/academy/components/CoverPhotoCropper';
 import { LinkGalleryRequirementDialog } from '@/neohub/components/LinkGalleryRequirementDialog';
 import { format } from 'date-fns';
@@ -509,6 +510,8 @@ function GalleryEditDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [selectedPhotoForCrop, setSelectedPhotoForCrop] = useState<string | null>(null);
+  const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
+  const [isDeletingSelected, setIsDeletingSelected] = useState(false);
 
   const handleSelectCover = (photoUrl: string) => {
     setSelectedPhotoForCrop(photoUrl);
@@ -532,6 +535,45 @@ function GalleryEditDialog({
       fileInputRef.current.value = '';
     }
   };
+
+  const togglePhotoSelection = (photoId: string) => {
+    setSelectedPhotos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(photoId)) {
+        newSet.delete(photoId);
+      } else {
+        newSet.add(photoId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPhotos.size === photos.length) {
+      setSelectedPhotos(new Set());
+    } else {
+      setSelectedPhotos(new Set(photos.map(p => p.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedPhotos.size === 0) return;
+    
+    setIsDeletingSelected(true);
+    const photosToDelete = photos.filter(p => selectedPhotos.has(p.id));
+    
+    try {
+      for (const photo of photosToDelete) {
+        await onDeletePhoto(photo);
+      }
+      setSelectedPhotos(new Set());
+      refetch();
+    } finally {
+      setIsDeletingSelected(false);
+    }
+  };
+
+  const isAllSelected = photos.length > 0 && selectedPhotos.size === photos.length;
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
@@ -592,6 +634,58 @@ function GalleryEditDialog({
                 </div>
               )}
 
+              {/* Selection toolbar */}
+              {canDelete && photos.length > 0 && (
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleSelectAll}
+                      className="gap-2"
+                    >
+                      {isAllSelected ? (
+                        <>
+                          <CheckSquare className="h-4 w-4" />
+                          Desmarcar Todas
+                        </>
+                      ) : (
+                        <>
+                          <Square className="h-4 w-4" />
+                          Selecionar Todas
+                        </>
+                      )}
+                    </Button>
+                    {selectedPhotos.size > 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        {selectedPhotos.size} de {photos.length} selecionadas
+                      </span>
+                    )}
+                  </div>
+                  {selectedPhotos.size > 0 && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDeleteSelected}
+                      disabled={isDeletingSelected}
+                      className="gap-2"
+                    >
+                      {isDeletingSelected ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Excluindo...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4" />
+                          Excluir Selecionadas ({selectedPhotos.size})
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              )}
+
               {/* Photos grid */}
               {isLoading ? (
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
@@ -607,12 +701,13 @@ function GalleryEditDialog({
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                   {photos.map((photo) => {
                     const isCover = gallery.cover_photo_url === photo.full_url;
+                    const isSelected = selectedPhotos.has(photo.id);
                     return (
                       <div
                         key={photo.id}
                         className={`relative aspect-square rounded-lg overflow-hidden group cursor-pointer ${
                           isCover ? 'ring-2 ring-primary ring-offset-2' : ''
-                        }`}
+                        } ${isSelected ? 'ring-2 ring-destructive ring-offset-2' : ''}`}
                         onClick={() => canWrite && handleSelectCover(photo.full_url)}
                       >
                         <img
@@ -620,9 +715,24 @@ function GalleryEditDialog({
                           alt={photo.caption || 'Foto'}
                           className="w-full h-full object-cover"
                         />
+                        {/* Checkbox for selection */}
+                        {canDelete && (
+                          <div 
+                            className="absolute top-1 left-1 z-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePhotoSelection(photo.id);
+                            }}
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              className="h-5 w-5 bg-white/90 border-2 data-[state=checked]:bg-destructive data-[state=checked]:border-destructive"
+                            />
+                          </div>
+                        )}
                         {/* Cover badge */}
                         {isCover && (
-                          <div className="absolute top-1 left-1 bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
+                          <div className="absolute top-1 left-8 bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
                             <Star className="h-3 w-3 fill-current" />
                             Capa
                           </div>
