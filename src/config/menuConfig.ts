@@ -43,6 +43,12 @@ import {
   Folder,
   Megaphone as MegaphoneIcon,
   BarChart2,
+  ClipboardList,
+  Images,
+  Stethoscope,
+  HeadphonesIcon,
+  ListTodo,
+  UserCog,
 } from 'lucide-react';
 
 // Tipos base
@@ -184,6 +190,12 @@ export const NEOTEAM_MENU_ITEMS: MenuItem[] = [
   { id: 'neoteam_patients', code: 'neoteam_patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
   { id: 'neoteam_medical_records', code: 'neoteam_medical_records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
   { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
+  { id: 'neoteam_tasks', code: 'neoteam_tasks', title: 'Tarefas', icon: ListTodo, route: '/neoteam/tasks' },
+  { id: 'neoteam_doctor_view', code: 'neoteam_doctor_view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view', requiredProfiles: ['medico', 'administrador'] },
+  { id: 'neoteam_event_organization', code: 'neoteam_event_organization', title: 'Gestão de Eventos', icon: ClipboardList, route: '/neoteam/event-organization', adminOnly: true },
+  { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/galleries', adminOnly: true },
+  { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/after-sales' },
+  { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Equipe', icon: UserCog, route: '/neoteam/staff', adminOnly: true },
   { id: 'neoteam_settings', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
 ];
 
