@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, BookOpen, Award,
-  Settings, LogOut, User, Users, CalendarDays, Menu, UserCog, FileText, Gift, Shield
+  Settings, LogOut, User, Users, CalendarDays, Menu, UserCog, FileText, Gift, Shield, LayoutDashboard, Building2, Stethoscope, GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -162,6 +162,59 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
       {/* Footer Actions */}
       <div className="p-4 border-t space-y-2">
+        {/* Admin Quick Access - Only visible for admins */}
+        {isAdmin && (
+          <>
+            <NavLink
+              to="/admin"
+              onClick={onClose}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+                    : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50"
+                )
+              }
+            >
+              <Shield className="h-4 w-4" />
+              Início Admin
+            </NavLink>
+
+            {/* Quick Module Selector */}
+            <div className="px-3 py-2">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Ir para módulo:</p>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  onClick={() => { navigate('/neoteam'); onClose?.(); }}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  title="NeoTeam"
+                >
+                  <Building2 className="h-4 w-4" />
+                  <span className="text-[10px]">NeoTeam</span>
+                </button>
+                <button
+                  onClick={() => { navigate('/neocare'); onClose?.(); }}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  title="NeoCare"
+                >
+                  <Stethoscope className="h-4 w-4" />
+                  <span className="text-[10px]">NeoCare</span>
+                </button>
+                <button
+                  onClick={() => { navigate('/escritorio'); onClose?.(); }}
+                  className="flex flex-col items-center gap-1 p-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  title="Escritório"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span className="text-[10px]">Escritório</span>
+                </button>
+              </div>
+            </div>
+            <Separator className="my-2" />
+          </>
+        )}
+
         {/* Settings */}
         <NavLink
           to="/academy/profile"
