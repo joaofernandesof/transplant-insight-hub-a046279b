@@ -267,47 +267,20 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo & Portal indicator - hide logo on admin dashboard */}
-        {(currentPortal !== 'admin' && currentPortal !== 'main') && (
-          <div className={cn(
-            "p-4 border-b flex items-center",
-            isCollapsed ? "justify-center" : "justify-between"
-          )}>
-            {!isCollapsed && (
-              <div className="flex items-center gap-2">
-                <ThemedLogo className="h-8 object-contain" />
-                <Badge className={cn("text-[10px] px-1.5 py-0", portalConfig.bgColor, portalConfig.color)}>
-                  {portalConfig.name}
-                </Badge>
-              </div>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden lg:flex h-8 w-8"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-            >
-              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </Button>
-          </div>
-        )}
-        
-        {/* Collapse button when no logo header (admin/main) */}
-        {(currentPortal === 'admin' || currentPortal === 'main') && (
-          <div className={cn(
-            "p-2 border-b flex",
-            isCollapsed ? "justify-center" : "justify-end"
-          )}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden lg:flex h-8 w-8"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-            >
-              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </Button>
-          </div>
-        )}
+        {/* Collapse button */}
+        <div className={cn(
+          "p-2 border-b flex",
+          isCollapsed ? "justify-center" : "justify-end"
+        )}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden lg:flex h-8 w-8"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        </div>
 
         {/* User Info */}
         {!isCollapsed && (
