@@ -270,6 +270,19 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
   
+  // Use ref to always have current surveyId in callbacks (prevents stale closure)
+  const surveyIdRef = useRef<string | null>(null);
+  const formDataRef = useRef<Record<string, string>>({});
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    surveyIdRef.current = surveyId;
+  }, [surveyId]);
+  
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+  
   const effectiveTimeRef = useRef(0);
   const lastVisibleTimeRef = useRef(Date.now());
   
@@ -284,6 +297,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           if (data?.id) {
             console.log('[Day2] Survey initialized:', data.id);
             setSurveyId(data.id);
+            surveyIdRef.current = data.id; // Sync ref immediately
           } else {
             console.error('[Day2] No ID returned');
             toast.error('Erro ao iniciar. Recarregue a página.');
@@ -297,6 +311,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     } else if (existingSurvey?.id) {
       console.log('[Day2] Resuming:', existingSurvey.id);
       setSurveyId(existingSurvey.id);
+      surveyIdRef.current = existingSurvey.id; // Sync ref immediately
       // Resume from saved progress
       const savedData: Record<string, string> = {};
       QUESTIONS.forEach(q => {
@@ -368,8 +383,10 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       return;
     }
     
-    if (!surveyId) {
-      console.error('[Day2] No ID in handleNext');
+    // Use ref for most current surveyId
+    const currentSurveyId = surveyIdRef.current;
+    if (!currentSurveyId) {
+      console.error('[Day2] No ID in handleNext, surveyId:', surveyId, 'ref:', surveyIdRef.current);
       toast.error('Erro: ID não encontrado. Recarregue a página.');
       return;
     }
@@ -378,7 +395,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       const nextQuestion = currentQuestion + 1;
       setCurrentQuestion(nextQuestion);
       saveProgress.mutate({
-        surveyId,
+        surveyId: currentSurveyId,
         data: formData,
         currentSection: nextQuestion + 1
       }, {
@@ -394,8 +411,10 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   }, [currentQuestion]);
 
   const handleSubmit = useCallback(() => {
-    if (!surveyId) {
-      console.error('[Day2] No ID in handleSubmit');
+    // Use ref for most current surveyId
+    const currentSurveyId = surveyIdRef.current;
+    if (!currentSurveyId) {
+      console.error('[Day2] No ID in handleSubmit, surveyId:', surveyId, 'ref:', surveyIdRef.current);
       toast.error('Erro: ID não encontrado. Recarregue e tente novamente.');
       return;
     }
@@ -406,9 +425,9 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       effectiveTimeRef.current += Math.floor((Date.now() - lastVisibleTimeRef.current) / 1000);
     }
     
-    console.log('[Day2] Submitting:', surveyId);
+    console.log('[Day2] Submitting:', currentSurveyId);
     submitSurvey.mutate({
-      surveyId,
+      surveyId: currentSurveyId,
       data: formData,
       effectiveTime: effectiveTimeRef.current
     }, {
@@ -426,28 +445,31 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   }, [surveyId, formData, submitSurvey, onComplete, onOpenChange]);
 
   const handleOptionSelect = useCallback((value: string) => {
-    setFormData(prev => ({ ...prev, [currentQ.key]: value }));
+    const updatedData = { ...formDataRef.current, [currentQ.key]: value };
+    setFormData(updatedData);
+    formDataRef.current = updatedData;
     
     if (currentQ.type === 'radio' && currentQuestion < QUESTIONS.length - 1) {
-      if (!surveyId) {
-        console.warn('[Day2] No ID in auto-advance');
-      }
       setTimeout(() => {
         const nextQuestion = currentQuestion + 1;
         setCurrentQuestion(nextQuestion);
-        if (surveyId) {
-          const updatedData = { ...formData, [currentQ.key]: value };
+        
+        // Use ref to get current surveyId (avoids stale closure)
+        const currentSurveyId = surveyIdRef.current;
+        if (currentSurveyId) {
           saveProgress.mutate({
-            surveyId,
+            surveyId: currentSurveyId,
             data: updatedData,
             currentSection: nextQuestion + 1
           }, {
             onError: (error) => console.error('[Day2] Auto-save error:', error)
           });
+        } else {
+          console.warn('[Day2] No surveyId in auto-advance, skipping save');
         }
       }, 250);
     }
-  }, [currentQ?.key, currentQ?.type, currentQuestion, surveyId, formData, saveProgress]);
+  }, [currentQ?.key, currentQ?.type, currentQuestion, saveProgress]);
 
   if (isLoading || isInitializing) {
     return (
