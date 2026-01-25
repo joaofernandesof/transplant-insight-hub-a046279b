@@ -76,6 +76,9 @@ export interface MenuItem {
 export interface MenuCategory {
   id: string;
   title: string;
+  icon?: LucideIcon;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
   items: MenuItem[];
 }
 
@@ -199,6 +202,65 @@ export const NEOTEAM_MENU_ITEMS: MenuItem[] = [
   { id: 'neoteam_settings', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
 ];
 
+// Menu NeoTeam organizado por categorias colapsáveis
+export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
+  {
+    id: 'neoteam_main',
+    title: '',
+    items: [
+      { id: 'neoteam_home', code: 'neoteam_home', title: 'Início', icon: Home, route: '/neoteam' },
+    ],
+  },
+  {
+    id: 'neoteam_clinical',
+    title: 'Clínico',
+    icon: Stethoscope,
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      { id: 'neoteam_schedule', code: 'neoteam_schedule', title: 'Agenda', icon: Calendar, route: '/neoteam/schedule' },
+      { id: 'neoteam_waiting_room', code: 'neoteam_waiting_room', title: 'Sala de Espera', icon: Clock, route: '/neoteam/waiting-room' },
+      { id: 'neoteam_patients', code: 'neoteam_patients', title: 'Pacientes', icon: Users, route: '/neoteam/patients' },
+      { id: 'neoteam_medical_records', code: 'neoteam_medical_records', title: 'Prontuários', icon: FileText, route: '/neoteam/medical-records' },
+      { id: 'neoteam_doctor_view', code: 'neoteam_doctor_view', title: 'Visão do Médico', icon: Stethoscope, route: '/neoteam/doctor-view', requiredProfiles: ['medico', 'administrador'] },
+    ],
+  },
+  {
+    id: 'neoteam_operations',
+    title: 'Operações',
+    icon: ClipboardList,
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      { id: 'neoteam_tasks', code: 'neoteam_tasks', title: 'Tarefas', icon: ListTodo, route: '/neoteam/tasks' },
+      { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
+      { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/after-sales' },
+    ],
+  },
+  {
+    id: 'neoteam_education',
+    title: 'Educação',
+    icon: GraduationCap,
+    collapsible: true,
+    defaultOpen: true,
+    items: [
+      { id: 'neoteam_event_organization', code: 'neoteam_event_organization', title: 'Gestão de Eventos', icon: ClipboardList, route: '/neoteam/event-organization', adminOnly: true },
+      { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/galleries', adminOnly: true },
+    ],
+  },
+  {
+    id: 'neoteam_admin',
+    title: 'Administração',
+    icon: Settings,
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { id: 'neoteam_staff', code: 'neoteam_staff', title: 'Equipe', icon: UserCog, route: '/neoteam/staff', adminOnly: true },
+      { id: 'neoteam_settings', code: 'neoteam_settings', title: 'Configurações', icon: Settings, route: '/neoteam/settings' },
+    ],
+  },
+];
+
 export const ACADEMY_MENU_ITEMS: MenuItem[] = [
   { id: 'academy_home', code: 'academy_home', title: 'Início', icon: Home, route: '/academy' },
   { id: 'academy_courses', code: 'academy_courses', title: 'Cursos', icon: BookOpen, route: '/academy/courses' },
@@ -234,13 +296,18 @@ export const AVIVAR_MENU_ITEMS: MenuItem[] = [
   { id: 'avivar_profile', code: 'avivar_profile', title: 'Perfil', icon: Settings, route: '/avivar/profile' },
 ];
 
-// Mapeamento de portal para menu
+// Mapeamento de portal para menu flat (compatibilidade)
 export const PORTAL_MENUS: Record<string, MenuItem[]> = {
   neocare: NEOCARE_MENU_ITEMS,
   neoteam: NEOTEAM_MENU_ITEMS,
   academy: ACADEMY_MENU_ITEMS,
   neolicense: NEOLICENSE_MENU_ITEMS,
   avivar: AVIVAR_MENU_ITEMS,
+};
+
+// Mapeamento de portal para menu em categorias
+export const PORTAL_MENU_CATEGORIES: Record<string, MenuCategory[]> = {
+  neoteam: NEOTEAM_MENU_CATEGORIES,
 };
 
 // ====================================
