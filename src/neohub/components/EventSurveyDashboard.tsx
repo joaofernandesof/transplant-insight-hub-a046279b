@@ -3174,85 +3174,136 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Card>
         </div>
 
-        {/* Monitor Comparison Chart */}
+        {/* Monitor Comparison - Bar Charts */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Chart 1: Each Monitor with All Metrics */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Users className="h-5 w-5 text-violet-600" />
+                Desempenho por Monitor
+              </CardTitle>
+              <CardDescription>Todas as dimensões de cada monitor</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div style={{ height: Math.max(300, allMonitors.length * 120) }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={allMonitors.map(m => ({
+                      name: m.name,
+                      'Técnica': m.metrics?.avgTechnical || 0,
+                      'Interesse': m.metrics?.avgInterest || 0,
+                      'Engajamento': m.metrics?.avgEngagement || 0,
+                      'Postura': m.metrics?.avgPosture || 0,
+                      'Comunicação': m.metrics?.avgCommunication || 0,
+                      'Contribuição': m.metrics?.avgContribution || 0,
+                    }))} 
+                    layout="vertical"
+                    barCategoryGap="20%"
+                  >
+                    <XAxis type="number" domain={[0, 10]} tick={{ fontSize: 11 }} />
+                    <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12, fontWeight: 500 }} />
+                    <Tooltip formatter={(value: number) => `${value.toFixed(1)}/10`} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="Técnica" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="Interesse" fill="#10b981" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="Engajamento" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="Postura" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="Comunicação" fill="#ec4899" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="Contribuição" fill="#06b6d4" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <ChartExecutiveSummary 
+                insights={generateMonitorInsight(allMonitors.map(m => ({ name: m.name, avg: m.metrics?.overallAvg || 0 })))}
+                variant="info"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Chart 2: Each Metric with All Monitors */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Award className="h-5 w-5 text-amber-500" />
+                Comparativo por Dimensão
+              </CardTitle>
+              <CardDescription>Todos os monitores em cada dimensão</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={[
+                      { metric: 'Técnica', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgTechnical || 0])) },
+                      { metric: 'Interesse', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgInterest || 0])) },
+                      { metric: 'Engajamento', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgEngagement || 0])) },
+                      { metric: 'Postura', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgPosture || 0])) },
+                      { metric: 'Comunicação', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgCommunication || 0])) },
+                      { metric: 'Contribuição', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgContribution || 0])) },
+                    ]}
+                    layout="vertical"
+                    barCategoryGap="15%"
+                  >
+                    <XAxis type="number" domain={[0, 10]} tick={{ fontSize: 11 }} />
+                    <YAxis dataKey="metric" type="category" width={100} tick={{ fontSize: 12, fontWeight: 500 }} />
+                    <Tooltip formatter={(value: number) => `${value.toFixed(1)}/10`} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    {allMonitors.map((monitor) => (
+                      <Bar 
+                        key={monitor.name} 
+                        dataKey={monitor.name} 
+                        fill={monitor.stroke} 
+                        radius={[0, 4, 4, 0]} 
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Ranking Cards */}
         <Card>
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Users className="h-5 w-5 text-violet-600" />
-              Comparação de Monitores
+              <Trophy className="h-5 w-5 text-amber-500" />
+              Ranking Geral por Média
             </CardTitle>
-            <CardDescription>Avaliação detalhada dos monitores em 6 dimensões</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="flex flex-col lg:flex-row items-center gap-8">
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart data={monitorRadarData} outerRadius="75%">
-                  <PolarGrid strokeDasharray="3 3" />
-                  <PolarAngleAxis 
-                    dataKey="metric" 
-                    tick={{ fontSize: 12, fontWeight: 500 }} 
-                  />
-                  <PolarRadiusAxis 
-                    domain={[0, 10]} 
-                    tick={{ fontSize: 10 }} 
-                    tickCount={6}
-                    axisLine={false}
-                  />
-                  {allMonitors.map((monitor, idx) => (
-                    <Radar 
-                      key={monitor.name}
-                      name={monitor.name} 
-                      dataKey={monitor.name} 
-                      stroke={monitor.stroke} 
-                      fill="transparent" 
-                      fillOpacity={0}
-                      strokeWidth={3}
-                    />
-                  ))}
-                  <Legend 
-                    wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
-                    iconSize={14}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => value.toFixed(2)}
-                    contentStyle={{ borderRadius: 8 }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-              <div className="flex flex-col gap-3 min-w-[220px]">
-                <div className="text-sm font-semibold text-muted-foreground mb-1">🏆 Ranking por Média</div>
-                {allMonitors.map((monitor, index) => (
-                  <div 
-                    key={monitor.name}
-                    className={`p-4 rounded-xl ${monitor.bg} border ${monitor.border} relative`}
-                  >
-                    {/* Ranking Position Badge */}
-                    <div className={`absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                      index === 0 ? 'bg-amber-400 text-amber-900' : 
-                      index === 1 ? 'bg-slate-300 text-slate-700' : 
-                      index === 2 ? 'bg-amber-600 text-amber-100' : 
-                      'bg-slate-200 text-slate-600'
-                    }`}>
-                      {index + 1}º
-                    </div>
-                    <div className="flex items-center gap-2 mb-2 ml-2">
-                      <div className={`w-3 h-3 rounded-full ${monitor.dot}`} />
-                      <span className={`font-semibold ${monitor.text}`}>{monitor.name}</span>
-                    </div>
-                    <div className={`text-2xl font-bold ${monitor.text} ml-2`}>
-                      {monitor.metrics?.overallAvg?.toFixed(1) || 'N/A'}/10
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 ml-2">Média Geral</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {allMonitors.map((monitor, index) => (
+                <div 
+                  key={monitor.name}
+                  className={`p-4 rounded-xl ${monitor.bg} border ${monitor.border} relative`}
+                >
+                  <div className={`absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    index === 0 ? 'bg-amber-400 text-amber-900' : 
+                    index === 1 ? 'bg-slate-300 text-slate-700' : 
+                    index === 2 ? 'bg-amber-600 text-amber-100' : 
+                    'bg-slate-200 text-slate-600'
+                  }`}>
+                    {index + 1}º
                   </div>
-                ))}
-                {allMonitors.length === 0 && (
-                  <div className="text-center text-muted-foreground py-8">
-                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nenhum monitor avaliado</p>
+                  <div className="flex items-center gap-2 mb-2 ml-2">
+                    <div className={`w-3 h-3 rounded-full ${monitor.dot}`} />
+                    <span className={`font-semibold ${monitor.text}`}>{monitor.name}</span>
                   </div>
-                )}
-              </div>
+                  <div className={`text-2xl font-bold ${monitor.text} ml-2`}>
+                    {monitor.metrics?.overallAvg?.toFixed(1) || 'N/A'}/10
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 ml-2">Média Geral</p>
+                </div>
+              ))}
             </div>
+            {allMonitors.length === 0 && (
+              <div className="text-center text-muted-foreground py-8">
+                <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Nenhum monitor avaliado</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
