@@ -391,48 +391,307 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
 
   return (
     <div className="space-y-4">
-      {/* Comparison Cards - Side by Side (Clickable) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {CONTENT_AREAS.map((area) => {
-          const Icon = area.icon;
-          const score = area.key === 'foundations' ? analytics.technicalContent.avgFoundations
-            : area.key === 'practical' ? analytics.technicalContent.avgPracticalLoad
-            : area.key === 'management' ? analytics.businessContent.avgManagement
-            : analytics.businessContent.avgLegalSecurity;
-          const scoreInfo = getScoreColor(score);
-          
-          return (
-            <Card 
-              key={area.key} 
-              className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
-              onClick={() => showStudentsForMetric(area.label, area.questionKey)}
-            >
-              <div className="h-1" style={{ backgroundColor: scoreInfo.bg }} />
-              <CardContent className="pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded" style={{ backgroundColor: scoreInfo.bg + '20' }}>
-                      <Icon className="h-4 w-4" style={{ color: scoreInfo.bg }} />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">{area.label}</span>
-                  </div>
-                  <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* Keywords Clouds FIRST - Above all charts */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Improvement Keywords */}
+        <Card className="border-amber-200 dark:border-amber-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2 text-amber-600">
+              <TrendingUp className="h-4 w-4" />
+              Palavras mais citadas - Melhorias
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {improvementKeywords.length > 0 ? (
+              <div className="flex flex-wrap gap-2 justify-center">
+                {improvementKeywords.map(([word, count], idx) => (
+                  <span 
+                    key={word} 
+                    className="text-amber-600 dark:text-amber-400 font-medium capitalize"
+                    style={{ 
+                      fontSize: `${Math.max(12, Math.min(14 + count * 3, 24))}px`,
+                      opacity: Math.max(0.6, 1 - idx * 0.05)
+                    }}
+                  >
+                    {word}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm text-center">Sem dados suficientes</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Highlight Keywords */}
+        <Card className="border-emerald-200 dark:border-emerald-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2 text-emerald-600">
+              <TrendingUp className="h-4 w-4" />
+              Palavras mais citadas - Acertos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {highlightKeywords.length > 0 ? (
+              <div className="flex flex-wrap gap-2 justify-center">
+                {highlightKeywords.map(([word, count], idx) => (
+                  <span 
+                    key={word} 
+                    className="text-emerald-600 dark:text-emerald-400 font-medium capitalize"
+                    style={{ 
+                      fontSize: `${Math.max(12, Math.min(14 + count * 3, 24))}px`,
+                      opacity: Math.max(0.6, 1 - idx * 0.05)
+                    }}
+                  >
+                    {word}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm text-center">Sem dados suficientes</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 9 KPI Cards - Grid 3x3 */}
+      <div className="grid grid-cols-3 gap-4">
+        {/* Card 1: Satisfação Geral */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group">
+          <div className="h-1 bg-emerald-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-emerald-100 dark:bg-emerald-900/30">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{score.toFixed(1)}</span>
-                  <span className="text-muted-foreground text-sm">/ 10</span>
+                <span className="text-xs font-medium text-muted-foreground">Satisfação Geral</span>
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.satisfaction.avgLevel.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-emerald-500 rounded-full transition-all"
+                style={{ width: `${(analytics.satisfaction.avgLevel / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 2: Fundamentos Técnicos */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => showStudentsForMetric('Fundamentos Técnicos', 'q3')}>
+          <div className="h-1 bg-blue-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-blue-100 dark:bg-blue-900/30">
+                  <BookOpen className="h-4 w-4 text-blue-600" />
                 </div>
-                <Badge 
-                  variant="secondary" 
-                  className="mt-2 text-xs"
-                  style={{ backgroundColor: scoreInfo.bg + '20', color: scoreInfo.bg }}
-                >
-                  {scoreInfo.text}
-                </Badge>
-              </CardContent>
-            </Card>
-          );
-        })}
+                <span className="text-xs font-medium text-muted-foreground">Fundamentos Técnicos</span>
+              </div>
+              <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.technicalContent.avgFoundations.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-blue-500 rounded-full transition-all"
+                style={{ width: `${(analytics.technicalContent.avgFoundations / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 3: Carga Prática */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => showStudentsForMetric('Carga Prática', 'q4')}>
+          <div className="h-1 bg-purple-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-purple-100 dark:bg-purple-900/30">
+                  <Target className="h-4 w-4 text-purple-600" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">Carga Prática</span>
+              </div>
+              <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.technicalContent.avgPracticalLoad.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-purple-500 rounded-full transition-all"
+                style={{ width: `${(analytics.technicalContent.avgPracticalLoad / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 4: Clareza para Executar */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => showStudentsForMetric('Clareza para Executar', 'q6')}>
+          <div className="h-1 bg-cyan-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-cyan-100 dark:bg-cyan-900/30">
+                  <Lightbulb className="h-4 w-4 text-cyan-600" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">Clareza para Executar</span>
+              </div>
+              <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.confidence.avgClarity.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-cyan-500 rounded-full transition-all"
+                style={{ width: `${(analytics.confidence.avgClarity / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 5: Confiança */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => showStudentsForMetric('Confiança', 'q7')}>
+          <div className="h-1 bg-teal-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-teal-100 dark:bg-teal-900/30">
+                  <CheckCircle2 className="h-4 w-4 text-teal-600" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">Confiança</span>
+              </div>
+              <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.confidence.avgConfidence.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-teal-500 rounded-full transition-all"
+                style={{ width: `${(analytics.confidence.avgConfidence / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 6: Organização */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group">
+          <div className="h-1 bg-amber-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-amber-100 dark:bg-amber-900/30">
+                  <Sparkles className="h-4 w-4 text-amber-600" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">Organização</span>
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.experience.avgOrganization.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-amber-500 rounded-full transition-all"
+                style={{ width: `${(analytics.experience.avgOrganization / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 7: Suporte */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group">
+          <div className="h-1 bg-rose-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-rose-100 dark:bg-rose-900/30">
+                  <MessageSquare className="h-4 w-4 text-rose-600" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">Suporte</span>
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.experience.avgSupport.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-rose-500 rounded-full transition-all"
+                style={{ width: `${(analytics.experience.avgSupport / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 8: Aulas de Gestão */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => showStudentsForMetric('Aulas de Gestão', 'q8')}>
+          <div className="h-1 bg-indigo-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-indigo-100 dark:bg-indigo-900/30">
+                  <Briefcase className="h-4 w-4 text-indigo-600" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">Aulas de Gestão</span>
+              </div>
+              <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.businessContent.avgManagement.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-indigo-500 rounded-full transition-all"
+                style={{ width: `${(analytics.businessContent.avgManagement / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 9: Segurança Jurídica */}
+        <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
+          onClick={() => showStudentsForMetric('Segurança Jurídica', 'q9')}>
+          <div className="h-1 bg-slate-500" />
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-slate-100 dark:bg-slate-900/30">
+                  <Scale className="h-4 w-4 text-slate-600" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">Segurança Jurídica</span>
+              </div>
+              <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">{analytics.businessContent.avgLegalSecurity.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 10</span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-slate-500 rounded-full transition-all"
+                style={{ width: `${(analytics.businessContent.avgLegalSecurity / 10) * 100}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Radar + Balance Distribution */}
@@ -612,89 +871,24 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
         </CardContent>
       </Card>
 
-      {/* Keywords Clouds - Separated by Improvements and Highlights */}
-      <div className="grid md:grid-cols-2 gap-4">
-        {/* Improvement Keywords */}
-        <Card className="border-amber-200 dark:border-amber-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2 text-amber-600">
-              <TrendingUp className="h-4 w-4" />
-              Palavras mais citadas - Melhorias
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {improvementKeywords.length > 0 ? (
-              <div className="flex flex-wrap gap-2 justify-center">
-                {improvementKeywords.map(([word, count], idx) => (
-                  <span 
-                    key={word} 
-                    className="text-amber-600 dark:text-amber-400 font-medium capitalize"
-                    style={{ 
-                      fontSize: `${Math.max(12, Math.min(14 + count * 3, 24))}px`,
-                      opacity: Math.max(0.6, 1 - idx * 0.05)
-                    }}
-                  >
-                    {word}
-                  </span>
-                ))}
+      {/* Insights Section */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Lightbulb className="h-4 w-4" />
+            Insights Automáticos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+            {insights.map((insight, idx) => (
+              <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
+                <span className="text-sm">{insight}</span>
               </div>
-            ) : (
-              <p className="text-muted-foreground text-sm text-center">Sem dados suficientes</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Highlight Keywords */}
-        <Card className="border-emerald-200 dark:border-emerald-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2 text-emerald-600">
-              <TrendingUp className="h-4 w-4" />
-              Palavras mais citadas - Acertos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {highlightKeywords.length > 0 ? (
-              <div className="flex flex-wrap gap-2 justify-center">
-                {highlightKeywords.map(([word, count], idx) => (
-                  <span 
-                    key={word} 
-                    className="text-emerald-600 dark:text-emerald-400 font-medium capitalize"
-                    style={{ 
-                      fontSize: `${Math.max(12, Math.min(14 + count * 3, 24))}px`,
-                      opacity: Math.max(0.6, 1 - idx * 0.05)
-                    }}
-                  >
-                    {word}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm text-center">Sem dados suficientes</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Insights */}
-      <div className="grid md:grid-cols-1 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Lightbulb className="h-4 w-4" />
-              Insights Automáticos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {insights.map((insight, idx) => (
-                <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
-                  <span className="text-sm">{insight}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Strengths & Weaknesses */}
       <div className="grid md:grid-cols-2 gap-4">
