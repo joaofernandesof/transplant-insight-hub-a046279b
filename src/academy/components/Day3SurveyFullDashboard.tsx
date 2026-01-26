@@ -80,6 +80,75 @@ function formatTime(seconds: number): string {
   return `${mins}m ${secs}s`;
 }
 
+// Stop words to ignore in word cloud
+const STOP_WORDS = new Set([
+  'a', 'o', 'e', 'de', 'da', 'do', 'em', 'um', 'uma', 'os', 'as', 'dos', 'das',
+  'para', 'com', 'que', 'na', 'no', 'por', 'mais', 'muito', 'foi', 'ser', 'ter',
+  'como', 'mas', 'se', 'ou', 'seu', 'sua', 'ele', 'ela', 'isso', 'esse', 'essa',
+  'ao', 'à', 'às', 'aos', 'é', 'são', 'está', 'estão', 'tem', 'têm', 'havia',
+  'nenhuma', 'nenhum', 'todos', 'todas', 'tudo', 'nada', 'bem', 'bom', 'boa',
+  'já', 'ainda', 'também', 'só', 'apenas', 'sobre', 'entre', 'até', 'sem',
+]);
+
+function extractWords(texts: string[]): { word: string; count: number }[] {
+  const wordCounts: Record<string, number> = {};
+  
+  texts.forEach(text => {
+    const words = text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents for matching
+      .replace(/[^\w\s]/g, ' ') // Remove punctuation
+      .split(/\s+/)
+      .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+    
+    words.forEach(word => {
+      wordCounts[word] = (wordCounts[word] || 0) + 1;
+    });
+  });
+  
+  return Object.entries(wordCounts)
+    .map(([word, count]) => ({ word, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15); // Top 15 words
+}
+
+function WordCloud({ texts, color }: { texts: string[]; color: 'amber' | 'emerald' }) {
+  const words = extractWords(texts);
+  
+  if (words.length === 0) {
+    return <p className="text-muted-foreground text-sm text-center py-4">Sem dados suficientes</p>;
+  }
+  
+  const maxCount = Math.max(...words.map(w => w.count));
+  
+  const colorClasses = {
+    amber: ['text-amber-400', 'text-amber-500', 'text-amber-600', 'text-amber-700'],
+    emerald: ['text-emerald-400', 'text-emerald-500', 'text-emerald-600', 'text-emerald-700'],
+  };
+  
+  return (
+    <div className="flex flex-wrap gap-2 justify-center items-center min-h-[80px]">
+      {words.map(({ word, count }) => {
+        const intensity = Math.ceil((count / maxCount) * 4);
+        const colorClass = colorClasses[color][Math.min(intensity - 1, 3)];
+        const fontSize = 0.75 + (count / maxCount) * 1; // 0.75rem to 1.75rem
+        
+        return (
+          <span
+            key={word}
+            className={`font-medium ${colorClass} transition-all hover:scale-110 cursor-default`}
+            style={{ fontSize: `${fontSize}rem` }}
+            title={`${count}x`}
+          >
+            {word}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function ScoreCard({ title, value, max = 10, icon: Icon, color = 'emerald' }: {
   title: string;
   value: number;
@@ -481,29 +550,55 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
         </TabsContent>
         
         {/* Feedback Tab */}
-        <TabsContent value="feedback" className="space-y-4">
+        <TabsContent value="feedback" className="space-y-6">
+          {/* Word Clouds */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-amber-500" />
+                  Palavras mais citadas - Melhorias
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WordCloud texts={analytics.improvements} color="amber" />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-500" />
+                  Palavras mais citadas - Acertos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WordCloud texts={analytics.highlights} color="emerald" />
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* All Feedbacks */}
           <div className="grid md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Lightbulb className="h-4 w-4 text-amber-500" />
-                  O que precisa melhorar
+                  O que precisa melhorar ({analytics.improvements.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-3">
-                    {analytics.improvements.length > 0 ? (
-                      analytics.improvements.map((item, idx) => (
-                        <div key={idx} className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-sm">
-                          "{item}"
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">Nenhum feedback ainda.</p>
-                    )}
-                  </div>
-                </ScrollArea>
+                <div className="space-y-3">
+                  {analytics.improvements.length > 0 ? (
+                    analytics.improvements.map((item, idx) => (
+                      <div key={idx} className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-sm dark:bg-amber-950/20 dark:border-amber-900/30">
+                        "{item}"
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm">Nenhum feedback ainda.</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
             
@@ -511,23 +606,21 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Star className="h-4 w-4 text-emerald-500" />
-                  O que mais acertamos
+                  O que mais acertamos ({analytics.highlights.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-3">
-                    {analytics.highlights.length > 0 ? (
-                      analytics.highlights.map((item, idx) => (
-                        <div key={idx} className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg text-sm">
-                          "{item}"
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">Nenhum feedback ainda.</p>
-                    )}
-                  </div>
-                </ScrollArea>
+                <div className="space-y-3">
+                  {analytics.highlights.length > 0 ? (
+                    analytics.highlights.map((item, idx) => (
+                      <div key={idx} className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg text-sm dark:bg-emerald-950/20 dark:border-emerald-900/30">
+                        "{item}"
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm">Nenhum feedback ainda.</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
