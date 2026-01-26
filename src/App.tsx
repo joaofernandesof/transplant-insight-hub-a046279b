@@ -13,6 +13,7 @@ import { ThemeProvider } from "next-themes";
 import { UnifiedAuthProvider, useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import SupportChat from "@/components/SupportChat";
+import { EventTracker } from "@/components/EventTracker";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { queryClient } from "@/lib/queryClient";
@@ -554,6 +555,7 @@ function AppWithSupport() {
   
   return (
     <>
+      <EventTracker />
       <AppRoutes />
       {user && <PresenceTracker />}
       {user && <SupportChat />}
