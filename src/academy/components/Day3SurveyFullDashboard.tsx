@@ -43,6 +43,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  UserX,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -410,7 +411,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
         </TabsList>
         
         {/* Header Stats - Now Below Tabs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
@@ -420,6 +421,20 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                 <div>
                   <p className="text-2xl font-bold">{analytics.completedResponses}</p>
                   <p className="text-xs text-muted-foreground">Respostas completas</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-100 text-red-600">
+                  <UserX className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{analytics.totalResponses - analytics.completedResponses}</p>
+                  <p className="text-xs text-muted-foreground">Abandonados</p>
                 </div>
               </div>
             </CardContent>
