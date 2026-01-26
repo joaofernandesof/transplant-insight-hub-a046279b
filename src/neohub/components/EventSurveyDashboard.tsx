@@ -72,6 +72,13 @@ import { useSurveyAnalytics, type QuestionRating, type StudentDetailedResponse }
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  ChartExecutiveSummary, 
+  generateSatisfactionInsight, 
+  generateInstructorInsight,
+  generateRadarInsight,
+  generateMonitorInsight
+} from '@/components/surveys/ChartExecutiveSummary';
 
 interface EventSurveyDashboardProps {
   classId: string | null;
@@ -3094,7 +3101,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex flex-col lg:flex-row items-center gap-8">
-                <ResponsiveContainer width="100%" height={350}>
+                <ResponsiveContainer width="100%" height={300}>
                   <RadarChart data={instructorRadarData} outerRadius="80%">
                     <PolarGrid strokeDasharray="3 3" />
                     <PolarAngleAxis 
@@ -3156,6 +3163,13 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   </div>
                 </div>
               </div>
+              <ChartExecutiveSummary 
+                insights={generateInstructorInsight(
+                  { name: 'Dr. Hygor', avg: analytics.instructors.hygor.overallAvg },
+                  { name: 'Dr. Patrick', avg: analytics.instructors.patrick.overallAvg }
+                )}
+                variant="info"
+              />
             </CardContent>
           </Card>
         </div>
