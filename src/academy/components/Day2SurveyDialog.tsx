@@ -385,16 +385,25 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       setFormData(savedData);
       formDataRef.current = savedData; // Sync ref immediately
       
-      // Find first unanswered REQUIRED question (radio questions are required)
-      let resumeIndex = QUESTIONS.length - 1; // Default to last question
+      // Find first unanswered question to resume from
+      let resumeIndex = 0;
+      let foundUnanswered = false;
+      
       for (let i = 0; i < QUESTIONS.length; i++) {
         const q = QUESTIONS[i];
-        // For radio questions, they are required - if not answered, resume here
-        if (q.type === 'radio' && !savedData[q.key]) {
+        // If any question is not answered, resume from there
+        if (!savedData[q.key]) {
           resumeIndex = i;
+          foundUnanswered = true;
           break;
         }
       }
+      
+      // If all questions answered but not completed, stay on last question
+      if (!foundUnanswered && !existingSurvey.is_completed) {
+        resumeIndex = QUESTIONS.length - 1;
+      }
+      
       setCurrentQuestion(resumeIndex);
       effectiveTimeRef.current = existingSurvey.effective_time_seconds || 0;
     }
@@ -423,14 +432,14 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     };
   }, [open]);
 
-  // Reset state when dialog closes
+  // Only reset state when dialog closes if survey is completed
   useEffect(() => {
-    if (!open) {
+    if (!open && isCompleted) {
       setCurrentQuestion(0);
       setFormData({});
       setSurveyId(null);
     }
-  }, [open]);
+  }, [open, isCompleted]);
 
   const currentQ = QUESTIONS[currentQuestion];
   // Progress with easing: fast at start, slow at end (last 30%)

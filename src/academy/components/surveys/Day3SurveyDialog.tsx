@@ -518,8 +518,22 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
                 {currentQuestion.type === 'text' && (
                   <Textarea
                     value={formData[currentQuestion.id] as string || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, [currentQuestion.id]: e.target.value }))}
-                    placeholder={currentQuestion.placeholder}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      const newData = { ...formDataRef.current, [currentQuestion.id]: newValue };
+                      setFormData(newData);
+                    }}
+                    onBlur={() => {
+                      // Save on blur
+                      if (surveyIdRef.current) {
+                        saveProgress({
+                          surveyId: surveyIdRef.current,
+                          data: formDataRef.current,
+                          currentSection: currentSectionIndex + 1,
+                        }).catch(console.error);
+                      }
+                    }}
+                    placeholder={currentQuestion.placeholder || 'Digite sua resposta...'}
                     className="min-h-[120px]"
                   />
                 )}
