@@ -2977,6 +2977,137 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
           </Card>
         </div>
 
+        {/* Suspicious Responses Alert */}
+        {(() => {
+          // Detect suspicious responses: very fast completion OR all same answers
+          const suspiciousResponses = analytics.responsesByStudent.filter(student => {
+            // Check 1: Very low credibility (fast completion)
+            const isFastCompletion = student.credibilityLevel === 'suspicious' || student.credibilityLevel === 'low';
+            
+            // Check 2: All answers are the same (uniform pattern)
+            const numericResponses = student.responses
+              .filter(r => r.numericValue !== null)
+              .map(r => r.numericValue as number);
+            
+            const allSamePositive = numericResponses.length >= 5 && numericResponses.every(v => v >= 9);
+            const allSameNegative = numericResponses.length >= 5 && numericResponses.every(v => v <= 2.5);
+            const isUniformPattern = allSamePositive || allSameNegative;
+            
+            return isFastCompletion || isUniformPattern;
+          });
+
+          if (suspiciousResponses.length === 0) return null;
+
+          return (
+            <Card className="border-amber-400 bg-amber-50/80 dark:bg-amber-950/40">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    <CardTitle className="text-base text-amber-800 dark:text-amber-300">
+                      Respostas Potencialmente Inválidas
+                    </CardTitle>
+                    <Badge className="bg-amber-200 text-amber-800 border-amber-400">{suspiciousResponses.length}</Badge>
+                  </div>
+                </div>
+                <CardDescription className="text-amber-700 dark:text-amber-400">
+                  Detectamos respostas que podem ser testes (preenchimento muito rápido ou padrão uniforme). 
+                  Revise e exclua para não distorcer os dados.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {suspiciousResponses.map(student => {
+                    // Determine reasons
+                    const reasons: string[] = [];
+                    if (student.credibilityLevel === 'suspicious') {
+                      reasons.push(`⚡ Muito rápido (${student.avgTimePerQuestion || 0}s/pergunta)`);
+                    } else if (student.credibilityLevel === 'low') {
+                      reasons.push(`⏱️ Tempo baixo (${student.avgTimePerQuestion || 0}s/pergunta)`);
+                    }
+                    
+                    const numericResponses = student.responses
+                      .filter(r => r.numericValue !== null)
+                      .map(r => r.numericValue as number);
+                    const allPositive = numericResponses.length >= 5 && numericResponses.every(v => v >= 9);
+                    const allNegative = numericResponses.length >= 5 && numericResponses.every(v => v <= 2.5);
+                    if (allPositive) reasons.push('✅ Todas respostas positivas (máximo)');
+                    if (allNegative) reasons.push('❌ Todas respostas negativas (mínimo)');
+
+                    return (
+                      <div 
+                        key={student.userId} 
+                        className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-amber-950/60 border border-amber-200 dark:border-amber-700/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8 border border-amber-300">
+                            <AvatarFallback className="text-xs bg-amber-100 text-amber-700">
+                              {student.userName.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-sm">{student.userName}</p>
+                            <div className="flex flex-wrap gap-1 mt-0.5">
+                              {reasons.map((reason, i) => (
+                                <Badge 
+                                  key={i} 
+                                  variant="outline" 
+                                  className="text-[10px] bg-amber-100/80 text-amber-700 border-amber-300"
+                                >
+                                  {reason}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${
+                              student.overallScore >= 9 ? 'bg-emerald-100 text-emerald-700' :
+                              student.overallScore <= 3 ? 'bg-red-100 text-red-700' :
+                              'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            Nota: {student.overallScore.toFixed(1)}
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                            onClick={async () => {
+                              if (!confirm(`Excluir resposta de "${student.userName}"? Esta ação não pode ser desfeita.`)) return;
+                              
+                              try {
+                                const { error } = await supabase
+                                  .from('day1_satisfaction_surveys')
+                                  .delete()
+                                  .eq('user_id', student.userId)
+                                  .eq('class_id', classId);
+                                
+                                if (error) throw error;
+                                
+                                toast.success(`Resposta de ${student.userName} excluída`);
+                                // Trigger refetch
+                                window.location.reload();
+                              } catch (err) {
+                                console.error('Error deleting survey:', err);
+                                toast.error('Erro ao excluir resposta');
+                              }
+                            }}
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Excluir
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Infrastructure & Instructors */}
         <div className="grid grid-cols-1 gap-4">
