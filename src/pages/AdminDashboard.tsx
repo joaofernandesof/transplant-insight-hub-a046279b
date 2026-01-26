@@ -357,10 +357,10 @@ export default function AdminDashboard() {
                 <button
                   key={portal.id}
                   onClick={() => navigate(portal.path)}
-                  className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-background/50 transition-all"
+                  className="group flex flex-col items-center gap-3 p-4 rounded-xl border border-border hover:border-primary/40 hover:bg-background/50 transition-all"
                 >
-                  <div className={`p-2 rounded-lg bg-gradient-to-br ${portal.gradient} text-white shadow-sm`}>
-                    <portal.icon className="h-4 w-4" />
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
+                    <portal.icon className="h-5 w-5" />
                   </div>
                   <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{portal.title}</span>
                 </button>
