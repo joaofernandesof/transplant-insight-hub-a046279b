@@ -1032,11 +1032,11 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
             <CardTitle>Tempo por Aluno</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div style={{ height: Math.max(400, analytics.timingData.length * 32) }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={analytics.timingData.slice(0, 20)} layout="vertical">
+                <BarChart data={analytics.timingData} layout="vertical" barSize={20}>
                   <XAxis type="number" tickFormatter={(v) => formatTime(v)} />
-                  <YAxis dataKey="userName" type="category" width={120} tick={{ fontSize: 11 }} />
+                  <YAxis dataKey="userName" type="category" width={150} tick={{ fontSize: 11 }} />
                   <Tooltip formatter={(v: number) => formatTime(v)} />
                   <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>
