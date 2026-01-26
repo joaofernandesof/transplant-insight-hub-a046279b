@@ -290,6 +290,7 @@ export function AcademyClassDetail() {
                 onUnlockRequest={() => setDay1SurveyDialogOpen(true)}
                 onOpenDay1Survey={() => setDay1SurveyDialogOpen(true)}
                 onOpenDay2Survey={() => setDay2SurveyDialogOpen(true)}
+                onOpenDay3Survey={() => setDay3SurveyDialogOpen(true)}
               />
             </div>
           )}
