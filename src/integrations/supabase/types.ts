@@ -923,6 +923,13 @@ export type Database = {
             referencedRelation: "course_galleries"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "course_gallery_photos_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_stats"
+            referencedColumns: ["gallery_id"]
+          },
         ]
       }
       course_modules: {
@@ -2042,11 +2049,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "gallery_photo_analytics_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_stats"
+            referencedColumns: ["gallery_id"]
+          },
+          {
             foreignKeyName: "gallery_photo_analytics_photo_id_fkey"
             columns: ["photo_id"]
             isOneToOne: false
             referencedRelation: "course_gallery_photos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gallery_photo_analytics_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_photo_stats"
+            referencedColumns: ["photo_id"]
           },
         ]
       }
@@ -7644,7 +7665,6 @@ export type Database = {
         Row: {
           created_at: string | null
           exam_id: string | null
-          explanation: string | null
           id: string | null
           options: Json | null
           order_index: number | null
@@ -7655,7 +7675,6 @@ export type Database = {
         Insert: {
           created_at?: string | null
           exam_id?: string | null
-          explanation?: string | null
           id?: string | null
           options?: Json | null
           order_index?: number | null
@@ -7666,7 +7685,6 @@ export type Database = {
         Update: {
           created_at?: string | null
           exam_id?: string | null
-          explanation?: string | null
           id?: string | null
           options?: Json | null
           order_index?: number | null
@@ -7686,46 +7704,47 @@ export type Database = {
       }
       gallery_photo_stats: {
         Row: {
+          caption: string | null
+          created_at: string | null
           download_count: number | null
+          full_url: string | null
           gallery_id: string | null
-          last_downloaded_at: string | null
-          last_viewed_at: string | null
           photo_id: string | null
           view_count: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "gallery_photo_analytics_gallery_id_fkey"
+            foreignKeyName: "course_gallery_photos_gallery_id_fkey"
             columns: ["gallery_id"]
             isOneToOne: false
             referencedRelation: "course_galleries"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "gallery_photo_analytics_photo_id_fkey"
-            columns: ["photo_id"]
+            foreignKeyName: "course_gallery_photos_gallery_id_fkey"
+            columns: ["gallery_id"]
             isOneToOne: false
-            referencedRelation: "course_gallery_photos"
-            referencedColumns: ["id"]
+            referencedRelation: "gallery_stats"
+            referencedColumns: ["gallery_id"]
           },
         ]
       }
       gallery_stats: {
         Row: {
+          class_id: string | null
           gallery_id: string | null
-          last_activity_at: string | null
-          photos_downloaded: number | null
-          photos_viewed: number | null
+          photo_count: number | null
+          title: string | null
           total_downloads: number | null
           total_views: number | null
-          unique_users: number | null
+          unique_viewers: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "gallery_photo_analytics_gallery_id_fkey"
-            columns: ["gallery_id"]
+            foreignKeyName: "course_galleries_class_id_fkey"
+            columns: ["class_id"]
             isOneToOne: false
-            referencedRelation: "course_galleries"
+            referencedRelation: "course_classes"
             referencedColumns: ["id"]
           },
         ]
