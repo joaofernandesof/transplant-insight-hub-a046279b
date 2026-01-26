@@ -30,7 +30,7 @@ const PORTAL_CONFIG: Record<string, {
   route: string;
 }> = {
   academy: {
-    title: 'Portal do Aluno IBRAMEC',
+    title: 'Portal do Aluno',
     description: 'Cursos, certificados e materiais educacionais',
     icon: GraduationCap,
     gradient: 'from-emerald-500 to-green-600',
