@@ -73,12 +73,22 @@ const getSatisfactionFromScore = (score: number): { label: string; color: string
   return { label: 'Muito Insatisfeito', color: '#ef4444' };
 };
 
-const PROMISE_LABELS: Record<string, { label: string; emoji: string }> = {
-  muito_acima: { label: 'Muito acima', emoji: '🔥' },
-  acima: { label: 'Acima', emoji: '✨' },
-  dentro: { label: 'Dentro', emoji: '✅' },
-  abaixo: { label: 'Abaixo', emoji: '⚠️' },
-  muito_abaixo: { label: 'Muito abaixo', emoji: '❌' },
+// Labels ordenados do pior para o melhor com cores semânticas
+// Vermelho (ruim) → Laranja (insatisfatório) → Amarelo (médio) → Azul (bom) → Verde (ótimo)
+const PROMISE_OPTIONS = [
+  { key: 'muito_abaixo', label: 'Muito abaixo', color: '#ef4444' },      // Vermelho - ruim
+  { key: 'abaixo', label: 'Abaixo', color: '#f97316' },                  // Laranja - ruim
+  { key: 'dentro', label: 'Dentro', color: '#eab308' },                  // Amarelo - médio
+  { key: 'acima', label: 'Acima', color: '#3b82f6' },                    // Azul - bom
+  { key: 'muito_acima', label: 'Muito acima', color: '#10b981' },        // Verde - ótimo
+];
+
+const PROMISE_LABELS: Record<string, { label: string }> = {
+  muito_acima: { label: 'Muito acima' },
+  acima: { label: 'Acima' },
+  dentro: { label: 'Dentro' },
+  abaixo: { label: 'Abaixo' },
+  muito_abaixo: { label: 'Muito abaixo' },
 };
 
 const BALANCE_LABELS: Record<string, string> = {
@@ -313,11 +323,11 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
     );
   }
   
-  // Prepare chart data
-  const promiseData = Object.entries(analytics.satisfaction.promiseMet).map(([key, value]) => ({
-    name: PROMISE_LABELS[key]?.label || key,
-    value,
-    emoji: PROMISE_LABELS[key]?.emoji || '',
+  // Prepare chart data - show all options even if zero
+  const promiseData = PROMISE_OPTIONS.map(opt => ({
+    name: opt.label,
+    value: analytics.satisfaction.promiseMet[opt.key] || 0,
+    fill: opt.color,
   }));
   
   const balanceData = Object.entries(analytics.technicalContent.balanceDistribution).map(([key, value]) => ({
@@ -468,7 +478,11 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                     <XAxis type="number" />
                     <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
                     <Tooltip />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      {promiseData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
