@@ -69,6 +69,8 @@ import {
 } from '@/components/surveys/ChartExecutiveSummary';
 import { printCurrentView } from '@/utils/printPdf';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Day3SurveyFullDashboardProps {
   classId?: string | null;
@@ -323,21 +325,110 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
   
   const exportAllTabs = async () => {
     setIsExporting(true);
-    toast.info('Exportando todos os relatórios...');
+    toast.info('Capturando todas as abas para PDF único...');
     
     const tabs = ['overview', 'content', 'monitors', 'feedback', 'students'];
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
     
-    for (const tab of tabs) {
+    let isFirstPage = true;
+    
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = tabs[i];
       setActiveTab(tab);
+      
       // Wait for tab content to render
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await printCurrentView(`Pesquisa Final - ${TAB_NAMES[tab]}`);
-      // Small delay between prints
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      toast.info(`Capturando ${TAB_NAMES[tab]} (${i + 1}/${tabs.length})...`);
+      
+      // Find the main content area
+      const contentArea = document.querySelector('[role="tabpanel"][data-state="active"]') as HTMLElement;
+      
+      if (!contentArea) {
+        console.warn(`Tab content not found for: ${tab}`);
+        continue;
+      }
+      
+      try {
+        // Capture the tab content
+        const canvas = await html2canvas(contentArea, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          windowWidth: contentArea.scrollWidth,
+          windowHeight: contentArea.scrollHeight,
+        });
+        
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Add new page if not first
+        if (!isFirstPage) {
+          pdf.addPage();
+        }
+        isFirstPage = false;
+        
+        // Add tab title header
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`Pesquisa Final - ${TAB_NAMES[tab]}`, margin, margin + 5);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, margin, margin + 10);
+        
+        // Calculate how many pages this image needs
+        const headerHeight = 15;
+        const availableHeight = pageHeight - (margin * 2) - headerHeight;
+        let yOffset = margin + headerHeight;
+        let remainingHeight = imgHeight;
+        let sourceY = 0;
+        
+        while (remainingHeight > 0) {
+          const sliceHeight = Math.min(remainingHeight, availableHeight);
+          const sliceRatio = sliceHeight / imgHeight;
+          
+          // Add the image slice
+          pdf.addImage(
+            imgData,
+            'JPEG',
+            margin,
+            yOffset,
+            imgWidth,
+            sliceHeight,
+            undefined,
+            'FAST',
+            0
+          );
+          
+          remainingHeight -= sliceHeight;
+          sourceY += sliceHeight;
+          
+          // If more content remains, add a new page
+          if (remainingHeight > 0) {
+            pdf.addPage();
+            yOffset = margin;
+          }
+        }
+        
+      } catch (err) {
+        console.error(`Error capturing tab ${tab}:`, err);
+      }
+      
+      // Small delay between captures
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
     
+    // Save the merged PDF
+    pdf.save(`Pesquisa-Final-Completa-${new Date().toISOString().split('T')[0]}.pdf`);
+    
     setIsExporting(false);
-    toast.success('Todos os relatórios exportados!');
+    toast.success('PDF completo exportado com sucesso!');
   };
   
   const handleSort = (field: typeof sortField) => {
