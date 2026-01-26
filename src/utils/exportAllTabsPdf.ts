@@ -41,8 +41,8 @@ export async function exportAllTabsToPdf({
     const tab = tabs[i];
     setActiveTab(tab);
     
-    // Wait for tab content to render
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Wait for tab content to fully render (1 second)
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     const tabDisplayName = tabNames[tab] || tab;
     toast.info(`Capturando ${tabDisplayName} (${i + 1}/${tabs.length})...`);
@@ -121,7 +121,7 @@ export async function exportAllTabsToPdf({
     }
     
     // Small delay between captures
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 300));
   }
   
   // Save the merged PDF
