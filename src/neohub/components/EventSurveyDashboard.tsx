@@ -3153,26 +3153,32 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <CardContent className="pt-0">
               <div className="flex flex-col lg:flex-row items-center gap-8">
                 {(() => {
-                  // Color by score ranges: 0-6 red, 7-8 yellow, 9-10 green
+                  // Color by score ranges: 0-6.99 red, 7-7.99 yellow, 8-10 green
                   const getBarColor = (value: number): string => {
-                    if (value >= 9) return '#22c55e'; // green-500
+                    if (value >= 8) return '#22c55e'; // green-500
                     if (value >= 7) return '#eab308'; // yellow-500
                     return '#ef4444'; // red-500
                   };
                   
                   const getScoreColor = (value: number) => {
-                    const ratio = value / 10; // 0-1 scale (values are 0-10)
-                    if (ratio < 0.5) {
+                    // 0-6.99 = red, 7-7.99 = yellow, 8-10 = green
+                    if (value >= 8) {
                       return {
-                        bg: ratio < 0.3 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30',
-                        text: ratio < 0.3 ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400',
-                        border: ratio < 0.3 ? 'border-red-200 dark:border-red-800' : 'border-amber-200 dark:border-amber-800',
+                        bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+                        text: 'text-emerald-700 dark:text-emerald-400',
+                        border: 'border-emerald-200 dark:border-emerald-800',
+                      };
+                    } else if (value >= 7) {
+                      return {
+                        bg: 'bg-amber-100 dark:bg-amber-900/30',
+                        text: 'text-amber-700 dark:text-amber-400',
+                        border: 'border-amber-200 dark:border-amber-800',
                       };
                     } else {
                       return {
-                        bg: ratio >= 0.8 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-lime-100 dark:bg-lime-900/30',
-                        text: ratio >= 0.8 ? 'text-emerald-700 dark:text-emerald-400' : 'text-lime-700 dark:text-lime-400',
-                        border: ratio >= 0.8 ? 'border-emerald-200 dark:border-emerald-800' : 'border-lime-200 dark:border-lime-800',
+                        bg: 'bg-red-100 dark:bg-red-900/30',
+                        text: 'text-red-700 dark:text-red-400',
+                        border: 'border-red-200 dark:border-red-800',
                       };
                     }
                   };
