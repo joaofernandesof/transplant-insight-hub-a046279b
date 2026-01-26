@@ -35,6 +35,8 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { exportAllTabsToPdf } from '@/utils/exportAllTabsPdf';
+import { Loader2, FileStack } from 'lucide-react';
 import { useDay2SurveyAnalytics, type Day2StudentResponse } from '../hooks/useDay2SurveyAnalytics';
 import { Day2AIInsightsPanel } from './Day2AIInsightsPanel';
 import { Day2CallProfilesPanel } from './Day2CallProfilesPanel';
@@ -66,8 +68,20 @@ const formatTime = (seconds: number) => {
   return `${mins}m ${secs}s`;
 };
 
+const TAB_NAMES_DAY2: Record<string, string> = {
+  overview: 'Visão Geral',
+  matrix: 'Matriz',
+  ranking: 'Ranking',
+  questions: 'Perguntas',
+  students: 'Alunos',
+  timing: 'Tempos',
+  insights: 'Insights IA',
+};
+
 export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProps) {
   const { data: analytics, isLoading, error } = useDay2SurveyAnalytics(classId);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isExporting, setIsExporting] = useState(false);
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -162,6 +176,17 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
     doc.save('dashboard-dia2.pdf');
   };
   
+  const exportAllTabs = async () => {
+    const tabs = ['overview', 'matrix', 'ranking', 'questions', 'students', 'timing', 'insights'];
+    await exportAllTabsToPdf({
+      tabs,
+      tabNames: TAB_NAMES_DAY2,
+      setActiveTab,
+      setIsExporting,
+      filename: 'Pesquisa-Dia2-Completa',
+    });
+  };
+  
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -231,7 +256,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
   );
   
   return (
-    <Tabs defaultValue="overview" className="w-full space-y-4">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-4">
       {/* Sticky header with KPIs and tabs */}
       <div className="sticky top-0 z-30 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-1 border-b">
         {/* Score Cards by Theme - IA, Licença, Jurídico (escala 0-10) */}
@@ -378,10 +403,30 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               <span className="hidden sm:inline">Insights IA</span>
             </TabsTrigger>
           </TabsList>
-          <Button onClick={exportToPDF} variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Exportar PDF
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={exportToPDF} variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Exportar PDF
+            </Button>
+            <Button 
+              onClick={exportAllTabs} 
+              variant="outline" 
+              className="gap-2"
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Exportando...
+                </>
+              ) : (
+                <>
+                  <FileStack className="h-4 w-4" />
+                  Exportar Tudo (PDF)
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
       

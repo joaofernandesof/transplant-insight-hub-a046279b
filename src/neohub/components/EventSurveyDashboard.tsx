@@ -67,8 +67,10 @@ import { Day3SurveyFullDashboard } from "@/academy/components/Day3SurveyFullDash
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { printCurrentView } from "@/utils/printPdf";
+import { exportAllTabsToPdf } from "@/utils/exportAllTabsPdf";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { FileStack, Loader2 } from 'lucide-react';
 import { useSurveyAnalytics, type QuestionRating, type StudentDetailedResponse } from "@/neohub/hooks/useSurveyAnalytics";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -1693,6 +1695,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [showQuestionsManager, setShowQuestionsManager] = useState(false);
   const [exportingTab, setExportingTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
   
   // AI Insights state
   const [aiInsights, setAiInsights] = useState<any>(null);
@@ -2241,7 +2244,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   return (
     <>
     <SurveyQuestionsManager open={showQuestionsManager} onOpenChange={setShowQuestionsManager} />
-    <Tabs defaultValue="overview" className="space-y-4">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       {/* Sticky header with filter bar and tabs */}
       <div className="sticky top-0 z-30 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-1 border-b">
         {/* Survey Filter Bar */}
@@ -2286,6 +2289,41 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             >
               <Download className="h-4 w-4" />
               Exportar PDF
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={async () => {
+                const TAB_NAMES_DAY1: Record<string, string> = {
+                  overview: 'Visão Geral',
+                  matrix: 'Matriz',
+                  ranking: 'Ranking',
+                  questions: 'Perguntas',
+                  students: 'Alunos',
+                  timing: 'Tempos',
+                  insights: 'Insights IA',
+                };
+                await exportAllTabsToPdf({
+                  tabs: ['overview', 'matrix', 'ranking', 'questions', 'students', 'timing', 'insights'],
+                  tabNames: TAB_NAMES_DAY1,
+                  setActiveTab,
+                  setIsExporting,
+                  filename: 'Pesquisa-Dia1-Completa',
+                });
+              }}
+              className="gap-2"
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Exportando...
+                </>
+              ) : (
+                <>
+                  <FileStack className="h-4 w-4" />
+                  Exportar Tudo (PDF)
+                </>
+              )}
             </Button>
             <Button variant="outline" onClick={() => setShowQuestionsManager(true)} className="gap-2">
               <Settings2 className="h-4 w-4" />
