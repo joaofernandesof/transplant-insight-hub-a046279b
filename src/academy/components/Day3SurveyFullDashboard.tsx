@@ -749,7 +749,9 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortStudents(analytics.responsesByStudent).map((student, idx) => {
+                    {sortStudents(analytics.responsesByStudent)
+                      .filter(student => student.overallScore > 0) // Excluir alunos sem respostas
+                      .map((student, idx) => {
                       // Função para renderizar célula com score colorido
                       const renderScoreCell = (key: string) => {
                         const val = student.responses[key];
