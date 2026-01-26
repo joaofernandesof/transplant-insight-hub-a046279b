@@ -359,12 +359,14 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
       : <ArrowUp className="h-3 w-3" />;
   };
 
-  // Stats
+  // Stats (normalize to 0-10 scale for display)
+  const normalize54to10 = (score: number) => Math.min(10, (score / 54) * 10);
+  
   const totalLeads = surveys?.length || 0;
   const hotLeads = surveys?.filter(s => s.lead_classification === 'hot').length || 0;
   const warmLeads = surveys?.filter(s => s.lead_classification === 'warm').length || 0;
   const coldLeads = surveys?.filter(s => s.lead_classification === 'cold').length || 0;
-  const avgScore = surveys?.length ? Math.round(surveys.reduce((acc, s) => acc + s.score_total, 0) / surveys.length) : 0;
+  const avgScore = surveys?.length ? normalize54to10(surveys.reduce((acc, s) => acc + s.score_total, 0) / surveys.length) : 0;
 
   const getClassificationBadge = (classification: string) => {
     switch (classification) {
@@ -397,13 +399,17 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
     doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
     doc.text(`Total de Leads: ${totalLeads} | Quentes: ${hotLeads} | Mornos: ${warmLeads} | Frios: ${coldLeads}`, 14, 34);
 
+    // Normalize scores for PDF export (0-10 scale)
+    const normalize18to10 = (s: number) => ((s / 18) * 10).toFixed(1);
+    const normalize54to10 = (s: number) => ((s / 54) * 10).toFixed(1);
+    
     const tableData = filteredAndSortedSurveys?.map((survey, idx) => [
       idx + 1,
       survey.neohub_users.full_name,
-      survey.score_total,
-      survey.score_ia_avivar,
-      survey.score_license,
-      survey.score_legal,
+      normalize54to10(survey.score_total),
+      normalize18to10(survey.score_ia_avivar),
+      normalize18to10(survey.score_license),
+      normalize18to10(survey.score_legal),
       survey.lead_classification === 'hot' ? 'Quente' : 
         survey.lead_classification === 'warm' ? 'Morno' : 'Frio'
     ]) || [];
@@ -669,42 +675,33 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                   <TableCell className="text-center p-1">
                     <Day2ScorePopover section="ia" score={displayScoreIA} maxScore={18} survey={survey}>
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-medium">{displayScoreIA} pts</span>
+                        <span className="font-medium">{((displayScoreIA / 18) * 10).toFixed(1)}/10</span>
                         <Progress 
                           value={(displayScoreIA / 18) * 100} 
                           className={`h-1.5 w-16 ${getScoreColor(displayScoreIA, 18)}`}
                         />
-                        <span className="text-[9px] text-muted-foreground">3q × 6pts</span>
                       </div>
                     </Day2ScorePopover>
                   </TableCell>
                   <TableCell className="text-center p-1">
                     <Day2ScorePopover section="license" score={displayScoreLicense} maxScore={18} survey={survey}>
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-medium">{displayScoreLicense} pts</span>
+                        <span className="font-medium">{((displayScoreLicense / 18) * 10).toFixed(1)}/10</span>
                         <Progress 
                           value={(displayScoreLicense / 18) * 100} 
                           className={`h-1.5 w-16 ${getScoreColor(displayScoreLicense, 18)}`}
                         />
-                        <span className={`text-[10px] ${
-                          displayScoreLicense >= 12 ? 'text-primary' :
-                          displayScoreLicense >= 6 ? 'text-warning' : 'text-muted-foreground'
-                        }`}>
-                          {displayScoreLicense >= 12 ? 'Extremamente qualificado' :
-                           displayScoreLicense >= 6 ? 'Precisa construção' : 'Fora do timing'}
-                        </span>
                       </div>
                     </Day2ScorePopover>
                   </TableCell>
                   <TableCell className="text-center p-1">
                     <Day2ScorePopover section="legal" score={displayScoreLegal} maxScore={18} survey={survey}>
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-medium">{displayScoreLegal} pts</span>
+                        <span className="font-medium">{((displayScoreLegal / 18) * 10).toFixed(1)}/10</span>
                         <Progress 
                           value={(displayScoreLegal / 18) * 100} 
                           className={`h-1.5 w-16 ${getScoreColor(displayScoreLegal, 18)}`}
                         />
-                        <span className="text-[9px] text-muted-foreground">3q × 6pts</span>
                       </div>
                     </Day2ScorePopover>
                   </TableCell>
@@ -713,7 +710,7 @@ export function Day2LeadRankingDashboard({ classId }: Day2LeadRankingDashboardPr
                       displayScoreTotal >= 40 ? 'text-red-500' :
                       displayScoreTotal >= 25 ? 'text-orange-500' : 'text-blue-500'
                     }`}>
-                      {displayScoreTotal}
+                      {((displayScoreTotal / 54) * 10).toFixed(1)}/10
                     </span>
                   </TableCell>
                   <TableCell className="text-center p-1">

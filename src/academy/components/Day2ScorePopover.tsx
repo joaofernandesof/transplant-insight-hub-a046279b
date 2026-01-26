@@ -152,8 +152,8 @@ export function Day2ScorePopover({ section, score, maxScore, survey, children }:
             </p>
           </div>
           <div className="text-right">
-            <span className={`text-xl font-bold ${config.color}`}>{score}</span>
-            <span className="text-muted-foreground text-sm">/{actualMaxScore}</span>
+            <span className={`text-xl font-bold ${config.color}`}>{((score / maxScore) * 10).toFixed(1)}</span>
+            <span className="text-muted-foreground text-sm">/10</span>
           </div>
         </div>
 

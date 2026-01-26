@@ -219,9 +219,9 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
   ].filter(d => d.value > 0);
   
   const bntRadarData = [
-    { metric: 'IA Avivar', value: (analytics.avgScoreIA / 18) * 10 },
-    { metric: 'Licença', value: (analytics.avgScoreLicense / 18) * 10 },
-    { metric: 'Jurídico', value: (analytics.avgScoreLegal / 18) * 10 },
+    { metric: 'IA Avivar', value: analytics.avgScoreIA },
+    { metric: 'Licença', value: analytics.avgScoreLicense },
+    { metric: 'Jurídico', value: analytics.avgScoreLegal },
   ];
   
   const instructorRadarData = [
@@ -273,7 +273,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">IA Avivar</p>
-                <p className="text-xl font-bold">{((analytics.avgScoreIA / 18) * 10).toFixed(1)}</p>
+                <p className="text-xl font-bold">{analytics.avgScoreIA.toFixed(1)}/10</p>
               </div>
             </CardContent>
           </Card>
@@ -285,7 +285,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Licença</p>
-                <p className="text-xl font-bold">{((analytics.avgScoreLicense / 18) * 10).toFixed(1)}</p>
+                <p className="text-xl font-bold">{analytics.avgScoreLicense.toFixed(1)}/10</p>
               </div>
             </CardContent>
           </Card>
@@ -297,7 +297,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Jurídico</p>
-                <p className="text-xl font-bold">{((analytics.avgScoreLegal / 18) * 10).toFixed(1)}</p>
+                <p className="text-xl font-bold">{analytics.avgScoreLegal.toFixed(1)}/10</p>
               </div>
             </CardContent>
           </Card>
@@ -368,8 +368,8 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                   <TrendingUp className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Média</p>
-                  <p className="text-2xl font-bold">{analytics.avgScoreTotal.toFixed(0)}/54</p>
+                  <p className="text-sm text-muted-foreground">Média Geral</p>
+                  <p className="text-2xl font-bold">{analytics.avgScoreTotal.toFixed(1)}/10</p>
                 </div>
               </div>
             </CardContent>
@@ -496,16 +496,16 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                       <span className="font-medium text-sm">IA Avivar</span>
                     </div>
                     <span className={`text-lg font-bold ${
-                      ((analytics.avgScoreIA / 18) * 10) >= 7 ? 'text-emerald-600' : 
-                      ((analytics.avgScoreIA / 18) * 10) >= 5 ? 'text-amber-600' : 'text-red-600'
+                      analytics.avgScoreIA >= 7 ? 'text-emerald-600' : 
+                      analytics.avgScoreIA >= 5 ? 'text-amber-600' : 'text-red-600'
                     }`}>
-                      {((analytics.avgScoreIA / 18) * 10).toFixed(1)}
+                      {analytics.avgScoreIA.toFixed(1)}/10
                     </span>
                   </div>
                   <div className="h-3 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(((analytics.avgScoreIA / 18) * 10) * 10, 100)}%` }}
+                      style={{ width: `${Math.min(analytics.avgScoreIA * 10, 100)}%` }}
                     />
                   </div>
                 </div>
@@ -520,16 +520,16 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                       <span className="font-medium text-sm">Licença</span>
                     </div>
                     <span className={`text-lg font-bold ${
-                      ((analytics.avgScoreLicense / 18) * 10) >= 7 ? 'text-emerald-600' : 
-                      ((analytics.avgScoreLicense / 18) * 10) >= 5 ? 'text-amber-600' : 'text-red-600'
+                      analytics.avgScoreLicense >= 7 ? 'text-emerald-600' : 
+                      analytics.avgScoreLicense >= 5 ? 'text-amber-600' : 'text-red-600'
                     }`}>
-                      {((analytics.avgScoreLicense / 18) * 10).toFixed(1)}
+                      {analytics.avgScoreLicense.toFixed(1)}/10
                     </span>
                   </div>
                   <div className="h-3 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(((analytics.avgScoreLicense / 18) * 10) * 10, 100)}%` }}
+                      style={{ width: `${Math.min(analytics.avgScoreLicense * 10, 100)}%` }}
                     />
                   </div>
                 </div>
@@ -544,16 +544,16 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                       <span className="font-medium text-sm">Jurídico</span>
                     </div>
                     <span className={`text-lg font-bold ${
-                      ((analytics.avgScoreLegal / 18) * 10) >= 7 ? 'text-emerald-600' : 
-                      ((analytics.avgScoreLegal / 18) * 10) >= 5 ? 'text-amber-600' : 'text-red-600'
+                      analytics.avgScoreLegal >= 7 ? 'text-emerald-600' : 
+                      analytics.avgScoreLegal >= 5 ? 'text-amber-600' : 'text-red-600'
                     }`}>
-                      {((analytics.avgScoreLegal / 18) * 10).toFixed(1)}
+                      {analytics.avgScoreLegal.toFixed(1)}/10
                     </span>
                   </div>
                   <div className="h-3 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(((analytics.avgScoreLegal / 18) * 10) * 10, 100)}%` }}
+                      style={{ width: `${Math.min(analytics.avgScoreLegal * 10, 100)}%` }}
                     />
                   </div>
                 </div>
@@ -561,14 +561,14 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               
               <ChartExecutiveSummary 
                 insights={generateProductScoreInsight(
-                  (analytics.avgScoreIA / 18) * 10, 
-                  (analytics.avgScoreLicense / 18) * 10, 
-                  (analytics.avgScoreLegal / 18) * 10
+                  analytics.avgScoreIA, 
+                  analytics.avgScoreLicense, 
+                  analytics.avgScoreLegal
                 )}
                 variant={
-                  Math.max((analytics.avgScoreIA / 18) * 10, (analytics.avgScoreLicense / 18) * 10, (analytics.avgScoreLegal / 18) * 10) >= 7 
+                  Math.max(analytics.avgScoreIA, analytics.avgScoreLicense, analytics.avgScoreLegal) >= 7 
                     ? 'success' 
-                    : Math.min((analytics.avgScoreIA / 18) * 10, (analytics.avgScoreLicense / 18) * 10, (analytics.avgScoreLegal / 18) * 10) < 5 
+                    : Math.min(analytics.avgScoreIA, analytics.avgScoreLicense, analytics.avgScoreLegal) < 5 
                       ? 'warning' 
                       : 'info'
                 }
@@ -662,7 +662,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                 <Zap className="h-8 w-8 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">IA Avivar</p>
-                  <p className="text-2xl font-bold">{((analytics.avgScoreIA / 18) * 10).toFixed(1)}/10</p>
+                  <p className="text-2xl font-bold">{analytics.avgScoreIA.toFixed(1)}/10</p>
                 </div>
               </div>
             </CardContent>
@@ -673,7 +673,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                 <Target className="h-8 w-8 text-warning" />
                 <div>
                   <p className="text-sm text-muted-foreground">Licença</p>
-                  <p className="text-2xl font-bold">{((analytics.avgScoreLicense / 18) * 10).toFixed(1)}/10</p>
+                  <p className="text-2xl font-bold">{analytics.avgScoreLicense.toFixed(1)}/10</p>
                 </div>
               </div>
             </CardContent>
@@ -684,7 +684,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                 <Shield className="h-8 w-8 text-destructive" />
                 <div>
                   <p className="text-sm text-muted-foreground">Jurídico</p>
-                  <p className="text-2xl font-bold">{((analytics.avgScoreLegal / 18) * 10).toFixed(1)}/10</p>
+                  <p className="text-2xl font-bold">{analytics.avgScoreLegal.toFixed(1)}/10</p>
                 </div>
               </div>
             </CardContent>
