@@ -256,23 +256,35 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
     });
   }, [contentDistributions]);
 
-  // Extract keywords from comments
-  const contentKeywords = useMemo(() => {
-    const allText = [...analytics.highlights, ...analytics.improvements].join(' ').toLowerCase();
+  // Extract keywords from IMPROVEMENTS (negative/suggestion context)
+  const improvementKeywords = useMemo(() => {
+    const text = analytics.improvements.join(' ').toLowerCase();
     const wordCounts: Record<string, number> = {};
     
-    // Keywords related to content
+    // Words that indicate areas needing improvement (min 4 chars, meaningful)
     const relevantWords = [
-      'prática', 'teoria', 'técnica', 'hands-on', 'execução', 'conteúdo',
-      'gestão', 'jurídico', 'legal', 'negócio', 'marketing', 'vendas',
-      'didático', 'clareza', 'organização', 'material', 'apostila',
-      'profundo', 'superficial', 'completo', 'básico', 'avançado'
+      // Timing/Schedule
+      'horário', 'tempo', 'duração', 'cronograma', 'atraso', 'intervalo', 'almoço', 'pausa',
+      // Content
+      'teoria', 'prática', 'conteúdo', 'superficial', 'aprofundar', 'profundidade', 'básico',
+      // Organization
+      'organização', 'estrutura', 'planejamento', 'logística', 
+      // Infrastructure
+      'espaço', 'ambiente', 'ar-condicionado', 'iluminação', 'equipamento',
+      // Food/Comfort
+      'alimentação', 'refeição', 'lanche', 'coffee', 'comida',
+      // Communication
+      'comunicação', 'informação', 'antecedência', 'avisar', 
+      // Practical
+      'hands-on', 'mãos-na-massa', 'treino', 'repetição',
+      // General improvements
+      'melhorar', 'mais', 'menos', 'faltou', 'precisar'
     ];
     
     relevantWords.forEach(word => {
-      const regex = new RegExp(word, 'gi');
-      const matches = allText.match(regex);
-      if (matches) {
+      const regex = new RegExp(`\\b${word}\\w*`, 'gi');
+      const matches = text.match(regex);
+      if (matches && matches.length > 0) {
         wordCounts[word] = matches.length;
       }
     });
@@ -280,8 +292,49 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
     return Object.entries(wordCounts)
       .filter(([_, count]) => (count as number) > 0)
       .sort((a, b) => (b[1] as number) - (a[1] as number))
-      .slice(0, 10) as [string, number][];
-  }, [analytics.highlights, analytics.improvements]);
+      .slice(0, 12) as [string, number][];
+  }, [analytics.improvements]);
+
+  // Extract keywords from HIGHLIGHTS (positive context)
+  const highlightKeywords = useMemo(() => {
+    const text = analytics.highlights.join(' ').toLowerCase();
+    const wordCounts: Record<string, number> = {};
+    
+    // Words that indicate positive aspects (min 4 chars, meaningful)
+    const relevantWords = [
+      // People
+      'professor', 'professores', 'instrutor', 'instrutores', 'monitor', 'monitores', 'equipe', 'staff',
+      // Technical Quality
+      'técnica', 'técnico', 'conhecimento', 'domínio', 'expertise', 'experiência',
+      // Teaching Quality
+      'didático', 'didática', 'clareza', 'explicação', 'ensino', 'aprendizado',
+      // Practical
+      'prático', 'prática', 'hands-on', 'aplicável', 'aplicação',
+      // Content Quality  
+      'conteúdo', 'material', 'apostila', 'qualidade', 'completo',
+      // Organization
+      'organização', 'estrutura', 'pontualidade',
+      // Positive adjectives
+      'excelente', 'excepcional', 'ótimo', 'maravilhoso', 'incrível',
+      // Attention/Care
+      'atenção', 'cuidado', 'suporte', 'disponibilidade', 'dedicação', 'carinho',
+      // Network
+      'networking', 'colegas', 'turma', 'integração'
+    ];
+    
+    relevantWords.forEach(word => {
+      const regex = new RegExp(`\\b${word}\\w*`, 'gi');
+      const matches = text.match(regex);
+      if (matches && matches.length > 0) {
+        wordCounts[word] = matches.length;
+      }
+    });
+    
+    return Object.entries(wordCounts)
+      .filter(([_, count]) => (count as number) > 0)
+      .sort((a, b) => (b[1] as number) - (a[1] as number))
+      .slice(0, 12) as [string, number][];
+  }, [analytics.highlights]);
 
   // Identify strengths and weaknesses
   const { strengths, weaknesses } = useMemo(() => {
@@ -559,40 +612,71 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
         </CardContent>
       </Card>
 
-      {/* Keywords + Insights */}
+      {/* Keywords Clouds - Separated by Improvements and Highlights */}
       <div className="grid md:grid-cols-2 gap-4">
-        {/* Keywords Cloud */}
-        <Card>
+        {/* Improvement Keywords */}
+        <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Palavras-chave nos Comentários
+            <CardTitle className="text-base flex items-center gap-2 text-amber-600">
+              <TrendingUp className="h-4 w-4" />
+              Palavras mais citadas - Melhorias
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {contentKeywords.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {contentKeywords.map(([word, count], idx) => (
-                  <Badge 
+            {improvementKeywords.length > 0 ? (
+              <div className="flex flex-wrap gap-2 justify-center">
+                {improvementKeywords.map(([word, count], idx) => (
+                  <span 
                     key={word} 
-                    variant="secondary"
-                    className="text-sm py-1 px-3"
+                    className="text-amber-600 dark:text-amber-400 font-medium capitalize"
                     style={{ 
-                      fontSize: `${Math.min(14 + count * 2, 20)}px`,
-                      opacity: Math.max(0.5, 1 - idx * 0.08)
+                      fontSize: `${Math.max(12, Math.min(14 + count * 3, 24))}px`,
+                      opacity: Math.max(0.6, 1 - idx * 0.05)
                     }}
                   >
-                    {word} ({count})
-                  </Badge>
+                    {word}
+                  </span>
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm">Nenhum comentário relacionado a conteúdo encontrado.</p>
+              <p className="text-muted-foreground text-sm text-center">Sem dados suficientes</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Insights */}
+        {/* Highlight Keywords */}
+        <Card className="border-emerald-200 dark:border-emerald-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2 text-emerald-600">
+              <TrendingUp className="h-4 w-4" />
+              Palavras mais citadas - Acertos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {highlightKeywords.length > 0 ? (
+              <div className="flex flex-wrap gap-2 justify-center">
+                {highlightKeywords.map(([word, count], idx) => (
+                  <span 
+                    key={word} 
+                    className="text-emerald-600 dark:text-emerald-400 font-medium capitalize"
+                    style={{ 
+                      fontSize: `${Math.max(12, Math.min(14 + count * 3, 24))}px`,
+                      opacity: Math.max(0.6, 1 - idx * 0.05)
+                    }}
+                  >
+                    {word}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm text-center">Sem dados suficientes</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Insights */}
+      <div className="grid md:grid-cols-1 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
