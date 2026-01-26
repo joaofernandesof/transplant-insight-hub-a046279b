@@ -268,39 +268,51 @@ export function useGlobalSurveyAnalytics(classId?: string | null) {
       instructors.sort((a, b) => b.overallAvg - a.overallAvg);
       
       // === MONITORS (from Day 3 votes) ===
-      const monitorVotes: Record<string, { technical: number; caring: number }> = {};
+      // First normalize all monitor names to a canonical key
+      const normalizeMonitorName = (name: string | null): string | null => {
+        if (!name) return null;
+        const lower = name.toLowerCase().trim();
+        // Map all variations to canonical keys
+        if (lower.includes('elenilton')) return 'elenilton';
+        if (lower.includes('patrick')) return 'patrick';
+        if (lower.includes('eder') || lower.includes('éder')) return 'eder';
+        if (lower.includes('gleyldes')) return 'gleyldes';
+        return lower; // fallback
+      };
       
-      day3Data.forEach(r => {
-        const techMonitor = r.q14_best_technical_monitor;
-        const caringMonitor = r.q15_best_caring_monitor;
-        
-        if (techMonitor) {
-          if (!monitorVotes[techMonitor]) monitorVotes[techMonitor] = { technical: 0, caring: 0 };
-          monitorVotes[techMonitor].technical++;
-        }
-        if (caringMonitor) {
-          if (!monitorVotes[caringMonitor]) monitorVotes[caringMonitor] = { technical: 0, caring: 0 };
-          monitorVotes[caringMonitor].caring++;
-        }
-      });
-      
-      const MONITOR_NAME_MAP: Record<string, string> = {
+      const MONITOR_DISPLAY_NAMES: Record<string, string> = {
         'elenilton': 'Dr. Elenilton',
         'patrick': 'Dr. Patrick',
         'eder': 'Dr. Eder',
         'gleyldes': 'Dra. Gleyldes',
       };
       
+      const monitorVotes: Record<string, { technical: number; caring: number }> = {};
+      
+      day3Data.forEach(r => {
+        const techKey = normalizeMonitorName(r.q14_best_technical_monitor);
+        const caringKey = normalizeMonitorName(r.q15_best_caring_monitor);
+        
+        if (techKey) {
+          if (!monitorVotes[techKey]) monitorVotes[techKey] = { technical: 0, caring: 0 };
+          monitorVotes[techKey].technical++;
+        }
+        if (caringKey) {
+          if (!monitorVotes[caringKey]) monitorVotes[caringKey] = { technical: 0, caring: 0 };
+          monitorVotes[caringKey].caring++;
+        }
+      });
+      
       const monitors: GlobalMonitorData[] = Object.entries(monitorVotes).map(([key, votes]) => ({
-        name: MONITOR_NAME_MAP[key] || key,
+        name: MONITOR_DISPLAY_NAMES[key] || key,
         day: 'day3' as const,
-        overallAvg: 0, // Will be calculated from votes
-        avgTechnical: votes.technical,
+        overallAvg: 0, // Not used for votes
+        avgTechnical: votes.technical, // This is a VOTE COUNT, not a rating
         avgInterest: 0,
         avgEngagement: 0,
         avgPosture: 0,
         avgCommunication: 0,
-        avgContribution: votes.caring,
+        avgContribution: votes.caring, // This is a VOTE COUNT, not a rating
         votes: votes.technical + votes.caring,
       }));
       

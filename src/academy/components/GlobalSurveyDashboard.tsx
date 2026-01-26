@@ -695,14 +695,14 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="text-center p-2 bg-muted/50 rounded">
                       <p className="text-muted-foreground text-xs">🎯 Técnico</p>
-                      <p className={`font-bold ${getScoreColor(monitor.avgTechnical)}`}>
-                        {monitor.avgTechnical > 0 ? `${monitor.avgTechnical.toFixed(1)}/10` : `${monitor.avgTechnical} votos`}
+                      <p className="font-bold text-primary">
+                        {monitor.avgTechnical} {monitor.avgTechnical === 1 ? 'voto' : 'votos'}
                       </p>
                     </div>
                     <div className="text-center p-2 bg-muted/50 rounded">
                       <p className="text-muted-foreground text-xs">💕 Atenção</p>
-                      <p className={`font-bold ${getScoreColor(monitor.avgContribution)}`}>
-                        {monitor.avgContribution > 0 ? `${monitor.avgContribution.toFixed(1)}/10` : `${monitor.avgContribution} votos`}
+                      <p className="font-bold text-pink-500">
+                        {monitor.avgContribution} {monitor.avgContribution === 1 ? 'voto' : 'votos'}
                       </p>
                     </div>
                   </div>
