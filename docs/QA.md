@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 3 |
-| Aprovadas | 3 |
+| Total de Tarefas Validadas | 4 |
+| Aprovadas | 4 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-01-26 |
 
@@ -20,6 +20,31 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-01-26
+
+#### ✅ QA-004: Correção de Vulnerabilidades P0 - Auditoria de Segurança
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Segurança / RLS / Views |
+| **Descrição** | Correção de 4 vulnerabilidades críticas identificadas na auditoria interna |
+| **Tipo de Teste** | Automatizado (Linter) + Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-26 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | SEC-001 a SEC-004 |
+
+**Validações Realizadas:**
+- [x] SEC-001: RLS `leads` - Política restritiva por role (admin, gestao, comercial)
+- [x] SEC-002: RLS `neohub_users` - Usuários só veem próprios dados ou admin vê todos
+- [x] SEC-003: View `exam_questions_student` recriada SEM `correct_answer`
+- [x] SEC-004: Views `gallery_photo_stats` e `gallery_stats` com `security_invoker=true`
+
+**Observações:**
+- Relatório completo em `docs/qa-reports/AUDITORIA-INTERNA-2026-01-26.md`
+- 13 warnings P1/P2 identificados para correção futura (policies USING(true))
+- Migração aplicada e validada pelo linter do Supabase
+
+---
 
 #### ✅ QA-003: Layout 3 Colunas + Cores Gradiente na Aba Perguntas
 

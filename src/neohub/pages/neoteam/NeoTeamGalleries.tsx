@@ -918,7 +918,7 @@ function GalleryEditDialog({
                       <Users className="h-4 w-4" />
                       Usuários Únicos
                     </div>
-                    <p className="text-2xl font-bold">{galleryStats?.unique_users || 0}</p>
+                    <p className="text-2xl font-bold">{galleryStats?.unique_viewers || 0}</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -927,7 +927,7 @@ function GalleryEditDialog({
                       <Images className="h-4 w-4" />
                       Fotos Baixadas
                     </div>
-                    <p className="text-2xl font-bold">{galleryStats?.photos_downloaded || 0}</p>
+                    <p className="text-2xl font-bold">{galleryStats?.total_downloads || 0}</p>
                   </CardContent>
                 </Card>
               </div>

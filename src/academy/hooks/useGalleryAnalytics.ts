@@ -4,21 +4,22 @@ import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
 export interface GalleryStats {
   gallery_id: string;
+  title: string;
+  class_id: string | null;
+  photo_count: number;
   total_views: number;
   total_downloads: number;
-  photos_viewed: number;
-  photos_downloaded: number;
-  unique_users: number;
-  last_activity_at: string | null;
+  unique_viewers: number;
 }
 
 export interface PhotoStats {
   photo_id: string;
   gallery_id: string;
+  full_url: string;
+  caption: string | null;
+  created_at: string;
   view_count: number;
   download_count: number;
-  last_viewed_at: string | null;
-  last_downloaded_at: string | null;
 }
 
 export interface AnalyticsLog {
