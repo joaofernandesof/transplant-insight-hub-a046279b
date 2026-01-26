@@ -146,7 +146,7 @@ serve(async (req: Request) => {
     console.log(`Sending login notification for ${userName} to ${adminEmail}`);
 
     const emailResponse = await resend.emails.send({
-      from: "NeoHub <notificacoes@byneofolic.com>",
+      from: "NeoHub <adm@ibramec.com>",
       to: [adminEmail],
       subject,
       html: htmlContent,
