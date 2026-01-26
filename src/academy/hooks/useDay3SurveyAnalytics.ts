@@ -53,6 +53,7 @@ export interface Day3SurveyAnalytics {
   responsesByStudent: {
     userId: string;
     studentName: string;
+    avatarUrl: string | null;
     completedAt: string | null;
     effectiveTime: number | null;
     overallScore: number;
@@ -134,14 +135,14 @@ export function useDay3SurveyAnalytics(classId?: string | null) {
         return null;
       }
       
-      // Get user names
+      // Get user names and avatars
       const userIds = surveys.map(s => s.user_id);
       const { data: users } = await supabase
         .from('neohub_users')
-        .select('user_id, full_name, email')
+        .select('user_id, full_name, email, avatar_url')
         .in('user_id', userIds);
       
-      const userMap = new Map(users?.map(u => [u.user_id, u.full_name || u.email || 'Aluno']) || []);
+      const userMap = new Map(users?.map(u => [u.user_id, { name: u.full_name || u.email || 'Aluno', avatar: u.avatar_url }]) || []);
       
       const completed = surveys.filter(s => s.is_completed);
       
@@ -200,9 +201,11 @@ export function useDay3SurveyAnalytics(classId?: string | null) {
           ? scores.reduce((a, b) => a + b, 0) / scores.length // Already 0-10 scale
           : 0;
         
+        const userData = userMap.get(s.user_id);
         return {
           userId: s.user_id,
-          studentName: userMap.get(s.user_id) || 'Aluno',
+          studentName: userData?.name || 'Aluno',
+          avatarUrl: userData?.avatar || null,
           completedAt: s.completed_at,
           effectiveTime: s.effective_time_seconds,
           overallScore: Math.round(overallScore * 10) / 10,
