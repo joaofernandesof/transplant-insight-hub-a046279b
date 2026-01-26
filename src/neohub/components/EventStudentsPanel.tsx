@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -30,26 +31,38 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  Mail,
+  Eye,
+  MapPin,
   Phone,
+  Building2,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useEnrollmentManagement,
   ClassEnrollmentWithDetails,
   AvailableStudent,
 } from "@/academy/hooks/useEnrollmentManagement";
+import { StudentDetailDialog } from "./StudentDetailDialog";
 
 interface EventStudentsPanelProps {
   classId: string | null;
+}
+
+interface EnrichedEnrollment extends ClassEnrollmentWithDetails {
+  avatarUrl?: string | null;
+  phone?: string | null;
+  city?: string | null;
+  state?: string | null;
+  clinicName?: string | null;
 }
 
 function getStatusBadge(status: string) {
   switch (status) {
     case "enrolled":
       return (
-        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 border-0">
+        <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 border-0">
           <CheckCircle2 className="h-3 w-3 mr-1" />
           Matriculado
         </Badge>
@@ -73,6 +86,15 @@ function getStatusBadge(status: string) {
   }
 }
 
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
 export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
   const {
     getClassEnrollments,
@@ -82,23 +104,62 @@ export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
     isEnrolling,
   } = useEnrollmentManagement();
 
-  const [enrollments, setEnrollments] = useState<ClassEnrollmentWithDetails[]>([]);
+  const [enrollments, setEnrollments] = useState<EnrichedEnrollment[]>([]);
   const [availableStudents, setAvailableStudents] = useState<AvailableStudent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [showEnrollDialog, setShowEnrollDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
+  const [selectedStudent, setSelectedStudent] = useState<EnrichedEnrollment | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
 
-  // Load enrollments when classId changes
+  // Load enriched enrollments when classId changes
   useEffect(() => {
     if (classId) {
-      setIsLoading(true);
-      getClassEnrollments(classId)
-        .then(setEnrollments)
-        .finally(() => setIsLoading(false));
+      loadEnrichedEnrollments(classId);
     }
   }, [classId]);
+
+  const loadEnrichedEnrollments = async (classId: string) => {
+    setIsLoading(true);
+    try {
+      const baseEnrollments = await getClassEnrollments(classId);
+      
+      // Fetch additional user details
+      const userIds = baseEnrollments.map(e => e.userId);
+      if (userIds.length > 0) {
+        const { data: userDetails } = await supabase
+          .from("neohub_users")
+          .select("user_id, avatar_url, phone, address_city, address_state, clinic_name")
+          .in("user_id", userIds);
+
+        const detailsMap = new Map(
+          (userDetails || []).map(u => [u.user_id, u])
+        );
+
+        const enriched = baseEnrollments.map((e): EnrichedEnrollment => {
+          const details = detailsMap.get(e.userId);
+          return {
+            ...e,
+            avatarUrl: details?.avatar_url,
+            phone: details?.phone,
+            city: details?.address_city,
+            state: details?.address_state,
+            clinicName: details?.clinic_name,
+          };
+        });
+
+        setEnrollments(enriched);
+      } else {
+        setEnrollments([]);
+      }
+    } catch (error) {
+      console.error("Error loading enrollments:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Load available students when dialog opens
   useEffect(() => {
@@ -120,7 +181,7 @@ export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
     setSelectedStudents(new Set());
     // Refresh enrollments
     setTimeout(() => {
-      getClassEnrollments(classId).then(setEnrollments);
+      loadEnrichedEnrollments(classId);
     }, 500);
   };
 
@@ -129,6 +190,11 @@ export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
       removeEnrollment(enrollmentId);
       setEnrollments(prev => prev.filter(e => e.id !== enrollmentId));
     }
+  };
+
+  const handleViewStudent = (enrollment: EnrichedEnrollment) => {
+    setSelectedStudent(enrollment);
+    setShowDetailDialog(true);
   };
 
   const toggleStudent = (userId: string) => {
@@ -155,7 +221,9 @@ export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
   const filteredEnrollments = enrollments.filter(
     e =>
       e.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      e.studentEmail.toLowerCase().includes(searchTerm.toLowerCase())
+      e.studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.clinicName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.city?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading) {
@@ -198,8 +266,8 @@ export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-2xl font-bold">
@@ -239,7 +307,7 @@ export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar por nome ou email..."
+          placeholder="Buscar por nome, email, cidade ou clínica..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -253,31 +321,90 @@ export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Aluno</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead className="w-[280px]">Aluno</TableHead>
+                  <TableHead>Contato</TableHead>
+                  <TableHead>Localização</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Data Matrícula</TableHead>
-                  <TableHead className="w-[80px]">Ações</TableHead>
+                  <TableHead>Matrícula</TableHead>
+                  <TableHead className="w-[100px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEnrollments.map((enrollment) => (
-                  <TableRow key={enrollment.id}>
-                    <TableCell className="font-medium">{enrollment.studentName}</TableCell>
-                    <TableCell className="text-muted-foreground">{enrollment.studentEmail}</TableCell>
+                  <TableRow 
+                    key={enrollment.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleViewStudent(enrollment)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border">
+                          <AvatarImage src={enrollment.avatarUrl || undefined} alt={enrollment.studentName} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                            {getInitials(enrollment.studentName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{enrollment.studentName}</p>
+                          {enrollment.clinicName && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Building2 className="h-3 w-3" />
+                              {enrollment.clinicName}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">{enrollment.studentEmail}</p>
+                        {enrollment.phone && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {enrollment.phone}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {enrollment.city || enrollment.state ? (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {[enrollment.city, enrollment.state].filter(Boolean).join("/")}
+                        </p>
+                      ) : (
+                        <span className="text-xs text-muted-foreground/50">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>{getStatusBadge(enrollment.status)}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground">
                       {format(parseISO(enrollment.enrolledAt), "dd/MM/yyyy", { locale: ptBR })}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => handleRemoveEnrollment(enrollment.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewStudent(enrollment);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveEnrollment(enrollment.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -294,6 +421,18 @@ export function EventStudentsPanel({ classId }: EventStudentsPanelProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Student Detail Dialog */}
+      <StudentDetailDialog
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        userId={selectedStudent?.userId || null}
+        enrollmentInfo={selectedStudent ? {
+          status: selectedStudent.status,
+          enrolledAt: selectedStudent.enrolledAt,
+          className: selectedStudent.className,
+        } : undefined}
+      />
 
       {/* Enroll Students Dialog */}
       <Dialog open={showEnrollDialog} onOpenChange={setShowEnrollDialog}>
