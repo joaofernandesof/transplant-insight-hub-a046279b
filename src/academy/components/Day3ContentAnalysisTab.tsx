@@ -7,31 +7,13 @@ import {
   PieChart, Pie, Legend
 } from 'recharts';
 import { 
-  BookOpen, Target, Briefcase, Scale, TrendingUp, TrendingDown,
-  Lightbulb, AlertTriangle, Sparkles, MessageSquare, CheckCircle2, XCircle
+  BookOpen, Target, Briefcase, Scale, TrendingUp,
+  Lightbulb, Sparkles, CheckCircle2, XCircle, MessageSquare, AlertTriangle
 } from 'lucide-react';
+import { Day3SurveyAnalytics } from '@/academy/hooks/useDay3SurveyAnalytics';
 
 interface ContentAnalysisProps {
-  analytics: {
-    technicalContent: {
-      avgFoundations: number;
-      avgPracticalLoad: number;
-      balanceDistribution: Record<string, number>;
-    };
-    businessContent: {
-      avgManagement: number;
-      avgLegalSecurity: number;
-    };
-    confidence: {
-      avgClarity: number;
-      avgConfidence: number;
-    };
-    responsesByStudent: {
-      responses: Record<string, string | null>;
-    }[];
-    improvements: string[];
-    highlights: string[];
-  };
+  analytics: Day3SurveyAnalytics;
 }
 
 // Score colors based on value (0-10)
