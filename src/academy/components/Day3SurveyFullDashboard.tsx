@@ -44,6 +44,8 @@ import {
   ArrowUp,
   ArrowDown,
   UserX,
+  Download,
+  FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -65,6 +67,8 @@ import {
   generateMonitorInsight,
   generateWordCloudInsight
 } from '@/components/surveys/ChartExecutiveSummary';
+import { printCurrentView } from '@/utils/printPdf';
+import { toast } from 'sonner';
 
 interface Day3SurveyFullDashboardProps {
   classId?: string | null;
@@ -300,7 +304,41 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
   const [selectedStudent, setSelectedStudent] = useState<StudentResponse | null>(null);
   const [sortField, setSortField] = useState<'name' | 'date' | 'score' | 'satisfaction'>('score');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isExporting, setIsExporting] = useState(false);
   const { data: analytics, isLoading, error } = useDay3SurveyAnalytics(classId);
+  
+  const TAB_NAMES: Record<string, string> = {
+    overview: 'Visão Geral',
+    content: 'Conteúdo',
+    monitors: 'Monitores',
+    feedback: 'Feedback',
+    students: 'Alunos',
+  };
+  
+  const exportCurrentTab = async () => {
+    toast.info(`Exportando ${TAB_NAMES[activeTab]}...`);
+    await printCurrentView(`Pesquisa Final - ${TAB_NAMES[activeTab]}`);
+  };
+  
+  const exportAllTabs = async () => {
+    setIsExporting(true);
+    toast.info('Exportando todos os relatórios...');
+    
+    const tabs = ['overview', 'content', 'monitors', 'feedback', 'students'];
+    
+    for (const tab of tabs) {
+      setActiveTab(tab);
+      // Wait for tab content to render
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await printCurrentView(`Pesquisa Final - ${TAB_NAMES[tab]}`);
+      // Small delay between prints
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
+    setIsExporting(false);
+    toast.success('Todos os relatórios exportados!');
+  };
   
   const handleSort = (field: typeof sortField) => {
     if (sortField === field) {
@@ -407,8 +445,30 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
   
   return (
     <div className="space-y-6">
-      {/* Tabs First */}
-      <Tabs defaultValue="overview" className="space-y-4">
+      {/* Export Buttons */}
+      <div className="flex items-center justify-end gap-2 print:hidden">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={exportCurrentTab}
+          disabled={isExporting}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Exportar {TAB_NAMES[activeTab]}
+        </Button>
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={exportAllTabs}
+          disabled={isExporting}
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Exportar Tudo (PDF)
+        </Button>
+      </div>
+      
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid grid-cols-5 w-full max-w-2xl">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="content">Conteúdo</TabsTrigger>
