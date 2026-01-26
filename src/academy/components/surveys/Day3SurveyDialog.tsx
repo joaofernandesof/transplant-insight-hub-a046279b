@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Award } from 'lucide-react';
 import { useDay3Survey, Day3SurveyFormData } from '@/academy/hooks/useDay3Survey';
 import { cn } from '@/lib/utils';
+import { SurveyErrors } from '@/lib/errorReporting';
+import { toast } from 'sonner';
 
 interface Day3SurveyDialogProps {
   open: boolean;
@@ -365,7 +367,7 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         surveyId: surveyIdRef.current,
         data,
         currentSection: currentSectionIndex + 1,
-      }).catch(console.error);
+      }).catch((error) => SurveyErrors.saveFailed('day3_progress', error));
     }
   }, [currentQuestionIndex, currentSectionIndex, currentSection, saveProgress]);
 
@@ -393,7 +395,7 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       });
       setShowCompletion(true);
     } catch (error) {
-      console.error('Submit error:', error);
+      SurveyErrors.submitFailed(error);
     }
   };
 
@@ -530,7 +532,7 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
                           surveyId: surveyIdRef.current,
                           data: formDataRef.current,
                           currentSection: currentSectionIndex + 1,
-                        }).catch(console.error);
+                        }).catch((error) => SurveyErrors.saveFailed(currentQuestion.id, error));
                       }
                     }}
                     placeholder={currentQuestion.placeholder || 'Digite sua resposta...'}

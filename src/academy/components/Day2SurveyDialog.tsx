@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useDay2Survey } from '../hooks/useDay2Survey';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield } from 'lucide-react';
+import { SurveyErrors } from '@/lib/errorReporting';
 import { toast } from 'sonner';
 import joaoFernandesImg from '@/assets/joao-fernandes.png';
 import larissaGuerreiroImg from '@/assets/larissa-guerreiro.png';
@@ -363,13 +364,11 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
             setSurveyId(data.id);
             surveyIdRef.current = data.id; // Sync ref immediately
           } else {
-            console.error('[Day2] No ID returned');
-            toast.error('Erro ao iniciar. Recarregue a página.');
+            SurveyErrors.initFailed(new Error('Nenhum ID retornado pelo servidor'));
           }
         })
         .catch((error) => {
-          console.error('[Day2] Init error:', error);
-          toast.error('Erro ao iniciar. Recarregue a página.');
+          SurveyErrors.initFailed(error);
         })
         .finally(() => setIsInitializing(false));
     } else if (existingSurvey?.id) {
@@ -460,8 +459,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     // Use ref for most current surveyId
     const currentSurveyId = surveyIdRef.current;
     if (!currentSurveyId) {
-      console.error('[Day2] No ID in handleNext, surveyId:', surveyId, 'ref:', surveyIdRef.current);
-      toast.error('Erro: ID não encontrado. Recarregue a página.');
+      SurveyErrors.noSurveyId();
       return;
     }
     
@@ -473,7 +471,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         data: formData,
         currentSection: nextQuestion + 1
       }, {
-        onError: (error) => console.error('[Day2] Save error:', error)
+        onError: (error) => SurveyErrors.saveFailed(currentQ?.key, error)
       });
     }
   }, [currentQ, currentQuestion, formData, surveyId, saveProgress]);
@@ -488,8 +486,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     // Use ref for most current surveyId
     const currentSurveyId = surveyIdRef.current;
     if (!currentSurveyId) {
-      console.error('[Day2] No ID in handleSubmit, surveyId:', surveyId, 'ref:', surveyIdRef.current);
-      toast.error('Erro: ID não encontrado. Recarregue e tente novamente.');
+      SurveyErrors.noSurveyId();
       return;
     }
     
@@ -512,8 +509,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         onOpenChange(false);
       },
       onError: (error) => {
-        console.error('[Day2] Submit error:', error);
-        toast.error('Erro ao enviar pesquisa. Tente novamente.');
+        SurveyErrors.submitFailed(error);
       }
     });
   }, [surveyId, formData, submitSurvey, onComplete, onOpenChange]);
@@ -531,12 +527,12 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         // Use ref to get current surveyId (avoids stale closure)
         const currentSurveyId = surveyIdRef.current;
         if (currentSurveyId) {
-          saveProgress.mutate({
+        saveProgress.mutate({
             surveyId: currentSurveyId,
             data: updatedData,
             currentSection: nextQuestion + 1
           }, {
-            onError: (error) => console.error('[Day2] Auto-save error:', error)
+            onError: (error) => SurveyErrors.saveFailed(currentQ?.key, error)
           });
         } else {
           console.warn('[Day2] No surveyId in auto-advance, skipping save');
