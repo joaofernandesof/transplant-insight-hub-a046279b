@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   BarChart,
   Bar,
@@ -35,6 +37,8 @@ import {
   Briefcase,
   Scale,
   HeartHandshake,
+  Eye,
+  ChevronRight,
 } from 'lucide-react';
 import { useDay3SurveyAnalytics } from '@/academy/hooks/useDay3SurveyAnalytics';
 import { format, parseISO } from 'date-fns';
@@ -110,7 +114,54 @@ function ScoreCard({ title, value, max = 10, icon: Icon, color = 'emerald' }: {
   );
 }
 
+// Question labels for display
+const QUESTION_LABELS: Record<string, string> = {
+  q1: 'Nível de satisfação geral',
+  q2: 'Promessa de entrega atendida',
+  q3: 'Qualidade das bases técnicas',
+  q4: 'Carga prática do curso',
+  q5: 'Equilíbrio teoria/prática',
+  q6: 'Clareza sobre execução',
+  q7: 'Confiança adquirida',
+  q8: 'Aulas de gestão',
+  q9: 'Conteúdo jurídico',
+  q10: 'Organização do evento',
+  q11: 'Qualidade do suporte',
+  q12: 'O que precisa melhorar',
+  q13: 'O que mais acertamos',
+  q14: 'Melhor monitor (técnico)',
+  q15: 'Melhor monitor (atenção)',
+  q16: 'Comentários sobre monitores',
+};
+
+const VALUE_DISPLAY_LABELS: Record<string, Record<string, string>> = {
+  q1: { muito_satisfeito: 'Muito Satisfeito', satisfeito: 'Satisfeito', neutro: 'Neutro', insatisfeito: 'Insatisfeito', muito_insatisfeito: 'Muito Insatisfeito' },
+  q2: { muito_acima: 'Muito Acima', acima: 'Acima', dentro: 'Dentro', abaixo: 'Abaixo', muito_abaixo: 'Muito Abaixo' },
+  q3: { excelentes: 'Excelentes', bons: 'Bons', adequados: 'Adequados', fracos: 'Fracos', muito_fracos: 'Muito Fracos' },
+  q4: { excelente: 'Excelente', boa: 'Boa', adequada: 'Adequada', insuficiente: 'Insuficiente', muito_insuficiente: 'Muito Insuficiente' },
+  q5: { equilibrado: 'Bem Equilibrado', mais_pratica: 'Mais Prática', mais_teoria: 'Mais Teoria', muito_pratico: 'Muito Prático', muito_teorico: 'Muito Teórico' },
+  q6: { total: 'Total', boa: 'Boa', razoavel: 'Razoável', pouca: 'Pouca', nenhuma: 'Nenhuma' },
+  q7: { alta: 'Alta', boa: 'Boa', moderada: 'Moderada', baixa: 'Baixa', nenhuma: 'Nenhuma' },
+  q8: { essenciais: 'Essenciais', muito_relevantes: 'Muito Relevantes', relevantes: 'Relevantes', pouco_relevantes: 'Pouco Relevantes', nada_relevantes: 'Nada Relevantes' },
+  q9: { muita: 'Muita', boa: 'Boa', razoavel: 'Razoável', pouca: 'Pouca', nenhuma: 'Nenhuma' },
+  q10: { excelente: 'Excelente', boa: 'Boa', regular: 'Regular', ruim: 'Ruim', muito_ruim: 'Muito Ruim' },
+  q11: { excelente: 'Excelente', bom: 'Bom', adequado: 'Adequado', fraco: 'Fraco', muito_fraco: 'Muito Fraco' },
+  q14: { elenilton: 'Dr. Elenilton', patrick: 'Dr. Patrick', eder: 'Dr. Eder', gleyldes: 'Dra. Gleyldes' },
+  q15: { elenilton: 'Dr. Elenilton', patrick: 'Dr. Patrick', eder: 'Dr. Eder', gleyldes: 'Dra. Gleyldes' },
+};
+
+type StudentResponse = {
+  userId: string;
+  studentName: string;
+  completedAt: string | null;
+  effectiveTime: number | null;
+  overallScore: number;
+  satisfactionLevel: string | null;
+  responses: Record<string, string | null>;
+};
+
 export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProps) {
+  const [selectedStudent, setSelectedStudent] = useState<StudentResponse | null>(null);
   const { data: analytics, isLoading, error } = useDay3SurveyAnalytics(classId);
   
   if (isLoading) {
@@ -499,7 +550,11 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                     .map((student, idx) => {
                       const satConfig = SATISFACTION_LABELS[student.satisfactionLevel || ''] || { emoji: '❓', label: 'N/A', color: '#94a3b8' };
                       return (
-                        <div key={student.userId} className="flex items-center gap-4 p-3 border rounded-lg">
+                        <div 
+                          key={student.userId} 
+                          className="flex items-center gap-4 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => setSelectedStudent(student)}
+                        >
                           <Badge variant="outline" className="w-6 h-6 rounded-full p-0 flex items-center justify-center text-xs">
                             {idx + 1}
                           </Badge>
@@ -524,6 +579,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                             <p className="font-bold text-lg">{student.overallScore}</p>
                             <p className="text-xs text-muted-foreground">Score</p>
                           </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </div>
                       );
                     })}
@@ -533,6 +589,68 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Student Detail Modal */}
+      <Dialog open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <Users className="h-5 w-5" />
+              Respostas de {selectedStudent?.studentName}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedStudent && (
+            <ScrollArea className="h-[60vh] pr-4">
+              <div className="space-y-4">
+                {/* Header Info */}
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Data de conclusão</p>
+                    <p className="font-medium">
+                      {selectedStudent.completedAt 
+                        ? format(parseISO(selectedStudent.completedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                        : 'Não concluído'}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Tempo</p>
+                    <p className="font-medium">
+                      {selectedStudent.effectiveTime ? formatTime(selectedStudent.effectiveTime) : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Score médio</p>
+                    <p className="text-2xl font-bold text-primary">{selectedStudent.overallScore}</p>
+                  </div>
+                </div>
+                
+                {/* All Responses */}
+                <div className="space-y-3">
+                  {Object.entries(selectedStudent.responses).map(([key, value]) => {
+                    const questionLabel = QUESTION_LABELS[key] || key;
+                    const displayValue = value 
+                      ? (VALUE_DISPLAY_LABELS[key]?.[value] || value)
+                      : '—';
+                    const isOpenText = ['q12', 'q13', 'q16'].includes(key);
+                    
+                    return (
+                      <div key={key} className="p-3 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">{questionLabel}</p>
+                        {isOpenText && value ? (
+                          <p className="text-sm bg-muted/30 p-2 rounded italic">"{displayValue}"</p>
+                        ) : (
+                          <p className="font-medium">{displayValue}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
