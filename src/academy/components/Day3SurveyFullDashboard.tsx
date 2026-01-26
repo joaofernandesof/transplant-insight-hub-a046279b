@@ -632,19 +632,17 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
-                  Comentários sobre Monitores
+                  Comentários sobre Monitores ({analytics.monitorComments.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[200px]">
-                  <div className="space-y-3">
-                    {analytics.monitorComments.map((comment, idx) => (
-                      <div key={idx} className="p-3 bg-muted/50 rounded-lg text-sm">
-                        "{comment}"
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {analytics.monitorComments.map((comment, idx) => (
+                    <div key={idx} className="p-3 bg-muted/50 rounded-lg text-sm">
+                      "{comment}"
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
