@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Search, ChevronDown, ChevronUp, User, Clock, MessageSquare, FileText } from 'lucide-react';
@@ -231,7 +230,7 @@ export function SurveyFullAnswersTab({
                 {/* Expanded Content */}
                 <CollapsibleContent>
                   <CardContent className="pt-0">
-                    <ScrollArea className="max-h-[600px]">
+                    <div className="space-y-6">
                       <div className="space-y-6">
                         {Object.entries(groupedResponses).map(([category, responses]) => (
                           <div key={category}>
@@ -283,7 +282,7 @@ export function SurveyFullAnswersTab({
                           </div>
                         ))}
                       </div>
-                    </ScrollArea>
+                    </div>
                   </CardContent>
                 </CollapsibleContent>
               </Card>
