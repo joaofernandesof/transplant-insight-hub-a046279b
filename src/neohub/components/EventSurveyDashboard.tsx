@@ -55,6 +55,7 @@ import {
   Trophy,
   Medal,
   X,
+  Check,
   Eye,
   ChevronLeft,
   ChevronRight,
@@ -1734,6 +1735,24 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   // Matrix sorting state
   const [matrixSortColumn, setMatrixSortColumn] = useState<string | null>(null); // 'avg' or student.userId or 'question'
   const [matrixSortDir, setMatrixSortDir] = useState<'asc' | 'desc'>('desc');
+  
+  // Accepted suspicious responses (persisted in localStorage)
+  const [acceptedSuspiciousResponses, setAcceptedSuspiciousResponses] = useState<string[]>(() => {
+    const storageKey = `accepted-suspicious-${classId || 'all'}`;
+    const stored = localStorage.getItem(storageKey);
+    return stored ? JSON.parse(stored) : [];
+  });
+  
+  // Persist accepted responses to localStorage
+  useEffect(() => {
+    const storageKey = `accepted-suspicious-${classFilter || 'all'}`;
+    localStorage.setItem(storageKey, JSON.stringify(acceptedSuspiciousResponses));
+  }, [acceptedSuspiciousResponses, classFilter]);
+  
+  const handleAcceptSuspiciousResponse = (userId: string) => {
+    setAcceptedSuspiciousResponses(prev => [...prev, userId]);
+    toast.success('Resposta aceita como válida');
+  };
 
   // Helper to get students who answered a specific satisfaction level
   const getSatisfactionDrilldown = useMemo(() => {
@@ -2994,7 +3013,9 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             const isUniformPattern = allSamePositive || allSameNegative;
             
             return isFastCompletion || isUniformPattern;
-          });
+          })
+          // Filter out accepted responses
+          .filter(student => !acceptedSuspiciousResponses.includes(student.userId));
 
           if (suspiciousResponses.length === 0) return null;
 
@@ -3071,6 +3092,15 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                           >
                             Nota: {student.overallScore.toFixed(1)}
                           </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs border-emerald-300 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                            onClick={() => handleAcceptSuspiciousResponse(student.userId)}
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Aceitar
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
