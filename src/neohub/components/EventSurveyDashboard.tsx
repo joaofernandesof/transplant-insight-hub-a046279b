@@ -3090,7 +3090,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
 
-          {/* Instructor Radar - Full Width */}
+          {/* Instructor Comparison - Bar Charts */}
           <Card className="lg:col-span-2">
             <CardHeader className="pb-4">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -3100,69 +3100,118 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               <CardDescription>Avaliação comparativa entre Dr. Hygor e Dr. Patrick</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="flex flex-col lg:flex-row items-center gap-8">
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart data={instructorRadarData} outerRadius="80%">
-                    <PolarGrid strokeDasharray="3 3" />
-                    <PolarAngleAxis 
-                      dataKey="metric" 
-                      tick={{ fontSize: 13, fontWeight: 500 }} 
-                    />
-                    <PolarRadiusAxis 
-                      domain={[0, 10]} 
-                      tick={{ fontSize: 10 }} 
-                      tickCount={6}
-                      axisLine={false}
-                    />
-                    <Radar 
-                      name="Dr. Hygor" 
-                      dataKey="Dr. Hygor" 
-                      stroke="hsl(217, 91%, 60%)" 
-                      fill="transparent" 
-                      fillOpacity={0}
-                      strokeWidth={3}
-                    />
-                    <Radar 
-                      name="Dr. Patrick" 
-                      dataKey="Dr. Patrick" 
-                      stroke="hsl(160, 84%, 39%)" 
-                      fill="transparent" 
-                      fillOpacity={0}
-                      strokeWidth={3}
-                    />
-                    <Legend 
-                      wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 20 }}
-                      iconSize={14}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => value.toFixed(2)}
-                      contentStyle={{ borderRadius: 8 }}
-                    />
-                  </RadarChart>
-                </ResponsiveContainer>
-                <div className="flex flex-col gap-4 min-w-[200px]">
-                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-3 h-3 rounded-full bg-blue-500" />
-                      <span className="font-semibold text-blue-700 dark:text-blue-400">Dr. Hygor</span>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {analytics.instructors.hygor.overallAvg.toFixed(1)}/10
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
+              <div className="grid lg:grid-cols-2 gap-6">
+                {/* Chart 1: Each Instructor with All Metrics */}
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-3">Desempenho por Professor</h4>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={[
+                          {
+                            name: 'Dr. Hygor',
+                            'Expectativas': analytics.instructors.hygor.avgExpectations,
+                            'Clareza': analytics.instructors.hygor.avgClarity,
+                            'Tempo': analytics.instructors.hygor.avgTime,
+                          },
+                          {
+                            name: 'Dr. Patrick',
+                            'Expectativas': analytics.instructors.patrick.avgExpectations,
+                            'Clareza': analytics.instructors.patrick.avgClarity,
+                            'Tempo': analytics.instructors.patrick.avgTime,
+                          },
+                        ]} 
+                        layout="vertical"
+                        barCategoryGap="25%"
+                      >
+                        <XAxis type="number" domain={[0, 10]} tick={{ fontSize: 11 }} />
+                        <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 12, fontWeight: 500 }} />
+                        <Tooltip formatter={(value: number) => `${value.toFixed(1)}/10`} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Bar dataKey="Expectativas" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="Clareza" fill="#10b981" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="Tempo" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                      <span className="font-semibold text-emerald-700 dark:text-emerald-400">Dr. Patrick</span>
-                    </div>
-                    <div className="text-2xl font-bold text-emerald-600">
-                      {analytics.instructors.patrick.overallAvg.toFixed(1)}/10
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
+                </div>
+
+                {/* Chart 2: Each Metric with All Instructors */}
+                <div>
+                  <h4 className="text-sm font-semibold text-muted-foreground mb-3">Comparativo por Dimensão</h4>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={[
+                          { 
+                            metric: 'Expectativas', 
+                            'Dr. Hygor': analytics.instructors.hygor.avgExpectations,
+                            'Dr. Patrick': analytics.instructors.patrick.avgExpectations,
+                          },
+                          { 
+                            metric: 'Clareza', 
+                            'Dr. Hygor': analytics.instructors.hygor.avgClarity,
+                            'Dr. Patrick': analytics.instructors.patrick.avgClarity,
+                          },
+                          { 
+                            metric: 'Tempo', 
+                            'Dr. Hygor': analytics.instructors.hygor.avgTime,
+                            'Dr. Patrick': analytics.instructors.patrick.avgTime,
+                          },
+                        ]}
+                        layout="vertical"
+                        barCategoryGap="25%"
+                      >
+                        <XAxis type="number" domain={[0, 10]} tick={{ fontSize: 11 }} />
+                        <YAxis dataKey="metric" type="category" width={90} tick={{ fontSize: 12, fontWeight: 500 }} />
+                        <Tooltip formatter={(value: number) => `${value.toFixed(1)}/10`} />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Bar dataKey="Dr. Hygor" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="Dr. Patrick" fill="#10b981" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
+
+              {/* Ranking Cards */}
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div className={`p-4 rounded-xl border relative ${
+                  analytics.instructors.hygor.overallAvg >= analytics.instructors.patrick.overallAvg 
+                    ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' 
+                    : 'bg-slate-50 dark:bg-slate-950/30 border-slate-200 dark:border-slate-800'
+                }`}>
+                  {analytics.instructors.hygor.overallAvg >= analytics.instructors.patrick.overallAvg && (
+                    <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-amber-400 text-amber-900 flex items-center justify-center text-xs font-bold">1º</div>
+                  )}
+                  <div className="flex items-center gap-2 mb-2 ml-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <span className="font-semibold text-blue-700 dark:text-blue-400">Dr. Hygor</span>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-600 ml-2">
+                    {analytics.instructors.hygor.overallAvg.toFixed(1)}/10
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 ml-2">Média Geral</p>
+                </div>
+                <div className={`p-4 rounded-xl border relative ${
+                  analytics.instructors.patrick.overallAvg > analytics.instructors.hygor.overallAvg 
+                    ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' 
+                    : 'bg-slate-50 dark:bg-slate-950/30 border-slate-200 dark:border-slate-800'
+                }`}>
+                  {analytics.instructors.patrick.overallAvg > analytics.instructors.hygor.overallAvg && (
+                    <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-amber-400 text-amber-900 flex items-center justify-center text-xs font-bold">1º</div>
+                  )}
+                  <div className="flex items-center gap-2 mb-2 ml-2">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">Dr. Patrick</span>
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-600 ml-2">
+                    {analytics.instructors.patrick.overallAvg.toFixed(1)}/10
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 ml-2">Média Geral</p>
+                </div>
+              </div>
+
               <ChartExecutiveSummary 
                 insights={generateInstructorInsight(
                   { name: 'Dr. Hygor', avg: analytics.instructors.hygor.overallAvg },
