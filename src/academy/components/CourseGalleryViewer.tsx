@@ -22,6 +22,7 @@ interface CourseGalleryViewerProps {
   onUnlockRequest?: () => void;
   onOpenDay1Survey?: () => void;
   onOpenDay2Survey?: () => void;
+  onOpenDay3Survey?: () => void;
 }
 
 // Survey table name mapping
@@ -32,7 +33,7 @@ const SURVEY_TABLE_MAP: Record<string, string> = {
   'final_satisfaction': 'final_satisfaction_surveys',
 };
 
-export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest, onOpenDay1Survey, onOpenDay2Survey }: CourseGalleryViewerProps) {
+export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest, onOpenDay1Survey, onOpenDay2Survey, onOpenDay3Survey }: CourseGalleryViewerProps) {
   const { galleries, isLoading } = useStudentGalleries(classId);
   const { isAdmin, canAccessModule, user } = useUnifiedAuth();
   const navigate = useNavigate();
@@ -82,6 +83,16 @@ export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest
         .limit(1);
       if (day2 && day2.length > 0) completed.push('day2_satisfaction');
       
+      // Check day3 survey
+      const { data: day3 } = await supabase
+        .from('day3_satisfaction_surveys')
+        .select('id')
+        .eq('user_id', user.authUserId)
+        .eq('class_id', classId)
+        .eq('is_completed', true)
+        .limit(1);
+      if (day3 && day3.length > 0) completed.push('day3_satisfaction');
+      
       return completed;
     },
     enabled: !!user?.authUserId && !!classId,
@@ -124,6 +135,9 @@ export function CourseGalleryViewer({ classId, isLocked = false, onUnlockRequest
         } else if (surveyType === 'day2_satisfaction') {
           surveyAction = onOpenDay2Survey || onUnlockRequest;
           surveyName = 'Pesquisa de Satisfação do Dia 2';
+        } else if (surveyType === 'day3_satisfaction') {
+          surveyAction = onOpenDay3Survey || onUnlockRequest;
+          surveyName = 'Pesquisa Final (Dia 3)';
         } else {
           surveyAction = onUnlockRequest;
         }
