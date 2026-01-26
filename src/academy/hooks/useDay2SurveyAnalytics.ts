@@ -365,19 +365,23 @@ export function useDay2SurveyAnalytics(classId?: string | null) {
         ? effectiveTimes.reduce((a, b) => a + b, 0) / effectiveTimes.length 
         : 0;
       
-      // Calculate scores
+      // Calculate scores (normalize to 0-10 scale)
+      // Raw scores: ia=0-18, license=0-18, legal=0-18, total=0-54
+      const normalize18to10 = (score: number) => Math.min(10, (score / 18) * 10);
+      const normalize54to10 = (score: number) => Math.min(10, (score / 54) * 10);
+      
       const scoresData = surveys.map(s => calculateScores(s));
       const avgScoreTotal = scoresData.length > 0 
-        ? scoresData.reduce((sum, s) => sum + s.total, 0) / scoresData.length 
+        ? normalize54to10(scoresData.reduce((sum, s) => sum + s.total, 0) / scoresData.length)
         : 0;
       const avgScoreIA = scoresData.length > 0 
-        ? scoresData.reduce((sum, s) => sum + s.ia, 0) / scoresData.length 
+        ? normalize18to10(scoresData.reduce((sum, s) => sum + s.ia, 0) / scoresData.length)
         : 0;
       const avgScoreLicense = scoresData.length > 0 
-        ? scoresData.reduce((sum, s) => sum + s.license, 0) / scoresData.length 
+        ? normalize18to10(scoresData.reduce((sum, s) => sum + s.license, 0) / scoresData.length)
         : 0;
       const avgScoreLegal = scoresData.length > 0 
-        ? scoresData.reduce((sum, s) => sum + s.legal, 0) / scoresData.length 
+        ? normalize18to10(scoresData.reduce((sum, s) => sum + s.legal, 0) / scoresData.length)
         : 0;
       
       // Classification counts

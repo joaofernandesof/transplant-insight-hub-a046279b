@@ -60,11 +60,15 @@ export function Day2AIInsightsPanel({ surveys, className }: Day2AIInsightsPanelP
     const completed = surveys.filter(s => s.is_completed);
     const partial = surveys.filter(s => !s.is_completed);
 
-    // Score averages
-    const avgScoreTotal = surveys.length ? surveys.reduce((acc, s) => acc + (s.score_total || 0), 0) / surveys.length : 0;
-    const avgScoreIA = surveys.length ? surveys.reduce((acc, s) => acc + (s.score_ia_avivar || 0), 0) / surveys.length : 0;
-    const avgScoreLicense = surveys.length ? surveys.reduce((acc, s) => acc + (s.score_license || 0), 0) / surveys.length : 0;
-    const avgScoreLegal = surveys.length ? surveys.reduce((acc, s) => acc + (s.score_legal || 0), 0) / surveys.length : 0;
+    // Score averages (normalize to 0-10 scale)
+    // Raw scores: ia/license/legal = 0-18 each, total = 0-54
+    const normalize18to10 = (score: number) => Math.min(10, (score / 18) * 10);
+    const normalize54to10 = (score: number) => Math.min(10, (score / 54) * 10);
+    
+    const avgScoreTotal = surveys.length ? normalize54to10(surveys.reduce((acc, s) => acc + (s.score_total || 0), 0) / surveys.length) : 0;
+    const avgScoreIA = surveys.length ? normalize18to10(surveys.reduce((acc, s) => acc + (s.score_ia_avivar || 0), 0) / surveys.length) : 0;
+    const avgScoreLicense = surveys.length ? normalize18to10(surveys.reduce((acc, s) => acc + (s.score_license || 0), 0) / surveys.length) : 0;
+    const avgScoreLegal = surveys.length ? normalize18to10(surveys.reduce((acc, s) => acc + (s.score_legal || 0), 0) / surveys.length) : 0;
 
     // Lead classification
     const hotLeads = surveys.filter(s => s.lead_classification === 'hot' || s.score_total >= 40).length;
