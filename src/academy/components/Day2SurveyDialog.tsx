@@ -6,7 +6,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useDay2Survey } from '../hooks/useDay2Survey';
-import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield } from 'lucide-react';
 import { SurveyErrors } from '@/lib/errorReporting';
 import { toast } from 'sonner';
@@ -329,7 +328,6 @@ function TextQuestionInput({
 }
 
 export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Day2SurveyDialogProps) {
-  const { user } = useUnifiedAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isInitialized, setIsInitialized] = useState(false);
@@ -342,9 +340,9 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   // Get survey ID - either from existing or create new
   const surveyId = existingSurvey?.id;
 
-  // Initialize: create survey if needed, load data if exists
+  // Initialize: create survey if needed, load data if exists (matches Day3 pattern)
   useEffect(() => {
-    if (!open || !user || isLoading) return;
+    if (!open || isLoading) return;
     
     // If survey exists, load saved data
     if (existingSurvey) {
@@ -367,17 +365,15 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       effectiveTimeRef.current = existingSurvey.effective_time_seconds || 0;
       setIsInitialized(true);
     } else if (!isInitialized) {
-      // Create new survey using mutateAsync pattern (matches Day3)
+      // Create new survey
       startSurvey(classId)
         .then(() => {
           refetch();
           setIsInitialized(true);
         })
-        .catch((error) => {
-          SurveyErrors.initFailed(error);
-        });
+        .catch((error) => SurveyErrors.initFailed(error));
     }
-  }, [open, user, existingSurvey, isLoading, classId, isInitialized, startSurvey, refetch]);
+  }, [open, existingSurvey, isLoading, classId, isInitialized, startSurvey, refetch]);
 
   // Track effective time
   useEffect(() => {
@@ -480,6 +476,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     const updatedData = { ...formData, [currentQ.key]: value };
     setFormData(updatedData);
     
+    // Auto-advance after radio selection (250ms delay for visual feedback)
     if (currentQ.type === 'radio' && currentQuestion < QUESTIONS.length - 1) {
       setTimeout(() => {
         const nextQuestion = currentQuestion + 1;
@@ -494,15 +491,29 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         }
       }, 250);
     }
-  }, [currentQ?.key, currentQ?.type, currentQuestion, formData, surveyId, saveProgress]);
+  }, [currentQ, currentQuestion, formData, surveyId, saveProgress]);
 
-  // Show loading while initializing
-  if (isLoading || (!surveyId && !isCompleted)) {
+  const handleTextAutoSave = useCallback((questionKey: string, value: string) => {
+    if (!surveyId) return;
+    
+    saveProgress({
+      surveyId,
+      data: { [questionKey]: value },
+      currentSection: currentQuestion + 1
+    }).catch((error) => SurveyErrors.saveFailed(questionKey, error));
+  }, [surveyId, currentQuestion, saveProgress]);
+
+  const isProcessing = isStarting || isSubmitting;
+  
+  if (isLoading || !surveyId || !currentQ) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg">
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+            <p className="text-muted-foreground mt-4">
+              {isStarting ? 'Iniciando pesquisa...' : 'Carregando pesquisa...'}
+            </p>
           </div>
         </DialogContent>
       </Dialog>
@@ -513,13 +524,15 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg">
-          <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <CheckCircle2 className="h-16 w-16 text-green-500" />
-            <h3 className="text-xl font-semibold">Pesquisa já respondida!</h3>
-            <p className="text-muted-foreground text-center">
-              Você já completou a pesquisa de satisfação do Dia 2. Obrigado pelo seu feedback!
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Pesquisa já concluída!</h2>
+            <p className="text-muted-foreground">
+              Você já respondeu esta pesquisa. Obrigado pela participação!
             </p>
-            <Button onClick={() => onOpenChange(false)}>Fechar</Button>
+            <Button onClick={() => onOpenChange(false)} className="mt-6">
+              Fechar
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -531,64 +544,73 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            📋 Pesquisa de Satisfação - Dia 2
+            🎯 Pesquisa Dia 2 — Formação 360
           </DialogTitle>
-          <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-end text-sm text-muted-foreground">
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress 
-              value={progress} 
-              className="h-4 [&>div]:bg-green-500 [&>div]:transition-all [&>div]:duration-500 [&>div]:ease-out" 
-            />
+          <div className="text-sm text-muted-foreground">
+            {currentQ.category}
           </div>
         </DialogHeader>
 
-        <div className="py-6">
-          {/* Category Title with Speaker Image */}
-          <div className="flex items-center gap-3 mb-6">
-            {'speakerImage' in currentQ && currentQ.speakerImage && (
-              <img 
-                src={currentQ.speakerImage} 
-                alt="Speaker" 
-                className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
-              />
-            )}
-            <h2 className="text-xl font-bold text-foreground">
-              {currentQ.category}
-            </h2>
+        {/* Progress */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Progresso</span>
+            <span>{currentQuestion + 1}/{QUESTIONS.length} respondidas</span>
           </div>
+          <Progress value={progress} className="h-2" />
+        </div>
 
-          {/* Question */}
-          <p className="text-base text-muted-foreground mb-6">{currentQ.text}</p>
+        {/* Speaker Image */}
+        {currentQ.speakerImage && (
+          <div className="flex justify-center py-2">
+            <img 
+              src={currentQ.speakerImage} 
+              alt="Palestrante" 
+              className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
+            />
+          </div>
+        )}
 
-          {/* Options or Text Input */}
+        {/* Category Icon */}
+        {currentQ.icon && !currentQ.speakerImage && (
+          <div className="flex justify-center py-2">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              {currentQ.icon}
+            </div>
+          </div>
+        )}
+
+        {/* Question */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">{currentQ.text}</h3>
+          
           {currentQ.type === 'radio' && currentQ.options && (
             <RadioGroup
               value={formData[currentQ.key] || ''}
               onValueChange={handleOptionSelect}
-              className="space-y-3"
+              className="space-y-2"
             >
-              {currentQ.options.map((option, idx) => (
-                <div
-                  key={idx}
-                  className={`flex items-center space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+              {currentQ.options.map((option) => (
+                <Label
+                  key={option.value}
+                  htmlFor={`${currentQ.key}-${option.value}`}
+                  className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
                     formData[currentQ.key] === option.value
                       ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
+                      : 'hover:bg-muted/50'
                   }`}
-                  onClick={() => handleOptionSelect(option.value)}
                 >
-                  <RadioGroupItem value={option.value} id={`${currentQ.key}-${idx}`} />
-                  {'icon' in option && option.icon}
-                  <Label htmlFor={`${currentQ.key}-${idx}`} className="flex-1 cursor-pointer">
-                    {option.value}
-                  </Label>
-                </div>
+                  <RadioGroupItem
+                    value={option.value}
+                    id={`${currentQ.key}-${option.value}`}
+                  />
+                  {option.icon}
+                  <span>{option.value}</span>
+                </Label>
               ))}
             </RadioGroup>
           )}
-
+          
           {currentQ.type === 'text' && (
             <TextQuestionInput
               questionKey={currentQ.key}
