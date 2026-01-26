@@ -319,14 +319,21 @@ export function useGlobalSurveyAnalytics(classId?: string | null) {
       monitors.sort((a, b) => b.votes - a.votes);
       
       // === LEADS (from Day 2) ===
+      // Note: score_ia_avivar, score_license, score_legal are on 0-18 scale each
+      // Normalize to 0-10 for display consistency
+      const normalizeScore18to10 = (score: number | null): number => {
+        if (!score || score <= 0) return 0;
+        return Math.min(10, (score / 18) * 10);
+      };
+      
       const leads: GlobalLeadData = {
         hot: day2Data.filter(r => r.lead_classification === 'hot').length,
         warm: day2Data.filter(r => r.lead_classification === 'warm').length,
         cold: day2Data.filter(r => r.lead_classification === 'cold').length,
         total: day2Data.length,
-        avgScoreIA: calculateAvg(day2Data.map(r => r.score_ia_avivar)),
-        avgScoreLicense: calculateAvg(day2Data.map(r => r.score_license)),
-        avgScoreLegal: calculateAvg(day2Data.map(r => r.score_legal)),
+        avgScoreIA: calculateAvg(day2Data.map(r => normalizeScore18to10(r.score_ia_avivar))),
+        avgScoreLicense: calculateAvg(day2Data.map(r => normalizeScore18to10(r.score_license))),
+        avgScoreLegal: calculateAvg(day2Data.map(r => normalizeScore18to10(r.score_legal))),
       };
       
       // === FEEDBACK (combine from all days) ===
