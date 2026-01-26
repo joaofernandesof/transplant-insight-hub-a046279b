@@ -319,15 +319,16 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         if (value) savedData[q.key] = value as string;
       });
       setFormData(savedData);
-      let resumeIndex = 0;
+      formDataRef.current = savedData; // Sync ref immediately
+      
+      // Find first unanswered REQUIRED question (radio questions are required)
+      let resumeIndex = QUESTIONS.length - 1; // Default to last question
       for (let i = 0; i < QUESTIONS.length; i++) {
         const q = QUESTIONS[i];
+        // For radio questions, they are required - if not answered, resume here
         if (q.type === 'radio' && !savedData[q.key]) {
           resumeIndex = i;
           break;
-        }
-        if (i === QUESTIONS.length - 1) {
-          resumeIndex = QUESTIONS.length - 1;
         }
       }
       setCurrentQuestion(resumeIndex);
