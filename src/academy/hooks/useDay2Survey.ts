@@ -193,9 +193,12 @@ export function useDay2Survey(classId?: string) {
     existingSurvey,
     isLoading,
     isCompleted: existingSurvey?.is_completed ?? false,
-    startSurvey,
-    saveProgress,
-    submitSurvey,
+    startSurvey: startSurvey.mutateAsync,
+    saveProgress: saveProgress.mutateAsync,
+    submitSurvey: submitSurvey.mutateAsync,
+    isStarting: startSurvey.isPending,
+    isSaving: saveProgress.isPending,
+    isSubmitting: submitSurvey.isPending,
     refetch
   };
 }

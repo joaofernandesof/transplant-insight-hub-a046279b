@@ -337,7 +337,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const effectiveTimeRef = useRef(0);
   const lastVisibleTimeRef = useRef(Date.now());
   
-  const { existingSurvey, isLoading, isCompleted, startSurvey, saveProgress, submitSurvey, refetch } = useDay2Survey(classId);
+  const { existingSurvey, isLoading, isCompleted, startSurvey, saveProgress, submitSurvey, isStarting, isSaving, isSubmitting, refetch } = useDay2Survey(classId);
 
   // Get survey ID - either from existing or create new
   const surveyId = existingSurvey?.id;
@@ -368,7 +368,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       setIsInitialized(true);
     } else if (!isInitialized) {
       // Create new survey using mutateAsync pattern (matches Day3)
-      startSurvey.mutateAsync(classId)
+      startSurvey(classId)
         .then(() => {
           refetch();
           setIsInitialized(true);
@@ -435,13 +435,11 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     if (currentQuestion < QUESTIONS.length - 1) {
       const nextQuestion = currentQuestion + 1;
       setCurrentQuestion(nextQuestion);
-      saveProgress.mutate({
+      saveProgress({
         surveyId,
         data: formData,
         currentSection: nextQuestion + 1
-      }, {
-        onError: (error) => SurveyErrors.saveFailed(currentQ?.key, error)
-      });
+      }).catch((error) => SurveyErrors.saveFailed(currentQ?.key, error));
     }
   }, [currentQ, currentQuestion, formData, surveyId, saveProgress]);
 
@@ -457,27 +455,26 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       return;
     }
     
-    if (submitSurvey.isPending) return;
+    if (isSubmitting) return;
     
     if (!document.hidden) {
       effectiveTimeRef.current += Math.floor((Date.now() - lastVisibleTimeRef.current) / 1000);
     }
     
-    submitSurvey.mutate({
+    submitSurvey({
       surveyId,
       data: formData,
       effectiveTime: effectiveTimeRef.current
-    }, {
-      onSuccess: () => {
+    })
+      .then(() => {
         toast.success('Pesquisa enviada com sucesso!');
         onComplete?.();
         onOpenChange(false);
-      },
-      onError: (error) => {
+      })
+      .catch((error) => {
         SurveyErrors.submitFailed(error);
-      }
-    });
-  }, [surveyId, formData, submitSurvey, onComplete, onOpenChange]);
+      });
+  }, [surveyId, formData, submitSurvey, isSubmitting, onComplete, onOpenChange]);
 
   const handleOptionSelect = useCallback((value: string) => {
     const updatedData = { ...formData, [currentQ.key]: value };
@@ -489,13 +486,11 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
         setCurrentQuestion(nextQuestion);
         
         if (surveyId) {
-          saveProgress.mutate({
+          saveProgress({
             surveyId,
             data: updatedData,
             currentSection: nextQuestion + 1
-          }, {
-            onError: (error) => SurveyErrors.saveFailed(currentQ?.key, error)
-          });
+          }).catch((error) => SurveyErrors.saveFailed(currentQ?.key, error));
         }
       }, 250);
     }
@@ -603,11 +598,11 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
               }}
               onAutoSave={(value) => {
                 if (surveyId && value.trim()) {
-                  saveProgress.mutate({
+                  saveProgress({
                     surveyId,
                     data: { ...formData, [currentQ.key]: value },
                     currentSection: currentQuestion + 1
-                  });
+                  }).catch((error) => console.error('Save failed:', error));
                 }
               }}
             />
@@ -627,9 +622,9 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           {currentQuestion === QUESTIONS.length - 1 ? (
             <Button 
               onClick={handleSubmit}
-              disabled={submitSurvey.isPending}
+              disabled={isSubmitting}
             >
-              {submitSurvey.isPending ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Enviando...
