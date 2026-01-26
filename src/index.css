@@ -350,3 +350,105 @@ html {
     }
   }
 }
+
+/* ===== PRINT STYLES FOR PDF EXPORT ===== */
+@media print {
+  /* Force landscape for pages with wide tables */
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  
+  /* Hide non-printable elements */
+  .no-print,
+  .sidebar,
+  nav,
+  button:not(.print-include),
+  .scroll-area-viewport {
+    display: none !important;
+  }
+  
+  /* Reset backgrounds for print */
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Ensure tables fit on page */
+  table {
+    width: 100% !important;
+    font-size: 9px !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+  
+  th, td {
+    padding: 4px 6px !important;
+    border: 1px solid #ddd !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Allow row breaks but not mid-row */
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+  
+  /* Ensure headers repeat on each page */
+  thead {
+    display: table-header-group !important;
+  }
+  
+  /* Prevent cards from breaking */
+  .card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 10mm !important;
+  }
+  
+  /* Make sure scroll containers show all content */
+  .overflow-auto,
+  .overflow-x-auto,
+  .overflow-y-auto,
+  .overflow-hidden,
+  [data-radix-scroll-area-viewport] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+  
+  /* Preserve colors in print */
+  .bg-emerald-500, .bg-emerald-400 {
+    background-color: #10b981 !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  
+  .bg-amber-500, .bg-amber-400 {
+    background-color: #f59e0b !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  
+  .bg-red-500, .bg-destructive {
+    background-color: #ef4444 !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  
+  .text-emerald-600 {
+    color: #059669 !important;
+  }
+  
+  .text-amber-600 {
+    color: #d97706 !important;
+  }
+  
+  .text-red-600 {
+    color: #dc2626 !important;
+  }
+  
+  /* Badges should preserve colors */
+  [class*="badge"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
