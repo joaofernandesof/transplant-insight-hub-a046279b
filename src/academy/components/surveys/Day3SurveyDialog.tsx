@@ -271,60 +271,62 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     isStarting,
     isSaving,
     isSubmitting,
+    isLoading,
+    hasCompleted,
+    refetch,
   } = useDay3Survey(classId);
 
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [formData, setFormData] = useState<Partial<Day3SurveyFormData>>({});
-  const [surveyId, setSurveyId] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
   const [showCompletion, setShowCompletion] = useState(false);
-  
-  const formDataRef = useRef(formData);
-  const surveyIdRef = useRef(surveyId);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    formDataRef.current = formData;
-  }, [formData]);
-
-  useEffect(() => {
-    surveyIdRef.current = surveyId;
-  }, [surveyId]);
+  // Survey ID from response
+  const surveyId = surveyResponse?.id;
 
   // Initialize survey
   useEffect(() => {
-    if (open && !surveyId) {
-      startSurvey(classId || null).then((response) => {
-        setSurveyId(response.id);
-        if (response.current_section > 1 || response.is_completed) {
-          // Resume from saved progress
-          const savedData: Partial<Day3SurveyFormData> = {};
-          SECTIONS.forEach(section => {
-            section.questions.forEach(q => {
-              const value = response[q.id as keyof typeof response];
-              if (value) {
-                (savedData as any)[q.id] = value;
-              }
-            });
-          });
-          setFormData(savedData);
-          
-          // Find first unanswered question
-          for (let sIdx = 0; sIdx < SECTIONS.length; sIdx++) {
-            const section = SECTIONS[sIdx];
-            for (let qIdx = 0; qIdx < section.questions.length; qIdx++) {
-              const q = section.questions[qIdx];
-              if (!savedData[q.id]) {
-                setCurrentSectionIndex(sIdx);
-                setCurrentQuestionIndex(qIdx);
-                return;
-              }
-            }
+    if (!open || isLoading) return;
+    
+    if (surveyResponse) {
+      // Load saved data
+      const savedData: Partial<Day3SurveyFormData> = {};
+      SECTIONS.forEach(section => {
+        section.questions.forEach(q => {
+          const value = surveyResponse[q.id as keyof typeof surveyResponse];
+          if (value) {
+            (savedData as any)[q.id] = value;
+          }
+        });
+      });
+      setFormData(savedData);
+      
+      // Find first unanswered question
+      for (let sIdx = 0; sIdx < SECTIONS.length; sIdx++) {
+        const section = SECTIONS[sIdx];
+        for (let qIdx = 0; qIdx < section.questions.length; qIdx++) {
+          const q = section.questions[qIdx];
+          if (!savedData[q.id]) {
+            setCurrentSectionIndex(sIdx);
+            setCurrentQuestionIndex(qIdx);
+            setIsInitialized(true);
+            return;
           }
         }
-      });
+      }
+      setIsInitialized(true);
+    } else if (!isInitialized) {
+      // Create new survey
+      startSurvey(classId || null)
+        .then(() => {
+          refetch();
+          setIsInitialized(true);
+        })
+        .catch((error) => SurveyErrors.initFailed(error));
     }
-  }, [open, classId, startSurvey, surveyId]);
+  }, [open, surveyResponse, isLoading, classId, isInitialized, startSurvey, refetch]);
 
   const currentSection = SECTIONS[currentSectionIndex];
   const currentQuestion = currentSection?.questions[currentQuestionIndex];
@@ -336,19 +338,19 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const handleAnswer = useCallback((value: string) => {
     if (!currentQuestion) return;
     
-    const newData = { ...formDataRef.current, [currentQuestion.id]: value };
+    const newData = { ...formData, [currentQuestion.id]: value };
     setFormData(newData);
     
     // Auto-advance for radio questions
-    if (currentQuestion.type === 'radio' && surveyIdRef.current) {
+    if (currentQuestion.type === 'radio' && surveyId) {
       setTimeout(() => {
         goToNext(newData);
       }, 250);
     }
-  }, [currentQuestion]);
+  }, [currentQuestion, formData, surveyId]);
 
   const goToNext = useCallback((dataToSave?: Partial<Day3SurveyFormData>) => {
-    const data = dataToSave || formDataRef.current;
+    const data = dataToSave || formData;
     
     if (currentQuestionIndex < currentSection.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -362,14 +364,14 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     }
     
     // Save progress
-    if (surveyIdRef.current) {
+    if (surveyId) {
       saveProgress({
-        surveyId: surveyIdRef.current,
+        surveyId,
         data,
         currentSection: currentSectionIndex + 1,
       }).catch((error) => SurveyErrors.saveFailed('day3_progress', error));
     }
-  }, [currentQuestionIndex, currentSectionIndex, currentSection, saveProgress]);
+  }, [currentQuestionIndex, currentSectionIndex, currentSection, formData, surveyId, saveProgress]);
 
   const goToPrevious = () => {
     if (currentQuestionIndex > 0) {
@@ -383,13 +385,16 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
 
   const handleSubmit = async (dataToSubmit?: Partial<Day3SurveyFormData>) => {
     const data = dataToSubmit || formData;
-    if (!surveyIdRef.current) return;
+    if (!surveyId) {
+      SurveyErrors.noSurveyId();
+      return;
+    }
     
     const effectiveTime = Math.floor((Date.now() - startTime) / 1000);
     
     try {
       await submitSurvey({
-        surveyId: surveyIdRef.current,
+        surveyId,
         data,
         effectiveTimeSeconds: effectiveTime,
       });
@@ -430,7 +435,6 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   }
 
   // Show loading if survey is not ready yet
-  const isReady = !!surveyIdRef.current;
   
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -442,7 +446,7 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           </DialogTitle>
         </DialogHeader>
 
-        {(isStarting || !isReady) ? (
+        {(isStarting || !surveyId) ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
@@ -522,15 +526,14 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
                     value={formData[currentQuestion.id] as string || ''}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      const newData = { ...formDataRef.current, [currentQuestion.id]: newValue };
-                      setFormData(newData);
+                      setFormData({ ...formData, [currentQuestion.id]: newValue });
                     }}
                     onBlur={() => {
                       // Save on blur
-                      if (surveyIdRef.current) {
+                      if (surveyId) {
                         saveProgress({
-                          surveyId: surveyIdRef.current,
-                          data: formDataRef.current,
+                          surveyId,
+                          data: formData,
                           currentSection: currentSectionIndex + 1,
                         }).catch((error) => SurveyErrors.saveFailed(currentQuestion.id, error));
                       }
