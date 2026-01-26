@@ -1,7 +1,10 @@
 /**
  * Centralized Error Reporting System
  * Generates unique error codes and descriptive messages for debugging
+ * Sends email alerts to ti@neofolic.com.br
  */
+
+import { supabase } from '@/integrations/supabase/client';
 
 interface ErrorDetails {
   code: string;
@@ -9,6 +12,47 @@ interface ErrorDetails {
   context?: string;
   timestamp: string;
   originalError?: string;
+}
+
+interface UserContext {
+  userId?: string;
+  userEmail?: string;
+  userName?: string;
+}
+
+// Cache for user context to avoid repeated queries
+let cachedUserContext: UserContext | null = null;
+
+// Get current user context for error reporting
+async function getUserContext(): Promise<UserContext> {
+  if (cachedUserContext) return cachedUserContext;
+  
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: neohubUser } = await supabase
+        .from('neohub_users')
+        .select('full_name, email')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      cachedUserContext = {
+        userId: user.id,
+        userEmail: neohubUser?.email || user.email,
+        userName: neohubUser?.full_name || 'Usuário',
+      };
+      return cachedUserContext;
+    }
+  } catch (e) {
+    console.warn('Failed to get user context for error report:', e);
+  }
+  
+  return {};
+}
+
+// Clear cached user context (call on logout)
+export function clearErrorReportingUserCache(): void {
+  cachedUserContext = null;
 }
 
 // Generate a unique error ID: PREFIX-TIMESTAMP-RANDOM
@@ -28,6 +72,29 @@ export const ERROR_PREFIXES = {
   GALLERY: 'GAL',     // Gallery errors
   GENERAL: 'ERR',     // General errors
 } as const;
+
+// Send error alert via edge function
+async function sendErrorAlert(details: ErrorDetails, userContext: UserContext): Promise<void> {
+  try {
+    await supabase.functions.invoke('notify-error-alert', {
+      body: {
+        errorCode: details.code,
+        errorMessage: details.message,
+        context: details.context,
+        originalError: details.originalError,
+        timestamp: details.timestamp,
+        userId: userContext.userId,
+        userEmail: userContext.userEmail,
+        userName: userContext.userName,
+        pageUrl: window.location.href,
+        userAgent: navigator.userAgent,
+      },
+    });
+  } catch (e) {
+    // Don't block on email failure - just log
+    console.warn('Failed to send error alert email:', e);
+  }
+}
 
 // Create structured error details
 export function createErrorDetails(
@@ -115,6 +182,11 @@ export function reportError(
         toast.success('Informações copiadas!');
       },
     },
+  });
+  
+  // Send email alert asynchronously (non-blocking)
+  getUserContext().then(userContext => {
+    sendErrorAlert(details, userContext);
   });
   
   return details;
