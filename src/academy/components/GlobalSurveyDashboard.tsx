@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { useGlobalSurveyAnalytics, type GlobalInstructorData } from '@/academy/hooks/useGlobalSurveyAnalytics';
 import { ChartExecutiveSummary } from '@/components/surveys/ChartExecutiveSummary';
+import { BarChart3, Briefcase, Scale } from 'lucide-react';
 
 interface GlobalSurveyDashboardProps {
   classId?: string | null;
@@ -155,10 +156,68 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
     }
   }
   
+  // Prepare global radar data
+  const globalRadarData = [
+    { metric: 'Satisfação', value: analytics.satisfaction.overall, fullMark: 10 },
+    { metric: 'Técnico', value: analytics.contentMetrics.avgTechnical, fullMark: 10 },
+    { metric: 'Prática', value: analytics.contentMetrics.avgPractical, fullMark: 10 },
+    { metric: 'Clareza', value: analytics.contentMetrics.avgClarity, fullMark: 10 },
+    { metric: 'Confiança', value: analytics.contentMetrics.avgConfidence, fullMark: 10 },
+    { metric: 'Organização', value: analytics.contentMetrics.avgOrganization, fullMark: 10 },
+    { metric: 'Suporte', value: analytics.contentMetrics.avgSupport, fullMark: 10 },
+  ].filter(d => d.value > 0);
+  
+  // Find strongest and weakest dimensions
+  const sortedMetrics = [...globalRadarData].sort((a, b) => b.value - a.value);
+  const strongest = sortedMetrics[0];
+  const weakest = sortedMetrics[sortedMetrics.length - 1];
+  
+  // Global insights
+  const globalInsights = [];
+  if (strongest) {
+    globalInsights.push(`💪 Ponto forte: "${strongest.metric}" com nota ${strongest.value.toFixed(1)}/10.`);
+  }
+  if (analytics.globalAvg >= 8) {
+    globalInsights.push(`✅ Média geral de ${analytics.globalAvg.toFixed(1)}/10 indica excelente desempenho global.`);
+  } else if (analytics.globalAvg >= 6) {
+    globalInsights.push(`📊 Média geral de ${analytics.globalAvg.toFixed(1)}/10 - bom desempenho com espaço para melhorias.`);
+  }
+  
+  // Day 2 commercial insights
+  const day2Insights = [];
+  if (analytics.leads.total > 0) {
+    const hotPercent = (analytics.leads.hot / analytics.leads.total) * 100;
+    day2Insights.push(`🔥 ${analytics.leads.hot} leads quentes (${hotPercent.toFixed(0)}% do total)`);
+    if (analytics.leads.avgScoreIA > 0) {
+      day2Insights.push(`🤖 Score IA Avivar: ${analytics.leads.avgScoreIA.toFixed(1)}/10`);
+    }
+    if (analytics.leads.avgScoreLicense > 0) {
+      day2Insights.push(`📜 Score Licença: ${analytics.leads.avgScoreLicense.toFixed(1)}/10`);
+    }
+    if (analytics.leads.avgScoreLegal > 0) {
+      day2Insights.push(`⚖️ Score Jurídico: ${analytics.leads.avgScoreLegal.toFixed(1)}/10`);
+    }
+  }
+  
+  // Day 3 content insights
+  const day3Insights = [];
+  if (analytics.contentMetrics.avgTechnical > 0) {
+    day3Insights.push(`🎯 Fundamentos Técnicos: ${analytics.contentMetrics.avgTechnical.toFixed(1)}/10`);
+  }
+  if (analytics.contentMetrics.avgConfidence > 0) {
+    day3Insights.push(`💪 Nível de Confiança: ${analytics.contentMetrics.avgConfidence.toFixed(1)}/10`);
+  }
+  if (analytics.contentMetrics.avgManagement > 0) {
+    day3Insights.push(`📈 Gestão: ${analytics.contentMetrics.avgManagement.toFixed(1)}/10`);
+  }
+  if (analytics.contentMetrics.avgLegal > 0) {
+    day3Insights.push(`⚖️ Segurança Jurídica: ${analytics.contentMetrics.avgLegal.toFixed(1)}/10`);
+  }
+  
   return (
     <div className="space-y-6">
       {/* Header Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -166,7 +225,7 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
                 <Users className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Respostas Totais</p>
+                <p className="text-sm text-muted-foreground">Respostas</p>
                 <p className="text-2xl font-bold">{analytics.satisfaction.totalResponses}</p>
               </div>
             </div>
@@ -180,9 +239,25 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
                 <Star className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Satisfação Média</p>
+                <p className="text-sm text-muted-foreground">Satisfação</p>
                 <p className={`text-2xl font-bold ${getScoreColor(analytics.satisfaction.overall)}`}>
                   {analytics.satisfaction.overall.toFixed(1)}/10
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                <BarChart3 className="h-5 w-5 text-violet-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Média Global</p>
+                <p className={`text-2xl font-bold ${getScoreColor(analytics.globalAvg)}`}>
+                  {analytics.globalAvg.toFixed(1)}/10
                 </p>
               </div>
             </div>
@@ -206,8 +281,8 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
-                <GraduationCap className="h-5 w-5 text-violet-600" />
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                <GraduationCap className="h-5 w-5 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Professores</p>
@@ -217,6 +292,157 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Global Overview Radar + Insights */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Visão Geral das Métricas (3 Dias)
+            </CardTitle>
+            <CardDescription>Avaliação consolidada de todas as dimensões</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {globalRadarData.length > 0 ? (
+              <>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={globalRadarData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="metric" />
+                      <PolarRadiusAxis domain={[0, 10]} />
+                      <Radar
+                        name="Média"
+                        dataKey="value"
+                        stroke="#10b981"
+                        fill="#10b981"
+                        fillOpacity={0.3}
+                      />
+                      <Tooltip formatter={(value: number) => [`${value.toFixed(1)}/10`, 'Nota']} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                <ChartExecutiveSummary insights={globalInsights} variant="success" />
+              </>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                <p>Sem dados suficientes</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Day 2 Commercial Insights */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-violet-600" />
+              Insights Comerciais (Dia 2)
+            </CardTitle>
+            <CardDescription>Potencial de vendas e interesse por produtos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.leads.total > 0 ? (
+              <>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="text-center p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">🤖 IA Avivar</p>
+                    <p className={`text-xl font-bold ${getScoreColor(analytics.leads.avgScoreIA)}`}>
+                      {analytics.leads.avgScoreIA.toFixed(1)}/10
+                    </p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">📜 Licença</p>
+                    <p className={`text-xl font-bold ${getScoreColor(analytics.leads.avgScoreLicense)}`}>
+                      {analytics.leads.avgScoreLicense.toFixed(1)}/10
+                    </p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">⚖️ Jurídico</p>
+                    <p className={`text-xl font-bold ${getScoreColor(analytics.leads.avgScoreLegal)}`}>
+                      {analytics.leads.avgScoreLegal.toFixed(1)}/10
+                    </p>
+                  </div>
+                </div>
+                <ChartExecutiveSummary insights={day2Insights.slice(0, 2)} variant="info" />
+              </>
+            ) : (
+              <div className="h-48 flex items-center justify-center text-muted-foreground">
+                <p>Sem dados do Dia 2</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Day 3 Content Insights */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Scale className="h-5 w-5 text-emerald-600" />
+            Avaliação de Conteúdo (Dia 3)
+          </CardTitle>
+          <CardDescription>Métricas de entrega técnica, prática e gestão</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="text-center p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">🎯 Técnico</p>
+              <p className={`text-xl font-bold ${getScoreColor(analytics.contentMetrics.avgTechnical)}`}>
+                {analytics.contentMetrics.avgTechnical > 0 ? `${analytics.contentMetrics.avgTechnical.toFixed(1)}/10` : '-'}
+              </p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">🔬 Prática</p>
+              <p className={`text-xl font-bold ${getScoreColor(analytics.contentMetrics.avgPractical)}`}>
+                {analytics.contentMetrics.avgPractical > 0 ? `${analytics.contentMetrics.avgPractical.toFixed(1)}/10` : '-'}
+              </p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">📈 Gestão</p>
+              <p className={`text-xl font-bold ${getScoreColor(analytics.contentMetrics.avgManagement)}`}>
+                {analytics.contentMetrics.avgManagement > 0 ? `${analytics.contentMetrics.avgManagement.toFixed(1)}/10` : '-'}
+              </p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">⚖️ Jurídico</p>
+              <p className={`text-xl font-bold ${getScoreColor(analytics.contentMetrics.avgLegal)}`}>
+                {analytics.contentMetrics.avgLegal > 0 ? `${analytics.contentMetrics.avgLegal.toFixed(1)}/10` : '-'}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="text-center p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">🔍 Clareza</p>
+              <p className={`text-xl font-bold ${getScoreColor(analytics.contentMetrics.avgClarity)}`}>
+                {analytics.contentMetrics.avgClarity > 0 ? `${analytics.contentMetrics.avgClarity.toFixed(1)}/10` : '-'}
+              </p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">💪 Confiança</p>
+              <p className={`text-xl font-bold ${getScoreColor(analytics.contentMetrics.avgConfidence)}`}>
+                {analytics.contentMetrics.avgConfidence > 0 ? `${analytics.contentMetrics.avgConfidence.toFixed(1)}/10` : '-'}
+              </p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">📋 Organização</p>
+              <p className={`text-xl font-bold ${getScoreColor(analytics.contentMetrics.avgOrganization)}`}>
+                {analytics.contentMetrics.avgOrganization > 0 ? `${analytics.contentMetrics.avgOrganization.toFixed(1)}/10` : '-'}
+              </p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">🤝 Suporte</p>
+              <p className={`text-xl font-bold ${getScoreColor(analytics.contentMetrics.avgSupport)}`}>
+                {analytics.contentMetrics.avgSupport > 0 ? `${analytics.contentMetrics.avgSupport.toFixed(1)}/10` : '-'}
+              </p>
+            </div>
+          </div>
+          {day3Insights.length > 0 && (
+            <ChartExecutiveSummary insights={day3Insights} variant="success" />
+          )}
+        </CardContent>
+      </Card>
       
       {/* Satisfaction by Day */}
       <div className="grid md:grid-cols-2 gap-6">

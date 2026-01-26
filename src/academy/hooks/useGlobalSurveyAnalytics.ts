@@ -42,6 +42,18 @@ export interface GlobalLeadData {
   avgScoreLegal: number;
 }
 
+export interface GlobalContentMetrics {
+  // Day 3 content metrics
+  avgTechnical: number;
+  avgPractical: number;
+  avgManagement: number;
+  avgLegal: number;
+  avgClarity: number;
+  avgConfidence: number;
+  avgOrganization: number;
+  avgSupport: number;
+}
+
 export interface GlobalAnalytics {
   satisfaction: GlobalSatisfactionData;
   instructors: GlobalInstructorData[];
@@ -55,6 +67,8 @@ export interface GlobalAnalytics {
     day3: number;
   };
   totalStudents: number;
+  contentMetrics: GlobalContentMetrics;
+  globalAvg: number;
 }
 
 // Rating scale mapping (0-10)
@@ -304,6 +318,33 @@ export function useGlobalSurveyAnalytics(classId?: string | null) {
         if (r.q12_improvements) improvements.push(r.q12_improvements);
       });
       
+      // === CONTENT METRICS (from Day 3) ===
+      const contentMetrics: GlobalContentMetrics = {
+        avgTechnical: calculateAvg(day3Data.map(r => getNumericValue(r.q3_technical_foundations))),
+        avgPractical: calculateAvg(day3Data.map(r => getNumericValue(r.q4_practical_load))),
+        avgManagement: calculateAvg(day3Data.map(r => getNumericValue(r.q8_management_classes))),
+        avgLegal: calculateAvg(day3Data.map(r => getNumericValue(r.q9_legal_security))),
+        avgClarity: calculateAvg(day3Data.map(r => getNumericValue(r.q6_execution_clarity))),
+        avgConfidence: calculateAvg(day3Data.map(r => getNumericValue(r.q7_confidence_level))),
+        avgOrganization: calculateAvg(day3Data.map(r => getNumericValue(r.q10_organization))),
+        avgSupport: calculateAvg(day3Data.map(r => getNumericValue(r.q11_support_quality))),
+      };
+      
+      // Global average across all dimensions
+      const allMetrics = [
+        satisfaction.overall,
+        contentMetrics.avgTechnical,
+        contentMetrics.avgPractical,
+        contentMetrics.avgClarity,
+        contentMetrics.avgConfidence,
+        contentMetrics.avgOrganization,
+        contentMetrics.avgSupport,
+      ].filter(v => v > 0);
+      
+      const globalAvg = allMetrics.length > 0 
+        ? allMetrics.reduce((sum, v) => sum + v, 0) / allMetrics.length 
+        : 0;
+      
       return {
         satisfaction,
         instructors,
@@ -313,6 +354,8 @@ export function useGlobalSurveyAnalytics(classId?: string | null) {
         improvements: improvements.filter(i => i && i.trim().length > 3),
         completionRates,
         totalStudents,
+        contentMetrics,
+        globalAvg,
       };
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
