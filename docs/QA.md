@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 1 |
-| Aprovadas | 1 |
+| Total de Tarefas Validadas | 2 |
+| Aprovadas | 2 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-01-26 |
 
@@ -20,6 +20,33 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-01-26
+
+#### ✅ QA-002: Aba Respostas Íntegras nos Dashboards de Pesquisa
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Academy / Pesquisas |
+| **Descrição** | Adicionada nova aba "Respostas" em cada dashboard de pesquisa (Dia 1, 2 e 3) para visualizar as respostas completas por aluno |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-26 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Componente SurveyFullAnswersTab criado
+- [x] Aba "Respostas" adicionada ao Day1SurveyDashboard (8 tabs total)
+- [x] Aba "Respostas" adicionada ao Day2SurveyFullDashboard (8 tabs total)
+- [x] Aba "Respostas" adicionada ao Day3SurveyFullDashboard (8 tabs total)
+- [x] Expansão/recolhimento de respostas por aluno funcionando
+- [x] Agrupamento por categoria de perguntas
+
+**Observações:**
+- Componente reutilizável permite visualizar todas as respostas de cada aluno
+- Suporte a classificação (hot/warm/cold, promotor/neutro/detrator)
+- Filtro de busca por nome do aluno
+
+---
 
 #### ✅ QA-001: Criação do Registro de QA Obrigatório
 
