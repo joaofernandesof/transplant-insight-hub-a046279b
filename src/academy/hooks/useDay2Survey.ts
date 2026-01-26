@@ -83,16 +83,24 @@ export function useDay2Survey(classId?: string) {
   });
 
   const startSurvey = useMutation({
-    mutationFn: async (classId?: string) => {
+    mutationFn: async (classIdParam?: string) => {
       if (!user?.id) throw new Error('User not authenticated');
       
+      const effectiveClassId = classIdParam || classId;
+      
       // Check if survey already exists
-      const { data: existing } = await supabase
+      let existingQuery = supabase
         .from('day2_satisfaction_surveys')
         .select('id')
-        .eq('user_id', user.id)
-        .eq('class_id', classId || '')
-        .maybeSingle();
+        .eq('user_id', user.id);
+      
+      if (effectiveClassId) {
+        existingQuery = existingQuery.eq('class_id', effectiveClassId);
+      } else {
+        existingQuery = existingQuery.is('class_id', null);
+      }
+      
+      const { data: existing } = await existingQuery.maybeSingle();
       
       if (existing) {
         return existing;
@@ -102,7 +110,7 @@ export function useDay2Survey(classId?: string) {
         .from('day2_satisfaction_surveys')
         .insert({
           user_id: user.id,
-          class_id: classId || null,
+          class_id: effectiveClassId || null,
           current_section: 1
         })
         .select()
