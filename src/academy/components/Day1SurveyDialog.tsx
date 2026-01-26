@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -606,6 +606,18 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Day1SurveyFormData>>({});
   
+  // Use ref to always have current surveyId and formData in callbacks
+  const surveyIdRef = useRef<string | null>(null);
+  const formDataRef = useRef<Partial<Day1SurveyFormData>>({});
+  
+  useEffect(() => {
+    surveyIdRef.current = surveyId;
+  }, [surveyId]);
+  
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+  
   // Initialize survey when dialog opens
   useEffect(() => {
     if (open && !surveyId && !hasCompleted) {
@@ -632,18 +644,14 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     }
   }, [open, surveyId, hasCompleted, classId, startSurvey]);
   
-  // Reset state only when dialog closes completely
+  // Only reset state if survey is completed
   useEffect(() => {
-    if (!open) {
-      // Delay reset to allow for animation
-      const timer = setTimeout(() => {
-        setSurveyId(null);
-        setCurrentQuestion(0);
-        setFormData({});
-      }, 300);
-      return () => clearTimeout(timer);
+    if (!open && hasCompleted) {
+      setSurveyId(null);
+      setCurrentQuestion(0);
+      setFormData({});
     }
-  }, [open]);
+  }, [open, hasCompleted]);
   
   const currentQ = QUESTIONS[currentQuestion];
   
@@ -813,7 +821,25 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
               <div className="space-y-4">
                 <Textarea 
                   value={(formData[currentQ.key] as string) || ''} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, [currentQ.key]: e.target.value }))}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    const newData = { ...formDataRef.current, [currentQ.key]: newValue };
+                    setFormData(newData);
+                  }}
+                  onBlur={async () => {
+                    // Save on blur to prevent data loss
+                    if (surveyIdRef.current && formDataRef.current[currentQ.key]) {
+                      try {
+                        await saveProgress({ 
+                          surveyId: surveyIdRef.current, 
+                          data: formDataRef.current, 
+                          currentSection: currentQuestion + 1 
+                        });
+                      } catch (error) {
+                        console.error('Error saving text answer:', error);
+                      }
+                    }
+                  }}
                   placeholder="Sua resposta..."
                   rows={4}
                   className="resize-none"
