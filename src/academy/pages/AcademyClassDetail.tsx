@@ -40,10 +40,12 @@ import { CourseGalleryViewer } from "../components/CourseGalleryViewer";
 import { SatisfactionSurveyDialog } from "../components/SatisfactionSurveyDialog";
 import { Day1SurveyDialog } from "../components/Day1SurveyDialog";
 import { Day2SurveyDialog } from "../components/Day2SurveyDialog";
+import { Day3SurveyDialog } from "../components/surveys/Day3SurveyDialog";
 import { ClassSurveyList } from "../components/ClassSurveyList";
 import { useSatisfactionSurvey } from "../hooks/useSatisfactionSurvey";
 import { useDay1Survey } from "../hooks/useDay1Survey";
 import { useDay2Survey } from "../hooks/useDay2Survey";
+import { useDay3Survey } from "../hooks/useDay3Survey";
 
 export function AcademyClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -58,9 +60,11 @@ export function AcademyClassDetail() {
   const { hasCompleted: hasSurveyCompleted, refetch: refetchSurvey } = useSatisfactionSurvey(classId);
   const { hasCompleted: hasDay1Completed, isLoading: isDay1Loading, refetch: refetchDay1 } = useDay1Survey(classId);
   const { isCompleted: hasDay2Completed, isLoading: isDay2Loading } = useDay2Survey(classId);
+  const { hasCompleted: hasDay3Completed, isLoading: isDay3Loading } = useDay3Survey(classId);
   const [surveyDialogOpen, setSurveyDialogOpen] = useState(false);
   const [day1SurveyDialogOpen, setDay1SurveyDialogOpen] = useState(false);
   const [day2SurveyDialogOpen, setDay2SurveyDialogOpen] = useState(false);
+  const [day3SurveyDialogOpen, setDay3SurveyDialogOpen] = useState(false);
   const [surveyTriggeredByPhotos, setSurveyTriggeredByPhotos] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
 
@@ -313,6 +317,15 @@ export function AcademyClassDetail() {
                       isCompleted: hasDay2Completed,
                       isLoading: isDay2Loading,
                       onOpen: () => setDay2SurveyDialogOpen(true)
+                    },
+                    {
+                      id: 'day3',
+                      title: 'Pesquisa Final (Dia 3)',
+                      description: 'Avaliação final do curso, conteúdo e monitores.',
+                      questionCount: 16,
+                      isCompleted: hasDay3Completed,
+                      isLoading: isDay3Loading,
+                      onOpen: () => setDay3SurveyDialogOpen(true)
                     }
                   ]}
                 />
@@ -674,6 +687,13 @@ export function AcademyClassDetail() {
         <Day2SurveyDialog
           open={day2SurveyDialogOpen}
           onOpenChange={setDay2SurveyDialogOpen}
+          classId={classId || ''}
+        />
+        
+        {/* Day 3 Survey Dialog */}
+        <Day3SurveyDialog
+          open={day3SurveyDialogOpen}
+          onOpenChange={setDay3SurveyDialogOpen}
           classId={classId || ''}
         />
       </div>
