@@ -263,14 +263,7 @@ export function SurveyFullAnswersTab({
                                           "{response.answer}"
                                         </p>
                                       ) : (
-                                        <div className="flex items-center gap-2">
-                                          <p className="font-medium">{response.answer}</p>
-                                          {hasValue && (
-                                            <Badge variant="outline" className="text-xs">
-                                              {response.numericValue!.toFixed(1)}
-                                            </Badge>
-                                          )}
-                                        </div>
+                                        <p className="font-medium">{response.answer}</p>
                                       )
                                     ) : (
                                       <p className="text-sm text-muted-foreground italic">Não respondido</p>
