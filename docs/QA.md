@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 6 |
-| Aprovadas | 6 |
+| Total de Tarefas Validadas | 7 |
+| Aprovadas | 7 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-01-26 |
 
@@ -20,6 +20,32 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-01-26
+
+#### ✅ QA-007: Validação de Campos Obrigatórios na Pesquisa Dia 3
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Academy / Pesquisa Dia 3 |
+| **Descrição** | Implementação de validação UX que impede envio com campos obrigatórios vazios e guia o usuário para completar |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-26 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Array `REQUIRED_QUESTIONS` definido com 13 perguntas obrigatórias
+- [x] Função `missingQuestions` detecta dinamicamente perguntas pendentes
+- [x] `handleSubmit` bloqueia envio e exibe toast de aviso
+- [x] Alert com lista de perguntas faltantes e botão "Ir" para navegação direta
+- [x] Reset de registro corrompido da Dra. Mariane Torres
+
+**Observações:**
+- Problema original: formulário travava sem feedback quando perguntas obrigatórias ficavam vazias
+- Solução: UX proativa que lista e navega para as perguntas pendentes
+- Arquivo alterado: `src/academy/components/surveys/Day3SurveyDialog.tsx`
+
+---
 
 #### ✅ QA-006: Preparação para Publicação App Store / Play Store
 
