@@ -1,6 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -8,12 +11,25 @@ import {
 } from 'recharts';
 import { 
   BookOpen, Target, Briefcase, Scale, TrendingUp,
-  Lightbulb, Sparkles, CheckCircle2, XCircle, MessageSquare, AlertTriangle
+  Lightbulb, Sparkles, CheckCircle2, XCircle, MessageSquare, AlertTriangle, Eye
 } from 'lucide-react';
 import { Day3SurveyAnalytics } from '@/academy/hooks/useDay3SurveyAnalytics';
 
 interface ContentAnalysisProps {
   analytics: Day3SurveyAnalytics;
+}
+
+// Tipo para o modal de detalhes
+interface DetailModalData {
+  title: string;
+  subtitle: string;
+  students: {
+    name: string;
+    avatar: string | null;
+    response: string;
+    responseLabel: string;
+    score?: number;
+  }[];
 }
 
 // Score colors based on value (0-10)
@@ -23,6 +39,34 @@ const getScoreColor = (score: number) => {
   if (score >= 5) return { bg: '#eab308', text: 'Regular' };
   if (score >= 2.5) return { bg: '#f97316', text: 'Baixo' };
   return { bg: '#ef4444', text: 'Crítico' };
+};
+
+// Get response label for display
+const getResponseLabel = (questionKey: string, responseValue: string): string => {
+  const labels: Record<string, Record<string, string>> = {
+    q3: { muito_fracos: 'Muito fracos', fracos: 'Fracos', adequados: 'Adequados', bons: 'Bons', excelentes: 'Excelentes' },
+    q4: { muito_insuficiente: 'Muito insuficiente', insuficiente: 'Insuficiente', adequada: 'Adequada', boa: 'Boa', excelente: 'Excelente' },
+    q5: { muito_teorico: 'Muito teórico', mais_teoria: 'Mais teoria', equilibrado: 'Equilibrado', mais_pratica: 'Mais prática', muito_pratico: 'Muito prático' },
+    q6: { nenhuma: 'Nenhuma', pouca: 'Pouca', razoavel: 'Razoável', boa: 'Boa', total: 'Total' },
+    q7: { nenhuma: 'Nenhuma', baixa: 'Baixa', moderada: 'Moderada', boa: 'Boa', alta: 'Alta' },
+    q8: { nada_relevantes: 'Nada relevantes', pouco_relevantes: 'Pouco relevantes', relevantes: 'Relevantes', muito_relevantes: 'Muito relevantes', essenciais: 'Essenciais' },
+    q9: { nenhuma: 'Nenhuma', pouca: 'Pouca', razoavel: 'Razoável', boa: 'Boa', muita: 'Muita' },
+  };
+  return labels[questionKey]?.[responseValue] || responseValue;
+};
+
+// Get score for response
+const getResponseScore = (questionKey: string, responseValue: string): number => {
+  const scores: Record<string, Record<string, number>> = {
+    q3: { muito_fracos: 0, fracos: 2.5, adequados: 5, bons: 7.5, excelentes: 10 },
+    q4: { muito_insuficiente: 0, insuficiente: 2.5, adequada: 5, boa: 7.5, excelente: 10 },
+    q5: { muito_teorico: 2.5, mais_teoria: 5, equilibrado: 10, mais_pratica: 7.5, muito_pratico: 5 },
+    q6: { nenhuma: 0, pouca: 2.5, razoavel: 5, boa: 7.5, total: 10 },
+    q7: { nenhuma: 0, baixa: 2.5, moderada: 5, boa: 7.5, alta: 10 },
+    q8: { nada_relevantes: 0, pouco_relevantes: 2.5, relevantes: 5, muito_relevantes: 7.5, essenciais: 10 },
+    q9: { nenhuma: 0, pouca: 2.5, razoavel: 5, boa: 7.5, muita: 10 },
+  };
+  return scores[questionKey]?.[responseValue] ?? 0;
 };
 
 // Content areas configuration
@@ -96,6 +140,47 @@ const BALANCE_OPTIONS = [
 const SCORE_COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#10b981'];
 
 export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
+  const [detailModal, setDetailModal] = useState<DetailModalData | null>(null);
+
+  // Helper function to show students who answered a specific option
+  const showStudentsForOption = (areaLabel: string, questionKey: string, optionKey: string, optionLabel: string) => {
+    const students = analytics.responsesByStudent
+      .filter(s => s.responses[questionKey] === optionKey)
+      .map(s => ({
+        name: s.studentName,
+        avatar: s.avatarUrl,
+        response: optionKey,
+        responseLabel: optionLabel,
+        score: getResponseScore(questionKey, optionKey),
+      }));
+
+    setDetailModal({
+      title: areaLabel,
+      subtitle: `Alunos que responderam: ${optionLabel}`,
+      students,
+    });
+  };
+
+  // Helper to show all students for a metric card
+  const showStudentsForMetric = (areaLabel: string, questionKey: string) => {
+    const students = analytics.responsesByStudent
+      .filter(s => s.responses[questionKey])
+      .map(s => ({
+        name: s.studentName,
+        avatar: s.avatarUrl,
+        response: s.responses[questionKey] || '',
+        responseLabel: getResponseLabel(questionKey, s.responses[questionKey] || ''),
+        score: getResponseScore(questionKey, s.responses[questionKey] || ''),
+      }))
+      .sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    setDetailModal({
+      title: areaLabel,
+      subtitle: 'Todas as respostas',
+      students,
+    });
+  };
+
   // Calculate response distribution for each content area
   const contentDistributions = useMemo(() => {
     return CONTENT_AREAS.map(area => {
@@ -253,7 +338,7 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
 
   return (
     <div className="space-y-4">
-      {/* Comparison Cards - Side by Side */}
+      {/* Comparison Cards - Side by Side (Clickable) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {CONTENT_AREAS.map((area) => {
           const Icon = area.icon;
@@ -264,14 +349,21 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
           const scoreInfo = getScoreColor(score);
           
           return (
-            <Card key={area.key} className="overflow-hidden">
+            <Card 
+              key={area.key} 
+              className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
+              onClick={() => showStudentsForMetric(area.label, area.questionKey)}
+            >
               <div className="h-1" style={{ backgroundColor: scoreInfo.bg }} />
               <CardContent className="pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 rounded" style={{ backgroundColor: scoreInfo.bg + '20' }}>
-                    <Icon className="h-4 w-4" style={{ color: scoreInfo.bg }} />
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded" style={{ backgroundColor: scoreInfo.bg + '20' }}>
+                      <Icon className="h-4 w-4" style={{ color: scoreInfo.bg }} />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground">{area.label}</span>
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground">{area.label}</span>
+                  <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold">{score.toFixed(1)}</span>
@@ -424,29 +516,34 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
                 </tr>
               </thead>
               <tbody>
-                {heatmapData.map(row => (
-                  <tr key={row.area} className="border-t">
-                    <td className="py-2 px-3 font-medium">{row.area}</td>
-                    {row.options.map((opt, idx) => {
-                      const intensity = opt.percentage / 100;
-                      const bgColor = SCORE_COLORS[idx];
-                      return (
-                        <td 
-                          key={idx} 
-                          className="text-center py-2 px-3"
-                          style={{ 
-                            backgroundColor: intensity > 0 ? `${bgColor}${Math.round(intensity * 0.5 * 255).toString(16).padStart(2, '0')}` : 'transparent'
-                          }}
-                        >
-                          <span className="font-semibold">{opt.count}</span>
-                          {opt.percentage > 0 && (
-                            <span className="text-xs text-muted-foreground ml-1">({opt.percentage}%)</span>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                {heatmapData.map((row, rowIdx) => {
+                  const area = CONTENT_AREAS[rowIdx];
+                  return (
+                    <tr key={row.area} className="border-t">
+                      <td className="py-2 px-3 font-medium">{row.area}</td>
+                      {row.options.map((opt, idx) => {
+                        const intensity = opt.percentage / 100;
+                        const bgColor = SCORE_COLORS[idx];
+                        const areaOption = area.options[idx];
+                        return (
+                          <td 
+                            key={idx} 
+                            className={`text-center py-2 px-3 ${opt.count > 0 ? 'cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all' : ''}`}
+                            style={{ 
+                              backgroundColor: intensity > 0 ? `${bgColor}${Math.round(intensity * 0.5 * 255).toString(16).padStart(2, '0')}` : 'transparent'
+                            }}
+                            onClick={() => opt.count > 0 && showStudentsForOption(area.label, area.questionKey, areaOption.key, areaOption.label)}
+                          >
+                            <span className="font-semibold">{opt.count}</span>
+                            {opt.percentage > 0 && (
+                              <span className="text-xs text-muted-foreground ml-1">({opt.percentage}%)</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -574,6 +671,59 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Detail Modal */}
+      <Dialog open={!!detailModal} onOpenChange={() => setDetailModal(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              {detailModal?.title}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">{detailModal?.subtitle}</p>
+          </DialogHeader>
+          <ScrollArea className="max-h-[400px]">
+            <div className="space-y-2">
+              {detailModal?.students.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhum aluno encontrado
+                </p>
+              ) : (
+                detailModal?.students.map((student, idx) => {
+                  const scoreColor = getScoreColor(student.score || 0);
+                  return (
+                    <div 
+                      key={idx} 
+                      className="flex items-center gap-3 p-2 rounded-lg bg-muted/50"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={student.avatar || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {student.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{student.name}</p>
+                        <p className="text-xs text-muted-foreground">{student.responseLabel}</p>
+                      </div>
+                      <Badge 
+                        variant="secondary" 
+                        className="text-xs shrink-0"
+                        style={{ 
+                          backgroundColor: scoreColor.bg + '20', 
+                          color: scoreColor.bg 
+                        }}
+                      >
+                        {student.score?.toFixed(1)}
+                      </Badge>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
