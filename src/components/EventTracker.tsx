@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useEventLogger } from '@/hooks/useEventLogger';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 // Module detection from path
 function getModuleFromPath(path: string): string {
@@ -61,6 +62,31 @@ function getPageName(path: string): string {
   return path;
 }
 
+// Send login notification to admin
+async function sendLoginNotification(user: {
+  authUserId: string;
+  fullName: string;
+  email: string;
+  profiles: string[];
+  isAdmin: boolean;
+}) {
+  try {
+    await supabase.functions.invoke('notify-user-login', {
+      body: {
+        userId: user.authUserId,
+        userName: user.fullName,
+        userEmail: user.email,
+        profiles: user.profiles,
+        isAdmin: user.isAdmin,
+        loginTime: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to send login notification:', error);
+  }
+}
+
 export function EventTracker() {
   const location = useLocation();
   const { logPageView, logLogin, logLogout } = useEventLogger();
@@ -98,10 +124,15 @@ export function EventTracker() {
   // Track login when user becomes authenticated
   useEffect(() => {
     if (user && !hasLoggedLogin.current) {
+      // Log the event locally
       logLogin({
         profiles: user.profiles,
         isAdmin: user.isAdmin,
       });
+      
+      // Send notification to admin
+      sendLoginNotification(user);
+      
       hasLoggedLogin.current = true;
     }
     
