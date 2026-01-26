@@ -30,6 +30,8 @@ import NotFound from "./pages/NotFound";
 import ReferralLanding from "./pages/ReferralLanding";
 import ApiDocs from "./pages/ApiDocs";
 import AuditReportExport from "./pages/AuditReportExport";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 // ====================================
 // Pages - Admin/Licenciado (Legado)
@@ -431,6 +433,8 @@ function AppRoutes() {
       <Route path="/neocare-landing" element={<NeoCareLanding />} />
       <Route path="/neocare-protect" element={<NeoCareProductLanding />} />
       <Route path="/audit-report" element={<AuditReportExport />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
 
       {/* ====================================
           Home - Roteamento dinâmico por perfil

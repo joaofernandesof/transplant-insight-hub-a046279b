@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.app.lovable.d75807d51df7446daac336166617be60",
+        "paths": ["/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAM_ID.app.lovable.d75807d51df7446daac336166617be60"]
+  }
+}

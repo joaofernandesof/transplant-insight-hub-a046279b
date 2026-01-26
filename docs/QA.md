@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 5 |
-| Aprovadas | 5 |
+| Total de Tarefas Validadas | 6 |
+| Aprovadas | 6 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-01-26 |
 
@@ -20,6 +20,37 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-01-26
+
+#### ✅ QA-006: Preparação para Publicação App Store / Play Store
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Mobile / Capacitor |
+| **Descrição** | Implementação de todos os requisitos para publicação nas lojas de aplicativos |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-26 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Página Privacy Policy (`/privacy-policy`) criada e roteada
+- [x] Página Terms of Service (`/terms`) criada e roteada
+- [x] Ícone do app (1024x1024) gerado em `public/app-icon.png`
+- [x] Splash screen (1080x1920) gerado em `public/splash.png`
+- [x] `capacitor.config.ts` atualizado com Splash e Push configs
+- [x] `@capacitor/push-notifications` instalado e hook criado
+- [x] `@capacitor/app` instalado para Deep Links
+- [x] `apple-app-site-association` criado em `.well-known/`
+- [x] `assetlinks.json` criado em `.well-known/`
+- [x] Guia completo em `docs/APP-STORE-PUBLISHING.md`
+
+**Observações:**
+- Requer contas de desenvolvedor Apple ($99/ano) e Google ($25)
+- TEAM_ID (Apple) e SHA256 (Android) precisam ser atualizados
+- Recomendado testar em dispositivos físicos antes do submit
+
+---
 
 #### ✅ QA-005: Campanha de Testes Unitários Completa
 
