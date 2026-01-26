@@ -1002,43 +1002,91 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
           </Select>
         </div>
         
-        <div className="grid gap-4">
-          {filteredQuestions.map(q => (
-            <Card key={q.questionKey}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Badge variant="outline" className="mb-2">{q.category}</Badge>
-                    <CardTitle className="text-base">{q.questionLabel}</CardTitle>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-primary">
-                      {q.avgRating.toFixed(1)}<span className="text-muted-foreground text-sm font-normal">/6</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">{q.totalResponses} respostas</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {Object.entries(q.responseBreakdown).map(([option, count]) => (
-                    <div key={option} className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="truncate">{option}</span>
-                          <span className="text-muted-foreground">{count}</span>
-                        </div>
-                        <Progress 
-                          value={(count / q.totalResponses) * 100} 
-                          className="h-2"
-                        />
-                      </div>
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredQuestions.map(q => {
+            // Get response entries and sort by score (best to worst)
+            const entries = Object.entries(q.responseBreakdown);
+            const sortedEntries = [...entries].sort((a, b) => {
+              // Attempt to determine order - positive responses first
+              const positiveTerms = ['muito satisfeito', 'superou', 'atendeu totalmente', 'sim', 'excelente', 'ótimo', 'bom'];
+              const negativeTerms = ['muito insatisfeito', 'não atendeu', 'não', 'ruim', 'péssimo', 'insatisfeito'];
+              const aLower = a[0].toLowerCase();
+              const bLower = b[0].toLowerCase();
+              
+              const aPositive = positiveTerms.some(t => aLower.includes(t));
+              const bPositive = positiveTerms.some(t => bLower.includes(t));
+              const aNegative = negativeTerms.some(t => aLower.includes(t));
+              const bNegative = negativeTerms.some(t => bLower.includes(t));
+              
+              if (aPositive && !bPositive) return -1;
+              if (!aPositive && bPositive) return 1;
+              if (aNegative && !bNegative) return 1;
+              if (!aNegative && bNegative) return -1;
+              
+              // Default: by count descending
+              return b[1] - a[1];
+            });
+            
+            return (
+              <Card key={q.questionKey}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="outline" className="mb-2">{q.category}</Badge>
+                      <CardTitle className="text-sm font-medium leading-tight">{q.questionLabel}</CardTitle>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xl font-bold text-primary">
+                        {q.avgRating.toFixed(1)}<span className="text-muted-foreground text-xs font-normal">/6</span>
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{q.totalResponses} respostas</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-1.5">
+                    {sortedEntries.map(([option, count], idx) => {
+                      // Calculate color based on position (green → yellow → red)
+                      const total = sortedEntries.length;
+                      const position = idx / Math.max(total - 1, 1);
+                      
+                      // Gradient: green (0) → yellow (0.5) → red (1)
+                      let barColor = '#10b981'; // green
+                      if (position >= 0.75) {
+                        barColor = '#ef4444'; // red
+                      } else if (position >= 0.5) {
+                        barColor = '#f59e0b'; // amber
+                      } else if (position >= 0.25) {
+                        barColor = '#84cc16'; // lime
+                      }
+                      
+                      const percent = (count / q.totalResponses) * 100;
+                      
+                      return (
+                        <div key={option} className="flex items-center gap-2">
+                          <div className="flex-1">
+                            <div className="flex justify-between text-xs mb-0.5">
+                              <span className="truncate text-muted-foreground">{option}</span>
+                              <span className="text-muted-foreground font-medium ml-1">{count}</span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div 
+                                className="h-full rounded-full transition-all"
+                                style={{ 
+                                  width: `${percent}%`,
+                                  backgroundColor: barColor 
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </TabsContent>
       

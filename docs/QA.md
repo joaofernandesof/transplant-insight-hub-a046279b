@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 2 |
-| Aprovadas | 2 |
+| Total de Tarefas Validadas | 3 |
+| Aprovadas | 3 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-01-26 |
 
@@ -20,6 +20,30 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-01-26
+
+#### ✅ QA-003: Layout 3 Colunas + Cores Gradiente na Aba Perguntas
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Academy / Pesquisa Dia 2 |
+| **Descrição** | Reorganização dos cards de perguntas em grid de 3 colunas e aplicação de cores gradiente (verde→amarelo→vermelho) nas barras de distribuição |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-26 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Grid atualizado para md:2 xl:3 colunas (era 1 coluna)
+- [x] Barras de distribuição com cores semânticas (verde para respostas positivas, vermelho para negativas)
+- [x] Ordenação automática de respostas (melhores primeiro)
+- [x] Cards compactos com tipografia reduzida para caber em 3 colunas
+
+**Observações:**
+- Cores aplicadas: verde (#10b981) → lima (#84cc16) → âmbar (#f59e0b) → vermelho (#ef4444)
+- Melhora significativa na visualização comparativa entre perguntas
+
+---
 
 #### ✅ QA-002: Aba Respostas Íntegras nos Dashboards de Pesquisa
 
