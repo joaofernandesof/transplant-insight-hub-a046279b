@@ -662,7 +662,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                 <Zap className="h-8 w-8 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">IA Avivar</p>
-                  <p className="text-2xl font-bold">{analytics.avgScoreIA.toFixed(1)}/18</p>
+                  <p className="text-2xl font-bold">{((analytics.avgScoreIA / 18) * 10).toFixed(1)}/10</p>
                 </div>
               </div>
             </CardContent>
@@ -673,7 +673,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                 <Target className="h-8 w-8 text-warning" />
                 <div>
                   <p className="text-sm text-muted-foreground">Licença</p>
-                  <p className="text-2xl font-bold">{analytics.avgScoreLicense.toFixed(1)}/18</p>
+                  <p className="text-2xl font-bold">{((analytics.avgScoreLicense / 18) * 10).toFixed(1)}/10</p>
                 </div>
               </div>
             </CardContent>
@@ -684,7 +684,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                 <Shield className="h-8 w-8 text-destructive" />
                 <div>
                   <p className="text-sm text-muted-foreground">Jurídico</p>
-                  <p className="text-2xl font-bold">{analytics.avgScoreLegal.toFixed(1)}/18</p>
+                  <p className="text-2xl font-bold">{((analytics.avgScoreLegal / 18) * 10).toFixed(1)}/10</p>
                 </div>
               </div>
             </CardContent>
@@ -865,19 +865,19 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-medium">{student.scores.ia}<span className="text-muted-foreground text-xs">/18</span></span>
+                        <span className="font-medium">{((student.scores.ia / 18) * 10).toFixed(1)}<span className="text-muted-foreground text-xs">/10</span></span>
                         <Progress value={(student.scores.ia / 18) * 100} className="h-1.5 w-16" />
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-medium">{student.scores.license}<span className="text-muted-foreground text-xs">/18</span></span>
+                        <span className="font-medium">{((student.scores.license / 18) * 10).toFixed(1)}<span className="text-muted-foreground text-xs">/10</span></span>
                         <Progress value={(student.scores.license / 18) * 100} className="h-1.5 w-16" />
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-medium">{student.scores.legal}<span className="text-muted-foreground text-xs">/18</span></span>
+                        <span className="font-medium">{((student.scores.legal / 18) * 10).toFixed(1)}<span className="text-muted-foreground text-xs">/10</span></span>
                         <Progress value={(student.scores.legal / 18) * 100} className="h-1.5 w-16" />
                       </div>
                     </TableCell>
@@ -886,7 +886,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                         student.classification === 'hot' ? 'text-destructive' :
                         student.classification === 'warm' ? 'text-warning' : 'text-primary'
                       }`}>
-                        {student.scores.total}<span className="text-muted-foreground text-sm font-normal">/54</span>
+                        {((student.scores.total / 54) * 10).toFixed(1)}<span className="text-muted-foreground text-sm font-normal">/10</span>
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
@@ -1084,15 +1084,15 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                     <div className="grid grid-cols-3 gap-2 mt-4">
                       <div className="text-center p-2 rounded bg-muted/50">
                         <p className="text-xs text-muted-foreground">IA</p>
-                        <p className="font-bold">{student.scores.ia}<span className="text-muted-foreground text-xs font-normal">/18</span></p>
+                        <p className="font-bold">{((student.scores.ia / 18) * 10).toFixed(1)}<span className="text-muted-foreground text-xs font-normal">/10</span></p>
                       </div>
                       <div className="text-center p-2 rounded bg-muted/50">
                         <p className="text-xs text-muted-foreground">Licença</p>
-                        <p className="font-bold">{student.scores.license}<span className="text-muted-foreground text-xs font-normal">/18</span></p>
+                        <p className="font-bold">{((student.scores.license / 18) * 10).toFixed(1)}<span className="text-muted-foreground text-xs font-normal">/10</span></p>
                       </div>
                       <div className="text-center p-2 rounded bg-muted/50">
                         <p className="text-xs text-muted-foreground">Jurídico</p>
-                        <p className="font-bold">{student.scores.legal}<span className="text-muted-foreground text-xs font-normal">/18</span></p>
+                        <p className="font-bold">{((student.scores.legal / 18) * 10).toFixed(1)}<span className="text-muted-foreground text-xs font-normal">/10</span></p>
                       </div>
                     </div>
                   </CardContent>

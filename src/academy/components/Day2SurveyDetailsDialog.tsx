@@ -133,27 +133,27 @@ export function Day2SurveyDetailsDialog({ survey, open, onOpenChange }: Day2Surv
             <CardContent className="p-3 text-center">
               <Zap className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">IA Avivar</p>
-              <p className="text-lg font-bold">{survey.score_ia_avivar}/18</p>
+              <p className="text-lg font-bold">{((survey.score_ia_avivar || 0) / 18 * 10).toFixed(1)}/10</p>
             </CardContent>
           </Card>
           <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
             <CardContent className="p-3 text-center">
               <Target className="h-4 w-4 text-green-500 mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">Licença</p>
-              <p className="text-lg font-bold">{survey.score_license}/18</p>
+              <p className="text-lg font-bold">{((survey.score_license || 0) / 18 * 10).toFixed(1)}/10</p>
             </CardContent>
           </Card>
           <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
             <CardContent className="p-3 text-center">
               <Shield className="h-4 w-4 text-red-500 mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">Jurídico</p>
-              <p className="text-lg font-bold">{survey.score_legal}/18</p>
+              <p className="text-lg font-bold">{((survey.score_legal || 0) / 18 * 10).toFixed(1)}/10</p>
             </CardContent>
           </Card>
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold text-primary">{survey.score_total}/54</p>
+              <p className="text-2xl font-bold text-primary">{((survey.score_total || 0) / 54 * 10).toFixed(1)}/10</p>
             </CardContent>
           </Card>
         </div>
