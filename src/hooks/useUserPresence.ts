@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export const useUserPresence = () => {
   const { user } = useAuth();
   const sessionIdRef = useRef<string | null>(null);
-  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<Date | null>(null);
 
   const startSession = useCallback(async () => {

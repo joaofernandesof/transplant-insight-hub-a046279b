@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 4 |
-| Aprovadas | 4 |
+| Total de Tarefas Validadas | 5 |
+| Aprovadas | 5 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-01-26 |
 
@@ -20,6 +20,36 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-01-26
+
+#### ✅ QA-005: Campanha de Testes Unitários Completa
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Global / QA |
+| **Descrição** | Implementação de 129 testes unitários cobrindo áreas críticas do sistema |
+| **Tipo de Teste** | Automatizado (Vitest) |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-26 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | TST-001 |
+
+**Validações Realizadas:**
+- [x] Permissions (11 testes) - parsePermissions, hasModulePermission, canAccessAnyAcademy
+- [x] Utils/cn (7 testes) - Merge de classes Tailwind
+- [x] Metric Calculations (21 testes) - CTR, CPC, ROAS, formatMetricValue
+- [x] Sanitize HTML (17 testes) - XSS prevention, DOMPurify
+- [x] UnifiedAuthContext (15 testes) - isAdminProfile, canAccessPortal, hooks
+- [x] Day2 Score Calculations (16 testes) - Scores IA/License/Legal, classificação leads
+- [x] Form Validations (20 testes) - Email, CPF, telefone, CEP, senha
+- [x] Referral Code (8 testes) - Geração e validação de códigos
+- [x] Commission Calculations (14 testes) - Tiers, progressivo, bônus
+
+**Observações:**
+- Relatório completo em `docs/COVERAGE-REPORT.md`
+- 42 Edge Functions pendentes (requerem ambiente Deno)
+- Estrutura de testes padronizada com `__tests__/` em cada módulo
+
+---
 
 #### ✅ QA-004: Correção de Vulnerabilidades P0 - Auditoria de Segurança
 

@@ -276,7 +276,7 @@ function TextQuestionInput({
   onAutoSave: (value: string) => void;
 }) {
   const [localValue, setLocalValue] = useState(value);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Sync local value when external value changes (e.g., resuming)
   useEffect(() => {
