@@ -165,7 +165,7 @@ export function useGalleryManagement() {
         .insert({
           ...data,
           created_by: user?.authUserId,
-          status: 'draft',
+          status: 'published',
         })
         .select()
         .single();
