@@ -3460,7 +3460,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               <CardDescription>Todos os monitores em cada dimensão</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="h-[400px]">
+              <div className="h-[450px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart 
                     data={[
@@ -3471,11 +3471,20 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                       { metric: 'Comunicação', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgCommunication || 0])) },
                       { metric: 'Contribuição', ...Object.fromEntries(allMonitors.map(m => [m.name, m.metrics?.avgContribution || 0])) },
                     ]}
-                    layout="vertical"
-                    barCategoryGap="15%"
+                    layout="horizontal"
+                    barCategoryGap="20%"
+                    barGap={4}
                   >
-                    <XAxis type="number" domain={[0, 10]} tick={{ fontSize: 11 }} />
-                    <YAxis dataKey="metric" type="category" width={100} tick={{ fontSize: 12, fontWeight: 500 }} />
+                    <XAxis 
+                      dataKey="metric" 
+                      type="category" 
+                      tick={{ fontSize: 11, fontWeight: 500 }} 
+                      interval={0}
+                      angle={-15}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis type="number" domain={[0, 10]} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(value: number) => `${value.toFixed(1)}/10`} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     {allMonitors.map((monitor) => (
@@ -3483,7 +3492,8 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                         key={monitor.name} 
                         dataKey={monitor.name} 
                         fill={monitor.stroke} 
-                        radius={[0, 4, 4, 0]} 
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={50}
                       />
                     ))}
                   </BarChart>
