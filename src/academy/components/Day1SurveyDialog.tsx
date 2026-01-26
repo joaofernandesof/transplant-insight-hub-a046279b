@@ -6,6 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Frown, Meh, Smile, ThumbsUp, Heart, XCircle, MinusCircle, CheckCircle, ThumbsDown, Clock, Timer, Zap, Hourglass, Calendar, HelpCircle } from 'lucide-react';
 import { useDay1Survey, Day1SurveyFormData, Day1SurveyData } from '../hooks/useDay1Survey';
 import { cn } from '@/lib/utils';
+import { SurveyErrors } from '@/lib/errorReporting';
+import { toast } from 'sonner';
 
 // Import instructor photos
 import drPatrickPhoto from '@/assets/instructors/dr-patrick.png';
@@ -836,7 +838,7 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
                           currentSection: currentQuestion + 1 
                         });
                       } catch (error) {
-                        console.error('Error saving text answer:', error);
+                        SurveyErrors.saveFailed(currentQ.key, error);
                       }
                     }
                   }}
