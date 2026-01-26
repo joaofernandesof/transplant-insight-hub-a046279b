@@ -10,7 +10,7 @@ import {
   PieChart, Pie, Legend
 } from 'recharts';
 import { 
-  BookOpen, Target, Briefcase, Scale, TrendingUp,
+  BookOpen, Target, Briefcase, Scale, TrendingUp, Zap,
   Lightbulb, Sparkles, CheckCircle2, XCircle, MessageSquare, AlertTriangle, Eye
 } from 'lucide-react';
 import { Day3SurveyAnalytics } from '@/academy/hooks/useDay3SurveyAnalytics';
@@ -229,14 +229,18 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
     }));
   }, [analytics.technicalContent.balanceDistribution]);
 
-  // Radar chart data
-  const radarData = [
+  // Radar chart data - ONLY content themes (similar indicators)
+  const contentRadarData = [
     { metric: 'Técnico', value: analytics.technicalContent.avgFoundations, fullMark: 10 },
     { metric: 'Prática', value: analytics.technicalContent.avgPracticalLoad, fullMark: 10 },
     { metric: 'Gestão', value: analytics.businessContent.avgManagement, fullMark: 10 },
     { metric: 'Jurídico', value: analytics.businessContent.avgLegalSecurity, fullMark: 10 },
-    { metric: 'Clareza', value: analytics.confidence.avgClarity, fullMark: 10 },
-    { metric: 'Confiança', value: analytics.confidence.avgConfidence, fullMark: 10 },
+  ];
+
+  // Execution/delivery metrics (perception indicators) 
+  const executionMetrics = [
+    { label: 'Clareza na Execução', value: analytics.confidence.avgClarity, icon: '🎯' },
+    { label: 'Nível de Confiança', value: analytics.confidence.avgConfidence, icon: '💪' },
   ];
 
   // Heatmap data
@@ -694,21 +698,24 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
         </Card>
       </div>
 
-      {/* Radar + Balance Distribution */}
+      {/* Content Radar + Execution Metrics */}
       <div className="grid md:grid-cols-2 gap-4">
-        {/* Radar Chart */}
+        {/* Radar Chart - Only Content Themes */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Target className="h-4 w-4" />
-              Comparativo de Conteúdo
+              Avaliação por Tema
             </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Comparativo entre os conteúdos abordados
+            </p>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <RadarChart data={radarData}>
+              <RadarChart data={contentRadarData}>
                 <PolarGrid stroke="#e5e7eb" />
-                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: '#6b7280' }} />
+                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: '#6b7280' }} />
                 <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} tickCount={6} />
                 <Radar
                   name="Score"
@@ -723,42 +730,99 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
           </CardContent>
         </Card>
 
-        {/* Balance Distribution */}
+        {/* Execution Metrics - Delivery quality */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <Scale className="h-4 w-4" />
-              Equilíbrio Teoria/Prática
+              <Zap className="h-4 w-4" />
+              Métricas de Entrega
             </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Como os alunos perceberam a execução
+            </p>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={balanceData}
-                  dataKey="count"
-                  nameKey="label"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={({ label, percentage }) => percentage > 0 ? `${percentage}%` : ''}
-                  labelLine={false}
-                >
-                  {balanceData.map((entry, idx) => (
-                    <Cell key={idx} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value, name) => [`${value} respostas`, name]} />
-                <Legend 
-                  layout="horizontal" 
-                  align="center"
-                  wrapperStyle={{ fontSize: '11px' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <CardContent className="space-y-4">
+            {executionMetrics.map((metric) => (
+              <div key={metric.label} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{metric.icon}</span>
+                    <span className="font-medium text-sm">{metric.label}</span>
+                  </div>
+                  <span className={`text-lg font-bold ${
+                    metric.value >= 8 ? 'text-emerald-600' : 
+                    metric.value >= 7 ? 'text-amber-600' : 'text-red-600'
+                  }`}>
+                    {metric.value.toFixed(1)}
+                  </span>
+                </div>
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      metric.value >= 8 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : 
+                      metric.value >= 7 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 
+                      'bg-gradient-to-r from-red-500 to-red-600'
+                    }`}
+                    style={{ width: `${Math.min(metric.value * 10, 100)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+            
+            {/* Summary */}
+            <div className="pt-3 mt-3 border-t">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Média de Entrega</span>
+                <span className={`font-bold ${
+                  ((analytics.confidence.avgClarity + analytics.confidence.avgConfidence) / 2) >= 8 
+                    ? 'text-emerald-600' 
+                    : ((analytics.confidence.avgClarity + analytics.confidence.avgConfidence) / 2) >= 7 
+                      ? 'text-amber-600' 
+                      : 'text-red-600'
+                }`}>
+                  {((analytics.confidence.avgClarity + analytics.confidence.avgConfidence) / 2).toFixed(1)}
+                </span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Balance Distribution */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Scale className="h-4 w-4" />
+            Equilíbrio Teoria/Prática
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={balanceData}
+                dataKey="count"
+                nameKey="label"
+                cx="50%"
+                cy="50%"
+                outerRadius={90}
+                label={({ label, percentage }) => percentage > 0 ? `${percentage}%` : ''}
+                labelLine={false}
+              >
+                {balanceData.map((entry, idx) => (
+                  <Cell key={idx} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value, name) => [`${value} respostas`, name]} />
+              <Legend 
+                layout="horizontal" 
+                align="center"
+                wrapperStyle={{ fontSize: '11px' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       {/* Percentage Distribution for Each Area */}
       <Card>
