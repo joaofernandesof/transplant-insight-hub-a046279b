@@ -757,11 +757,11 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
             <CardDescription>O que os alunos mais elogiaram</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-auto max-h-96">
+            <ScrollArea className="h-auto max-h-96 overflow-x-hidden">
               {analytics.highlights.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-2 pr-4">
                   {analytics.highlights.map((text, idx) => (
-                    <div key={idx} className="p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded text-sm border-l-2 border-emerald-400">
+                    <div key={idx} className="p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded text-sm border-l-2 border-emerald-400 break-words">
                       "{text}"
                     </div>
                   ))}
@@ -783,11 +783,11 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
             <CardDescription>O que pode ser melhorado</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-auto max-h-96">
+            <ScrollArea className="h-auto max-h-96 overflow-x-hidden">
               {analytics.improvements.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-2 pr-4">
                   {analytics.improvements.map((text, idx) => (
-                    <div key={idx} className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded text-sm border-l-2 border-amber-400">
+                    <div key={idx} className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded text-sm border-l-2 border-amber-400 break-words">
                       "{text}"
                     </div>
                   ))}
