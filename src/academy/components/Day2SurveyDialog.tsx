@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -332,85 +332,53 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const { user } = useUnifiedAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const [surveyId, setSurveyId] = useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = useState(false);
-  
-  // Use ref to always have current surveyId in callbacks (prevents stale closure)
-  const surveyIdRef = useRef<string | null>(null);
-  const formDataRef = useRef<Record<string, string>>({});
-  
-  // Keep refs in sync with state
-  useEffect(() => {
-    surveyIdRef.current = surveyId;
-  }, [surveyId]);
-  
-  useEffect(() => {
-    formDataRef.current = formData;
-  }, [formData]);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   const effectiveTimeRef = useRef(0);
   const lastVisibleTimeRef = useRef(Date.now());
   
-  const { existingSurvey, isLoading, isCompleted, startSurvey, saveProgress, submitSurvey } = useDay2Survey(classId);
+  const { existingSurvey, isLoading, isCompleted, startSurvey, saveProgress, submitSurvey, refetch } = useDay2Survey(classId);
 
-  // Initialize survey
+  // Get survey ID - either from existing or create new
+  const surveyId = existingSurvey?.id;
+
+  // Initialize: create survey if needed, load data if exists
   useEffect(() => {
-    if (open && user && !existingSurvey && !isLoading && !isInitializing) {
-      console.log('[Day2] Starting new survey, classId:', classId);
-      setIsInitializing(true);
-      startSurvey.mutateAsync(classId)
-        .then((data) => {
-          console.log('[Day2] startSurvey returned:', data);
-          if (data?.id) {
-            console.log('[Day2] Survey initialized:', data.id);
-            setSurveyId(data.id);
-            surveyIdRef.current = data.id; // Sync ref immediately
-          } else {
-            console.error('[Day2] No ID in response:', data);
-            SurveyErrors.initFailed(new Error(`Nenhum ID retornado. Dados: ${JSON.stringify(data)}`));
-          }
-        })
-        .catch((error) => {
-          console.error('[Day2] startSurvey catch:', error);
-          SurveyErrors.initFailed(error instanceof Error ? error : new Error(String(error)));
-        })
-        .finally(() => setIsInitializing(false));
-    } else if (existingSurvey?.id) {
-      console.log('[Day2] Resuming:', existingSurvey.id);
-      setSurveyId(existingSurvey.id);
-      surveyIdRef.current = existingSurvey.id; // Sync ref immediately
-      // Resume from saved progress
+    if (!open || !user || isLoading) return;
+    
+    // If survey exists, load saved data
+    if (existingSurvey) {
       const savedData: Record<string, string> = {};
       QUESTIONS.forEach(q => {
         const value = existingSurvey[q.key as keyof typeof existingSurvey];
         if (value) savedData[q.key] = value as string;
       });
       setFormData(savedData);
-      formDataRef.current = savedData; // Sync ref immediately
       
-      // Find first unanswered question to resume from
+      // Find first unanswered question
       let resumeIndex = 0;
-      let foundUnanswered = false;
-      
       for (let i = 0; i < QUESTIONS.length; i++) {
-        const q = QUESTIONS[i];
-        // If any question is not answered, resume from there
-        if (!savedData[q.key]) {
+        if (!savedData[QUESTIONS[i].key]) {
           resumeIndex = i;
-          foundUnanswered = true;
           break;
         }
       }
-      
-      // If all questions answered but not completed, stay on last question
-      if (!foundUnanswered && !existingSurvey.is_completed) {
-        resumeIndex = QUESTIONS.length - 1;
-      }
-      
       setCurrentQuestion(resumeIndex);
       effectiveTimeRef.current = existingSurvey.effective_time_seconds || 0;
+      setIsInitialized(true);
+    } else if (!isInitialized) {
+      // Create new survey
+      startSurvey.mutate(classId, {
+        onSuccess: () => {
+          refetch();
+          setIsInitialized(true);
+        },
+        onError: (error) => {
+          SurveyErrors.initFailed(error);
+        }
+      });
     }
-  }, [open, user, existingSurvey, isLoading, classId]);
+  }, [open, user, existingSurvey, isLoading, classId, isInitialized, startSurvey, refetch]);
 
   // Track effective time
   useEffect(() => {
@@ -435,12 +403,12 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     };
   }, [open]);
 
-  // Only reset state when dialog closes if survey is completed
+  // Reset state when dialog closes and survey is completed
   useEffect(() => {
     if (!open && isCompleted) {
       setCurrentQuestion(0);
       setFormData({});
-      setSurveyId(null);
+      setIsInitialized(false);
     }
   }, [open, isCompleted]);
 
@@ -460,9 +428,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       return;
     }
     
-    // Use ref for most current surveyId
-    const currentSurveyId = surveyIdRef.current;
-    if (!currentSurveyId) {
+    if (!surveyId) {
       SurveyErrors.noSurveyId();
       return;
     }
@@ -471,7 +437,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       const nextQuestion = currentQuestion + 1;
       setCurrentQuestion(nextQuestion);
       saveProgress.mutate({
-        surveyId: currentSurveyId,
+        surveyId,
         data: formData,
         currentSection: nextQuestion + 1
       }, {
@@ -487,9 +453,7 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   }, [currentQuestion]);
 
   const handleSubmit = useCallback(() => {
-    // Use ref for most current surveyId
-    const currentSurveyId = surveyIdRef.current;
-    if (!currentSurveyId) {
+    if (!surveyId) {
       SurveyErrors.noSurveyId();
       return;
     }
@@ -500,14 +464,12 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       effectiveTimeRef.current += Math.floor((Date.now() - lastVisibleTimeRef.current) / 1000);
     }
     
-    console.log('[Day2] Submitting:', currentSurveyId);
     submitSurvey.mutate({
-      surveyId: currentSurveyId,
+      surveyId,
       data: formData,
       effectiveTime: effectiveTimeRef.current
     }, {
       onSuccess: () => {
-        console.log('[Day2] Success');
         toast.success('Pesquisa enviada com sucesso!');
         onComplete?.();
         onOpenChange(false);
@@ -519,36 +481,29 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   }, [surveyId, formData, submitSurvey, onComplete, onOpenChange]);
 
   const handleOptionSelect = useCallback((value: string) => {
-    const updatedData = { ...formDataRef.current, [currentQ.key]: value };
+    const updatedData = { ...formData, [currentQ.key]: value };
     setFormData(updatedData);
-    formDataRef.current = updatedData;
     
     if (currentQ.type === 'radio' && currentQuestion < QUESTIONS.length - 1) {
       setTimeout(() => {
         const nextQuestion = currentQuestion + 1;
         setCurrentQuestion(nextQuestion);
         
-        // Use ref to get current surveyId (avoids stale closure)
-        const currentSurveyId = surveyIdRef.current;
-        if (currentSurveyId) {
-        saveProgress.mutate({
-            surveyId: currentSurveyId,
+        if (surveyId) {
+          saveProgress.mutate({
+            surveyId,
             data: updatedData,
             currentSection: nextQuestion + 1
           }, {
             onError: (error) => SurveyErrors.saveFailed(currentQ?.key, error)
           });
-        } else {
-          console.warn('[Day2] No surveyId in auto-advance, skipping save');
         }
       }, 250);
     }
-  }, [currentQ?.key, currentQ?.type, currentQuestion, saveProgress]);
+  }, [currentQ?.key, currentQ?.type, currentQuestion, formData, surveyId, saveProgress]);
 
-  // Show loading if no surveyId is available yet
-  const isReady = !!surveyIdRef.current;
-  
-  if (isLoading || isInitializing || (!isReady && !isCompleted)) {
+  // Show loading while initializing
+  if (isLoading || (!surveyId && !isCompleted)) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg">
@@ -645,16 +600,13 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
               questionKey={currentQ.key}
               value={formData[currentQ.key] || ''}
               onChange={(value) => {
-                const updatedData = { ...formDataRef.current, [currentQ.key]: value };
-                setFormData(updatedData);
-                formDataRef.current = updatedData;
+                setFormData({ ...formData, [currentQ.key]: value });
               }}
               onAutoSave={(value) => {
-                const currentSurveyId = surveyIdRef.current;
-                if (currentSurveyId && value.trim()) {
+                if (surveyId && value.trim()) {
                   saveProgress.mutate({
-                    surveyId: currentSurveyId,
-                    data: { ...formDataRef.current, [currentQ.key]: value },
+                    surveyId,
+                    data: { ...formData, [currentQ.key]: value },
                     currentSection: currentQuestion + 1
                   });
                 }

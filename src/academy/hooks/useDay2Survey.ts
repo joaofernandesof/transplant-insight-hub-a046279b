@@ -56,12 +56,11 @@ export function useDay2Survey(classId?: string) {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
 
-  const { data: existingSurvey, isLoading } = useQuery({
+  // Fetch existing survey
+  const { data: existingSurvey, isLoading, refetch } = useQuery({
     queryKey: ['day2-survey', user?.id, classId],
     queryFn: async () => {
       if (!user?.id) return null;
-      
-      console.log('[useDay2Survey] Fetching survey for user:', user.id, 'classId:', classId);
       
       let query = supabase
         .from('day2_satisfaction_surveys')
@@ -74,10 +73,7 @@ export function useDay2Survey(classId?: string) {
       
       const { data, error } = await query.maybeSingle();
       
-      console.log('[useDay2Survey] Query result:', { data, error });
-      
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching day2 survey:', error);
         throw error;
       }
       
@@ -86,42 +82,44 @@ export function useDay2Survey(classId?: string) {
     enabled: !!user?.id
   });
 
+  // Start or get existing survey
   const startSurvey = useMutation({
     mutationFn: async (classIdParam?: string) => {
       if (!user?.id) throw new Error('User not authenticated');
       
-      const effectiveClassId = classIdParam || classId;
+      const effectiveClassId = classIdParam || classId || null;
       
-      // Check if survey already exists
-      let existingQuery = supabase
+      // Try to find existing survey first
+      let query = supabase
         .from('day2_satisfaction_surveys')
-        .select('id')
+        .select('*')
         .eq('user_id', user.id);
       
       if (effectiveClassId) {
-        existingQuery = existingQuery.eq('class_id', effectiveClassId);
+        query = query.eq('class_id', effectiveClassId);
       } else {
-        existingQuery = existingQuery.is('class_id', null);
+        query = query.is('class_id', null);
       }
       
-      const { data: existing } = await existingQuery.maybeSingle();
+      const { data: existing } = await query.maybeSingle();
       
       if (existing) {
-        return existing;
+        return existing as Day2SurveyResponse;
       }
       
+      // Create new survey
       const { data, error } = await supabase
         .from('day2_satisfaction_surveys')
         .insert({
           user_id: user.id,
-          class_id: effectiveClassId || null,
+          class_id: effectiveClassId,
           current_section: 1
         })
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Day2SurveyResponse;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['day2-survey'] });
@@ -197,7 +195,8 @@ export function useDay2Survey(classId?: string) {
     isCompleted: existingSurvey?.is_completed ?? false,
     startSurvey,
     saveProgress,
-    submitSurvey
+    submitSurvey,
+    refetch
   };
 }
 
