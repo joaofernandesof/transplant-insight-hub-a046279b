@@ -536,7 +536,10 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     }
   }, [currentQ?.key, currentQ?.type, currentQuestion, saveProgress]);
 
-  if (isLoading || isInitializing) {
+  // Show loading if no surveyId is available yet
+  const isReady = !!surveyIdRef.current;
+  
+  if (isLoading || isInitializing || (!isReady && !isCompleted)) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg">
