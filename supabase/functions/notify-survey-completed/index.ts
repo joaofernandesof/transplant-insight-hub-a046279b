@@ -148,11 +148,19 @@ const handler = async (req: Request): Promise<Response> => {
       q77_elenilton_improve: "Elenilton - O que melhorar",
     };
 
-    // Build all questions/answers rows
-    const allQuestionsHtml = Object.entries(questionLabels)
-      .map(([key, label]) => {
-        const value = survey?.[key as keyof typeof survey];
-        if (value === null || value === undefined || value === "") return "";
+    // Build all questions/answers rows - include ALL fields from survey
+    const excludedFields = ['id', 'user_id', 'class_id', 'created_at', 'completed_at', 'is_completed', 'current_section', 'effective_time_seconds'];
+    
+    const allQuestionsHtml = Object.entries(survey || {})
+      .filter(([key, value]) => {
+        // Exclude system fields
+        if (excludedFields.includes(key)) return false;
+        // Exclude null/undefined/empty values
+        if (value === null || value === undefined || value === "") return false;
+        return true;
+      })
+      .map(([key, value]) => {
+        const label = questionLabels[key] || key.replace(/_/g, ' ').replace(/q\d+/g, '').trim() || key;
         const displayValue = typeof value === "boolean" ? (value ? "Sim" : "Não") : String(value);
         return `
           <tr>
@@ -161,8 +169,12 @@ const handler = async (req: Request): Promise<Response> => {
           </tr>
         `;
       })
-      .filter(Boolean)
       .join("");
+    
+    // Fallback message if no responses
+    const responsesSection = allQuestionsHtml 
+      ? allQuestionsHtml 
+      : '<tr><td colspan="2" style="padding: 20px; text-align: center; color: #6b7280;">Nenhuma resposta registrada</td></tr>';
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -205,7 +217,7 @@ const handler = async (req: Request): Promise<Response> => {
             <!-- All Questions and Answers -->
             <h2 style="font-size: 18px; color: #059669; margin: 24px 0 16px; border-bottom: 2px solid #059669; padding-bottom: 8px;">📝 Respostas Completas</h2>
             <table style="width: 100%; border-collapse: collapse;">
-              ${allQuestionsHtml}
+              ${responsesSection}
             </table>
           </div>
           
