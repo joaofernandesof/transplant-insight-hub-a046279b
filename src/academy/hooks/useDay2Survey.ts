@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from 'sonner';
 
 export interface Day2SurveyResponse {
@@ -53,60 +52,59 @@ export type Day2SurveyFormData = Omit<Day2SurveyResponse,
 >;
 
 export function useDay2Survey(classId?: string) {
-  const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
 
-  // Fetch existing survey
+  // Fetch existing survey - uses supabase.auth.getUser() like Day3
   const { data: existingSurvey, isLoading, refetch } = useQuery({
-    queryKey: ['day2-survey', user?.id, classId],
+    queryKey: ['day2-survey', classId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
       
       let query = supabase
         .from('day2_satisfaction_surveys')
         .select('*')
         .eq('user_id', user.id);
-      
+
       if (classId) {
         query = query.eq('class_id', classId);
       }
-      
+
       const { data, error } = await query.maybeSingle();
-      
+
       if (error && error.code !== 'PGRST116') {
-        throw error;
+        console.error('Error fetching day2 survey:', error);
+        return null;
       }
-      
+
       return data as Day2SurveyResponse | null;
-    },
-    enabled: !!user?.id
+    }
   });
 
-  // Start or get existing survey
-  const startSurvey = useMutation({
+  // Start or get existing survey - uses supabase.auth.getUser() like Day3
+  const startSurveyMutation = useMutation({
     mutationFn: async (classIdParam?: string) => {
-      if (!user?.id) throw new Error('User not authenticated');
-      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const effectiveClassId = classIdParam || classId || null;
-      
+
       // Try to find existing survey first
       let query = supabase
         .from('day2_satisfaction_surveys')
         .select('*')
         .eq('user_id', user.id);
-      
+
       if (effectiveClassId) {
         query = query.eq('class_id', effectiveClassId);
-      } else {
-        query = query.is('class_id', null);
       }
-      
+
       const { data: existing } = await query.maybeSingle();
-      
+
       if (existing) {
         return existing as Day2SurveyResponse;
       }
-      
+
       // Create new survey
       const { data, error } = await supabase
         .from('day2_satisfaction_surveys')
@@ -117,7 +115,7 @@ export function useDay2Survey(classId?: string) {
         })
         .select()
         .single();
-      
+
       if (error) throw error;
       return data as Day2SurveyResponse;
     },
@@ -126,7 +124,7 @@ export function useDay2Survey(classId?: string) {
     }
   });
 
-  const saveProgress = useMutation({
+  const saveProgressMutation = useMutation({
     mutationFn: async ({ surveyId, data, currentSection }: { 
       surveyId: string; 
       data: Partial<Day2SurveyFormData>; 
@@ -139,15 +137,12 @@ export function useDay2Survey(classId?: string) {
           current_section: currentSection
         })
         .eq('id', surveyId);
-      
+
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['day2-survey'] });
     }
   });
 
-  const submitSurvey = useMutation({
+  const submitSurveyMutation = useMutation({
     mutationFn: async ({ surveyId, data, effectiveTime }: { 
       surveyId: string; 
       data: Partial<Day2SurveyFormData>;
@@ -162,11 +157,12 @@ export function useDay2Survey(classId?: string) {
           effective_time_seconds: effectiveTime
         })
         .eq('id', surveyId);
-      
+
       if (error) throw error;
-      
+
       // Notify about survey completion
       try {
+        const { data: { user } } = await supabase.auth.getUser();
         await supabase.functions.invoke('notify-survey-completed', {
           body: { 
             surveyId, 
@@ -193,12 +189,12 @@ export function useDay2Survey(classId?: string) {
     existingSurvey,
     isLoading,
     isCompleted: existingSurvey?.is_completed ?? false,
-    startSurvey: startSurvey.mutateAsync,
-    saveProgress: saveProgress.mutateAsync,
-    submitSurvey: submitSurvey.mutateAsync,
-    isStarting: startSurvey.isPending,
-    isSaving: saveProgress.isPending,
-    isSubmitting: submitSurvey.isPending,
+    startSurvey: startSurveyMutation.mutateAsync,
+    saveProgress: saveProgressMutation.mutateAsync,
+    submitSurvey: submitSurveyMutation.mutateAsync,
+    isStarting: startSurveyMutation.isPending,
+    isSaving: saveProgressMutation.isPending,
+    isSubmitting: submitSurveyMutation.isPending,
     refetch
   };
 }
@@ -216,18 +212,18 @@ export function useDay2SurveyRanking(classId?: string) {
         `)
         .eq('is_completed', true)
         .order('score_total', { ascending: false });
-      
+
       if (classId) {
         query = query.eq('class_id', classId);
       }
-      
+
       const { data, error } = await query;
-      
+
       if (error) {
         console.error('Error fetching survey ranking:', error);
         throw error;
       }
-      
+
       return data;
     }
   });
