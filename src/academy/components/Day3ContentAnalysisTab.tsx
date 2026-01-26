@@ -174,7 +174,7 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
   // Extract keywords from comments
   const contentKeywords = useMemo(() => {
     const allText = [...analytics.highlights, ...analytics.improvements].join(' ').toLowerCase();
-    const contentWords: Record<string, number> = {};
+    const wordCounts: Record<string, number> = {};
     
     // Keywords related to content
     const relevantWords = [
@@ -188,11 +188,11 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
       const regex = new RegExp(word, 'gi');
       const matches = allText.match(regex);
       if (matches) {
-        contentKeywords[word] = matches.length;
+        wordCounts[word] = matches.length;
       }
     });
     
-    return Object.entries(contentKeywords)
+    return Object.entries(wordCounts)
       .filter(([_, count]) => (count as number) > 0)
       .sort((a, b) => (b[1] as number) - (a[1] as number))
       .slice(0, 10) as [string, number][];
