@@ -751,10 +751,10 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
             <CardDescription>O que os alunos mais elogiaram</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-48">
+            <ScrollArea className="h-auto max-h-96">
               {analytics.highlights.length > 0 ? (
                 <div className="space-y-2">
-                  {analytics.highlights.slice(0, 10).map((text, idx) => (
+                  {analytics.highlights.map((text, idx) => (
                     <div key={idx} className="p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded text-sm border-l-2 border-emerald-400">
                       "{text}"
                     </div>
@@ -777,10 +777,10 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
             <CardDescription>O que pode ser melhorado</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-48">
+            <ScrollArea className="h-auto max-h-96">
               {analytics.improvements.length > 0 ? (
                 <div className="space-y-2">
-                  {analytics.improvements.slice(0, 10).map((text, idx) => (
+                  {analytics.improvements.map((text, idx) => (
                     <div key={idx} className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded text-sm border-l-2 border-amber-400">
                       "{text}"
                     </div>
