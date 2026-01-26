@@ -929,14 +929,25 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
           <CardContent>
             {weaknesses.length > 0 ? (
               <div className="space-y-2">
-                {weaknesses.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20">
-                    <span className="font-medium text-sm">{item.name}</span>
-                    <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
-                      {item.score.toFixed(1)}
-                    </Badge>
-                  </div>
-                ))}
+                {weaknesses.map((item, idx) => {
+                  // Color by severity: < 6 = red (grave), 6-7.5 = yellow (moderate)
+                  const isGrave = item.score < 6;
+                  const bgColor = isGrave 
+                    ? 'bg-red-50 dark:bg-red-900/20' 
+                    : 'bg-amber-50 dark:bg-amber-900/20';
+                  const badgeBg = isGrave 
+                    ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' 
+                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300';
+                  
+                  return (
+                    <div key={idx} className={`flex items-center justify-between p-2 rounded-lg ${bgColor}`}>
+                      <span className="font-medium text-sm">{item.name}</span>
+                      <Badge variant="secondary" className={badgeBg}>
+                        {item.score.toFixed(1)}
+                      </Badge>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
