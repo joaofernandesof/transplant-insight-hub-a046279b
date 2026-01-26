@@ -61,6 +61,8 @@ export function useDay2Survey(classId?: string) {
     queryFn: async () => {
       if (!user?.id) return null;
       
+      console.log('[useDay2Survey] Fetching survey for user:', user.id, 'classId:', classId);
+      
       let query = supabase
         .from('day2_satisfaction_surveys')
         .select('*')
@@ -71,6 +73,8 @@ export function useDay2Survey(classId?: string) {
       }
       
       const { data, error } = await query.maybeSingle();
+      
+      console.log('[useDay2Survey] Query result:', { data, error });
       
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching day2 survey:', error);

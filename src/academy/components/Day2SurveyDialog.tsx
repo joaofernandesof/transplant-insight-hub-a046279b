@@ -356,19 +356,23 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   // Initialize survey
   useEffect(() => {
     if (open && user && !existingSurvey && !isLoading && !isInitializing) {
+      console.log('[Day2] Starting new survey, classId:', classId);
       setIsInitializing(true);
       startSurvey.mutateAsync(classId)
         .then((data) => {
+          console.log('[Day2] startSurvey returned:', data);
           if (data?.id) {
             console.log('[Day2] Survey initialized:', data.id);
             setSurveyId(data.id);
             surveyIdRef.current = data.id; // Sync ref immediately
           } else {
-            SurveyErrors.initFailed(new Error('Nenhum ID retornado pelo servidor'));
+            console.error('[Day2] No ID in response:', data);
+            SurveyErrors.initFailed(new Error(`Nenhum ID retornado. Dados: ${JSON.stringify(data)}`));
           }
         })
         .catch((error) => {
-          SurveyErrors.initFailed(error);
+          console.error('[Day2] startSurvey catch:', error);
+          SurveyErrors.initFailed(error instanceof Error ? error : new Error(String(error)));
         })
         .finally(() => setIsInitializing(false));
     } else if (existingSurvey?.id) {
