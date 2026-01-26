@@ -427,6 +427,9 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     );
   }
 
+  // Show loading if survey is not ready yet
+  const isReady = !!surveyIdRef.current;
+  
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -437,7 +440,7 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           </DialogTitle>
         </DialogHeader>
 
-        {isStarting ? (
+        {(isStarting || !isReady) ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
