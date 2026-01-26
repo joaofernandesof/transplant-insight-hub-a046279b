@@ -64,6 +64,7 @@ import {
 import { SurveyQuestionsManager } from "./SurveyQuestionsManager";
 import { Day2SurveyFullDashboard } from "@/academy/components/Day2SurveyFullDashboard";
 import { Day3SurveyFullDashboard } from "@/academy/components/Day3SurveyFullDashboard";
+import { GlobalSurveyDashboard } from "@/academy/components/GlobalSurveyDashboard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { printCurrentView } from "@/utils/printPdf";
@@ -88,7 +89,7 @@ interface EventSurveyDashboardProps {
 }
 
 // Survey day filter options
-type DayFilter = 'day1' | 'day2' | 'day3';
+type DayFilter = 'global' | 'day1' | 'day2' | 'day3';
 
 // Drill-down dialog state type
 interface DrilldownData {
@@ -1659,7 +1660,7 @@ function StudentDetailView({ student }: { student: StudentDetailedResponse }) {
 // ============== MAIN DASHBOARD ==============
 export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   // Filter states
-  const [dayFilter, setDayFilter] = useState<DayFilter>('day1');
+  const [dayFilter, setDayFilter] = useState<DayFilter>('global');
   const [classFilter, setClassFilter] = useState<string>(classId || 'all');
   
   // Fetch all classes for the filter dropdown
@@ -1965,10 +1966,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
       <div className="flex flex-wrap items-center gap-3">
         {/* Day Filter */}
         <Select value={dayFilter} onValueChange={(v) => setDayFilter(v as DayFilter)}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Selecione o dia" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="global">🌐 Resumo Global</SelectItem>
             <SelectItem value="day1">📋 Pesquisa Dia 1</SelectItem>
             <SelectItem value="day2">📊 Pesquisa Dia 2</SelectItem>
             <SelectItem value="day3">🏆 Pesquisa Final (Dia 3)</SelectItem>
@@ -2005,6 +2007,16 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
         </div>
+      </div>
+    );
+  }
+
+  // For Global Summary, show consolidated dashboard
+  if (dayFilter === 'global') {
+    return (
+      <div className="space-y-4">
+        <SurveyFilterBar />
+        <GlobalSurveyDashboard classId={effectiveClassId} />
       </div>
     );
   }
