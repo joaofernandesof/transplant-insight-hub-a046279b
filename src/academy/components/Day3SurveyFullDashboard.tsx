@@ -63,12 +63,14 @@ interface Day3SurveyFullDashboardProps {
 
 const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
 
-const SATISFACTION_LABELS: Record<string, { label: string; emoji: string; color: string }> = {
-  muito_satisfeito: { label: 'Muito satisfeito', emoji: '🤩', color: '#10b981' },
-  satisfeito: { label: 'Satisfeito', emoji: '🙂', color: '#3b82f6' },
-  neutro: { label: 'Neutro', emoji: '😐', color: '#f59e0b' },
-  insatisfeito: { label: 'Insatisfeito', emoji: '😕', color: '#ef4444' },
-  muito_insatisfeito: { label: 'Muito insatisfeito', emoji: '😡', color: '#991b1b' },
+// Classificação de satisfação baseada no score (0-10)
+// 0-3: Muito insatisfeito | 4-6: Insatisfeito | 7: Neutro | 8-9: Satisfeito | 10: Muito satisfeito
+const getSatisfactionFromScore = (score: number): { label: string; color: string } => {
+  if (score >= 10) return { label: 'Muito Satisfeito', color: '#10b981' };
+  if (score >= 8) return { label: 'Satisfeito', color: '#22c55e' };
+  if (score >= 7) return { label: 'Neutro', color: '#eab308' };
+  if (score >= 4) return { label: 'Insatisfeito', color: '#f97316' };
+  return { label: 'Muito Insatisfeito', color: '#ef4444' };
 };
 
 const PROMISE_LABELS: Record<string, { label: string; emoji: string }> = {
@@ -747,7 +749,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                   </TableHeader>
                   <TableBody>
                     {sortStudents(analytics.responsesByStudent).map((student, idx) => {
-                      const satConfig = SATISFACTION_LABELS[student.satisfactionLevel || ''] || { label: 'N/A', color: '#94a3b8' };
+                      const satConfig = getSatisfactionFromScore(student.overallScore);
                       const getValueLabel = (key: string) => {
                         const val = student.responses[key];
                         return val ? (VALUE_DISPLAY_LABELS[key]?.[val] || val) : '—';
