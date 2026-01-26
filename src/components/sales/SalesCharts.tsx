@@ -9,15 +9,16 @@ interface SalesChartsProps {
   stats: SalesStats;
 }
 
+// Vibrant color palette for charts matching design system
 const COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-  '#8b5cf6',
-  '#ec4899',
-  '#14b8a6',
+  '#10b981', // emerald-500
+  '#f59e0b', // amber-500
+  '#3b82f6', // blue-500
+  '#ec4899', // pink-500
+  '#8b5cf6', // violet-500
+  '#14b8a6', // teal-500
+  '#ef4444', // red-500
+  '#6366f1', // indigo-500
 ];
 
 export function SalesCharts({ stats }: SalesChartsProps) {
@@ -125,7 +126,7 @@ export function SalesCharts({ stats }: SalesChartsProps) {
                 <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} className="text-xs" />
                 <YAxis type="category" dataKey="name" className="text-xs" width={75} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -177,7 +178,7 @@ export function SalesCharts({ stats }: SalesChartsProps) {
                 <XAxis dataKey="name" className="text-xs" />
                 <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} className="text-xs" />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -197,7 +198,7 @@ export function SalesCharts({ stats }: SalesChartsProps) {
                 <XAxis dataKey="name" className="text-xs" />
                 <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} className="text-xs" />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="#f59e0b" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -251,9 +252,9 @@ export function SalesCharts({ stats }: SalesChartsProps) {
                   <Line 
                     type="monotone" 
                     dataKey="value" 
-                    stroke="hsl(var(--primary))" 
+                    stroke="#10b981"
                     strokeWidth={2}
-                    dot={{ fill: 'hsl(var(--primary))' }}
+                    dot={{ fill: '#10b981' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
