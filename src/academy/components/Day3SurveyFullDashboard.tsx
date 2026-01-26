@@ -268,9 +268,9 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
     value,
   }));
   
-  // All monitors list - always show all 5
-  const ALL_MONITORS = ['Dr. Elenilton', 'Dr. Patrick', 'Dr. Eder', 'Dra. Gleyldes', 'Dr. Eder M'];
-  
+  // All monitors list - show all 4 unique monitors
+  const ALL_MONITORS = ['Dr. Elenilton', 'Dr. Patrick', 'Dr. Eder', 'Dra. Gleyldes'];
+
   const monitorTechnicalData = ALL_MONITORS
     .map(name => ({ 
       name, 
