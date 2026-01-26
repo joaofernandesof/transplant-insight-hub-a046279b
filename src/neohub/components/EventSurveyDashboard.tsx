@@ -1316,8 +1316,13 @@ function QuestionInlineCard({
   const allOptions = OPTION_TEMPLATES[questionType] || [];
   
   // Build distribution primarily from actual textual answers (respondents), falling back to precomputed distribution
+  // Enhanced normalization: handles underscores, case differences, and accents
   const normalizeText = (s: string) =>
-    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    s.toLowerCase()
+      .replace(/_/g, ' ')  // Convert underscores to spaces (muito_satisfeito → muito satisfeito)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
 
   const distributionData = (() => {
     // Prefer respondents because some questions store distribution as numeric keys (0..10) but UI expects textual options.
@@ -1357,10 +1362,20 @@ function QuestionInlineCard({
         ? [...allOptions, ...extras]
         : Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
 
+      // Standard semantic colors: green=excellent, blue=good, yellow=neutral, red=bad
+      const getSatisfactionColor = (label: string) => {
+        const norm = normalizeText(label);
+        if (norm.includes('muito satisfeito') || norm.includes('excelente')) return '#10b981'; // green
+        if (norm.includes('satisfeito') || norm.includes('bom')) return '#3b82f6'; // blue
+        if (norm.includes('neutro') || norm.includes('regular') || norm.includes('parcial')) return '#eab308'; // yellow
+        if (norm.includes('insatisfeito') || norm.includes('ruim')) return '#ef4444'; // red
+        return getSemanticColor(label);
+      };
+
       return displayOptions.map((label) => ({
         name: label,
         value: counts[label] ?? 0,
-        fill: getSemanticColor(label),
+        fill: getSatisfactionColor(label),
       }));
     }
 
