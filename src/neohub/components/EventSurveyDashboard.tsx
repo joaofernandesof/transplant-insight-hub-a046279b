@@ -2065,28 +2065,48 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   ];
 
   // Build monitor radar data from all available monitors (dynamic from monitorsByName)
+  // NOTE: Dr. Eder and Dr. Eder M are the same person - merge their data
   const MONITOR_COLORS = [
     { key: 'eder', name: 'Dr. Eder', stroke: 'hsl(262, 83%, 58%)', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200 dark:border-violet-800', text: 'text-violet-700 dark:text-violet-400', dot: 'bg-violet-500' },
     { key: 'patrickM', name: 'Dr. Patrick M', stroke: 'hsl(25, 95%, 53%)', bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-700 dark:text-orange-400', dot: 'bg-orange-500' },
-    { key: 'ederM', name: 'Dr. Eder M', stroke: 'hsl(170, 70%, 45%)', bg: 'bg-teal-50 dark:bg-teal-950/30', border: 'border-teal-200 dark:border-teal-800', text: 'text-teal-700 dark:text-teal-400', dot: 'bg-teal-500' },
     { key: 'gleyldes', name: 'Dra. Gleyldes', stroke: 'hsl(330, 80%, 50%)', bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200 dark:border-pink-800', text: 'text-pink-700 dark:text-pink-400', dot: 'bg-pink-500' },
     { key: 'elenilton', name: 'Dr. Elenilton', stroke: 'hsl(190, 70%, 45%)', bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-200 dark:border-cyan-800', text: 'text-cyan-700 dark:text-cyan-400', dot: 'bg-cyan-500' },
   ];
 
-  // Monitors are now handled via dynamicMonitors below
+  // Helper to merge two monitor metrics by averaging
+  const mergeMonitorMetrics = (m1: any, m2: any) => {
+    if (!m1) return m2;
+    if (!m2) return m1;
+    return {
+      avgTechnical: (m1.avgTechnical + m2.avgTechnical) / 2,
+      avgInterest: (m1.avgInterest + m2.avgInterest) / 2,
+      avgEngagement: (m1.avgEngagement + m2.avgEngagement) / 2,
+      avgPosture: (m1.avgPosture + m2.avgPosture) / 2,
+      avgCommunication: (m1.avgCommunication + m2.avgCommunication) / 2,
+      avgContribution: (m1.avgContribution + m2.avgContribution) / 2,
+      overallAvg: (m1.overallAvg + m2.overallAvg) / 2,
+    };
+  };
 
-  // Include all 5 fixed monitors from analytics.monitors if they have data
+  // Merge Eder and Eder M into single "Dr. Eder"
+  const mergedEderMetrics = mergeMonitorMetrics(analytics.monitors.eder, analytics.monitors.ederM);
+
+  // Build monitors data with merged Eder
   const fixedMonitorsData = [
-    { ...MONITOR_COLORS[0], metrics: analytics.monitors.eder },
+    { ...MONITOR_COLORS[0], metrics: mergedEderMetrics },  // Dr. Eder (merged with Eder M)
     { ...MONITOR_COLORS[1], metrics: analytics.monitors.patrickM },
-    { ...MONITOR_COLORS[2], metrics: analytics.monitors.ederM },
-    { ...MONITOR_COLORS[3], metrics: analytics.monitors.gleyldes },
-    { ...MONITOR_COLORS[4], metrics: analytics.monitors.elenilton },
+    { ...MONITOR_COLORS[2], metrics: analytics.monitors.gleyldes },
+    { ...MONITOR_COLORS[3], metrics: analytics.monitors.elenilton },
   ].filter(m => m.metrics && !isNaN(m.metrics.overallAvg) && m.metrics.overallAvg > 0);
 
-  // Add monitors from monitorsByName with proper color matching (includes Gleyldes and Elenilton)
+  // Add monitors from monitorsByName (excluding Eder M since it's merged)
   const dynamicMonitors = Object.entries(analytics.monitorsByName || {})
-    .filter(([_, metrics]) => metrics && !isNaN(metrics.overallAvg) && metrics.overallAvg > 0)
+    .filter(([name, metrics]) => {
+      const normalized = name.toLowerCase();
+      // Skip Eder M since we merged it into Eder
+      if (normalized.includes('eder m') || normalized === 'dr. eder m') return false;
+      return metrics && !isNaN(metrics.overallAvg) && metrics.overallAvg > 0;
+    })
     .map(([name, metrics]) => {
       const normalized = name.toLowerCase();
       const colorConfig = MONITOR_COLORS.find(c => normalized.includes(c.key)) || 
@@ -2095,22 +2115,24 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     });
 
   // Combine and dedupe by key - prioritize dynamic data
-  // Use key-based matching to avoid substring collisions (e.g., "eder" matching "ederM")
-  const allMonitors = [...fixedMonitorsData];
+  const allMonitorsUnsorted = [...fixedMonitorsData];
   dynamicMonitors.forEach(dm => {
-    // Exact key matching - normalize the name to find the right key
     const dmNameNormalized = dm.name.toLowerCase().replace(/[^a-z]/g, '');
-    const existingIdx = allMonitors.findIndex(m => {
+    const existingIdx = allMonitorsUnsorted.findIndex(m => {
       const mNameNormalized = m.name.toLowerCase().replace(/[^a-z]/g, '');
       return mNameNormalized === dmNameNormalized || m.key === dm.key;
     });
     if (existingIdx === -1) {
-      allMonitors.push(dm);
+      allMonitorsUnsorted.push(dm);
     } else {
-      // Update with dynamic data if exists
-      allMonitors[existingIdx] = { ...allMonitors[existingIdx], metrics: dm.metrics, name: dm.name };
+      allMonitorsUnsorted[existingIdx] = { ...allMonitorsUnsorted[existingIdx], metrics: dm.metrics, name: dm.name };
     }
   });
+
+  // SORT by average score (highest first) - RANKING
+  const allMonitors = allMonitorsUnsorted.sort((a, b) => 
+    (b.metrics?.overallAvg || 0) - (a.metrics?.overallAvg || 0)
+  );
 
   // Build radar data with all monitors
   const monitorRadarData = [
@@ -3168,20 +3190,30 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   />
                 </RadarChart>
               </ResponsiveContainer>
-              <div className="flex flex-col gap-3 min-w-[200px]">
-                {allMonitors.map((monitor) => (
+              <div className="flex flex-col gap-3 min-w-[220px]">
+                <div className="text-sm font-semibold text-muted-foreground mb-1">🏆 Ranking por Média</div>
+                {allMonitors.map((monitor, index) => (
                   <div 
                     key={monitor.name}
-                    className={`p-4 rounded-xl ${monitor.bg} border ${monitor.border}`}
+                    className={`p-4 rounded-xl ${monitor.bg} border ${monitor.border} relative`}
                   >
-                    <div className="flex items-center gap-2 mb-2">
+                    {/* Ranking Position Badge */}
+                    <div className={`absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      index === 0 ? 'bg-amber-400 text-amber-900' : 
+                      index === 1 ? 'bg-slate-300 text-slate-700' : 
+                      index === 2 ? 'bg-amber-600 text-amber-100' : 
+                      'bg-slate-200 text-slate-600'
+                    }`}>
+                      {index + 1}º
+                    </div>
+                    <div className="flex items-center gap-2 mb-2 ml-2">
                       <div className={`w-3 h-3 rounded-full ${monitor.dot}`} />
                       <span className={`font-semibold ${monitor.text}`}>{monitor.name}</span>
                     </div>
-                    <div className={`text-2xl font-bold ${monitor.text}`}>
+                    <div className={`text-2xl font-bold ${monitor.text} ml-2`}>
                       {monitor.metrics?.overallAvg?.toFixed(1) || 'N/A'}/10
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Média Geral</p>
+                    <p className="text-xs text-muted-foreground mt-1 ml-2">Média Geral</p>
                   </div>
                 ))}
                 {allMonitors.length === 0 && (
