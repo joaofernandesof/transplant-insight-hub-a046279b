@@ -328,7 +328,7 @@ export default function LicenseesPanel() {
       <div className="p-6 pt-16 lg:pt-8 lg:p-8 overflow-x-hidden w-full">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Painel de Alunos IBRAMEC</h1>
+          <h1 className="text-2xl font-bold text-foreground">Painel de Alunos</h1>
           <p className="text-muted-foreground">Gerenciamento de cadastros e perfis</p>
         </div>
 
