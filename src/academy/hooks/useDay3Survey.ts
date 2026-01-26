@@ -152,11 +152,16 @@ export function useDay3Survey(classId?: string) {
       
       if (error) throw error;
       
-      // Send notification email
+      // Send notification email via unified function
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        await supabase.functions.invoke('send-day3-survey-notification', {
-          body: { surveyId, userId: user?.id }
+        await supabase.functions.invoke('notify-survey-completed', {
+          body: { 
+            surveyId, 
+            classId: classId || null,
+            userId: user?.id,
+            surveyType: 'day3'
+          }
         });
       } catch (emailError) {
         console.error('Error sending notification:', emailError);
