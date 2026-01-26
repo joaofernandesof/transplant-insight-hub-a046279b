@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   BarChart,
   Bar,
@@ -222,6 +223,7 @@ const VALUE_DISPLAY_LABELS: Record<string, Record<string, string>> = {
 type StudentResponse = {
   userId: string;
   studentName: string;
+  avatarUrl: string | null;
   completedAt: string | null;
   effectiveTime: number | null;
   overallScore: number;
@@ -649,11 +651,17 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                           className="flex items-center gap-4 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
                           onClick={() => setSelectedStudent(student)}
                         >
-                          <Badge variant="outline" className="w-6 h-6 rounded-full p-0 flex items-center justify-center text-xs">
+                          <Badge variant="outline" className="w-6 h-6 rounded-full p-0 flex items-center justify-center text-xs flex-shrink-0">
                             {idx + 1}
                           </Badge>
-                          <div className="flex-1">
-                            <p className="font-medium">{student.studentName}</p>
+                          <Avatar className="h-10 w-10 flex-shrink-0">
+                            <AvatarImage src={student.avatarUrl || undefined} alt={student.studentName} />
+                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                              {student.studentName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{student.studentName}</p>
                             <p className="text-xs text-muted-foreground">
                               {student.completedAt 
                                 ? format(parseISO(student.completedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
@@ -689,7 +697,12 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
         <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <Users className="h-5 w-5" />
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={selectedStudent?.avatarUrl || undefined} alt={selectedStudent?.studentName} />
+                <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
+                  {selectedStudent?.studentName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               Respostas de {selectedStudent?.studentName}
             </DialogTitle>
           </DialogHeader>
