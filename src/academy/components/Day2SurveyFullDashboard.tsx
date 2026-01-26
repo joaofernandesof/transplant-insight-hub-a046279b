@@ -41,6 +41,13 @@ import { Day2CallProfilesPanel } from './Day2CallProfilesPanel';
 import { Day2SurveyDetailsDialog } from './Day2SurveyDetailsDialog';
 import { Day2ScorePopover } from './Day2ScorePopover';
 import { Day2CallInsightsPopover } from './Day2CallInsightsPopover';
+import { 
+  ChartExecutiveSummary, 
+  generateLeadDistributionInsight, 
+  generateProductScoreInsight,
+  generateInstructorInsight,
+  generateSatisfactionInsight 
+} from '@/components/surveys/ChartExecutiveSummary';
 
 interface Day2SurveyFullDashboardProps {
   classId?: string | null;
@@ -390,7 +397,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -399,7 +406,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius={70}
                       label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                     >
                       {classificationData.map((entry, index) => (
@@ -411,6 +418,10 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+              <ChartExecutiveSummary 
+                insights={generateLeadDistributionInsight(analytics.hotLeads, analytics.warmLeads, analytics.coldLeads, analytics.totalResponses)}
+                variant={analytics.hotLeads >= analytics.totalResponses * 0.3 ? 'success' : analytics.coldLeads >= analytics.totalResponses * 0.5 ? 'warning' : 'default'}
+              />
             </CardContent>
           </Card>
           
@@ -424,7 +435,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               <CardDescription>Média de pontuação normalizada (0-10)</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={bntRadarData}>
                     <PolarGrid />
@@ -441,6 +452,14 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
+              <ChartExecutiveSummary 
+                insights={generateProductScoreInsight(
+                  (analytics.avgScoreIA / 18) * 10, 
+                  (analytics.avgScoreLicense / 18) * 10, 
+                  (analytics.avgScoreLegal / 18) * 10
+                )}
+                variant="info"
+              />
             </CardContent>
           </Card>
           
@@ -453,7 +472,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={instructorRadarData}>
                     <PolarGrid />
@@ -478,6 +497,13 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
+              <ChartExecutiveSummary 
+                insights={generateInstructorInsight(
+                  { name: 'Dr. João', avg: (analytics.instructors.joao.avgExpectations + analytics.instructors.joao.avgClarity + analytics.instructors.joao.avgTime) / 3 },
+                  { name: 'Dra. Larissa', avg: (analytics.instructors.larissa.avgExpectations + analytics.instructors.larissa.avgClarity + analytics.instructors.larissa.avgTime) / 3 }
+                )}
+                variant="info"
+              />
             </CardContent>
           </Card>
           
@@ -493,7 +519,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={satisfactionData} layout="vertical">
                     <XAxis type="number" />
@@ -507,6 +533,10 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              <ChartExecutiveSummary 
+                insights={generateSatisfactionInsight(analytics.overallSatisfactionPercent, analytics.satisfactionBreakdown)}
+                variant={analytics.overallSatisfactionPercent >= 80 ? 'success' : analytics.overallSatisfactionPercent >= 60 ? 'info' : 'warning'}
+              />
             </CardContent>
           </Card>
         </div>

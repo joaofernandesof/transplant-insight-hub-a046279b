@@ -58,6 +58,13 @@ import { useDay3SurveyAnalytics } from '@/academy/hooks/useDay3SurveyAnalytics';
 import { Day3ContentAnalysisTab } from './Day3ContentAnalysisTab';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { 
+  ChartExecutiveSummary, 
+  generateRadarInsight, 
+  generatePromiseMetInsight,
+  generateMonitorInsight,
+  generateWordCloudInsight
+} from '@/components/surveys/ChartExecutiveSummary';
 
 interface Day3SurveyFullDashboardProps {
   classId?: string | null;
@@ -495,7 +502,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                 </CardTitle>
               </CardHeader>
               <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={250}>
                   <RadarChart data={radarData}>
                     <PolarGrid />
                     <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11 }} />
@@ -509,6 +516,10 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                     />
                   </RadarChart>
                 </ResponsiveContainer>
+                <ChartExecutiveSummary 
+                  insights={generateRadarInsight(radarData)}
+                  variant={radarData.reduce((sum, m) => sum + m.value, 0) / radarData.length >= 7.5 ? 'success' : 'info'}
+                />
               </CardContent>
             </Card>
             
@@ -521,7 +532,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={promiseData} layout="vertical">
                     <XAxis type="number" />
                     <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
@@ -533,6 +544,11 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                <ChartExecutiveSummary 
+                  insights={generatePromiseMetInsight(analytics.satisfaction.promiseMet)}
+                  variant={(analytics.satisfaction.promiseMet['muito_acima'] || 0) + (analytics.satisfaction.promiseMet['acima'] || 0) > 
+                    (analytics.satisfaction.promiseMet['abaixo'] || 0) + (analytics.satisfaction.promiseMet['muito_abaixo'] || 0) ? 'success' : 'warning'}
+                />
               </CardContent>
             </Card>
           </div>
@@ -573,6 +589,12 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                     </div>
                   ))}
                 </div>
+                {monitorTechnicalData.length > 0 && (
+                  <ChartExecutiveSummary 
+                    insights={[`🏆 ${monitorTechnicalData[0]?.name} lidera em domínio técnico com ${monitorTechnicalData[0]?.value} votos.`]}
+                    variant="success"
+                  />
+                )}
               </CardContent>
             </Card>
             
@@ -595,6 +617,12 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                     </div>
                   ))}
                 </div>
+                {monitorCaringData.length > 0 && (
+                  <ChartExecutiveSummary 
+                    insights={[`💝 ${monitorCaringData[0]?.name} se destaca em atenção e cuidado aos alunos.`]}
+                    variant="info"
+                  />
+                )}
               </CardContent>
             </Card>
           </div>
