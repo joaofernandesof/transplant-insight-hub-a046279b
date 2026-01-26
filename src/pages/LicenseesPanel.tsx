@@ -73,6 +73,10 @@ import { toast } from "sonner";
 type LicenseeTier = 'basic' | 'pro' | 'expert' | 'master' | 'elite' | 'titan' | 'legacy';
 type LicenseeStatus = 'active' | 'inactive' | 'pending';
 
+// Define all possible NeoHub profiles
+const ALL_PROFILES = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar'] as const;
+type ProfileKey = typeof ALL_PROFILES[number];
+
 interface Licensee {
   id: string;
   user_id: string;
@@ -85,6 +89,7 @@ interface Licensee {
   tier: LicenseeTier;
   status: LicenseeStatus;
   created_at: string;
+  profiles: ProfileKey[];
 }
 
 const tierConfig: Record<LicenseeTier, { name: string; color: string; bgColor: string; icon: React.ReactNode }> = {
@@ -145,35 +150,57 @@ export default function LicenseesPanel() {
     }
   }, [isAdmin, navigate]);
 
-  // Fetch licensees from database
+  // Fetch users with their profiles from neohub_users
   const fetchLicensees = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
+      
+      // Fetch neohub_users with their profiles
+      const { data: neohubUsers, error: neohubError } = await supabase
+        .from('neohub_users')
+        .select(`
+          id,
+          user_id,
+          full_name,
+          email,
+          phone,
+          is_active,
+          created_at,
+          neohub_user_profiles (
+            profile,
+            is_active
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (neohubError) throw neohubError;
 
-      const formattedData: Licensee[] = (data || []).map((profile) => ({
-        id: profile.id,
-        user_id: profile.user_id,
-        name: profile.name,
-        email: profile.email,
-        phone: profile.phone,
-        clinic_name: profile.clinic_name,
-        city: profile.city,
-        state: profile.state,
-        tier: (profile.tier as LicenseeTier) || 'basic',
-        status: (profile.status as LicenseeStatus) || 'active',
-        created_at: profile.created_at,
-      }));
+      const formattedData: Licensee[] = (neohubUsers || []).map((user: any) => {
+        // Extract active profiles
+        const activeProfiles = (user.neohub_user_profiles || [])
+          .filter((p: any) => p.is_active)
+          .map((p: any) => p.profile as ProfileKey);
+
+        return {
+          id: user.id,
+          user_id: user.user_id,
+          name: user.full_name || 'Sem nome',
+          email: user.email || '',
+          phone: user.phone,
+          clinic_name: null,
+          city: null,
+          state: null,
+          tier: 'basic' as LicenseeTier,
+          status: user.is_active ? 'active' as LicenseeStatus : 'inactive' as LicenseeStatus,
+          created_at: user.created_at,
+          profiles: activeProfiles,
+        };
+      });
 
       setLicensees(formattedData);
     } catch (error) {
-      console.error('Error fetching licensees:', error);
-      toast.error('Erro ao carregar licenciados');
+      console.error('Error fetching students:', error);
+      toast.error('Erro ao carregar alunos');
     } finally {
       setIsLoading(false);
     }
@@ -301,8 +328,8 @@ export default function LicenseesPanel() {
       <div className="p-6 pt-16 lg:pt-8 lg:p-8 overflow-x-hidden w-full">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Painel de Licenciados</h1>
-          <p className="text-muted-foreground">Gerenciamento de cadastros</p>
+          <h1 className="text-2xl font-bold text-foreground">Painel de Alunos IBRAMEC</h1>
+          <p className="text-muted-foreground">Gerenciamento de cadastros e perfis</p>
         </div>
 
         {/* Stats Cards */}
@@ -315,7 +342,7 @@ export default function LicenseesPanel() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Total Licenciados</p>
+                  <p className="text-xs text-muted-foreground">Total Alunos</p>
                 </div>
               </div>
             </CardContent>
@@ -376,18 +403,18 @@ export default function LicenseesPanel() {
             <DialogTrigger asChild>
               <Button onClick={() => handleOpenDialog()} className="gap-2">
                 <Plus className="h-4 w-4" />
-                Novo Licenciado
+                Novo Aluno
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
-                  {editingLicensee ? 'Editar Licenciado' : 'Novo Licenciado'}
+                  {editingLicensee ? 'Editar Aluno' : 'Novo Aluno'}
                 </DialogTitle>
                 <DialogDescription>
                   {editingLicensee 
-                    ? 'Atualize os dados do licenciado' 
-                    : 'Para adicionar um novo licenciado, ele deve se cadastrar pelo sistema'}
+                    ? 'Atualize os dados do aluno' 
+                    : 'Para adicionar um novo aluno, ele deve se cadastrar pelo sistema'}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -519,7 +546,7 @@ export default function LicenseesPanel() {
         {/* Table */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Lista de Licenciados</CardTitle>
+            <CardTitle className="text-lg">Lista de Alunos</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
@@ -528,26 +555,30 @@ export default function LicenseesPanel() {
               </div>
             ) : filteredLicensees.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                {searchTerm ? 'Nenhum licenciado encontrado para a busca.' : 'Nenhum licenciado cadastrado.'}
+                {searchTerm ? 'Nenhum aluno encontrado para a busca.' : 'Nenhum aluno cadastrado.'}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted">
-                      <TableHead className="font-semibold">Licenciado</TableHead>
-                      <TableHead className="font-semibold">Clínica</TableHead>
-                      <TableHead className="font-semibold">Localização</TableHead>
+                      <TableHead className="font-semibold">Aluno</TableHead>
                       <TableHead className="font-semibold">Contato</TableHead>
-                      <TableHead className="font-semibold">Nível</TableHead>
+                      <TableHead className="font-semibold text-center">Admin</TableHead>
+                      <TableHead className="font-semibold text-center">Licenciado</TableHead>
+                      <TableHead className="font-semibold text-center">Colaborador</TableHead>
+                      <TableHead className="font-semibold text-center">Médico</TableHead>
+                      <TableHead className="font-semibold text-center">Aluno</TableHead>
+                      <TableHead className="font-semibold text-center">Paciente</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredLicensees.map((licensee) => {
-                      const tier = tierConfig[licensee.tier] || tierConfig.basic;
                       const status = statusConfig[licensee.status] || statusConfig.pending;
+                      const hasProfile = (profile: ProfileKey) => licensee.profiles.includes(profile);
+                      
                       return (
                         <TableRow key={licensee.id} className="hover:bg-muted/50">
                           <TableCell>
@@ -557,21 +588,10 @@ export default function LicenseesPanel() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium">{licensee.clinic_name || '-'}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-sm">
-                              <MapPin className="h-3 w-3 text-muted-foreground" />
-                              {licensee.city && licensee.state 
-                                ? `${licensee.city}, ${licensee.state}` 
-                                : '-'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
                             <div className="space-y-1">
                               <div className="flex items-center gap-1 text-sm">
                                 <Mail className="h-3 w-3 text-muted-foreground" />
-                                {licensee.email}
+                                <span className="truncate max-w-[180px]">{licensee.email}</span>
                               </div>
                               {licensee.phone && (
                                 <div className="flex items-center gap-1 text-sm">
@@ -581,11 +601,48 @@ export default function LicenseesPanel() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge className={`${tier.bgColor} ${tier.color} gap-1`}>
-                              {tier.icon}
-                              {tier.name}
-                            </Badge>
+                          {/* Profile columns with checkmark indicators */}
+                          <TableCell className="text-center">
+                            {hasProfile('administrador') ? (
+                              <Badge className="bg-purple-100 text-purple-700">✓</Badge>
+                            ) : (
+                              <span className="text-muted-foreground/40">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {hasProfile('licenciado') ? (
+                              <Badge className="bg-amber-100 text-amber-700">✓</Badge>
+                            ) : (
+                              <span className="text-muted-foreground/40">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {hasProfile('colaborador') ? (
+                              <Badge className="bg-blue-100 text-blue-700">✓</Badge>
+                            ) : (
+                              <span className="text-muted-foreground/40">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {hasProfile('medico') ? (
+                              <Badge className="bg-teal-100 text-teal-700">✓</Badge>
+                            ) : (
+                              <span className="text-muted-foreground/40">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {hasProfile('aluno') ? (
+                              <Badge className="bg-emerald-100 text-emerald-700">✓</Badge>
+                            ) : (
+                              <span className="text-muted-foreground/40">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {hasProfile('paciente') ? (
+                              <Badge className="bg-rose-100 text-rose-700">✓</Badge>
+                            ) : (
+                              <span className="text-muted-foreground/40">-</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge className={status.color}>
@@ -628,10 +685,10 @@ export default function LicenseesPanel() {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Desativar Licenciado</AlertDialogTitle>
+              <AlertDialogTitle>Desativar Aluno</AlertDialogTitle>
               <AlertDialogDescription>
                 Tem certeza que deseja desativar <strong>{licenseeToDelete?.name}</strong>?
-                O licenciado será marcado como inativo e não poderá acessar o sistema.
+                O aluno será marcado como inativo e não poderá acessar o sistema.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

@@ -129,7 +129,7 @@ const SYSTEM_MODULES = [
   { code: 'referral', name: 'Indique e Ganhe', category: 'Marketing' },
   { code: 'marketplace', name: 'Marketplace', category: 'Marketplace' },
   { code: 'admin_dashboard', name: 'Dashboard Admin', category: 'Admin' },
-  { code: 'licensees_panel', name: 'Gerenciar Licenciados', category: 'Admin' },
+  { code: 'licensees_panel', name: 'Gerenciar Alunos', category: 'Admin' },
   { code: 'user_monitoring', name: 'Monitoramento de Usuários', category: 'Admin' },
   { code: 'system_metrics', name: 'Métricas do Sistema', category: 'Admin' },
   { code: 'weekly_reports', name: 'Relatórios Semanais', category: 'Admin' },
