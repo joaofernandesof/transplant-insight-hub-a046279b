@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useDay2Survey } from '../hooks/useDay2Survey';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
-import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield, Calendar, MessageSquare, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, Smile, Meh, Frown, ThumbsUp, ThumbsDown, Clock, Zap, Target, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import joaoFernandesImg from '@/assets/joao-fernandes.png';
 import larissaGuerreiroImg from '@/assets/larissa-guerreiro.png';
@@ -262,6 +262,70 @@ const QUESTIONS = [
     ]
   }
 ];
+
+// Text input component with debounced auto-save
+function TextQuestionInput({ 
+  questionKey, 
+  value, 
+  onChange, 
+  onAutoSave 
+}: { 
+  questionKey: string; 
+  value: string; 
+  onChange: (value: string) => void;
+  onAutoSave: (value: string) => void;
+}) {
+  const [localValue, setLocalValue] = useState(value);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Sync local value when external value changes (e.g., resuming)
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+  
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    onChange(newValue);
+    
+    // Debounce auto-save (save after 1 second of no typing)
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      onAutoSave(newValue);
+    }, 1000);
+  }, [onChange, onAutoSave]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+  
+  // Save on blur (when user clicks away)
+  const handleBlur = useCallback(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    if (localValue.trim()) {
+      onAutoSave(localValue);
+    }
+  }, [localValue, onAutoSave]);
+  
+  return (
+    <Textarea
+      value={localValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      placeholder="Digite sua resposta..."
+      className="min-h-[120px]"
+    />
+  );
+}
 
 export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Day2SurveyDialogProps) {
   const { user } = useUnifiedAuth();
@@ -565,11 +629,24 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           )}
 
           {currentQ.type === 'text' && (
-            <Textarea
+            <TextQuestionInput
+              questionKey={currentQ.key}
               value={formData[currentQ.key] || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, [currentQ.key]: e.target.value }))}
-              placeholder="Digite sua resposta..."
-              className="min-h-[120px]"
+              onChange={(value) => {
+                const updatedData = { ...formDataRef.current, [currentQ.key]: value };
+                setFormData(updatedData);
+                formDataRef.current = updatedData;
+              }}
+              onAutoSave={(value) => {
+                const currentSurveyId = surveyIdRef.current;
+                if (currentSurveyId && value.trim()) {
+                  saveProgress.mutate({
+                    surveyId: currentSurveyId,
+                    data: { ...formDataRef.current, [currentQ.key]: value },
+                    currentSection: currentQuestion + 1
+                  });
+                }
+              }}
             />
           )}
         </div>
