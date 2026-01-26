@@ -84,7 +84,7 @@ const routeLabels: Record<string, string> = {
   // ====================================
   '/admin-dashboard': 'Dashboard',
   '/admin-home': 'Início',
-  '/licensees': 'Licenciados',
+  '/alunos': 'Alunos IBRAMEC',
   '/monitoring': 'Monitoramento',
   '/system-metrics': 'Métricas do Sistema',
   '/admin/sentinel': 'System Sentinel',
@@ -196,7 +196,7 @@ const legacyRoutes = [
   '/hotleads', '/community', '/profile', '/certificates', '/achievements',
   '/partners', '/license-payments', '/estrutura-neo', '/indique-e-ganhe',
   '/surgery-schedule', '/sala-tecnica', '/consolidated-results', '/regularization',
-  '/licensees', '/monitoring', '/system-metrics', '/admin/sentinel',
+  '/alunos', '/monitoring', '/system-metrics', '/admin/sentinel',
   '/weekly-reports', '/comparison', '/access-matrix', '/admin'
 ];
 

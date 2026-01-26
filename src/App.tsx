@@ -466,7 +466,7 @@ function AppRoutes() {
       <Route path="/home" element={<ProtectedRoute><SidebarWrapper><LicenseeHome /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/admin-dashboard" element={<ProtectedRoute><SidebarWrapper><AdminDashboard /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><SidebarWrapper><Dashboard /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/licensees" element={<ProtectedRoute><SidebarWrapper><LicenseesPanel /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/alunos" element={<ProtectedRoute><SidebarWrapper><LicenseesPanel /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><ClinicComparison /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/university" element={<ProtectedRoute><SidebarWrapper><University /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/university/trilha/:trackId" element={<ProtectedRoute><SidebarWrapper><TrackDetail /></SidebarWrapper></ProtectedRoute>} />
