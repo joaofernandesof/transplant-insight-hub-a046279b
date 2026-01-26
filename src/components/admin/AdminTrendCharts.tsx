@@ -254,22 +254,11 @@ export function AdminTrendCharts() {
                   axisLine={false}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  wrapperStyle={{ fontSize: '10px' }}
-                  iconSize={8}
-                />
-                <Bar 
-                  dataKey="activeUsers" 
-                  name="Usuários Ativos"
-                  fill="hsl(var(--primary))" 
-                  radius={[4, 4, 0, 0]}
-                />
                 <Bar 
                   dataKey="sessions" 
                   name="Sessões"
-                  fill="hsl(var(--muted-foreground))" 
+                  fill="hsl(var(--primary))" 
                   radius={[4, 4, 0, 0]}
-                  opacity={0.5}
                 />
               </BarChart>
             </ResponsiveContainer>
