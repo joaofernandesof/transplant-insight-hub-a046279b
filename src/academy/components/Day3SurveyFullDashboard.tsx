@@ -148,12 +148,21 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
     value,
   }));
   
-  const monitorTechnicalData = Object.entries(analytics.monitorRankings.technicalDomain)
-    .map(([name, value]) => ({ name, value }))
+  // All monitors list - always show all 5
+  const ALL_MONITORS = ['Dr. Elenilton', 'Dr. Patrick', 'Dr. Eder', 'Dra. Gleyldes', 'Dr. Eder M'];
+  
+  const monitorTechnicalData = ALL_MONITORS
+    .map(name => ({ 
+      name, 
+      value: analytics.monitorRankings.technicalDomain[name] || 0 
+    }))
     .sort((a, b) => b.value - a.value);
   
-  const monitorCaringData = Object.entries(analytics.monitorRankings.caringAttention)
-    .map(([name, value]) => ({ name, value }))
+  const monitorCaringData = ALL_MONITORS
+    .map(name => ({ 
+      name, 
+      value: analytics.monitorRankings.caringAttention[name] || 0 
+    }))
     .sort((a, b) => b.value - a.value);
   
   const radarData = [
