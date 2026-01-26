@@ -727,7 +727,8 @@ export function Day1SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     return (val as string) || '';
   };
   
-  if (hasCompleted) {
+  // Show completed message even while loading if we have surveyResponse with is_completed
+  if (hasCompleted || surveyResponse?.is_completed) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md">
