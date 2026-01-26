@@ -265,7 +265,7 @@ export const ACADEMY_MENU_ITEMS: MenuItem[] = [
   { id: 'academy_home', code: 'academy_home', title: 'Início', icon: Home, route: '/academy' },
   { id: 'academy_courses', code: 'academy_courses', title: 'Cursos', icon: BookOpen, route: '/academy/courses' },
   { id: 'academy_schedule', code: 'academy_schedule', title: 'Agenda do Aluno', icon: CalendarDays, route: '/academy/schedule' },
-  { id: 'academy_materials', code: 'academy_materials', title: 'Materiais', icon: FileText, route: '/academy/materials' },
+  // TEMPORARIAMENTE OCULTO: { id: 'academy_materials', code: 'academy_materials', title: 'Materiais', icon: FileText, route: '/academy/materials' },
   { id: 'academy_certificates', code: 'academy_certificates', title: 'Certificados', icon: Award, route: '/academy/certificates' },
   { id: 'academy_community', code: 'academy_community', title: 'Comunidade', icon: Users, route: '/academy/community' },
   { id: 'academy_career', code: 'academy_career', title: 'Carreira', icon: TrendingUp, route: '/academy/career' },
