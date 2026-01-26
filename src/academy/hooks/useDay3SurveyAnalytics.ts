@@ -102,6 +102,7 @@ const MONITOR_LABELS: Record<string, string> = {
   elenilton: 'Dr. Elenilton',
   patrick: 'Dr. Patrick',
   eder: 'Dr. Eder',
+  eder_m: 'Dr. Eder', // Merge both Eder entries into one
   gleyldes: 'Dra. Gleyldes',
 };
 
