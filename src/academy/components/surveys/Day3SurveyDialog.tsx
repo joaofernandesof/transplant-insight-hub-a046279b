@@ -38,7 +38,6 @@ interface Question {
 interface Section {
   id: number;
   title: string;
-  icon: string;
   questions: Question[];
 }
 
@@ -46,18 +45,17 @@ const SECTIONS: Section[] = [
   {
     id: 1,
     title: 'Satisfação e Promessa',
-    icon: '🎯',
     questions: [
       {
         id: 'q1_satisfaction_level',
         type: 'radio',
         title: 'Como você avalia sua satisfação geral com o curso?',
         options: [
-          { value: 'muito_insatisfeito', label: 'Muito insatisfeito', emoji: '😡' },
-          { value: 'insatisfeito', label: 'Insatisfeito', emoji: '😕' },
-          { value: 'neutro', label: 'Neutro', emoji: '😐' },
-          { value: 'satisfeito', label: 'Satisfeito', emoji: '🙂' },
-          { value: 'muito_satisfeito', label: 'Muito satisfeito', emoji: '🤩' },
+          { value: 'muito_insatisfeito', label: 'Muito insatisfeito' },
+          { value: 'insatisfeito', label: 'Insatisfeito' },
+          { value: 'neutro', label: 'Neutro' },
+          { value: 'satisfeito', label: 'Satisfeito' },
+          { value: 'muito_satisfeito', label: 'Muito satisfeito' },
         ],
       },
       {
@@ -65,11 +63,11 @@ const SECTIONS: Section[] = [
         type: 'radio',
         title: 'O curso correspondeu ao que foi prometido?',
         options: [
-          { value: 'muito_abaixo', label: 'Muito abaixo do prometido', emoji: '❌' },
-          { value: 'abaixo', label: 'Abaixo do prometido', emoji: '⚠️' },
-          { value: 'dentro', label: 'Dentro do prometido', emoji: '✅' },
-          { value: 'acima', label: 'Acima do prometido', emoji: '✨' },
-          { value: 'muito_acima', label: 'Muito acima do prometido', emoji: '🔥' },
+          { value: 'muito_abaixo', label: 'Muito abaixo do prometido' },
+          { value: 'abaixo', label: 'Abaixo do prometido' },
+          { value: 'dentro', label: 'Dentro do prometido' },
+          { value: 'acima', label: 'Acima do prometido' },
+          { value: 'muito_acima', label: 'Muito acima do prometido' },
         ],
       },
     ],
@@ -77,18 +75,17 @@ const SECTIONS: Section[] = [
   {
     id: 2,
     title: 'Conteúdo Técnico e Prático',
-    icon: '🔬',
     questions: [
       {
         id: 'q3_technical_foundations',
         type: 'radio',
         title: 'Como você avalia os fundamentos técnicos e cirúrgicos?',
         options: [
-          { value: 'muito_fracos', label: 'Muito fracos', emoji: '❌' },
-          { value: 'fracos', label: 'Fracos', emoji: '⚠️' },
-          { value: 'adequados', label: 'Adequados', emoji: '✅' },
-          { value: 'bons', label: 'Bons', emoji: '👍' },
-          { value: 'excelentes', label: 'Excelentes', emoji: '🧠' },
+          { value: 'muito_fracos', label: 'Muito fracos' },
+          { value: 'fracos', label: 'Fracos' },
+          { value: 'adequados', label: 'Adequados' },
+          { value: 'bons', label: 'Bons' },
+          { value: 'excelentes', label: 'Excelentes' },
         ],
       },
       {
@@ -96,11 +93,11 @@ const SECTIONS: Section[] = [
         type: 'radio',
         title: 'A carga prática foi suficiente?',
         options: [
-          { value: 'muito_insuficiente', label: 'Muito insuficiente', emoji: '🟥' },
-          { value: 'insuficiente', label: 'Insuficiente', emoji: '🟧' },
-          { value: 'adequada', label: 'Adequada', emoji: '🟨' },
-          { value: 'boa', label: 'Boa', emoji: '🟩' },
-          { value: 'excelente', label: 'Excelente', emoji: '🟦' },
+          { value: 'muito_insuficiente', label: 'Muito insuficiente' },
+          { value: 'insuficiente', label: 'Insuficiente' },
+          { value: 'adequada', label: 'Adequada' },
+          { value: 'boa', label: 'Boa' },
+          { value: 'excelente', label: 'Excelente' },
         ],
       },
       {
@@ -108,11 +105,11 @@ const SECTIONS: Section[] = [
         type: 'radio',
         title: 'O equilíbrio entre teoria e prática foi…',
         options: [
-          { value: 'muito_teorico', label: 'Muito teórico', emoji: '📚' },
-          { value: 'mais_teoria', label: 'Mais teoria do que prática', emoji: '📘' },
-          { value: 'equilibrado', label: 'Bem equilibrado', emoji: '⚖️' },
-          { value: 'mais_pratica', label: 'Mais prática do que teoria', emoji: '🛠️' },
-          { value: 'muito_pratico', label: 'Muito prático, faltou teoria', emoji: '🧪' },
+          { value: 'muito_teorico', label: 'Muito teórico' },
+          { value: 'mais_teoria', label: 'Mais teoria do que prática' },
+          { value: 'equilibrado', label: 'Bem equilibrado' },
+          { value: 'mais_pratica', label: 'Mais prática do que teoria' },
+          { value: 'muito_pratico', label: 'Muito prático, faltou teoria' },
         ],
       },
     ],
@@ -120,18 +117,17 @@ const SECTIONS: Section[] = [
   {
     id: 3,
     title: 'Clareza, Execução e Confiança',
-    icon: '💡',
     questions: [
       {
         id: 'q6_execution_clarity',
         type: 'radio',
         title: 'O curso te deu clareza para executar na prática?',
         options: [
-          { value: 'nenhuma', label: 'Nenhuma clareza', emoji: '🚫' },
-          { value: 'pouca', label: 'Pouca clareza', emoji: '😕' },
-          { value: 'razoavel', label: 'Razoável', emoji: '🤔' },
-          { value: 'boa', label: 'Boa clareza', emoji: '🙂' },
-          { value: 'total', label: 'Total clareza', emoji: '🔍' },
+          { value: 'nenhuma', label: 'Nenhuma clareza' },
+          { value: 'pouca', label: 'Pouca clareza' },
+          { value: 'razoavel', label: 'Razoável' },
+          { value: 'boa', label: 'Boa clareza' },
+          { value: 'total', label: 'Total clareza' },
         ],
       },
       {
@@ -139,11 +135,11 @@ const SECTIONS: Section[] = [
         type: 'radio',
         title: 'Qual seu nível de confiança para aplicar o que aprendeu?',
         options: [
-          { value: 'nenhuma', label: 'Nenhuma', emoji: '😬' },
-          { value: 'baixa', label: 'Baixa', emoji: '😟' },
-          { value: 'moderada', label: 'Moderada', emoji: '😐' },
-          { value: 'boa', label: 'Boa', emoji: '🙂' },
-          { value: 'alta', label: 'Alta', emoji: '💪' },
+          { value: 'nenhuma', label: 'Nenhuma' },
+          { value: 'baixa', label: 'Baixa' },
+          { value: 'moderada', label: 'Moderada' },
+          { value: 'boa', label: 'Boa' },
+          { value: 'alta', label: 'Alta' },
         ],
       },
     ],
@@ -151,18 +147,17 @@ const SECTIONS: Section[] = [
   {
     id: 4,
     title: 'Gestão, Jurídico e Visão de Negócio',
-    icon: '📊',
     questions: [
       {
         id: 'q8_management_classes',
         type: 'radio',
         title: 'As aulas de gestão e expansão foram…',
         options: [
-          { value: 'nada_relevantes', label: 'Nada relevantes', emoji: '❌' },
-          { value: 'pouco_relevantes', label: 'Pouco relevantes', emoji: '⚠️' },
-          { value: 'relevantes', label: 'Relevantes', emoji: '✅' },
-          { value: 'muito_relevantes', label: 'Muito relevantes', emoji: '💡' },
-          { value: 'essenciais', label: 'Essenciais', emoji: '🚀' },
+          { value: 'nada_relevantes', label: 'Nada relevantes' },
+          { value: 'pouco_relevantes', label: 'Pouco relevantes' },
+          { value: 'relevantes', label: 'Relevantes' },
+          { value: 'muito_relevantes', label: 'Muito relevantes' },
+          { value: 'essenciais', label: 'Essenciais' },
         ],
       },
       {
@@ -170,11 +165,11 @@ const SECTIONS: Section[] = [
         type: 'radio',
         title: 'O conteúdo jurídico trouxe mais segurança para você?',
         options: [
-          { value: 'nenhuma', label: 'Nenhuma', emoji: '🚫' },
-          { value: 'pouca', label: 'Pouca', emoji: '⚠️' },
-          { value: 'razoavel', label: 'Razoável', emoji: '😐' },
-          { value: 'boa', label: 'Boa', emoji: '🙂' },
-          { value: 'muita', label: 'Muita', emoji: '🔐' },
+          { value: 'nenhuma', label: 'Nenhuma' },
+          { value: 'pouca', label: 'Pouca' },
+          { value: 'razoavel', label: 'Razoável' },
+          { value: 'boa', label: 'Boa' },
+          { value: 'muita', label: 'Muita' },
         ],
       },
     ],
@@ -182,18 +177,17 @@ const SECTIONS: Section[] = [
   {
     id: 5,
     title: 'Experiência e Suporte',
-    icon: '🏆',
     questions: [
       {
         id: 'q10_organization',
         type: 'radio',
         title: 'Como você avalia a organização e o cronograma do curso?',
         options: [
-          { value: 'muito_ruim', label: 'Muito ruim', emoji: '❌' },
-          { value: 'ruim', label: 'Ruim', emoji: '⚠️' },
-          { value: 'regular', label: 'Regular', emoji: '😐' },
-          { value: 'boa', label: 'Boa', emoji: '🙂' },
-          { value: 'excelente', label: 'Excelente', emoji: '🏆' },
+          { value: 'muito_ruim', label: 'Muito ruim' },
+          { value: 'ruim', label: 'Ruim' },
+          { value: 'regular', label: 'Regular' },
+          { value: 'boa', label: 'Boa' },
+          { value: 'excelente', label: 'Excelente' },
         ],
       },
       {
@@ -201,11 +195,11 @@ const SECTIONS: Section[] = [
         type: 'radio',
         title: 'Como foi o suporte para dúvidas e orientação?',
         options: [
-          { value: 'muito_fraco', label: 'Muito fraco', emoji: '😩' },
-          { value: 'fraco', label: 'Fraco', emoji: '😕' },
-          { value: 'adequado', label: 'Adequado', emoji: '😐' },
-          { value: 'bom', label: 'Bom', emoji: '🙂' },
-          { value: 'excelente', label: 'Excelente', emoji: '👏' },
+          { value: 'muito_fraco', label: 'Muito fraco' },
+          { value: 'fraco', label: 'Fraco' },
+          { value: 'adequado', label: 'Adequado' },
+          { value: 'bom', label: 'Bom' },
+          { value: 'excelente', label: 'Excelente' },
         ],
       },
       {
@@ -227,17 +221,16 @@ const SECTIONS: Section[] = [
   {
     id: 6,
     title: 'Avaliação dos Monitores',
-    icon: '👨‍⚕️',
     questions: [
       {
         id: 'q14_best_technical_monitor',
         type: 'radio',
         title: 'Qual monitor(a) demonstrou maior domínio técnico e segurança nos conteúdos?',
         options: [
-          { value: 'elenilton', label: 'Dr. Elenilton', emoji: '👨‍⚕️' },
-          { value: 'patrick', label: 'Dr. Patrick', emoji: '👨‍⚕️' },
-          { value: 'eder', label: 'Dr. Eder', emoji: '👨‍⚕️' },
-          { value: 'gleyldes', label: 'Dra. Gleyldes', emoji: '👩‍⚕️' },
+          { value: 'elenilton', label: 'Dr. Elenilton' },
+          { value: 'patrick', label: 'Dr. Patrick' },
+          { value: 'eder', label: 'Dr. Eder' },
+          { value: 'gleyldes', label: 'Dra. Gleyldes' },
         ],
       },
       {
@@ -245,10 +238,10 @@ const SECTIONS: Section[] = [
         type: 'radio',
         title: 'Qual monitor(a) demonstrou mais atenção e cuidado com os alunos?',
         options: [
-          { value: 'elenilton', label: 'Dr. Elenilton', emoji: '👨‍⚕️' },
-          { value: 'patrick', label: 'Dr. Patrick', emoji: '👨‍⚕️' },
-          { value: 'eder', label: 'Dr. Eder', emoji: '👨‍⚕️' },
-          { value: 'gleyldes', label: 'Dra. Gleyldes', emoji: '👩‍⚕️' },
+          { value: 'elenilton', label: 'Dr. Elenilton' },
+          { value: 'patrick', label: 'Dr. Patrick' },
+          { value: 'eder', label: 'Dr. Eder' },
+          { value: 'gleyldes', label: 'Dra. Gleyldes' },
         ],
       },
       {
@@ -440,9 +433,8 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span className="text-2xl">{currentSection?.icon}</span>
-            <span>Pesquisa Final — Formação 360</span>
+          <DialogTitle>
+            Pesquisa Final — Formação 360
           </DialogTitle>
         </DialogHeader>
 
@@ -467,7 +459,7 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
                 <div
                   key={section.id}
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all",
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all",
                     idx < currentSectionIndex
                       ? "bg-emerald-500 text-white"
                       : idx === currentSectionIndex
@@ -478,7 +470,7 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
                   {idx < currentSectionIndex ? (
                     <CheckCircle2 className="h-4 w-4" />
                   ) : (
-                    section.icon
+                    idx + 1
                   )}
                 </div>
               ))}
@@ -512,9 +504,8 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
                         onClick={() => handleAnswer(option.value)}
                       >
                         <RadioGroupItem value={option.value} id={option.value} />
-                        <Label htmlFor={option.value} className="flex-1 cursor-pointer flex items-center gap-2">
-                          {option.emoji && <span className="text-xl">{option.emoji}</span>}
-                          <span>{option.label}</span>
+                        <Label htmlFor={option.value} className="flex-1 cursor-pointer">
+                          {option.label}
                         </Label>
                       </div>
                     ))}
