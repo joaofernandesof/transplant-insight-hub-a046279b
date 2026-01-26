@@ -2992,12 +2992,11 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             <CardContent className="pt-0">
               <div className="flex flex-col lg:flex-row items-center gap-8">
                 {(() => {
-                  // Color scale function: red (0) → yellow (5) → green (10) - scale 0-10
+                  // Color by score ranges: 0-6 red, 7-8 yellow, 9-10 green
                   const getBarColor = (value: number): string => {
-                    const percent = Math.max(0, Math.min(100, (value / 10) * 100));
-                    // HSL: 0° = Red, 60° = Yellow, 120° = Green
-                    const hue = (percent / 100) * 120;
-                    return `hsl(${hue}, 70%, 50%)`;
+                    if (value >= 9) return '#22c55e'; // green-500
+                    if (value >= 7) return '#eab308'; // yellow-500
+                    return '#ef4444'; // red-500
                   };
                   
                   const getScoreColor = (value: number) => {
