@@ -299,65 +299,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
   
   return (
     <div className="space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{analytics.completedResponses}</p>
-                <p className="text-xs text-muted-foreground">Respostas completas</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
-                <Target className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{analytics.completionRate.toFixed(0)}%</p>
-                <p className="text-xs text-muted-foreground">Taxa de conclusão</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
-                <Star className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{analytics.satisfaction.avgLevel.toFixed(1)}</p>
-                <p className="text-xs text-muted-foreground">Satisfação média (0-10)</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-violet-100 text-violet-600">
-                <Clock className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{formatTime(analytics.avgEffectiveTime)}</p>
-                <p className="text-xs text-muted-foreground">Tempo médio</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
+      {/* Tabs First */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="grid grid-cols-5 w-full max-w-2xl">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
@@ -366,6 +308,65 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
           <TabsTrigger value="feedback">Feedback</TabsTrigger>
           <TabsTrigger value="students">Alunos</TabsTrigger>
         </TabsList>
+        
+        {/* Header Stats - Now Below Tabs */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{analytics.completedResponses}</p>
+                  <p className="text-xs text-muted-foreground">Respostas completas</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                  <Target className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{analytics.completionRate.toFixed(0)}%</p>
+                  <p className="text-xs text-muted-foreground">Taxa de conclusão</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
+                  <Star className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{analytics.satisfaction.avgLevel.toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">Satisfação média (0-10)</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-violet-100 text-violet-600">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{formatTime(analytics.avgEffectiveTime)}</p>
+                  <p className="text-xs text-muted-foreground">Tempo médio</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
