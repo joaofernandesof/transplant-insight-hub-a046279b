@@ -470,7 +470,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
             </CardContent>
           </Card>
           
-          {/* BNT Radar */}
+          {/* BNT Product Scores - Horizontal Bars */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -480,30 +480,93 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
               <CardDescription>Média de pontuação normalizada (0-10)</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-52">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={bntRadarData}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="metric" />
-                    <PolarRadiusAxis domain={[0, 10]} />
-                    <Radar
-                      name="Média"
-                      dataKey="value"
-                      stroke="hsl(var(--primary))"
-                      fill="hsl(var(--primary))"
-                      fillOpacity={0.3}
+              <div className="space-y-4">
+                {/* IA Avivar */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                        <Target className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <span className="font-medium text-sm">IA Avivar</span>
+                    </div>
+                    <span className={`text-lg font-bold ${
+                      ((analytics.avgScoreIA / 18) * 10) >= 7 ? 'text-emerald-600' : 
+                      ((analytics.avgScoreIA / 18) * 10) >= 5 ? 'text-amber-600' : 'text-red-600'
+                    }`}>
+                      {((analytics.avgScoreIA / 18) * 10).toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(((analytics.avgScoreIA / 18) * 10) * 10, 100)}%` }}
                     />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Licença */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                        <Shield className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <span className="font-medium text-sm">Licença</span>
+                    </div>
+                    <span className={`text-lg font-bold ${
+                      ((analytics.avgScoreLicense / 18) * 10) >= 7 ? 'text-emerald-600' : 
+                      ((analytics.avgScoreLicense / 18) * 10) >= 5 ? 'text-amber-600' : 'text-red-600'
+                    }`}>
+                      {((analytics.avgScoreLicense / 18) * 10).toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(((analytics.avgScoreLicense / 18) * 10) * 10, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Jurídico */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                        <Shield className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <span className="font-medium text-sm">Jurídico</span>
+                    </div>
+                    <span className={`text-lg font-bold ${
+                      ((analytics.avgScoreLegal / 18) * 10) >= 7 ? 'text-emerald-600' : 
+                      ((analytics.avgScoreLegal / 18) * 10) >= 5 ? 'text-amber-600' : 'text-red-600'
+                    }`}>
+                      {((analytics.avgScoreLegal / 18) * 10).toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(((analytics.avgScoreLegal / 18) * 10) * 10, 100)}%` }}
+                    />
+                  </div>
+                </div>
               </div>
+              
               <ChartExecutiveSummary 
                 insights={generateProductScoreInsight(
                   (analytics.avgScoreIA / 18) * 10, 
                   (analytics.avgScoreLicense / 18) * 10, 
                   (analytics.avgScoreLegal / 18) * 10
                 )}
-                variant="info"
+                variant={
+                  Math.max((analytics.avgScoreIA / 18) * 10, (analytics.avgScoreLicense / 18) * 10, (analytics.avgScoreLegal / 18) * 10) >= 7 
+                    ? 'success' 
+                    : Math.min((analytics.avgScoreIA / 18) * 10, (analytics.avgScoreLicense / 18) * 10, (analytics.avgScoreLegal / 18) * 10) < 5 
+                      ? 'warning' 
+                      : 'info'
+                }
               />
             </CardContent>
           </Card>
