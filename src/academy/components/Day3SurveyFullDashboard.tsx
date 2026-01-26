@@ -73,14 +73,14 @@ const getSatisfactionFromScore = (score: number): { label: string; color: string
   return { label: 'Muito Insatisfeito', color: '#ef4444' };
 };
 
-// Labels ordenados do pior para o melhor com cores semânticas
-// Vermelho (ruim) → Laranja (insatisfatório) → Amarelo (médio) → Azul (bom) → Verde (ótimo)
+// Labels ordenados do melhor para o pior (melhor em cima, pior embaixo)
+// Verde (ótimo) → Azul (bom) → Amarelo (médio) → Laranja (ruim) → Vermelho (ruim)
 const PROMISE_OPTIONS = [
-  { key: 'muito_abaixo', label: 'Muito abaixo', color: '#ef4444' },      // Vermelho - ruim
-  { key: 'abaixo', label: 'Abaixo', color: '#f97316' },                  // Laranja - ruim
-  { key: 'dentro', label: 'Dentro', color: '#eab308' },                  // Amarelo - médio
-  { key: 'acima', label: 'Acima', color: '#3b82f6' },                    // Azul - bom
   { key: 'muito_acima', label: 'Muito acima', color: '#10b981' },        // Verde - ótimo
+  { key: 'acima', label: 'Acima', color: '#3b82f6' },                    // Azul - bom
+  { key: 'dentro', label: 'Dentro', color: '#eab308' },                  // Amarelo - médio
+  { key: 'abaixo', label: 'Abaixo', color: '#f97316' },                  // Laranja - ruim
+  { key: 'muito_abaixo', label: 'Muito abaixo', color: '#ef4444' },      // Vermelho - ruim
 ];
 
 const PROMISE_LABELS: Record<string, { label: string }> = {
