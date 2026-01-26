@@ -71,25 +71,52 @@ export interface GlobalAnalytics {
   globalAvg: number;
 }
 
-// Rating scale mapping (0-10)
+// Rating scale mapping (0-10) - MUST match exact database values
 const RATING_SCALE: Record<string, number> = {
-  // Satisfaction levels
-  'muito_satisfeito': 10, 'satisfeito': 7.5, 'neutro': 5, 'insatisfeito': 2.5, 'muito_insatisfeito': 0,
-  'Muito Satisfeito': 10, 'Satisfeito': 7.5, 'Neutro': 5, 'Insatisfeito': 2.5, 'Muito Insatisfeito': 0,
-  // Expectations
-  'Superou Expectativas': 10, 'Atendeu Plenamente': 7.5, 'Atendeu Parcialmente': 5, 'Não Atendeu': 2.5,
-  'superou_expectativas': 10, 'atendeu_plenamente': 7.5, 'atendeu_parcialmente': 5, 'nao_atendeu': 2.5,
-  // Quality
-  'Excelente': 10, 'Muito Bom': 8.5, 'Bom': 7, 'Regular': 4, 'Ruim': 2,
-  'excelente': 10, 'muito_bom': 8.5, 'bom': 7, 'regular': 4, 'ruim': 2,
+  // Satisfaction levels (multiple formats)
+  'muito_satisfeito': 10, 'Muito satisfeito': 10, 'Muito Satisfeito': 10,
+  'satisfeito': 7.5, 'Satisfeito': 7.5,
+  'neutro': 5, 'Neutro': 5,
+  'insatisfeito': 2.5, 'Insatisfeito': 2.5,
+  'muito_insatisfeito': 0, 'Muito insatisfeito': 0, 'Muito Insatisfeito': 0,
+  
+  // Expectations - ACTUAL database values
+  'Superou totalmente minhas expectativas': 10, 'superou': 10, 'Superou': 10,
+  'Superou minhas expectativas': 8.5,
+  'Atendeu minhas expectativas': 7.5, 'Atendeu totalmente': 10, 'atendeu_totalmente': 10,
+  'Atendeu parcialmente': 5, 'atendeu_parcialmente': 5,
+  'Não atendeu': 2.5, 'nao_atendeu': 2.5,
+  
+  // Clarity - ACTUAL database values
+  'Extremamente claro e didático': 10, 'Concordo totalmente': 10, 'concordo_totalmente': 10,
+  'Muito claro': 8.5, 'Concordo': 7.5, 'concordo': 7.5,
+  'Claro o suficiente': 7,
+  'Um pouco confuso': 3, 'Discordo': 3, 'discordo': 3,
+  'Difícil de acompanhar': 1, 'Discordo totalmente': 1,
+  'excelente': 10, 'Excelente': 10,
+  
+  // Time - ACTUAL database values
+  'Ideal, passou rápido': 10,
+  'Bom, equilibrado': 8.5,
+  'Razoável': 5,
+  'Um pouco arrastado': 3,
+  'Muito longo': 1,
+  'Mais do que suficiente': 10, 'mais_que_suficiente': 10,
+  'Adequado': 7.5, 'adequado': 7.5,
+  'Insuficiente': 3, 'insuficiente': 3,
+  
+  // Quality scales
+  'Muito Bom': 8.5, 'muito_bom': 8.5,
+  'Bom': 7, 'bom': 7,
+  'Regular': 4, 'regular': 4,
+  'Ruim': 2, 'ruim': 2,
   'excelentes': 10, 'bons': 7.5, 'adequados': 5, 'fracos': 2.5, 'muito_fracos': 0,
-  // Time
-  'Mais do que suficiente': 10, 'Adequado': 7.5, 'Insuficiente': 3,
-  'mais_que_suficiente': 10, 'adequado': 7.5, 'insuficiente': 3,
+  
   // General scale
   'alta': 10, 'boa': 7.5, 'moderada': 5, 'baixa': 2.5, 'nenhuma': 0,
   'muita': 10, 'razoavel': 5, 'pouca': 2.5,
   'total': 10,
+  
   // Relevance
   'essenciais': 10, 'muito_relevantes': 7.5, 'relevantes': 5, 'pouco_relevantes': 2.5, 'nada_relevantes': 0,
 };
