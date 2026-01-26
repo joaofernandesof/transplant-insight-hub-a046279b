@@ -242,13 +242,18 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
     },
   ];
   
-  const satisfactionData = Object.entries(analytics.satisfactionBreakdown).map(([key, value]) => ({
-    name: key,
-    value,
-    fill: key.includes('Muito satisfeito') ? '#10b981' : 
-          key.includes('Satisfeito') ? '#22c55e' :
-          key.includes('Parcialmente') ? '#f59e0b' : '#ef4444',
-  }));
+  // Order for satisfaction levels (best to worst)
+  const SATISFACTION_ORDER = ['Muito satisfeito', 'Satisfeito', 'Neutro', 'Insatisfeito', 'Muito insatisfeito'];
+  
+  const satisfactionData = SATISFACTION_ORDER
+    .filter(label => analytics.satisfactionBreakdown[label] > 0)
+    .map(label => ({
+      name: label,
+      value: analytics.satisfactionBreakdown[label] || 0,
+      fill: label === 'Muito satisfeito' ? '#10b981' : 
+            label === 'Satisfeito' ? '#22c55e' :
+            label === 'Neutro' ? '#f59e0b' : '#ef4444',
+    }));
   
   // Matrix data
   const matrixQuestions = analytics.allQuestions.filter(q => 
