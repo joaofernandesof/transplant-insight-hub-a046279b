@@ -366,19 +366,20 @@ export function Day2SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
       setCurrentQuestion(resumeIndex);
       effectiveTimeRef.current = existingSurvey.effective_time_seconds || 0;
       setIsInitialized(true);
-    } else if (!isInitialized) {
-      // Create new survey
+    } else if (!isInitialized && !startSurvey.isPending) {
+      // Create new survey - only if not already pending
+      setIsInitialized(true); // Set first to prevent re-triggering
       startSurvey.mutate(classId, {
         onSuccess: () => {
           refetch();
-          setIsInitialized(true);
         },
         onError: (error) => {
+          setIsInitialized(false); // Allow retry on error
           SurveyErrors.initFailed(error);
         }
       });
     }
-  }, [open, user, existingSurvey, isLoading, classId, isInitialized, startSurvey, refetch]);
+  }, [open, user, existingSurvey, isLoading, classId, isInitialized, startSurvey.isPending]);
 
   // Track effective time
   useEffect(() => {
