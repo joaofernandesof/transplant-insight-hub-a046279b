@@ -385,11 +385,27 @@ export function useDay2SurveyAnalytics(classId?: string | null) {
       const warmLeads = scoresData.filter(s => s.classification === 'warm').length;
       const coldLeads = scoresData.filter(s => s.classification === 'cold').length;
       
-      // Satisfaction breakdown
+      // Satisfaction breakdown - normalize labels
+      const SATISFACTION_LABEL_MAP: Record<string, string> = {
+        'muito_satisfeito': 'Muito satisfeito',
+        'Muito satisfeito': 'Muito satisfeito',
+        'Muito Satisfeito': 'Muito satisfeito',
+        'satisfeito': 'Satisfeito',
+        'Satisfeito': 'Satisfeito',
+        'neutro': 'Neutro',
+        'Neutro': 'Neutro',
+        'insatisfeito': 'Insatisfeito',
+        'Insatisfeito': 'Insatisfeito',
+        'muito_insatisfeito': 'Muito insatisfeito',
+        'Muito insatisfeito': 'Muito insatisfeito',
+        'Muito Insatisfeito': 'Muito insatisfeito',
+      };
+      
       const satisfactionBreakdown: Record<string, number> = {};
       surveys.forEach(s => {
         if (s.q1_satisfaction_level) {
-          satisfactionBreakdown[s.q1_satisfaction_level] = (satisfactionBreakdown[s.q1_satisfaction_level] || 0) + 1;
+          const normalizedLabel = SATISFACTION_LABEL_MAP[s.q1_satisfaction_level] || s.q1_satisfaction_level;
+          satisfactionBreakdown[normalizedLabel] = (satisfactionBreakdown[normalizedLabel] || 0) + 1;
         }
       });
       
