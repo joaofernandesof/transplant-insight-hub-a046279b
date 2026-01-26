@@ -40,7 +40,19 @@ import {
   HeartHandshake,
   Eye,
   ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useDay3SurveyAnalytics } from '@/academy/hooks/useDay3SurveyAnalytics';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -233,7 +245,48 @@ type StudentResponse = {
 
 export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProps) {
   const [selectedStudent, setSelectedStudent] = useState<StudentResponse | null>(null);
+  const [sortField, setSortField] = useState<'name' | 'date' | 'score' | 'satisfaction'>('score');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const { data: analytics, isLoading, error } = useDay3SurveyAnalytics(classId);
+  
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection(field === 'name' ? 'asc' : 'desc');
+    }
+  };
+  
+  const getSortIcon = (field: typeof sortField) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="h-3 w-3 ml-1" /> 
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+  
+  const sortStudents = (students: StudentResponse[]) => {
+    return [...students].sort((a, b) => {
+      const multiplier = sortDirection === 'asc' ? 1 : -1;
+      
+      switch (sortField) {
+        case 'name':
+          return multiplier * a.studentName.localeCompare(b.studentName);
+        case 'date':
+          if (!a.completedAt && !b.completedAt) return 0;
+          if (!a.completedAt) return 1;
+          if (!b.completedAt) return -1;
+          return multiplier * (new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
+        case 'score':
+          return multiplier * (a.overallScore - b.overallScore);
+        case 'satisfaction':
+          const satOrder: Record<string, number> = { muito_satisfeito: 5, satisfeito: 4, neutro: 3, insatisfeito: 2, muito_insatisfeito: 1 };
+          return multiplier * ((satOrder[a.satisfactionLevel || ''] || 0) - (satOrder[b.satisfactionLevel || ''] || 0));
+        default:
+          return 0;
+      }
+    });
+  };
   
   if (isLoading) {
     return (
@@ -638,55 +691,124 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                 Respostas por Aluno ({analytics.responsesByStudent.length})
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[400px]">
-                <div className="space-y-3">
-                  {analytics.responsesByStudent
-                    .sort((a, b) => b.overallScore - a.overallScore)
-                    .map((student, idx) => {
-                      const satConfig = SATISFACTION_LABELS[student.satisfactionLevel || ''] || { emoji: '❓', label: 'N/A', color: '#94a3b8' };
-                      return (
-                        <div 
-                          key={student.userId} 
-                          className="flex items-center gap-4 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => setSelectedStudent(student)}
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>
+                        <button 
+                          onClick={() => handleSort('name')}
+                          className="flex items-center font-medium hover:text-foreground transition-colors"
                         >
-                          <Badge variant="outline" className="w-6 h-6 rounded-full p-0 flex items-center justify-center text-xs flex-shrink-0">
-                            {idx + 1}
-                          </Badge>
-                          <Avatar className="h-10 w-10 flex-shrink-0">
-                            <AvatarImage src={student.avatarUrl || undefined} alt={student.studentName} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                              {student.studentName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{student.studentName}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {student.completedAt 
-                                ? format(parseISO(student.completedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
-                                : 'Não concluído'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{satConfig.emoji}</span>
+                          Aluno
+                          {getSortIcon('name')}
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button 
+                          onClick={() => handleSort('date')}
+                          className="flex items-center font-medium hover:text-foreground transition-colors"
+                        >
+                          Data
+                          {getSortIcon('date')}
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button 
+                          onClick={() => handleSort('satisfaction')}
+                          className="flex items-center font-medium hover:text-foreground transition-colors"
+                        >
+                          Satisfação
+                          {getSortIcon('satisfaction')}
+                        </button>
+                      </TableHead>
+                      <TableHead>Promessa</TableHead>
+                      <TableHead>Técnico</TableHead>
+                      <TableHead>Prática</TableHead>
+                      <TableHead>Clareza</TableHead>
+                      <TableHead>Confiança</TableHead>
+                      <TableHead>Gestão</TableHead>
+                      <TableHead>Jurídico</TableHead>
+                      <TableHead>Organização</TableHead>
+                      <TableHead>Suporte</TableHead>
+                      <TableHead>
+                        <button 
+                          onClick={() => handleSort('score')}
+                          className="flex items-center font-medium hover:text-foreground transition-colors"
+                        >
+                          Score
+                          {getSortIcon('score')}
+                        </button>
+                      </TableHead>
+                      <TableHead className="w-16">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortStudents(analytics.responsesByStudent).map((student, idx) => {
+                      const satConfig = SATISFACTION_LABELS[student.satisfactionLevel || ''] || { label: 'N/A', color: '#94a3b8' };
+                      const getValueLabel = (key: string) => {
+                        const val = student.responses[key];
+                        return val ? (VALUE_DISPLAY_LABELS[key]?.[val] || val) : '—';
+                      };
+                      
+                      return (
+                        <TableRow key={student.userId} className="hover:bg-muted/30">
+                          <TableCell className="font-medium text-muted-foreground">{idx + 1}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8 flex-shrink-0">
+                                <AvatarImage src={student.avatarUrl || undefined} alt={student.studentName} />
+                                <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                                  {student.studentName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium whitespace-nowrap">{student.studentName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                            {student.completedAt 
+                              ? format(parseISO(student.completedAt), "dd/MM/yy HH:mm", { locale: ptBR })
+                              : <span className="text-amber-600">Pendente</span>}
+                          </TableCell>
+                          <TableCell>
                             <Badge 
                               variant="secondary"
+                              className="text-xs whitespace-nowrap"
                               style={{ backgroundColor: satConfig.color + '20', color: satConfig.color }}
                             >
                               {satConfig.label}
                             </Badge>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-lg">{student.overallScore}</p>
-                            <p className="text-xs text-muted-foreground">Score</p>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </div>
+                          </TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q2')}</TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q3')}</TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q4')}</TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q6')}</TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q7')}</TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q8')}</TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q9')}</TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q10')}</TableCell>
+                          <TableCell className="text-sm">{getValueLabel('q11')}</TableCell>
+                          <TableCell>
+                            <span className="font-bold text-lg">{student.overallScore}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedStudent(student)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                </div>
-              </ScrollArea>
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
