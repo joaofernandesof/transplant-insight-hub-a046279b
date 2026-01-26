@@ -82,27 +82,49 @@ const TAB_NAMES_DAY2: Record<string, string> = {
 
 // Question labels for Day2 survey
 const DAY2_QUESTION_LABELS: Record<string, string> = {
-  q1_satisfaction_level: 'Nível de satisfação geral',
-  q2_joao_expectations: 'Dr. João atendeu às expectativas?',
-  q3_joao_clarity: 'Clareza das explicações do Dr. João',
-  q4_joao_time: 'Tempo do Dr. João foi adequado?',
-  q5_joao_liked_most: 'O que mais gostou no Dr. João',
-  q6_joao_improve: 'O que o Dr. João pode melhorar',
-  q7_larissa_expectations: 'Dra. Larissa atendeu às expectativas?',
-  q8_larissa_clarity: 'Clareza das explicações da Dra. Larissa',
-  q9_larissa_time: 'Tempo da Dra. Larissa foi adequado?',
-  q10_larissa_liked_most: 'O que mais gostou na Dra. Larissa',
-  q11_larissa_improve: 'O que a Dra. Larissa pode melhorar',
-  q12_avivar_current_process: 'Seu processo de captação atual',
-  q13_avivar_opportunity_loss: 'Perda de oportunidades no processo',
-  q14_avivar_timing: 'Momento para IA Avivar',
-  q15_license_path: 'Viabilidade da licença',
-  q16_license_pace: 'Urgência da licença',
-  q17_license_timing: 'Momento para licença',
-  q18_legal_feeling: 'Sensação de segurança jurídica',
-  q19_legal_influence: 'Influência das questões jurídicas',
-  q20_legal_timing: 'Momento para assessoria jurídica',
+  q1_satisfaction_level: 'Qual é o seu nível de satisfação geral com a formação até agora?',
+  q2_joao_expectations: 'Dr. João atendeu às suas expectativas?',
+  q3_joao_clarity: 'A didática do Dr. João foi clara?',
+  q4_joao_time: 'O tempo do Dr. João foi adequado?',
+  q5_joao_liked_most: 'O que você mais gostou na apresentação do Dr. João?',
+  q6_joao_improve: 'O que o Dr. João pode melhorar?',
+  q7_larissa_expectations: 'Dra. Larissa atendeu às suas expectativas?',
+  q8_larissa_clarity: 'A didática da Dra. Larissa foi clara?',
+  q9_larissa_time: 'O tempo da Dra. Larissa foi adequado?',
+  q10_larissa_liked_most: 'O que você mais gostou na apresentação da Dra. Larissa?',
+  q11_larissa_improve: 'O que a Dra. Larissa pode melhorar?',
+  q12_avivar_current_process: 'Como é seu processo de follow-up atual?',
+  q13_avivar_opportunity_loss: 'Você sente que perde oportunidades por falta de automação?',
+  q14_avivar_timing: 'Quando você pretende implementar automação?',
+  q15_license_path: 'Montar uma clínica própria é viável para você?',
+  q16_license_pace: 'O ritmo atual de crescimento te expõe?',
+  q17_license_timing: 'Quando você pensa em expandir/escalar?',
+  q18_legal_feeling: 'Como você se sente em relação à parte jurídica?',
+  q19_legal_influence: 'Dúvidas jurídicas influenciam suas decisões?',
+  q20_legal_timing: 'Quando você pensa em organizar a parte jurídica?',
 };
+
+// Answer options for each question
+const DAY2_QUESTION_OPTIONS: Record<string, string[]> = {
+  q1_satisfaction_level: ['Muito insatisfeito', 'Insatisfeito', 'Neutro', 'Satisfeito', 'Muito satisfeito'],
+  q2_joao_expectations: ['Não atendeu', 'Atendeu parcialmente', 'Atendeu', 'Superou expectativas', 'Atendeu totalmente'],
+  q3_joao_clarity: ['Nada claro', 'Pouco claro', 'Razoável', 'Claro', 'Muito claro'],
+  q4_joao_time: ['Muito curto', 'Curto', 'Adequado', 'Longo', 'Muito longo'],
+  q7_larissa_expectations: ['Não atendeu', 'Atendeu parcialmente', 'Atendeu', 'Superou expectativas', 'Atendeu totalmente'],
+  q8_larissa_clarity: ['Nada claro', 'Pouco claro', 'Razoável', 'Claro', 'Muito claro'],
+  q9_larissa_time: ['Muito curto', 'Curto', 'Adequado', 'Longo', 'Muito longo'],
+  q12_avivar_current_process: ['Não faço follow-up', 'Faço manualmente e perco leads', 'Faço parcialmente', 'Tenho processo estruturado', 'Tenho automação completa'],
+  q13_avivar_opportunity_loss: ['Não, estou satisfeito', 'Talvez algumas', 'Sim, algumas', 'Sim, muitas', 'Sim, perco a maioria'],
+  q14_avivar_timing: ['Não pretendo', 'Mais de 1 ano', '6 meses a 1 ano', 'Próximos 3 meses', 'O quanto antes'],
+  q15_license_path: ['Não é viável', 'Talvez no futuro distante', 'Estou analisando', 'Está nos meus planos', 'Quero muito'],
+  q16_license_pace: ['Não me expõe', 'Pouco me expõe', 'Me expõe moderadamente', 'Me expõe bastante', 'Me expõe muito'],
+  q17_license_timing: ['Não pretendo', 'Mais de 1 ano', '6 meses a 1 ano', 'Próximos 3 meses', 'O quanto antes'],
+  q18_legal_feeling: ['Totalmente seguro', 'Seguro', 'Neutro', 'Exposto a riscos', 'Exposto a riscos que me preocupam'],
+  q19_legal_influence: ['Não influenciam', 'Influenciam pouco', 'Influenciam moderadamente', 'Influenciam bastante', 'Travaram ou quase travaram decisões importantes'],
+  q20_legal_timing: ['Não pretendo', 'Mais de 1 ano', '6 meses a 1 ano', 'Próximos 3 meses', 'O quanto antes'],
+};
+
+const DAY2_OPEN_TEXT_QUESTIONS = ['q5_joao_liked_most', 'q6_joao_improve', 'q10_larissa_liked_most', 'q11_larissa_improve'];
 
 const DAY2_CATEGORY_LABELS: Record<string, string> = {
   'Satisfação': 'Satisfação Geral',
@@ -1323,6 +1345,8 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
                         r.questionKey.includes('license') ? 'Licença' :
                         r.questionKey.includes('legal') ? 'Jurídico' : 'Geral',
               numericValue: r.numericValue,
+              options: DAY2_QUESTION_OPTIONS[r.questionKey],
+              isOpenText: DAY2_OPEN_TEXT_QUESTIONS.includes(r.questionKey),
             })),
           }))}
         />

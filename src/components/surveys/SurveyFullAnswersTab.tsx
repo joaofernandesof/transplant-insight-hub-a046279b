@@ -24,6 +24,8 @@ export interface StudentFullAnswer {
     answer: string | null;
     category?: string;
     numericValue?: number | null;
+    options?: string[]; // All available options for this question
+    isOpenText?: boolean; // True if it's a free text question
   }[];
 }
 
@@ -238,35 +240,52 @@ export function SurveyFullAnswersTab({
                               <div className="h-1 w-1 rounded-full bg-primary" />
                               {categoryLabels[category] || category}
                             </h4>
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                               {responses.map((response, idx) => {
-                                const isTextAnswer = response.answer && response.answer.length > 50;
-                                const hasValue = response.numericValue !== null && response.numericValue !== undefined;
+                                const isOpenText = response.isOpenText || (response.answer && response.answer.length > 50);
+                                const hasOptions = response.options && response.options.length > 0;
                                 
                                 return (
                                   <div 
                                     key={response.key || idx}
                                     className={cn(
-                                      "p-3 rounded-lg border",
-                                      !response.answer && "bg-muted/30 border-dashed",
-                                      hasValue && response.numericValue! >= 8 && "border-l-4 border-l-emerald-500",
-                                      hasValue && response.numericValue! >= 4 && response.numericValue! < 8 && "border-l-4 border-l-amber-500",
-                                      hasValue && response.numericValue! < 4 && "border-l-4 border-l-red-500"
+                                      "p-4 rounded-lg border bg-card",
+                                      !response.answer && "bg-muted/30 border-dashed"
                                     )}
                                   >
-                                    <p className="text-sm text-muted-foreground mb-1">
+                                    <p className="text-sm font-medium text-foreground mb-3">
                                       {questionLabels[response.key] || response.question}
                                     </p>
-                                    {response.answer ? (
-                                      isTextAnswer ? (
-                                        <p className="text-sm bg-muted/50 p-2 rounded italic">
-                                          "{response.answer}"
-                                        </p>
-                                      ) : (
-                                        <p className="font-medium">{response.answer}</p>
-                                      )
-                                    ) : (
+                                    
+                                    {!response.answer ? (
                                       <p className="text-sm text-muted-foreground italic">Não respondido</p>
+                                    ) : isOpenText ? (
+                                      <div className="bg-muted/50 p-3 rounded-lg border-l-4 border-l-primary">
+                                        <p className="text-sm italic">"{response.answer}"</p>
+                                      </div>
+                                    ) : hasOptions ? (
+                                      <div className="flex flex-wrap gap-2">
+                                        {response.options!.map((option, optIdx) => {
+                                          const isSelected = response.answer === option;
+                                          return (
+                                            <div
+                                              key={optIdx}
+                                              className={cn(
+                                                "px-3 py-1.5 rounded-full text-sm border transition-all",
+                                                isSelected 
+                                                  ? "bg-primary text-primary-foreground border-primary font-medium shadow-sm" 
+                                                  : "bg-muted/30 text-muted-foreground border-transparent"
+                                              )}
+                                            >
+                                              {option}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : (
+                                      <div className="px-3 py-1.5 rounded-full text-sm bg-primary text-primary-foreground border-primary font-medium inline-block">
+                                        {response.answer}
+                                      </div>
                                     )}
                                   </div>
                                 );
