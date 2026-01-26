@@ -54,6 +54,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useDay3SurveyAnalytics } from '@/academy/hooks/useDay3SurveyAnalytics';
+import { Day3ContentAnalysisTab } from './Day3ContentAnalysisTab';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -531,55 +532,8 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
         </TabsContent>
         
         {/* Content Tab */}
-        <TabsContent value="content" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  Avaliação do Conteúdo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ScoreCard title="Fundamentos Técnicos" value={analytics.technicalContent.avgFoundations} icon={BookOpen} color="emerald" />
-                <ScoreCard title="Carga Prática" value={analytics.technicalContent.avgPracticalLoad} icon={Target} color="blue" />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Scale className="h-4 w-4" />
-                  Equilíbrio Teoria/Prática
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={balanceData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    >
-                      {balanceData.map((_, idx) => (
-                        <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-4">
-            <ScoreCard title="Aulas de Gestão" value={analytics.businessContent.avgManagement} icon={Briefcase} color="violet" />
-            <ScoreCard title="Conteúdo Jurídico" value={analytics.businessContent.avgLegalSecurity} icon={Scale} color="amber" />
-          </div>
+        <TabsContent value="content">
+          <Day3ContentAnalysisTab analytics={analytics} />
         </TabsContent>
         
         {/* Monitors Tab */}
