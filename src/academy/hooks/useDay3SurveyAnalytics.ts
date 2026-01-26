@@ -7,9 +7,9 @@ export interface Day3SurveyAnalytics {
   completionRate: number;
   avgEffectiveTime: number;
   
-  // Satisfaction Overview
+  // Satisfaction Overview (0-10 scale)
   satisfaction: {
-    avgLevel: number; // 1-5 scale
+    avgLevel: number; // 0-10 scale
     promiseMet: Record<string, number>;
   };
   
@@ -61,39 +61,40 @@ export interface Day3SurveyAnalytics {
   }[];
 }
 
+// Normalized to 0-10 scale (5 options: 0, 2.5, 5, 7.5, 10)
 const VALUE_TO_SCORE: Record<string, Record<string, number>> = {
   q1_satisfaction_level: {
-    muito_insatisfeito: 1, insatisfeito: 2, neutro: 3, satisfeito: 4, muito_satisfeito: 5
+    muito_insatisfeito: 0, insatisfeito: 2.5, neutro: 5, satisfeito: 7.5, muito_satisfeito: 10
   },
   q2_promise_met: {
-    muito_abaixo: 1, abaixo: 2, dentro: 3, acima: 4, muito_acima: 5
+    muito_abaixo: 0, abaixo: 2.5, dentro: 5, acima: 7.5, muito_acima: 10
   },
   q3_technical_foundations: {
-    muito_fracos: 1, fracos: 2, adequados: 3, bons: 4, excelentes: 5
+    muito_fracos: 0, fracos: 2.5, adequados: 5, bons: 7.5, excelentes: 10
   },
   q4_practical_load: {
-    muito_insuficiente: 1, insuficiente: 2, adequada: 3, boa: 4, excelente: 5
+    muito_insuficiente: 0, insuficiente: 2.5, adequada: 5, boa: 7.5, excelente: 10
   },
   q5_theory_practice_balance: {
-    muito_teorico: 1, mais_teoria: 2, equilibrado: 5, mais_pratica: 4, muito_pratico: 3
+    muito_teorico: 2.5, mais_teoria: 5, equilibrado: 10, mais_pratica: 7.5, muito_pratico: 5
   },
   q6_execution_clarity: {
-    nenhuma: 1, pouca: 2, razoavel: 3, boa: 4, total: 5
+    nenhuma: 0, pouca: 2.5, razoavel: 5, boa: 7.5, total: 10
   },
   q7_confidence_level: {
-    nenhuma: 1, baixa: 2, moderada: 3, boa: 4, alta: 5
+    nenhuma: 0, baixa: 2.5, moderada: 5, boa: 7.5, alta: 10
   },
   q8_management_classes: {
-    nada_relevantes: 1, pouco_relevantes: 2, relevantes: 3, muito_relevantes: 4, essenciais: 5
+    nada_relevantes: 0, pouco_relevantes: 2.5, relevantes: 5, muito_relevantes: 7.5, essenciais: 10
   },
   q9_legal_security: {
-    nenhuma: 1, pouca: 2, razoavel: 3, boa: 4, muita: 5
+    nenhuma: 0, pouca: 2.5, razoavel: 5, boa: 7.5, muita: 10
   },
   q10_organization: {
-    muito_ruim: 1, ruim: 2, regular: 3, boa: 4, excelente: 5
+    muito_ruim: 0, ruim: 2.5, regular: 5, boa: 7.5, excelente: 10
   },
   q11_support_quality: {
-    muito_fraco: 1, fraco: 2, adequado: 3, bom: 4, excelente: 5
+    muito_fraco: 0, fraco: 2.5, adequado: 5, bom: 7.5, excelente: 10
   },
 };
 
@@ -195,7 +196,7 @@ export function useDay3SurveyAnalytics(classId?: string | null) {
         ].filter(v => v > 0);
         
         const overallScore = scores.length > 0 
-          ? (scores.reduce((a, b) => a + b, 0) / scores.length) * 2 // Convert 1-5 to 2-10
+          ? scores.reduce((a, b) => a + b, 0) / scores.length // Already 0-10 scale
           : 0;
         
         return {

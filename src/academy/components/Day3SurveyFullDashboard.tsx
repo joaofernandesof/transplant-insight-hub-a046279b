@@ -76,7 +76,7 @@ function formatTime(seconds: number): string {
   return `${mins}m ${secs}s`;
 }
 
-function ScoreCard({ title, value, max = 5, icon: Icon, color = 'emerald' }: {
+function ScoreCard({ title, value, max = 10, icon: Icon, color = 'emerald' }: {
   title: string;
   value: number;
   max?: number;
@@ -208,7 +208,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
               </div>
               <div>
                 <p className="text-2xl font-bold">{analytics.satisfaction.avgLevel.toFixed(1)}</p>
-                <p className="text-xs text-muted-foreground">Satisfação média (1-5)</p>
+                <p className="text-xs text-muted-foreground">Satisfação média (0-10)</p>
               </div>
             </div>
           </CardContent>
@@ -250,11 +250,11 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={300}>
                   <RadarChart data={radarData}>
                     <PolarGrid />
                     <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11 }} />
-                    <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
+                    <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} />
                     <Radar
                       name="Média"
                       dataKey="value"

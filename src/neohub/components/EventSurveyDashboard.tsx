@@ -410,10 +410,10 @@ async function exportOverviewPDF(analytics: NonNullable<SurveyAnalyticsData>) {
 async function exportRankingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   const sortedRankings = [...analytics.questionRankings].sort((a, b) => b.avgRating - a.avgRating);
   
-  // Gradient color function for PDF (0-5 scale)
+  // Gradient color function for PDF (0-10 scale)
   const getRatingColorFn = (value: number): string => {
-    // Convert 0-5 scale to 0-100 percentage
-    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+    // Convert 0-10 scale to 0-100 percentage
+    const percent = Math.max(0, Math.min(100, (value / 10) * 100));
     // HSL: 0° = Red, 60° = Yellow, 120° = Green
     const hue = (percent / 100) * 120;
     return `hsl(${hue}, 70%, 45%)`;
@@ -421,7 +421,7 @@ async function exportRankingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
   
   // Background color gradient
   const getRatingBgFn = (value: number): string => {
-    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+    const percent = Math.max(0, Math.min(100, (value / 10) * 100));
     const hue = (percent / 100) * 120;
     return `hsl(${hue}, 70%, 92%)`;
   };
@@ -461,16 +461,16 @@ async function exportRankingPDF(analytics: NonNullable<SurveyAnalyticsData>) {
 
 // QUESTIONS PDF - Shows each student's answer next to their name
 async function exportQuestionsPDF(analytics: NonNullable<SurveyAnalyticsData>) {
-  // Gradient color function for PDF (0-5 scale)
+  // Gradient color function for PDF (0-10 scale)
   const getRatingColorFn = (value: number): string => {
-    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+    const percent = Math.max(0, Math.min(100, (value / 10) * 100));
     const hue = (percent / 100) * 120;
     return `hsl(${hue}, 70%, 45%)`;
   };
   
   // Background color gradient
   const getRatingBgFn = (value: number): string => {
-    const percent = Math.max(0, Math.min(100, (value / 5) * 100));
+    const percent = Math.max(0, Math.min(100, (value / 10) * 100));
     const hue = (percent / 100) * 120;
     return `hsl(${hue}, 70%, 92%)`;
   };
@@ -1158,8 +1158,8 @@ const getGradientStyles = (value: number, min: number = 0, max: number = 10): { 
 
 // Legacy functions that use the new gradient system
 const getRatingColor = (value: number): string => {
-  // For 0-5 scale, convert to gradient
-  const percent = (value / 5) * 100;
+  // For 0-10 scale, convert to gradient
+  const percent = (value / 10) * 100;
   if (percent >= 90) return 'text-emerald-600';
   if (percent >= 70) return 'text-lime-600';
   if (percent >= 50) return 'text-yellow-600';
@@ -1168,7 +1168,7 @@ const getRatingColor = (value: number): string => {
 };
 
 const getRatingBgColor = (value: number): string => {
-  const percent = (value / 5) * 100;
+  const percent = (value / 10) * 100;
   if (percent >= 90) return 'bg-emerald-100 border-emerald-200';
   if (percent >= 70) return 'bg-lime-100 border-lime-200';
   if (percent >= 50) return 'bg-yellow-100 border-yellow-200';
@@ -1176,14 +1176,16 @@ const getRatingBgColor = (value: number): string => {
   return 'bg-red-100 border-red-200';
 };
 
-const StarRating = ({ value, max = 5 }: { value: number; max?: number }) => {
+const StarRating = ({ value, max = 10 }: { value: number; max?: number }) => {
+  // Display 5 stars but scale value from 0-10 to 0-5
+  const scaledValue = (value / max) * 5;
   return (
     <div className="flex items-center gap-0.5">
-      {Array.from({ length: max }).map((_, i) => (
+      {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
           className={`h-4 w-4 ${
-            i < Math.round(value)
+            i < Math.round(scaledValue)
               ? 'fill-yellow-400 text-yellow-400'
               : 'text-muted-foreground/30'
           }`}
