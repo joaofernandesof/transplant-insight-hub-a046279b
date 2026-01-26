@@ -1,15 +1,33 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Award } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, ChevronLeft, ChevronRight, CheckCircle2, Award, AlertTriangle } from 'lucide-react';
 import { useDay3Survey, Day3SurveyFormData } from '@/academy/hooks/useDay3Survey';
 import { cn } from '@/lib/utils';
 import { SurveyErrors } from '@/lib/errorReporting';
 import { toast } from 'sonner';
+
+// Define required questions (radio type are required by default)
+const REQUIRED_QUESTIONS: (keyof Day3SurveyFormData)[] = [
+  'q1_satisfaction_level',
+  'q2_promise_met',
+  'q3_technical_foundations',
+  'q4_practical_load',
+  'q5_theory_practice_balance',
+  'q6_execution_clarity',
+  'q7_confidence_level',
+  'q8_management_classes',
+  'q9_legal_security',
+  'q10_organization',
+  'q11_support_quality',
+  'q14_best_technical_monitor',
+  'q15_best_caring_monitor',
+];
 
 interface Day3SurveyDialogProps {
   open: boolean;
@@ -274,6 +292,7 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const [formData, setFormData] = useState<Partial<Day3SurveyFormData>>({});
   const [startTime] = useState(Date.now());
   const [showCompletion, setShowCompletion] = useState(false);
+  const [showMissingWarning, setShowMissingWarning] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Survey ID from response
@@ -328,6 +347,32 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
   const answeredQuestions = Object.keys(formData).filter(k => formData[k as keyof Day3SurveyFormData]).length;
   const progress = (answeredQuestions / totalQuestions) * 100;
 
+  // Check for missing required questions
+  const missingQuestions = useMemo(() => {
+    const missing: { id: keyof Day3SurveyFormData; title: string; sectionIndex: number; questionIndex: number }[] = [];
+    
+    SECTIONS.forEach((section, sIdx) => {
+      section.questions.forEach((question, qIdx) => {
+        if (REQUIRED_QUESTIONS.includes(question.id) && !formData[question.id]) {
+          missing.push({
+            id: question.id,
+            title: question.title,
+            sectionIndex: sIdx,
+            questionIndex: qIdx,
+          });
+        }
+      });
+    });
+    
+    return missing;
+  }, [formData]);
+
+  const goToMissingQuestion = (sectionIndex: number, questionIndex: number) => {
+    setCurrentSectionIndex(sectionIndex);
+    setCurrentQuestionIndex(questionIndex);
+    setShowMissingWarning(false);
+  };
+
   const handleAnswer = useCallback((value: string) => {
     if (!currentQuestion) return;
     
@@ -380,6 +425,16 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
     const data = dataToSubmit || formData;
     if (!surveyId) {
       SurveyErrors.noSurveyId();
+      return;
+    }
+
+    // Check for missing required questions before submitting
+    const stillMissing = REQUIRED_QUESTIONS.filter(qId => !data[qId]);
+    if (stillMissing.length > 0) {
+      setShowMissingWarning(true);
+      toast.warning(`${stillMissing.length} pergunta(s) obrigatória(s) pendente(s)`, {
+        description: 'Por favor, responda todas as perguntas obrigatórias antes de finalizar.',
+      });
       return;
     }
     
@@ -444,6 +499,38 @@ export function Day3SurveyDialog({ open, onOpenChange, classId, onComplete }: Da
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Missing Questions Warning */}
+            {showMissingWarning && missingQuestions.length > 0 && (
+              <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="space-y-2">
+                  <p className="font-medium">
+                    {missingQuestions.length} pergunta(s) obrigatória(s) pendente(s):
+                  </p>
+                  <ul className="text-sm space-y-1 max-h-32 overflow-y-auto">
+                    {missingQuestions.slice(0, 5).map((q) => (
+                      <li key={q.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">{q.title.substring(0, 50)}...</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs shrink-0"
+                          onClick={() => goToMissingQuestion(q.sectionIndex, q.questionIndex)}
+                        >
+                          Ir
+                        </Button>
+                      </li>
+                    ))}
+                    {missingQuestions.length > 5 && (
+                      <li className="text-xs text-muted-foreground">
+                        ...e mais {missingQuestions.length - 5} pergunta(s)
+                      </li>
+                    )}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Progress */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm text-muted-foreground">
