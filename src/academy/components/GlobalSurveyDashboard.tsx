@@ -437,24 +437,48 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
               <Heart className="h-5 w-5 text-pink-500" />
               Ranking de Monitores (Dia 3)
             </CardTitle>
-            <CardDescription>Votos para melhor domínio técnico e atenção ao aluno</CardDescription>
+            <CardDescription>Avaliação de domínio técnico e atenção ao aluno</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {analytics.monitors.map((monitor, index) => (
                 <div
                   key={monitor.name}
-                  className={`p-4 rounded-xl border-2 text-center ${
-                    index === 0 ? 'border-amber-400 bg-amber-50/50' : 'border-border'
+                  className={`relative p-4 rounded-xl border-2 ${
+                    index === 0 
+                      ? 'border-amber-400 bg-amber-50/50 dark:bg-amber-950/20' 
+                      : 'border-border bg-card'
                   }`}
                 >
-                  {index === 0 && <Trophy className="h-6 w-6 text-amber-500 mx-auto mb-2" />}
-                  <p className="font-semibold">{monitor.name}</p>
-                  <p className="text-2xl font-bold text-primary mt-1">{monitor.votes}</p>
-                  <p className="text-xs text-muted-foreground">votos totais</p>
-                  <div className="flex justify-center gap-3 mt-2 text-xs">
-                    <span title="Domínio Técnico">🎯 {monitor.avgTechnical}</span>
-                    <span title="Atenção/Cuidado">💕 {monitor.avgContribution}</span>
+                  {index === 0 && (
+                    <div className="absolute -top-3 -left-2">
+                      <Badge className="bg-amber-500 text-white">1º</Badge>
+                    </div>
+                  )}
+                  {index === 1 && (
+                    <div className="absolute -top-3 -left-2">
+                      <Badge variant="secondary">2º</Badge>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center gap-3 mb-3">
+                    {index === 0 && <Trophy className="h-5 w-5 text-amber-500" />}
+                    <span className="font-semibold">{monitor.name}</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="text-center p-2 bg-muted/50 rounded">
+                      <p className="text-muted-foreground text-xs">🎯 Técnico</p>
+                      <p className={`font-bold ${getScoreColor(monitor.avgTechnical)}`}>
+                        {monitor.avgTechnical > 0 ? `${monitor.avgTechnical.toFixed(1)}/10` : `${monitor.avgTechnical} votos`}
+                      </p>
+                    </div>
+                    <div className="text-center p-2 bg-muted/50 rounded">
+                      <p className="text-muted-foreground text-xs">💕 Atenção</p>
+                      <p className={`font-bold ${getScoreColor(monitor.avgContribution)}`}>
+                        {monitor.avgContribution > 0 ? `${monitor.avgContribution.toFixed(1)}/10` : `${monitor.avgContribution} votos`}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
