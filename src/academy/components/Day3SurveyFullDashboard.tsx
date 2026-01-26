@@ -46,6 +46,8 @@ import {
   UserX,
   Download,
   FileText,
+  Sparkles,
+  Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -462,12 +464,20 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
       
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+        <TabsList className="grid grid-cols-7 w-full max-w-3xl">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="content">Conteúdo</TabsTrigger>
           <TabsTrigger value="monitors">Monitores</TabsTrigger>
           <TabsTrigger value="feedback">Feedback</TabsTrigger>
           <TabsTrigger value="students">Alunos</TabsTrigger>
+          <TabsTrigger value="timing" className="flex items-center gap-1">
+            <Timer className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Tempos</span>
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="flex items-center gap-1">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Insights IA</span>
+          </TabsTrigger>
         </TabsList>
         
         {/* Header Stats - Now Below Tabs */}
@@ -916,6 +926,160 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                     })}
                   </TableBody>
                 </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Timing Tab */}
+        <TabsContent value="timing" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Timer className="h-5 w-5 text-blue-600" />
+                Análise de Tempo de Preenchimento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4 mb-6">
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Tempo Médio</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatTime(analytics.avgEffectiveTime)}
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Respostas Completas</p>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    {analytics.completedResponses}
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Taxa de Conclusão</p>
+                  <p className="text-2xl font-bold text-amber-600">
+                    {analytics.completionRate.toFixed(0)}%
+                  </p>
+                </div>
+              </div>
+              
+              {/* Timing by Student */}
+              <div className="space-y-2">
+                <p className="font-semibold mb-3">Tempo por Aluno</p>
+                {analytics.responsesByStudent
+                  .filter(s => s.effectiveTime && s.effectiveTime > 0)
+                  .sort((a, b) => (b.effectiveTime || 0) - (a.effectiveTime || 0))
+                  .map((student, idx) => {
+                    const maxTime = Math.max(...analytics.responsesByStudent.map(s => s.effectiveTime || 0));
+                    return (
+                      <div key={student.userId} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50">
+                        <span className="w-8 text-center text-sm text-muted-foreground">{idx + 1}º</span>
+                        <span className="flex-1 font-medium">{student.studentName}</span>
+                        <span className="font-mono text-sm">{formatTime(student.effectiveTime || 0)}</span>
+                        <div className="w-32">
+                          <Progress 
+                            value={((student.effectiveTime || 0) / maxTime) * 100} 
+                            className="h-2"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Insights IA Tab */}
+        <TabsContent value="insights" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-violet-600" />
+                Relatório Inteligente (IA)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Summary Card */}
+                <div className="p-6 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border border-violet-200 dark:border-violet-800">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <Target className="h-5 w-5 text-violet-600" />
+                    Resumo Executivo
+                  </h3>
+                  <div className="space-y-3 text-sm">
+                    <p>📊 <strong>Taxa de conclusão:</strong> {analytics.completionRate.toFixed(0)}% dos alunos completaram a pesquisa final.</p>
+                    <p>⭐ <strong>Satisfação geral:</strong> {analytics.satisfaction.avgLevel.toFixed(1)}/10 de média.</p>
+                    <p>🎯 <strong>Domínio técnico:</strong> {analytics.technicalContent.avgFoundations.toFixed(1)}/10.</p>
+                    <p>🔬 <strong>Carga prática:</strong> {analytics.technicalContent.avgPracticalLoad.toFixed(1)}/10.</p>
+                    <p>💡 <strong>Confiança dos alunos:</strong> {analytics.confidence.avgConfidence.toFixed(1)}/10.</p>
+                  </div>
+                </div>
+                
+                {/* Monitor Performance */}
+                <div className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200 dark:border-amber-800">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <Award className="h-5 w-5 text-amber-600" />
+                    Destaques da Equipe
+                  </h3>
+                  <div className="space-y-3 text-sm">
+                    <p className="font-medium mb-2">🏆 Ranking Técnico:</p>
+                    {Object.entries(analytics.monitorRankings.technicalDomain)
+                      .sort(([,a], [,b]) => b - a)
+                      .slice(0, 3)
+                      .map(([name, votes], idx) => (
+                        <p key={name}>
+                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} {name}: {votes} votos
+                        </p>
+                      ))}
+                    <p className="font-medium mt-4 mb-2">💕 Ranking Atenção ao Aluno:</p>
+                    {Object.entries(analytics.monitorRankings.caringAttention)
+                      .sort(([,a], [,b]) => b - a)
+                      .slice(0, 3)
+                      .map(([name, votes], idx) => (
+                        <p key={name}>
+                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'} {name}: {votes} votos
+                        </p>
+                      ))}
+                  </div>
+                </div>
+                
+                {/* Improvement Areas */}
+                <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 border border-emerald-200 dark:border-emerald-800">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-emerald-600" />
+                    Sugestões de Melhoria
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    {analytics.improvements.slice(0, 5).map((item, idx) => (
+                      <p key={idx} className="flex items-start gap-2">
+                        <span className="text-emerald-500">•</span>
+                        <span>"{item}"</span>
+                      </p>
+                    ))}
+                    {analytics.improvements.length === 0 && (
+                      <p className="text-muted-foreground">Nenhuma sugestão de melhoria registrada.</p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Highlights */}
+                <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-200 dark:border-blue-800">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <Star className="h-5 w-5 text-blue-600" />
+                    Destaques Positivos
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    {analytics.highlights.slice(0, 5).map((item, idx) => (
+                      <p key={idx} className="flex items-start gap-2">
+                        <span className="text-blue-500">•</span>
+                        <span>"{item}"</span>
+                      </p>
+                    ))}
+                    {analytics.highlights.length === 0 && (
+                      <p className="text-muted-foreground">Nenhum destaque registrado.</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
