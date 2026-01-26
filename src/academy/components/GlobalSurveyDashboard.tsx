@@ -156,8 +156,8 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
     }
   }
   
-  // Prepare global radar data
-  const globalRadarData = [
+  // Prepare global radar data with scores in labels
+  const globalRadarDataRaw = [
     { metric: 'Satisfação', value: analytics.satisfaction.overall, fullMark: 10 },
     { metric: 'Técnico', value: analytics.contentMetrics.avgTechnical, fullMark: 10 },
     { metric: 'Prática', value: analytics.contentMetrics.avgPractical, fullMark: 10 },
@@ -166,6 +166,12 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
     { metric: 'Organização', value: analytics.contentMetrics.avgOrganization, fullMark: 10 },
     { metric: 'Suporte', value: analytics.contentMetrics.avgSupport, fullMark: 10 },
   ].filter(d => d.value > 0);
+  
+  // Add scores to labels for display
+  const globalRadarData = globalRadarDataRaw.map(d => ({
+    ...d,
+    metricWithScore: `${d.metric} (${d.value.toFixed(1)}/10)`,
+  }));
   
   // Find strongest and weakest dimensions
   const sortedMetrics = [...globalRadarData].sort((a, b) => b.value - a.value);
@@ -310,7 +316,7 @@ export function GlobalSurveyDashboard({ classId }: GlobalSurveyDashboardProps) {
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={globalRadarData}>
                       <PolarGrid />
-                      <PolarAngleAxis dataKey="metric" />
+                      <PolarAngleAxis dataKey="metricWithScore" tick={{ fontSize: 11 }} />
                       <PolarRadiusAxis domain={[0, 10]} />
                       <Radar
                         name="Média"
