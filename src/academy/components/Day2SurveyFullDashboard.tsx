@@ -50,6 +50,7 @@ import {
   generateInstructorInsight,
   generateSatisfactionInsight 
 } from '@/components/surveys/ChartExecutiveSummary';
+import { SurveyFullAnswersTab, StudentFullAnswer } from '@/components/surveys/SurveyFullAnswersTab';
 
 interface Day2SurveyFullDashboardProps {
   classId?: string | null;
@@ -76,6 +77,40 @@ const TAB_NAMES_DAY2: Record<string, string> = {
   students: 'Alunos',
   timing: 'Tempos',
   insights: 'Insights IA',
+  answers: 'Respostas',
+};
+
+// Question labels for Day2 survey
+const DAY2_QUESTION_LABELS: Record<string, string> = {
+  q1_satisfaction_level: 'Nível de satisfação geral',
+  q2_joao_expectations: 'Dr. João atendeu às expectativas?',
+  q3_joao_clarity: 'Clareza das explicações do Dr. João',
+  q4_joao_time: 'Tempo do Dr. João foi adequado?',
+  q5_joao_liked_most: 'O que mais gostou no Dr. João',
+  q6_joao_improve: 'O que o Dr. João pode melhorar',
+  q7_larissa_expectations: 'Dra. Larissa atendeu às expectativas?',
+  q8_larissa_clarity: 'Clareza das explicações da Dra. Larissa',
+  q9_larissa_time: 'Tempo da Dra. Larissa foi adequado?',
+  q10_larissa_liked_most: 'O que mais gostou na Dra. Larissa',
+  q11_larissa_improve: 'O que a Dra. Larissa pode melhorar',
+  q12_avivar_current_process: 'Seu processo de captação atual',
+  q13_avivar_opportunity_loss: 'Perda de oportunidades no processo',
+  q14_avivar_timing: 'Momento para IA Avivar',
+  q15_license_path: 'Viabilidade da licença',
+  q16_license_pace: 'Urgência da licença',
+  q17_license_timing: 'Momento para licença',
+  q18_legal_feeling: 'Sensação de segurança jurídica',
+  q19_legal_influence: 'Influência das questões jurídicas',
+  q20_legal_timing: 'Momento para assessoria jurídica',
+};
+
+const DAY2_CATEGORY_LABELS: Record<string, string> = {
+  'Satisfação': 'Satisfação Geral',
+  'Dr. João': 'Avaliação Dr. João',
+  'Dra. Larissa': 'Avaliação Dra. Larissa',
+  'IA Avivar': 'IA Avivar - Captação',
+  'Licença': 'Licença ByNeofolic',
+  'Jurídico': 'Assessoria Jurídica',
 };
 
 export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProps) {
@@ -378,7 +413,7 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
         
         {/* Tabs navigation with action buttons */}
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+          <TabsList className="grid grid-cols-8 w-full max-w-5xl">
             <TabsTrigger value="overview" className="flex items-center gap-1.5">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Visão Geral</span>
@@ -406,6 +441,10 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
             <TabsTrigger value="insights" className="flex items-center gap-1.5">
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Insights IA</span>
+            </TabsTrigger>
+            <TabsTrigger value="answers" className="flex items-center gap-1.5">
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden sm:inline">Respostas</span>
             </TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
@@ -1209,6 +1248,35 @@ export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProp
             },
           }))} 
           className={classId ? `Turma ${classId}` : 'Todas as turmas'} 
+        />
+      </TabsContent>
+      
+      {/* === ANSWERS TAB === */}
+      <TabsContent value="answers" className="mt-4">
+        <SurveyFullAnswersTab
+          surveyName="Pesquisa Dia 2"
+          questionLabels={DAY2_QUESTION_LABELS}
+          categoryLabels={DAY2_CATEGORY_LABELS}
+          students={analytics.responsesByStudent.map(s => ({
+            id: s.surveyId,
+            name: s.userName,
+            avatarUrl: s.avatarUrl,
+            completedAt: s.completedAt,
+            effectiveTimeSeconds: s.effectiveTimeSeconds,
+            overallScore: (s.scores.total / 54) * 10,
+            classification: s.classification,
+            responses: s.responses.map(r => ({
+              key: r.questionKey,
+              question: DAY2_QUESTION_LABELS[r.questionKey] || r.questionKey,
+              answer: r.value,
+              category: r.questionKey.includes('joao') ? 'Dr. João' :
+                        r.questionKey.includes('larissa') ? 'Dra. Larissa' :
+                        r.questionKey.includes('avivar') ? 'IA Avivar' :
+                        r.questionKey.includes('license') ? 'Licença' :
+                        r.questionKey.includes('legal') ? 'Jurídico' : 'Geral',
+              numericValue: r.numericValue,
+            })),
+          }))}
         />
       </TabsContent>
     </Tabs>

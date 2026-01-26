@@ -83,6 +83,7 @@ import {
   generateRadarInsight,
   generateMonitorInsight
 } from '@/components/surveys/ChartExecutiveSummary';
+import { SurveyFullAnswersTab, StudentFullAnswer } from '@/components/surveys/SurveyFullAnswersTab';
 
 interface EventSurveyDashboardProps {
   classId: string | null;
@@ -2263,7 +2264,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         <SurveyFilterBar />
 
         <div className="flex items-center justify-between flex-wrap gap-3 mt-4">
-          <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+          <TabsList className="grid grid-cols-8 w-full max-w-5xl">
             <TabsTrigger value="overview" className="flex items-center gap-1.5">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Visão Geral</span>
@@ -2292,6 +2293,10 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Insights IA</span>
             </TabsTrigger>
+            <TabsTrigger value="answers" className="flex items-center gap-1.5">
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden sm:inline">Respostas</span>
+            </TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
             <Button 
@@ -2313,9 +2318,10 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
                   students: 'Alunos',
                   timing: 'Tempos',
                   insights: 'Insights IA',
+                  answers: 'Respostas',
                 };
                 await exportAllTabsToPdf({
-                  tabs: ['overview', 'matrix', 'ranking', 'questions', 'students', 'timing', 'insights'],
+                  tabs: ['overview', 'matrix', 'ranking', 'questions', 'students', 'timing', 'insights', 'answers'],
                   tabNames: TAB_NAMES_DAY1,
                   setActiveTab,
                   setIsExporting,
@@ -4507,6 +4513,29 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
         </div>
+      </TabsContent>
+
+      {/* === ANSWERS TAB === */}
+      <TabsContent value="answers" className="space-y-4">
+        <SurveyFullAnswersTab
+          surveyName="Pesquisa Dia 1"
+          students={analytics.responsesByStudent.map(s => ({
+            id: s.userId,
+            name: s.userName,
+            avatarUrl: null,
+            completedAt: s.completedAt,
+            effectiveTimeSeconds: s.totalTimeSeconds,
+            overallScore: s.overallScore,
+            classification: s.satisfactionClass,
+            responses: s.responses.map(r => ({
+              key: r.questionKey,
+              question: r.questionLabel,
+              answer: r.value,
+              category: r.category,
+              numericValue: r.numericValue,
+            })),
+          }))}
+        />
       </TabsContent>
 
       {/* Student detail is shown inline in the right panel - no dialog needed */}

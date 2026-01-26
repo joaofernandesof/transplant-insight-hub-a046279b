@@ -69,6 +69,7 @@ import {
   generateMonitorInsight,
   generateWordCloudInsight
 } from '@/components/surveys/ChartExecutiveSummary';
+import { SurveyFullAnswersTab, StudentFullAnswer } from '@/components/surveys/SurveyFullAnswersTab';
 import { printCurrentView } from '@/utils/printPdf';
 import { exportAllTabsToPdf } from '@/utils/exportAllTabsPdf';
 import { toast } from 'sonner';
@@ -317,6 +318,36 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
     monitors: 'Monitores',
     feedback: 'Feedback',
     students: 'Alunos',
+    answers: 'Respostas',
+  };
+  
+  // Question labels for Day3
+  const DAY3_QUESTION_LABELS: Record<string, string> = {
+    q1: 'Nível de satisfação geral',
+    q2: 'O curso correspondeu ao prometido?',
+    q3: 'Qualidade das bases técnicas',
+    q4: 'Carga prática do curso',
+    q5: 'Equilíbrio teoria/prática',
+    q6: 'Clareza sobre execução',
+    q7: 'Confiança adquirida',
+    q8: 'Relevância das aulas de gestão',
+    q9: 'Segurança jurídica adquirida',
+    q10: 'Organização do evento',
+    q11: 'Qualidade do suporte',
+    q12: 'O que precisa melhorar',
+    q13: 'O que mais acertamos',
+    q14: 'Melhor monitor (técnico)',
+    q15: 'Melhor monitor (atenção)',
+    q16: 'Comentários sobre monitores',
+  };
+
+  const DAY3_CATEGORY_LABELS: Record<string, string> = {
+    'Satisfação': 'Satisfação Geral',
+    'Técnico': 'Conteúdo Técnico',
+    'Confiança': 'Execução e Confiança',
+    'Gestão': 'Gestão e Jurídico',
+    'Suporte': 'Organização e Suporte',
+    'Monitores': 'Avaliação de Monitores',
   };
   
   const exportCurrentTab = async () => {
@@ -464,7 +495,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
       
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-7 w-full max-w-3xl">
+        <TabsList className="grid grid-cols-8 w-full max-w-4xl">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="content">Conteúdo</TabsTrigger>
           <TabsTrigger value="monitors">Monitores</TabsTrigger>
@@ -477,6 +508,10 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
           <TabsTrigger value="insights" className="flex items-center gap-1">
             <Sparkles className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Insights IA</span>
+          </TabsTrigger>
+          <TabsTrigger value="answers" className="flex items-center gap-1">
+            <MessageSquare className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Respostas</span>
           </TabsTrigger>
         </TabsList>
         
@@ -1083,6 +1118,50 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        {/* === ANSWERS TAB === */}
+        <TabsContent value="answers" className="space-y-4">
+          <SurveyFullAnswersTab
+            surveyName="Pesquisa Final (Dia 3)"
+            questionLabels={DAY3_QUESTION_LABELS}
+            categoryLabels={DAY3_CATEGORY_LABELS}
+            students={analytics.responsesByStudent.map(s => {
+              const getCategory = (key: string) => {
+                if (['q1'].includes(key)) return 'Satisfação';
+                if (['q2', 'q3', 'q4', 'q5'].includes(key)) return 'Técnico';
+                if (['q6', 'q7'].includes(key)) return 'Confiança';
+                if (['q8', 'q9'].includes(key)) return 'Gestão';
+                if (['q10', 'q11'].includes(key)) return 'Suporte';
+                return 'Monitores';
+              };
+              
+              return {
+                id: s.userId,
+                name: s.studentName,
+                avatarUrl: s.avatarUrl,
+                completedAt: s.completedAt,
+                effectiveTimeSeconds: s.effectiveTime,
+                overallScore: s.overallScore,
+                classification: s.overallScore >= 8 ? 'promotor' as const : 
+                               s.overallScore >= 6 ? 'neutro' as const : 'detrator' as const,
+                responses: Object.entries(s.responses).map(([key, value]) => {
+                  const questionLabel = DAY3_QUESTION_LABELS[key] || QUESTION_LABELS[key] || key;
+                  const displayValue = value 
+                    ? (VALUE_DISPLAY_LABELS[key]?.[value] || value)
+                    : null;
+                  
+                  return {
+                    key,
+                    question: questionLabel,
+                    answer: displayValue,
+                    category: getCategory(key),
+                    numericValue: null,
+                  };
+                }),
+              };
+            })}
+          />
         </TabsContent>
       </Tabs>
       
