@@ -29,6 +29,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ReferralLanding from "./pages/ReferralLanding";
 import ApiDocs from "./pages/ApiDocs";
+import AuditReportExport from "./pages/AuditReportExport";
 
 // ====================================
 // Pages - Admin/Licenciado (Legado)
@@ -429,6 +430,7 @@ function AppRoutes() {
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/neocare-landing" element={<NeoCareLanding />} />
       <Route path="/neocare-protect" element={<NeoCareProductLanding />} />
+      <Route path="/audit-report" element={<AuditReportExport />} />
 
       {/* ====================================
           Home - Roteamento dinâmico por perfil
