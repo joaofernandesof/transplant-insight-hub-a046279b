@@ -903,14 +903,26 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
           <CardContent>
             {strengths.length > 0 ? (
               <div className="space-y-2">
-                {strengths.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
-                    <span className="font-medium text-sm">{item.name}</span>
-                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-                      {item.score.toFixed(1)}
-                    </Badge>
-                  </div>
-                ))}
+                {strengths.map((item, idx) => {
+                  // Ranking indicators
+                  const getRankingIndicator = (position: number) => {
+                    if (position === 0) return { icon: '🥇', size: 'text-xl', bg: 'bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/40 dark:to-amber-900/40 ring-2 ring-yellow-300 dark:ring-yellow-700', scale: 'scale-[1.02]' };
+                    if (position === 1) return { icon: '🥈', size: 'text-lg', bg: 'bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-900/40 dark:to-gray-900/40 ring-1 ring-slate-300 dark:ring-slate-700', scale: '' };
+                    if (position === 2) return { icon: '🥉', size: 'text-base', bg: 'bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 ring-1 ring-orange-200 dark:ring-orange-800', scale: '' };
+                    return { icon: `${position + 1}º`, size: 'text-sm', bg: 'bg-emerald-50 dark:bg-emerald-900/20', scale: '' };
+                  };
+                  const ranking = getRankingIndicator(idx);
+                  
+                  return (
+                    <div key={idx} className={`flex items-center gap-3 p-3 rounded-lg transition-all ${ranking.bg} ${ranking.scale}`}>
+                      <span className={`${ranking.size} flex-shrink-0 w-8 text-center`}>{ranking.icon}</span>
+                      <span className="font-medium text-sm flex-1">{item.name}</span>
+                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 font-bold">
+                        {item.score.toFixed(1)}
+                      </Badge>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-muted-foreground text-sm">Nenhum ponto com score ≥ 7.5</p>
@@ -929,20 +941,54 @@ export function Day3ContentAnalysisTab({ analytics }: ContentAnalysisProps) {
           <CardContent>
             {weaknesses.length > 0 ? (
               <div className="space-y-2">
-                {weaknesses.map((item, idx) => {
+                {/* Sort weaknesses from lowest to highest (most critical first) */}
+                {[...weaknesses].sort((a, b) => a.score - b.score).map((item, idx) => {
                   // Color by severity: < 6 = red (grave), 6-7.5 = yellow (moderate)
                   const isGrave = item.score < 6;
-                  const bgColor = isGrave 
-                    ? 'bg-red-50 dark:bg-red-900/20' 
-                    : 'bg-amber-50 dark:bg-amber-900/20';
+                  
+                  // Priority indicators for weaknesses (most critical first)
+                  const getPriorityIndicator = (position: number, grave: boolean) => {
+                    if (position === 0) return { 
+                      icon: '🚨', 
+                      size: 'text-xl', 
+                      bg: grave 
+                        ? 'bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40 ring-2 ring-red-300 dark:ring-red-700' 
+                        : 'bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 ring-2 ring-amber-300 dark:ring-amber-700',
+                      scale: 'scale-[1.02]' 
+                    };
+                    if (position === 1) return { 
+                      icon: '⚠️', 
+                      size: 'text-lg', 
+                      bg: grave 
+                        ? 'bg-red-50 dark:bg-red-900/30 ring-1 ring-red-200 dark:ring-red-800' 
+                        : 'bg-amber-50 dark:bg-amber-900/30 ring-1 ring-amber-200 dark:ring-amber-800', 
+                      scale: '' 
+                    };
+                    if (position === 2) return { 
+                      icon: '📋', 
+                      size: 'text-base', 
+                      bg: grave 
+                        ? 'bg-red-50/50 dark:bg-red-900/20' 
+                        : 'bg-amber-50/50 dark:bg-amber-900/20', 
+                      scale: '' 
+                    };
+                    return { 
+                      icon: `${position + 1}º`, 
+                      size: 'text-sm', 
+                      bg: grave ? 'bg-red-50 dark:bg-red-900/20' : 'bg-amber-50 dark:bg-amber-900/20', 
+                      scale: '' 
+                    };
+                  };
+                  const priority = getPriorityIndicator(idx, isGrave);
                   const badgeBg = isGrave 
                     ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' 
                     : 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300';
                   
                   return (
-                    <div key={idx} className={`flex items-center justify-between p-2 rounded-lg ${bgColor}`}>
-                      <span className="font-medium text-sm">{item.name}</span>
-                      <Badge variant="secondary" className={badgeBg}>
+                    <div key={idx} className={`flex items-center gap-3 p-3 rounded-lg transition-all ${priority.bg} ${priority.scale}`}>
+                      <span className={`${priority.size} flex-shrink-0 w-8 text-center`}>{priority.icon}</span>
+                      <span className="font-medium text-sm flex-1">{item.name}</span>
+                      <Badge variant="secondary" className={`${badgeBg} font-bold`}>
                         {item.score.toFixed(1)}
                       </Badge>
                     </div>
