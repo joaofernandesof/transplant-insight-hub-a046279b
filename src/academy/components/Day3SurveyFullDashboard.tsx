@@ -99,6 +99,38 @@ const BALANCE_LABELS: Record<string, string> = {
   muito_teorico: '📚 Muito teórico',
 };
 
+// Mapeamento de scores 0-10 para cada resposta
+const VALUE_TO_SCORE: Record<string, Record<string, number>> = {
+  q1: { muito_insatisfeito: 0, insatisfeito: 2.5, neutro: 5, satisfeito: 7.5, muito_satisfeito: 10 },
+  q2: { muito_abaixo: 0, abaixo: 2.5, dentro: 5, acima: 7.5, muito_acima: 10 },
+  q3: { muito_fracos: 0, fracos: 2.5, adequados: 5, bons: 7.5, excelentes: 10 },
+  q4: { muito_insuficiente: 0, insuficiente: 2.5, adequada: 5, boa: 7.5, excelente: 10 },
+  q5: { muito_teorico: 2.5, mais_teoria: 5, equilibrado: 10, mais_pratica: 7.5, muito_pratico: 5 },
+  q6: { nenhuma: 0, pouca: 2.5, razoavel: 5, boa: 7.5, total: 10 },
+  q7: { nenhuma: 0, baixa: 2.5, moderada: 5, boa: 7.5, alta: 10 },
+  q8: { nada_relevantes: 0, pouco_relevantes: 2.5, relevantes: 5, muito_relevantes: 7.5, essenciais: 10 },
+  q9: { nenhuma: 0, pouca: 2.5, razoavel: 5, boa: 7.5, muita: 10 },
+  q10: { muito_ruim: 0, ruim: 2.5, regular: 5, boa: 7.5, excelente: 10 },
+  q11: { muito_fraco: 0, fraco: 2.5, adequado: 5, bom: 7.5, excelente: 10 },
+};
+
+// Função para obter cor baseada no score (0-10)
+// 0-3: Vermelho | 4-6: Amarelo | 7: Azul claro | 8-9: Azul | 10: Verde
+const getScoreColor = (score: number | null): { bg: string; text: string } => {
+  if (score === null || score === undefined) return { bg: '', text: 'text-muted-foreground' };
+  if (score >= 10) return { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-300' };
+  if (score >= 8) return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300' };
+  if (score >= 7) return { bg: 'bg-sky-100 dark:bg-sky-900/30', text: 'text-sky-700 dark:text-sky-300' };
+  if (score >= 4) return { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300' };
+  return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300' };
+};
+
+// Função para obter score de uma resposta
+const getResponseScore = (key: string, value: string | null): number | null => {
+  if (!value || !VALUE_TO_SCORE[key]) return null;
+  return VALUE_TO_SCORE[key][value] ?? null;
+};
+
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -743,6 +775,7 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                       <TableHead>Promessa</TableHead>
                       <TableHead>Técnico</TableHead>
                       <TableHead>Prática</TableHead>
+                      <TableHead>Equilíbrio</TableHead>
                       <TableHead>Clareza</TableHead>
                       <TableHead>Confiança</TableHead>
                       <TableHead>Gestão</TableHead>
@@ -763,11 +796,25 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                   </TableHeader>
                   <TableBody>
                     {sortStudents(analytics.responsesByStudent).map((student, idx) => {
-                      const satConfig = getSatisfactionFromScore(student.overallScore);
-                      const getValueLabel = (key: string) => {
+                      // Função para renderizar célula com score colorido
+                      const renderScoreCell = (key: string) => {
                         const val = student.responses[key];
-                        return val ? (VALUE_DISPLAY_LABELS[key]?.[val] || val) : '—';
+                        const score = getResponseScore(key, val);
+                        const colors = getScoreColor(score);
+                        const label = val ? (VALUE_DISPLAY_LABELS[key]?.[val] || val) : '—';
+                        
+                        if (score === null) {
+                          return <span className="text-muted-foreground">—</span>;
+                        }
+                        
+                        return (
+                          <div className={`px-2 py-1 rounded text-center ${colors.bg} ${colors.text}`}>
+                            <div className="font-semibold text-sm">{score}</div>
+                          </div>
+                        );
                       };
+                      
+                      const overallColors = getScoreColor(student.overallScore);
                       
                       return (
                         <TableRow key={student.userId} className="hover:bg-muted/30">
@@ -788,26 +835,21 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
                               ? format(parseISO(student.completedAt), "dd/MM/yy HH:mm", { locale: ptBR })
                               : <span className="text-amber-600">Pendente</span>}
                           </TableCell>
+                          <TableCell>{renderScoreCell('q1')}</TableCell>
+                          <TableCell>{renderScoreCell('q2')}</TableCell>
+                          <TableCell>{renderScoreCell('q3')}</TableCell>
+                          <TableCell>{renderScoreCell('q4')}</TableCell>
+                          <TableCell>{renderScoreCell('q5')}</TableCell>
+                          <TableCell>{renderScoreCell('q6')}</TableCell>
+                          <TableCell>{renderScoreCell('q7')}</TableCell>
+                          <TableCell>{renderScoreCell('q8')}</TableCell>
+                          <TableCell>{renderScoreCell('q9')}</TableCell>
+                          <TableCell>{renderScoreCell('q10')}</TableCell>
+                          <TableCell>{renderScoreCell('q11')}</TableCell>
                           <TableCell>
-                            <Badge 
-                              variant="secondary"
-                              className="text-xs whitespace-nowrap"
-                              style={{ backgroundColor: satConfig.color + '20', color: satConfig.color }}
-                            >
-                              {satConfig.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q2')}</TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q3')}</TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q4')}</TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q6')}</TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q7')}</TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q8')}</TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q9')}</TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q10')}</TableCell>
-                          <TableCell className="text-sm">{getValueLabel('q11')}</TableCell>
-                          <TableCell>
-                            <span className="font-bold text-lg">{student.overallScore}</span>
+                            <div className={`px-2 py-1 rounded text-center ${overallColors.bg} ${overallColors.text}`}>
+                              <span className="font-bold text-lg">{student.overallScore}</span>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Button
