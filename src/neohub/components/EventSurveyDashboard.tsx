@@ -3294,132 +3294,108 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
             </CardContent>
           </Card>
 
-          {/* Instructor Comparison - Bar Charts */}
+          {/* Instructor Comparison - Ranking Cards with Scores */}
           <Card className="lg:col-span-2">
             <CardHeader className="pb-4">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Award className="h-5 w-5 text-primary" />
                 Comparação de Professores
               </CardTitle>
-              <CardDescription>Avaliação comparativa entre Dr. Hygor e Dr. Patrick</CardDescription>
+              <CardDescription>Avaliação comparativa entre Dr. Patrick e Dr. Hygor</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="grid lg:grid-cols-2 gap-6">
-                {/* Chart 1: Each Instructor with All Metrics */}
-                <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-3">Desempenho por Professor</h4>
-                  <div className="h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart 
-                        data={[
-                          {
-                            name: 'Dr. Hygor',
-                            'Expectativas': analytics.instructors.hygor.avgExpectations,
-                            'Clareza': analytics.instructors.hygor.avgClarity,
-                            'Tempo': analytics.instructors.hygor.avgTime,
-                          },
-                          {
-                            name: 'Dr. Patrick',
-                            'Expectativas': analytics.instructors.patrick.avgExpectations,
-                            'Clareza': analytics.instructors.patrick.avgClarity,
-                            'Tempo': analytics.instructors.patrick.avgTime,
-                          },
-                        ]} 
-                        layout="vertical"
-                        barCategoryGap="25%"
-                      >
-                        <XAxis type="number" domain={[0, 10]} tick={{ fontSize: 11 }} />
-                        <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 12, fontWeight: 500 }} />
-                        <Tooltip formatter={(value: number) => `${value.toFixed(1)}/10`} />
-                        <Legend wrapperStyle={{ fontSize: 11 }} />
-                        <Bar dataKey="Expectativas" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                        <Bar dataKey="Clareza" fill="#10b981" radius={[0, 4, 4, 0]} />
-                        <Bar dataKey="Tempo" fill="#f59e0b" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
+              {/* Ranking Cards - Ordered by Score (highest first) */}
+              {(() => {
+                const patrickAvg = analytics.instructors.patrick.overallAvg;
+                const hygorAvg = analytics.instructors.hygor.overallAvg;
+                const patrickIsFirst = patrickAvg >= hygorAvg;
+                
+                const instructors = [
+                  {
+                    name: 'Dr. Patrick',
+                    avg: patrickAvg,
+                    expectations: analytics.instructors.patrick.avgExpectations,
+                    clarity: analytics.instructors.patrick.avgClarity,
+                    time: analytics.instructors.patrick.avgTime,
+                    color: 'emerald',
+                    isFirst: patrickIsFirst,
+                  },
+                  {
+                    name: 'Dr. Hygor',
+                    avg: hygorAvg,
+                    expectations: analytics.instructors.hygor.avgExpectations,
+                    clarity: analytics.instructors.hygor.avgClarity,
+                    time: analytics.instructors.hygor.avgTime,
+                    color: 'blue',
+                    isFirst: !patrickIsFirst,
+                  },
+                ].sort((a, b) => b.avg - a.avg);
 
-                {/* Chart 2: Each Metric with All Instructors */}
-                <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-3">Comparativo por Dimensão</h4>
-                  <div className="h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart 
-                        data={[
-                          { 
-                            metric: 'Expectativas', 
-                            'Dr. Hygor': analytics.instructors.hygor.avgExpectations,
-                            'Dr. Patrick': analytics.instructors.patrick.avgExpectations,
-                          },
-                          { 
-                            metric: 'Clareza', 
-                            'Dr. Hygor': analytics.instructors.hygor.avgClarity,
-                            'Dr. Patrick': analytics.instructors.patrick.avgClarity,
-                          },
-                          { 
-                            metric: 'Tempo', 
-                            'Dr. Hygor': analytics.instructors.hygor.avgTime,
-                            'Dr. Patrick': analytics.instructors.patrick.avgTime,
-                          },
-                        ]}
-                        layout="vertical"
-                        barCategoryGap="25%"
+                return (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {instructors.map((instructor, index) => (
+                      <div 
+                        key={instructor.name}
+                        className={`p-5 rounded-xl border relative transition-all ${
+                          index === 0 
+                            ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 ring-2 ring-emerald-300 dark:ring-emerald-700' 
+                            : 'bg-slate-50 dark:bg-slate-950/30 border-slate-200 dark:border-slate-800'
+                        }`}
                       >
-                        <XAxis type="number" domain={[0, 10]} tick={{ fontSize: 11 }} />
-                        <YAxis dataKey="metric" type="category" width={90} tick={{ fontSize: 12, fontWeight: 500 }} />
-                        <Tooltip formatter={(value: number) => `${value.toFixed(1)}/10`} />
-                        <Legend wrapperStyle={{ fontSize: 11 }} />
-                        <Bar dataKey="Dr. Hygor" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                        <Bar dataKey="Dr. Patrick" fill="#10b981" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                        {index === 0 && (
+                          <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-md">
+                            1º
+                          </div>
+                        )}
+                        {index === 1 && (
+                          <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-slate-400 text-white flex items-center justify-center text-xs font-bold shadow-md">
+                            2º
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-2 mb-4 ml-2">
+                          <div className={`w-3 h-3 rounded-full ${instructor.color === 'emerald' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                          <span className={`font-semibold text-lg ${instructor.color === 'emerald' ? 'text-emerald-700 dark:text-emerald-400' : 'text-blue-700 dark:text-blue-400'}`}>
+                            {instructor.name}
+                          </span>
+                        </div>
+                        
+                        <div className={`text-3xl font-bold ml-2 mb-4 ${index === 0 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                          {instructor.avg.toFixed(1)}/10
+                          <span className="text-sm font-normal text-muted-foreground ml-2">Média Geral</span>
+                        </div>
+                        
+                        {/* Individual Scores Table */}
+                        <div className="space-y-2 ml-2">
+                          <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                            <span className="text-sm text-muted-foreground">Expectativas</span>
+                            <span className={`font-bold ${instructor.expectations >= 8 ? 'text-emerald-600' : instructor.expectations >= 7 ? 'text-amber-600' : 'text-red-600'}`}>
+                              {instructor.expectations.toFixed(1)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                            <span className="text-sm text-muted-foreground">Clareza</span>
+                            <span className={`font-bold ${instructor.clarity >= 8 ? 'text-emerald-600' : instructor.clarity >= 7 ? 'text-amber-600' : 'text-red-600'}`}>
+                              {instructor.clarity.toFixed(1)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <span className="text-sm text-muted-foreground">Tempo</span>
+                            <span className={`font-bold ${instructor.time >= 8 ? 'text-emerald-600' : instructor.time >= 7 ? 'text-amber-600' : 'text-red-600'}`}>
+                              {instructor.time.toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </div>
-
-              {/* Ranking Cards */}
-              <div className="grid grid-cols-2 gap-4 mt-6">
-                <div className={`p-4 rounded-xl border relative ${
-                  analytics.instructors.hygor.overallAvg >= analytics.instructors.patrick.overallAvg 
-                    ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' 
-                    : 'bg-slate-50 dark:bg-slate-950/30 border-slate-200 dark:border-slate-800'
-                }`}>
-                  {analytics.instructors.hygor.overallAvg >= analytics.instructors.patrick.overallAvg && (
-                    <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-amber-400 text-amber-900 flex items-center justify-center text-xs font-bold">1º</div>
-                  )}
-                  <div className="flex items-center gap-2 mb-2 ml-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                    <span className="font-semibold text-blue-700 dark:text-blue-400">Dr. Hygor</span>
-                  </div>
-                  <div className="text-2xl font-bold text-blue-600 ml-2">
-                    {analytics.instructors.hygor.overallAvg.toFixed(1)}/10
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 ml-2">Média Geral</p>
-                </div>
-                <div className={`p-4 rounded-xl border relative ${
-                  analytics.instructors.patrick.overallAvg > analytics.instructors.hygor.overallAvg 
-                    ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' 
-                    : 'bg-slate-50 dark:bg-slate-950/30 border-slate-200 dark:border-slate-800'
-                }`}>
-                  {analytics.instructors.patrick.overallAvg > analytics.instructors.hygor.overallAvg && (
-                    <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-amber-400 text-amber-900 flex items-center justify-center text-xs font-bold">1º</div>
-                  )}
-                  <div className="flex items-center gap-2 mb-2 ml-2">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">Dr. Patrick</span>
-                  </div>
-                  <div className="text-2xl font-bold text-emerald-600 ml-2">
-                    {analytics.instructors.patrick.overallAvg.toFixed(1)}/10
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 ml-2">Média Geral</p>
-                </div>
-              </div>
+                );
+              })()}
 
               <ChartExecutiveSummary 
                 insights={generateInstructorInsight(
-                  { name: 'Dr. Hygor', avg: analytics.instructors.hygor.overallAvg },
-                  { name: 'Dr. Patrick', avg: analytics.instructors.patrick.overallAvg }
+                  { name: 'Dr. Patrick', avg: analytics.instructors.patrick.overallAvg },
+                  { name: 'Dr. Hygor', avg: analytics.instructors.hygor.overallAvg }
                 )}
                 variant="info"
               />
