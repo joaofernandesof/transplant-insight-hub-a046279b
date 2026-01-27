@@ -45,6 +45,7 @@ import {
   Activity
 } from "lucide-react";
 import { LegalWidgetInsight, generateLarisaOverallInsight, generateLeadsInsight, generateExamInsight, generateFeelingInsight } from "../LegalWidgetInsight";
+import { ExpandableNames, type PersonInfo } from "./MetricWithNames";
 import type { LarissaMetrics, LegalPerception, ExamMetrics, StudentWithScores } from "./types";
 
 interface LegalOverviewTabProps {
@@ -255,6 +256,13 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
                 <span>COLD: {legalPerception?.leads.cold}</span>
               </div>
             </div>
+            {legalPerception && (
+              <div className="mt-2 space-y-1">
+                <ExpandableNames title="HOT" people={legalPerception.leadsPeople.hot} colorClass="text-rose-600" />
+                <ExpandableNames title="WARM" people={legalPerception.leadsPeople.warm} colorClass="text-amber-600" />
+                <ExpandableNames title="COLD" people={legalPerception.leadsPeople.cold} colorClass="text-blue-600" />
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -288,7 +296,7 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
         </Card>
       </div>
 
-      {/* Row 3: 3 Charts - print-section */}
+      {/* Row 3: 3 Charts with Names - print-section */}
       <div className="print-section grid md:grid-cols-3 gap-4 bg-background p-2 rounded-lg">
         {/* Chart 4: Feeling Distribution */}
         <Card>
@@ -314,7 +322,18 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
               </ResponsiveContainer>
             </div>
             {legalPerception && (
-              <LegalWidgetInsight {...generateFeelingInsight(legalPerception.feelingDist, legalPerception.total)} />
+              <>
+                <LegalWidgetInsight {...generateFeelingInsight(legalPerception.feelingDist, legalPerception.total)} />
+                {/* Names by category */}
+                {Object.entries(legalPerception.feelingPeople).map(([category, people]) => (
+                  <ExpandableNames 
+                    key={category}
+                    title={category} 
+                    people={people}
+                    colorClass={category.includes('Exposto') ? 'text-rose-600' : category.includes('Inseguro') ? 'text-amber-600' : 'text-emerald-600'}
+                  />
+                ))}
+              </>
             )}
           </CardContent>
         </Card>
@@ -342,6 +361,14 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            {legalPerception && Object.entries(legalPerception.influencePeople).map(([category, people]) => (
+              <ExpandableNames 
+                key={category}
+                title={category} 
+                people={people}
+                colorClass={category.includes('Travaram') ? 'text-rose-600' : category.includes('bastante') ? 'text-amber-600' : 'text-emerald-600'}
+              />
+            ))}
           </CardContent>
         </Card>
 
@@ -368,6 +395,14 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            {legalPerception && Object.entries(legalPerception.timingPeople).map(([category, people]) => (
+              <ExpandableNames 
+                key={category}
+                title={category} 
+                people={people}
+                colorClass={category.includes('quanto antes') ? 'text-rose-600' : category.includes('meses') ? 'text-amber-600' : 'text-blue-600'}
+              />
+            ))}
           </CardContent>
         </Card>
       </div>
@@ -467,8 +502,9 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
         )}
       </div>
 
-      {/* Row 5: Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Row 5: Summary Cards with Names */}
+      <div className="print-section grid grid-cols-2 md:grid-cols-4 gap-4 bg-background p-2 rounded-lg">
+        {/* Inseguros */}
         <Card className="bg-rose-50 dark:bg-rose-900/20 border-rose-200">
           <CardContent className="pt-4 text-center">
             <p className="text-3xl font-bold text-rose-600">{kpis.insecurePercentage}%</p>
@@ -476,8 +512,21 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
             <p className="text-[10px] text-muted-foreground mt-1">
               Soma de categorias inseguras
             </p>
+            {legalPerception && (
+              <ExpandableNames 
+                title="Alunos inseguros" 
+                people={[
+                  ...(legalPerception.feelingPeople['Exposto a riscos'] || []),
+                  ...(legalPerception.feelingPeople['Inseguro em pontos'] || []),
+                  ...(legalPerception.feelingPeople['Um pouco inseguro'] || []),
+                ]}
+                colorClass="text-rose-600"
+              />
+            )}
           </CardContent>
         </Card>
+
+        {/* Decisões impactadas */}
         <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200">
           <CardContent className="pt-4 text-center">
             <p className="text-3xl font-bold text-amber-600">
@@ -488,8 +537,20 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
               ) : 0}%
             </p>
             <p className="text-xs text-amber-700 dark:text-amber-300">Decisões Impactadas</p>
+            {legalPerception && (
+              <ExpandableNames 
+                title="Alunos impactados" 
+                people={[
+                  ...(legalPerception.influencePeople['Travaram decisões'] || []),
+                  ...(legalPerception.influencePeople['Influenciam bastante'] || []),
+                ]}
+                colorClass="text-amber-600"
+              />
+            )}
           </CardContent>
         </Card>
+
+        {/* Urgência imediata */}
         <Card className="bg-violet-50 dark:bg-violet-900/20 border-violet-200">
           <CardContent className="pt-4 text-center">
             <p className="text-3xl font-bold text-violet-600">
@@ -500,8 +561,20 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
               ) : 0}%
             </p>
             <p className="text-xs text-violet-700 dark:text-violet-300">Urgência Imediata</p>
+            {legalPerception && (
+              <ExpandableNames 
+                title="Alunos urgentes" 
+                people={[
+                  ...(legalPerception.timingPeople['O quanto antes'] || []),
+                  ...(legalPerception.timingPeople['Próximos meses'] || []),
+                ]}
+                colorClass="text-violet-600"
+              />
+            )}
           </CardContent>
         </Card>
+
+        {/* Leads HOT */}
         <Card className="bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200">
           <CardContent className="pt-4 text-center">
             <p className="text-3xl font-bold text-emerald-600">{kpis.hotPercentage}%</p>
@@ -509,6 +582,82 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
             <p className="text-[10px] text-muted-foreground mt-1">
               Score ≥ 40 pontos
             </p>
+            {legalPerception && (
+              <ExpandableNames 
+                title="Leads HOT" 
+                people={legalPerception.leadsPeople.hot}
+                colorClass="text-emerald-600"
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Row 6: Detailed Lead Lists by Classification */}
+      <div className="print-section grid md:grid-cols-3 gap-4 bg-background p-2 rounded-lg">
+        {/* HOT Leads */}
+        <Card className="border-l-4 border-l-rose-500">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Flame className="h-4 w-4 text-rose-500" />
+              Leads HOT ({legalPerception?.leads.hot || 0})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5 max-h-40 overflow-y-auto">
+              {legalPerception?.leadsPeople.hot.map((person, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm p-1.5 bg-rose-50 dark:bg-rose-900/20 rounded">
+                  <span className="font-medium">{person.name}</span>
+                </div>
+              ))}
+              {(!legalPerception?.leadsPeople.hot || legalPerception.leadsPeople.hot.length === 0) && (
+                <p className="text-xs text-muted-foreground text-center py-2">Nenhum lead HOT</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* WARM Leads */}
+        <Card className="border-l-4 border-l-amber-500">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Thermometer className="h-4 w-4 text-amber-500" />
+              Leads WARM ({legalPerception?.leads.warm || 0})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5 max-h-40 overflow-y-auto">
+              {legalPerception?.leadsPeople.warm.map((person, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm p-1.5 bg-amber-50 dark:bg-amber-900/20 rounded">
+                  <span className="font-medium">{person.name}</span>
+                </div>
+              ))}
+              {(!legalPerception?.leadsPeople.warm || legalPerception.leadsPeople.warm.length === 0) && (
+                <p className="text-xs text-muted-foreground text-center py-2">Nenhum lead WARM</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* COLD Leads */}
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Snowflake className="h-4 w-4 text-blue-500" />
+              Leads COLD ({legalPerception?.leads.cold || 0})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5 max-h-40 overflow-y-auto">
+              {legalPerception?.leadsPeople.cold.map((person, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded">
+                  <span className="font-medium">{person.name}</span>
+                </div>
+              ))}
+              {(!legalPerception?.leadsPeople.cold || legalPerception.leadsPeople.cold.length === 0) && (
+                <p className="text-xs text-muted-foreground text-center py-2">Nenhum lead COLD</p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

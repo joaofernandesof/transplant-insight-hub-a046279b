@@ -229,39 +229,62 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
     const feelingDist: Record<string, number> = {};
     const influenceDist: Record<string, number> = {};
     const timingDist: Record<string, number> = {};
+    const feelingPeople: Record<string, { name: string; avatarUrl?: string | null }[]> = {};
+    const influencePeople: Record<string, { name: string; avatarUrl?: string | null }[]> = {};
+    const timingPeople: Record<string, { name: string; avatarUrl?: string | null }[]> = {};
     let totalScore = 0;
     let scoreCount = 0;
     const leads = { hot: 0, warm: 0, cold: 0 };
+    const leadsPeople: { hot: { name: string; avatarUrl?: string | null }[]; warm: { name: string; avatarUrl?: string | null }[]; cold: { name: string; avatarUrl?: string | null }[] } = { hot: [], warm: [], cold: [] };
 
     surveyData.forEach(d => {
+      const person = { name: d.userName, avatarUrl: d.avatarUrl };
+
       if (d.q18_legal_feeling) {
         const key = normalizeLegalFeeling(d.q18_legal_feeling);
         feelingDist[key] = (feelingDist[key] || 0) + 1;
+        if (!feelingPeople[key]) feelingPeople[key] = [];
+        feelingPeople[key].push(person);
       }
       if (d.q19_legal_influence) {
         const key = normalizeLegalInfluence(d.q19_legal_influence);
         influenceDist[key] = (influenceDist[key] || 0) + 1;
+        if (!influencePeople[key]) influencePeople[key] = [];
+        influencePeople[key].push(person);
       }
       if (d.q20_legal_timing) {
         const key = normalizeLegalTiming(d.q20_legal_timing);
         timingDist[key] = (timingDist[key] || 0) + 1;
+        if (!timingPeople[key]) timingPeople[key] = [];
+        timingPeople[key].push(person);
       }
       if (d.score_legal !== null) {
         totalScore += d.score_legal;
         scoreCount++;
       }
-      if (d.lead_classification === 'hot') leads.hot++;
-      else if (d.lead_classification === 'warm') leads.warm++;
-      else if (d.lead_classification === 'cold') leads.cold++;
+      if (d.lead_classification === 'hot') {
+        leads.hot++;
+        leadsPeople.hot.push(person);
+      } else if (d.lead_classification === 'warm') {
+        leads.warm++;
+        leadsPeople.warm.push(person);
+      } else if (d.lead_classification === 'cold') {
+        leads.cold++;
+        leadsPeople.cold.push(person);
+      }
     });
 
     return {
       feelingDist,
       influenceDist,
       timingDist,
+      feelingPeople,
+      influencePeople,
+      timingPeople,
       averageScore: scoreCount > 0 ? totalScore / scoreCount : 0,
       normalizedScore: scoreCount > 0 ? (totalScore / scoreCount) * 10 / 18 : 0,
       leads,
+      leadsPeople,
       total: surveyData.length
     };
   };
