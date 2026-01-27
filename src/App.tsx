@@ -33,6 +33,7 @@ import ApiDocs from "./pages/ApiDocs";
 import AuditReportExport from "./pages/AuditReportExport";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+const PublicDashboardPage = lazy(() => import("./pages/public/PublicDashboardPage"));
 
 // ====================================
 // Pages - Admin/Licenciado (Legado)
@@ -444,6 +445,7 @@ function AppRoutes() {
       <Route path="/audit-report" element={<AuditReportExport />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/public/dashboard/:token" element={<Suspense fallback={<div className="p-6 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}><PublicDashboardPage /></Suspense>} />
 
       {/* ====================================
           Home - Roteamento dinâmico por perfil
