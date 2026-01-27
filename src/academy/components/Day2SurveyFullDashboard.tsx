@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTabFromUrl } from '@/hooks/useTabFromUrl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -137,7 +138,10 @@ const DAY2_CATEGORY_LABELS: Record<string, string> = {
 
 export function Day2SurveyFullDashboard({ classId }: Day2SurveyFullDashboardProps) {
   const { data: analytics, isLoading, error } = useDay2SurveyAnalytics(classId);
-  const [activeTab, setActiveTab] = useState('overview');
+  const { activeTab, setActiveTab } = useTabFromUrl({
+    defaultTab: 'overview',
+    validTabs: ['overview', 'leads', 'products', 'instructors', 'students', 'answers', 'ai'],
+  });
   const [isExporting, setIsExporting] = useState(false);
   
   // Filter states

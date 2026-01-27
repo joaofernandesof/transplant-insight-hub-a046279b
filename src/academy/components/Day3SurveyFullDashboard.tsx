@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTabFromUrl } from '@/hooks/useTabFromUrl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -308,7 +309,10 @@ export function Day3SurveyFullDashboard({ classId }: Day3SurveyFullDashboardProp
   const [selectedStudent, setSelectedStudent] = useState<StudentResponse | null>(null);
   const [sortField, setSortField] = useState<'name' | 'date' | 'score' | 'satisfaction'>('score');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [activeTab, setActiveTab] = useState('overview');
+  const { activeTab, setActiveTab } = useTabFromUrl({
+    defaultTab: 'overview',
+    validTabs: ['overview', 'content', 'monitors', 'feedback', 'students', 'answers'],
+  });
   const [isExporting, setIsExporting] = useState(false);
   const { data: analytics, isLoading, error } = useDay3SurveyAnalytics(classId);
   
