@@ -14,13 +14,23 @@ export interface LarissaMetrics {
   feedbacksImprove: FeedbackWithAuthor[];
 }
 
+export interface PersonRef {
+  name: string;
+  avatarUrl?: string | null;
+}
+
 export interface LegalPerception {
   feelingDist: Record<string, number>;
   influenceDist: Record<string, number>;
   timingDist: Record<string, number>;
+  // Lists of people per category
+  feelingPeople: Record<string, PersonRef[]>;
+  influencePeople: Record<string, PersonRef[]>;
+  timingPeople: Record<string, PersonRef[]>;
   averageScore: number;
   normalizedScore: number;
   leads: { hot: number; warm: number; cold: number };
+  leadsPeople: { hot: PersonRef[]; warm: PersonRef[]; cold: PersonRef[] };
   total: number;
 }
 
