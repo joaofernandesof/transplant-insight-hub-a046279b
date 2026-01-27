@@ -5,27 +5,24 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useReactToPrint } from "react-to-print";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Scale, 
   Star,
   GraduationCap,
   Flame,
-  Download,
-  Sparkles,
   FileStack,
   Loader2,
   Users,
   HelpCircle,
   UserCheck,
   FileText,
-  Printer,
-  Grid3X3
+  Camera,
+  Grid3X3,
+  Sparkles
 } from "lucide-react";
 import { LegalAIInsightsPanel } from "./LegalAIInsightsPanel";
 import { 
@@ -37,6 +34,7 @@ import {
 } from "./LegalWidgetInsight";
 import { FeedbackWithAuthor } from "./FeedbackCard";
 import { toast } from "sonner";
+import { captureMultipleTabsToPdf } from "@/utils/captureToPdf";
 
 // Import new tab components
 import { 
@@ -45,7 +43,6 @@ import {
   LegalQuestionsTab,
   LegalStudentsTab,
   LegalFullSurveysTab,
-  LegalPrintView,
   LegalResponseMatrix,
   type LarissaMetrics,
   type LegalPerception,
@@ -69,8 +66,9 @@ interface LegalModuleDashboardProps {
 export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isExportingAll, setIsExportingAll] = useState(false);
-  const [showPrintView, setShowPrintView] = useState(false);
+  const [exportProgress, setExportProgress] = useState<string | null>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
+  const tabContentRef = useRef<HTMLDivElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Fetch all survey data WITH user info
@@ -356,36 +354,65 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
 
   const isLoading = loadingSurveys || loadingExam;
 
-  // React-to-print hook for high-fidelity PDF - MUST be before any early returns
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Dashboard Jurídico - ${new Date().toISOString().split('T')[0]}`,
-    onBeforePrint: async () => {
-      setShowPrintView(true);
-      // Wait for render
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return Promise.resolve();
-    },
-    onAfterPrint: () => {
-      setShowPrintView(false);
-      setIsExportingAll(false);
-      toast.success('PDF gerado com sucesso!');
-    },
-  });
-
-  const handleExportAllTabs = useCallback(() => {
-    setIsExportingAll(true);
-    toast.info('Preparando relatório...');
-    // Show print view first, then trigger print
-    setShowPrintView(true);
-    setTimeout(() => {
-      handlePrint();
-    }, 800);
-  }, [handlePrint]);
-
-  const handleExportCurrentTab = () => {
-    window.print();
+  // Tab configuration
+  const LEGAL_TABS = ['overview', 'matrix', 'mentors', 'questions', 'students', 'surveys'];
+  const LEGAL_TAB_NAMES: Record<string, string> = {
+    'overview': 'Visão Geral',
+    'matrix': 'Matriz',
+    'mentors': 'Mentoras',
+    'questions': 'Perguntas',
+    'students': 'Alunos',
+    'surveys': 'Pesquisas'
   };
+
+  // High-fidelity PDF export using html2canvas
+  const handleExportAllTabs = useCallback(async () => {
+    setIsExportingAll(true);
+    setExportProgress('Iniciando...');
+    
+    const initialTab = activeTab;
+    
+    try {
+      await captureMultipleTabsToPdf({
+        tabs: LEGAL_TABS,
+        tabNames: LEGAL_TAB_NAMES,
+        setActiveTab,
+        getTabContent: () => tabContentRef.current,
+        filename: 'Dashboard-Juridico',
+        title: 'Dashboard Jurídico',
+        onProgress: setExportProgress
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setActiveTab(initialTab);
+      setIsExportingAll(false);
+      setExportProgress(null);
+    }
+  }, [activeTab]);
+
+  const handleExportCurrentTab = useCallback(async () => {
+    if (!tabContentRef.current) return;
+    
+    setIsExportingAll(true);
+    setExportProgress('Capturando aba atual...');
+    
+    try {
+      const { captureElementToPdf } = await import('@/utils/captureToPdf');
+      await captureElementToPdf({
+        element: tabContentRef.current,
+        filename: `Dashboard-Juridico-${LEGAL_TAB_NAMES[activeTab] || activeTab}`,
+        title: `Dashboard Jurídico - ${LEGAL_TAB_NAMES[activeTab] || activeTab}`,
+        subtitle: `Gerado em ${new Date().toLocaleDateString('pt-BR')}`,
+        onProgress: setExportProgress
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setIsExportingAll(false);
+      setExportProgress(null);
+    }
+  }, [activeTab]);
 
   if (isLoading) {
     return (
@@ -395,30 +422,9 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
     );
   }
 
-  // Tab configuration
-  const LEGAL_TABS = ['overview', 'matrix', 'mentors', 'questions', 'students', 'surveys', 'ai-insights'];
-  const LEGAL_TAB_NAMES: Record<string, string> = {
-    'overview': 'Visão Geral',
-    'matrix': 'Matriz',
-    'mentors': 'Mentoras',
-    'questions': 'Perguntas',
-    'students': 'Alunos',
-    'surveys': 'Pesquisas',
-    'ai-insights': 'IA'
-  };
 
   return (
-    <div className="space-y-6 print:space-y-4" ref={dashboardRef}>
-      {/* Print Styles */}
-      <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          .print\\:space-y-4, .print\\:space-y-4 * { visibility: visible; }
-          .print\\:space-y-4 { position: absolute; left: 0; top: 0; width: 100%; }
-          .no-print { display: none !important; }
-        }
-      `}</style>
-
+    <div className="space-y-6" ref={dashboardRef}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -432,7 +438,7 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 no-print">
+        <div className="flex flex-wrap gap-2">
           <Button 
             onClick={handleExportAllTabs} 
             variant="default" 
@@ -442,7 +448,7 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
             {isExportingAll ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Exportando...
+                {exportProgress || 'Exportando...'}
               </>
             ) : (
               <>
@@ -451,25 +457,12 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               </>
             )}
           </Button>
-          <Button onClick={handleExportCurrentTab} variant="outline">
-            <Printer className="h-4 w-4 mr-2" />
-            Imprimir Aba
+          <Button onClick={handleExportCurrentTab} variant="outline" disabled={isExportingAll}>
+            <Camera className="h-4 w-4 mr-2" />
+            Capturar Aba
           </Button>
         </div>
       </div>
-
-      {/* Hidden Print View - renders all tabs for PDF */}
-      {showPrintView && (
-        <div className="fixed left-[-9999px] top-0">
-          <LegalPrintView
-            ref={printRef}
-            larisaMetrics={larisaMetrics}
-            legalPerception={legalPerception}
-            examMetrics={examMetrics}
-            students={students}
-          />
-        </div>
-      )}
 
       {/* Tabs - moved to top */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -581,41 +574,43 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
         </Card>
       </div>
 
-        {/* Tab Contents */}
-        <TabsContent value="overview" className="mt-4">
-          <LegalOverviewTab 
-            larisaMetrics={larisaMetrics}
-            legalPerception={legalPerception}
-            examMetrics={examMetrics}
-            students={students}
-          />
-        </TabsContent>
+        {/* Tab Contents - wrapped for capture */}
+        <div ref={tabContentRef}>
+          <TabsContent value="overview" className="mt-4">
+            <LegalOverviewTab 
+              larisaMetrics={larisaMetrics}
+              legalPerception={legalPerception}
+              examMetrics={examMetrics}
+              students={students}
+            />
+          </TabsContent>
 
-        <TabsContent value="matrix" className="mt-4">
-          <LegalResponseMatrix students={students} />
-        </TabsContent>
+          <TabsContent value="matrix" className="mt-4">
+            <LegalResponseMatrix students={students} />
+          </TabsContent>
 
-        <TabsContent value="mentors" className="mt-4">
-          <LegalMentorsTab larisaMetrics={larisaMetrics} />
-        </TabsContent>
+          <TabsContent value="mentors" className="mt-4">
+            <LegalMentorsTab larisaMetrics={larisaMetrics} />
+          </TabsContent>
 
-        <TabsContent value="questions" className="mt-4">
-          <LegalQuestionsTab 
-            legalPerception={legalPerception}
-            larisaMetrics={larisaMetrics}
-          />
-        </TabsContent>
+          <TabsContent value="questions" className="mt-4">
+            <LegalQuestionsTab 
+              legalPerception={legalPerception}
+              larisaMetrics={larisaMetrics}
+            />
+          </TabsContent>
 
-        <TabsContent value="students" className="mt-4">
-          <LegalStudentsTab 
-            students={students}
-            legalPerception={legalPerception}
-          />
-        </TabsContent>
+          <TabsContent value="students" className="mt-4">
+            <LegalStudentsTab 
+              students={students}
+              legalPerception={legalPerception}
+            />
+          </TabsContent>
 
-        <TabsContent value="surveys" className="mt-4">
-          <LegalFullSurveysTab students={students} />
-        </TabsContent>
+          <TabsContent value="surveys" className="mt-4">
+            <LegalFullSurveysTab students={students} />
+          </TabsContent>
+        </div>
 
         <TabsContent value="ai-insights" className="mt-4">
           <LegalAIInsightsPanel 
