@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale, ScanLine } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
@@ -36,6 +36,8 @@ const modules = [
   { id: 'academy', name: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Alunos' },
   { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
   { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
+  { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
+  { id: 'neohairscan', name: 'NeoHairScan', icon: ScanLine, gradient: 'from-teal-500 to-teal-600', description: 'Diagnóstico IA' },
 ];
 
 export default function Login() {
@@ -316,9 +318,11 @@ export default function Login() {
             Um único acesso para todos os portais:
             <span className="text-rose-400 font-medium"> Pacientes</span>,
             <span className="text-blue-400 font-medium"> Colaboradores</span>,
-            <span className="text-emerald-400 font-medium"> Alunos IBRAMEC</span>,
-            <span className="text-amber-400 font-medium"> Licenciados</span> e
-            <span className="text-purple-400 font-medium"> Marketing</span>.
+            <span className="text-emerald-400 font-medium"> Alunos</span>,
+            <span className="text-amber-400 font-medium"> Licenciados</span>,
+            <span className="text-purple-400 font-medium"> Marketing</span>,
+            <span className="text-cyan-400 font-medium"> Jurídico</span> e
+            <span className="text-teal-400 font-medium"> Diagnóstico IA</span>.
           </p>
         </div>
       </div>
