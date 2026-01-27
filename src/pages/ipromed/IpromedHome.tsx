@@ -6,10 +6,11 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { HubDiagram } from "@/components/shared/HubDiagram";
 import {
   Scale,
   Users,
@@ -235,6 +236,17 @@ export default function IpromedHome() {
             </Card>
           ))}
         </div>
+
+        {/* Hub Diagram Section */}
+        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
+          <CardHeader className="pb-2 text-center">
+            <CardTitle className="text-white text-lg">Ecossistema NeoHub</CardTitle>
+            <CardDescription className="text-slate-400">Você faz parte do nosso ecossistema</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <HubDiagram highlightPortal="ipromed" />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
