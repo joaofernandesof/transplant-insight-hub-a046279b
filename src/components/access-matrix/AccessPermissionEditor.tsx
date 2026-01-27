@@ -21,7 +21,8 @@ import {
   Info,
   Lock,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Scale
 } from "lucide-react";
 import { NeoHubProfile, Portal, PROFILE_NAMES, PORTAL_NAMES } from "@/neohub/lib/permissions";
 import { ModulePermission, ModuleInfo, BLOCK_REASONS } from "@/hooks/useAccessMatrix";
@@ -46,6 +47,7 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
   aluno: <GraduationCap className="h-4 w-4" />,
   paciente: <Heart className="h-4 w-4" />,
   cliente_avivar: <TrendingUp className="h-4 w-4" />,
+  ipromed: <Scale className="h-4 w-4" />,
 };
 
 const PROFILE_COLORS: Record<NeoHubProfile, string> = {
@@ -56,9 +58,10 @@ const PROFILE_COLORS: Record<NeoHubProfile, string> = {
   aluno: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
   paciente: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
   cliente_avivar: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  ipromed: 'bg-[#00629B]/10 text-[#00629B] dark:bg-[#00629B]/20 dark:text-[#00629B]',
 };
 
-const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar'];
+const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
 
 export function AccessPermissionEditor({
   portal,

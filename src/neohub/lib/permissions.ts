@@ -9,19 +9,21 @@ export type NeoHubProfile =
   | 'medico'
   | 'aluno'
   | 'paciente'
-  | 'cliente_avivar';
+  | 'cliente_avivar'
+  | 'ipromed';
 
-export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar';
+export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed';
 
 // Mapeamento de perfis para portais
 export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
-  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'],
+  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'],
   licenciado: ['neolicense'],
   colaborador: ['neoteam'],
   medico: ['neoteam'],
   aluno: ['academy'],
   paciente: ['neocare'],
   cliente_avivar: ['avivar'],
+  ipromed: ['ipromed'],
 };
 
 // Mapeamento de perfis para rotas base
@@ -33,6 +35,7 @@ export const PROFILE_ROUTES: Record<NeoHubProfile, string> = {
   aluno: '/academy',
   paciente: '/neocare',
   cliente_avivar: '/avivar',
+  ipromed: '/ipromed',
 };
 
 // Nomes amigáveis dos perfis
@@ -44,6 +47,7 @@ export const PROFILE_NAMES: Record<NeoHubProfile, string> = {
   aluno: 'IBRAMEC',
   paciente: 'NeoCare',
   cliente_avivar: 'Avivar',
+  ipromed: 'IPROMED',
 };
 
 // Nomes amigáveis dos portais
@@ -53,6 +57,7 @@ export const PORTAL_NAMES: Record<Portal, string> = {
   academy: 'IBRAMEC',
   neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
+  ipromed: 'IPROMED',
 };
 
 // Ícones dos perfis (lucide-react)
@@ -64,6 +69,7 @@ export const PROFILE_ICONS: Record<NeoHubProfile, string> = {
   aluno: 'GraduationCap',
   paciente: 'Heart',
   cliente_avivar: 'TrendingUp',
+  ipromed: 'Scale',
 };
 
 // Cores dos perfis (Tailwind)
@@ -75,6 +81,7 @@ export const PROFILE_COLORS: Record<NeoHubProfile, string> = {
   aluno: 'text-emerald-500', // Verde para IBRAMEC
   paciente: 'text-pink-500',
   cliente_avivar: 'text-orange-500',
+  ipromed: 'text-[#00629B]',
 };
 
 // Verificar se perfil é admin (bypass de permissões)
@@ -107,6 +114,7 @@ export function getPortalFromRoute(route: string): Portal | null {
   if (route.startsWith('/academy')) return 'academy';
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/avivar')) return 'avivar';
+  if (route.startsWith('/ipromed')) return 'ipromed';
   return null;
 }
 
@@ -170,6 +178,14 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'avivar_marketing', name: 'Marketing', route: '/avivar/marketing', icon: 'Megaphone' },
     { code: 'avivar_mentorship', name: 'Mentoria', route: '/avivar/mentorship', icon: 'Users' },
     { code: 'avivar_profile', name: 'Perfil', route: '/avivar/profile', icon: 'Settings' },
+  ],
+  ipromed: [
+    { code: 'ipromed_home', name: 'Início', route: '/ipromed', icon: 'Home' },
+    { code: 'ipromed_dashboard', name: 'Dashboard', route: '/ipromed/dashboard', icon: 'BarChart3' },
+    { code: 'ipromed_clients', name: 'Clientes', route: '/ipromed/clients', icon: 'Users' },
+    { code: 'ipromed_journey', name: 'Jornada do Cliente', route: '/ipromed/journey', icon: 'TrendingUp' },
+    { code: 'ipromed_legal', name: 'Legal Hub', route: '/ipromed/legal-hub', icon: 'Scale' },
+    { code: 'ipromed_contracts', name: 'Contratos', route: '/ipromed/contracts', icon: 'FileSignature' },
   ],
 };
 
