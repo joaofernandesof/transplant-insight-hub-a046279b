@@ -166,6 +166,21 @@ function SidebarWrapper({ children }: { children: React.ReactNode }) {
 }
 
 // ====================================
+// LazyRoute - Wrapper com Suspense para rotas lazy
+// ====================================
+function LazyRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      {children}
+    </Suspense>
+  );
+}
+
+// ====================================
 // Unauthorized Page
 // ====================================
 function UnauthorizedPage() {
@@ -372,27 +387,29 @@ function NeoLicenseRoutes() {
   return (
     <ProfileGuard allowedProfiles={['licenciado']}>
       <SidebarWrapper>
-        <Routes>
-          <Route index element={<LicenseeHome />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="university" element={<University />} />
-          <Route path="university/trilha/:trackId" element={<TrackDetail />} />
-          <Route path="university/exams" element={<ExamsList />} />
-          <Route path="university/exams/:examId/take" element={<ExamTaking />} />
-          <Route path="university/exams/:examId/results/:attemptId" element={<ExamResults />} />
-          <Route path="university/exams/admin" element={<ExamsAdmin />} />
-          <Route path="materials" element={<Materials />} />
-          <Route path="partners" element={<Partners />} />
-          <Route path="surgery" element={<SurgerySchedule />} />
-          <Route path="achievements" element={<Achievements />} />
-          <Route path="referral" element={<ReferralProgram />} />
-          <Route path="structure" element={<EstruturaNeo />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="hotleads" element={<HotLeads />} />
-          <Route path="career" element={<Career />} />
-          <Route path="community" element={<Community />} />
-          <Route path="*" element={<Navigate to="/neolicense" replace />} />
-        </Routes>
+        <LazyRoute>
+          <Routes>
+            <Route index element={<LicenseeHome />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="university" element={<University />} />
+            <Route path="university/trilha/:trackId" element={<TrackDetail />} />
+            <Route path="university/exams" element={<ExamsList />} />
+            <Route path="university/exams/:examId/take" element={<ExamTaking />} />
+            <Route path="university/exams/:examId/results/:attemptId" element={<ExamResults />} />
+            <Route path="university/exams/admin" element={<ExamsAdmin />} />
+            <Route path="materials" element={<Materials />} />
+            <Route path="partners" element={<Partners />} />
+            <Route path="surgery" element={<SurgerySchedule />} />
+            <Route path="achievements" element={<Achievements />} />
+            <Route path="referral" element={<ReferralProgram />} />
+            <Route path="structure" element={<EstruturaNeo />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="hotleads" element={<HotLeads />} />
+            <Route path="career" element={<Career />} />
+            <Route path="community" element={<Community />} />
+            <Route path="*" element={<Navigate to="/neolicense" replace />} />
+          </Routes>
+        </LazyRoute>
       </SidebarWrapper>
     </ProfileGuard>
   );
@@ -520,32 +537,32 @@ function AppRoutes() {
       {/* ====================================
           Rotas Admin (sem redirect - únicas)
           ==================================== */}
-      <Route path="/admin-dashboard" element={<ProtectedRoute><SidebarWrapper><AdminDashboard /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/dashboard" element={<ProtectedRoute><SidebarWrapper><Dashboard /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/alunos" element={<ProtectedRoute><SidebarWrapper><LicenseesPanel /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><ClinicComparison /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/regularization" element={<ProtectedRoute><SidebarWrapper><Regularization /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/marketing" element={<ProtectedRoute><SidebarWrapper><Marketing /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/store" element={<ProtectedRoute><SidebarWrapper><Store /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/financial" element={<ProtectedRoute><SidebarWrapper><Financial /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/mentorship" element={<ProtectedRoute><SidebarWrapper><Mentorship /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/systems" element={<ProtectedRoute><SidebarWrapper><Systems /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><SidebarWrapper><AdminPanel /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/access-matrix" element={<ProtectedRoute><SidebarWrapper><AccessMatrix /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/certificates" element={<ProtectedRoute><SidebarWrapper><Certificates /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/license-payments" element={<ProtectedRoute><SidebarWrapper><LicensePayments /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/monitoring" element={<ProtectedRoute><SidebarWrapper><UserMonitoring /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/system-metrics" element={<ProtectedRoute><SidebarWrapper><SystemMetrics /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/admin/sentinel" element={<AdminRoute><SidebarWrapper><SystemSentinel /></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/announcements" element={<AdminRoute><SidebarWrapper><AnnouncementsAdmin /></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/banners" element={<AdminRoute><SidebarWrapper><BannersAdmin /></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/module-overrides" element={<AdminRoute><SidebarWrapper><ModuleOverridesAdmin /></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/referrals" element={<AdminRoute><SidebarWrapper><ReferralsAdmin /></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><EventLogs /></Suspense></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/code-assistant" element={<AdminRoute><SidebarWrapper><CodeAssistantPage /></SidebarWrapper></AdminRoute>} />
-      <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><WeeklyReports /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><SalaTecnica /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><ConsolidatedResults /></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/admin-dashboard" element={<ProtectedRoute><SidebarWrapper><LazyRoute><AdminDashboard /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/alunos" element={<ProtectedRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/regularization" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Regularization /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/marketing" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Marketing /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/store" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Store /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/financial" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/mentorship" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/systems" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute><SidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/access-matrix" element={<ProtectedRoute><SidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/certificates" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/license-payments" element={<ProtectedRoute><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/monitoring" element={<ProtectedRoute><SidebarWrapper><LazyRoute><UserMonitoring /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/system-metrics" element={<ProtectedRoute><SidebarWrapper><LazyRoute><SystemMetrics /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/admin/sentinel" element={<AdminRoute><SidebarWrapper><LazyRoute><SystemSentinel /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/announcements" element={<AdminRoute><SidebarWrapper><LazyRoute><AnnouncementsAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/banners" element={<AdminRoute><SidebarWrapper><LazyRoute><BannersAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/module-overrides" element={<AdminRoute><SidebarWrapper><LazyRoute><ModuleOverridesAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/referrals" element={<AdminRoute><SidebarWrapper><LazyRoute><ReferralsAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><LazyRoute><EventLogs /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/code-assistant" element={<AdminRoute><SidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
 
       {/* ====================================
           Marketplace
