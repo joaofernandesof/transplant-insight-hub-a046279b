@@ -166,41 +166,6 @@ export default function IpromedHome() {
           ))}
         </div>
       </div>
-
-      {/* About Section */}
-      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-[#00629B]" />
-            Sobre o IPROMED Legal Hub
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            O IPROMED Legal Hub é o portal jurídico interno completo para gestão de 
-            processos contenciosos, contratos com assinatura digital via Clicksign, 
-            e atendimento jurídico interno do Neo Group.
-          </p>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <li className="flex items-center gap-2 text-sm">
-              <Gavel className="h-4 w-4 text-[#00629B]" />
-              Gestão completa de processos contenciosos
-            </li>
-            <li className="flex items-center gap-2 text-sm">
-              <FileSignature className="h-4 w-4 text-[#00629B]" />
-              Contratos com assinatura digital
-            </li>
-            <li className="flex items-center gap-2 text-sm">
-              <MessageSquare className="h-4 w-4 text-[#00629B]" />
-              Atendimento jurídico interno com SLA
-            </li>
-            <li className="flex items-center gap-2 text-sm">
-              <BarChart3 className="h-4 w-4 text-[#00629B]" />
-              Indicadores estratégicos e analytics
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
     </div>
   );
 }
