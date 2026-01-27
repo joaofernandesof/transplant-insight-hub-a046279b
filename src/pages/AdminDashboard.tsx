@@ -72,7 +72,7 @@ const moduleCategories = [
     color: 'bg-teal-600',
     icon: Building2,
     modules: [
-      { id: 'surgery', title: 'Agenda de Cirurgias', description: 'Calendário cirúrgico', icon: Calendar, path: '/surgery-schedule', color: 'bg-rose-500' },
+      { id: 'surgery', title: 'Agenda de Cirurgias', description: 'Calendário cirúrgico', icon: Calendar, path: '/admin/surgery-schedule', color: 'bg-rose-500' },
       { id: 'neoteam', title: 'NeoTeam', description: 'Painel colaboradores', icon: Users, path: '/neoteam', color: 'bg-cyan-500' },
       { id: 'waiting', title: 'Sala de Espera', description: 'Fila de atendimento', icon: Clock, path: '/neoteam/waiting-room', color: 'bg-amber-500' },
     ]
