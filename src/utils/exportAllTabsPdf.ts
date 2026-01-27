@@ -50,6 +50,90 @@ function findLogicalSections(container: HTMLElement): HTMLElement[] {
 }
 
 /**
+ * Scrolls all scrollable elements within a container to show their full content
+ * This ensures all content within widgets with overflow is visible when capturing
+ */
+async function scrollAllToEnd(container: HTMLElement): Promise<void> {
+  // Find all elements with scroll (overflow-auto, overflow-scroll, overflow-x-auto, overflow-y-auto)
+  const scrollableElements = container.querySelectorAll('[class*="overflow-"], [style*="overflow"]');
+  
+  for (const el of Array.from(scrollableElements) as HTMLElement[]) {
+    const hasVerticalScroll = el.scrollHeight > el.clientHeight;
+    const hasHorizontalScroll = el.scrollWidth > el.clientWidth;
+    
+    if (hasVerticalScroll || hasHorizontalScroll) {
+      // Store original scroll position
+      const originalScrollTop = el.scrollTop;
+      const originalScrollLeft = el.scrollLeft;
+      
+      // Scroll to end to trigger lazy loading if any
+      if (hasVerticalScroll) {
+        el.scrollTop = el.scrollHeight;
+      }
+      if (hasHorizontalScroll) {
+        el.scrollLeft = el.scrollWidth;
+      }
+      
+      // Wait a bit for any lazy content to load
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Scroll back to start so we capture from the beginning
+      el.scrollTop = 0;
+      el.scrollLeft = 0;
+      
+      // For PDF capture, temporarily expand the element to show all content
+      const originalHeight = el.style.height;
+      const originalMaxHeight = el.style.maxHeight;
+      const originalWidth = el.style.width;
+      const originalMaxWidth = el.style.maxWidth;
+      const originalOverflow = el.style.overflow;
+      
+      // Expand to full content size
+      if (hasVerticalScroll) {
+        el.style.height = 'auto';
+        el.style.maxHeight = 'none';
+      }
+      if (hasHorizontalScroll) {
+        el.style.width = 'auto';
+        el.style.maxWidth = 'none';
+      }
+      el.style.overflow = 'visible';
+      
+      // Mark element for restoration after capture
+      el.setAttribute('data-pdf-expanded', 'true');
+      el.setAttribute('data-original-height', originalHeight);
+      el.setAttribute('data-original-max-height', originalMaxHeight);
+      el.setAttribute('data-original-width', originalWidth);
+      el.setAttribute('data-original-max-width', originalMaxWidth);
+      el.setAttribute('data-original-overflow', originalOverflow);
+    }
+  }
+}
+
+/**
+ * Restores scrollable elements to their original state after PDF capture
+ */
+function restoreScrollableElements(container: HTMLElement): void {
+  const expandedElements = container.querySelectorAll('[data-pdf-expanded="true"]');
+  
+  for (const el of Array.from(expandedElements) as HTMLElement[]) {
+    el.style.height = el.getAttribute('data-original-height') || '';
+    el.style.maxHeight = el.getAttribute('data-original-max-height') || '';
+    el.style.width = el.getAttribute('data-original-width') || '';
+    el.style.maxWidth = el.getAttribute('data-original-max-width') || '';
+    el.style.overflow = el.getAttribute('data-original-overflow') || '';
+    
+    // Clean up attributes
+    el.removeAttribute('data-pdf-expanded');
+    el.removeAttribute('data-original-height');
+    el.removeAttribute('data-original-max-height');
+    el.removeAttribute('data-original-width');
+    el.removeAttribute('data-original-max-width');
+    el.removeAttribute('data-original-overflow');
+  }
+}
+
+/**
  * Expands all collapsible elements within a container for PDF export
  * This ensures all content is visible when capturing
  */
@@ -132,6 +216,12 @@ export async function exportAllTabsToPdf({
       // Wait a bit for expansion animations
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Expand all scrollable widgets to show full content
+      await scrollAllToEnd(contentArea);
+      
+      // Wait for layout to stabilize
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       try {
         // Find sections within this tab
         const sections = findLogicalSections(contentArea);
@@ -142,6 +232,9 @@ export async function exportAllTabsToPdf({
           
           // Skip empty or hidden sections
           if (!section || section.offsetHeight === 0) continue;
+          
+          // Expand scrollable elements within this section
+          await scrollAllToEnd(section);
           
           // Scroll section into view without affecting page navigation
           // Use block: 'nearest' to minimize scrolling
@@ -210,6 +303,9 @@ export async function exportAllTabsToPdf({
         
       } catch (err) {
         console.error(`Error capturing tab ${tab}:`, err);
+      } finally {
+        // Restore scrollable elements to their original state
+        restoreScrollableElements(contentArea);
       }
       
       // Delay between tabs
@@ -262,52 +358,67 @@ export async function exportSingleViewToPdf(
   
   toast.info('Gerando PDF...');
   
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 8;
-  const availableWidth = pageWidth - (margin * 2);
-  const availableHeight = pageHeight - (margin * 2);
+  // Expand collapsibles and scrollable elements
+  expandAllCollapsibles(container);
+  await scrollAllToEnd(container);
+  await new Promise(resolve => setTimeout(resolve, 500));
   
-  const sections = findLogicalSections(container);
-  let isFirst = true;
-  
-  for (const section of sections) {
-    if (!section || section.offsetHeight === 0) continue;
+  try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const availableWidth = pageWidth - (margin * 2);
+    const availableHeight = pageHeight - (margin * 2);
     
-    const canvas = await html2canvas(section, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-    });
+    const sections = findLogicalSections(container);
+    let isFirst = true;
     
-    // Scale to fit
-    const imgAspectRatio = canvas.width / canvas.height;
-    let imgWidth = availableWidth;
-    let imgHeight = imgWidth / imgAspectRatio;
-    
-    if (imgHeight > availableHeight) {
-      imgHeight = availableHeight;
-      imgWidth = imgHeight * imgAspectRatio;
+    for (const section of sections) {
+      if (!section || section.offsetHeight === 0) continue;
+      
+      // Expand scrollable elements within this section
+      await scrollAllToEnd(section);
+      
+      const canvas = await html2canvas(section, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: section.scrollWidth,
+        height: section.scrollHeight,
+      });
+      
+      // Scale to fit
+      const imgAspectRatio = canvas.width / canvas.height;
+      let imgWidth = availableWidth;
+      let imgHeight = imgWidth / imgAspectRatio;
+      
+      if (imgHeight > availableHeight) {
+        imgHeight = availableHeight;
+        imgWidth = imgHeight * imgAspectRatio;
+      }
+      
+      if (!isFirst) pdf.addPage();
+      isFirst = false;
+      
+      const xPos = margin + (availableWidth - imgWidth) / 2;
+      const yPos = margin + (availableHeight - imgHeight) / 2;
+      
+      pdf.addImage(
+        canvas.toDataURL('image/jpeg', 0.95),
+        'JPEG',
+        xPos,
+        yPos,
+        imgWidth,
+        imgHeight
+      );
     }
     
-    if (!isFirst) pdf.addPage();
-    isFirst = false;
-    
-    const xPos = margin + (availableWidth - imgWidth) / 2;
-    const yPos = margin + (availableHeight - imgHeight) / 2;
-    
-    pdf.addImage(
-      canvas.toDataURL('image/jpeg', 0.95),
-      'JPEG',
-      xPos,
-      yPos,
-      imgWidth,
-      imgHeight
-    );
+    pdf.save(`${filename}-${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success('PDF exportado com sucesso!');
+  } finally {
+    // Restore scrollable elements
+    restoreScrollableElements(container);
   }
-  
-  pdf.save(`${filename}-${new Date().toISOString().split('T')[0]}.pdf`);
-  toast.success('PDF exportado com sucesso!');
 }
