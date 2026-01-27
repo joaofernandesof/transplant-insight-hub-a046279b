@@ -228,18 +228,18 @@ export function CodeAssistant() {
                     )}
                     <div
                       className={cn(
-                        "max-w-[80%] rounded-lg px-4 py-3",
+                        "max-w-[85%] sm:max-w-[80%] rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 min-w-0 overflow-hidden",
                         msg.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
                       )}
                     >
                       {msg.role === "assistant" ? (
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <div className="prose prose-sm dark:prose-invert max-w-none break-words overflow-x-auto [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_code]:break-all [&_p]:break-words">
                           <ReactMarkdown>{msg.content}</ReactMarkdown>
                         </div>
                       ) : (
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                       )}
                     </div>
                     {msg.role === "user" && (
