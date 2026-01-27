@@ -433,8 +433,37 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
         </div>
       </div>
 
+      {/* Tabs - moved to top */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-6 overflow-x-auto">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">
+            <Scale className="h-3 w-3 mr-1 hidden sm:inline" />
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="mentors" className="text-xs sm:text-sm">
+            <Users className="h-3 w-3 mr-1 hidden sm:inline" />
+            Mentoras
+          </TabsTrigger>
+          <TabsTrigger value="questions" className="text-xs sm:text-sm">
+            <HelpCircle className="h-3 w-3 mr-1 hidden sm:inline" />
+            Perguntas
+          </TabsTrigger>
+          <TabsTrigger value="students" className="text-xs sm:text-sm">
+            <UserCheck className="h-3 w-3 mr-1 hidden sm:inline" />
+            Alunos
+          </TabsTrigger>
+          <TabsTrigger value="surveys" className="text-xs sm:text-sm">
+            <FileText className="h-3 w-3 mr-1 hidden sm:inline" />
+            Pesquisas
+          </TabsTrigger>
+          <TabsTrigger value="ai-insights" className="flex items-center gap-1 text-xs sm:text-sm">
+            <Sparkles className="h-3 w-3" />
+            IA
+          </TabsTrigger>
+        </TabsList>
+
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
         <Card className="border-l-4 border-l-violet-500">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
@@ -509,35 +538,6 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
           </CardContent>
         </Card>
       </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6 overflow-x-auto">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm">
-            <Scale className="h-3 w-3 mr-1 hidden sm:inline" />
-            Visão Geral
-          </TabsTrigger>
-          <TabsTrigger value="mentors" className="text-xs sm:text-sm">
-            <Users className="h-3 w-3 mr-1 hidden sm:inline" />
-            Mentoras
-          </TabsTrigger>
-          <TabsTrigger value="questions" className="text-xs sm:text-sm">
-            <HelpCircle className="h-3 w-3 mr-1 hidden sm:inline" />
-            Perguntas
-          </TabsTrigger>
-          <TabsTrigger value="students" className="text-xs sm:text-sm">
-            <UserCheck className="h-3 w-3 mr-1 hidden sm:inline" />
-            Alunos
-          </TabsTrigger>
-          <TabsTrigger value="surveys" className="text-xs sm:text-sm">
-            <FileText className="h-3 w-3 mr-1 hidden sm:inline" />
-            Pesquisas
-          </TabsTrigger>
-          <TabsTrigger value="ai-insights" className="flex items-center gap-1 text-xs sm:text-sm">
-            <Sparkles className="h-3 w-3" />
-            IA
-          </TabsTrigger>
-        </TabsList>
 
         {/* Tab Contents */}
         <TabsContent value="overview" className="mt-4">
