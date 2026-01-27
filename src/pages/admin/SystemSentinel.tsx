@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTabFromUrl } from "@/hooks/useTabFromUrl";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -106,6 +107,12 @@ const getAlertTypeLabel = (type: string) => {
 };
 
 export default function SystemSentinel() {
+  // Tab hook for deep linking
+  const { activeTab, setActiveTab } = useTabFromUrl({
+    defaultTab: "dashboard",
+    validTabs: ["dashboard", "metrics", "alerts", "whatsapp", "settings"],
+  });
+
   // Data hooks
   const { data: systems, isLoading: systemsLoading, refetch: refetchSystems } = useMonitoredSystems();
   const { data: alerts, isLoading: alertsLoading, refetch: refetchAlerts } = useSystemAlerts();
@@ -249,7 +256,7 @@ export default function SystemSentinel() {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="dashboard" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="dashboard" className="gap-1">
               <Activity className="h-4 w-4" />

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTabFromUrl } from '@/hooks/useTabFromUrl';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,11 @@ import { toast } from 'sonner';
 export default function SystemMetrics() {
   const { metrics, isLoading, lastUpdated, refresh } = useSystemMetrics();
   const [isClearing, setIsClearing] = useState(false);
+  
+  const { activeTab, setActiveTab } = useTabFromUrl({
+    defaultTab: "database",
+    validTabs: ["database", "cache", "usage", "performance"],
+  });
 
   const clearCache = async () => {
     setIsClearing(true);
@@ -222,7 +228,7 @@ export default function SystemMetrics() {
           </Card>
         </div>
 
-        <Tabs defaultValue="database" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="database" className="gap-2">
               <Database className="h-4 w-4" />
