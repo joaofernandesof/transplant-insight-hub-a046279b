@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Scale, 
   Users, 
@@ -14,12 +15,12 @@ import {
   MessageSquare,
   AlertTriangle,
   CheckCircle2,
-  Clock,
   Flame,
   Thermometer,
   Snowflake,
   Star,
-  FileText
+  FileText,
+  Download
 } from "lucide-react";
 import {
   RadarChart,
@@ -35,33 +36,61 @@ import {
   Tooltip,
   Cell,
   PieChart,
-  Pie,
-  Legend
+  Pie
 } from "recharts";
+import { cn } from "@/lib/utils";
 
 interface LegalModuleDashboardProps {
   classId?: string;
 }
 
+interface FeedbackWithUser {
+  feedback: string;
+  userName: string;
+  avatarUrl?: string | null;
+}
+
 export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Fetch Larissa evaluation data
+  // Fetch Larissa evaluation data WITH user info
   const { data: larisaData, isLoading: loadingLarissa } = useQuery({
     queryKey: ['legal-larissa-eval', classId],
     queryFn: async () => {
       let query = supabase
         .from('day2_satisfaction_surveys')
-        .select('q7_larissa_expectations, q8_larissa_clarity, q9_larissa_time, q10_larissa_liked_most, q11_larissa_improve')
+        .select(`
+          user_id,
+          q7_larissa_expectations, 
+          q8_larissa_clarity, 
+          q9_larissa_time, 
+          q10_larissa_liked_most, 
+          q11_larissa_improve
+        `)
         .eq('is_completed', true);
       
       if (classId) {
         query = query.eq('class_id', classId);
       }
       
-      const { data, error } = await query;
+      const { data: surveys, error } = await query;
       if (error) throw error;
-      return data;
+
+      // Fetch user profiles
+      const userIds = [...new Set(surveys?.map(s => s.user_id) || [])];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, name, avatar_url')
+        .in('user_id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      return surveys?.map(s => ({
+        ...s,
+        userName: profileMap.get(s.user_id)?.name || 'Anônimo',
+        avatarUrl: profileMap.get(s.user_id)?.avatar_url
+      })) || [];
     }
   });
 
@@ -176,8 +205,12 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
       time: avg(time),
       overall: (avg(expectations) + avg(clarity) + avg(time)) / 3,
       totalResponses: larisaData.length,
-      feedbacksPositive: larisaData.filter(d => d.q10_larissa_liked_most && d.q10_larissa_liked_most.length > 2).map(d => d.q10_larissa_liked_most),
-      feedbacksImprove: larisaData.filter(d => d.q11_larissa_improve && d.q11_larissa_improve.length > 2).map(d => d.q11_larissa_improve)
+      feedbacksPositive: larisaData
+        .filter(d => d.q10_larissa_liked_most && d.q10_larissa_liked_most.length > 2)
+        .map(d => ({ feedback: d.q10_larissa_liked_most as string, userName: d.userName, avatarUrl: d.avatarUrl })),
+      feedbacksImprove: larisaData
+        .filter(d => d.q11_larissa_improve && d.q11_larissa_improve.length > 2)
+        .map(d => ({ feedback: d.q11_larissa_improve as string, userName: d.userName, avatarUrl: d.avatarUrl }))
     };
   };
 
@@ -299,19 +332,43 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
     { name: 'COLD', value: legalPerception.leads.cold, color: '#3b82f6' },
   ] : [];
 
+  // PDF Export function
+  const handleExportPdf = () => {
+    window.print();
+  };
+
+  // Determine if feedback is "long" (>80 chars) for layout purposes
+  const isLongFeedback = (text: string) => text.length > 80;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-4" ref={dashboardRef}>
+      {/* Print Styles */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print\\:space-y-4, .print\\:space-y-4 * { visibility: visible; }
+          .print\\:space-y-4 { position: absolute; left: 0; top: 0; width: 100%; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
+
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-violet-100 dark:bg-violet-900/30 rounded-xl">
-          <Scale className="h-6 w-6 text-violet-600" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-xl">
+            <Scale className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Dashboard Jurídico</h1>
+            <p className="text-muted-foreground text-sm">
+              Análise do módulo de Direito Médico • Dra. Larissa e Dra. Caroline
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard Jurídico</h1>
-          <p className="text-muted-foreground text-sm">
-            Análise do módulo de Direito Médico • Dra. Larissa e Dra. Caroline
-          </p>
-        </div>
+        <Button onClick={handleExportPdf} variant="outline" className="no-print">
+          <Download className="h-4 w-4 mr-2" />
+          Exportar PDF
+        </Button>
       </div>
 
       {/* KPI Cards */}
@@ -686,50 +743,90 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
         </TabsContent>
 
         {/* Feedbacks Tab */}
-        <TabsContent value="feedbacks" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* Positive Feedbacks */}
-            <Card className="border-l-4 border-l-emerald-500">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  O Que Mais Gostaram
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-64">
-                  <div className="space-y-2">
-                    {larisaMetrics?.feedbacksPositive.map((feedback, i) => (
-                      <div key={i} className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                        <p className="text-sm">{feedback}</p>
+        <TabsContent value="feedbacks" className="space-y-6">
+          {/* Positive Feedbacks */}
+          <Card className="border-l-4 border-l-emerald-500">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                O Que Mais Gostaram ({larisaMetrics?.feedbacksPositive.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {larisaMetrics?.feedbacksPositive.map((item, i) => {
+                  const isLong = isLongFeedback(item.feedback);
+                  return (
+                    <div 
+                      key={i} 
+                      className={cn(
+                        "p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800",
+                        isLong && "sm:col-span-2 lg:col-span-3"
+                      )}
+                    >
+                      <p className="text-sm mb-2">{item.feedback}</p>
+                      <div className="flex items-center gap-2 pt-2 border-t border-emerald-200 dark:border-emerald-700">
+                        <Avatar className="h-5 w-5">
+                          <AvatarImage src={item.avatarUrl || undefined} />
+                          <AvatarFallback className="text-[10px] bg-emerald-100 text-emerald-700">
+                            {item.userName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-muted-foreground">{item.userName}</span>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+                    </div>
+                  );
+                })}
+                {(!larisaMetrics?.feedbacksPositive || larisaMetrics.feedbacksPositive.length === 0) && (
+                  <p className="text-sm text-muted-foreground col-span-full text-center py-4">
+                    Nenhum feedback positivo registrado.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Improvement Suggestions */}
-            <Card className="border-l-4 border-l-amber-500">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 text-amber-500" />
-                  Sugestões de Melhoria
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-64">
-                  <div className="space-y-2">
-                    {larisaMetrics?.feedbacksImprove.map((feedback, i) => (
-                      <div key={i} className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                        <p className="text-sm">{feedback}</p>
+          {/* Improvement Suggestions */}
+          <Card className="border-l-4 border-l-amber-500">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-amber-500" />
+                Sugestões de Melhoria ({larisaMetrics?.feedbacksImprove.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {larisaMetrics?.feedbacksImprove.map((item, i) => {
+                  const isLong = isLongFeedback(item.feedback);
+                  return (
+                    <div 
+                      key={i} 
+                      className={cn(
+                        "p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800",
+                        isLong && "sm:col-span-2 lg:col-span-3"
+                      )}
+                    >
+                      <p className="text-sm mb-2">{item.feedback}</p>
+                      <div className="flex items-center gap-2 pt-2 border-t border-amber-200 dark:border-amber-700">
+                        <Avatar className="h-5 w-5">
+                          <AvatarImage src={item.avatarUrl || undefined} />
+                          <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
+                            {item.userName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-muted-foreground">{item.userName}</span>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
+                    </div>
+                  );
+                })}
+                {(!larisaMetrics?.feedbacksImprove || larisaMetrics.feedbacksImprove.length === 0) && (
+                  <p className="text-sm text-muted-foreground col-span-full text-center py-4">
+                    Nenhuma sugestão de melhoria registrada.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
