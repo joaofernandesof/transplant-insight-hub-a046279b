@@ -16,11 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+// Removed Collapsible import - causes DOM nesting issue in tables
+// Using native state for row expansion instead
 import {
   Activity,
   Search,
@@ -74,18 +71,16 @@ function ExpandableRow({ log, isExpanded, onToggle }: ExpandableRowProps) {
   const categoryLabel = eventCategoryConfig[log.event_category] || log.event_category;
 
   return (
-    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+    <>
       <TableRow className="hover:bg-muted/50 cursor-pointer" onClick={onToggle}>
         <TableCell className="w-10 p-2">
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onToggle(); }}>
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
         </TableCell>
         <TableCell className="font-mono text-xs text-muted-foreground p-2">
           {format(new Date(log.created_at), 'dd/MM HH:mm:ss')}
@@ -119,7 +114,7 @@ function ExpandableRow({ log, isExpanded, onToggle }: ExpandableRowProps) {
         </TableCell>
       </TableRow>
 
-      <CollapsibleContent asChild>
+      {isExpanded && (
         <TableRow className="bg-muted/30 hover:bg-muted/30">
           <TableCell colSpan={8} className="p-0">
             <div className="p-4 space-y-3 border-l-2 border-primary/30 ml-4">
@@ -214,8 +209,8 @@ function ExpandableRow({ log, isExpanded, onToggle }: ExpandableRowProps) {
             </div>
           </TableCell>
         </TableRow>
-      </CollapsibleContent>
-    </Collapsible>
+      )}
+    </>
   );
 }
 

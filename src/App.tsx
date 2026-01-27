@@ -560,6 +560,7 @@ function AppRoutes() {
       <Route path="/admin/referrals" element={<AdminRoute><SidebarWrapper><LazyRoute><ReferralsAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><LazyRoute><EventLogs /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/code-assistant" element={<AdminRoute><SidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/surgery-schedule" element={<AdminRoute><SidebarWrapper><LazyRoute><SurgerySchedule /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
