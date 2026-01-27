@@ -15,7 +15,8 @@ import {
   Eye,
   Edit3,
   Trash2,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Scale
 } from "lucide-react";
 import { NeoHubProfile, Portal, PROFILE_NAMES, PORTAL_NAMES, PORTAL_MODULES } from "@/neohub/lib/permissions";
 import { ModulePermission, ModuleInfo } from "@/hooks/useAccessMatrix";
@@ -35,10 +36,11 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
   aluno: <GraduationCap className="h-4 w-4" />,
   paciente: <Heart className="h-4 w-4" />,
   cliente_avivar: <TrendingUp className="h-4 w-4" />,
+  ipromed: <Scale className="h-4 w-4" />,
 };
 
-const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar'];
-const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'];
+const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'medico', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
+const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'];
 
 export function AccessCompareProfiles({
   permissions,

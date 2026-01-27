@@ -26,7 +26,8 @@ import {
   Unlock,
   FileText,
   ChevronRight,
-  Table as TableIcon
+  Table as TableIcon,
+  Scale
 } from "lucide-react";
 import { useAccessMatrix, ModulePermission, OperationType } from "@/hooks/useAccessMatrix";
 import { AccessPermissionEditor } from "@/components/access-matrix/AccessPermissionEditor";
@@ -44,6 +45,7 @@ const PROFILE_ICONS: Record<NeoHubProfile, React.ReactNode> = {
   aluno: <GraduationCap className="h-4 w-4" />,
   paciente: <Heart className="h-4 w-4" />,
   cliente_avivar: <TrendingUp className="h-4 w-4" />,
+  ipromed: <Scale className="h-4 w-4" />,
 };
 
 const PORTAL_COLORS: Record<Portal, string> = {
@@ -52,6 +54,7 @@ const PORTAL_COLORS: Record<Portal, string> = {
   academy: 'from-emerald-500 to-green-500',
   neolicense: 'from-amber-400 to-yellow-500',
   avivar: 'from-orange-500 to-red-500',
+  ipromed: 'from-[#00629B] to-[#004d7a]',
 };
 
 const PORTAL_BG_COLORS: Record<Portal, string> = {
@@ -60,10 +63,11 @@ const PORTAL_BG_COLORS: Record<Portal, string> = {
   academy: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800',
   neolicense: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800',
   avivar: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800',
+  ipromed: 'bg-[#00629B]/10 dark:bg-[#00629B]/20 border-[#00629B]/30 dark:border-[#00629B]/50',
 };
 
-const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'aluno', 'paciente', 'cliente_avivar'];
-const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'];
+const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
+const ALL_PORTALS: Portal[] = ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'];
 
 export default function AccessMatrix() {
   const { 

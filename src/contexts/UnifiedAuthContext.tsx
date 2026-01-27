@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Tipos da Nova Arquitetura
 // ====================================
 
-export type ProfileKey = 'administrador' | 'licenciado' | 'colaborador' | 'medico' | 'aluno' | 'paciente' | 'cliente_avivar';
+export type ProfileKey = 'administrador' | 'licenciado' | 'colaborador' | 'medico' | 'aluno' | 'paciente' | 'cliente_avivar' | 'ipromed';
 
 export interface UserProfile {
   key: ProfileKey;
@@ -62,17 +62,18 @@ export interface UserContext {
 
 // Compatibilidade com código legado
 export type NeoHubProfile = ProfileKey;
-export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar';
+export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed';
 
 // Mapeamento perfil -> portais
 export const PROFILE_PORTAL_MAP: Record<ProfileKey, Portal[]> = {
-  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar'],
+  administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'],
   licenciado: ['neolicense', 'neoteam'],
   colaborador: ['neoteam'],
   medico: ['neoteam'],
   aluno: ['academy'],
   paciente: ['neocare'],
   cliente_avivar: ['avivar'],
+  ipromed: ['ipromed'],
 };
 
 export const PROFILE_ROUTES: Record<ProfileKey, string> = {
@@ -83,6 +84,7 @@ export const PROFILE_ROUTES: Record<ProfileKey, string> = {
   aluno: '/academy',
   paciente: '/neocare',
   cliente_avivar: '/avivar',
+  ipromed: '/ipromed',
 };
 
 export const PROFILE_NAMES: Record<ProfileKey, string> = {
@@ -93,6 +95,7 @@ export const PROFILE_NAMES: Record<ProfileKey, string> = {
   aluno: 'Aluno',
   paciente: 'Paciente',
   cliente_avivar: 'Cliente Avivar',
+  ipromed: 'IPROMED',
 };
 
 // Helpers
