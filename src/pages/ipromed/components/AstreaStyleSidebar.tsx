@@ -38,17 +38,17 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
-  { id: 'workspace', label: 'Área de trabalho', icon: LayoutGrid, href: '/ipromed' },
-  { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/agenda' },
-  { id: 'contacts', label: 'Contatos', icon: Users, href: '/ipromed/contacts' },
-  { id: 'services', label: 'Atendimentos', icon: MessageCircle, href: '/ipromed/services' },
-  { id: 'cases', label: 'Processos e casos', icon: FolderOpen, href: '/ipromed/cases' },
-  { id: 'publications', label: 'Publicações', icon: FileText, href: '/ipromed/publications', badge: 99, badgeColor: 'bg-rose-500' },
-  { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial' },
-  { id: 'ai', label: 'Criação de peças', icon: Sparkles, href: '/ipromed/ai', isNew: true },
+  { id: 'workspace', label: 'Área de trabalho', icon: LayoutGrid, href: '/ipromed/legal-hub' },
+  { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal-hub?tab=agenda' },
+  { id: 'contacts', label: 'Contatos', icon: Users, href: '/ipromed/clients' },
+  { id: 'services', label: 'Atendimentos', icon: MessageCircle, href: '/ipromed/legal-hub?tab=portal' },
+  { id: 'cases', label: 'Processos e casos', icon: FolderOpen, href: '/ipromed/legal-hub?tab=cases' },
+  { id: 'publications', label: 'Publicações', icon: FileText, href: '/ipromed/legal-hub?tab=publications', badge: 99, badgeColor: 'bg-rose-500' },
+  { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/legal-hub?tab=financial' },
+  { id: 'ai', label: 'Criação de peças', icon: Sparkles, href: '/ipromed/legal-hub?tab=ai', isNew: true },
   { id: 'documents', label: 'Documentos', icon: FileBox, href: '/ipromed/documents' },
-  { id: 'indicators', label: 'Indicadores', icon: BarChart3, href: '/ipromed/analytics' },
-  { id: 'alerts', label: 'Alertas', icon: Bell, href: '/ipromed/alerts', badge: 5, badgeColor: 'bg-rose-500' },
+  { id: 'indicators', label: 'Indicadores', icon: BarChart3, href: '/ipromed/legal-hub?tab=analytics' },
+  { id: 'alerts', label: 'Alertas', icon: Bell, href: '/ipromed/legal-hub?tab=alerts', badge: 5, badgeColor: 'bg-rose-500' },
 ];
 
 const bottomNavItems: NavItem[] = [
