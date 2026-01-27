@@ -19,9 +19,12 @@ import {
   Timer,
   ArrowRight,
   Send,
-  Wallet
+  Wallet,
+  Loader2,
+  Banknote
 } from 'lucide-react';
 import { useStudentReferrals } from '../hooks/useStudentReferrals';
+import { PixRequestButton } from '../components/PixRequestButton';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
@@ -84,13 +87,15 @@ export function AcademyReferral() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary">Aguardando contato</Badge>;
+        return <Badge variant="secondary">Em atendimento</Badge>;
       case 'contacted':
         return <Badge className="bg-blue-500">Em negociação</Badge>;
       case 'enrolled':
         return <Badge className="bg-amber-500">Matriculado</Badge>;
       case 'converted':
         return <Badge className="bg-green-500">Convertido</Badge>;
+      case 'settled':
+        return <Badge className="bg-emerald-600">Quitado</Badge>;
       case 'cancelled':
         return <Badge variant="destructive">Cancelado</Badge>;
       default:
@@ -148,13 +153,11 @@ export function AcademyReferral() {
         </Card>
       )}
 
-      {/* Expired Promo - Minimized notice */}
-      {!isPromoActive && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
-          <Clock className="h-4 w-4" />
-          <span>Promoção encerrada. Comissão atual: <strong className="text-foreground">{normalCommission}%</strong> por matrícula.</span>
-        </div>
-      )}
+      {/* Commission Rate Info - No promo message */}
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-sm">
+        <DollarSign className="h-4 w-4" />
+        <span>Comissão: <strong>{normalCommission}%</strong> do valor contratado, pago via PIX após quitação.</span>
+      </div>
 
       {/* How It Works - Flipchart Style */}
       <Card className="bg-gradient-to-br from-background to-muted/30 border-dashed">
@@ -262,7 +265,7 @@ export function AcademyReferral() {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <div className="w-10 h-10 mx-auto bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2">
@@ -278,7 +281,7 @@ export function AcademyReferral() {
               <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             </div>
             <p className="text-2xl font-bold">{stats.pending}</p>
-            <p className="text-xs text-muted-foreground">Aguardando</p>
+            <p className="text-xs text-muted-foreground">Em Atendimento</p>
           </CardContent>
         </Card>
         <Card>
@@ -293,7 +296,16 @@ export function AcademyReferral() {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="w-10 h-10 mx-auto bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-2">
-              <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <Wallet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <p className="text-2xl font-bold">{stats.settled}</p>
+            <p className="text-xs text-muted-foreground">Quitados</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="w-10 h-10 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-2">
+              <DollarSign className="h-5 w-5 text-primary" />
             </div>
             <p className="text-2xl font-bold">{stats.totalCommission}%</p>
             <p className="text-xs text-muted-foreground">Comissão Total</p>
@@ -327,36 +339,55 @@ export function AcademyReferral() {
                     <TableHead>Status</TableHead>
                     <TableHead className="hidden sm:table-cell">Data</TableHead>
                     <TableHead className="text-right">Comissão</TableHead>
+                    <TableHead className="text-right">Ação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {referrals.map((referral) => (
-                    <TableRow key={referral.id}>
-                      <TableCell className="font-medium">{referral.referred_name}</TableCell>
-                      <TableCell className="hidden sm:table-cell">{referral.referred_email}</TableCell>
-                      <TableCell className="hidden md:table-cell">{referral.referred_phone}</TableCell>
-                      <TableCell>
-                        {referral.referred_has_crm ? (
-                          <Badge variant="outline" className="text-green-600">
-                            {referral.referred_crm || 'Sim'}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">Não possui</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(referral.status)}</TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        {format(new Date(referral.created_at), "dd/MM/yy", { locale: ptBR })}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {referral.status === 'converted' ? (
-                          <span className="text-green-600">{referral.commission_rate}%</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {referrals.map((referral) => {
+                    const commissionValue = referral.contract_value 
+                      ? (referral.contract_value * referral.commission_rate / 100) 
+                      : null;
+                    
+                    return (
+                      <TableRow key={referral.id}>
+                        <TableCell className="font-medium">{referral.referred_name}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{referral.referred_email}</TableCell>
+                        <TableCell className="hidden md:table-cell">{referral.referred_phone}</TableCell>
+                        <TableCell>
+                          {referral.referred_has_crm ? (
+                            <Badge variant="outline" className="text-emerald-600">
+                              {referral.referred_crm || 'Sim'}
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">Não possui</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(referral.status)}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {format(new Date(referral.created_at), "dd/MM/yy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {(referral.status === 'converted' || referral.status === 'settled') && commissionValue ? (
+                            <div>
+                              <span className="text-emerald-600 font-bold">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(commissionValue)}
+                              </span>
+                              <span className="text-xs text-muted-foreground block">
+                                ({referral.commission_rate}% de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(referral.contract_value!)})
+                              </span>
+                            </div>
+                          ) : (referral.status === 'converted' || referral.status === 'settled') ? (
+                            <span className="text-emerald-600">{referral.commission_rate}%</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <PixRequestButton referral={referral} />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

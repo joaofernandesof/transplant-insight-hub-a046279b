@@ -7164,10 +7164,13 @@ export type Database = {
         Row: {
           commission_paid: boolean | null
           commission_rate: number | null
+          contract_value: number | null
           converted_at: string | null
           created_at: string
           id: string
           notes: string | null
+          pix_request_status: string | null
+          pix_requested_at: string | null
           referral_code: string
           referred_crm: string | null
           referred_email: string
@@ -7181,10 +7184,13 @@ export type Database = {
         Insert: {
           commission_paid?: boolean | null
           commission_rate?: number | null
+          contract_value?: number | null
           converted_at?: string | null
           created_at?: string
           id?: string
           notes?: string | null
+          pix_request_status?: string | null
+          pix_requested_at?: string | null
           referral_code: string
           referred_crm?: string | null
           referred_email: string
@@ -7198,10 +7204,13 @@ export type Database = {
         Update: {
           commission_paid?: boolean | null
           commission_rate?: number | null
+          contract_value?: number | null
           converted_at?: string | null
           created_at?: string
           id?: string
           notes?: string | null
+          pix_request_status?: string | null
+          pix_requested_at?: string | null
           referral_code?: string
           referred_crm?: string | null
           referred_email?: string
