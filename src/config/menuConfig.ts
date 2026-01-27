@@ -274,6 +274,7 @@ export const ACADEMY_MENU_ITEMS: MenuItem[] = [
   { id: 'academy_certificates', code: 'academy_certificates', title: 'Certificados', icon: Award, route: '/academy/certificates' },
   { id: 'academy_community', code: 'academy_community', title: 'Comunidade', icon: Users, route: '/academy/community' },
   { id: 'academy_career', code: 'academy_career', title: 'Carreira', icon: TrendingUp, route: '/academy/career' },
+  { id: 'academy_referral', code: 'academy_referral', title: 'Indique e Ganhe', icon: Gift, route: '/academy/referral' },
   { id: 'academy_settings', code: 'academy_settings', title: 'Configurações', icon: Settings, route: '/academy/profile' },
 ];
 
