@@ -18,6 +18,7 @@ import {
   Star,
   FileText
 } from "lucide-react";
+import { HubDiagram } from "@/components/shared/HubDiagram";
 
 
 export function AcademyHome() {
@@ -273,10 +274,21 @@ export function AcademyHome() {
                   </Card>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </main>
-    </div>
-  );
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Hub Diagram Section */}
+      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
+        <CardHeader className="pb-2 text-center">
+          <CardTitle className="text-white text-lg">Ecossistema NeoHub</CardTitle>
+          <CardDescription className="text-slate-400">Você faz parte do nosso ecossistema</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <HubDiagram highlightPortal="ibramec" />
+        </CardContent>
+      </Card>
+    </main>
+  </div>
+);
 }
