@@ -605,17 +605,11 @@ export function Formacao360ReferralLanding() {
         </div>
       </div>
 
-      {/* Classroom Image Section */}
-      <div className="relative h-64 md:h-80">
-        <img 
-          src={classroomImage}
-          alt="Sala de aula - Formação IBRAMEC"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0d1e36] via-transparent to-[#0a1628]" />
+      {/* Quote Section - Clean gradient without background image */}
+      <div className="relative h-48 md:h-56 bg-gradient-to-r from-[#0a1628] via-[#00629B] to-[#0a1628]">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center px-4">
-            <p className="text-white text-2xl md:text-3xl font-bold">
+            <p className="text-white text-2xl md:text-3xl font-bold drop-shadow-lg">
               Transformamos médicos em líderes no mercado mais promissor da medicina.
             </p>
           </div>
