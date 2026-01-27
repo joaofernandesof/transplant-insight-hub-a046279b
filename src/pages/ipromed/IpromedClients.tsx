@@ -3,7 +3,7 @@
  * Controle de processos jurídicos dos clientes (conectado ao banco de dados)
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import DeadlineAlerts from "./components/DeadlineAlerts";
+import { ClientFormModal } from "./components/ClientFormModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface LegalClient {
   id: string;
@@ -111,10 +113,13 @@ const contractStatusConfig: Record<string, { label: string; color: string }> = {
 
 export default function IpromedClients() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [journeyFilter, setJourneyFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<LegalClient | undefined>(undefined);
 
   // Fetch clients from database
   const { data: clients = [], isLoading, error } = useQuery({
@@ -189,7 +194,7 @@ export default function IpromedClients() {
             <TrendingUp className="h-4 w-4 mr-2" />
             Jornada do Cliente
           </Button>
-          <Button>
+          <Button onClick={() => { setEditingClient(undefined); setIsFormOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Cliente
           </Button>
@@ -425,6 +430,14 @@ export default function IpromedClients() {
           />
         </div>
       </div>
+
+      {/* Modal de Cadastro/Edição */}
+      <ClientFormModal
+        open={isFormOpen}
+        onClose={() => { setIsFormOpen(false); setEditingClient(undefined); }}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['ipromed-clients'] })}
+        client={editingClient}
+      />
     </div>
   );
 }
