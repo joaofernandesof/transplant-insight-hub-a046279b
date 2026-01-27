@@ -24,7 +24,8 @@ import {
   HelpCircle,
   UserCheck,
   FileText,
-  Printer
+  Printer,
+  Grid3X3
 } from "lucide-react";
 import { LegalAIInsightsPanel } from "./LegalAIInsightsPanel";
 import { 
@@ -45,6 +46,7 @@ import {
   LegalStudentsTab,
   LegalFullSurveysTab,
   LegalPrintView,
+  LegalResponseMatrix,
   type LarissaMetrics,
   type LegalPerception,
   type ExamMetrics,
@@ -394,9 +396,10 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
   }
 
   // Tab configuration
-  const LEGAL_TABS = ['overview', 'mentors', 'questions', 'students', 'surveys', 'ai-insights'];
+  const LEGAL_TABS = ['overview', 'matrix', 'mentors', 'questions', 'students', 'surveys', 'ai-insights'];
   const LEGAL_TAB_NAMES: Record<string, string> = {
     'overview': 'Visão Geral',
+    'matrix': 'Matriz',
     'mentors': 'Mentoras',
     'questions': 'Perguntas',
     'students': 'Alunos',
@@ -474,6 +477,10 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
           <TabsTrigger value="overview" className="text-xs sm:text-sm">
             <Scale className="h-3 w-3 mr-1 hidden sm:inline" />
             Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="matrix" className="text-xs sm:text-sm">
+            <Grid3X3 className="h-3 w-3 mr-1 hidden sm:inline" />
+            Matriz
           </TabsTrigger>
           <TabsTrigger value="mentors" className="text-xs sm:text-sm">
             <Users className="h-3 w-3 mr-1 hidden sm:inline" />
@@ -582,6 +589,10 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
             examMetrics={examMetrics}
             students={students}
           />
+        </TabsContent>
+
+        <TabsContent value="matrix" className="mt-4">
+          <LegalResponseMatrix students={students} />
         </TabsContent>
 
         <TabsContent value="mentors" className="mt-4">
