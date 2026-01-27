@@ -144,8 +144,8 @@ export function LegalStudentsTab({ students, legalPerception }: LegalStudentsTab
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header - print-section */}
+      <div className="print-section flex items-center justify-between bg-background p-2 rounded-lg">
         <div className="flex items-center gap-3">
           <Users className="h-6 w-6 text-violet-500" />
           <div>
@@ -157,8 +157,8 @@ export function LegalStudentsTab({ students, legalPerception }: LegalStudentsTab
         </div>
       </div>
 
-      {/* Summary KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      {/* Summary KPIs - print-section */}
+      <div className="print-section grid grid-cols-2 md:grid-cols-5 gap-3 bg-background p-2 rounded-lg">
         <Card className="text-center bg-rose-50 dark:bg-rose-900/20">
           <CardContent className="pt-4">
             <Flame className="h-5 w-5 mx-auto text-rose-500 mb-1" />
@@ -196,30 +196,36 @@ export function LegalStudentsTab({ students, legalPerception }: LegalStudentsTab
         </Card>
       </div>
 
-      {/* Classification Sections */}
-      <ClassificationSection
-        title="Leads HOT"
-        icon={<Flame className="h-5 w-5 text-rose-500" />}
-        students={hotStudents}
-        color="text-rose-600"
-        description="Score ≥ 40 pontos • Prioridade máxima"
-      />
+      {/* Classification Sections - each as print-section */}
+      <div className="print-section bg-background p-2 rounded-lg">
+        <ClassificationSection
+          title="Leads HOT"
+          icon={<Flame className="h-5 w-5 text-rose-500" />}
+          students={hotStudents}
+          color="text-rose-600"
+          description="Score ≥ 40 pontos • Prioridade máxima"
+        />
+      </div>
 
-      <ClassificationSection
-        title="Leads WARM"
-        icon={<Thermometer className="h-5 w-5 text-amber-500" />}
-        students={warmStudents}
-        color="text-amber-600"
-        description="Score 25-39 pontos • Nutrição ativa"
-      />
+      <div className="print-section bg-background p-2 rounded-lg">
+        <ClassificationSection
+          title="Leads WARM"
+          icon={<Thermometer className="h-5 w-5 text-amber-500" />}
+          students={warmStudents}
+          color="text-amber-600"
+          description="Score 25-39 pontos • Nutrição ativa"
+        />
+      </div>
 
-      <ClassificationSection
-        title="Leads COLD"
-        icon={<Snowflake className="h-5 w-5 text-blue-500" />}
-        students={coldStudents}
-        color="text-blue-600"
-        description="Score < 25 pontos • Acompanhamento"
-      />
+      <div className="print-section bg-background p-2 rounded-lg">
+        <ClassificationSection
+          title="Leads COLD"
+          icon={<Snowflake className="h-5 w-5 text-blue-500" />}
+          students={coldStudents}
+          color="text-blue-600"
+          description="Score < 25 pontos • Acompanhamento"
+        />
+      </div>
 
       {/* Legend */}
       <Card className="bg-muted/30">

@@ -168,8 +168,8 @@ export function LegalFullSurveysTab({ students }: LegalFullSurveysTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      {/* Header - print-section */}
+      <div className="print-section flex items-center justify-between flex-wrap gap-3 bg-background p-2 rounded-lg">
         <div className="flex items-center gap-3">
           <FileText className="h-6 w-6 text-violet-500" />
           <div>
@@ -180,7 +180,7 @@ export function LegalFullSurveysTab({ students }: LegalFullSurveysTabProps) {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 no-print">
           <Button variant="outline" size="sm" onClick={expandAll}>
             Expandir Todos
           </Button>
@@ -190,8 +190,8 @@ export function LegalFullSurveysTab({ students }: LegalFullSurveysTabProps) {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2">
+      {/* Filters - no-print */}
+      <div className="flex flex-wrap gap-2 no-print">
         <Button 
           variant={filter === 'all' ? 'default' : 'outline'} 
           size="sm"
@@ -228,15 +228,16 @@ export function LegalFullSurveysTab({ students }: LegalFullSurveysTabProps) {
         </Button>
       </div>
 
-      {/* Survey Cards */}
+      {/* Survey Cards - each as print-section */}
       <div className="space-y-4">
         {filteredStudents.map((student) => (
-          <SurveyResponseCard
-            key={student.userId}
-            student={student}
-            isExpanded={expandedIds.has(student.userId)}
-            onToggle={() => toggleExpanded(student.userId)}
-          />
+          <div key={student.userId} className="print-section bg-background rounded-lg">
+            <SurveyResponseCard
+              student={student}
+              isExpanded={expandedIds.has(student.userId)}
+              onToggle={() => toggleExpanded(student.userId)}
+            />
+          </div>
         ))}
         
         {filteredStudents.length === 0 && (

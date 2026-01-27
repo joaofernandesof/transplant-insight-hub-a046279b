@@ -137,8 +137,8 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
 
   return (
     <div className="space-y-6">
-      {/* Row 1: Summary KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* Row 1: Summary KPIs - print-section for PDF export */}
+      <div className="print-section grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 bg-background p-2 rounded-lg">
         <Card className="text-center">
           <CardContent className="pt-4">
             <Users className="h-5 w-5 mx-auto text-violet-500 mb-1" />
@@ -183,8 +183,8 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
         </Card>
       </div>
 
-      {/* Row 2: 3 Charts */}
-      <div className="grid md:grid-cols-3 gap-4">
+      {/* Row 2: 3 Charts - print-section */}
+      <div className="print-section grid md:grid-cols-3 gap-4 bg-background p-2 rounded-lg">
         {/* Chart 1: Instructor Radar */}
         <Card>
           <CardHeader className="pb-2">
@@ -288,8 +288,8 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
         </Card>
       </div>
 
-      {/* Row 3: 3 Charts */}
-      <div className="grid md:grid-cols-3 gap-4">
+      {/* Row 3: 3 Charts - print-section */}
+      <div className="print-section grid md:grid-cols-3 gap-4 bg-background p-2 rounded-lg">
         {/* Chart 4: Feeling Distribution */}
         <Card>
           <CardHeader className="pb-2">
@@ -372,8 +372,8 @@ export function LegalOverviewTab({ larisaMetrics, legalPerception, examMetrics, 
         </Card>
       </div>
 
-      {/* Row 4: 2 Charts + Exam Summary */}
-      <div className="grid md:grid-cols-3 gap-4">
+      {/* Row 4: 2 Charts + Exam Summary - print-section */}
+      <div className="print-section grid md:grid-cols-3 gap-4 bg-background p-2 rounded-lg">
         {/* Chart 7: Exam Performance */}
         <Card>
           <CardHeader className="pb-2">

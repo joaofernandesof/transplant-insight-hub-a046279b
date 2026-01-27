@@ -147,8 +147,8 @@ export function LegalQuestionsTab({ legalPerception, larisaMetrics }: LegalQuest
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
+      {/* Header - print-section */}
+      <div className="print-section flex items-center gap-3 bg-background p-2 rounded-lg">
         <HelpCircle className="h-6 w-6 text-violet-500" />
         <div>
           <h2 className="text-lg font-semibold">Análise por Pergunta</h2>
@@ -156,8 +156,8 @@ export function LegalQuestionsTab({ legalPerception, larisaMetrics }: LegalQuest
         </div>
       </div>
 
-      {/* Legal Perception Questions */}
-      <div>
+      {/* Legal Perception Questions - print-section */}
+      <div className="print-section bg-background p-2 rounded-lg">
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
           <Shield className="h-4 w-4 text-violet-500" />
           Percepção Jurídica
@@ -195,8 +195,8 @@ export function LegalQuestionsTab({ legalPerception, larisaMetrics }: LegalQuest
         </div>
       </div>
 
-      {/* Instructor Evaluation Questions */}
-      <div>
+      {/* Instructor Evaluation Questions - print-section */}
+      <div className="print-section bg-background p-2 rounded-lg">
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
           <Users className="h-4 w-4 text-violet-500" />
           Avaliação da Instrutora (Dra. Larissa)
