@@ -2221,6 +2221,8 @@ export type Database = {
           id: string
           metadata: Json | null
           notice_period_days: number | null
+          partner1_client_id: string | null
+          partner2_client_id: string | null
           renewal_date: string | null
           responsible_id: string | null
           signed_at: string | null
@@ -2250,6 +2252,8 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notice_period_days?: number | null
+          partner1_client_id?: string | null
+          partner2_client_id?: string | null
           renewal_date?: string | null
           responsible_id?: string | null
           signed_at?: string | null
@@ -2279,6 +2283,8 @@ export type Database = {
           id?: string
           metadata?: Json | null
           notice_period_days?: number | null
+          partner1_client_id?: string | null
+          partner2_client_id?: string | null
           renewal_date?: string | null
           responsible_id?: string | null
           signed_at?: string | null
@@ -2294,6 +2300,20 @@ export type Database = {
           {
             foreignKeyName: "ipromed_contracts_client_id_fkey"
             columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_contracts_partner1_client_id_fkey"
+            columns: ["partner1_client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_contracts_partner2_client_id_fkey"
+            columns: ["partner2_client_id"]
             isOneToOne: false
             referencedRelation: "ipromed_legal_clients"
             referencedColumns: ["id"]
@@ -2402,9 +2422,11 @@ export type Database = {
           metadata: Json | null
           name: string
           notes: string | null
+          partner_client_id: string | null
           phone: string | null
           responsible_lawyer_id: string | null
           risk_level: Database["public"]["Enums"]["risk_level"] | null
+          shared_contract_id: string | null
           status: string | null
           updated_at: string | null
         }
@@ -2423,9 +2445,11 @@ export type Database = {
           metadata?: Json | null
           name: string
           notes?: string | null
+          partner_client_id?: string | null
           phone?: string | null
           responsible_lawyer_id?: string | null
           risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          shared_contract_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -2444,13 +2468,30 @@ export type Database = {
           metadata?: Json | null
           name?: string
           notes?: string | null
+          partner_client_id?: string | null
           phone?: string | null
           responsible_lawyer_id?: string | null
           risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          shared_contract_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_legal_clients_partner_client_id_fkey"
+            columns: ["partner_client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_legal_clients_shared_contract_id_fkey"
+            columns: ["shared_contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ipromed_legal_documents: {
         Row: {

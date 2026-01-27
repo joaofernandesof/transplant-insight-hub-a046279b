@@ -125,6 +125,11 @@ export default function IpromedHome() {
     },
   });
 
+  // Count unique contracts (partners share one contract)
+  const uniqueContracts = stats?.totalClients 
+    ? stats.totalClients - (stats.totalClients > 0 ? Math.floor((stats.pendingContracts || 0) / 2) : 0)
+    : 0;
+
   const statsCards = [
     { 
       label: 'Processos Ativos', 
