@@ -20,7 +20,8 @@ import {
   Snowflake,
   Star,
   FileText,
-  Download
+  Download,
+  Sparkles
 } from "lucide-react";
 import {
   RadarChart,
@@ -39,6 +40,17 @@ import {
   Pie
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { LegalAIInsightsPanel } from "./LegalAIInsightsPanel";
+import { 
+  LegalWidgetInsight,
+  generateLarisaOverallInsight,
+  generateLegalScoreInsight,
+  generateExamInsight,
+  generateLeadsInsight,
+  generateFeelingInsight,
+  generateInfluenceInsight,
+  generateTimingInsight
+} from "./LegalWidgetInsight";
 
 interface LegalModuleDashboardProps {
   classId?: string;
@@ -371,8 +383,8 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
         </Button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* KPI Cards with Insights */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-violet-500">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
@@ -383,6 +395,11 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               <Star className="h-8 w-8 text-violet-500 opacity-50" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">Dra. Larissa</p>
+            {larisaMetrics && (
+              <LegalWidgetInsight 
+                {...generateLarisaOverallInsight(larisaMetrics.overall, larisaMetrics.totalResponses)}
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -396,6 +413,11 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               <Scale className="h-8 w-8 text-amber-500 opacity-50" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">Média da turma</p>
+            {legalPerception && (
+              <LegalWidgetInsight 
+                {...generateLegalScoreInsight(legalPerception.normalizedScore, legalPerception.total)}
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -408,7 +430,12 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               </div>
               <GraduationCap className="h-8 w-8 text-emerald-500 opacity-50" />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Média: {examMetrics?.average.toFixed(0)}%</p>
+            <p className="text-xs text-muted-foreground mt-1">Média: {examMetrics?.average.toFixed(0) || '-'}%</p>
+            {examMetrics && (
+              <LegalWidgetInsight 
+                {...generateExamInsight(examMetrics.approvalRate, examMetrics.average)}
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -424,17 +451,26 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
             <p className="text-xs text-muted-foreground mt-1">
               {legalPerception ? Math.round((legalPerception.leads.hot / legalPerception.total) * 100) : 0}% do total
             </p>
+            {legalPerception && (
+              <LegalWidgetInsight 
+                {...generateLeadsInsight(legalPerception.leads.hot, legalPerception.leads.warm, legalPerception.leads.cold, legalPerception.total)}
+              />
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5 overflow-x-auto">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="instructors">Instrutoras</TabsTrigger>
           <TabsTrigger value="perception">Percepção</TabsTrigger>
           <TabsTrigger value="feedbacks">Feedbacks</TabsTrigger>
+          <TabsTrigger value="ai-insights" className="flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            IA
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -645,7 +681,7 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
                 <CardTitle className="text-sm font-medium">Segurança Jurídica</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-48">
+                <div className="h-40">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={feelingChartData} layout="vertical">
                       <XAxis type="number" hide />
@@ -659,6 +695,11 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
+                {legalPerception && (
+                  <LegalWidgetInsight 
+                    {...generateFeelingInsight(legalPerception.feelingDist, legalPerception.total)}
+                  />
+                )}
               </CardContent>
             </Card>
 
@@ -669,20 +710,25 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               </CardHeader>
               <CardContent>
                 {legalPerception && (
-                  <div className="space-y-3">
-                    {Object.entries(legalPerception.influenceDist).map(([key, value]) => (
-                      <div key={key}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="truncate">{key}</span>
-                          <span className="font-medium">{value}</span>
+                  <>
+                    <div className="space-y-3">
+                      {Object.entries(legalPerception.influenceDist).map(([key, value]) => (
+                        <div key={key}>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="truncate">{key}</span>
+                            <span className="font-medium">{value}</span>
+                          </div>
+                          <Progress 
+                            value={(value / legalPerception.total) * 100} 
+                            className="h-2"
+                          />
                         </div>
-                        <Progress 
-                          value={(value / legalPerception.total) * 100} 
-                          className="h-2"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                    <LegalWidgetInsight 
+                      {...generateInfluenceInsight(legalPerception.influenceDist, legalPerception.total)}
+                    />
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -694,49 +740,87 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               </CardHeader>
               <CardContent>
                 {legalPerception && (
-                  <div className="space-y-3">
-                    {Object.entries(legalPerception.timingDist).map(([key, value]) => (
-                      <div key={key}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="truncate">{key}</span>
-                          <span className="font-medium">{value}</span>
+                  <>
+                    <div className="space-y-3">
+                      {Object.entries(legalPerception.timingDist).map(([key, value]) => (
+                        <div key={key}>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="truncate">{key}</span>
+                            <span className="font-medium">{value}</span>
+                          </div>
+                          <Progress 
+                            value={(value / legalPerception.total) * 100} 
+                            className="h-2"
+                          />
                         </div>
-                        <Progress 
-                          value={(value / legalPerception.total) * 100} 
-                          className="h-2"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                    <LegalWidgetInsight 
+                      {...generateTimingInsight(legalPerception.timingDist, legalPerception.total)}
+                    />
+                  </>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Summary Cards */}
+          {/* Summary Cards with dynamic values */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="bg-rose-50 dark:bg-rose-900/20 border-rose-200">
               <CardContent className="pt-4 text-center">
-                <p className="text-3xl font-bold text-rose-600">73%</p>
-                <p className="text-xs text-rose-700">Relatam insegurança</p>
+                <p className="text-3xl font-bold text-rose-600">
+                  {legalPerception ? Math.round(
+                    ((legalPerception.feelingDist['Exposto a riscos'] || 0) + 
+                     (legalPerception.feelingDist['Inseguro em pontos'] || 0) + 
+                     (legalPerception.feelingDist['Um pouco inseguro'] || 0)) / 
+                    legalPerception.total * 100
+                  ) : 0}%
+                </p>
+                <p className="text-xs text-rose-700 dark:text-rose-300">Relatam insegurança</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Soma de "Exposto" + "Inseguro" + "Pouco inseguro"
+                </p>
               </CardContent>
             </Card>
             <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200">
               <CardContent className="pt-4 text-center">
-                <p className="text-3xl font-bold text-amber-600">68%</p>
-                <p className="text-xs text-amber-700">Decisões impactadas</p>
+                <p className="text-3xl font-bold text-amber-600">
+                  {legalPerception ? Math.round(
+                    ((legalPerception.influenceDist['Travaram decisões'] || 0) + 
+                     (legalPerception.influenceDist['Influenciam bastante'] || 0)) / 
+                    legalPerception.total * 100
+                  ) : 0}%
+                </p>
+                <p className="text-xs text-amber-700 dark:text-amber-300">Decisões impactadas</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  "Travaram" + "Influenciam bastante"
+                </p>
               </CardContent>
             </Card>
             <Card className="bg-violet-50 dark:bg-violet-900/20 border-violet-200">
               <CardContent className="pt-4 text-center">
-                <p className="text-3xl font-bold text-violet-600">50%</p>
-                <p className="text-xs text-violet-700">Urgência imediata</p>
+                <p className="text-3xl font-bold text-violet-600">
+                  {legalPerception ? Math.round(
+                    ((legalPerception.timingDist['O quanto antes'] || 0) + 
+                     (legalPerception.timingDist['Próximos meses'] || 0)) / 
+                    legalPerception.total * 100
+                  ) : 0}%
+                </p>
+                <p className="text-xs text-violet-700 dark:text-violet-300">Urgência imediata</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  "Quanto antes" + "Próximos meses"
+                </p>
               </CardContent>
             </Card>
             <Card className="bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200">
               <CardContent className="pt-4 text-center">
-                <p className="text-3xl font-bold text-emerald-600">41%</p>
-                <p className="text-xs text-emerald-700">Leads HOT</p>
+                <p className="text-3xl font-bold text-emerald-600">
+                  {legalPerception ? Math.round((legalPerception.leads.hot / legalPerception.total) * 100) : 0}%
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">Leads HOT</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Score ≥ 40 pontos (BNT alto)
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -827,6 +911,25 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* AI Insights Tab */}
+        <TabsContent value="ai-insights" className="mt-4">
+          <LegalAIInsightsPanel 
+            metrics={{
+              larisaMetrics: larisaMetrics ? {
+                expectations: larisaMetrics.expectations,
+                clarity: larisaMetrics.clarity,
+                time: larisaMetrics.time,
+                overall: larisaMetrics.overall,
+                totalResponses: larisaMetrics.totalResponses,
+                feedbacksPositive: larisaMetrics.feedbacksPositive.map(f => f.feedback),
+                feedbacksImprove: larisaMetrics.feedbacksImprove.map(f => f.feedback),
+              } : null,
+              legalPerception,
+              examMetrics
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>
