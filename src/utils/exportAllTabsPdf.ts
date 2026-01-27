@@ -89,131 +89,161 @@ export async function exportAllTabsToPdf({
   filename,
   tabSelector = '[role="tabpanel"][data-state="active"]'
 }: ExportAllTabsOptions): Promise<void> {
-  setIsExporting(true);
-  toast.info('Preparando exportação de todas as abas...');
+  // Prevent any navigation during export
+  const originalOnBeforeUnload = window.onbeforeunload;
   
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 8;
-  const headerHeight = 15;
-  const availableWidth = pageWidth - (margin * 2);
-  const availableHeight = pageHeight - (margin * 2) - headerHeight;
-  
-  let isFirstPage = true;
-  let currentTabIndex = 0;
-  
-  for (const tab of tabs) {
-    currentTabIndex++;
-    setActiveTab(tab);
+  try {
+    setIsExporting(true);
+    toast.info('Preparando exportação de todas as abas...');
     
-    // Wait for tab content to fully render (1.5 seconds for charts/animations)
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const headerHeight = 15;
+    const availableWidth = pageWidth - (margin * 2);
+    const availableHeight = pageHeight - (margin * 2) - headerHeight;
     
-    const tabDisplayName = tabNames[tab] || tab;
-    toast.info(`Capturando ${tabDisplayName} (${currentTabIndex}/${tabs.length})...`);
+    let isFirstPage = true;
+    let currentTabIndex = 0;
+    const initialTab = tabs[0];
     
-    // Find the main content area
-    const contentArea = document.querySelector(tabSelector) as HTMLElement;
-    
-    if (!contentArea) {
-      console.warn(`Tab content not found for: ${tab}`);
-      continue;
-    }
-    
-    // Expand all collapsible elements before capturing
-    expandAllCollapsibles(contentArea);
-    
-    // Wait a bit for expansion animations
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    try {
-      // Find sections within this tab
-      const sections = findLogicalSections(contentArea);
-      let sectionIndex = 0;
+    for (const tab of tabs) {
+      currentTabIndex++;
+      setActiveTab(tab);
       
-      for (const section of sections) {
-        sectionIndex++;
-        
-        // Skip empty or hidden sections
-        if (!section || section.offsetHeight === 0) continue;
-        
-        // Force scroll to section
-        section.scrollIntoView({ block: 'start' });
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Capture section with high quality
-        const canvas = await html2canvas(section, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          width: section.scrollWidth,
-          height: section.scrollHeight,
-        });
-        
-        // Calculate scaling to fit section on one page
-        const imgAspectRatio = canvas.width / canvas.height;
-        let imgWidth = availableWidth;
-        let imgHeight = imgWidth / imgAspectRatio;
-        
-        // If height exceeds available space, scale down to fit
-        if (imgHeight > availableHeight) {
-          imgHeight = availableHeight;
-          imgWidth = imgHeight * imgAspectRatio;
-          
-          // Center horizontally if scaled down
-          // (will be adjusted in addImage)
-        }
-        
-        // Add new page if not first
-        if (!isFirstPage) {
-          pdf.addPage();
-        }
-        isFirstPage = false;
-        
-        // Add header with tab name
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        const sectionIndicator = sections.length > 1 ? ` (${sectionIndex}/${sections.length})` : '';
-        pdf.text(`${filename} - ${tabDisplayName}${sectionIndicator}`, margin, margin + 4);
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(128, 128, 128);
-        pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, margin, margin + 9);
-        pdf.setTextColor(0, 0, 0);
-        
-        // Calculate centered position
-        const xPos = margin + (availableWidth - imgWidth) / 2;
-        
-        // Add image centered on page
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        pdf.addImage(
-          imgData,
-          'JPEG',
-          xPos,
-          margin + headerHeight,
-          imgWidth,
-          imgHeight,
-          undefined,
-          'FAST'
-        );
+      // Wait for tab content to fully render (1.5 seconds for charts/animations)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const tabDisplayName = tabNames[tab] || tab;
+      toast.info(`Capturando ${tabDisplayName} (${currentTabIndex}/${tabs.length})...`);
+      
+      // Find the main content area
+      const contentArea = document.querySelector(tabSelector) as HTMLElement;
+      
+      if (!contentArea) {
+        console.warn(`Tab content not found for: ${tab}`);
+        continue;
       }
       
-    } catch (err) {
-      console.error(`Error capturing tab ${tab}:`, err);
+      // Expand all collapsible elements before capturing
+      expandAllCollapsibles(contentArea);
+      
+      // Wait a bit for expansion animations
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      try {
+        // Find sections within this tab
+        const sections = findLogicalSections(contentArea);
+        let sectionIndex = 0;
+        
+        for (const section of sections) {
+          sectionIndex++;
+          
+          // Skip empty or hidden sections
+          if (!section || section.offsetHeight === 0) continue;
+          
+          // Scroll section into view without affecting page navigation
+          // Use block: 'nearest' to minimize scrolling
+          try {
+            section.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+          } catch (e) {
+            // Ignore scroll errors
+          }
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          // Capture section with high quality
+          const canvas = await html2canvas(section, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            width: section.scrollWidth,
+            height: section.scrollHeight,
+          });
+          
+          // Calculate scaling to fit section on one page
+          const imgAspectRatio = canvas.width / canvas.height;
+          let imgWidth = availableWidth;
+          let imgHeight = imgWidth / imgAspectRatio;
+          
+          // If height exceeds available space, scale down to fit
+          if (imgHeight > availableHeight) {
+            imgHeight = availableHeight;
+            imgWidth = imgHeight * imgAspectRatio;
+          }
+          
+          // Add new page if not first
+          if (!isFirstPage) {
+            pdf.addPage();
+          }
+          isFirstPage = false;
+          
+          // Add header with tab name
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          const sectionIndicator = sections.length > 1 ? ` (${sectionIndex}/${sections.length})` : '';
+          pdf.text(`${filename} - ${tabDisplayName}${sectionIndicator}`, margin, margin + 4);
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(128, 128, 128);
+          pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, margin, margin + 9);
+          pdf.setTextColor(0, 0, 0);
+          
+          // Calculate centered position
+          const xPos = margin + (availableWidth - imgWidth) / 2;
+          
+          // Add image centered on page
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          pdf.addImage(
+            imgData,
+            'JPEG',
+            xPos,
+            margin + headerHeight,
+            imgWidth,
+            imgHeight,
+            undefined,
+            'FAST'
+          );
+        }
+        
+      } catch (err) {
+        console.error(`Error capturing tab ${tab}:`, err);
+      }
+      
+      // Delay between tabs
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
     
-    // Delay between tabs
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // Return to initial tab
+    setActiveTab(initialTab);
+    
+    // Save the PDF - use blob download for better compatibility
+    const pdfBlob = pdf.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = `${filename}-${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up blob URL after a short delay
+    setTimeout(() => {
+      URL.revokeObjectURL(pdfUrl);
+    }, 1000);
+    
+    toast.success('PDF completo exportado com sucesso!');
+    
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    toast.error('Erro ao exportar PDF. Tente novamente.');
+  } finally {
+    setIsExporting(false);
+    // Restore original handler
+    window.onbeforeunload = originalOnBeforeUnload;
   }
-  
-  // Save the PDF
-  pdf.save(`${filename}-${new Date().toISOString().split('T')[0]}.pdf`);
-  
-  setIsExporting(false);
-  toast.success('PDF completo exportado com sucesso!');
 }
 
 /**
