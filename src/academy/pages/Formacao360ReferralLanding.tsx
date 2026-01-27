@@ -43,15 +43,20 @@ import heroSurgeryImage from '@/assets/ibramec/hero-surgery.jpg';
 import classroomImage from '@/assets/ibramec/classroom-training.jpg';
 import ibramecLogoWhite from '@/assets/ibramec-logo-white.png';
 
-// Promotion deadline: 25/01/2026 at 23:59 BRT (UTC-3)
+// Promotion ended: 25/01/2026 at 23:59 BRT (UTC-3)
 const PROMO_DEADLINE = new Date('2026-01-26T02:59:00.000Z');
-const DISCOUNT_PERCENTAGE = 10;
+const NORMAL_DISCOUNT = 5;
+const PROMO_DISCOUNT = 10;
 
-// Pricing
+// Pricing - dynamic based on promotion status
 const ORIGINAL_PRICE = 39900;
-const DISCOUNTED_PRICE = ORIGINAL_PRICE * (1 - DISCOUNT_PERCENTAGE / 100); // 35.910
+
+function getDiscountedPrice(isPromoActive: boolean) {
+  const discount = isPromoActive ? PROMO_DISCOUNT : NORMAL_DISCOUNT;
+  return ORIGINAL_PRICE * (1 - discount / 100);
+}
+
 const DEPOSIT_AMOUNT = 1000;
-const REMAINING_AMOUNT = DISCOUNTED_PRICE - DEPOSIT_AMOUNT; // 34.910
 
 export function Formacao360ReferralLanding() {
   const { code } = useParams<{ code: string }>();
@@ -82,6 +87,11 @@ export function Formacao360ReferralLanding() {
 
   // Check if promo is active
   const isPromoActive = new Date() < PROMO_DEADLINE;
+  
+  // Calculate prices based on promotion status
+  const discountPercentage = isPromoActive ? PROMO_DISCOUNT : NORMAL_DISCOUNT;
+  const discountedPrice = getDiscountedPrice(isPromoActive);
+  const remainingAmount = discountedPrice - DEPOSIT_AMOUNT;
 
   // Update countdown
   useEffect(() => {
@@ -220,7 +230,7 @@ export function Formacao360ReferralLanding() {
               <p className="text-emerald-400 font-semibold mb-2">Resumo do Pagamento:</p>
               <div className="text-gray-300 text-sm space-y-1">
                 <p>Sinal contratual para reserva de vaga: <strong>{formatPrice(DEPOSIT_AMOUNT)}</strong></p>
-                <p>Saldo devedor (pago no dia do curso, em até 24x): <strong>{formatPrice(REMAINING_AMOUNT)}</strong></p>
+                <p>Saldo devedor (pago no dia do curso, em até 24x): <strong>{formatPrice(remainingAmount)}</strong></p>
               </div>
             </div>
             <Badge className="bg-blue-600 text-white mb-4">
@@ -261,7 +271,7 @@ export function Formacao360ReferralLanding() {
           <div className="relative z-10 bg-gradient-to-r from-emerald-600 to-emerald-500 py-4 px-4 text-center text-white">
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <Percent className="h-6 w-6" />
-              <span className="font-bold text-lg">DESCONTO EXCLUSIVO DE {DISCOUNT_PERCENTAGE}% NA MATRÍCULA!</span>
+              <span className="font-bold text-lg">DESCONTO EXCLUSIVO DE {discountPercentage}% NA MATRÍCULA!</span>
             </div>
             <p className="text-sm text-white/90 mt-1">Válido apenas para indicados. Promoção por tempo limitado!</p>
             <div className="flex items-center justify-center gap-2 mt-2 bg-white/20 rounded-lg px-4 py-2 w-fit mx-auto">
@@ -395,9 +405,9 @@ export function Formacao360ReferralLanding() {
                 <div className="mt-4 p-4 bg-gradient-to-br from-gray-50 to-emerald-50 rounded-xl border border-emerald-100">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <span className="text-gray-400 line-through text-lg">{formatPrice(ORIGINAL_PRICE)}</span>
-                    <Badge className="bg-red-500 text-white text-xs">-{DISCOUNT_PERCENTAGE}%</Badge>
+                    <Badge className="bg-red-500 text-white text-xs">-{discountPercentage}%</Badge>
                   </div>
-                  <p className="text-3xl font-bold text-emerald-600">{formatPrice(DISCOUNTED_PRICE)}</p>
+                  <p className="text-3xl font-bold text-emerald-600">{formatPrice(discountedPrice)}</p>
                   <p className="text-xs text-gray-500 mt-1">Valor com desconto de indicado</p>
                 </div>
 
@@ -415,7 +425,7 @@ export function Formacao360ReferralLanding() {
                     <div className="flex flex-col gap-1">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Saldo devedor:</span>
-                        <span className="font-semibold text-gray-700">{formatPrice(REMAINING_AMOUNT)}</span>
+                        <span className="font-semibold text-gray-700">{formatPrice(remainingAmount)}</span>
                       </div>
                       <p className="text-xs text-gray-500 italic">
                         Poderá ser pago no dia do curso, à vista ou em até 24x no cartão
@@ -533,7 +543,7 @@ export function Formacao360ReferralLanding() {
                   </div>
 
                   <p className="text-xs text-center text-muted-foreground">
-                    O saldo de {formatPrice(REMAINING_AMOUNT)} será pago apenas no dia do curso.
+                    O saldo de {formatPrice(remainingAmount)} será pago apenas no dia do curso.
                     Ao continuar, você concorda em receber contato da equipe IBRAMEC.
                   </p>
                 </form>
