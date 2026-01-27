@@ -48,6 +48,7 @@ import {
   Stethoscope,
   HeadphonesIcon,
   ListTodo,
+  Bot,
   UserCog,
 } from 'lucide-react';
 
@@ -119,6 +120,7 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
   { id: 'event-logs', code: 'event_logs', title: 'Log de Eventos', icon: Activity, route: '/admin/event-logs', adminOnly: true },
   { id: 'system-metrics', code: 'system_metrics', title: 'Métricas do Sistema', icon: TrendingUp, route: '/system-metrics', adminOnly: true },
   { id: 'system-sentinel', code: 'system_sentinel', title: 'System Sentinel', icon: Activity, route: '/admin/sentinel', adminOnly: true },
+  { id: 'code-assistant', code: 'code_assistant', title: 'Assistente de Código', icon: Bot, route: '/admin/code-assistant', adminOnly: true },
   { id: 'admin-panel', code: 'admin_panel', title: 'Configurações do Sistema', icon: Settings, route: '/admin', adminOnly: true },
   { id: 'access-matrix', code: 'access_matrix', title: 'Matriz de Acessos', icon: Shield, route: '/access-matrix', adminOnly: true },
   { id: 'comparison', code: 'clinic_comparison', title: 'Comparar Clínicas', icon: GitCompare, route: '/comparison', adminOnly: true },
