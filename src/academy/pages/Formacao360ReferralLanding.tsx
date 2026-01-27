@@ -519,12 +519,13 @@ export function Formacao360ReferralLanding() {
                       </SelectTrigger>
                       <SelectContent>
                         {availableClasses.map((cls) => {
-                          const date = new Date(cls.start_date + 'T12:00:00');
-                          const formattedDate = date.toLocaleDateString('pt-BR', { 
-                            day: '2-digit', 
-                            month: 'long', 
-                            year: 'numeric' 
-                          });
+                          const startDate = new Date(cls.start_date + 'T12:00:00');
+                          const day1 = startDate.getDate();
+                          const day2 = day1 + 1;
+                          const day3 = day1 + 2;
+                          const month = startDate.toLocaleDateString('pt-BR', { month: 'long' });
+                          const year = startDate.getFullYear();
+                          const formattedDate = `${day1}, ${day2} e ${day3} de ${month} de ${year}`;
                           return (
                             <SelectItem key={cls.id} value={cls.id}>
                               {cls.name} - {formattedDate}
