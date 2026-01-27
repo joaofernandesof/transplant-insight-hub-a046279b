@@ -84,6 +84,17 @@ const AnnouncementsAdmin = lazy(() => import("./pages/AnnouncementsAdmin"));
 const BannersAdmin = lazy(() => import("./pages/BannersAdmin"));
 
 // ====================================
+// Pages - IPROMED (Instituto de Proteção Médica)
+// ====================================
+const IpromedHome = lazy(() => import("./pages/ipromed/IpromedHome"));
+const IpromedDashboard = lazy(() => import("./pages/ipromed/IpromedDashboard"));
+const IpromedStudents = lazy(() => import("./pages/ipromed/IpromedStudents"));
+const IpromedExams = lazy(() => import("./pages/ipromed/IpromedExams"));
+const IpromedMentors = lazy(() => import("./pages/ipromed/IpromedMentors"));
+const IpromedSurveys = lazy(() => import("./pages/ipromed/IpromedSurveys"));
+const IpromedLeads = lazy(() => import("./pages/ipromed/IpromedLeads"));
+
+// ====================================
 // Pages - NeoCare (Portal do Paciente)
 // ====================================
 import { 
@@ -564,6 +575,17 @@ function AppRoutes() {
       <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+
+      {/* ====================================
+          IPROMED - Instituto de Proteção Médica
+          ==================================== */}
+      <Route path="/ipromed" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedHome /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/dashboard" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedDashboard /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/students" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedStudents /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/exams" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedExams /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/mentors" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedMentors /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/surveys" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedSurveys /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/leads" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedLeads /></LazyRoute></SidebarWrapper></AdminRoute>} />
 
       {/* ====================================
           Marketplace
