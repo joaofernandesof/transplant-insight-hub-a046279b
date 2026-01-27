@@ -4,26 +4,21 @@
  */
 
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Scale,
   Users,
   BarChart3,
   FileText,
-  BookOpen,
   GraduationCap,
-  Shield,
   Gavel,
-  FileCheck,
   TrendingUp,
-  Award,
-  UserCheck,
-  AlertTriangle,
   FileSignature,
-  MessageSquare,
-  LayoutGrid,
   Building2,
 } from "lucide-react";
 
@@ -78,15 +73,84 @@ const quickAccessModules = [
   },
 ];
 
-const statsCards = [
-  { label: 'Processos Ativos', value: '24', icon: Gavel, trend: '-2', color: 'text-blue-600' },
-  { label: 'Contratos Ativos', value: '156', icon: FileText, trend: '+8%', color: 'text-emerald-600' },
-  { label: 'Solicitações Pendentes', value: '18', icon: MessageSquare, trend: '-15%', color: 'text-amber-600' },
-  { label: 'Aguard. Assinatura', value: '7', icon: FileSignature, trend: '+3', color: 'text-purple-600' },
-];
-
 export default function IpromedHome() {
   const navigate = useNavigate();
+
+  // Fetch real stats from database
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['ipromed-home-stats'],
+    queryFn: async () => {
+      // Get all clients
+      const { data: clients, error } = await supabase
+        .from('ipromed_legal_clients')
+        .select('*');
+
+      if (error) throw error;
+
+      // Get all legal cases (processes)
+      const { data: cases } = await supabase
+        .from('ipromed_legal_cases')
+        .select('id, status')
+        .eq('status', 'active');
+
+      // Get contracts count
+      const { data: contracts } = await supabase
+        .from('ipromed_contracts')
+        .select('id, status');
+
+      // Calculate stats
+      const totalClients = clients?.length || 0;
+      const activeProcesses = cases?.length || 0;
+      const activeContracts = contracts?.filter(c => c.status === 'active' || c.status === 'signed')?.length || 0;
+      
+      // Count pending signatures from clients metadata
+      const pendingSignatures = clients?.filter(c => {
+        const meta = c.metadata as any;
+        return meta?.contract_status === 'pending_signature';
+      })?.length || 0;
+
+      // Count clients with pending contract (draft)
+      const pendingContracts = clients?.filter(c => {
+        const meta = c.metadata as any;
+        return meta?.contract_status === 'draft';
+      })?.length || 0;
+
+      return {
+        activeProcesses,
+        totalClients,
+        activeContracts,
+        pendingSignatures,
+        pendingContracts,
+      };
+    },
+  });
+
+  const statsCards = [
+    { 
+      label: 'Processos Ativos', 
+      value: stats?.activeProcesses ?? 0, 
+      icon: Gavel, 
+      color: 'text-blue-600' 
+    },
+    { 
+      label: 'Clientes', 
+      value: stats?.totalClients ?? 0, 
+      icon: Users, 
+      color: 'text-emerald-600' 
+    },
+    { 
+      label: 'Contratos Pendentes', 
+      value: stats?.pendingContracts ?? 0, 
+      icon: FileText, 
+      color: 'text-amber-600' 
+    },
+    { 
+      label: 'Aguard. Assinatura', 
+      value: stats?.pendingSignatures ?? 0, 
+      icon: FileSignature, 
+      color: 'text-purple-600' 
+    },
+  ];
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -125,15 +189,16 @@ export default function IpromedHome() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-12 mt-1" />
+                  ) : (
+                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                  )}
                 </div>
                 <div className="p-3 bg-muted rounded-xl">
                   <stat.icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
               </div>
-              <Badge variant="secondary" className="mt-2 text-xs">
-                {stat.trend} este mês
-              </Badge>
             </CardContent>
           </Card>
         ))}
