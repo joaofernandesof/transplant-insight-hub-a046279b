@@ -55,6 +55,16 @@ import {
 import { FeedbackCard, FeedbackGrid, FeedbackEmpty, FeedbackWithAuthor } from "./FeedbackCard";
 import { exportAllTabsToPdf } from "@/utils/exportAllTabsPdf";
 
+// Filtro para remover feedbacks sensíveis (ex: menções específicas)
+const shouldFilterFeedback = (feedback: string): boolean => {
+  const text = feedback.toLowerCase();
+  // Filtra menções sobre "Carolina falando muito"
+  if (text.includes('carolina') && (text.includes('falou muito') || text.includes('fala muito') || text.includes('falando muito') || text.includes('falar muito'))) {
+    return true;
+  }
+  return false;
+};
+
 interface LegalModuleDashboardProps {
   classId?: string;
 }
@@ -220,6 +230,7 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
         .map(d => ({ feedback: d.q10_larissa_liked_most as string, userName: d.userName, avatarUrl: d.avatarUrl })) as FeedbackWithAuthor[],
       feedbacksImprove: larisaData
         .filter(d => d.q11_larissa_improve && d.q11_larissa_improve.length > 2)
+        .filter(d => !shouldFilterFeedback(d.q11_larissa_improve || ''))
         .map(d => ({ feedback: d.q11_larissa_improve as string, userName: d.userName, avatarUrl: d.avatarUrl })) as FeedbackWithAuthor[]
     };
   };
