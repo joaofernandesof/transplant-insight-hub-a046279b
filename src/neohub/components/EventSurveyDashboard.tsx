@@ -1420,17 +1420,17 @@ function QuestionInlineCard({
     : distributionData.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <Card className="border hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-3">
+    <Card className="border hover:shadow-md transition-shadow overflow-hidden">
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <Badge variant="outline" className="text-[10px] shrink-0">
                 {question.category}
               </Badge>
               <span className="text-[10px] text-muted-foreground">#{index + 1}</span>
             </div>
-            <CardTitle className="text-sm font-medium leading-tight">
+            <CardTitle className="text-xs sm:text-sm font-medium leading-tight break-words">
               {question.questionLabel}
             </CardTitle>
             <div className="flex items-center gap-2 mt-1">
@@ -1440,7 +1440,7 @@ function QuestionInlineCard({
             </div>
           </div>
           <div 
-            className="px-3 py-1.5 rounded-lg font-bold text-lg shrink-0"
+            className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-bold text-base sm:text-lg shrink-0"
             style={{ 
               backgroundColor: getGradientBgStyle(question.avgRating, 0, 10),
               color: getGradientColorStyle(question.avgRating, 0, 10)
@@ -1450,21 +1450,21 @@ function QuestionInlineCard({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0 pb-3">
+      <CardContent className="pt-0 pb-3 px-3 sm:px-6">
         {/* Only show chart when there are responses */}
         {totalResponses > 0 ? (
           <>
             {/* Pie chart with percentages */}
-            <div className="flex flex-col lg:flex-row items-center gap-4">
-              <div className="w-full lg:w-1/2">
-                <ResponsiveContainer width="100%" height={140}>
+            <div className="flex flex-col items-center gap-4 w-full">
+              <div className="w-full max-w-[180px]">
+                <ResponsiveContainer width="100%" height={120}>
                   <PieChart>
                     <Pie
                       data={distributionData.filter(d => d.value > 0)}
                       cx="50%"
                       cy="50%"
-                      innerRadius={30}
-                      outerRadius={55}
+                      innerRadius={25}
+                      outerRadius={45}
                       dataKey="value"
                       paddingAngle={2}
                     >
@@ -1477,7 +1477,7 @@ function QuestionInlineCard({
                         backgroundColor: 'hsl(var(--background))', 
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '6px',
-                        fontSize: '12px'
+                        fontSize: '11px'
                       }}
                       formatter={(value: number, name: string) => [
                         `${value} (${((value / totalResponses) * 100).toFixed(0)}%)`, 
@@ -1488,25 +1488,32 @@ function QuestionInlineCard({
                 </ResponsiveContainer>
               </div>
               
-              {/* Legend with percentages */}
-              <div className="w-full lg:w-1/2 space-y-1">
+              {/* Legend with percentages - stacked on mobile */}
+              <div className="w-full space-y-1.5">
                 {distributionData.map((item, idx) => {
                   const percent = totalResponses > 0 ? ((item.value / totalResponses) * 100).toFixed(0) : '0';
                   return (
-                    <div key={idx} className="flex items-center justify-between text-xs gap-2">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div key={idx} className="flex items-center text-xs gap-2 min-w-0">
+                      <div 
+                        className="w-2 h-2 rounded-full shrink-0" 
+                        style={{ backgroundColor: item.fill }}
+                      />
+                      <span className="truncate text-muted-foreground flex-1 min-w-0 text-[11px] sm:text-xs">{item.name}</span>
+                      <div className="flex items-center gap-1 shrink-0">
                         <div 
-                          className="w-2.5 h-2.5 rounded-full shrink-0" 
-                          style={{ backgroundColor: item.fill }}
-                        />
-                        <span className="truncate text-muted-foreground">{item.name}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="font-semibold" style={{ color: item.fill }}>
+                          className="h-1.5 rounded-full bg-muted"
+                          style={{ width: '40px' }}
+                        >
+                          <div 
+                            className="h-full rounded-full transition-all"
+                            style={{ 
+                              width: `${Math.min(100, parseFloat(percent))}%`,
+                              backgroundColor: item.fill 
+                            }}
+                          />
+                        </div>
+                        <span className="font-semibold text-[10px] sm:text-xs w-7 text-right" style={{ color: item.fill }}>
                           {percent}%
-                        </span>
-                        <span className="text-muted-foreground text-[10px]">
-                          ({item.value})
                         </span>
                       </div>
                     </div>
@@ -2259,53 +2266,56 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
     <SurveyQuestionsManager open={showQuestionsManager} onOpenChange={setShowQuestionsManager} />
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       {/* Sticky header with filter bar and tabs */}
-      <div className="sticky top-0 z-30 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-1 border-b">
+      <div className="sticky top-0 z-30 bg-background pb-4 -mx-3 px-3 sm:-mx-6 sm:px-6 pt-1 border-b">
         {/* Survey Filter Bar */}
         <SurveyFilterBar />
 
-        <div className="flex items-center justify-between flex-wrap gap-3 mt-4">
-          <TabsList className="grid grid-cols-8 w-full max-w-5xl">
-            <TabsTrigger value="overview" className="flex items-center gap-1.5">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Visão Geral</span>
-            </TabsTrigger>
-            <TabsTrigger value="matrix" className="flex items-center gap-1.5">
-              <ArrowUpDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Matriz</span>
-            </TabsTrigger>
-            <TabsTrigger value="ranking" className="flex items-center gap-1.5">
-              <ListOrdered className="h-4 w-4" />
-              <span className="hidden sm:inline">Ranking</span>
-            </TabsTrigger>
-            <TabsTrigger value="questions" className="flex items-center gap-1.5">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Perguntas</span>
-            </TabsTrigger>
-            <TabsTrigger value="students" className="flex items-center gap-1.5">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Alunos</span>
-            </TabsTrigger>
-            <TabsTrigger value="timing" className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Tempos</span>
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">Insights IA</span>
-            </TabsTrigger>
-            <TabsTrigger value="answers" className="flex items-center gap-1.5">
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">Respostas</span>
-            </TabsTrigger>
-          </TabsList>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+          <div className="w-full overflow-x-auto pb-1 -mb-1">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-8 sm:w-full sm:max-w-5xl gap-0.5">
+              <TabsTrigger value="overview" className="flex items-center gap-1 px-2 sm:px-3">
+                <BarChart3 className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline text-xs">Visão Geral</span>
+              </TabsTrigger>
+              <TabsTrigger value="matrix" className="flex items-center gap-1 px-2 sm:px-3">
+                <ArrowUpDown className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline text-xs">Matriz</span>
+              </TabsTrigger>
+              <TabsTrigger value="ranking" className="flex items-center gap-1 px-2 sm:px-3">
+                <ListOrdered className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline text-xs">Ranking</span>
+              </TabsTrigger>
+              <TabsTrigger value="questions" className="flex items-center gap-1 px-2 sm:px-3">
+                <FileText className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline text-xs">Perguntas</span>
+              </TabsTrigger>
+              <TabsTrigger value="students" className="flex items-center gap-1 px-2 sm:px-3">
+                <User className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline text-xs">Alunos</span>
+              </TabsTrigger>
+              <TabsTrigger value="timing" className="flex items-center gap-1 px-2 sm:px-3">
+                <Clock className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline text-xs">Tempos</span>
+              </TabsTrigger>
+              <TabsTrigger value="insights" className="flex items-center gap-1 px-2 sm:px-3">
+                <Sparkles className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline text-xs">IA</span>
+              </TabsTrigger>
+              <TabsTrigger value="answers" className="flex items-center gap-1 px-2 sm:px-3">
+                <MessageSquare className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline text-xs">Respostas</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             <Button 
               variant="outline" 
+              size="sm"
               onClick={() => printCurrentView('Relatório de Pesquisa de Satisfação')} 
-              className="gap-2"
+              className="gap-1.5 text-xs"
             >
-              <Download className="h-4 w-4" />
-              Exportar PDF
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Exportar PDF</span>
             </Button>
             <Button 
               variant="outline" 
@@ -4187,39 +4197,41 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         </div>
         
         {/* Filters */}
-        <Card className="p-4">
-          <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
+        <Card className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+            <div className="relative flex-1 min-w-0 w-full sm:w-auto sm:min-w-[200px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar pergunta..."
                 value={questionSearch}
                 onChange={(e) => setQuestionSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 w-full"
               />
             </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas categorias</SelectItem>
-                {categories.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={questionSortBy} onValueChange={(v) => setQuestionSortBy(v as 'original' | 'name' | 'score')}>
-              <SelectTrigger className="w-[130px]">
-                <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="original">Sequência</SelectItem>
-                <SelectItem value="name">Nome</SelectItem>
-                <SelectItem value="score">Média</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="flex-1 sm:w-[140px]">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={questionSortBy} onValueChange={(v) => setQuestionSortBy(v as 'original' | 'name' | 'score')}>
+                <SelectTrigger className="flex-1 sm:w-[120px]">
+                  <ArrowUpDown className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="original">Ordem Original</SelectItem>
+                  <SelectItem value="name">Nome</SelectItem>
+                  <SelectItem value="score">Média</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
             {filteredQuestions.length} perguntas encontradas
@@ -4227,7 +4239,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
         </Card>
 
         {/* Questions Grid - All charts visible */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {filteredQuestions.map((q, idx) => {
             const respondents = analytics.responsesByStudent
               .map(student => {
