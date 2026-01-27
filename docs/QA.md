@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 8 |
-| Aprovadas | 8 |
+| Total de Tarefas Validadas | 9 |
+| Aprovadas | 9 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-01-27 |
 
@@ -20,6 +20,52 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-01-27
+
+#### ✅ QA-009: Preparação Completa para Publicação Mobile Segura
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Mobile / Capacitor / Segurança |
+| **Descrição** | Implementação de toda infraestrutura para publicação segura nas lojas App Store e Google Play |
+| **Tipo de Teste** | Automatizado + Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-27 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | MOB-001 |
+
+**Validações Realizadas:**
+- [x] Migração: tabela `feature_flags` criada com RLS
+- [x] Migração: tabela `mobile_blocked_modules` criada com 16 módulos bloqueados
+- [x] Função `is_module_blocked_on_mobile()` criada no banco
+- [x] Função `is_feature_enabled()` criada para verificar flags
+- [x] Hook `useMobileEnvironment` para detectar ambiente Capacitor
+- [x] Hook `useFeatureFlags` para consultar feature flags
+- [x] Guard `MobileGuard` para bloquear rotas sensíveis
+- [x] Componente `MobileAppWrapper` integrado ao App.tsx
+- [x] Edge Function `setup-mobile-test-users` criada e deployada
+- [x] Usuários de teste criados (appstore.reviewer, playstore.reviewer)
+- [x] `capacitor.config.ts` atualizado para produção/desenvolvimento
+- [x] Guia completo em `docs/MOBILE-PUBLISHING-GUIDE.md`
+
+**Credenciais de Teste para Stores:**
+- App Store: `appstore.reviewer@neofolic.com.br` / `ReviewerApp2026!`
+- Play Store: `playstore.reviewer@neofolic.com.br` / `ReviewerPlay2026!`
+
+**Módulos Disponíveis no Mobile:**
+- Academy (cursos, materiais, provas, certificados)
+- Perfil do usuário
+- Notificações
+
+**Módulos Bloqueados no Mobile:**
+- NeoCare, NeoTeam, Clinic, Prontuário, Anamnese, Marketplace, Pós-venda
+
+**Observações:**
+- Usuários de teste têm perfil `aluno` com acesso apenas ao Academy
+- Feature flags controlam dinamicamente os módulos habilitados
+- Guards bloqueiam automaticamente rotas sensíveis em ambiente Capacitor
+- Configuração suporta hot-reload em dev e URL fixa em produção
+
+---
 
 #### ✅ QA-008: Documentação de Arquitetura Completa do Sistema
 

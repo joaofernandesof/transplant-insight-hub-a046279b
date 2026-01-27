@@ -17,8 +17,9 @@ import { EventTracker } from "@/components/EventTracker";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { queryClient } from "@/lib/queryClient";
-import { ProtectedRoute, ProfileGuard, AdminRoute } from "@/components/guards";
+import { ProtectedRoute, ProfileGuard, AdminRoute, MobileGuard } from "@/components/guards";
 import { PROFILE_ROUTES, getDefaultRouteForProfile } from "@/neohub/lib/permissions";
+import { MobileAppWrapper } from "@/components/MobileAppWrapper";
 import { Loader2 } from "lucide-react";
 
 // ====================================
@@ -560,12 +561,12 @@ function AppWithSupport() {
   const { user } = useUnifiedAuth();
   
   return (
-    <>
+    <MobileAppWrapper>
       <EventTracker />
       <AppRoutes />
       {user && <PresenceTracker />}
       {user && <SupportChat />}
-    </>
+    </MobileAppWrapper>
   );
 }
 
