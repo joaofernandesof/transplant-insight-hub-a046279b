@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,13 +71,54 @@ interface AIInsights {
 
 interface LegalAIInsightsPanelProps {
   metrics: LegalMetrics;
+  classId?: string;
   className?: string;
 }
 
-export function LegalAIInsightsPanel({ metrics, className }: LegalAIInsightsPanelProps) {
+// LocalStorage key for persisting insights
+const STORAGE_KEY = 'legal-ai-insights';
+
+interface StoredInsights {
+  insights: AIInsights;
+  lastGenerated: string;
+  classId?: string;
+}
+
+export function LegalAIInsightsPanel({ metrics, classId, className }: LegalAIInsightsPanelProps) {
   const [insights, setInsights] = useState<AIInsights | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastGenerated, setLastGenerated] = useState<Date | null>(null);
+
+  // Load persisted insights on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed: StoredInsights = JSON.parse(stored);
+        // Only restore if same class or no class filter
+        if (!classId || parsed.classId === classId) {
+          setInsights(parsed.insights);
+          setLastGenerated(new Date(parsed.lastGenerated));
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load stored insights:', e);
+    }
+  }, [classId]);
+
+  // Persist insights when they change
+  const persistInsights = (newInsights: AIInsights) => {
+    try {
+      const toStore: StoredInsights = {
+        insights: newInsights,
+        lastGenerated: new Date().toISOString(),
+        classId
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+    } catch (e) {
+      console.warn('Failed to persist insights:', e);
+    }
+  };
 
   const buildPromptData = () => {
     const { larisaMetrics, legalPerception, examMetrics } = metrics;
@@ -127,6 +168,7 @@ export function LegalAIInsightsPanel({ metrics, className }: LegalAIInsightsPane
       if (result?.insights) {
         setInsights(result.insights);
         setLastGenerated(new Date());
+        persistInsights(result.insights);
         toast.success('Insights gerados com sucesso!');
       }
     } catch (error) {
@@ -207,6 +249,7 @@ export function LegalAIInsightsPanel({ metrics, className }: LegalAIInsightsPane
     
     setInsights(localInsights);
     setLastGenerated(new Date());
+    persistInsights(localInsights);
   };
 
   const getPriorityColor = (priority: number) => {
