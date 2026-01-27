@@ -29,26 +29,17 @@ import {
 
 const quickAccessModules = [
   {
-    id: 'legal-hub',
-    title: 'Legal Hub',
-    description: 'Portal jurídico completo',
-    icon: Scale,
-    route: '/ipromed/legal-hub',
-    color: 'bg-gradient-to-br from-[#00629B] to-[#004d7a]',
-    badge: 'Novo',
-  },
-  {
     id: 'dashboard',
     title: 'Dashboard Jurídico',
     description: 'Visão geral das métricas',
     icon: BarChart3,
     route: '/ipromed/dashboard',
-    color: 'bg-blue-500',
+    color: 'bg-gradient-to-br from-[#00629B] to-[#004d7a]',
   },
   {
     id: 'clients',
     title: 'Clientes Jurídicos',
-    description: 'Gestão de processos e casos',
+    description: 'Gestão de clientes e casos',
     icon: Building2,
     route: '/ipromed/clients',
     color: 'bg-cyan-500',
@@ -58,7 +49,7 @@ const quickAccessModules = [
     title: 'Contratos',
     description: 'Gestão e assinatura digital',
     icon: FileSignature,
-    route: '/ipromed/legal-hub?tab=contracts',
+    route: '/ipromed/contracts',
     color: 'bg-emerald-500',
   },
   {
@@ -70,14 +61,6 @@ const quickAccessModules = [
     color: 'bg-purple-500',
   },
   {
-    id: 'requests',
-    title: 'Solicitações',
-    description: 'Atendimento jurídico interno',
-    icon: MessageSquare,
-    route: '/ipromed/legal-hub?tab=requests',
-    color: 'bg-amber-500',
-  },
-  {
     id: 'students',
     title: 'Alunos',
     description: 'Gestão e classificação',
@@ -86,11 +69,11 @@ const quickAccessModules = [
     color: 'bg-indigo-500',
   },
   {
-    id: 'tasks',
-    title: 'Atividades',
-    description: 'Kanban de tarefas',
-    icon: LayoutGrid,
-    route: '/ipromed/legal-hub?tab=tasks',
+    id: 'legal',
+    title: 'Hub Jurídico',
+    description: 'Pareceres e documentos',
+    icon: Scale,
+    route: '/ipromed/legal',
     color: 'bg-rose-500',
   },
 ];
@@ -174,11 +157,6 @@ export default function IpromedHome() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold">{module.title}</h3>
-                      {module.badge && (
-                        <Badge className="bg-emerald-500 text-white text-[10px]">
-                          {module.badge}
-                        </Badge>
-                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">{module.description}</p>
                   </div>
