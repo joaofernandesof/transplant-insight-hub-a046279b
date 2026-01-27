@@ -141,8 +141,16 @@ function SurveyResponseCard({ student, isExpanded, onToggle }: SurveyResponseCar
 }
 
 export function LegalFullSurveysTab({ students }: LegalFullSurveysTabProps) {
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<'all' | 'hot' | 'warm' | 'cold'>('all');
+  
+  const filteredStudents = filter === 'all' 
+    ? students 
+    : students.filter(s => s.classification === filter);
+
+  // Start with all expanded by default
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    () => new Set(students.map(s => s.userId))
+  );
 
   const toggleExpanded = (id: string) => {
     const newSet = new Set(expandedIds);
@@ -161,10 +169,6 @@ export function LegalFullSurveysTab({ students }: LegalFullSurveysTabProps) {
   const collapseAll = () => {
     setExpandedIds(new Set());
   };
-
-  const filteredStudents = filter === 'all' 
-    ? students 
-    : students.filter(s => s.classification === filter);
 
   return (
     <div className="space-y-6">
