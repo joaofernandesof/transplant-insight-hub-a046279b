@@ -541,7 +541,7 @@ function AppRoutes() {
       <Route path="/admin/banners" element={<AdminRoute><SidebarWrapper><BannersAdmin /></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/module-overrides" element={<AdminRoute><SidebarWrapper><ModuleOverridesAdmin /></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/referrals" element={<AdminRoute><SidebarWrapper><ReferralsAdmin /></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><EventLogs /></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><EventLogs /></Suspense></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/code-assistant" element={<AdminRoute><SidebarWrapper><CodeAssistantPage /></SidebarWrapper></AdminRoute>} />
       <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><WeeklyReports /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><SalaTecnica /></SidebarWrapper></ProtectedRoute>} />
