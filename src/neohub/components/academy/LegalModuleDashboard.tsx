@@ -1,46 +1,29 @@
+/**
+ * Legal Module Dashboard - Refactored
+ * Complete dashboard with 6 dedicated tabs
+ */
+
 import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { 
   Scale, 
-  Users, 
-  GraduationCap, 
-  TrendingUp,
-  MessageSquare,
-  AlertTriangle,
-  CheckCircle2,
-  Flame,
-  Thermometer,
-  Snowflake,
   Star,
-  FileText,
+  GraduationCap,
+  Flame,
   Download,
   Sparkles,
   FileStack,
-  Loader2
+  Loader2,
+  Users,
+  HelpCircle,
+  UserCheck,
+  FileText
 } from "lucide-react";
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Cell,
-  PieChart,
-  Pie
-} from "recharts";
-import { cn } from "@/lib/utils";
 import { LegalAIInsightsPanel } from "./LegalAIInsightsPanel";
 import { 
   LegalWidgetInsight,
@@ -48,17 +31,26 @@ import {
   generateLegalScoreInsight,
   generateExamInsight,
   generateLeadsInsight,
-  generateFeelingInsight,
-  generateInfluenceInsight,
-  generateTimingInsight
 } from "./LegalWidgetInsight";
-import { FeedbackCard, FeedbackGrid, FeedbackEmpty, FeedbackWithAuthor } from "./FeedbackCard";
+import { FeedbackWithAuthor } from "./FeedbackCard";
 import { exportAllTabsToPdf } from "@/utils/exportAllTabsPdf";
 
-// Filtro para remover feedbacks sensíveis (ex: menções específicas)
+// Import new tab components
+import { 
+  LegalOverviewTab, 
+  LegalMentorsTab, 
+  LegalQuestionsTab,
+  LegalStudentsTab,
+  LegalFullSurveysTab,
+  type LarissaMetrics,
+  type LegalPerception,
+  type ExamMetrics,
+  type StudentWithScores
+} from "./legal";
+
+// Filtro para remover feedbacks sensíveis
 const shouldFilterFeedback = (feedback: string): boolean => {
   const text = feedback.toLowerCase();
-  // Filtra menções sobre "Carolina falando muito"
   if (text.includes('carolina') && (text.includes('falou muito') || text.includes('fala muito') || text.includes('falando muito') || text.includes('falar muito'))) {
     return true;
   }
@@ -74,9 +66,9 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
   const [isExportingAll, setIsExportingAll] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Fetch Larissa evaluation data WITH user info
-  const { data: larisaData, isLoading: loadingLarissa } = useQuery({
-    queryKey: ['legal-larissa-eval', classId],
+  // Fetch all survey data WITH user info
+  const { data: surveyData, isLoading: loadingSurveys } = useQuery({
+    queryKey: ['legal-full-surveys', classId],
     queryFn: async () => {
       let query = supabase
         .from('day2_satisfaction_surveys')
@@ -86,7 +78,13 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
           q8_larissa_clarity, 
           q9_larissa_time, 
           q10_larissa_liked_most, 
-          q11_larissa_improve
+          q11_larissa_improve,
+          q18_legal_feeling,
+          q19_legal_influence,
+          q20_legal_timing,
+          score_legal,
+          score_total,
+          lead_classification
         `)
         .eq('is_completed', true);
       
@@ -111,25 +109,6 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
         userName: profileMap.get(s.user_id)?.name || 'Anônimo',
         avatarUrl: profileMap.get(s.user_id)?.avatar_url
       })) || [];
-    }
-  });
-
-  // Fetch legal perception data
-  const { data: legalPerceptionData, isLoading: loadingPerception } = useQuery({
-    queryKey: ['legal-perception', classId],
-    queryFn: async () => {
-      let query = supabase
-        .from('day2_satisfaction_surveys')
-        .select('q18_legal_feeling, q19_legal_influence, q20_legal_timing, score_legal, lead_classification')
-        .eq('is_completed', true);
-      
-      if (classId) {
-        query = query.eq('class_id', classId);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
     }
   });
 
@@ -162,28 +141,9 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
     }
   });
 
-  // Fetch Day 3 legal security
-  const { data: day3Data, isLoading: loadingDay3 } = useQuery({
-    queryKey: ['legal-day3', classId],
-    queryFn: async () => {
-      let query = supabase
-        .from('day3_satisfaction_surveys')
-        .select('q9_legal_security')
-        .eq('is_completed', true);
-      
-      if (classId) {
-        query = query.eq('class_id', classId);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  // Calculate metrics
-  const calculateLarissaMetrics = () => {
-    if (!larisaData || larisaData.length === 0) return null;
+  // Calculate Larissa metrics
+  const calculateLarissaMetrics = (): LarissaMetrics | null => {
+    if (!surveyData || surveyData.length === 0) return null;
 
     const mapExpectation = (val: string | null) => {
       if (!val) return null;
@@ -213,9 +173,9 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
       return 7;
     };
 
-    const expectations = larisaData.map(d => mapExpectation(d.q7_larissa_expectations)).filter(Boolean) as number[];
-    const clarity = larisaData.map(d => mapClarity(d.q8_larissa_clarity)).filter(Boolean) as number[];
-    const time = larisaData.map(d => mapTime(d.q9_larissa_time)).filter(Boolean) as number[];
+    const expectations = surveyData.map(d => mapExpectation(d.q7_larissa_expectations)).filter(Boolean) as number[];
+    const clarity = surveyData.map(d => mapClarity(d.q8_larissa_clarity)).filter(Boolean) as number[];
+    const time = surveyData.map(d => mapTime(d.q9_larissa_time)).filter(Boolean) as number[];
 
     const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 
@@ -224,19 +184,47 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
       clarity: avg(clarity),
       time: avg(time),
       overall: (avg(expectations) + avg(clarity) + avg(time)) / 3,
-      totalResponses: larisaData.length,
-      feedbacksPositive: larisaData
+      totalResponses: surveyData.length,
+      feedbacksPositive: surveyData
         .filter(d => d.q10_larissa_liked_most && d.q10_larissa_liked_most.length > 2)
         .map(d => ({ feedback: d.q10_larissa_liked_most as string, userName: d.userName, avatarUrl: d.avatarUrl })) as FeedbackWithAuthor[],
-      feedbacksImprove: larisaData
+      feedbacksImprove: surveyData
         .filter(d => d.q11_larissa_improve && d.q11_larissa_improve.length > 2)
         .filter(d => !shouldFilterFeedback(d.q11_larissa_improve || ''))
         .map(d => ({ feedback: d.q11_larissa_improve as string, userName: d.userName, avatarUrl: d.avatarUrl })) as FeedbackWithAuthor[]
     };
   };
 
-  const calculateLegalPerception = () => {
-    if (!legalPerceptionData || legalPerceptionData.length === 0) return null;
+  // Calculate legal perception
+  const calculateLegalPerception = (): LegalPerception | null => {
+    if (!surveyData || surveyData.length === 0) return null;
+
+    const normalizeLegalFeeling = (val: string): string => {
+      const v = val.toLowerCase();
+      if (v.includes('exposto') || v.includes('risco')) return 'Exposto a riscos';
+      if (v.includes('inseguro') && v.includes('alguns')) return 'Inseguro em pontos';
+      if (v.includes('pouco inseguro')) return 'Um pouco inseguro';
+      if (v.includes('tranquilo') || v.includes('seguro')) return 'Tranquilo e seguro';
+      return 'Outro';
+    };
+
+    const normalizeLegalInfluence = (val: string): string => {
+      const v = val.toLowerCase();
+      if (v.includes('travaram')) return 'Travaram decisões';
+      if (v.includes('bastante')) return 'Influenciam bastante';
+      if (v.includes('pouco')) return 'Influenciam pouco';
+      if (v.includes('não')) return 'Não influenciam';
+      return 'Outro';
+    };
+
+    const normalizeLegalTiming = (val: string): string => {
+      const v = val.toLowerCase();
+      if (v.includes('quanto antes') || v.includes('urgente') || v.includes('imediato')) return 'O quanto antes';
+      if (v.includes('próximos meses')) return 'Próximos meses';
+      if (v.includes('maior') || v.includes('crescer')) return 'Quando crescer';
+      if (v.includes('prioridade')) return 'Não é prioridade';
+      return 'Outro';
+    };
 
     const feelingDist: Record<string, number> = {};
     const influenceDist: Record<string, number> = {};
@@ -245,7 +233,7 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
     let scoreCount = 0;
     const leads = { hot: 0, warm: 0, cold: 0 };
 
-    legalPerceptionData.forEach(d => {
+    surveyData.forEach(d => {
       if (d.q18_legal_feeling) {
         const key = normalizeLegalFeeling(d.q18_legal_feeling);
         feelingDist[key] = (feelingDist[key] || 0) + 1;
@@ -274,36 +262,12 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
       averageScore: scoreCount > 0 ? totalScore / scoreCount : 0,
       normalizedScore: scoreCount > 0 ? (totalScore / scoreCount) * 10 / 18 : 0,
       leads,
-      total: legalPerceptionData.length
+      total: surveyData.length
     };
   };
 
-  const normalizeLegalFeeling = (val: string): string => {
-    const v = val.toLowerCase();
-    if (v.includes('exposto') || v.includes('risco')) return 'Exposto a riscos';
-    if (v.includes('inseguro') && v.includes('alguns')) return 'Inseguro em pontos';
-    if (v.includes('pouco inseguro')) return 'Um pouco inseguro';
-    if (v.includes('tranquilo') || v.includes('seguro')) return 'Tranquilo e seguro';
-    return 'Outro';
-  };
-
-  const normalizeLegalInfluence = (val: string): string => {
-    const v = val.toLowerCase();
-    if (v.includes('travaram')) return 'Travaram decisões';
-    if (v.includes('bastante')) return 'Influenciam bastante';
-    if (v.includes('pouco')) return 'Influenciam pouco';
-    return 'Outro';
-  };
-
-  const normalizeLegalTiming = (val: string): string => {
-    const v = val.toLowerCase();
-    if (v.includes('quanto antes') || v.includes('urgente') || v.includes('imediato')) return 'O quanto antes';
-    if (v.includes('próximos meses')) return 'Próximos meses';
-    if (v.includes('maior') || v.includes('crescer')) return 'Quando crescer';
-    return 'Outro';
-  };
-
-  const calculateExamMetrics = () => {
+  // Calculate exam metrics
+  const calculateExamMetrics = (): ExamMetrics | null => {
     if (!examData || !examData.attempts || examData.attempts.length === 0) return null;
 
     const scores = examData.attempts.map(a => a.score || 0);
@@ -321,11 +285,46 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
     };
   };
 
+  // Build students with scores
+  const buildStudentsWithScores = (): StudentWithScores[] => {
+    if (!surveyData) return [];
+
+    const examScoreMap = new Map(
+      examData?.attempts?.map(a => [a.user_id, a.score || 0]) || []
+    );
+
+    return surveyData.map(s => ({
+      userId: s.user_id,
+      name: s.userName,
+      avatarUrl: s.avatarUrl,
+      scoreLegal: s.score_legal || 0,
+      scoreNormalized: ((s.score_legal || 0) * 10) / 18,
+      classification: (s.lead_classification as 'hot' | 'warm' | 'cold') || 'cold',
+      examScore: examScoreMap.get(s.user_id) ?? null,
+      examPassed: (examScoreMap.get(s.user_id) || 0) >= 70,
+      feeling: s.q18_legal_feeling,
+      influence: s.q19_legal_influence,
+      timing: s.q20_legal_timing,
+      responses: {
+        q18_legal_feeling: s.q18_legal_feeling,
+        q19_legal_influence: s.q19_legal_influence,
+        q20_legal_timing: s.q20_legal_timing,
+        q7_larissa_expectations: s.q7_larissa_expectations,
+        q8_larissa_clarity: s.q8_larissa_clarity,
+        q9_larissa_time: s.q9_larissa_time,
+        q10_larissa_liked_most: s.q10_larissa_liked_most,
+        q11_larissa_improve: s.q11_larissa_improve,
+      }
+    }));
+  };
+
+  // Calculate all metrics
   const larisaMetrics = calculateLarissaMetrics();
   const legalPerception = calculateLegalPerception();
   const examMetrics = calculateExamMetrics();
+  const students = buildStudentsWithScores();
 
-  const isLoading = loadingLarissa || loadingPerception || loadingExam || loadingDay3;
+  const isLoading = loadingSurveys || loadingExam;
 
   if (isLoading) {
     return (
@@ -335,36 +334,14 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
     );
   }
 
-  const radarData = larisaMetrics ? [
-    { dimension: 'Expectativas', value: larisaMetrics.expectations, fullMark: 10 },
-    { dimension: 'Clareza', value: larisaMetrics.clarity, fullMark: 10 },
-    { dimension: 'Tempo', value: larisaMetrics.time, fullMark: 10 },
-  ] : [];
-
-  const feelingChartData = legalPerception ? Object.entries(legalPerception.feelingDist).map(([name, value]) => ({
-    name,
-    value,
-    color: name.includes('Exposto') ? '#ef4444' : name.includes('Inseguro') ? '#f59e0b' : '#10b981'
-  })) : [];
-
-  const leadsChartData = legalPerception ? [
-    { name: 'HOT', value: legalPerception.leads.hot, color: '#ef4444' },
-    { name: 'WARM', value: legalPerception.leads.warm, color: '#f59e0b' },
-    { name: 'COLD', value: legalPerception.leads.cold, color: '#3b82f6' },
-  ] : [];
-
-  // PDF Export - Single tab (print)
-  const handleExportPdf = () => {
-    window.print();
-  };
-
-  // PDF Export - All tabs unified
-  const LEGAL_TABS = ['overview', 'instructors', 'perception', 'feedbacks', 'ai-insights'];
+  // Tab configuration
+  const LEGAL_TABS = ['overview', 'mentors', 'questions', 'students', 'surveys', 'ai-insights'];
   const LEGAL_TAB_NAMES: Record<string, string> = {
     'overview': 'Visão Geral',
-    'instructors': 'Instrutoras',
-    'perception': 'Percepção',
-    'feedbacks': 'Feedbacks',
+    'mentors': 'Mentoras',
+    'questions': 'Perguntas',
+    'students': 'Alunos',
+    'surveys': 'Pesquisas',
     'ai-insights': 'IA'
   };
 
@@ -376,6 +353,10 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
       setIsExporting: setIsExportingAll,
       filename: 'Dashboard Jurídico'
     });
+  };
+
+  const handleExportPdf = () => {
+    window.print();
   };
 
   return (
@@ -429,7 +410,7 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
         </div>
       </div>
 
-      {/* KPI Cards with Insights */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-violet-500">
           <CardContent className="pt-4">
@@ -508,414 +489,65 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5 overflow-x-auto">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="instructors">Instrutoras</TabsTrigger>
-          <TabsTrigger value="perception">Percepção</TabsTrigger>
-          <TabsTrigger value="feedbacks">Feedbacks</TabsTrigger>
-          <TabsTrigger value="ai-insights" className="flex items-center gap-1">
+        <TabsList className="grid w-full grid-cols-6 overflow-x-auto">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">
+            <Scale className="h-3 w-3 mr-1 hidden sm:inline" />
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="mentors" className="text-xs sm:text-sm">
+            <Users className="h-3 w-3 mr-1 hidden sm:inline" />
+            Mentoras
+          </TabsTrigger>
+          <TabsTrigger value="questions" className="text-xs sm:text-sm">
+            <HelpCircle className="h-3 w-3 mr-1 hidden sm:inline" />
+            Perguntas
+          </TabsTrigger>
+          <TabsTrigger value="students" className="text-xs sm:text-sm">
+            <UserCheck className="h-3 w-3 mr-1 hidden sm:inline" />
+            Alunos
+          </TabsTrigger>
+          <TabsTrigger value="surveys" className="text-xs sm:text-sm">
+            <FileText className="h-3 w-3 mr-1 hidden sm:inline" />
+            Pesquisas
+          </TabsTrigger>
+          <TabsTrigger value="ai-insights" className="flex items-center gap-1 text-xs sm:text-sm">
             <Sparkles className="h-3 w-3" />
             IA
           </TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* Radar Chart - Larissa */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Avaliação Dra. Larissa
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart data={radarData}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="dimension" tick={{ fontSize: 12 }} />
-                      <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} />
-                      <Radar
-                        name="Nota"
-                        dataKey="value"
-                        stroke="#8b5cf6"
-                        fill="#8b5cf6"
-                        fillOpacity={0.5}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Leads Distribution */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  Classificação de Leads
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={leadsChartData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {leadsChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex justify-center gap-4 mt-2">
-                  <div className="flex items-center gap-1">
-                    <Flame className="h-4 w-4 text-rose-500" />
-                    <span className="text-sm">HOT: {legalPerception?.leads.hot}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Thermometer className="h-4 w-4 text-amber-500" />
-                    <span className="text-sm">WARM: {legalPerception?.leads.warm}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Snowflake className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm">COLD: {legalPerception?.leads.cold}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Exam Results */}
-          {examMetrics && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Prova de Direito Médico
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold text-emerald-600">{examMetrics.average.toFixed(0)}%</p>
-                    <p className="text-xs text-muted-foreground">Média</p>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold">{examMetrics.min}%</p>
-                    <p className="text-xs text-muted-foreground">Mínima</p>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold">{examMetrics.max}%</p>
-                    <p className="text-xs text-muted-foreground">Máxima</p>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold text-emerald-600">{examMetrics.approved}</p>
-                    <p className="text-xs text-muted-foreground">Aprovados</p>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <p className="text-2xl font-bold">{examMetrics.total}</p>
-                    <p className="text-xs text-muted-foreground">Total</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+        {/* Tab Contents */}
+        <TabsContent value="overview" className="mt-4">
+          <LegalOverviewTab 
+            larisaMetrics={larisaMetrics}
+            legalPerception={legalPerception}
+            examMetrics={examMetrics}
+            students={students}
+          />
         </TabsContent>
 
-        {/* Instructors Tab */}
-        <TabsContent value="instructors" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* Dra. Larissa Card */}
-            <Card className="border-2 border-violet-200 dark:border-violet-800">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-full">
-                    <Users className="h-5 w-5 text-violet-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">Dra. Larissa</CardTitle>
-                    <p className="text-sm text-muted-foreground">Direito Médico</p>
-                  </div>
-                  <Badge className="ml-auto bg-violet-100 text-violet-700">
-                    {larisaMetrics?.overall.toFixed(1)}/10
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Expectativas</span>
-                    <span className="font-medium">{larisaMetrics?.expectations.toFixed(1)}</span>
-                  </div>
-                  <Progress value={(larisaMetrics?.expectations || 0) * 10} className="h-2" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Clareza</span>
-                    <span className="font-medium">{larisaMetrics?.clarity.toFixed(1)}</span>
-                  </div>
-                  <Progress value={(larisaMetrics?.clarity || 0) * 10} className="h-2" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Tempo</span>
-                    <span className="font-medium">{larisaMetrics?.time.toFixed(1)}</span>
-                  </div>
-                  <Progress value={(larisaMetrics?.time || 0) * 10} className="h-2" />
-                </div>
-                <p className="text-xs text-muted-foreground text-center pt-2">
-                  {larisaMetrics?.totalResponses || 0} avaliações
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Dra. Caroline Card */}
-            <Card className="border-2 border-amber-200 dark:border-amber-800">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-full">
-                    <Users className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">Dra. Caroline</CardTitle>
-                    <p className="text-sm text-muted-foreground">Direito Médico</p>
-                  </div>
-                  <Badge variant="outline" className="ml-auto">
-                    Co-instrutora
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center justify-center py-6 text-center">
-                  <AlertTriangle className="h-10 w-10 text-amber-500 mb-3" />
-                  <p className="text-sm text-muted-foreground">
-                    Avaliação individual não disponível
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Campos específicos não configurados no formulário atual
-                  </p>
-                </div>
-                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                  <p className="text-xs text-amber-700 dark:text-amber-300">
-                    <strong>Menção em feedback:</strong> "Dra. Carol atrapalhou muito minha concentração na aula da Larissa, pois conversou demais lá no fundo"
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <TabsContent value="mentors" className="mt-4">
+          <LegalMentorsTab larisaMetrics={larisaMetrics} />
         </TabsContent>
 
-        {/* Perception Tab */}
-        <TabsContent value="perception" className="space-y-4">
-          <div className="grid md:grid-cols-3 gap-4">
-            {/* Feeling Distribution */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Segurança Jurídica</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-40">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={feelingChartData} layout="vertical">
-                      <XAxis type="number" hide />
-                      <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10 }} />
-                      <Tooltip />
-                      <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                        {feelingChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                {legalPerception && (
-                  <LegalWidgetInsight 
-                    {...generateFeelingInsight(legalPerception.feelingDist, legalPerception.total)}
-                  />
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Influence Distribution */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Influência nas Decisões</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {legalPerception && (
-                  <>
-                    <div className="space-y-3">
-                      {Object.entries(legalPerception.influenceDist).map(([key, value]) => (
-                        <div key={key}>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="truncate">{key}</span>
-                            <span className="font-medium">{value}</span>
-                          </div>
-                          <Progress 
-                            value={(value / legalPerception.total) * 100} 
-                            className="h-2"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <LegalWidgetInsight 
-                      {...generateInfluenceInsight(legalPerception.influenceDist, legalPerception.total)}
-                    />
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Timing Distribution */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Urgência</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {legalPerception && (
-                  <>
-                    <div className="space-y-3">
-                      {Object.entries(legalPerception.timingDist).map(([key, value]) => (
-                        <div key={key}>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="truncate">{key}</span>
-                            <span className="font-medium">{value}</span>
-                          </div>
-                          <Progress 
-                            value={(value / legalPerception.total) * 100} 
-                            className="h-2"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <LegalWidgetInsight 
-                      {...generateTimingInsight(legalPerception.timingDist, legalPerception.total)}
-                    />
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Summary Cards with dynamic values */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-rose-50 dark:bg-rose-900/20 border-rose-200">
-              <CardContent className="pt-4 text-center">
-                <p className="text-3xl font-bold text-rose-600">
-                  {legalPerception ? Math.round(
-                    ((legalPerception.feelingDist['Exposto a riscos'] || 0) + 
-                     (legalPerception.feelingDist['Inseguro em pontos'] || 0) + 
-                     (legalPerception.feelingDist['Um pouco inseguro'] || 0)) / 
-                    legalPerception.total * 100
-                  ) : 0}%
-                </p>
-                <p className="text-xs text-rose-700 dark:text-rose-300">Relatam insegurança</p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Soma de "Exposto" + "Inseguro" + "Pouco inseguro"
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200">
-              <CardContent className="pt-4 text-center">
-                <p className="text-3xl font-bold text-amber-600">
-                  {legalPerception ? Math.round(
-                    ((legalPerception.influenceDist['Travaram decisões'] || 0) + 
-                     (legalPerception.influenceDist['Influenciam bastante'] || 0)) / 
-                    legalPerception.total * 100
-                  ) : 0}%
-                </p>
-                <p className="text-xs text-amber-700 dark:text-amber-300">Decisões impactadas</p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  "Travaram" + "Influenciam bastante"
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-violet-50 dark:bg-violet-900/20 border-violet-200">
-              <CardContent className="pt-4 text-center">
-                <p className="text-3xl font-bold text-violet-600">
-                  {legalPerception ? Math.round(
-                    ((legalPerception.timingDist['O quanto antes'] || 0) + 
-                     (legalPerception.timingDist['Próximos meses'] || 0)) / 
-                    legalPerception.total * 100
-                  ) : 0}%
-                </p>
-                <p className="text-xs text-violet-700 dark:text-violet-300">Urgência imediata</p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  "Quanto antes" + "Próximos meses"
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200">
-              <CardContent className="pt-4 text-center">
-                <p className="text-3xl font-bold text-emerald-600">
-                  {legalPerception ? Math.round((legalPerception.leads.hot / legalPerception.total) * 100) : 0}%
-                </p>
-                <p className="text-xs text-emerald-700 dark:text-emerald-300">Leads HOT</p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Score ≥ 40 pontos (BNT alto)
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+        <TabsContent value="questions" className="mt-4">
+          <LegalQuestionsTab 
+            legalPerception={legalPerception}
+            larisaMetrics={larisaMetrics}
+          />
         </TabsContent>
 
-        {/* Feedbacks Tab */}
-        <TabsContent value="feedbacks" className="space-y-6">
-          {/* Positive Feedbacks */}
-          <Card className="border-l-4 border-l-emerald-500">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                O Que Mais Gostaram ({larisaMetrics?.feedbacksPositive.length || 0})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FeedbackGrid>
-                {larisaMetrics?.feedbacksPositive.map((item, i) => (
-                  <FeedbackCard key={i} item={item} variant="positive" />
-                ))}
-                {(!larisaMetrics?.feedbacksPositive || larisaMetrics.feedbacksPositive.length === 0) && (
-                  <FeedbackEmpty message="Nenhum feedback positivo registrado." />
-                )}
-              </FeedbackGrid>
-            </CardContent>
-          </Card>
-
-          {/* Improvement Suggestions */}
-          <Card className="border-l-4 border-l-amber-500">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-amber-500" />
-                Sugestões de Melhoria ({larisaMetrics?.feedbacksImprove.length || 0})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FeedbackGrid>
-                {larisaMetrics?.feedbacksImprove.map((item, i) => (
-                  <FeedbackCard key={i} item={item} variant="improvement" />
-                ))}
-                {(!larisaMetrics?.feedbacksImprove || larisaMetrics.feedbacksImprove.length === 0) && (
-                  <FeedbackEmpty message="Nenhuma sugestão de melhoria registrada." />
-                )}
-              </FeedbackGrid>
-            </CardContent>
-          </Card>
+        <TabsContent value="students" className="mt-4">
+          <LegalStudentsTab 
+            students={students}
+            legalPerception={legalPerception}
+          />
         </TabsContent>
 
-        {/* AI Insights Tab */}
+        <TabsContent value="surveys" className="mt-4">
+          <LegalFullSurveysTab students={students} />
+        </TabsContent>
+
         <TabsContent value="ai-insights" className="mt-4">
           <LegalAIInsightsPanel 
             metrics={{
