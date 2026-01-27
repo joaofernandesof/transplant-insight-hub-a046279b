@@ -375,6 +375,11 @@ function NeoLicenseRoutes() {
           <Route index element={<LicenseeHome />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="university" element={<University />} />
+          <Route path="university/trilha/:trackId" element={<TrackDetail />} />
+          <Route path="university/exams" element={<ExamsList />} />
+          <Route path="university/exams/:examId/take" element={<ExamTaking />} />
+          <Route path="university/exams/:examId/results/:attemptId" element={<ExamResults />} />
+          <Route path="university/exams/admin" element={<ExamsAdmin />} />
           <Route path="materials" element={<Materials />} />
           <Route path="partners" element={<Partners />} />
           <Route path="surgery" element={<SurgerySchedule />} />
@@ -471,38 +476,62 @@ function AppRoutes() {
       <Route path="/avivar/*" element={<ProtectedRoute><AvivarRoutes /></ProtectedRoute>} />
 
       {/* ====================================
-          Rotas Legadas (compatibilidade)
+          Rotas Legadas - Redirects para Portais
           ==================================== */}
-      <Route path="/home" element={<ProtectedRoute><SidebarWrapper><LicenseeHome /></SidebarWrapper></ProtectedRoute>} />
+      {/* University -> NeoLicense */}
+      <Route path="/university" element={<Navigate to="/neolicense/university" replace />} />
+      <Route path="/university/*" element={<Navigate to="/neolicense/university" replace />} />
+      
+      {/* Materials -> NeoLicense */}
+      <Route path="/materials" element={<Navigate to="/neolicense/materials" replace />} />
+      
+      {/* Partners -> NeoLicense */}
+      <Route path="/partners" element={<Navigate to="/neolicense/partners" replace />} />
+      
+      {/* Achievements -> NeoLicense */}
+      <Route path="/achievements" element={<Navigate to="/neolicense/achievements" replace />} />
+      
+      {/* Referral -> NeoLicense */}
+      <Route path="/indique-e-ganhe" element={<Navigate to="/neolicense/referral" replace />} />
+      
+      {/* Profile -> Portal correspondente */}
+      <Route path="/profile" element={<Navigate to="/neolicense/profile" replace />} />
+      
+      {/* Career -> NeoLicense */}
+      <Route path="/career" element={<Navigate to="/neolicense/career" replace />} />
+      
+      {/* Community -> NeoLicense */}
+      <Route path="/community" element={<Navigate to="/neolicense/community" replace />} />
+      
+      {/* HotLeads -> Avivar */}
+      <Route path="/hotleads" element={<Navigate to="/avivar/hotleads" replace />} />
+      
+      {/* Surgery -> NeoLicense */}
+      <Route path="/surgery-schedule" element={<Navigate to="/neolicense/surgery" replace />} />
+      
+      {/* Estrutura NEO -> NeoLicense */}
+      <Route path="/estrutura-neo" element={<Navigate to="/neolicense/structure" replace />} />
+      
+      {/* Home redirect */}
+      <Route path="/home" element={<Navigate to="/" replace />} />
+      
+      {/* ====================================
+          Rotas Admin (sem redirect - únicas)
+          ==================================== */}
       <Route path="/admin-dashboard" element={<ProtectedRoute><SidebarWrapper><AdminDashboard /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><SidebarWrapper><Dashboard /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/alunos" element={<ProtectedRoute><SidebarWrapper><LicenseesPanel /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><ClinicComparison /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/university" element={<ProtectedRoute><SidebarWrapper><University /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/university/trilha/:trackId" element={<ProtectedRoute><SidebarWrapper><TrackDetail /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/university/exams" element={<ProtectedRoute><SidebarWrapper><ExamsList /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/university/exams/:examId/take" element={<ProtectedRoute><SidebarWrapper><ExamTaking /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/university/exams/:examId/results/:attemptId" element={<ProtectedRoute><SidebarWrapper><ExamResults /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/university/exams/admin" element={<ProtectedRoute><SidebarWrapper><ExamsAdmin /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/regularization" element={<ProtectedRoute><SidebarWrapper><Regularization /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/materials" element={<ProtectedRoute><SidebarWrapper><Materials /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/marketing" element={<ProtectedRoute><SidebarWrapper><Marketing /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/store" element={<ProtectedRoute><SidebarWrapper><Store /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/financial" element={<ProtectedRoute><SidebarWrapper><Financial /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/mentorship" element={<ProtectedRoute><SidebarWrapper><Mentorship /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/systems" element={<ProtectedRoute><SidebarWrapper><Systems /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/career" element={<ProtectedRoute><SidebarWrapper><Career /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/hotleads" element={<ProtectedRoute><SidebarWrapper><HotLeads /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/community" element={<ProtectedRoute><SidebarWrapper><Community /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><SidebarWrapper><Profile /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><SidebarWrapper><AdminPanel /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/access-matrix" element={<ProtectedRoute><SidebarWrapper><AccessMatrix /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/certificates" element={<ProtectedRoute><SidebarWrapper><Certificates /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/achievements" element={<ProtectedRoute><SidebarWrapper><Achievements /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/partners" element={<ProtectedRoute><SidebarWrapper><Partners /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/license-payments" element={<ProtectedRoute><SidebarWrapper><LicensePayments /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/estrutura-neo" element={<ProtectedRoute><SidebarWrapper><EstruturaNeo /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/indique-e-ganhe" element={<ProtectedRoute><SidebarWrapper><ReferralProgram /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/monitoring" element={<ProtectedRoute><SidebarWrapper><UserMonitoring /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/system-metrics" element={<ProtectedRoute><SidebarWrapper><SystemMetrics /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/admin/sentinel" element={<AdminRoute><SidebarWrapper><SystemSentinel /></SidebarWrapper></AdminRoute>} />
@@ -513,7 +542,6 @@ function AppRoutes() {
       <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><EventLogs /></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/code-assistant" element={<AdminRoute><SidebarWrapper><CodeAssistantPage /></SidebarWrapper></AdminRoute>} />
       <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><WeeklyReports /></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/surgery-schedule" element={<ProtectedRoute><SidebarWrapper><SurgerySchedule /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><SalaTecnica /></SidebarWrapper></ProtectedRoute>} />
       <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><ConsolidatedResults /></SidebarWrapper></ProtectedRoute>} />
 
