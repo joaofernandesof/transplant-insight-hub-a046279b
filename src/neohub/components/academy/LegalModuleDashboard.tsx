@@ -1,6 +1,7 @@
 /**
  * Legal Module Dashboard - Refactored
  * Complete dashboard with 6 dedicated tabs
+ * URL-synced tabs via query params for deep linking
  */
 
 import { useState, useRef, useCallback } from "react";
@@ -33,8 +34,8 @@ import {
   generateLeadsInsight,
 } from "./LegalWidgetInsight";
 import { FeedbackWithAuthor } from "./FeedbackCard";
-import { toast } from "sonner";
 import { captureMultipleTabsToPdf } from "@/utils/captureToPdf";
+import { useTabFromUrl } from "@/hooks/useTabFromUrl";
 
 // Import new tab components
 import { 
@@ -50,6 +51,18 @@ import {
   type StudentWithScores
 } from "./legal";
 
+// Valid tabs for URL sync
+const LEGAL_TABS = ['overview', 'matrix', 'mentors', 'questions', 'students', 'surveys', 'ai-insights'];
+const LEGAL_TAB_NAMES: Record<string, string> = {
+  'overview': 'Visão Geral',
+  'matrix': 'Matriz',
+  'mentors': 'Mentoras',
+  'questions': 'Perguntas',
+  'students': 'Alunos',
+  'surveys': 'Pesquisas',
+  'ai-insights': 'IA'
+};
+
 // Filtro para remover feedbacks sensíveis
 const shouldFilterFeedback = (feedback: string): boolean => {
   const text = feedback.toLowerCase();
@@ -64,12 +77,16 @@ interface LegalModuleDashboardProps {
 }
 
 export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
-  const [activeTab, setActiveTab] = useState("overview");
+  // URL-synced tab state
+  const { activeTab, setActiveTab } = useTabFromUrl({
+    defaultTab: 'overview',
+    validTabs: [...LEGAL_TABS],
+  });
+  
   const [isExportingAll, setIsExportingAll] = useState(false);
   const [exportProgress, setExportProgress] = useState<string | null>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const tabContentRef = useRef<HTMLDivElement>(null);
-  const printRef = useRef<HTMLDivElement>(null);
 
   // Fetch all survey data WITH user info
   const { data: surveyData, isLoading: loadingSurveys } = useQuery({
@@ -354,16 +371,7 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
 
   const isLoading = loadingSurveys || loadingExam;
 
-  // Tab configuration
-  const LEGAL_TABS = ['overview', 'matrix', 'mentors', 'questions', 'students', 'surveys'];
-  const LEGAL_TAB_NAMES: Record<string, string> = {
-    'overview': 'Visão Geral',
-    'matrix': 'Matriz',
-    'mentors': 'Mentoras',
-    'questions': 'Perguntas',
-    'students': 'Alunos',
-    'surveys': 'Pesquisas'
-  };
+  // Tab configuration is now defined at module level for URL sync
 
   // High-fidelity PDF export using html2canvas
   const handleExportAllTabs = useCallback(async () => {
