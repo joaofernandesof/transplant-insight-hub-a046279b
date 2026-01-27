@@ -592,7 +592,7 @@ function AppRoutes() {
       <Route path="/ipromed/clients" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedClients /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/ipromed/clients/:id" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedClients /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/ipromed/journey" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedJourney /></LazyRoute></SidebarWrapper></AdminRoute>} />
-
+      <Route path="/ipromed/legal" element={<AdminRoute><LazyRoute><IpromedLegalHub /></LazyRoute></AdminRoute>} />
       {/* ====================================
           Marketplace
           ==================================== */}
