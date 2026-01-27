@@ -50,6 +50,34 @@ function findLogicalSections(container: HTMLElement): HTMLElement[] {
 }
 
 /**
+ * Expands all collapsible elements within a container for PDF export
+ * This ensures all content is visible when capturing
+ */
+function expandAllCollapsibles(container: HTMLElement): void {
+  // Expand Radix UI Collapsible components
+  const collapsibleTriggers = container.querySelectorAll('[data-state="closed"]');
+  collapsibleTriggers.forEach((trigger) => {
+    if (trigger instanceof HTMLElement) {
+      trigger.click();
+    }
+  });
+  
+  // Also handle any custom collapsed states with data-expanded="false"
+  const customCollapsibles = container.querySelectorAll('[data-expanded="false"]');
+  customCollapsibles.forEach((el) => {
+    if (el instanceof HTMLElement) {
+      el.click();
+    }
+  });
+  
+  // Force open details/summary elements
+  const detailsElements = container.querySelectorAll('details:not([open])');
+  detailsElements.forEach((details) => {
+    details.setAttribute('open', 'true');
+  });
+}
+
+/**
  * Exports all tabs to a single merged PDF document
  * Each major section is fit to a single page without page breaks
  */
@@ -92,6 +120,12 @@ export async function exportAllTabsToPdf({
       console.warn(`Tab content not found for: ${tab}`);
       continue;
     }
+    
+    // Expand all collapsible elements before capturing
+    expandAllCollapsibles(contentArea);
+    
+    // Wait a bit for expansion animations
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     try {
       // Find sections within this tab
