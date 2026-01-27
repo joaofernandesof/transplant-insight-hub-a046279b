@@ -1,6 +1,7 @@
 /**
  * Export All Tabs to Single PDF Utility
- * Captures each tab content and merges into a single PDF document
+ * Captures each tab content section-by-section to avoid page breaks
+ * Each logical section fits on a single page
  */
 
 import jsPDF from 'jspdf';
@@ -17,7 +18,40 @@ export interface ExportAllTabsOptions {
 }
 
 /**
+ * Finds logical sections within a tab that should each fit on their own page
+ * Looks for cards, grids, and other major content blocks
+ */
+function findLogicalSections(container: HTMLElement): HTMLElement[] {
+  // Priority: find print-section markers first, then major grid rows, then cards
+  const printSections = Array.from(container.querySelectorAll('.print-section')) as HTMLElement[];
+  if (printSections.length > 0) {
+    return printSections;
+  }
+  
+  // Look for direct children that are grids or major sections
+  const sections: HTMLElement[] = [];
+  const children = Array.from(container.children) as HTMLElement[];
+  
+  for (const child of children) {
+    if (child.classList.contains('space-y-6') || child.classList.contains('space-y-4')) {
+      // This is a container with multiple sections, get its children
+      sections.push(...Array.from(child.children) as HTMLElement[]);
+    } else {
+      sections.push(child);
+    }
+  }
+  
+  // If we have very few sections, just return the whole container
+  if (sections.length <= 1) {
+    return [container];
+  }
+  
+  return sections;
+}
+
+/**
  * Exports all tabs to a single merged PDF document
+ * Each major section is fit to a single page without page breaks
  */
 export async function exportAllTabsToPdf({
   tabs,
@@ -28,24 +62,28 @@ export async function exportAllTabsToPdf({
   tabSelector = '[role="tabpanel"][data-state="active"]'
 }: ExportAllTabsOptions): Promise<void> {
   setIsExporting(true);
-  toast.info('Capturando todas as abas para PDF único...');
+  toast.info('Preparando exportação de todas as abas...');
   
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 10;
+  const margin = 8;
+  const headerHeight = 15;
+  const availableWidth = pageWidth - (margin * 2);
+  const availableHeight = pageHeight - (margin * 2) - headerHeight;
   
   let isFirstPage = true;
+  let currentTabIndex = 0;
   
-  for (let i = 0; i < tabs.length; i++) {
-    const tab = tabs[i];
+  for (const tab of tabs) {
+    currentTabIndex++;
     setActiveTab(tab);
     
     // Wait for tab content to fully render (1.5 seconds for charts/animations)
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     const tabDisplayName = tabNames[tab] || tab;
-    toast.info(`Capturando ${tabDisplayName} (${i + 1}/${tabs.length})...`);
+    toast.info(`Capturando ${tabDisplayName} (${currentTabIndex}/${tabs.length})...`);
     
     // Find the main content area
     const contentArea = document.querySelector(tabSelector) as HTMLElement;
@@ -56,103 +94,156 @@ export async function exportAllTabsToPdf({
     }
     
     try {
-      // Force scroll to top before capture
-      contentArea.scrollTop = 0;
+      // Find sections within this tab
+      const sections = findLogicalSections(contentArea);
+      let sectionIndex = 0;
       
-      // Small delay after scroll reset
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      // Capture the tab content with full dimensions
-      const canvas = await html2canvas(contentArea, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width: contentArea.scrollWidth,
-        height: contentArea.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: contentArea.scrollWidth,
-        windowHeight: contentArea.scrollHeight,
-      });
-      
-      // Calculate dimensions
-      const imgWidth = pageWidth - (margin * 2);
-      const headerHeight = 18;
-      const availableHeight = pageHeight - (margin * 2) - headerHeight;
-      
-      // Calculate the ratio to fit width
-      const ratio = imgWidth / canvas.width;
-      const scaledTotalHeight = canvas.height * ratio;
-      
-      // Calculate how many pages this content needs
-      const pagesNeeded = Math.ceil(scaledTotalHeight / availableHeight);
-      
-      for (let pageNum = 0; pageNum < pagesNeeded; pageNum++) {
+      for (const section of sections) {
+        sectionIndex++;
+        
+        // Skip empty or hidden sections
+        if (!section || section.offsetHeight === 0) continue;
+        
+        // Force scroll to section
+        section.scrollIntoView({ block: 'start' });
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Capture section with high quality
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          width: section.scrollWidth,
+          height: section.scrollHeight,
+        });
+        
+        // Calculate scaling to fit section on one page
+        const imgAspectRatio = canvas.width / canvas.height;
+        let imgWidth = availableWidth;
+        let imgHeight = imgWidth / imgAspectRatio;
+        
+        // If height exceeds available space, scale down to fit
+        if (imgHeight > availableHeight) {
+          imgHeight = availableHeight;
+          imgWidth = imgHeight * imgAspectRatio;
+          
+          // Center horizontally if scaled down
+          // (will be adjusted in addImage)
+        }
+        
         // Add new page if not first
         if (!isFirstPage) {
           pdf.addPage();
         }
         isFirstPage = false;
         
-        // Add tab title header
-        pdf.setFontSize(14);
+        // Add header with tab name
+        pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
-        const pageIndicator = pagesNeeded > 1 ? ` (${pageNum + 1}/${pagesNeeded})` : '';
-        pdf.text(`${filename} - ${tabDisplayName}${pageIndicator}`, margin, margin + 5);
-        pdf.setFontSize(9);
+        const sectionIndicator = sections.length > 1 ? ` (${sectionIndex}/${sections.length})` : '';
+        pdf.text(`${filename} - ${tabDisplayName}${sectionIndicator}`, margin, margin + 4);
+        pdf.setFontSize(8);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, margin, margin + 10);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, margin, margin + 9);
+        pdf.setTextColor(0, 0, 0);
         
-        // Calculate the slice of the original canvas to use
-        const sliceStartY = (pageNum * availableHeight) / ratio;
-        const sliceHeight = Math.min(availableHeight / ratio, canvas.height - sliceStartY);
+        // Calculate centered position
+        const xPos = margin + (availableWidth - imgWidth) / 2;
         
-        // Create a new canvas for just this slice
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = canvas.width;
-        sliceCanvas.height = sliceHeight;
-        
-        const sliceCtx = sliceCanvas.getContext('2d');
-        if (sliceCtx) {
-          // Draw the slice from the original canvas
-          sliceCtx.drawImage(
-            canvas,
-            0, sliceStartY, // Source x, y
-            canvas.width, sliceHeight, // Source width, height
-            0, 0, // Destination x, y
-            canvas.width, sliceHeight // Destination width, height
-          );
-          
-          const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.92);
-          const sliceScaledHeight = sliceHeight * ratio;
-          
-          // Add the sliced image to PDF
-          pdf.addImage(
-            sliceImgData,
-            'JPEG',
-            margin,
-            margin + headerHeight,
-            imgWidth,
-            sliceScaledHeight,
-            undefined,
-            'FAST'
-          );
-        }
+        // Add image centered on page
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(
+          imgData,
+          'JPEG',
+          xPos,
+          margin + headerHeight,
+          imgWidth,
+          imgHeight,
+          undefined,
+          'FAST'
+        );
       }
       
     } catch (err) {
       console.error(`Error capturing tab ${tab}:`, err);
     }
     
-    // Delay between tab captures
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Delay between tabs
+    await new Promise(resolve => setTimeout(resolve, 300));
   }
   
-  // Save the merged PDF
+  // Save the PDF
   pdf.save(`${filename}-${new Date().toISOString().split('T')[0]}.pdf`);
   
   setIsExporting(false);
   toast.success('PDF completo exportado com sucesso!');
+}
+
+/**
+ * Alternative: Export current view with smart page breaks
+ * Uses CSS print-section markers
+ */
+export async function exportSingleViewToPdf(
+  containerSelector: string,
+  filename: string
+): Promise<void> {
+  const container = document.querySelector(containerSelector) as HTMLElement;
+  if (!container) {
+    toast.error('Conteúdo não encontrado');
+    return;
+  }
+  
+  toast.info('Gerando PDF...');
+  
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 8;
+  const availableWidth = pageWidth - (margin * 2);
+  const availableHeight = pageHeight - (margin * 2);
+  
+  const sections = findLogicalSections(container);
+  let isFirst = true;
+  
+  for (const section of sections) {
+    if (!section || section.offsetHeight === 0) continue;
+    
+    const canvas = await html2canvas(section, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+    });
+    
+    // Scale to fit
+    const imgAspectRatio = canvas.width / canvas.height;
+    let imgWidth = availableWidth;
+    let imgHeight = imgWidth / imgAspectRatio;
+    
+    if (imgHeight > availableHeight) {
+      imgHeight = availableHeight;
+      imgWidth = imgHeight * imgAspectRatio;
+    }
+    
+    if (!isFirst) pdf.addPage();
+    isFirst = false;
+    
+    const xPos = margin + (availableWidth - imgWidth) / 2;
+    const yPos = margin + (availableHeight - imgHeight) / 2;
+    
+    pdf.addImage(
+      canvas.toDataURL('image/jpeg', 0.95),
+      'JPEG',
+      xPos,
+      yPos,
+      imgWidth,
+      imgHeight
+    );
+  }
+  
+  pdf.save(`${filename}-${new Date().toISOString().split('T')[0]}.pdf`);
+  toast.success('PDF exportado com sucesso!');
 }

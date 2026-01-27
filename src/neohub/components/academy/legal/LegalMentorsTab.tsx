@@ -61,8 +61,8 @@ export function LegalMentorsTab({ larisaMetrics }: LegalMentorsTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
+      {/* Header - print-section */}
+      <div className="print-section flex items-center gap-3 bg-background p-2 rounded-lg">
         <Award className="h-6 w-6 text-violet-500" />
         <div>
           <h2 className="text-lg font-semibold">Avaliação das Mentoras</h2>
@@ -70,8 +70,8 @@ export function LegalMentorsTab({ larisaMetrics }: LegalMentorsTabProps) {
         </div>
       </div>
 
-      {/* Mentors Grid */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Mentors Grid - print-section */}
+      <div className="print-section grid lg:grid-cols-2 gap-6 bg-background p-2 rounded-lg">
         {/* Dra. Larissa - Full Card */}
         <Card className="border-2 border-violet-200 dark:border-violet-800 lg:row-span-2">
           <CardHeader>
@@ -219,8 +219,8 @@ export function LegalMentorsTab({ larisaMetrics }: LegalMentorsTabProps) {
         </Card>
       </div>
 
-      {/* Feedbacks Section */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Feedbacks Section - print-section */}
+      <div className="print-section grid lg:grid-cols-2 gap-6 bg-background p-2 rounded-lg">
         {/* Positive Feedbacks */}
         <Card className="border-l-4 border-l-emerald-500">
           <CardHeader>
