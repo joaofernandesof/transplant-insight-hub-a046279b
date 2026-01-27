@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTabFromUrl } from "@/hooks/useTabFromUrl";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,11 @@ export default function NeoTeamEvents() {
   const [filterResponsible, setFilterResponsible] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showOverdueAlert, setShowOverdueAlert] = useState(true);
-  const [activeTab, setActiveTab] = useState("organization");
+  
+  const { activeTab, setActiveTab } = useTabFromUrl({
+    defaultTab: "organization",
+    validTabs: ["organization", "surveys", "schedule", "exams", "students"],
+  });
 
   const { items, stats, updateItemStatus, createItem, isLoading: loadingItems } = useChecklistItems(selectedChecklist?.id || null);
 

@@ -1,12 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTabFromUrl } from "@/hooks/useTabFromUrl";
 import { ArrowLeft, Users, GraduationCap, Settings } from "lucide-react";
 import { EnrollmentManagementPanel } from "../components/EnrollmentManagementPanel";
 import { ClassSettingsPanel } from "../components/ClassSettingsPanel";
 
 export function AcademyStudentsAdmin() {
   const navigate = useNavigate();
+  const { activeTab, setActiveTab } = useTabFromUrl({
+    defaultTab: "enrollments",
+    validTabs: ["enrollments", "settings"],
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -28,7 +33,7 @@ export function AcademyStudentsAdmin() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="enrollments">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="enrollments" className="gap-2">
               <GraduationCap className="h-4 w-4" />
