@@ -40,7 +40,8 @@ import {
   Stethoscope,
   Megaphone,
   TrendingUp,
-  Bot
+  Bot,
+  Scale,
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -347,7 +348,7 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
               {[
                 { id: 'academy', title: 'Aluno IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
                 { id: 'license', title: 'Licenciado', icon: Award, gradient: 'from-amber-400 to-yellow-500', path: '/home' },
@@ -355,6 +356,7 @@ export default function AdminDashboard() {
                 { id: 'staff', title: 'Colaborador', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
                 { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
                 { id: 'avivar', title: 'Avivar', icon: TrendingUp, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
+                { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed' },
               ].map((portal) => (
                 <button
                   key={portal.id}
