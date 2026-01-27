@@ -1,9 +1,9 @@
 /**
  * IPROMED - Gestão de Clientes Jurídicos
- * Controle de processos jurídicos dos clientes
+ * Controle de processos jurídicos dos clientes (conectado ao banco de dados)
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,6 @@ import {
   Users,
   Search,
   Plus,
-  Filter,
   FileText,
   AlertTriangle,
   CheckCircle,
@@ -43,6 +42,9 @@ import {
   Briefcase,
   Calendar,
   TrendingUp,
+  FileSignature,
+  DollarSign,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -50,99 +52,61 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import DeadlineAlerts from "./components/DeadlineAlerts";
 
-// Mock data for clients
-const mockClients = [
-  {
-    id: '1',
-    name: 'Dr. Ricardo Mendes',
-    email: 'ricardo@clinica.com',
-    phone: '(11) 99999-1234',
-    avatar: null,
-    status: 'active',
-    totalProcesses: 3,
-    activeProcesses: 2,
-    contractDate: '2024-01-15',
-    lastContact: '2025-01-20',
-    riskLevel: 'low',
-    journeyStage: 'retention',
-  },
-  {
-    id: '2',
-    name: 'Dra. Marina Silva',
-    email: 'marina@clinica.com',
-    phone: '(21) 98888-5678',
-    avatar: null,
-    status: 'active',
-    totalProcesses: 1,
-    activeProcesses: 1,
-    contractDate: '2024-06-20',
-    lastContact: '2025-01-22',
-    riskLevel: 'medium',
-    journeyStage: 'onboarding',
-  },
-  {
-    id: '3',
-    name: 'Dr. Paulo Andrade',
-    email: 'paulo@clinicaandrade.com',
-    phone: '(31) 97777-9012',
-    avatar: null,
-    status: 'prospect',
-    totalProcesses: 0,
-    activeProcesses: 0,
-    contractDate: null,
-    lastContact: '2025-01-18',
-    riskLevel: 'high',
-    journeyStage: 'prospect',
-  },
-  {
-    id: '4',
-    name: 'Dra. Camila Torres',
-    email: 'camila@torres.med.br',
-    phone: '(41) 96666-3456',
-    avatar: null,
-    status: 'active',
-    totalProcesses: 5,
-    activeProcesses: 3,
-    contractDate: '2023-08-10',
-    lastContact: '2025-01-25',
-    riskLevel: 'high',
-    journeyStage: 'expansion',
-  },
-  {
-    id: '5',
-    name: 'Dr. Fernando Lima',
-    email: 'fernando.lima@email.com',
-    phone: '(51) 95555-7890',
-    avatar: null,
-    status: 'churned',
-    totalProcesses: 2,
-    activeProcesses: 0,
-    contractDate: '2023-03-01',
-    lastContact: '2024-12-15',
-    riskLevel: 'low',
-    journeyStage: 'churned',
-  },
-];
+interface LegalClient {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  client_type: string;
+  status: string;
+  risk_level: string;
+  journey_stage: string;
+  health_score: number | null;
+  notes: string | null;
+  metadata: {
+    payment_status?: string;
+    payment_amount?: number;
+    payment_date?: string;
+    contract_status?: string;
+    partner?: string;
+  } | null;
+  created_at: string;
+}
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; color: string; textColor: string }> = {
   active: { label: 'Ativo', color: 'bg-emerald-500', textColor: 'text-emerald-700' },
   prospect: { label: 'Prospecto', color: 'bg-blue-500', textColor: 'text-blue-700' },
   churned: { label: 'Cancelado', color: 'bg-gray-500', textColor: 'text-gray-700' },
 };
 
-const riskConfig = {
-  low: { label: 'Baixo', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  medium: { label: 'Médio', color: 'bg-amber-100 text-amber-700', icon: Clock },
-  high: { label: 'Alto', color: 'bg-rose-100 text-rose-700', icon: AlertTriangle },
+const riskConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  low: { label: 'Baixo', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300', icon: CheckCircle },
+  medium: { label: 'Médio', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300', icon: Clock },
+  high: { label: 'Alto', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300', icon: AlertTriangle },
 };
 
-const journeyConfig = {
-  prospect: { label: 'Prospecto', color: 'bg-blue-100 text-blue-700' },
-  onboarding: { label: 'Onboarding', color: 'bg-purple-100 text-purple-700' },
-  retention: { label: 'Retenção', color: 'bg-emerald-100 text-emerald-700' },
-  expansion: { label: 'Expansão', color: 'bg-amber-100 text-amber-700' },
-  churned: { label: 'Cancelado', color: 'bg-gray-100 text-gray-700' },
+const journeyConfig: Record<string, { label: string; color: string }> = {
+  prospect: { label: 'Prospecto', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+  onboarding: { label: 'Onboarding', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
+  retention: { label: 'Retenção', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+  expansion: { label: 'Expansão', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
+  churned: { label: 'Cancelado', color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300' },
+};
+
+const paymentStatusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  paid: { label: 'Pago', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
+  pending: { label: 'Pendente', color: 'bg-amber-100 text-amber-700', icon: Clock },
+};
+
+const contractStatusConfig: Record<string, { label: string; color: string }> = {
+  draft: { label: 'Rascunho', color: 'bg-gray-100 text-gray-700' },
+  pending_signature: { label: 'Aguardando Assinatura', color: 'bg-amber-100 text-amber-700' },
+  signed: { label: 'Assinado', color: 'bg-emerald-100 text-emerald-700' },
 };
 
 export default function IpromedClients() {
@@ -150,13 +114,29 @@ export default function IpromedClients() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [journeyFilter, setJourneyFilter] = useState<string>('all');
+  const [paymentFilter, setPaymentFilter] = useState<string>('all');
 
-  const filteredClients = mockClients.filter(client => {
+  // Fetch clients from database
+  const { data: clients = [], isLoading, error } = useQuery({
+    queryKey: ['ipromed-clients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ipromed_legal_clients')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as LegalClient[];
+    },
+  });
+
+  const filteredClients = clients.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          client.email.toLowerCase().includes(searchTerm.toLowerCase());
+                          (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
-    const matchesJourney = journeyFilter === 'all' || client.journeyStage === journeyFilter;
-    return matchesSearch && matchesStatus && matchesJourney;
+    const matchesJourney = journeyFilter === 'all' || client.journey_stage === journeyFilter;
+    const matchesPayment = paymentFilter === 'all' || client.metadata?.payment_status === paymentFilter;
+    return matchesSearch && matchesStatus && matchesJourney && matchesPayment;
   });
 
   const getInitials = (name: string) => {
@@ -164,11 +144,24 @@ export default function IpromedClients() {
   };
 
   const stats = {
-    total: mockClients.length,
-    active: mockClients.filter(c => c.status === 'active').length,
-    prospects: mockClients.filter(c => c.status === 'prospect').length,
-    activeProcesses: mockClients.reduce((sum, c) => sum + c.activeProcesses, 0),
+    total: clients.length,
+    active: clients.filter(c => c.status === 'active').length,
+    prospects: clients.filter(c => c.status === 'prospect').length,
+    paid: clients.filter(c => c.metadata?.payment_status === 'paid').length,
+    pendingSignature: clients.filter(c => c.metadata?.contract_status === 'pending_signature').length,
   };
+
+  // Prepare data for deadline alerts
+  const clientsForAlerts = clients.map(c => ({
+    id: c.id,
+    name: c.name,
+    startDate: c.created_at,
+    currentStep: c.journey_stage === 'onboarding' ? 2 : c.journey_stage === 'prospect' ? 0 : 8,
+  }));
+
+  if (error) {
+    toast.error("Erro ao carregar clientes");
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -188,7 +181,7 @@ export default function IpromedClients() {
       {/* Title and Actions */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Gestão de Clientes</h1>
+          <h1 className="text-2xl font-bold">Gestão de Clientes IPROMED</h1>
           <p className="text-muted-foreground">Controle de clientes e processos jurídicos</p>
         </div>
         <div className="flex gap-2">
@@ -204,7 +197,7 @@ export default function IpromedClients() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -212,7 +205,7 @@ export default function IpromedClients() {
                 <p className="text-sm text-muted-foreground">Total de Clientes</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-xl">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                 <Users className="h-5 w-5 text-blue-600" />
               </div>
             </div>
@@ -222,10 +215,10 @@ export default function IpromedClients() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Clientes Ativos</p>
+                <p className="text-sm text-muted-foreground">Ativos</p>
                 <p className="text-2xl font-bold text-emerald-600">{stats.active}</p>
               </div>
-              <div className="p-3 bg-emerald-100 rounded-xl">
+              <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
                 <CheckCircle className="h-5 w-5 text-emerald-600" />
               </div>
             </div>
@@ -238,7 +231,7 @@ export default function IpromedClients() {
                 <p className="text-sm text-muted-foreground">Prospectos</p>
                 <p className="text-2xl font-bold text-blue-600">{stats.prospects}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-xl">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                 <Briefcase className="h-5 w-5 text-blue-600" />
               </div>
             </div>
@@ -248,164 +241,190 @@ export default function IpromedClients() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Processos Ativos</p>
-                <p className="text-2xl font-bold text-amber-600">{stats.activeProcesses}</p>
+                <p className="text-sm text-muted-foreground">Pagos</p>
+                <p className="text-2xl font-bold text-emerald-600">{stats.paid}</p>
               </div>
-              <div className="p-3 bg-amber-100 rounded-xl">
-                <Scale className="h-5 w-5 text-amber-600" />
+              <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+                <DollarSign className="h-5 w-5 text-emerald-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Aguardando Assinatura</p>
+                <p className="text-2xl font-bold text-amber-600">{stats.pendingSignature}</p>
+              </div>
+              <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+                <FileSignature className="h-5 w-5 text-amber-600" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="py-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome ou email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="active">Ativos</SelectItem>
-                <SelectItem value="prospect">Prospectos</SelectItem>
-                <SelectItem value="churned">Cancelados</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={journeyFilter} onValueChange={setJourneyFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Jornada" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Etapas</SelectItem>
-                <SelectItem value="prospect">Prospecto</SelectItem>
-                <SelectItem value="onboarding">Onboarding</SelectItem>
-                <SelectItem value="retention">Retenção</SelectItem>
-                <SelectItem value="expansion">Expansão</SelectItem>
-                <SelectItem value="churned">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Client Table */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Filters */}
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome ou email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="active">Ativos</SelectItem>
+                    <SelectItem value="prospect">Prospectos</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Pagamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="paid">Pagos</SelectItem>
+                    <SelectItem value="pending">Pendentes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Clients Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Clientes ({filteredClients.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Jornada</TableHead>
-                <TableHead className="text-center">Processos</TableHead>
-                <TableHead>Risco</TableHead>
-                <TableHead>Último Contato</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredClients.map((client) => {
-                const status = statusConfig[client.status as keyof typeof statusConfig];
-                const risk = riskConfig[client.riskLevel as keyof typeof riskConfig];
-                const journey = journeyConfig[client.journeyStage as keyof typeof journeyConfig];
-                const RiskIcon = risk.icon;
+          {/* Clients Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Clientes ({filteredClients.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Pagamento</TableHead>
+                      <TableHead>Contrato</TableHead>
+                      <TableHead>Risco</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredClients.map((client) => {
+                      const status = statusConfig[client.status] || statusConfig.prospect;
+                      const risk = riskConfig[client.risk_level] || riskConfig.low;
+                      const RiskIcon = risk.icon;
+                      const paymentStatus = paymentStatusConfig[client.metadata?.payment_status || 'pending'];
+                      const PaymentIcon = paymentStatus?.icon || Clock;
+                      const contractStatus = contractStatusConfig[client.metadata?.contract_status || 'draft'];
 
-                return (
-                  <TableRow key={client.id} className="cursor-pointer hover:bg-muted/50">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={client.avatar || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {getInitials(client.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{client.name}</p>
-                          <p className="text-xs text-muted-foreground">{client.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`${status.color} text-white`}>
-                        {status.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={journey.color}>
-                        {journey.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex flex-col items-center">
-                        <span className="font-semibold">{client.activeProcesses}</span>
-                        <span className="text-xs text-muted-foreground">de {client.totalProcesses}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={risk.color}>
-                        <RiskIcon className="h-3 w-3 mr-1" />
-                        {risk.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(client.lastContact).toLocaleDateString('pt-BR')}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver Detalhes
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Phone className="h-4 w-4 mr-2" />
-                            Ligar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Mail className="h-4 w-4 mr-2" />
-                            Enviar Email
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <FileText className="h-4 w-4 mr-2" />
-                            Ver Processos
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                      return (
+                        <TableRow key={client.id} className="cursor-pointer hover:bg-muted/50">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-primary/10 text-primary">
+                                  {getInitials(client.name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-sm">{client.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={`${status.color} text-white text-xs`}>
+                                    {status.label}
+                                  </Badge>
+                                  {client.metadata?.partner && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Sócio
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={paymentStatus?.color || 'bg-gray-100 text-gray-700'}>
+                              <PaymentIcon className="h-3 w-3 mr-1" />
+                              {paymentStatus?.label || 'Pendente'}
+                            </Badge>
+                            {client.metadata?.payment_amount && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                R$ {client.metadata.payment_amount.toLocaleString('pt-BR')}
+                              </p>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={contractStatus?.color || ''}>
+                              {contractStatus?.label || 'Rascunho'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={risk.color}>
+                              <RiskIcon className="h-3 w-3 mr-1" />
+                              {risk.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Ver Detalhes
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <FileSignature className="h-4 w-4 mr-2" />
+                                  Enviar Contrato
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Mail className="h-4 w-4 mr-2" />
+                                  Enviar Email
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar - Deadline Alerts */}
+        <div className="space-y-4">
+          <DeadlineAlerts 
+            clients={clientsForAlerts}
+            onClientClick={(id) => navigate(`/ipromed/clients/${id}`)}
+          />
+        </div>
+      </div>
     </div>
   );
 }
