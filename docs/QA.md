@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 9 |
-| Aprovadas | 9 |
+| Total de Tarefas Validadas | 11 |
+| Aprovadas | 11 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-01-27 |
 
@@ -20,6 +20,59 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-01-27
+
+#### ✅ QA-011: Sistema de Links Públicos para Dashboards
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Shared / Dashboard |
+| **Descrição** | Implementação de sistema de compartilhamento de dashboards via links públicos |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-27 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | SHARE-001 |
+
+**Validações Realizadas:**
+- [x] Tabela `shared_dashboard_links` criada com RLS
+- [x] Componente `ShareDashboardButton` para gerar e gerenciar links
+- [x] Página pública `/public/dashboard/:token` renderiza dashboards
+- [x] Configuração de expiração (1h, 24h, 7d, 30d, nunca)
+- [x] Contagem de visualizações automática
+- [x] Toggle ativar/desativar links existentes
+- [x] Botão integrado ao Dashboard Jurídico
+
+**Observações:**
+- Links são gerados com tokens hex de 64 caracteres
+- RLS permite acesso anônimo apenas para leitura de links ativos
+
+---
+
+#### ✅ QA-010: Fase 4 - Consolidação de Rotas e Redirects
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Routing / App.tsx |
+| **Descrição** | Reorganização completa de rotas legadas com redirects para portais NeoHub |
+| **Tipo de Teste** | Automatizado (16 testes) |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-27 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | ROUTE-001 |
+
+**Validações Realizadas:**
+- [x] 12 rotas legadas redirecionadas para portais corretos
+- [x] `/university/*` → `/neolicense/university`
+- [x] `/hotleads` → `/avivar/hotleads`
+- [x] `/surgery-schedule` → `/neolicense/surgery`
+- [x] Rota pública `/public/dashboard/:token` adicionada
+- [x] Testes unitários passando (16/16)
+
+**Observações:**
+- Compatibilidade retroativa mantida via `<Navigate replace />`
+- Portais: NeoCare, NeoTeam, Academy, NeoLicense, Avivar
+
+---
 
 #### ✅ QA-009: Preparação Completa para Publicação Mobile Segura
 
