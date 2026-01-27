@@ -8666,6 +8666,7 @@ export type Database = {
         | "administrador"
         | "cliente_avivar"
         | "medico"
+        | "ipromed"
       portal_role:
         | "patient"
         | "doctor"
@@ -8885,6 +8886,7 @@ export const Constants = {
         "administrador",
         "cliente_avivar",
         "medico",
+        "ipromed",
       ],
       portal_role: [
         "patient",
