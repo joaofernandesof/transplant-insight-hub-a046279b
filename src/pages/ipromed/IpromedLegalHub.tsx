@@ -1,12 +1,14 @@
 /**
  * IPROMED Legal Hub - Main Portal Component
- * Portal jurídico interno completo
+ * Portal jurídico interno completo (Astrea Style)
  */
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Scale,
   LayoutDashboard,
@@ -16,8 +18,11 @@ import {
   LayoutGrid,
   BarChart3,
   Settings,
-  Shield,
   Bell,
+  Search,
+  Plus,
+  HelpCircle,
+  User,
 } from "lucide-react";
 
 import LegalOverviewDashboard from "./components/LegalOverviewDashboard";
@@ -26,6 +31,7 @@ import ContractsManager from "./components/ContractsManager";
 import LegalRequestsManager from "./components/LegalRequestsManager";
 import LegalTasksKanban from "./components/LegalTasksKanban";
 import LegalAnalytics from "./components/LegalAnalytics";
+import AstreaStyleSidebar from "./components/AstreaStyleSidebar";
 
 const tabs = [
   { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard },
@@ -40,85 +46,99 @@ export default function IpromedLegalHub() {
   const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="p-4 bg-gradient-to-br from-[#00629B] to-[#004d7a] rounded-2xl shadow-lg">
-            <Scale className="h-8 w-8 text-white" />
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <AstreaStyleSidebar />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header Bar - Astrea style */}
+        <header className="h-16 bg-white border-b flex items-center justify-between px-6 flex-shrink-0">
+          {/* Search */}
+          <div className="relative w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Pesquisar contato, processo ou tarefa"
+              className="pl-9 h-10 bg-gray-50 border-gray-200"
+            />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#00629B] to-[#004d7a] bg-clip-text text-transparent">
-                IPROMED Legal Hub
-              </h1>
-              <Badge variant="outline" className="text-xs">
-                <Shield className="h-3 w-3 mr-1" />
-                Acesso Restrito
-              </Badge>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="text-gray-600">
+              <Plus className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-gray-600">
+              <User className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-gray-600">
+              <HelpCircle className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-gray-600">
+              <MessageSquare className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-gray-600">
+              <Settings className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="relative text-gray-600">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1 right-1 h-2 w-2 bg-rose-500 rounded-full" />
+            </Button>
+            
+            {/* User Menu */}
+            <div className="flex items-center gap-2 ml-4 pl-4 border-l">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] text-sm">
+                  MR
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium">Mariana</span>
             </div>
-            <p className="text-muted-foreground">
-              Gestão jurídica interna • Processos, Contratos e Solicitações
-            </p>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" className="relative">
-            <Bell className="h-4 w-4" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-rose-500 rounded-full text-[10px] text-white flex items-center justify-center">
-              3
-            </span>
-          </Button>
-          <Button variant="outline" size="icon">
-            <Settings className="h-4 w-4" />
-          </Button>
-        </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              {/* Tab Navigation - Hidden since we use sidebar */}
+              <div className="sr-only">
+                <TabsList>
+                  {tabs.map((tab) => (
+                    <TabsTrigger key={tab.id} value={tab.id}>
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+
+              <TabsContent value="overview" className="mt-0">
+                <LegalOverviewDashboard />
+              </TabsContent>
+
+              <TabsContent value="cases" className="mt-0">
+                <LegalCasesManager />
+              </TabsContent>
+
+              <TabsContent value="contracts" className="mt-0">
+                <ContractsManager />
+              </TabsContent>
+
+              <TabsContent value="requests" className="mt-0">
+                <LegalRequestsManager />
+              </TabsContent>
+
+              <TabsContent value="tasks" className="mt-0">
+                <LegalTasksKanban />
+              </TabsContent>
+
+              <TabsContent value="analytics" className="mt-0">
+                <LegalAnalytics />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
       </div>
-
-      {/* Navigation Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="border-b">
-          <TabsList className="h-auto p-0 bg-transparent gap-0">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="relative h-12 px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-[#00629B] data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
-        </div>
-
-        <TabsContent value="overview" className="mt-0">
-          <LegalOverviewDashboard />
-        </TabsContent>
-
-        <TabsContent value="cases" className="mt-0">
-          <LegalCasesManager />
-        </TabsContent>
-
-        <TabsContent value="contracts" className="mt-0">
-          <ContractsManager />
-        </TabsContent>
-
-        <TabsContent value="requests" className="mt-0">
-          <LegalRequestsManager />
-        </TabsContent>
-
-        <TabsContent value="tasks" className="mt-0">
-          <LegalTasksKanban />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="mt-0">
-          <LegalAnalytics />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
