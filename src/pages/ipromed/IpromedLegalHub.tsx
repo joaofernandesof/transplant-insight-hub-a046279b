@@ -32,9 +32,13 @@ import LegalRequestsManager from "./components/LegalRequestsManager";
 import LegalTasksKanban from "./components/LegalTasksKanban";
 import LegalAnalytics from "./components/LegalAnalytics";
 import AstreaStyleSidebar from "./components/AstreaStyleSidebar";
+import AstreaExpandedAlerts from "./components/AstreaExpandedAlerts";
+import AstreaPublicationsPage from "./components/AstreaPublicationsPage";
 
 const tabs = [
   { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard },
+  { id: 'alerts', label: 'Alertas', icon: Bell },
+  { id: 'publications', label: 'Publicações', icon: FileText },
   { id: 'cases', label: 'Processos', icon: Gavel },
   { id: 'contracts', label: 'Contratos', icon: FileText },
   { id: 'requests', label: 'Solicitações', icon: MessageSquare },
@@ -114,6 +118,14 @@ export default function IpromedLegalHub() {
 
               <TabsContent value="overview" className="mt-0">
                 <LegalOverviewDashboard />
+              </TabsContent>
+
+              <TabsContent value="alerts" className="mt-0">
+                <AstreaExpandedAlerts />
+              </TabsContent>
+
+              <TabsContent value="publications" className="mt-0">
+                <AstreaPublicationsPage />
               </TabsContent>
 
               <TabsContent value="cases" className="mt-0">
