@@ -2003,6 +2003,45 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          environment: string | null
+          id: string
+          is_enabled: boolean | null
+          key: string
+          metadata: Json | null
+          name: string
+          target_profiles: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          environment?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          key: string
+          metadata?: Json | null
+          name: string
+          target_profiles?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          environment?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          key?: string
+          metadata?: Json | null
+          name?: string
+          target_profiles?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       gallery_photo_analytics: {
         Row: {
           action_type: string
@@ -2446,6 +2485,33 @@ export type Database = {
           metric_key?: string
           metric_value?: number
           recorded_at?: string
+        }
+        Relationships: []
+      }
+      mobile_blocked_modules: {
+        Row: {
+          block_reason: string | null
+          blocked_at: string | null
+          blocked_by: string | null
+          id: string
+          is_active: boolean | null
+          module_code: string
+        }
+        Insert: {
+          block_reason?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_code: string
+        }
+        Update: {
+          block_reason?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_code?: string
         }
         Relationships: []
       }
@@ -7845,6 +7911,14 @@ export type Database = {
       increment_banner_click: {
         Args: { banner_uuid: string }
         Returns: undefined
+      }
+      is_feature_enabled: {
+        Args: { _environment?: string; _feature_key: string }
+        Returns: boolean
+      }
+      is_module_blocked_on_mobile: {
+        Args: { _module_code: string }
+        Returns: boolean
       }
       is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
