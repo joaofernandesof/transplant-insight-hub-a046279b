@@ -4,8 +4,9 @@
  */
 
 import React from 'react';
-import { Heart, Users, GraduationCap, Building2, Sparkles, Scale, ScanLine } from 'lucide-react';
+import { Heart, Users, GraduationCap, Building2, Sparkles, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import neohairscanIcon from '@/assets/neohairscan-icon.png';
 
 interface PortalNode {
   id: string;
@@ -13,6 +14,7 @@ interface PortalNode {
   subtitle: string;
   icon: React.ReactNode;
   color: string;
+  useCustomIcon?: boolean;
 }
 
 const portals: PortalNode[] = [
@@ -62,8 +64,9 @@ const portals: PortalNode[] = [
     id: 'neohairscan',
     name: 'NeoHairScan',
     subtitle: 'Diagnóstico IA',
-    icon: <ScanLine className="h-6 w-6" />,
-    color: 'bg-teal-500',
+    icon: <img src={neohairscanIcon} alt="NeoHairScan" className="h-full w-full object-contain" />,
+    color: 'bg-transparent',
+    useCustomIcon: true,
   },
 ];
 
@@ -130,8 +133,8 @@ export function HubDiagram({ className, highlightPortal }: HubDiagramProps) {
             <div className="flex flex-col items-center gap-1">
               <div
                 className={cn(
-                  'w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md transition-all',
-                  portal.color,
+                  'w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md transition-all overflow-hidden',
+                  portal.useCustomIcon ? '' : portal.color,
                   isHighlighted && 'ring-2 ring-offset-2 ring-offset-background ring-primary scale-110'
                 )}
               >

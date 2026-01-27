@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale, ScanLine } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
+import neohairscanIcon from '@/assets/neohairscan-icon.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PROFILE_ROUTES, NeoHubProfile } from '@/neohub/lib/permissions';
 
@@ -37,7 +38,7 @@ const modules = [
   { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
   { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
   { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
-  { id: 'neohairscan', name: 'NeoHairScan', icon: ScanLine, gradient: 'from-teal-500 to-teal-600', description: 'Diagnóstico IA' },
+  { id: 'neohairscan', name: 'NeoHairScan', icon: null, gradient: '', description: 'Diagnóstico IA', customIcon: neohairscanIcon },
 ];
 
 export default function Login() {
@@ -286,9 +287,15 @@ export default function Login() {
                       transform: 'translate(-50%, -50%)',
                     }}
                   >
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
+                    {module.customIcon ? (
+                      <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg">
+                        <img src={module.customIcon} alt={module.name} className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg`}>
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                    )}
                     <span className="text-white text-xs font-medium">{module.name}</span>
                     <span className="text-slate-400 text-[10px]">{module.description}</span>
                   </div>
@@ -301,13 +308,21 @@ export default function Login() {
           <div className="flex md:hidden flex-wrap justify-center gap-3 mt-4">
             {modules.map((module) => {
               const Icon = module.icon;
-              return (
+              return module.customIcon ? (
+                <div
+                  key={module.id}
+                  className="w-14 h-14 rounded-xl overflow-hidden shadow-lg"
+                  title={module.name}
+                >
+                  <img src={module.customIcon} alt={module.name} className="w-full h-full object-contain" />
+                </div>
+              ) : (
                 <div
                   key={module.id}
                   className={`w-14 h-14 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg`}
                   title={module.name}
                 >
-                  <Icon className="w-7 h-7 text-white" />
+                  {Icon && <Icon className="w-7 h-7 text-white" />}
                 </div>
               );
             })}
