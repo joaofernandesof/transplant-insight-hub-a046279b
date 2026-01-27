@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,10 +51,50 @@ interface Day2AIInsightsPanelProps {
   className: string;
 }
 
+// LocalStorage key for persisting insights
+const STORAGE_KEY = 'day2-ai-insights';
+
+interface StoredInsights {
+  insights: AIInsights;
+  lastGenerated: string;
+  className?: string;
+}
+
 export function Day2AIInsightsPanel({ surveys, className }: Day2AIInsightsPanelProps) {
   const [insights, setInsights] = useState<AIInsights | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastGenerated, setLastGenerated] = useState<Date | null>(null);
+
+  // Load persisted insights on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed: StoredInsights = JSON.parse(stored);
+        // Only restore if same class or no class filter
+        if (!className || parsed.className === className) {
+          setInsights(parsed.insights);
+          setLastGenerated(new Date(parsed.lastGenerated));
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load stored insights:', e);
+    }
+  }, [className]);
+
+  // Persist insights when they change
+  const persistInsights = (newInsights: AIInsights) => {
+    try {
+      const toStore: StoredInsights = {
+        insights: newInsights,
+        lastGenerated: new Date().toISOString(),
+        className
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+    } catch (e) {
+      console.warn('Failed to persist insights:', e);
+    }
+  };
 
   const buildSurveyData = () => {
     const completed = surveys.filter(s => s.is_completed);
@@ -194,6 +234,7 @@ export function Day2AIInsightsPanel({ surveys, className }: Day2AIInsightsPanelP
       
       setInsights(data.insights);
       setLastGenerated(new Date());
+      persistInsights(data.insights);
       toast.success('Análise gerada com sucesso!');
     } catch (error) {
       console.error('Error generating insights:', error);
