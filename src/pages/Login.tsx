@@ -248,7 +248,7 @@ export default function Login() {
               Neo<span className="text-primary">Hub</span>
             </h1>
             <p className="text-slate-400 text-lg">
-              Ecossistema Integrado NeoFolic
+              Ecossistema Integrado
             </p>
           </div>
 
