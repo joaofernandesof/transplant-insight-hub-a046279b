@@ -26,6 +26,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { LegalAIInsightsPanel } from "./LegalAIInsightsPanel";
+import { ShareDashboardButton } from "@/components/shared/ShareDashboardButton";
 import { 
   LegalWidgetInsight,
   generateLarisaOverallInsight,
@@ -447,6 +448,11 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <ShareDashboardButton
+            dashboardType="legal-dashboard"
+            title="Dashboard Jurídico - Módulo Direito Médico"
+            description="Análise completa do módulo jurídico com insights de Dra. Larissa e Dra. Caroline"
+          />
           <Button 
             onClick={handleExportAllTabs} 
             variant="default" 

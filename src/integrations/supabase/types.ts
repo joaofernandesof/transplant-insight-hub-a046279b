@@ -6091,6 +6091,57 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_dashboard_links: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          dashboard_config: Json | null
+          dashboard_type: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          last_viewed_at: string | null
+          password_hash: string | null
+          title: string | null
+          token: string
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          dashboard_config?: Json | null
+          dashboard_type: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_viewed_at?: string | null
+          password_hash?: string | null
+          title?: string | null
+          token?: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          dashboard_config?: Json | null
+          dashboard_type?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_viewed_at?: string | null
+          password_hash?: string | null
+          title?: string | null
+          token?: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       staff_profiles: {
         Row: {
           additional_branches: string[] | null
@@ -7910,6 +7961,10 @@ export type Database = {
       }
       increment_banner_click: {
         Args: { banner_uuid: string }
+        Returns: undefined
+      }
+      increment_dashboard_view: {
+        Args: { p_token: string }
         Returns: undefined
       }
       is_feature_enabled: {
