@@ -36,6 +36,7 @@ import {
   Clipboard,
   BookOpen,
   HeartPulse,
+  Scale,
 } from "lucide-react";
 import {
   Select,
@@ -327,36 +328,36 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           </div>
         )}
 
-        {/* Module Selector (Admin only) */}
+        {/* Profile Simulator (Admin only) */}
         {isAdmin && !isCollapsed && (
           <div className="p-3 border-b bg-muted/30">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-              <Layers className="h-3.5 w-3.5" />
-              <span>Módulo:</span>
+              <Users className="h-3.5 w-3.5" />
+              <span>Perfil de Acesso:</span>
             </div>
-            <Select value={currentPortal} onValueChange={(value) => {
-              const portalRoutes: Record<PortalKey, string> = {
-                admin: '/admin-dashboard',
-                neocare: '/neocare',
-                neoteam: '/neoteam',
-                academy: '/academy',
-                neolicense: '/neolicense',
-                avivar: '/avivar',
-                main: '/admin-dashboard',
+            <Select value={activeProfile || 'administrador'} onValueChange={(value) => {
+              // Navegar para a home do perfil selecionado
+              const profileRoutes: Record<string, string> = {
+                administrador: '/admin-dashboard',
+                colaborador: '/neoteam',
+                paciente: '/neocare',
+                aluno: '/academy',
+                licenciado: '/neolicense',
+                ipromed: '/ipromed',
               };
-              navigate(portalRoutes[value as PortalKey] || '/admin-dashboard');
+              navigate(profileRoutes[value] || '/admin-dashboard');
             }}>
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {[
-                  { key: 'admin' as PortalKey, label: 'Administração', icon: LayoutDashboard },
-                  { key: 'neoteam' as PortalKey, label: 'NeoTeam', icon: Clipboard },
-                  { key: 'neocare' as PortalKey, label: 'NeoCare', icon: HeartPulse },
-                  { key: 'academy' as PortalKey, label: 'Academy IBRAMEC', icon: BookOpen },
-                  { key: 'neolicense' as PortalKey, label: 'NeoLicense', icon: Building2 },
-                  { key: 'avivar' as PortalKey, label: 'Avivar', icon: Sparkles },
+                  { key: 'administrador', label: 'Administrador', icon: Crown },
+                  { key: 'colaborador', label: 'Colaborador (NeoTeam)', icon: Clipboard },
+                  { key: 'paciente', label: 'Paciente (NeoCare)', icon: HeartPulse },
+                  { key: 'aluno', label: 'Aluno (Academy)', icon: GraduationCap },
+                  { key: 'licenciado', label: 'Licenciado', icon: Building2 },
+                  { key: 'ipromed', label: 'IPROMED (Jurídico)', icon: Scale },
                 ].map(({ key, label, icon: Icon }) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
