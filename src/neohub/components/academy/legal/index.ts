@@ -8,4 +8,5 @@ export { LegalMentorsTab } from './LegalMentorsTab';
 export { LegalQuestionsTab } from './LegalQuestionsTab';
 export { LegalStudentsTab } from './LegalStudentsTab';
 export { LegalFullSurveysTab } from './LegalFullSurveysTab';
+export { LegalPrintView } from './LegalPrintView';
 export { MetricWithNames, NameListBadge, ExpandableNames, type PersonInfo } from './MetricWithNames';
