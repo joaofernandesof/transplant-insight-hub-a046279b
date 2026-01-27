@@ -20,7 +20,9 @@ import {
   Star,
   FileText,
   Download,
-  Sparkles
+  Sparkles,
+  FileStack,
+  Loader2
 } from "lucide-react";
 import {
   RadarChart,
@@ -51,6 +53,7 @@ import {
   generateTimingInsight
 } from "./LegalWidgetInsight";
 import { FeedbackCard, FeedbackGrid, FeedbackEmpty, FeedbackWithAuthor } from "./FeedbackCard";
+import { exportAllTabsToPdf } from "@/utils/exportAllTabsPdf";
 
 interface LegalModuleDashboardProps {
   classId?: string;
@@ -58,6 +61,7 @@ interface LegalModuleDashboardProps {
 
 export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isExportingAll, setIsExportingAll] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   // Fetch Larissa evaluation data WITH user info
@@ -338,9 +342,29 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
     { name: 'COLD', value: legalPerception.leads.cold, color: '#3b82f6' },
   ] : [];
 
-  // PDF Export function
+  // PDF Export - Single tab (print)
   const handleExportPdf = () => {
     window.print();
+  };
+
+  // PDF Export - All tabs unified
+  const LEGAL_TABS = ['overview', 'instructors', 'perception', 'feedbacks', 'ai-insights'];
+  const LEGAL_TAB_NAMES: Record<string, string> = {
+    'overview': 'Visão Geral',
+    'instructors': 'Instrutoras',
+    'perception': 'Percepção',
+    'feedbacks': 'Feedbacks',
+    'ai-insights': 'IA'
+  };
+
+  const handleExportAllTabs = async () => {
+    await exportAllTabsToPdf({
+      tabs: LEGAL_TABS,
+      tabNames: LEGAL_TAB_NAMES,
+      setActiveTab,
+      setIsExporting: setIsExportingAll,
+      filename: 'Dashboard Jurídico'
+    });
   };
 
   return (
@@ -368,10 +392,30 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
             </p>
           </div>
         </div>
-        <Button onClick={handleExportPdf} variant="outline" className="no-print">
-          <Download className="h-4 w-4 mr-2" />
-          Exportar PDF
-        </Button>
+        <div className="flex flex-wrap gap-2 no-print">
+          <Button 
+            onClick={handleExportAllTabs} 
+            variant="default" 
+            disabled={isExportingAll}
+            className="gap-2"
+          >
+            {isExportingAll ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Exportando...
+              </>
+            ) : (
+              <>
+                <FileStack className="h-4 w-4" />
+                Exportar Tudo (PDF)
+              </>
+            )}
+          </Button>
+          <Button onClick={handleExportPdf} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Imprimir Aba
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards with Insights */}
