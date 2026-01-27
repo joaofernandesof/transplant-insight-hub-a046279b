@@ -18,7 +18,8 @@ import {
   ArrowRight,
   Award,
   Users,
-  Star
+  Star,
+  Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -44,7 +45,8 @@ const formSchema = z.object({
   phone: z.string().min(10, 'Telefone inválido').max(20),
   city: z.string().min(2, 'Cidade é obrigatória').max(100),
   state: z.string().length(2, 'Selecione um estado'),
-  interest: z.string().min(1, 'Selecione uma área de interesse')
+  interest: z.string().min(1, 'Selecione uma área de interesse'),
+  selectedClass: z.string().min(1, 'Selecione uma turma')
 });
 
 export default function ReferralLanding() {
@@ -56,6 +58,7 @@ export default function ReferralLanding() {
   const [isValidCode, setIsValidCode] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [availableClasses, setAvailableClasses] = useState<Array<{id: string; name: string; start_date: string}>>([]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -63,7 +66,8 @@ export default function ReferralLanding() {
     phone: '',
     city: '',
     state: '',
-    interest: ''
+    interest: '',
+    selectedClass: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -72,6 +76,23 @@ export default function ReferralLanding() {
       validateReferralCode();
     }
   }, [code]);
+
+  // Fetch available classes with confirmed dates
+  useEffect(() => {
+    const fetchClasses = async () => {
+      const { data } = await supabase
+        .from('course_classes')
+        .select('id, name, start_date')
+        .not('start_date', 'is', null)
+        .gte('start_date', new Date().toISOString().split('T')[0])
+        .order('start_date', { ascending: true });
+      
+      if (data) {
+        setAvailableClasses(data);
+      }
+    };
+    fetchClasses();
+  }, []);
 
   const validateReferralCode = async () => {
     try {
@@ -388,6 +409,40 @@ export default function ReferralLanding() {
                   </SelectContent>
                 </Select>
                 {errors.interest && <p className="text-xs text-destructive">{errors.interest}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="selectedClass" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  Qual turma deseja participar? *
+                </Label>
+                <Select 
+                  value={formData.selectedClass} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, selectedClass: value }))}
+                >
+                  <SelectTrigger className={errors.selectedClass ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Selecione a turma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableClasses.map((cls) => {
+                      const date = new Date(cls.start_date + 'T12:00:00');
+                      const formattedDate = date.toLocaleDateString('pt-BR', { 
+                        day: '2-digit', 
+                        month: 'long', 
+                        year: 'numeric' 
+                      });
+                      return (
+                        <SelectItem key={cls.id} value={cls.id}>
+                          {cls.name} - {formattedDate}
+                        </SelectItem>
+                      );
+                    })}
+                    <SelectItem value="undecided">
+                      Ainda não sei qual turma vou participar
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.selectedClass && <p className="text-xs text-destructive">{errors.selectedClass}</p>}
               </div>
 
               <Button 
