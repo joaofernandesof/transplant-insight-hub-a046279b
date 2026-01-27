@@ -6,12 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Scale, 
   Users, 
   GraduationCap, 
-  TrendingUp, 
+  TrendingUp,
   MessageSquare,
   AlertTriangle,
   CheckCircle2,
@@ -51,15 +50,10 @@ import {
   generateInfluenceInsight,
   generateTimingInsight
 } from "./LegalWidgetInsight";
+import { FeedbackCard, FeedbackGrid, FeedbackEmpty, FeedbackWithAuthor } from "./FeedbackCard";
 
 interface LegalModuleDashboardProps {
   classId?: string;
-}
-
-interface FeedbackWithUser {
-  feedback: string;
-  userName: string;
-  avatarUrl?: string | null;
 }
 
 export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
@@ -219,10 +213,10 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
       totalResponses: larisaData.length,
       feedbacksPositive: larisaData
         .filter(d => d.q10_larissa_liked_most && d.q10_larissa_liked_most.length > 2)
-        .map(d => ({ feedback: d.q10_larissa_liked_most as string, userName: d.userName, avatarUrl: d.avatarUrl })),
+        .map(d => ({ feedback: d.q10_larissa_liked_most as string, userName: d.userName, avatarUrl: d.avatarUrl })) as FeedbackWithAuthor[],
       feedbacksImprove: larisaData
         .filter(d => d.q11_larissa_improve && d.q11_larissa_improve.length > 2)
-        .map(d => ({ feedback: d.q11_larissa_improve as string, userName: d.userName, avatarUrl: d.avatarUrl }))
+        .map(d => ({ feedback: d.q11_larissa_improve as string, userName: d.userName, avatarUrl: d.avatarUrl })) as FeedbackWithAuthor[]
     };
   };
 
@@ -348,9 +342,6 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
   const handleExportPdf = () => {
     window.print();
   };
-
-  // Determine if feedback is "long" (>80 chars) for layout purposes
-  const isLongFeedback = (text: string) => text.length > 80;
 
   return (
     <div className="space-y-6 print:space-y-4" ref={dashboardRef}>
@@ -837,36 +828,14 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {larisaMetrics?.feedbacksPositive.map((item, i) => {
-                  const isLong = isLongFeedback(item.feedback);
-                  return (
-                    <div 
-                      key={i} 
-                      className={cn(
-                        "p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800",
-                        isLong && "sm:col-span-2 lg:col-span-3"
-                      )}
-                    >
-                      <p className="text-sm mb-2">{item.feedback}</p>
-                      <div className="flex items-center gap-2 pt-2 border-t border-emerald-200 dark:border-emerald-700">
-                        <Avatar className="h-5 w-5">
-                          <AvatarImage src={item.avatarUrl || undefined} />
-                          <AvatarFallback className="text-[10px] bg-emerald-100 text-emerald-700">
-                            {item.userName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">{item.userName}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+              <FeedbackGrid>
+                {larisaMetrics?.feedbacksPositive.map((item, i) => (
+                  <FeedbackCard key={i} item={item} variant="positive" />
+                ))}
                 {(!larisaMetrics?.feedbacksPositive || larisaMetrics.feedbacksPositive.length === 0) && (
-                  <p className="text-sm text-muted-foreground col-span-full text-center py-4">
-                    Nenhum feedback positivo registrado.
-                  </p>
+                  <FeedbackEmpty message="Nenhum feedback positivo registrado." />
                 )}
-              </div>
+              </FeedbackGrid>
             </CardContent>
           </Card>
 
@@ -879,36 +848,14 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {larisaMetrics?.feedbacksImprove.map((item, i) => {
-                  const isLong = isLongFeedback(item.feedback);
-                  return (
-                    <div 
-                      key={i} 
-                      className={cn(
-                        "p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800",
-                        isLong && "sm:col-span-2 lg:col-span-3"
-                      )}
-                    >
-                      <p className="text-sm mb-2">{item.feedback}</p>
-                      <div className="flex items-center gap-2 pt-2 border-t border-amber-200 dark:border-amber-700">
-                        <Avatar className="h-5 w-5">
-                          <AvatarImage src={item.avatarUrl || undefined} />
-                          <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
-                            {item.userName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">{item.userName}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+              <FeedbackGrid>
+                {larisaMetrics?.feedbacksImprove.map((item, i) => (
+                  <FeedbackCard key={i} item={item} variant="improvement" />
+                ))}
                 {(!larisaMetrics?.feedbacksImprove || larisaMetrics.feedbacksImprove.length === 0) && (
-                  <p className="text-sm text-muted-foreground col-span-full text-center py-4">
-                    Nenhuma sugestão de melhoria registrada.
-                  </p>
+                  <FeedbackEmpty message="Nenhuma sugestão de melhoria registrada." />
                 )}
-              </div>
+              </FeedbackGrid>
             </CardContent>
           </Card>
         </TabsContent>
