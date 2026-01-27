@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   GraduationCap,
   Users,
@@ -73,10 +74,29 @@ export function Formacao360ReferralLanding() {
     phone: '',
     hasCrm: false,
     crm: '',
+    selectedClass: '',
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [countdown, setCountdown] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
+  const [availableClasses, setAvailableClasses] = useState<Array<{id: string; name: string; start_date: string}>>([]);
+
+  // Fetch available classes with confirmed dates
+  useEffect(() => {
+    const fetchClasses = async () => {
+      const { data } = await supabase
+        .from('course_classes')
+        .select('id, name, start_date')
+        .not('start_date', 'is', null)
+        .gte('start_date', new Date().toISOString().split('T')[0])
+        .order('start_date', { ascending: true });
+      
+      if (data) {
+        setAvailableClasses(data);
+      }
+    };
+    fetchClasses();
+  }, []);
 
   // Check payment status from URL
   useEffect(() => {
@@ -486,6 +506,36 @@ export function Formacao360ReferralLanding() {
                         required
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="selectedClass">Qual turma deseja participar? *</Label>
+                    <Select
+                      value={formData.selectedClass}
+                      onValueChange={(value) => setFormData({ ...formData, selectedClass: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a turma" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableClasses.map((cls) => {
+                          const date = new Date(cls.start_date + 'T12:00:00');
+                          const formattedDate = date.toLocaleDateString('pt-BR', { 
+                            day: '2-digit', 
+                            month: 'long', 
+                            year: 'numeric' 
+                          });
+                          return (
+                            <SelectItem key={cls.id} value={cls.id}>
+                              {cls.name} - {formattedDate}
+                            </SelectItem>
+                          );
+                        })}
+                        <SelectItem value="undecided">
+                          Ainda não sei qual turma vou participar
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-3 pt-2">
