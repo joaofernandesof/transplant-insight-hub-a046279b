@@ -2110,6 +2110,614 @@ export type Database = {
           },
         ]
       }
+      ipromed_activity_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          description: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          description?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
+      ipromed_case_events: {
+        Row: {
+          case_id: string
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          deadline_date: string | null
+          description: string | null
+          event_date: string
+          event_type: string
+          id: string
+          is_completed: boolean | null
+          is_deadline: boolean | null
+          title: string
+        }
+        Insert: {
+          case_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deadline_date?: string | null
+          description?: string | null
+          event_date: string
+          event_type: string
+          id?: string
+          is_completed?: boolean | null
+          is_deadline?: boolean | null
+          title: string
+        }
+        Update: {
+          case_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deadline_date?: string | null
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          is_completed?: boolean | null
+          is_deadline?: boolean | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_case_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_contracts: {
+        Row: {
+          area: string | null
+          auto_renew: boolean | null
+          clicksign_document_key: string | null
+          clicksign_status: string | null
+          client_id: string | null
+          contract_number: string | null
+          contract_type: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          department: string | null
+          description: string | null
+          document_url: string | null
+          end_date: string | null
+          id: string
+          metadata: Json | null
+          notice_period_days: number | null
+          renewal_date: string | null
+          responsible_id: string | null
+          signed_at: string | null
+          signers: Json | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["contract_status_type"] | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          value: number | null
+        }
+        Insert: {
+          area?: string | null
+          auto_renew?: boolean | null
+          clicksign_document_key?: string | null
+          clicksign_status?: string | null
+          client_id?: string | null
+          contract_number?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          department?: string | null
+          description?: string | null
+          document_url?: string | null
+          end_date?: string | null
+          id?: string
+          metadata?: Json | null
+          notice_period_days?: number | null
+          renewal_date?: string | null
+          responsible_id?: string | null
+          signed_at?: string | null
+          signers?: Json | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["contract_status_type"] | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          value?: number | null
+        }
+        Update: {
+          area?: string | null
+          auto_renew?: boolean | null
+          clicksign_document_key?: string | null
+          clicksign_status?: string | null
+          client_id?: string | null
+          contract_number?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          department?: string | null
+          description?: string | null
+          document_url?: string | null
+          end_date?: string | null
+          id?: string
+          metadata?: Json | null
+          notice_period_days?: number | null
+          renewal_date?: string | null
+          responsible_id?: string | null
+          signed_at?: string | null
+          signers?: Json | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["contract_status_type"] | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_legal_cases: {
+        Row: {
+          case_number: string | null
+          case_type: string | null
+          client_id: string | null
+          closing_date: string | null
+          court: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          estimated_value: number | null
+          filing_date: string | null
+          financial_provision: number | null
+          id: string
+          judge: string | null
+          metadata: Json | null
+          next_deadline: string | null
+          outcome: string | null
+          priority: number | null
+          responsible_lawyer_id: string | null
+          risk_level: Database["public"]["Enums"]["risk_level"] | null
+          status: Database["public"]["Enums"]["legal_case_status"] | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          case_number?: string | null
+          case_type?: string | null
+          client_id?: string | null
+          closing_date?: string | null
+          court?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          filing_date?: string | null
+          financial_provision?: number | null
+          id?: string
+          judge?: string | null
+          metadata?: Json | null
+          next_deadline?: string | null
+          outcome?: string | null
+          priority?: number | null
+          responsible_lawyer_id?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          status?: Database["public"]["Enums"]["legal_case_status"] | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          case_number?: string | null
+          case_type?: string | null
+          client_id?: string | null
+          closing_date?: string | null
+          court?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          filing_date?: string | null
+          financial_provision?: number | null
+          id?: string
+          judge?: string | null
+          metadata?: Json | null
+          next_deadline?: string | null
+          outcome?: string | null
+          priority?: number | null
+          responsible_lawyer_id?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          status?: Database["public"]["Enums"]["legal_case_status"] | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_legal_cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_legal_clients: {
+        Row: {
+          address: Json | null
+          client_type: string | null
+          cpf_cnpj: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          health_score: number | null
+          id: string
+          journey_stage:
+            | Database["public"]["Enums"]["customer_journey_stage"]
+            | null
+          metadata: Json | null
+          name: string
+          notes: string | null
+          phone: string | null
+          responsible_lawyer_id: string | null
+          risk_level: Database["public"]["Enums"]["risk_level"] | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: Json | null
+          client_type?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          health_score?: number | null
+          id?: string
+          journey_stage?:
+            | Database["public"]["Enums"]["customer_journey_stage"]
+            | null
+          metadata?: Json | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          responsible_lawyer_id?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: Json | null
+          client_type?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          health_score?: number | null
+          id?: string
+          journey_stage?:
+            | Database["public"]["Enums"]["customer_journey_stage"]
+            | null
+          metadata?: Json | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          responsible_lawyer_id?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ipromed_legal_documents: {
+        Row: {
+          case_id: string | null
+          contract_id: string | null
+          created_at: string | null
+          document_type: string | null
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_template: boolean | null
+          name: string
+          request_id: string | null
+          uploaded_by: string | null
+          version: number | null
+        }
+        Insert: {
+          case_id?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          document_type?: string | null
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_template?: boolean | null
+          name: string
+          request_id?: string | null
+          uploaded_by?: string | null
+          version?: number | null
+        }
+        Update: {
+          case_id?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          document_type?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_template?: boolean | null
+          name?: string
+          request_id?: string | null
+          uploaded_by?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_legal_documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_legal_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_legal_documents_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_legal_requests: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          is_within_sla: boolean | null
+          metadata: Json | null
+          priority: number | null
+          request_number: string | null
+          request_type: Database["public"]["Enums"]["legal_request_type"]
+          requester_department: string | null
+          requester_id: string | null
+          requester_name: string | null
+          response: string | null
+          sla_hours: number | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_within_sla?: boolean | null
+          metadata?: Json | null
+          priority?: number | null
+          request_number?: string | null
+          request_type: Database["public"]["Enums"]["legal_request_type"]
+          requester_department?: string | null
+          requester_id?: string | null
+          requester_name?: string | null
+          response?: string | null
+          sla_hours?: number | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_within_sla?: boolean | null
+          metadata?: Json | null
+          priority?: number | null
+          request_number?: string | null
+          request_type?: Database["public"]["Enums"]["legal_request_type"]
+          requester_department?: string | null
+          requester_id?: string | null
+          requester_name?: string | null
+          response?: string | null
+          sla_hours?: number | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ipromed_legal_tasks: {
+        Row: {
+          actual_hours: number | null
+          assigned_to: string | null
+          assigned_to_name: string | null
+          case_id: string | null
+          completed_at: string | null
+          contract_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          estimated_hours: number | null
+          id: string
+          priority: number | null
+          request_id: string | null
+          status: string | null
+          tags: string[] | null
+          task_type: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_hours?: number | null
+          assigned_to?: string | null
+          assigned_to_name?: string | null
+          case_id?: string | null
+          completed_at?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          priority?: number | null
+          request_id?: string | null
+          status?: string | null
+          tags?: string[] | null
+          task_type?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_hours?: number | null
+          assigned_to?: string | null
+          assigned_to_name?: string | null
+          case_id?: string | null
+          completed_at?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          priority?: number | null
+          request_id?: string | null
+          status?: string | null
+          tags?: string[] | null
+          task_type?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_legal_tasks_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_legal_tasks_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_legal_tasks_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_legal_team: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          oab_number: string | null
+          role: string | null
+          specialization: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          oab_number?: string | null
+          role?: string | null
+          specialization?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          oab_number?: string | null
+          role?: string | null
+          specialization?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       jon_jobs_nps: {
         Row: {
           closed_by: string | null
@@ -8021,6 +8629,35 @@ export type Database = {
         | "operacao"
         | "recepcao"
       contract_status: "ativo" | "pendente" | "quitado" | "cancelado"
+      contract_status_type:
+        | "draft"
+        | "pending_review"
+        | "pending_approval"
+        | "pending_signature"
+        | "signed"
+        | "active"
+        | "expired"
+        | "cancelled"
+        | "terminated"
+      customer_journey_stage:
+        | "prospect"
+        | "onboarding"
+        | "retention"
+        | "expansion"
+        | "advocacy"
+      legal_case_status:
+        | "active"
+        | "pending"
+        | "closed"
+        | "archived"
+        | "suspended"
+      legal_request_type:
+        | "contract"
+        | "opinion"
+        | "question"
+        | "follow_up"
+        | "complaint"
+        | "consultation"
       neohub_profile:
         | "paciente"
         | "colaborador"
@@ -8036,6 +8673,7 @@ export type Database = {
         | "financial"
         | "reception"
         | "inventory"
+      risk_level: "low" | "medium" | "high" | "critical"
       schedule_status:
         | "sem_data"
         | "agendado"
@@ -8206,6 +8844,39 @@ export const Constants = {
         "recepcao",
       ],
       contract_status: ["ativo", "pendente", "quitado", "cancelado"],
+      contract_status_type: [
+        "draft",
+        "pending_review",
+        "pending_approval",
+        "pending_signature",
+        "signed",
+        "active",
+        "expired",
+        "cancelled",
+        "terminated",
+      ],
+      customer_journey_stage: [
+        "prospect",
+        "onboarding",
+        "retention",
+        "expansion",
+        "advocacy",
+      ],
+      legal_case_status: [
+        "active",
+        "pending",
+        "closed",
+        "archived",
+        "suspended",
+      ],
+      legal_request_type: [
+        "contract",
+        "opinion",
+        "question",
+        "follow_up",
+        "complaint",
+        "consultation",
+      ],
       neohub_profile: [
         "paciente",
         "colaborador",
@@ -8223,6 +8894,7 @@ export const Constants = {
         "reception",
         "inventory",
       ],
+      risk_level: ["low", "medium", "high", "critical"],
       schedule_status: [
         "sem_data",
         "agendado",

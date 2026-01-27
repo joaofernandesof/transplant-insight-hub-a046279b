@@ -12,3 +12,4 @@ export { default as IpromedSurveys } from './IpromedSurveys';
 export { default as IpromedLeads } from './IpromedLeads';
 export { default as IpromedClients } from './IpromedClients';
 export { default as IpromedJourney } from './IpromedJourney';
+export { default as IpromedLegalHub } from './IpromedLegalHub';

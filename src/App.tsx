@@ -95,6 +95,7 @@ const IpromedSurveys = lazy(() => import("./pages/ipromed/IpromedSurveys"));
 const IpromedLeads = lazy(() => import("./pages/ipromed/IpromedLeads"));
 const IpromedClients = lazy(() => import("./pages/ipromed/IpromedClients"));
 const IpromedJourney = lazy(() => import("./pages/ipromed/IpromedJourney"));
+const IpromedLegalHub = lazy(() => import("./pages/ipromed/IpromedLegalHub"));
 
 // ====================================
 // Pages - NeoCare (Portal do Paciente)
