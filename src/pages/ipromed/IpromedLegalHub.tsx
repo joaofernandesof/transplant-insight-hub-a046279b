@@ -34,13 +34,19 @@ import LegalAnalytics from "./components/LegalAnalytics";
 import AstreaStyleSidebar from "./components/AstreaStyleSidebar";
 import AstreaExpandedAlerts from "./components/AstreaExpandedAlerts";
 import AstreaPublicationsPage from "./components/AstreaPublicationsPage";
+import AstreaAgendaPage from "./components/AstreaAgendaPage";
+import AstreaFinancialPage from "./components/AstreaFinancialPage";
+import AstreaClientPortal from "./components/AstreaClientPortal";
 
 const tabs = [
   { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard },
   { id: 'alerts', label: 'Alertas', icon: Bell },
   { id: 'publications', label: 'Publicações', icon: FileText },
+  { id: 'agenda', label: 'Agenda', icon: LayoutGrid },
   { id: 'cases', label: 'Processos', icon: Gavel },
   { id: 'contracts', label: 'Contratos', icon: FileText },
+  { id: 'financial', label: 'Financeiro', icon: BarChart3 },
+  { id: 'portal', label: 'Portal do Cliente', icon: MessageSquare },
   { id: 'requests', label: 'Solicitações', icon: MessageSquare },
   { id: 'tasks', label: 'Atividades', icon: LayoutGrid },
   { id: 'analytics', label: 'Indicadores', icon: BarChart3 },
@@ -128,12 +134,24 @@ export default function IpromedLegalHub() {
                 <AstreaPublicationsPage />
               </TabsContent>
 
+              <TabsContent value="agenda" className="mt-0">
+                <AstreaAgendaPage />
+              </TabsContent>
+
               <TabsContent value="cases" className="mt-0">
                 <LegalCasesManager />
               </TabsContent>
 
               <TabsContent value="contracts" className="mt-0">
                 <ContractsManager />
+              </TabsContent>
+
+              <TabsContent value="financial" className="mt-0">
+                <AstreaFinancialPage />
+              </TabsContent>
+
+              <TabsContent value="portal" className="mt-0">
+                <AstreaClientPortal />
               </TabsContent>
 
               <TabsContent value="requests" className="mt-0">
