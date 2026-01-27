@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTabFromUrl } from "@/hooks/useTabFromUrl";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1704,7 +1705,10 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [showQuestionsManager, setShowQuestionsManager] = useState(false);
   const [exportingTab, setExportingTab] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const { activeTab, setActiveTab } = useTabFromUrl({
+    defaultTab: 'overview',
+    validTabs: ['overview', 'questions', 'students', 'matrix', 'answers', 'ai'],
+  });
   
   // AI Insights state
   const [aiInsights, setAiInsights] = useState<any>(null);
