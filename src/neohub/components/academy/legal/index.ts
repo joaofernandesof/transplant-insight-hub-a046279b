@@ -9,4 +9,5 @@ export { LegalQuestionsTab } from './LegalQuestionsTab';
 export { LegalStudentsTab } from './LegalStudentsTab';
 export { LegalFullSurveysTab } from './LegalFullSurveysTab';
 export { LegalPrintView } from './LegalPrintView';
+export { LegalResponseMatrix } from './LegalResponseMatrix';
 export { MetricWithNames, NameListBadge, ExpandableNames, type PersonInfo } from './MetricWithNames';
