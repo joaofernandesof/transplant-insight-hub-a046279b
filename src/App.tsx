@@ -93,6 +93,8 @@ const IpromedExams = lazy(() => import("./pages/ipromed/IpromedExams"));
 const IpromedMentors = lazy(() => import("./pages/ipromed/IpromedMentors"));
 const IpromedSurveys = lazy(() => import("./pages/ipromed/IpromedSurveys"));
 const IpromedLeads = lazy(() => import("./pages/ipromed/IpromedLeads"));
+const IpromedClients = lazy(() => import("./pages/ipromed/IpromedClients"));
+const IpromedJourney = lazy(() => import("./pages/ipromed/IpromedJourney"));
 
 // ====================================
 // Pages - NeoCare (Portal do Paciente)
@@ -586,6 +588,9 @@ function AppRoutes() {
       <Route path="/ipromed/mentors" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedMentors /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/ipromed/surveys" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedSurveys /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/ipromed/leads" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedLeads /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/clients" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedClients /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/clients/:id" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedClients /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/ipromed/journey" element={<AdminRoute><SidebarWrapper><LazyRoute><IpromedJourney /></LazyRoute></SidebarWrapper></AdminRoute>} />
 
       {/* ====================================
           Marketplace

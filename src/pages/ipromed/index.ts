@@ -1,6 +1,6 @@
 /**
  * IPROMED Module - Instituto de Proteção Médica
- * Controle Jurídico de Alunos
+ * Controle Jurídico de Alunos e Clientes
  */
 
 export { default as IpromedHome } from './IpromedHome';
@@ -10,3 +10,5 @@ export { default as IpromedExams } from './IpromedExams';
 export { default as IpromedMentors } from './IpromedMentors';
 export { default as IpromedSurveys } from './IpromedSurveys';
 export { default as IpromedLeads } from './IpromedLeads';
+export { default as IpromedClients } from './IpromedClients';
+export { default as IpromedJourney } from './IpromedJourney';
