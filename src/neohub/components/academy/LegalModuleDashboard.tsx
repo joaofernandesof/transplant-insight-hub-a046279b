@@ -464,35 +464,35 @@ export function LegalModuleDashboard({ classId }: LegalModuleDashboardProps) {
         </div>
       </div>
 
-      {/* Tabs - moved to top */}
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6 overflow-x-auto">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm">
+        <TabsList className="w-full flex overflow-x-auto justify-start gap-1 h-auto p-1">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
             <Scale className="h-3 w-3 mr-1 hidden sm:inline" />
-            Visão Geral
+            Geral
           </TabsTrigger>
-          <TabsTrigger value="matrix" className="text-xs sm:text-sm">
+          <TabsTrigger value="matrix" className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
             <Grid3X3 className="h-3 w-3 mr-1 hidden sm:inline" />
             Matriz
           </TabsTrigger>
-          <TabsTrigger value="mentors" className="text-xs sm:text-sm">
+          <TabsTrigger value="mentors" className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
             <Users className="h-3 w-3 mr-1 hidden sm:inline" />
             Mentoras
           </TabsTrigger>
-          <TabsTrigger value="questions" className="text-xs sm:text-sm">
+          <TabsTrigger value="questions" className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
             <HelpCircle className="h-3 w-3 mr-1 hidden sm:inline" />
             Perguntas
           </TabsTrigger>
-          <TabsTrigger value="students" className="text-xs sm:text-sm">
+          <TabsTrigger value="students" className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
             <UserCheck className="h-3 w-3 mr-1 hidden sm:inline" />
             Alunos
           </TabsTrigger>
-          <TabsTrigger value="surveys" className="text-xs sm:text-sm">
+          <TabsTrigger value="surveys" className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
             <FileText className="h-3 w-3 mr-1 hidden sm:inline" />
             Pesquisas
           </TabsTrigger>
-          <TabsTrigger value="ai-insights" className="flex items-center gap-1 text-xs sm:text-sm">
-            <Sparkles className="h-3 w-3" />
+          <TabsTrigger value="ai-insights" className="text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
+            <Sparkles className="h-3 w-3 mr-1" />
             IA
           </TabsTrigger>
         </TabsList>
