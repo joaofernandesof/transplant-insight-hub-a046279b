@@ -1,13 +1,16 @@
 /**
- * IPROMED Legal Hub - Gestão de Contratos (com Clicksign)
+ * IPROMED Legal Hub - Gestão de Contratos
+ * Integrado com banco de dados real
  */
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -41,84 +44,35 @@ import {
   CheckCircle2,
   AlertTriangle,
   Send,
-  Download,
-  Eye,
   ChevronRight,
-  Calendar,
-  Building2,
-  RefreshCw,
+  Loader2,
+  Eye,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface Contract {
   id: string;
-  contractNumber: string;
+  contract_number: string | null;
   title: string;
-  client: string;
+  description: string | null;
+  client_id: string | null;
   status: 'draft' | 'pending_review' | 'pending_approval' | 'pending_signature' | 'signed' | 'active' | 'expired' | 'cancelled';
-  contractType: string;
-  value: number;
-  startDate?: Date;
-  endDate?: Date;
-  department: string;
-  clicksignStatus?: 'pending' | 'sent' | 'signed' | 'expired';
+  contract_type: string | null;
+  value: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  department: string | null;
+  clicksign_status: string | null;
+  created_at: string | null;
+  partner1_client_id: string | null;
+  partner2_client_id: string | null;
+  ipromed_legal_clients?: { name: string } | null;
 }
 
-const mockContracts: Contract[] = [
-  {
-    id: '1',
-    contractNumber: 'CTR-2024-001',
-    title: 'Prestação de Serviços Médicos - Clínica Norte',
-    client: 'Clínica Norte LTDA',
-    status: 'pending_signature',
-    contractType: 'Prestação de Serviços',
-    value: 120000,
-    startDate: new Date('2024-02-01'),
-    endDate: new Date('2025-01-31'),
-    department: 'Comercial',
-    clicksignStatus: 'sent',
-  },
-  {
-    id: '2',
-    contractNumber: 'CTR-2024-002',
-    title: 'Locação de Equipamentos Hospitalares',
-    client: 'MedEquip Brasil',
-    status: 'active',
-    contractType: 'Locação',
-    value: 45000,
-    startDate: new Date('2024-01-15'),
-    endDate: new Date('2024-07-15'),
-    department: 'Operações',
-    clicksignStatus: 'signed',
-  },
-  {
-    id: '3',
-    contractNumber: 'CTR-2024-003',
-    title: 'Parceria Estratégica - Programa Avivar',
-    client: 'Instituto Avivar',
-    status: 'draft',
-    contractType: 'Parceria',
-    value: 250000,
-    department: 'Diretoria',
-  },
-  {
-    id: '4',
-    contractNumber: 'CTR-2023-045',
-    title: 'Manutenção Predial - Unidade SP',
-    client: 'Manutenção Express',
-    status: 'expired',
-    contractType: 'Manutenção',
-    value: 36000,
-    startDate: new Date('2023-01-01'),
-    endDate: new Date('2024-01-01'),
-    department: 'Facilities',
-    clicksignStatus: 'signed',
-  },
-];
-
 const getStatusConfig = (status: Contract['status']) => {
-  const config = {
+  const config: Record<string, { label: string; className: string; icon: typeof FileText }> = {
     draft: { label: 'Rascunho', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400', icon: FileText },
     pending_review: { label: 'Em Revisão', className: 'bg-blue-100 text-blue-700', icon: Eye },
     pending_approval: { label: 'Aguard. Aprovação', className: 'bg-amber-100 text-amber-700', icon: Clock },
@@ -128,36 +82,125 @@ const getStatusConfig = (status: Contract['status']) => {
     expired: { label: 'Expirado', className: 'bg-rose-100 text-rose-700', icon: AlertTriangle },
     cancelled: { label: 'Cancelado', className: 'bg-slate-100 text-slate-700', icon: AlertTriangle },
   };
-  return config[status];
+  return config[status] || config.draft;
 };
 
-const getClicksignBadge = (status?: Contract['clicksignStatus']) => {
+const getClicksignBadge = (status?: string | null) => {
   if (!status) return null;
-  const config = {
+  const config: Record<string, { label: string; className: string }> = {
     pending: { label: 'Pendente', className: 'bg-gray-100 text-gray-600' },
     sent: { label: 'Enviado', className: 'bg-blue-100 text-blue-700' },
     signed: { label: 'Assinado', className: 'bg-emerald-100 text-emerald-700' },
     expired: { label: 'Expirado', className: 'bg-rose-100 text-rose-700' },
   };
+  const cfg = config[status] || config.pending;
   return (
-    <Badge className={`${config[status].className} gap-1`}>
+    <Badge className={`${cfg.className} gap-1`}>
       <FileSignature className="h-3 w-3" />
-      {config[status].label}
+      {cfg.label}
     </Badge>
   );
 };
 
 export default function ContractsManager() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isNewContractOpen, setIsNewContractOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [newContract, setNewContract] = useState({
+    title: '',
+    contract_type: '',
+    client_id: '',
+    department: '',
+    value: '',
+    start_date: '',
+    end_date: '',
+    description: '',
+  });
 
-  const filteredContracts = mockContracts.filter((c) => {
+  const queryClient = useQueryClient();
+
+  // Fetch contracts from database
+  const { data: contracts = [], isLoading } = useQuery({
+    queryKey: ['ipromed-contracts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ipromed_contracts')
+        .select(`
+          *,
+          ipromed_legal_clients!client_id (name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Contract[];
+    },
+  });
+
+  // Fetch clients for dropdown
+  const { data: clients = [] } = useQuery({
+    queryKey: ['ipromed-clients-dropdown'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ipromed_legal_clients')
+        .select('id, name')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Create contract mutation
+  const createContract = useMutation({
+    mutationFn: async (contractData: typeof newContract) => {
+      // Generate contract number
+      const contractNumber = `CTR-${new Date().getFullYear()}-${String(contracts.length + 1).padStart(3, '0')}`;
+      
+      const { data, error } = await supabase
+        .from('ipromed_contracts')
+        .insert({
+          contract_number: contractNumber,
+          title: contractData.title,
+          contract_type: contractData.contract_type || null,
+          client_id: contractData.client_id || null,
+          partner1_client_id: contractData.client_id || null,
+          department: contractData.department || null,
+          value: contractData.value ? parseFloat(contractData.value) : null,
+          start_date: contractData.start_date || null,
+          end_date: contractData.end_date || null,
+          description: contractData.description || null,
+          status: 'draft',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-contracts'] });
+      toast.success('Contrato criado com sucesso!');
+      setIsNewContractOpen(false);
+      setNewContract({
+        title: '',
+        contract_type: '',
+        client_id: '',
+        department: '',
+        value: '',
+        start_date: '',
+        end_date: '',
+        description: '',
+      });
+    },
+    onError: (error) => {
+      toast.error('Erro ao criar contrato: ' + error.message);
+    },
+  });
+
+  const filteredContracts = contracts.filter((c) => {
     const matchesSearch =
       c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.contractNumber.includes(searchTerm) ||
-      c.client.toLowerCase().includes(searchTerm.toLowerCase());
+      (c.contract_number?.includes(searchTerm) ?? false) ||
+      (c.ipromed_legal_clients?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     
     const matchesTab = activeTab === 'all' || 
       (activeTab === 'pending' && ['draft', 'pending_review', 'pending_approval', 'pending_signature'].includes(c.status)) ||
@@ -167,13 +210,21 @@ export default function ContractsManager() {
     return matchesSearch && matchesTab;
   });
 
-  const pendingCount = mockContracts.filter(c => 
+  const pendingCount = contracts.filter(c => 
     ['draft', 'pending_review', 'pending_approval', 'pending_signature'].includes(c.status)
   ).length;
 
-  const expiringCount = mockContracts.filter(c => 
-    c.endDate && differenceInDays(c.endDate, new Date()) <= 30 && differenceInDays(c.endDate, new Date()) > 0
+  const expiringCount = contracts.filter(c => 
+    c.end_date && differenceInDays(new Date(c.end_date), new Date()) <= 30 && differenceInDays(new Date(c.end_date), new Date()) > 0
   ).length;
+
+  const handleSubmit = () => {
+    if (!newContract.title.trim()) {
+      toast.error('O título é obrigatório');
+      return;
+    }
+    createContract.mutate(newContract);
+  };
 
   return (
     <div className="space-y-6">
@@ -201,11 +252,15 @@ export default function ContractsManager() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Tipo de Contrato</Label>
-                  <Select>
+                  <Select 
+                    value={newContract.contract_type}
+                    onValueChange={(value) => setNewContract({ ...newContract, contract_type: value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="preventivo">Contrato Preventivo</SelectItem>
                       <SelectItem value="prestacao">Prestação de Serviços</SelectItem>
                       <SelectItem value="locacao">Locação</SelectItem>
                       <SelectItem value="parceria">Parceria</SelectItem>
@@ -216,11 +271,15 @@ export default function ContractsManager() {
                 </div>
                 <div className="space-y-2">
                   <Label>Departamento</Label>
-                  <Select>
+                  <Select 
+                    value={newContract.department}
+                    onValueChange={(value) => setNewContract({ ...newContract, department: value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="juridico">Jurídico</SelectItem>
                       <SelectItem value="comercial">Comercial</SelectItem>
                       <SelectItem value="operacoes">Operações</SelectItem>
                       <SelectItem value="rh">RH</SelectItem>
@@ -231,39 +290,78 @@ export default function ContractsManager() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Título do Contrato</Label>
-                <Input placeholder="Título descritivo do contrato" />
+                <Label>Título do Contrato *</Label>
+                <Input 
+                  placeholder="Título descritivo do contrato" 
+                  value={newContract.title}
+                  onChange={(e) => setNewContract({ ...newContract, title: e.target.value })}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Cliente / Contraparte</Label>
-                  <Input placeholder="Nome da empresa ou pessoa" />
+                  <Select 
+                    value={newContract.client_id}
+                    onValueChange={(value) => setNewContract({ ...newContract, client_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Valor do Contrato</Label>
-                  <Input type="number" placeholder="R$ 0,00" />
+                  <Label>Valor do Contrato (R$)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0,00" 
+                    value={newContract.value}
+                    onChange={(e) => setNewContract({ ...newContract, value: e.target.value })}
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Data de Início</Label>
-                  <Input type="date" />
+                  <Input 
+                    type="date" 
+                    value={newContract.start_date}
+                    onChange={(e) => setNewContract({ ...newContract, start_date: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Data de Término</Label>
-                  <Input type="date" />
+                  <Input 
+                    type="date" 
+                    value={newContract.end_date}
+                    onChange={(e) => setNewContract({ ...newContract, end_date: e.target.value })}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Descrição / Objeto</Label>
-                <Textarea placeholder="Descreva o objeto do contrato..." rows={3} />
+                <Textarea 
+                  placeholder="Descreva o objeto do contrato..." 
+                  rows={3} 
+                  value={newContract.description}
+                  onChange={(e) => setNewContract({ ...newContract, description: e.target.value })}
+                />
               </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsNewContractOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={() => setIsNewContractOpen(false)}>Criar Contrato</Button>
+              <Button onClick={handleSubmit} disabled={createContract.isPending}>
+                {createContract.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Criar Contrato
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -291,7 +389,7 @@ export default function ContractsManager() {
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{mockContracts.filter(c => c.status === 'active').length}</p>
+                <p className="text-2xl font-bold">{contracts.filter(c => c.status === 'active' || c.status === 'signed').length}</p>
                 <p className="text-xs text-muted-foreground">Contratos Ativos</p>
               </div>
             </div>
@@ -317,7 +415,7 @@ export default function ContractsManager() {
                 <AlertTriangle className="h-5 w-5 text-rose-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{mockContracts.filter(c => c.status === 'expired').length}</p>
+                <p className="text-2xl font-bold">{contracts.filter(c => c.status === 'expired').length}</p>
                 <p className="text-xs text-muted-foreground">Expirados</p>
               </div>
             </div>
@@ -326,27 +424,45 @@ export default function ContractsManager() {
       </div>
 
       {/* Tabs and Table */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <TabsList>
-            <TabsTrigger value="all">Todos</TabsTrigger>
-            <TabsTrigger value="pending">Pendentes</TabsTrigger>
-            <TabsTrigger value="active">Ativos</TabsTrigger>
-            <TabsTrigger value="expired">Expirados</TabsTrigger>
-          </TabsList>
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar contratos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <TabsList>
+          <TabsTrigger value="all" onClick={() => setActiveTab('all')} data-state={activeTab === 'all' ? 'active' : ''}>
+            Todos
+          </TabsTrigger>
+          <TabsTrigger value="pending" onClick={() => setActiveTab('pending')} data-state={activeTab === 'pending' ? 'active' : ''}>
+            Pendentes
+          </TabsTrigger>
+          <TabsTrigger value="active" onClick={() => setActiveTab('active')} data-state={activeTab === 'active' ? 'active' : ''}>
+            Ativos
+          </TabsTrigger>
+          <TabsTrigger value="expired" onClick={() => setActiveTab('expired')} data-state={activeTab === 'expired' ? 'active' : ''}>
+            Expirados
+          </TabsTrigger>
+        </TabsList>
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar contratos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
+      </div>
 
-        <Card className="border-none shadow-md">
-          <CardContent className="p-0">
+      <Card className="border-none shadow-md">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredContracts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 text-muted-foreground">
+              <FileText className="h-12 w-12 mb-4 opacity-20" />
+              <p className="text-lg font-medium">Nenhum contrato encontrado</p>
+              <p className="text-sm">Clique em "Novo Contrato" para criar</p>
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -368,15 +484,19 @@ export default function ContractsManager() {
                     <TableRow key={contract.id} className="cursor-pointer hover:bg-muted/50">
                       <TableCell>
                         <div>
-                          <p className="font-medium text-sm">{contract.contractNumber}</p>
+                          <p className="font-medium text-sm">{contract.contract_number || 'Sem número'}</p>
                           <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                             {contract.title}
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm">{contract.client}</TableCell>
+                      <TableCell className="text-sm">
+                        {contract.ipromed_legal_clients?.name || '-'}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{contract.contractType}</Badge>
+                        {contract.contract_type ? (
+                          <Badge variant="outline">{contract.contract_type}</Badge>
+                        ) : '-'}
                       </TableCell>
                       <TableCell>
                         <Badge className={`${statusConfig.className} gap-1`}>
@@ -384,17 +504,19 @@ export default function ContractsManager() {
                           {statusConfig.label}
                         </Badge>
                       </TableCell>
-                      <TableCell>{getClicksignBadge(contract.clicksignStatus)}</TableCell>
+                      <TableCell>{getClicksignBadge(contract.clicksign_status)}</TableCell>
                       <TableCell className="font-medium">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        }).format(contract.value)}
+                        {contract.value ? (
+                          new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(contract.value)
+                        ) : '-'}
                       </TableCell>
                       <TableCell>
-                        {contract.endDate ? (
+                        {contract.end_date ? (
                           <div className="text-sm">
-                            {format(contract.endDate, 'dd/MM/yy', { locale: ptBR })}
+                            {format(new Date(contract.end_date), 'dd/MM/yy', { locale: ptBR })}
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-sm">-</span>
@@ -417,9 +539,9 @@ export default function ContractsManager() {
                 })}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-      </Tabs>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
