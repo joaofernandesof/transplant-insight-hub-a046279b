@@ -328,36 +328,31 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           </div>
         )}
 
-        {/* Profile Simulator (Admin only) */}
+        {/* Profile Simulator (Admin only) - Simula visualização sem trocar de portal */}
         {isAdmin && !isCollapsed && (
           <div className="p-3 border-b bg-muted/30">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
               <Users className="h-3.5 w-3.5" />
-              <span>Perfil de Acesso:</span>
+              <span>Simular Perfil de Acesso:</span>
             </div>
-            <Select value={activeProfile || 'administrador'} onValueChange={(value) => {
-              // Navegar para a home do perfil selecionado
-              const profileRoutes: Record<string, string> = {
-                administrador: '/admin-dashboard',
-                colaborador: '/neoteam',
-                paciente: '/neocare',
-                aluno: '/academy',
-                licenciado: '/neolicense',
-                ipromed: '/ipromed',
-              };
-              navigate(profileRoutes[value] || '/admin-dashboard');
-            }}>
+            <Select 
+              value={activeProfile || 'administrador'} 
+              onValueChange={(value) => {
+                // Apenas muda o perfil ativo para simular visualização - NÃO navega para outro portal
+                setActiveProfile(value as ProfileKey);
+              }}
+            >
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {[
                   { key: 'administrador', label: 'Administrador', icon: Crown },
-                  { key: 'colaborador', label: 'Colaborador (NeoTeam)', icon: Clipboard },
-                  { key: 'paciente', label: 'Paciente (NeoCare)', icon: HeartPulse },
-                  { key: 'aluno', label: 'Aluno (Academy)', icon: GraduationCap },
+                  { key: 'colaborador', label: 'Colaborador', icon: Clipboard },
+                  { key: 'paciente', label: 'Paciente', icon: HeartPulse },
+                  { key: 'aluno', label: 'Aluno', icon: GraduationCap },
                   { key: 'licenciado', label: 'Licenciado', icon: Building2 },
-                  { key: 'ipromed', label: 'IPROMED (Jurídico)', icon: Scale },
+                  { key: 'ipromed', label: 'IPROMED', icon: Scale },
                 ].map(({ key, label, icon: Icon }) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
@@ -368,6 +363,12 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
                 ))}
               </SelectContent>
             </Select>
+            {activeProfile && activeProfile !== 'administrador' && (
+              <p className="text-[10px] text-amber-600 mt-1.5 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500" />
+                Visualizando como {activeProfile}
+              </p>
+            )}
           </div>
         )}
 
