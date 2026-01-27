@@ -50,6 +50,7 @@ import {
   ListTodo,
   Bot,
   UserCog,
+  Scale,
 } from 'lucide-react';
 
 // Tipos base
@@ -248,6 +249,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
     items: [
       { id: 'neoteam_event_organization', code: 'neoteam_event_organization', title: 'Gestão de Eventos', icon: ClipboardList, route: '/neoteam/events', adminOnly: true },
       { id: 'neoteam_galleries', code: 'neoteam_galleries', title: 'Galerias de Fotos', icon: Images, route: '/neoteam/galleries', adminOnly: true },
+      { id: 'neoteam_legal_dashboard', code: 'neoteam_legal_dashboard', title: 'Dashboard Jurídico', icon: Scale, route: '/neoteam/legal-dashboard', adminOnly: true },
     ],
   },
   {
