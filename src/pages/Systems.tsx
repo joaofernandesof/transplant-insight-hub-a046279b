@@ -9,9 +9,13 @@ import {
   DollarSign,
   Bot,
   Plug,
-  HelpCircle
+  HelpCircle,
+  FileSignature,
+  Shield,
+  Check
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
+import { useState } from "react";
 
 const systems = [
   { id: 'kommo', name: 'Kommo CRM', description: 'Gestão completa de leads e pipeline de vendas', category: 'Vendas', status: 'connected', features: ['Funil de vendas', 'Automações', 'Relatórios', 'Integração WhatsApp'], icon: DollarSign, color: 'bg-blue-100 text-blue-600' },
@@ -19,6 +23,11 @@ const systems = [
   { id: 'feegow', name: 'Feegow Clinic', description: 'Prontuário eletrônico e agenda médica', category: 'Clínico', status: 'pending', features: ['Prontuário digital', 'Agendamento', 'Financeiro', 'Laudos'], icon: Calendar, color: 'bg-purple-100 text-purple-600' },
   { id: 'contaazul', name: 'Conta Azul', description: 'Gestão financeira e contábil', category: 'Financeiro', status: 'pending', features: ['Fluxo de caixa', 'Notas fiscais', 'Relatórios', 'Conciliação'], icon: DollarSign, color: 'bg-amber-100 text-amber-600' },
   { id: 'chatbot', name: 'Robô de Atendimento', description: 'Automação de atendimento inicial', category: 'Automação', status: 'connected', features: ['Qualificação de leads', 'Agendamento automático', 'Respostas 24/7'], icon: Bot, color: 'bg-indigo-100 text-indigo-600' },
+];
+
+const signatureSystems = [
+  { id: 'clicksign', name: 'ClickSign', description: 'Assinatura eletrônica com validade jurídica', category: 'Assinatura', status: 'connected', features: ['Assinatura digital', 'Gestão de documentos', 'API integrada', 'Trilha de auditoria'], icon: FileSignature, color: 'bg-emerald-100 text-emerald-600' },
+  { id: 'govbr', name: 'GOV.BR', description: 'Assinatura digital com certificado ICP-Brasil', category: 'Assinatura', status: 'pending', features: ['Certificado digital', 'Autenticação gov.br', 'Validade ICP-Brasil', 'Gratuito'], icon: Shield, color: 'bg-sky-100 text-sky-600' },
 ];
 
 const statusConfig = {
@@ -36,6 +45,7 @@ const integrations = [
 
 export default function Systems() {
   const connectedCount = systems.filter(s => s.status === 'connected').length;
+  const [activeSignature, setActiveSignature] = useState<string>('clicksign');
 
   return (
     <ModuleLayout>
@@ -101,6 +111,65 @@ export default function Systems() {
                           </Button>
                         )}
                         <Button size="sm" variant="ghost"><HelpCircle className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Signature Systems */}
+        <h3 className="text-lg font-semibold mb-4">Sistemas de Assinatura Digital</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {signatureSystems.map((system) => {
+            const status = statusConfig[system.status as keyof typeof statusConfig];
+            const isActive = activeSignature === system.id;
+            return (
+              <Card key={system.id} className={`hover:shadow-md transition-shadow ${isActive ? 'ring-2 ring-primary' : ''}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-xl ${system.color} flex items-center justify-center`}>
+                      <system.icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold">{system.name}</h4>
+                        <Badge className={status.color}>{status.label}</Badge>
+                        {isActive && (
+                          <Badge className="bg-primary text-primary-foreground">
+                            <Check className="h-3 w-3 mr-1" />Ativo
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">{system.description}</p>
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {system.features.slice(0, 3).map((feature, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">{feature}</Badge>
+                        ))}
+                        {system.features.length > 3 && <Badge variant="outline" className="text-xs">+{system.features.length - 3}</Badge>}
+                      </div>
+                      <div className="flex gap-2">
+                        {system.status === 'connected' ? (
+                          <>
+                            <Button 
+                              size="sm" 
+                              variant={isActive ? "default" : "outline"}
+                              className="gap-2"
+                              onClick={() => setActiveSignature(system.id)}
+                            >
+                              {isActive ? <><Check className="h-4 w-4" />Selecionado</> : 'Usar este'}
+                            </Button>
+                            <Button size="sm" variant="outline" className="gap-2">
+                              <ExternalLink className="h-4 w-4" />Acessar
+                            </Button>
+                          </>
+                        ) : (
+                          <Button size="sm" className="gap-2">
+                            <Plug className="h-4 w-4" />Configurar
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
