@@ -261,6 +261,7 @@ function NeoCareRoutes() {
 function NeoTeamRoutes() {
   const NeoTeamGalleries = lazy(() => import('@/neohub/pages/neoteam/NeoTeamGalleries'));
   const NeoTeamAnamnesis = lazy(() => import('@/neohub/pages/neoteam/NeoTeamAnamnesis'));
+  const LegalDashboardPage = lazy(() => import('@/pages/neoteam/LegalDashboardPage'));
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
@@ -279,6 +280,7 @@ function NeoTeamRoutes() {
           <Route path="events" element={<NeoTeamEvents />} />
           <Route path="galleries" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamGalleries /></Suspense>} />
           <Route path="anamnesis" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamAnamnesis /></Suspense>} />
+          <Route path="legal-dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><LegalDashboardPage /></Suspense>} />
           <Route path="postvenda" element={<PostVendaHome />} />
           <Route path="postvenda/chamados" element={<ChamadoListPage />} />
           <Route path="postvenda/chamados/:id" element={<ChamadoDetailPage />} />
