@@ -12,7 +12,7 @@ export interface StudentReferral {
   referred_phone: string;
   referred_has_crm: boolean;
   referred_crm: string | null;
-  status: 'pending' | 'contacted' | 'enrolled' | 'converted' | 'cancelled';
+  status: 'pending' | 'contacted' | 'enrolled' | 'converted' | 'settled' | 'cancelled';
   commission_rate: number;
   commission_paid: boolean;
   notes: string | null;
@@ -20,6 +20,9 @@ export interface StudentReferral {
   converted_at: string | null;
   updated_at: string;
   referrer_name?: string;
+  contract_value?: number | null;
+  pix_requested_at?: string | null;
+  pix_request_status?: 'pending' | 'approved' | 'paid' | null;
 }
 
 // Promotion deadline: 25/01/2026 at 23:59 BRT (UTC-3)
@@ -130,8 +133,9 @@ export function useStudentReferrals() {
     pending: referrals?.filter(r => r.status === 'pending').length || 0,
     contacted: referrals?.filter(r => r.status === 'contacted').length || 0,
     converted: referrals?.filter(r => r.status === 'converted').length || 0,
+    settled: referrals?.filter(r => r.status === 'settled').length || 0,
     totalCommission: referrals
-      ?.filter(r => r.status === 'converted')
+      ?.filter(r => r.status === 'converted' || r.status === 'settled')
       .reduce((sum, r) => sum + (r.commission_rate || 0), 0) || 0,
   };
 
@@ -147,6 +151,46 @@ export function useStudentReferrals() {
     normalCommission: NORMAL_COMMISSION,
     promoCommission: PROMO_COMMISSION,
   };
+}
+
+// Hook to request PIX payment for settled referrals
+export function useRequestPixPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (referralId: string) => {
+      // Update the referral with PIX request
+      const { error } = await supabase
+        .from('student_referrals')
+        .update({
+          pix_requested_at: new Date().toISOString(),
+          pix_request_status: 'pending',
+        })
+        .eq('id', referralId);
+
+      if (error) throw error;
+
+      // Call edge function to notify admin
+      const { error: fnError } = await supabase.functions.invoke('notify-pix-request', {
+        body: { referralId }
+      });
+
+      if (fnError) {
+        console.error('Error notifying admin:', fnError);
+        // Don't throw - notification is not critical
+      }
+
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast.success('Solicitação de PIX enviada! Aguarde a liberação.');
+      queryClient.invalidateQueries({ queryKey: ['student-referrals'] });
+    },
+    onError: (error: any) => {
+      console.error('Error requesting PIX:', error);
+      toast.error('Erro ao solicitar PIX. Tente novamente.');
+    },
+  });
 }
 
 // Hook for landing page (public)
