@@ -114,7 +114,6 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
   
   // Marketplace
   { id: 'marketplace', code: 'marketplace', title: 'Marketplace', icon: Store, route: '/marketplace' },
-  { id: 'ipromed', code: 'ipromed', title: 'IPROMED', icon: Gavel, route: '/ipromed', adminOnly: true },
 ];
 
 export const ADMIN_MENU_ITEMS: MenuItem[] = [
