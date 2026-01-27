@@ -39,7 +39,8 @@ import {
   Heart,
   Stethoscope,
   Megaphone,
-  TrendingUp
+  TrendingUp,
+  Bot
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -58,6 +59,7 @@ const moduleCategories = [
       { id: 'licensees', title: 'Alunos IBRAMEC', description: 'Gerenciar alunos', icon: Users, path: '/alunos', color: 'bg-blue-500' },
       { id: 'monitoring', title: 'Monitoramento', description: 'Atividade de usuários', icon: Eye, path: '/monitoring', color: 'bg-teal-500' },
       { id: 'event-logs', title: 'Log de Eventos', description: 'Histórico do sistema', icon: Activity, path: '/admin/event-logs', color: 'bg-cyan-500' },
+      { id: 'code-assistant', title: 'Assistente de Código', description: 'IA para análise técnica', icon: Bot, path: '/admin/code-assistant', color: 'bg-indigo-500' },
       { id: 'announcements', title: 'Anúncios', description: 'Banners e novidades', icon: Megaphone, path: '/admin/announcements', color: 'bg-rose-500' },
       { id: 'permissions', title: 'Permissões', description: 'Matriz de acessos', icon: Shield, path: '/admin', color: 'bg-violet-500' },
       { id: 'settings', title: 'Configurações', description: 'Parâmetros do sistema', icon: Settings, path: '/admin', color: 'bg-purple-500' },
