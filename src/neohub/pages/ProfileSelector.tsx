@@ -15,7 +15,7 @@ import {
   TrendingUp,
   Lock
 } from 'lucide-react';
-import { NeoHairScanIcon } from '@/components/icons/NeoHairScanIcon';
+import { VisionIcon } from '@/components/icons/VisionIcon';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
 import { cn } from '@/lib/utils';
 
@@ -89,9 +89,9 @@ const SYSTEM_MODULES: SystemModule[] = [
   },
   {
     key: 'neohairscan',
-    name: 'NeoHairScan',
+    name: 'Vision',
     description: 'Análise capilar com IA',
-    icon: NeoHairScanIcon,
+    icon: VisionIcon,
     route: '/neohairscan',
     color: 'bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500',
     requiredProfiles: ['medico', 'colaborador', 'administrador'],

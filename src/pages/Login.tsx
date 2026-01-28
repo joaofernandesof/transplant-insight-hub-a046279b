@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PROFILE_ROUTES, NeoHubProfile } from '@/neohub/lib/permissions';
-import { NeoHairScanIcon } from '@/components/icons/NeoHairScanIcon';
+import { VisionIcon } from '@/components/icons/VisionIcon';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -38,8 +38,8 @@ const modules = [
   { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
   { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
   { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
-  // NeoHairScan: gradiente rosa/laranja como na referência
-  { id: 'neohairscan', name: 'NeoHairScan', icon: NeoHairScanIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico IA' },
+  // Vision: gradiente rosa/laranja como na referência
+  { id: 'neohairscan', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico IA' },
 ];
 
 export default function Login() {

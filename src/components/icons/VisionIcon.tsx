@@ -2,14 +2,14 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-export type NeoHairScanIconProps = React.SVGProps<SVGSVGElement>;
+export type VisionIconProps = React.SVGProps<SVGSVGElement>;
 
 /**
- * NeoHairScanIcon
- * Ícone vetorial próprio (SVG) para o portal NeoHairScan.
- * Mantém o mesmo “peso”/estilo dos ícones Lucide (stroke currentColor, 24x24).
+ * VisionIcon
+ * Ícone vetorial próprio (SVG) para o portal Vision.
+ * Mantém o mesmo "peso"/estilo dos ícones Lucide (stroke currentColor, 24x24).
  */
-export function NeoHairScanIcon({ className, ...props }: NeoHairScanIconProps) {
+export function VisionIcon({ className, ...props }: VisionIconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -36,3 +36,7 @@ export function NeoHairScanIcon({ className, ...props }: NeoHairScanIconProps) {
     </svg>
   );
 }
+
+// Alias for backward compatibility
+export const NeoHairScanIcon = VisionIcon;
+export type NeoHairScanIconProps = VisionIconProps;
