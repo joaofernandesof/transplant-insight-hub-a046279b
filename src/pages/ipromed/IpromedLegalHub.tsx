@@ -51,6 +51,8 @@ import BillingRulesManager from "./components/BillingRulesManager";
 import TagsManager from "./components/TagsManager";
 import JurisprudenciasPage from "./components/JurisprudenciasPage";
 import MeetingToolPage from "./components/MeetingToolPage";
+import RiskScoringCard from "./components/RiskScoringCard";
+import SLADashboard from "./components/SLADashboard";
 
 const tabs = [
   { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard },
@@ -68,6 +70,8 @@ const tabs = [
   { id: 'billing', label: 'Régua Cobrança', icon: Bell },
   { id: 'timesheet', label: 'Timesheet', icon: Clock },
   { id: 'ai', label: 'IA Jurídica', icon: LayoutGrid },
+  { id: 'risk', label: 'Scoring Risco', icon: Scale },
+  { id: 'sla', label: 'SLA / Produtividade', icon: BarChart3 },
   { id: 'portal', label: 'Portal do Cliente', icon: MessageSquare },
   { id: 'tags', label: 'Etiquetas', icon: LayoutGrid },
   { id: 'requests', label: 'Solicitações', icon: MessageSquare },
@@ -217,6 +221,16 @@ export default function IpromedLegalHub() {
 
             <TabsContent value="ai" className="mt-0">
               <AIDocumentGenerator />
+            </TabsContent>
+
+            <TabsContent value="risk" className="mt-0">
+              <div className="max-w-2xl">
+                <RiskScoringCard />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="sla" className="mt-0">
+              <SLADashboard />
             </TabsContent>
 
             <TabsContent value="portal" className="mt-0">
