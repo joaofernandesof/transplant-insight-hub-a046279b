@@ -246,7 +246,7 @@ export default function Login() {
               />
             </div>
             <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2">
-              Neo<span className="text-primary">Hub</span>
+              Neo<span className="text-amber-400">Hub</span>
             </h1>
             <p className="text-slate-400 text-lg">
               Ecossistema Integrado
