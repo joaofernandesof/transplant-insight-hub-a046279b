@@ -62,6 +62,38 @@ export const ETAPA_LABELS: Record<string, string> = {
   encerrado: 'Encerrado',
 };
 
+// Etapas específicas do fluxo BPMN de Distrato
+export const DISTRATO_ETAPA_LABELS: Record<string, string> = {
+  solicitacao_recebida: 'Solicitação Recebida',
+  validacao_contato: 'Validação do Contato',
+  checklist_preenchido: 'Checklist Preenchido',
+  aguardando_parecer_gerente: 'Aguardando Parecer da Gerente',
+  em_negociacao: 'Em Negociação',
+  aguardando_assinatura: 'Aguardando Assinatura do Paciente',
+  aguardando_pagamento: 'Aguardando Pagamento Financeiro',
+  caso_concluido: 'Caso Concluído',
+};
+
+export const DISTRATO_DECISAO_LABELS: Record<string, string> = {
+  pendente: 'Pendente',
+  devolver: 'Devolver',
+  nao_devolver: 'Não Devolver',
+  em_negociacao: 'Em Negociação',
+};
+
+export const DISTRATO_RISCO_LABELS: Record<string, string> = {
+  baixo: 'Baixo',
+  medio: 'Médio',
+  alto: 'Alto',
+};
+
+export const DISTRATO_STATUS_PROCEDIMENTO_LABELS: Record<string, string> = {
+  nao_iniciado: 'Não Iniciado',
+  em_andamento: 'Em Andamento',
+  finalizado: 'Finalizado',
+  cancelado: 'Cancelado',
+};
+
 export const STATUS_LABELS: Record<string, string> = {
   aberto: 'Aberto',
   em_andamento: 'Em Andamento',
