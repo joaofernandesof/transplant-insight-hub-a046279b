@@ -1,5 +1,5 @@
 /**
- * NeoHairScan - Portal Home
+ * Vision - Portal Home
  * AI-powered hair analysis and baldness progression simulation
  */
 
@@ -63,7 +63,7 @@ export default function NeoHairScanHome() {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-purple-300">
             <ScanFace className="h-5 w-5" />
-            <span className="font-medium text-white">NeoHairScan</span>
+            <span className="font-medium text-white">Vision</span>
           </div>
           
           <div className="flex items-center gap-3">
@@ -145,7 +145,7 @@ export default function NeoHairScanHome() {
           <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-2xl mb-4">
             <ScanFace className="h-12 w-12 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">NeoHairScan</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Vision</h1>
           <p className="text-lg text-purple-200">
             Análise Capilar com Inteligência Artificial
           </p>

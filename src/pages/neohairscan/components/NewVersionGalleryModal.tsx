@@ -165,7 +165,7 @@ async function createBrandedComparison(
         ctx.fillStyle = "#9ca3af";
         ctx.font = "11px Arial, sans-serif";
         ctx.fillText(
-          "NeoHairScan - Tecnologia NeoFolic © 2026",
+          "Vision - Tecnologia NeoFolic © 2026",
           canvasWidth / 2,
           canvasHeight - 10
         );

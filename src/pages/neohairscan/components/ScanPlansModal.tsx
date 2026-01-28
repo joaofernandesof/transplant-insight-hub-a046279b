@@ -212,7 +212,7 @@ export function ScanPlansModal({ open, onOpenChange, currentPlan = 'free', onPla
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">
-            Escolha seu Plano NeoHairScan
+            Escolha seu Plano Vision
           </DialogTitle>
           <p className="text-center text-muted-foreground mt-2">
             Desbloqueie todo o potencial da análise de cabelo com IA

@@ -6,7 +6,7 @@
 import React from 'react';
 import { Heart, Users, GraduationCap, Building2, Sparkles, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { NeoHairScanIcon } from '@/components/icons/NeoHairScanIcon';
+import { VisionIcon } from '@/components/icons/VisionIcon';
 
 interface PortalNode {
   id: string;
@@ -61,9 +61,9 @@ const portals: PortalNode[] = [
   },
   {
     id: 'neohairscan',
-    name: 'NeoHairScan',
+    name: 'Vision',
     subtitle: 'Diagnóstico IA',
-    icon: <NeoHairScanIcon className="h-6 w-6 text-white" />,
+    icon: <VisionIcon className="h-6 w-6 text-white" />,
     color: 'bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500',
   },
 ];

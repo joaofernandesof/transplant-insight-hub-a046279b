@@ -492,11 +492,11 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       ctx.fillStyle = headerGradient;
       ctx.fillRect(0, 0, canvas.width, headerHeight);
 
-      // NeoHairScan title (left)
+      // Vision title (left)
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 22px 'Segoe UI', Arial, sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText("NeoHairScan", 16, 32);
+      ctx.fillText("Vision", 16, 32);
       ctx.font = "12px 'Segoe UI', Arial, sans-serif";
       ctx.fillStyle = "#e9d5ff";
       ctx.fillText("Simulação de Transplante Capilar", 16, 46);
@@ -648,7 +648,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `neohairscan-comparativo-${Date.now()}.jpg`;
+      link.download = `vision-comparativo-${Date.now()}.jpg`;
       link.click();
 
       toast.success("Imagem composta baixada!");
@@ -675,7 +675,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
           </Button>
           <div className="flex items-center gap-2">
             <ScanFace className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">NeoHairScan</h1>
+            <h1 className="text-xl font-bold">Vision</h1>
           </div>
         </div>
         
