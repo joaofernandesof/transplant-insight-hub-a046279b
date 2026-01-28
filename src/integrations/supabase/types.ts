@@ -7611,6 +7611,13 @@ export type Database = {
           canal_origem: string | null
           created_at: string | null
           created_by: string | null
+          distrato_contrato_anexo: boolean | null
+          distrato_contrato_assinado: boolean | null
+          distrato_data_pagamento_sinal: string | null
+          distrato_forma_pagamento: string | null
+          distrato_termo_sinal_anexo: boolean | null
+          distrato_termo_sinal_assinado: boolean | null
+          distrato_valor_pago: number | null
           etapa_atual: Database["public"]["Enums"]["chamado_etapa"]
           id: string
           motivo_abertura: string | null
@@ -7636,6 +7643,13 @@ export type Database = {
           canal_origem?: string | null
           created_at?: string | null
           created_by?: string | null
+          distrato_contrato_anexo?: boolean | null
+          distrato_contrato_assinado?: boolean | null
+          distrato_data_pagamento_sinal?: string | null
+          distrato_forma_pagamento?: string | null
+          distrato_termo_sinal_anexo?: boolean | null
+          distrato_termo_sinal_assinado?: boolean | null
+          distrato_valor_pago?: number | null
           etapa_atual?: Database["public"]["Enums"]["chamado_etapa"]
           id?: string
           motivo_abertura?: string | null
@@ -7661,6 +7675,13 @@ export type Database = {
           canal_origem?: string | null
           created_at?: string | null
           created_by?: string | null
+          distrato_contrato_anexo?: boolean | null
+          distrato_contrato_assinado?: boolean | null
+          distrato_data_pagamento_sinal?: string | null
+          distrato_forma_pagamento?: string | null
+          distrato_termo_sinal_anexo?: boolean | null
+          distrato_termo_sinal_assinado?: boolean | null
+          distrato_valor_pago?: number | null
           etapa_atual?: Database["public"]["Enums"]["chamado_etapa"]
           id?: string
           motivo_abertura?: string | null
