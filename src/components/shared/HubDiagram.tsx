@@ -4,9 +4,8 @@
  */
 
 import React from 'react';
-import { Heart, Users, GraduationCap, Building2, Sparkles, Scale } from 'lucide-react';
+import { Heart, Users, GraduationCap, Building2, Sparkles, Scale, ScanFace } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import neohairscanIcon from '@/assets/neohairscan-icon.png';
 
 interface PortalNode {
   id: string;
@@ -14,7 +13,7 @@ interface PortalNode {
   subtitle: string;
   icon: React.ReactNode;
   color: string;
-  useCustomIcon?: boolean;
+  isGradient?: boolean;
 }
 
 const portals: PortalNode[] = [
@@ -41,7 +40,7 @@ const portals: PortalNode[] = [
   },
   {
     id: 'neolicense',
-    name: 'Licença ByNeoFolic',
+    name: 'Licença',
     subtitle: 'Licenciados',
     icon: <Building2 className="h-6 w-6" />,
     color: 'bg-amber-500',
@@ -64,9 +63,9 @@ const portals: PortalNode[] = [
     id: 'neohairscan',
     name: 'NeoHairScan',
     subtitle: 'Diagnóstico IA',
-    icon: <img src={neohairscanIcon} alt="NeoHairScan" className="h-full w-full object-contain" />,
-    color: 'bg-transparent',
-    useCustomIcon: true,
+    icon: <ScanFace className="h-6 w-6" />,
+    color: 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400',
+    isGradient: true,
   },
 ];
 
@@ -134,16 +133,16 @@ export function HubDiagram({ className, highlightPortal }: HubDiagramProps) {
               <div
                 className={cn(
                   'w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md transition-all overflow-hidden',
-                  portal.useCustomIcon ? '' : portal.color,
+                  portal.color,
                   isHighlighted && 'ring-2 ring-offset-2 ring-offset-background ring-primary scale-110'
                 )}
               >
                 {portal.icon}
               </div>
-              <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+              <span className="text-xs font-semibold text-foreground whitespace-nowrap text-center">
                 {portal.name}
               </span>
-              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+              <span className="text-[10px] text-muted-foreground whitespace-nowrap text-center">
                 {portal.subtitle}
               </span>
             </div>
