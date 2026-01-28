@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { ChamadoTimeline, ChamadoEtapaFlow } from '../components';
+import { DistratoEtapaFlow, DistratoEtapaBpmn, DistratoDecisao } from '../components/DistratoEtapaFlow';
 import { usePostVenda, useChamadoHistorico, ChamadoEtapa } from '../hooks/usePostVenda';
-import { ETAPA_LABELS, STATUS_LABELS, PRIORIDADE_LABELS, TIPO_DEMANDA_OPTIONS } from '../lib/permissions';
+import { ETAPA_LABELS, STATUS_LABELS, PRIORIDADE_LABELS, TIPO_DEMANDA_OPTIONS, DISTRATO_ETAPA_LABELS } from '../lib/permissions';
 import { 
   ArrowLeft, User, Phone, Mail, Clock,
   MessageCircle, AlertCircle, Loader2, FileText

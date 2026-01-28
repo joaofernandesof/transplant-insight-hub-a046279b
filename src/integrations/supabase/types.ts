@@ -7792,10 +7792,61 @@ export type Database = {
           canal_origem: string | null
           created_at: string | null
           created_by: string | null
+          distrato_checklist_completo: boolean | null
+          distrato_checklist_contrato: boolean | null
+          distrato_checklist_data_contratacao: string | null
+          distrato_checklist_data_preenchimento: string | null
+          distrato_checklist_email: string | null
+          distrato_checklist_motivo: string | null
+          distrato_checklist_nome_completo: string | null
+          distrato_checklist_observacoes: string | null
+          distrato_checklist_procedimento: string | null
+          distrato_checklist_risco_juridico:
+            | Database["public"]["Enums"]["distrato_risco_juridico"]
+            | null
+          distrato_checklist_status_procedimento:
+            | Database["public"]["Enums"]["distrato_status_procedimento"]
+            | null
+          distrato_checklist_termo_sinal: boolean | null
+          distrato_checklist_tratamento_iniciado: boolean | null
+          distrato_checklist_valor_pago: number | null
+          distrato_checklist_valor_total: number | null
+          distrato_concluido_em: string | null
           distrato_contrato_anexo: boolean | null
           distrato_contrato_assinado: boolean | null
+          distrato_contrato_localizado: boolean | null
+          distrato_data_email_recebido: string | null
           distrato_data_pagamento_sinal: string | null
+          distrato_decisao:
+            | Database["public"]["Enums"]["distrato_decisao"]
+            | null
+          distrato_documento_assinado: boolean | null
+          distrato_documento_assinado_em: string | null
+          distrato_documento_enviado_em: string | null
+          distrato_documento_tipo: string | null
+          distrato_documento_url: string | null
+          distrato_email_remetente: string | null
+          distrato_email_resposta_enviado: boolean | null
+          distrato_etapa_bpmn:
+            | Database["public"]["Enums"]["distrato_etapa_bpmn"]
+            | null
           distrato_forma_pagamento: string | null
+          distrato_gerente_responsavel: string | null
+          distrato_nome_remetente: string | null
+          distrato_observacao_final: string | null
+          distrato_paciente_ativo: boolean | null
+          distrato_pagamento_confirmado: boolean | null
+          distrato_pagamento_confirmado_em: string | null
+          distrato_pagamento_solicitado_em: string | null
+          distrato_pagamento_valor: number | null
+          distrato_pagamento_verificacoes: number | null
+          distrato_parecer_enviado_em: string | null
+          distrato_parecer_observacoes: string | null
+          distrato_parecer_recebido_em: string | null
+          distrato_parecer_tentativas: number | null
+          distrato_remetente_titular: boolean | null
+          distrato_responsavel_atual: string | null
+          distrato_status_juridico_final: string | null
           distrato_termo_sinal_anexo: boolean | null
           distrato_termo_sinal_assinado: boolean | null
           distrato_valor_pago: number | null
@@ -7824,10 +7875,61 @@ export type Database = {
           canal_origem?: string | null
           created_at?: string | null
           created_by?: string | null
+          distrato_checklist_completo?: boolean | null
+          distrato_checklist_contrato?: boolean | null
+          distrato_checklist_data_contratacao?: string | null
+          distrato_checklist_data_preenchimento?: string | null
+          distrato_checklist_email?: string | null
+          distrato_checklist_motivo?: string | null
+          distrato_checklist_nome_completo?: string | null
+          distrato_checklist_observacoes?: string | null
+          distrato_checklist_procedimento?: string | null
+          distrato_checklist_risco_juridico?:
+            | Database["public"]["Enums"]["distrato_risco_juridico"]
+            | null
+          distrato_checklist_status_procedimento?:
+            | Database["public"]["Enums"]["distrato_status_procedimento"]
+            | null
+          distrato_checklist_termo_sinal?: boolean | null
+          distrato_checklist_tratamento_iniciado?: boolean | null
+          distrato_checklist_valor_pago?: number | null
+          distrato_checklist_valor_total?: number | null
+          distrato_concluido_em?: string | null
           distrato_contrato_anexo?: boolean | null
           distrato_contrato_assinado?: boolean | null
+          distrato_contrato_localizado?: boolean | null
+          distrato_data_email_recebido?: string | null
           distrato_data_pagamento_sinal?: string | null
+          distrato_decisao?:
+            | Database["public"]["Enums"]["distrato_decisao"]
+            | null
+          distrato_documento_assinado?: boolean | null
+          distrato_documento_assinado_em?: string | null
+          distrato_documento_enviado_em?: string | null
+          distrato_documento_tipo?: string | null
+          distrato_documento_url?: string | null
+          distrato_email_remetente?: string | null
+          distrato_email_resposta_enviado?: boolean | null
+          distrato_etapa_bpmn?:
+            | Database["public"]["Enums"]["distrato_etapa_bpmn"]
+            | null
           distrato_forma_pagamento?: string | null
+          distrato_gerente_responsavel?: string | null
+          distrato_nome_remetente?: string | null
+          distrato_observacao_final?: string | null
+          distrato_paciente_ativo?: boolean | null
+          distrato_pagamento_confirmado?: boolean | null
+          distrato_pagamento_confirmado_em?: string | null
+          distrato_pagamento_solicitado_em?: string | null
+          distrato_pagamento_valor?: number | null
+          distrato_pagamento_verificacoes?: number | null
+          distrato_parecer_enviado_em?: string | null
+          distrato_parecer_observacoes?: string | null
+          distrato_parecer_recebido_em?: string | null
+          distrato_parecer_tentativas?: number | null
+          distrato_remetente_titular?: boolean | null
+          distrato_responsavel_atual?: string | null
+          distrato_status_juridico_final?: string | null
           distrato_termo_sinal_anexo?: boolean | null
           distrato_termo_sinal_assinado?: boolean | null
           distrato_valor_pago?: number | null
@@ -7856,10 +7958,61 @@ export type Database = {
           canal_origem?: string | null
           created_at?: string | null
           created_by?: string | null
+          distrato_checklist_completo?: boolean | null
+          distrato_checklist_contrato?: boolean | null
+          distrato_checklist_data_contratacao?: string | null
+          distrato_checklist_data_preenchimento?: string | null
+          distrato_checklist_email?: string | null
+          distrato_checklist_motivo?: string | null
+          distrato_checklist_nome_completo?: string | null
+          distrato_checklist_observacoes?: string | null
+          distrato_checklist_procedimento?: string | null
+          distrato_checklist_risco_juridico?:
+            | Database["public"]["Enums"]["distrato_risco_juridico"]
+            | null
+          distrato_checklist_status_procedimento?:
+            | Database["public"]["Enums"]["distrato_status_procedimento"]
+            | null
+          distrato_checklist_termo_sinal?: boolean | null
+          distrato_checklist_tratamento_iniciado?: boolean | null
+          distrato_checklist_valor_pago?: number | null
+          distrato_checklist_valor_total?: number | null
+          distrato_concluido_em?: string | null
           distrato_contrato_anexo?: boolean | null
           distrato_contrato_assinado?: boolean | null
+          distrato_contrato_localizado?: boolean | null
+          distrato_data_email_recebido?: string | null
           distrato_data_pagamento_sinal?: string | null
+          distrato_decisao?:
+            | Database["public"]["Enums"]["distrato_decisao"]
+            | null
+          distrato_documento_assinado?: boolean | null
+          distrato_documento_assinado_em?: string | null
+          distrato_documento_enviado_em?: string | null
+          distrato_documento_tipo?: string | null
+          distrato_documento_url?: string | null
+          distrato_email_remetente?: string | null
+          distrato_email_resposta_enviado?: boolean | null
+          distrato_etapa_bpmn?:
+            | Database["public"]["Enums"]["distrato_etapa_bpmn"]
+            | null
           distrato_forma_pagamento?: string | null
+          distrato_gerente_responsavel?: string | null
+          distrato_nome_remetente?: string | null
+          distrato_observacao_final?: string | null
+          distrato_paciente_ativo?: boolean | null
+          distrato_pagamento_confirmado?: boolean | null
+          distrato_pagamento_confirmado_em?: string | null
+          distrato_pagamento_solicitado_em?: string | null
+          distrato_pagamento_valor?: number | null
+          distrato_pagamento_verificacoes?: number | null
+          distrato_parecer_enviado_em?: string | null
+          distrato_parecer_observacoes?: string | null
+          distrato_parecer_recebido_em?: string | null
+          distrato_parecer_tentativas?: number | null
+          distrato_remetente_titular?: boolean | null
+          distrato_responsavel_atual?: string | null
+          distrato_status_juridico_final?: string | null
           distrato_termo_sinal_anexo?: boolean | null
           distrato_termo_sinal_assinado?: boolean | null
           distrato_valor_pago?: number | null
@@ -7910,6 +8063,101 @@ export type Database = {
             columns: ["sla_id"]
             isOneToOne: false
             referencedRelation: "postvenda_sla_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      postvenda_distrato_sla: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          descricao: string | null
+          etapa: Database["public"]["Enums"]["distrato_etapa_bpmn"]
+          horas_corridas: number | null
+          horas_uteis: number | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          etapa: Database["public"]["Enums"]["distrato_etapa_bpmn"]
+          horas_corridas?: number | null
+          horas_uteis?: number | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          etapa?: Database["public"]["Enums"]["distrato_etapa_bpmn"]
+          horas_corridas?: number | null
+          horas_uteis?: number | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      postvenda_distrato_tarefas: {
+        Row: {
+          chamado_id: string | null
+          concluida_em: string | null
+          concluida_por: string | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          metadata: Json | null
+          prazo: string | null
+          responsavel: string | null
+          status: string | null
+          tentativas: number | null
+          tipo: string
+          titulo: string
+          ultima_tentativa: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          chamado_id?: string | null
+          concluida_em?: string | null
+          concluida_por?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          metadata?: Json | null
+          prazo?: string | null
+          responsavel?: string | null
+          status?: string | null
+          tentativas?: number | null
+          tipo: string
+          titulo: string
+          ultima_tentativa?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          chamado_id?: string | null
+          concluida_em?: string | null
+          concluida_por?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          metadata?: Json | null
+          prazo?: string | null
+          responsavel?: string | null
+          status?: string | null
+          tentativas?: number | null
+          tipo?: string
+          titulo?: string
+          ultima_tentativa?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "postvenda_distrato_tarefas_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "postvenda_chamados"
             referencedColumns: ["id"]
           },
         ]
@@ -10785,6 +11033,26 @@ export type Database = {
         | "concluida"
         | "atrasada"
         | "cancelada"
+      distrato_decisao:
+        | "pendente"
+        | "devolver"
+        | "nao_devolver"
+        | "em_negociacao"
+      distrato_etapa_bpmn:
+        | "solicitacao_recebida"
+        | "validacao_contato"
+        | "checklist_preenchido"
+        | "aguardando_parecer_gerente"
+        | "em_negociacao"
+        | "aguardando_assinatura"
+        | "aguardando_pagamento"
+        | "caso_concluido"
+      distrato_risco_juridico: "baixo" | "medio" | "alto"
+      distrato_status_procedimento:
+        | "nao_iniciado"
+        | "em_andamento"
+        | "finalizado"
+        | "cancelado"
       legal_case_status:
         | "active"
         | "pending"
@@ -11026,6 +11294,29 @@ export const Constants = {
         "concluida",
         "atrasada",
         "cancelada",
+      ],
+      distrato_decisao: [
+        "pendente",
+        "devolver",
+        "nao_devolver",
+        "em_negociacao",
+      ],
+      distrato_etapa_bpmn: [
+        "solicitacao_recebida",
+        "validacao_contato",
+        "checklist_preenchido",
+        "aguardando_parecer_gerente",
+        "em_negociacao",
+        "aguardando_assinatura",
+        "aguardando_pagamento",
+        "caso_concluido",
+      ],
+      distrato_risco_juridico: ["baixo", "medio", "alto"],
+      distrato_status_procedimento: [
+        "nao_iniciado",
+        "em_andamento",
+        "finalizado",
+        "cancelado",
       ],
       legal_case_status: [
         "active",
