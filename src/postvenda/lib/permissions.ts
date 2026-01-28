@@ -100,3 +100,14 @@ export const CANAL_ORIGEM_OPTIONS = [
   { value: 'presencial', label: 'Presencial' },
   { value: 'portal', label: 'Portal do Paciente' },
 ];
+
+export const BRANCH_OPTIONS = [
+  { value: 'fortaleza', label: 'Fortaleza' },
+  { value: 'sao_paulo', label: 'São Paulo' },
+  { value: 'belo_horizonte', label: 'Belo Horizonte' },
+  { value: 'rio_de_janeiro', label: 'Rio de Janeiro' },
+  { value: 'brasilia', label: 'Brasília' },
+  { value: 'curitiba', label: 'Curitiba' },
+  { value: 'recife', label: 'Recife' },
+  { value: 'salvador', label: 'Salvador' },
+];
