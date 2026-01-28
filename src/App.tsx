@@ -408,13 +408,6 @@ function AcademyRoutes() {
 // NeoLicense Routes (Portal do Licenciado)
 // ====================================
 function NeoLicenseRoutes() {
-  const { activeProfile } = useUnifiedAuth();
-  
-  // Admin acessando /neolicense é redirecionado para o dashboard
-  if (activeProfile === 'administrador') {
-    return <Navigate to="/admin-dashboard" replace />;
-  }
-  
   return (
     <ProfileGuard allowedProfiles={['licenciado']}>
       <SidebarWrapper>
