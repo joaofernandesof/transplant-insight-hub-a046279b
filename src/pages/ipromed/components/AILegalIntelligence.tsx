@@ -1,6 +1,7 @@
 /**
  * IPROMED - AI Legal Intelligence Component (Fase 3)
  * AI-powered document generation and risk analysis
+ * Connected to real Lovable AI via edge functions
  */
 
 import { useState } from "react";
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -32,26 +34,35 @@ import {
   Scale,
   TrendingUp,
   BarChart3,
+  Send,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from "react-markdown";
 
-// Document types for AI generation
+// Document types for AI generation - aligned with edge function
 const documentTypes = [
   { id: "tcle", label: "TCLE - Termo de Consentimento", category: "consent" },
-  { id: "privacy", label: "Política de Privacidade", category: "policy" },
-  { id: "contract", label: "Contrato de Serviços", category: "contract" },
-  { id: "response", label: "Resposta a Reclamação", category: "response" },
-  { id: "defense", label: "Defesa Administrativa", category: "defense" },
-  { id: "notice", label: "Notificação Extrajudicial", category: "notice" },
+  { id: "parecer", label: "Parecer Jurídico", category: "opinion" },
+  { id: "peticao_inicial", label: "Petição Inicial", category: "petition" },
+  { id: "contestacao", label: "Contestação", category: "defense" },
+  { id: "contrato", label: "Contrato de Serviços", category: "contract" },
+  { id: "notificacao", label: "Notificação Extrajudicial", category: "notice" },
+  { id: "procuracao", label: "Procuração Ad Judicia", category: "proxy" },
 ];
 
 // Risk categories
 const riskCategories = [
-  { id: "crm", label: "Ético (CRM)", weight: 0.3 },
-  { id: "civil", label: "Cível", weight: 0.25 },
+  { id: "crm", label: "Ético (CRM)", weight: 0.4 },
+  { id: "civel", label: "Cível", weight: 0.35 },
   { id: "criminal", label: "Criminal", weight: 0.25 },
-  { id: "advertising", label: "Publicidade", weight: 0.2 },
 ];
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 
 interface AILegalIntelligenceProps {
   clientId?: string;
@@ -81,8 +92,14 @@ export default function AILegalIntelligence({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [riskAnalysis, setRiskAnalysis] = useState<{
     overall: number;
-    categories: { id: string; score: number; recommendations: string[] }[];
+    classification: string;
+    categories: { id: string; score: number; justificativa: string; recommendations: string[] }[];
   } | null>(null);
+  
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   const handleGenerate = async () => {
     if (!selectedDocType) {
@@ -91,115 +108,164 @@ export default function AILegalIntelligence({
     }
 
     setIsGenerating(true);
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    setGeneratedContent("");
 
-    const docType = documentTypes.find(d => d.id === selectedDocType);
-    const generatedText = `
-# ${docType?.label}
+    try {
+      const prompt = `
+Elabore um documento jurídico completo para:
+- Cliente: ${clientName || "Médico(a)"}
+- Especialidade: ${clientData?.specialty || "Medicina Geral"}
+- Procedimentos: ${clientData?.procedures || "Diversos"}
 
-## Dados do Cliente
-- **Nome**: ${clientName || "Cliente"}
-- **Especialidade**: ${clientData?.specialty || "Não informada"}
+Contexto adicional: ${context || "Nenhum contexto adicional fornecido."}
 
-## Conteúdo Gerado
+Gere o documento completo, formatado em markdown, pronto para uso profissional.
+      `.trim();
 
-Este documento foi gerado automaticamente pelo sistema IPROMED com base nas informações fornecidas durante o onboarding jurídico.
+      const { data, error } = await supabase.functions.invoke("ai-legal-document", {
+        body: {
+          prompt,
+          documentType: selectedDocType,
+          context: {
+            clientName,
+            clientId,
+          },
+        },
+      });
 
-### Cláusulas Principais
+      if (error) throw error;
 
-1. **Objeto do Documento**
-   O presente instrumento tem por objeto estabelecer os termos e condições aplicáveis à relação entre as partes, observando as normas do Conselho Federal de Medicina e legislação vigente.
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
 
-2. **Obrigações das Partes**
-   - O profissional compromete-se a prestar serviços com diligência e observância das boas práticas médicas.
-   - O cliente compromete-se a fornecer informações verdadeiras e completas.
-
-3. **Consentimento Informado**
-   O cliente declara ter sido informado sobre todos os procedimentos, riscos e alternativas disponíveis.
-
-4. **Proteção de Dados**
-   Os dados pessoais serão tratados conforme a Lei Geral de Proteção de Dados (LGPD).
-
----
-*Documento gerado por IA - IPROMED Legal Hub*
-*Data: ${new Date().toLocaleDateString("pt-BR")}*
-    `.trim();
-
-    setGeneratedContent(generatedText);
-    setIsGenerating(false);
-    toast.success("Documento gerado com sucesso!");
+      setGeneratedContent(data.content || "Erro ao gerar documento.");
+      toast.success("Documento gerado com sucesso!");
+    } catch (error) {
+      console.error("Error generating document:", error);
+      toast.error("Erro ao gerar documento. Tente novamente.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleAnalyzeRisk = async () => {
     setIsAnalyzing(true);
-    // Simulate AI risk analysis
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    setRiskAnalysis(null);
 
-    // Calculate risk scores based on client data
-    const hasLawsuits = clientData?.hasActiveLawsuits ? 25 : 0;
-    const hasEthics = clientData?.hasEthicsProceedings ? 20 : 0;
-    const baseRisk = 15;
+    try {
+      const caseDescription = `
+Análise de risco jurídico para:
+- Médico(a): ${clientName || "Cliente"}
+- Especialidade: ${clientData?.specialty || "Não informada"}
+- Procedimentos realizados: ${clientData?.procedures || "Diversos"}
+- Possui processos ativos: ${clientData?.hasActiveLawsuits ? "Sim" : "Não"}
+- Possui procedimentos éticos: ${clientData?.hasEthicsProceedings ? "Sim" : "Não"}
+- Riscos CRM identificados: ${clientData?.crmRisks || "Nenhum informado"}
+- Riscos Cíveis identificados: ${clientData?.civilRisks || "Nenhum informado"}
+- Riscos Criminais identificados: ${clientData?.criminalRisks || "Nenhum informado"}
 
-    const crmScore = clientData?.crmRisks ? 45 : 20;
-    const civilScore = hasLawsuits + baseRisk + (clientData?.civilRisks ? 30 : 0);
-    const criminalScore = hasEthics + baseRisk + (clientData?.criminalRisks ? 35 : 0);
-    const advertisingScore = clientData?.advertisingRisks ? 40 : 15;
+Avalie o perfil de risco completo deste profissional médico.
+      `.trim();
 
-    const overallScore = Math.min(
-      100,
-      Math.round(
-        crmScore * 0.3 +
-        civilScore * 0.25 +
-        criminalScore * 0.25 +
-        advertisingScore * 0.2
-      )
-    );
-
-    setRiskAnalysis({
-      overall: overallScore,
-      categories: [
-        {
-          id: "crm",
-          score: crmScore,
-          recommendations: [
-            "Revisar materiais de divulgação",
-            "Atualizar documentação de prontuários",
-            "Verificar conformidade com Código de Ética Médica",
-          ],
+      const { data, error } = await supabase.functions.invoke("ai-legal-document", {
+        body: {
+          prompt: caseDescription,
+          action: "risk_scoring",
+          context: {
+            clientName,
+            clientId,
+          },
         },
-        {
-          id: "civil",
-          score: civilScore,
-          recommendations: [
-            "Implementar TCLEs personalizados",
-            "Documentar todos os procedimentos",
-            "Manter registro fotográfico quando aplicável",
-          ],
-        },
-        {
-          id: "criminal",
-          score: criminalScore,
-          recommendations: [
-            "Verificar habilitação para procedimentos específicos",
-            "Garantir estrutura adequada para emergências",
-            "Manter protocolos de segurança atualizados",
-          ],
-        },
-        {
-          id: "advertising",
-          score: advertisingScore,
-          recommendations: [
-            "Revisar redes sociais e site",
-            "Remover promessas de resultados",
-            "Adequar linguagem às normas do CFM",
-          ],
-        },
-      ],
-    });
+      });
 
-    setIsAnalyzing(false);
-    toast.success("Análise de risco concluída!");
+      if (error) throw error;
+
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      if (data?.riskData) {
+        const rd = data.riskData;
+        setRiskAnalysis({
+          overall: rd.total_score || 0,
+          classification: rd.classification || "medio",
+          categories: [
+            {
+              id: "crm",
+              score: rd.risk_crm?.score || 0,
+              justificativa: rd.risk_crm?.justificativa || "",
+              recommendations: rd.recommendations?.slice(0, 2) || [],
+            },
+            {
+              id: "civel",
+              score: rd.risk_civel?.score || 0,
+              justificativa: rd.risk_civel?.justificativa || "",
+              recommendations: rd.recommendations?.slice(2, 4) || [],
+            },
+            {
+              id: "criminal",
+              score: rd.risk_criminal?.score || 0,
+              justificativa: rd.risk_criminal?.justificativa || "",
+              recommendations: rd.recommendations?.slice(4) || [],
+            },
+          ],
+        });
+        toast.success("Análise de risco concluída!");
+      } else {
+        toast.error("Não foi possível processar a análise de risco.");
+      }
+    } catch (error) {
+      console.error("Error analyzing risk:", error);
+      toast.error("Erro ao analisar risco. Tente novamente.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Legal Assistant Chat
+  const handleSendChat = async () => {
+    if (!chatInput.trim()) return;
+
+    const userMessage: ChatMessage = { role: "user", content: chatInput.trim() };
+    setChatMessages((prev) => [...prev, userMessage]);
+    setChatInput("");
+    setIsChatLoading(true);
+
+    try {
+      const systemContext = `
+Você é uma advogada especialista em Direito Médico do IPROMED. Responda de forma clara, objetiva e fundamentada.
+Cliente atual: ${clientName || "Não especificado"}
+Especialidade: ${clientData?.specialty || "Não informada"}
+      `.trim();
+
+      const { data, error } = await supabase.functions.invoke("ai-legal-document", {
+        body: {
+          prompt: `${systemContext}\n\nPergunta do cliente: ${userMessage.content}`,
+          documentType: "parecer",
+          context: { clientName, clientId },
+        },
+      });
+
+      if (error) throw error;
+
+      const assistantMessage: ChatMessage = {
+        role: "assistant",
+        content: data?.content || "Desculpe, não consegui processar sua pergunta.",
+      };
+      setChatMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: ChatMessage = {
+        role: "assistant",
+        content: "Erro ao processar sua pergunta. Tente novamente.",
+      };
+      setChatMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsChatLoading(false);
+    }
   };
 
   const copyToClipboard = () => {
@@ -415,59 +481,128 @@ Este documento foi gerado automaticamente pelo sistema IPROMED com base nas info
             )}
           </TabsContent>
 
-          {/* Insights Tab */}
+          {/* Legal Assistant Chat Tab */}
           <TabsContent value="insights" className="mt-4">
             <div className="space-y-4">
-              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
-                      <BarChart3 className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Dashboard Analítico</h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Métricas detalhadas de conversão, SLA e retenção de clientes.
-                      </p>
-                      <Badge variant="outline">Em desenvolvimento</Badge>
-                    </div>
+              <Card className="border-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Assistente Jurídico IA
+                  </CardTitle>
+                  <CardDescription>
+                    Tire dúvidas sobre Direito Médico com nossa IA especializada
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[300px] border rounded-md p-4 mb-4 bg-muted/20">
+                    {chatMessages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                        <Bot className="h-12 w-12 mb-4 opacity-50" />
+                        <p className="text-sm">
+                          Olá! Sou a assistente jurídica do IPROMED.<br />
+                          Como posso ajudar você hoje?
+                        </p>
+                        <div className="mt-4 grid grid-cols-1 gap-2 text-xs">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setChatInput("Quais documentos preciso para abrir uma clínica?")}
+                          >
+                            Documentos para abrir clínica
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setChatInput("Como me proteger de processos por erro médico?")}
+                          >
+                            Proteção contra processos
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {chatMessages.map((msg, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                          >
+                            <div
+                              className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                                msg.role === "user"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted"
+                              }`}
+                            >
+                              {msg.role === "assistant" ? (
+                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                </div>
+                              ) : (
+                                <p className="text-sm">{msg.content}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {isChatLoading && (
+                          <div className="flex justify-start">
+                            <div className="bg-muted rounded-lg px-4 py-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </ScrollArea>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Digite sua pergunta jurídica..."
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendChat()}
+                      disabled={isChatLoading}
+                    />
+                    <Button onClick={handleSendChat} disabled={isChatLoading || !chatInput.trim()}>
+                      <Send className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-purple-200 dark:border-purple-800">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-xl">
-                      <Bot className="h-6 w-6 text-purple-600" />
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                        <BarChart3 className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm mb-1">Dashboard Analítico</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Métricas de SLA e conversão
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Assistente Jurídico IA</h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Chat inteligente para consultas jurídicas e orientações preventivas.
-                      </p>
-                      <Badge variant="outline">Em desenvolvimento</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200 dark:border-emerald-800">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">
-                      <Scale className="h-6 w-6 text-emerald-600" />
+                <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200 dark:border-emerald-800">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg">
+                        <Scale className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm mb-1">Jurisprudência</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Alertas sobre decisões relevantes
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Monitoramento de Jurisprudência</h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Alertas automáticos sobre decisões relevantes para seus clientes.
-                      </p>
-                      <Badge variant="outline">Em desenvolvimento</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
