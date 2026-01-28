@@ -43,7 +43,7 @@ const etapaColors: Record<string, string> = {
 export default function ChamadoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { chamados, avancarEtapa, addHistorico } = usePostVenda();
+  const { chamados, avancarEtapa, addHistorico, refetch } = usePostVenda();
   const { historico, isLoading: historicoLoading } = useChamadoHistorico(id);
   
   const [showCommentDialog, setShowCommentDialog] = useState(false);
@@ -189,7 +189,42 @@ export default function ChamadoDetailPage() {
                 onAdvance={async (targetEtapa, metadata) => {
                   setIsSubmitting(true);
                   try {
-                    await avancarEtapa(chamado.id, chamado.etapa_atual, metadata?.observacao);
+                    // Atualiza a etapa BPMN de distrato e a etapa genérica do chamado
+                    const { supabase } = await import('@/integrations/supabase/client');
+                    const { error } = await supabase
+                      .from('postvenda_chamados')
+                      .update({ 
+                        distrato_etapa_bpmn: targetEtapa,
+                        status: targetEtapa === 'caso_concluido' ? 'fechado' : 'em_andamento'
+                      })
+                      .eq('id', chamado.id);
+                    
+                    if (error) throw error;
+                    
+                    // Registra no histórico
+                    await addHistorico(chamado.id, 'transicao_etapa', metadata?.observacao || `Avançou para ${targetEtapa}`);
+                    
+                    // Recarrega os dados
+                    await refetch();
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                onSetDecisao={async (decisao) => {
+                  setIsSubmitting(true);
+                  try {
+                    const { supabase } = await import('@/integrations/supabase/client');
+                    const { error } = await supabase
+                      .from('postvenda_chamados')
+                      .update({ distrato_decisao: decisao })
+                      .eq('id', chamado.id);
+                    
+                    if (error) throw error;
+                    
+                    await addHistorico(chamado.id, 'parecer_gerente', `Decisão definida: ${decisao}`);
+                    
+                    // Recarrega os dados
+                    await refetch();
                   } finally {
                     setIsSubmitting(false);
                   }
