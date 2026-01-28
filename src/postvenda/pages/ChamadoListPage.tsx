@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X } from 'lucide-react';
+import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X, RefreshCw } from 'lucide-react';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { NovoChamadoDialog } from '../components';
 import { Chamado, usePostVenda } from '../hooks/usePostVenda';
@@ -28,7 +28,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function ChamadoListPage() {
-  const { chamados, isLoading, stats } = usePostVenda();
+  const { chamados, isLoading, stats, refetch } = usePostVenda();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -160,10 +161,25 @@ export default function ChamadoListPage() {
 
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Chamados</h1>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Chamado
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refetch();
+              setIsRefreshing(false);
+            }}
+            disabled={isRefreshing || isLoading}
+            title="Atualizar lista"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Novo Chamado
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
