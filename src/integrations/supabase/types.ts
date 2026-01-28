@@ -7588,6 +7588,36 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_link_clicks: {
+        Row: {
+          clicked_at: string
+          id: string
+          ip_address: string | null
+          referer_url: string | null
+          referral_code: string
+          referrer_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          id?: string
+          ip_address?: string | null
+          referer_url?: string | null
+          referral_code: string
+          referrer_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          id?: string
+          ip_address?: string | null
+          referer_url?: string | null
+          referral_code?: string
+          referrer_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       sala_tecnica_confirmations: {
         Row: {
           attendance_status: string | null
@@ -9764,6 +9794,18 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_clicks_summary: {
+        Row: {
+          clicks_last_30_days: number | null
+          clicks_last_7_days: number | null
+          last_click_at: string | null
+          referral_code: string | null
+          referrer_user_id: string | null
+          total_clicks: number | null
+          unique_days: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {

@@ -94,6 +94,7 @@ export default function ReferralLanding() {
     fetchClasses();
   }, []);
 
+
   const validateReferralCode = async () => {
     try {
       const upperCode = code?.toUpperCase();
@@ -109,6 +110,9 @@ export default function ReferralLanding() {
         setReferrerName(neohubUser.full_name);
         setReferrerUserId(neohubUser.user_id);
         setIsValidCode(true);
+        
+        // Track click
+        trackClick(upperCode!, neohubUser.user_id);
         return;
       }
       
@@ -123,6 +127,9 @@ export default function ReferralLanding() {
         setReferrerName(profile.name);
         setReferrerUserId(profile.user_id);
         setIsValidCode(true);
+        
+        // Track click
+        trackClick(upperCode!, profile.user_id);
         return;
       }
       
@@ -130,6 +137,22 @@ export default function ReferralLanding() {
     } catch (error) {
       console.error('Error validating referral code:', error);
       setIsValidCode(false);
+    }
+  };
+
+  const trackClick = async (referralCode: string, referrerUserId: string) => {
+    try {
+      await supabase
+        .from('referral_link_clicks')
+        .insert({
+          referral_code: referralCode,
+          referrer_user_id: referrerUserId,
+          user_agent: navigator.userAgent,
+          referer_url: document.referrer || null
+        });
+    } catch (error) {
+      // Silently fail - tracking is not critical
+      console.error('Error tracking click:', error);
     }
   };
 
