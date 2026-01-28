@@ -145,42 +145,60 @@ export default function ChamadoDetailPage() {
         </Button>
       </div>
 
-      {/* Enhanced Etapa Flow */}
+      {/* Fluxo do Processo - Diferente para Distrato vs outros tipos */}
       <div className="space-y-4">
-        {/* Toggle para Swim Lanes quando for Distrato */}
-        {chamado.tipo_demanda === 'distrato' && (
-          <div className="flex items-center justify-end gap-2">
-            <span className="text-xs text-muted-foreground">Visualização:</span>
-            <div className="flex rounded-lg border border-border overflow-hidden">
-              <Button
-                variant={!swimLanesView ? "secondary" : "ghost"}
-                size="sm"
-                className="rounded-none gap-1.5 text-xs h-8"
-                onClick={() => setSwimLanesView(false)}
-              >
-                <LayoutList className="h-3.5 w-3.5" />
-                Etapas
-              </Button>
-              <Button
-                variant={swimLanesView ? "secondary" : "ghost"}
-                size="sm"
-                className="rounded-none gap-1.5 text-xs h-8"
-                onClick={() => setSwimLanesView(true)}
-              >
-                <GitBranch className="h-3.5 w-3.5" />
-                Swim Lanes
-              </Button>
+        {chamado.tipo_demanda === 'distrato' ? (
+          <>
+            {/* Toggle para Swim Lanes quando for Distrato */}
+            <div className="flex items-center justify-end gap-2">
+              <span className="text-xs text-muted-foreground">Visualização:</span>
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                <Button
+                  variant={!swimLanesView ? "secondary" : "ghost"}
+                  size="sm"
+                  className="rounded-none gap-1.5 text-xs h-8"
+                  onClick={() => setSwimLanesView(false)}
+                >
+                  <LayoutList className="h-3.5 w-3.5" />
+                  Etapas BPMN
+                </Button>
+                <Button
+                  variant={swimLanesView ? "secondary" : "ghost"}
+                  size="sm"
+                  className="rounded-none gap-1.5 text-xs h-8"
+                  onClick={() => setSwimLanesView(true)}
+                >
+                  <GitBranch className="h-3.5 w-3.5" />
+                  Swim Lanes
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Fluxo normal ou Swim Lanes */}
-        {chamado.tipo_demanda === 'distrato' && swimLanesView ? (
-          <DistratoSwimLanesBpmn
-            currentEtapa={(chamado as any).distrato_etapa_bpmn || 'solicitacao_recebida'}
-            decisao={(chamado as any).distrato_decisao || 'pendente'}
-          />
+            {/* Fluxo BPMN de Distrato ou Swim Lanes */}
+            {swimLanesView ? (
+              <DistratoSwimLanesBpmn
+                currentEtapa={(chamado as any).distrato_etapa_bpmn || 'solicitacao_recebida'}
+                decisao={(chamado as any).distrato_decisao || 'pendente'}
+              />
+            ) : (
+              <DistratoEtapaFlow
+                currentEtapa={(chamado as any).distrato_etapa_bpmn || 'solicitacao_recebida'}
+                decisao={(chamado as any).distrato_decisao || 'pendente'}
+                onAdvance={async (targetEtapa, metadata) => {
+                  setIsSubmitting(true);
+                  try {
+                    // Para distrato, atualizamos a etapa BPMN específica
+                    await avancarEtapa(chamado.id, chamado.etapa_atual, metadata?.observacao);
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                isSubmitting={isSubmitting}
+              />
+            )}
+          </>
         ) : (
+          /* Fluxo genérico para outros tipos de chamado */
           <ChamadoEtapaFlow
             currentEtapa={chamado.etapa_atual}
             onAdvance={handleAdvanceEtapa}
