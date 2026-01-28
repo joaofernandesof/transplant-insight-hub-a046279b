@@ -47,16 +47,50 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
   // Open camera
   const openCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: 720, height: 720 }
-      });
+      // First check if camera is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Seu navegador não suporta acesso à câmera");
+        return;
+      }
+
+      // Try to get the camera stream with fallback options
+      let stream: MediaStream;
+      try {
+        // First try with environment camera (back camera for mobile)
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: { ideal: "environment" },
+            width: { ideal: 720 },
+            height: { ideal: 720 }
+          }
+        });
+      } catch {
+        // Fallback to any available camera
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true
+        });
+      }
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        await videoRef.current.play();
         setIsCameraOpen(true);
       }
     } catch (error) {
       console.error("Camera error:", error);
-      toast.error("Não foi possível acessar a câmera");
+      if (error instanceof DOMException) {
+        if (error.name === "NotAllowedError") {
+          toast.error("Permissão de câmera negada. Permita o acesso nas configurações.");
+        } else if (error.name === "NotFoundError") {
+          toast.error("Nenhuma câmera encontrada no dispositivo.");
+        } else if (error.name === "NotReadableError") {
+          toast.error("Câmera em uso por outro aplicativo.");
+        } else {
+          toast.error(`Erro ao acessar câmera: ${error.message}`);
+        }
+      } else {
+        toast.error("Não foi possível acessar a câmera");
+      }
     }
   };
 
@@ -155,9 +189,10 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
         setScanImage(data.image);
         toast.success("Scan de densidade gerado!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Processing error:", error);
-      toast.error("Erro ao processar imagem. Tente novamente.");
+      const errorMessage = error?.message || "Erro ao processar imagem. Tente novamente.";
+      toast.error(errorMessage);
     } finally {
       setIsProcessing(false);
     }
