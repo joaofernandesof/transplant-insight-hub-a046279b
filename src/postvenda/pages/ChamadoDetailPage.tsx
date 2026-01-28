@@ -135,14 +135,6 @@ export default function ChamadoDetailPage() {
             {getTipoDemandaLabel(chamado.tipo_demanda)} • {STATUS_LABELS[chamado.status]}
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowChecklistModal(true)}
-          className="gap-2"
-        >
-          <ClipboardCheck className="h-4 w-4" />
-          Checklist
-        </Button>
       </div>
 
       {/* Fluxo do Processo - Diferente para Distrato vs outros tipos */}
