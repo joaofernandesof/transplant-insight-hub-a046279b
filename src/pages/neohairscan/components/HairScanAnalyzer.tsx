@@ -237,41 +237,45 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
               },
             });
 
-            if (error) {
-              // Check for specific HTTP errors
-              const errorContext = (error as any)?.context;
-              if (errorContext?.status === 402) {
-                creditsError = true;
+            // Check for errors - either in error object or data.error
+            const errorMessage = error?.message || data?.error || "";
+            const errorContext = (error as any)?.context;
+            const statusCode = errorContext?.status || 
+                               (errorMessage.includes("402") ? 402 : 0) ||
+                               (errorMessage.includes("429") ? 429 : 0);
+            
+            // Handle 402 - Insufficient credits
+            if (statusCode === 402 || errorMessage.toLowerCase().includes("créditos insuficientes") || 
+                errorMessage.toLowerCase().includes("payment required")) {
+              creditsError = true;
+              if (successCount === 0) {
                 toast.error("Créditos Lovable AI insuficientes. Adicione créditos ao workspace.", {
-                  duration: 5000,
+                  duration: 8000,
                   action: {
                     label: "Saber mais",
                     onClick: () => window.open("https://docs.lovable.dev/features/ai", "_blank")
                   }
                 });
-                break;
               }
-              if (errorContext?.status === 429) {
-                rateLimitError = true;
+              break;
+            }
+            
+            // Handle 429 - Rate limit
+            if (statusCode === 429 || errorMessage.toLowerCase().includes("limite de requisições")) {
+              rateLimitError = true;
+              if (successCount === 0) {
                 toast.error("Limite de requisições atingido. Aguarde alguns minutos.", { duration: 5000 });
-                break;
               }
-              throw error;
+              break;
+            }
+            
+            // Handle other errors
+            if (error) {
+              console.error("Generation error:", error);
+              continue;
             }
             
             if (data?.error) {
-              // Check for error messages from the function itself
-              if (data.error.includes("Créditos insuficientes") || data.error.includes("402")) {
-                creditsError = true;
-                toast.error("Créditos Lovable AI insuficientes. Adicione créditos ao workspace.", {
-                  duration: 5000,
-                  action: {
-                    label: "Saber mais",
-                    onClick: () => window.open("https://docs.lovable.dev/features/ai", "_blank")
-                  }
-                });
-                break;
-              }
               console.error("Generation error:", data.error);
               continue;
             }
