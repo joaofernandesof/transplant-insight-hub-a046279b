@@ -3,7 +3,8 @@
  * Portal jurídico interno completo (Astrea Style)
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,26 @@ const tabs = [
 ];
 
 export default function IpromedLegalHub() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabFromUrl || 'overview');
+
+  // Sync tab from URL
+  useEffect(() => {
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === 'overview') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ tab });
+    }
+  };
 
   return (
     <div className="flex flex-col min-w-0 bg-background">
@@ -121,7 +141,7 @@ export default function IpromedLegalHub() {
       {/* Page Content */}
       <main className="flex-1 overflow-auto">
         <div className="p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             {/* Tab Navigation - Hidden since we use sidebar */}
             <div className="sr-only">
               <TabsList>
