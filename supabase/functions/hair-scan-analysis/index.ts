@@ -48,8 +48,35 @@ The progression should be proportional to ${yearsProgression} years of untreated
 - Make it look like a professional trichoscopy or scalp scan
 - Keep facial features visible but muted
 The result should help doctors identify areas of alopecia and density variations.`;
+    } else if (action === "newversion") {
+      // Generate post-transplant hairstyle simulation
+      const { hairStyle } = await req.json().catch(() => ({ hairStyle: "natural" }));
+      
+      const styleDescriptions: Record<string, string> = {
+        "natural": "natural, well-groomed with good volume",
+        "short": "short and neat, professionally styled",
+        "slick": "slicked back with gel, formal and elegant",
+        "textured": "textured and layered with volume",
+        "wavy": "wavy with natural movement",
+        "classic": "classic side part with clean lines",
+      };
+      
+      const styleDesc = styleDescriptions[hairStyle] || styleDescriptions["natural"];
+      
+      prompt = `CRITICAL INSTRUCTION: Edit ONLY the hair in this photo. The face, skin, eyes, nose, mouth, ears, beard, facial hair, clothing, and background MUST remain EXACTLY identical - do not alter them at all.
+
+Transform this person's hair to show a successful hair transplant result:
+- Add full, dense hair coverage where there is currently thinning or baldness
+- The new hair should look ${styleDesc}
+- Match the hair color exactly to any existing hair
+- Create a natural-looking hairline appropriate for the person's age and face shape
+- Show realistic hair density and texture
+- The hair should look like real, high-quality hair - ultra photorealistic
+- Maintain exact same lighting, shadows, and image quality
+
+This is a medical simulation of post-transplant results. The person should look like themselves but with a full head of hair.`;
     } else {
-      throw new Error("Invalid action. Use 'progression' or 'scan'");
+      throw new Error("Invalid action. Use 'progression', 'scan' or 'newversion'");
     }
 
     console.log(`Processing ${action} analysis...`);
