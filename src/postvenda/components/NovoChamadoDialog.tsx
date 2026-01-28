@@ -201,7 +201,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
         </DialogHeader>
 
         <ScrollArea className={isDistrato ? "max-h-[70vh] pr-4" : ""}>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Canal de Origem - Primeiro para Distrato */}
             <div className="space-y-2">
               <Label>Canal de Origem *</Label>
@@ -212,7 +212,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[110]">
                   {CANAL_ORIGEM_OPTIONS.map(opt => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
@@ -222,14 +222,14 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
 
             {/* ========== CAMPOS ESPECÍFICOS DE DISTRATO ========== */}
             {isDistrato && (
-              <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+              <div className="space-y-5 border rounded-lg p-4 bg-muted/30">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm font-medium">Campos obrigatórios para Distrato</span>
                 </div>
 
                 {/* Paciente - Seleção da lista */}
-                <div className="space-y-2">
+                <div className="space-y-2 relative z-20">
                   <Label>Paciente * <span className="text-xs text-muted-foreground">(busque pelo nome)</span></Label>
                   <PatientAutocomplete
                     value={formData.paciente_nome}
@@ -257,7 +257,7 @@ export function NovoChamadoDialog({ open, onOpenChange, initialTipoDemanda }: No
                 </div>
 
                 {/* PDF do Email - Obrigatório */}
-                <div className="space-y-2">
+                <div className="space-y-2 relative z-10">
                   <Label>PDF do E-mail de Solicitação *</Label>
                   <input
                     ref={fileInputRef}
