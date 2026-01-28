@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Lock
 } from 'lucide-react';
+import { NeoHairScanIcon } from '@/components/icons/NeoHairScanIcon';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
 import { cn } from '@/lib/utils';
 
@@ -85,6 +86,15 @@ const SYSTEM_MODULES: SystemModule[] = [
     route: '/avivar',
     color: 'bg-orange-500',
     requiredProfiles: ['cliente_avivar', 'administrador'],
+  },
+  {
+    key: 'neohairscan',
+    name: 'NeoHairScan',
+    description: 'Análise capilar com IA',
+    icon: NeoHairScanIcon,
+    route: '/neohairscan',
+    color: 'bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500',
+    requiredProfiles: ['medico', 'colaborador', 'administrador'],
   },
 ];
 

@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Sparkles
 } from 'lucide-react';
+import { NeoHairScanIcon } from '@/components/icons/NeoHairScanIcon';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -82,6 +83,15 @@ const PORTAL_CONFIG: Record<string, {
     bgColor: 'bg-purple-50 dark:bg-purple-950/30',
     profiles: ['cliente_avivar'],
     route: '/avivar',
+  },
+  neohairscan: {
+    title: 'NeoHairScan',
+    description: 'Análise capilar com IA',
+    icon: NeoHairScanIcon,
+    gradient: 'from-pink-500 via-rose-500 to-orange-500',
+    bgColor: 'bg-pink-50 dark:bg-pink-950/30',
+    profiles: ['medico', 'colaborador'],
+    route: '/neohairscan',
   },
 };
 
