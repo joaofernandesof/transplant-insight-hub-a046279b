@@ -15,7 +15,7 @@ import { usePostVenda } from '../hooks/usePostVenda';
 import { ETAPA_LABELS } from '../lib/permissions';
 import { ChamadosTabContent } from '../components/ChamadosTabContent';
 
-type NpsRow = { nota: number | null; respondido_em: string | null; created_at: string | null };
+type NpsRow = { nota: number | null; respondido_em: string | null; enviado_em: string | null };
 
 function calcNpsScore(scores: number[]) {
   if (!scores.length) return 0;
@@ -59,8 +59,8 @@ export default function PostVendaHome() {
       setIsLoadingNps(true);
       const { data } = await supabase
         .from('postvenda_nps')
-        .select('nota, respondido_em, created_at')
-        .order('created_at', { ascending: false })
+        .select('nota, respondido_em, enviado_em')
+        .order('enviado_em', { ascending: false, nullsFirst: false })
         .limit(1000);
       setNpsRows((data as unknown as NpsRow[]) || []);
       setIsLoadingNps(false);
