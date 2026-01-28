@@ -138,7 +138,9 @@ export function usePostVenda(filters?: { status?: ChamadoStatus; etapa?: Chamado
         : null;
 
       // Clean up empty strings to null for database compatibility
-      const cleanedData = {
+      const isDistrato = data.tipo_demanda === 'distrato';
+      
+      const cleanedData: Record<string, any> = {
         paciente_id: data.paciente_id || null,
         paciente_nome: data.paciente_nome,
         paciente_telefone: data.paciente_telefone || null,
@@ -149,28 +151,31 @@ export function usePostVenda(filters?: { status?: ChamadoStatus; etapa?: Chamado
         canal_origem: data.canal_origem || 'whatsapp',
         motivo_abertura: data.motivo_abertura || null,
         branch: data.branch || null,
-        // Campos específicos de Distrato - converter strings vazias para null
-        distrato_valor_pago: data.distrato_valor_pago || null,
-        distrato_data_pagamento_sinal: data.distrato_data_pagamento_sinal && data.distrato_data_pagamento_sinal.trim() !== '' 
-          ? data.distrato_data_pagamento_sinal 
-          : null,
-        distrato_forma_pagamento: data.distrato_forma_pagamento || null,
-        distrato_termo_sinal_assinado: data.distrato_termo_sinal_assinado ?? null,
-        distrato_termo_sinal_anexo: data.distrato_termo_sinal_anexo ?? null,
-        distrato_contrato_assinado: data.distrato_contrato_assinado ?? null,
-        distrato_contrato_anexo: data.distrato_contrato_anexo ?? null,
       };
+      
+      // Campos específicos de Distrato - só incluir se for distrato
+      if (isDistrato) {
+        cleanedData.distrato_valor_pago = data.distrato_valor_pago || null;
+        cleanedData.distrato_data_pagamento_sinal = (data.distrato_data_pagamento_sinal && data.distrato_data_pagamento_sinal.trim() !== '') 
+          ? data.distrato_data_pagamento_sinal 
+          : null;
+        cleanedData.distrato_forma_pagamento = data.distrato_forma_pagamento || null;
+        cleanedData.distrato_termo_sinal_assinado = data.distrato_termo_sinal_assinado ?? null;
+        cleanedData.distrato_termo_sinal_anexo = data.distrato_termo_sinal_anexo ?? null;
+        cleanedData.distrato_contrato_assinado = data.distrato_contrato_assinado ?? null;
+        cleanedData.distrato_contrato_anexo = data.distrato_contrato_anexo ?? null;
+      }
+
+      // Add required fields for insert
+      cleanedData.status = 'aberto';
+      cleanedData.etapa_atual = 'triagem';
+      cleanedData.sla_id = slaConfig?.id || null;
+      cleanedData.sla_prazo_fim = slaPrazoFim;
+      cleanedData.created_by = user?.id || null;
 
       const { data: chamado, error } = await supabase
         .from('postvenda_chamados')
-        .insert({
-          ...cleanedData,
-          status: 'aberto',
-          etapa_atual: 'triagem',
-          sla_id: slaConfig?.id,
-          sla_prazo_fim: slaPrazoFim,
-          created_by: user?.id,
-        })
+        .insert(cleanedData as any)
         .select()
         .single();
 
@@ -191,7 +196,13 @@ export function usePostVenda(filters?: { status?: ChamadoStatus; etapa?: Chamado
       return chamado as unknown as Chamado;
     } catch (error: any) {
       console.error('Erro ao criar chamado:', error);
-      toast({ title: 'Erro', description: 'Não foi possível criar o chamado', variant: 'destructive' });
+      const errorCode = error?.code || 'UNKNOWN';
+      const errorMessage = error?.message || 'Erro desconhecido';
+      toast({ 
+        title: 'Erro', 
+        description: `[${errorCode}] ${errorMessage}`, 
+        variant: 'destructive' 
+      });
       throw error;
     }
   };
