@@ -68,6 +68,14 @@ export interface NovoChamado {
   canal_origem?: string;
   motivo_abertura?: string;
   branch?: string;
+  // Campos específicos de Distrato
+  distrato_valor_pago?: number;
+  distrato_data_pagamento_sinal?: string;
+  distrato_forma_pagamento?: 'online' | 'presencial';
+  distrato_termo_sinal_assinado?: boolean;
+  distrato_termo_sinal_anexo?: boolean;
+  distrato_contrato_assinado?: boolean;
+  distrato_contrato_anexo?: boolean;
 }
 
 // SLA Status helper
