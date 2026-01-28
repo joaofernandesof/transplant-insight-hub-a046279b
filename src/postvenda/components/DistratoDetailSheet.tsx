@@ -14,11 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   AlertCircle,
-  ArrowRight,
-  Calendar,
   CheckCircle2,
   ClipboardList,
   Clock,
@@ -32,27 +29,26 @@ import {
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  DestratoSolicitacao,
-  DestratoEtapa,
-  DESTRATO_ETAPA_LABELS,
-  DESTRATO_STATUS_LABELS,
+  DistratoSolicitacao,
+  DISTRATO_ETAPA_LABELS,
+  DISTRATO_STATUS_LABELS,
   SCRIPTS_PADRAO,
-  useDestratoRequests,
-  useDestratoSubtarefas,
-  useDestratoHistorico,
-} from '../hooks/useDestratoRequests';
+  useDistratoRequests,
+  useDistratoSubtarefas,
+  useDistratoHistorico,
+} from '../hooks/useDistrato';
 import { useToast } from '@/hooks/use-toast';
 
-interface DestratoDetailSheetProps {
-  solicitacao: DestratoSolicitacao | null;
+interface DistratoDetailSheetProps {
+  solicitacao: DistratoSolicitacao | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function DestratoDetailSheet({ solicitacao, open, onOpenChange }: DestratoDetailSheetProps) {
-  const { atualizarSolicitacao, moverParaEtapa, definirParecerGerente } = useDestratoRequests();
-  const { subtarefas, concluirSubtarefa } = useDestratoSubtarefas(solicitacao?.id);
-  const { historico } = useDestratoHistorico(solicitacao?.id);
+export function DistratoDetailSheet({ solicitacao, open, onOpenChange }: DistratoDetailSheetProps) {
+  const { atualizarSolicitacao, definirParecerGerente } = useDistratoRequests();
+  const { subtarefas, concluirSubtarefa } = useDistratoSubtarefas(solicitacao?.id);
+  const { historico } = useDistratoHistorico(solicitacao?.id);
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('info');
   const [isSaving, setIsSaving] = useState(false);
@@ -66,7 +62,7 @@ export function DestratoDetailSheet({ solicitacao, open, onOpenChange }: Destrat
     toast({ title: 'Copiado!', description: 'Script copiado para a área de transferência' });
   };
 
-  const handleSaveChecklist = async (updates: Partial<DestratoSolicitacao>) => {
+  const handleSaveChecklist = async (updates: Partial<DistratoSolicitacao>) => {
     setIsSaving(true);
     try {
       await atualizarSolicitacao(solicitacao.id, {
@@ -104,8 +100,8 @@ export function DestratoDetailSheet({ solicitacao, open, onOpenChange }: Destrat
             )}
           </SheetTitle>
           <div className="flex items-center gap-2 mt-2">
-            <Badge>{DESTRATO_ETAPA_LABELS[solicitacao.etapa_atual]}</Badge>
-            <Badge variant="outline">{DESTRATO_STATUS_LABELS[solicitacao.status_final]}</Badge>
+            <Badge>{DISTRATO_ETAPA_LABELS[solicitacao.etapa_atual]}</Badge>
+            <Badge variant="outline">{DISTRATO_STATUS_LABELS[solicitacao.status_final]}</Badge>
           </div>
         </SheetHeader>
 
@@ -289,7 +285,7 @@ export function DestratoDetailSheet({ solicitacao, open, onOpenChange }: Destrat
 
             {/* Tab: Checklist */}
             <TabsContent value="checklist" className="m-0">
-              <DestratoChecklist 
+              <DistratoChecklist 
                 solicitacao={solicitacao} 
                 onSave={handleSaveChecklist}
                 isSaving={isSaving}
@@ -387,7 +383,7 @@ export function DestratoDetailSheet({ solicitacao, open, onOpenChange }: Destrat
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{item.acao}</span>
                         <Badge variant="outline" className="text-xs">
-                          {DESTRATO_ETAPA_LABELS[item.etapa]}
+                          {DISTRATO_ETAPA_LABELS[item.etapa]}
                         </Badge>
                       </div>
                       {item.descricao && (
@@ -413,13 +409,13 @@ export function DestratoDetailSheet({ solicitacao, open, onOpenChange }: Destrat
 }
 
 // Componente de Checklist separado
-function DestratoChecklist({ 
+function DistratoChecklist({ 
   solicitacao, 
   onSave,
   isSaving 
 }: { 
-  solicitacao: DestratoSolicitacao; 
-  onSave: (updates: Partial<DestratoSolicitacao>) => Promise<void>;
+  solicitacao: DistratoSolicitacao; 
+  onSave: (updates: Partial<DistratoSolicitacao>) => Promise<void>;
   isSaving: boolean;
 }) {
   const [formData, setFormData] = useState({

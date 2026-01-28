@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,28 +14,25 @@ import {
 import {
   AlertCircle,
   ArrowRight,
-  Calendar,
-  CheckCircle2,
   Clock,
   FileText,
   MoreHorizontal,
   Plus,
-  User,
 } from 'lucide-react';
-import { format, formatDistanceToNow, isPast } from 'date-fns';
+import { formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  useDestratoRequests,
-  DestratoSolicitacao,
-  DestratoEtapa,
-  DESTRATO_ETAPA_LABELS,
-  DESTRATO_ETAPA_COLORS,
-} from '../hooks/useDestratoRequests';
-import { NovaDestratoDialog } from './NovaDestratoDialog';
-import { DestratoDetailSheet } from './DestratoDetailSheet';
+  useDistratoRequests,
+  DistratoSolicitacao,
+  DistratoEtapa,
+  DISTRATO_ETAPA_LABELS,
+  DISTRATO_ETAPA_COLORS,
+} from '../hooks/useDistrato';
+import { NovaDistratoDialog } from './NovaDistratoDialog';
+import { DistratoDetailSheet } from './DistratoDetailSheet';
 
 // Ordem das colunas do Kanban
-const KANBAN_COLUMNS: DestratoEtapa[] = [
+const KANBAN_COLUMNS: DistratoEtapa[] = [
   'solicitacao_recebida',
   'checklist_preenchido',
   'aguardando_parecer_gerente',
@@ -46,19 +43,18 @@ const KANBAN_COLUMNS: DestratoEtapa[] = [
   'caso_concluido',
 ];
 
-interface DestratoCardProps {
-  solicitacao: DestratoSolicitacao;
+interface DistratoCardProps {
+  solicitacao: DistratoSolicitacao;
   onClick: () => void;
-  onMover: (novaEtapa: DestratoEtapa) => void;
+  onMover: (novaEtapa: DistratoEtapa) => void;
 }
 
-const DestratoCard = ({ solicitacao, onClick, onMover }: DestratoCardProps) => {
+const DistratoCard = ({ solicitacao, onClick, onMover }: DistratoCardProps) => {
   const prazoEstourado = solicitacao.prazo_atual && isPast(new Date(solicitacao.prazo_atual));
   
   // Próximas etapas válidas
-  const getProximasEtapas = (): DestratoEtapa[] => {
-    const currentIndex = KANBAN_COLUMNS.indexOf(solicitacao.etapa_atual);
-    const proximas: DestratoEtapa[] = [];
+  const getProximasEtapas = (): DistratoEtapa[] => {
+    const proximas: DistratoEtapa[] = [];
 
     switch (solicitacao.etapa_atual) {
       case 'solicitacao_recebida':
@@ -130,7 +126,7 @@ const DestratoCard = ({ solicitacao, onClick, onMover }: DestratoCardProps) => {
                   onClick={(e) => { e.stopPropagation(); onMover(etapa); }}
                 >
                   <ArrowRight className="h-4 w-4 mr-2" />
-                  {DESTRATO_ETAPA_LABELS[etapa]}
+                  {DISTRATO_ETAPA_LABELS[etapa]}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -170,12 +166,12 @@ const DestratoCard = ({ solicitacao, onClick, onMover }: DestratoCardProps) => {
   );
 };
 
-export function DestratoKanban() {
-  const { solicitacoes, isLoading, stats, moverParaEtapa } = useDestratoRequests();
+export function DistratoKanban() {
+  const { solicitacoes, isLoading, stats, moverParaEtapa } = useDistratoRequests();
   const [isNovaDialogOpen, setIsNovaDialogOpen] = useState(false);
-  const [selectedSolicitacao, setSelectedSolicitacao] = useState<DestratoSolicitacao | null>(null);
+  const [selectedSolicitacao, setSelectedSolicitacao] = useState<DistratoSolicitacao | null>(null);
 
-  const getSolicitacoesByEtapa = (etapa: DestratoEtapa) => 
+  const getSolicitacoesByEtapa = (etapa: DistratoEtapa) => 
     solicitacoes.filter(s => s.etapa_atual === etapa);
 
   if (isLoading) {
@@ -193,7 +189,7 @@ export function DestratoKanban() {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <FileText className="h-6 w-6 text-primary" />
-            Gestão de Solicitações de Destrato
+            Gestão de Solicitações de Distrato
           </h2>
           <p className="text-muted-foreground">Kanban de acompanhamento jurídico</p>
         </div>
@@ -225,14 +221,14 @@ export function DestratoKanban() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 overflow-x-auto pb-4">
         {KANBAN_COLUMNS.map((etapa) => {
           const items = getSolicitacoesByEtapa(etapa);
-          const colors = DESTRATO_ETAPA_COLORS[etapa];
+          const colors = DISTRATO_ETAPA_COLORS[etapa];
           
           return (
             <div key={etapa} className="min-w-[220px] space-y-2">
               <div className={`p-2 rounded-lg border-l-4 ${colors}`}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-xs leading-tight">
-                    {DESTRATO_ETAPA_LABELS[etapa]}
+                    {DISTRATO_ETAPA_LABELS[etapa]}
                   </h3>
                   <Badge variant="secondary" className="text-xs h-5 min-w-5 flex items-center justify-center">
                     {items.length}
@@ -242,7 +238,7 @@ export function DestratoKanban() {
               <ScrollArea className="h-[calc(100vh-300px)]">
                 <div className="space-y-2 pr-2">
                   {items.map((solicitacao) => (
-                    <DestratoCard
+                    <DistratoCard
                       key={solicitacao.id}
                       solicitacao={solicitacao}
                       onClick={() => setSelectedSolicitacao(solicitacao)}
@@ -262,12 +258,12 @@ export function DestratoKanban() {
       </div>
 
       {/* Dialogs */}
-      <NovaDestratoDialog 
+      <NovaDistratoDialog 
         open={isNovaDialogOpen} 
         onOpenChange={setIsNovaDialogOpen} 
       />
 
-      <DestratoDetailSheet
+      <DistratoDetailSheet
         solicitacao={selectedSolicitacao}
         open={!!selectedSolicitacao}
         onOpenChange={(open) => !open && setSelectedSolicitacao(null)}
