@@ -23,6 +23,8 @@ import {
   Plus,
   HelpCircle,
   User,
+  FolderOpen,
+  Clock,
 } from "lucide-react";
 
 import LegalOverviewDashboard from "./components/LegalOverviewDashboard";
@@ -34,9 +36,13 @@ import LegalAnalytics from "./components/LegalAnalytics";
 import AstreaStyleSidebar from "./components/AstreaStyleSidebar";
 import AstreaExpandedAlerts from "./components/AstreaExpandedAlerts";
 import AstreaPublicationsPage from "./components/AstreaPublicationsPage";
-import AstreaAgendaPage from "./components/AstreaAgendaPage";
-import AstreaFinancialPage from "./components/AstreaFinancialPage";
 import AstreaClientPortal from "./components/AstreaClientPortal";
+
+// Novos componentes com dados reais
+import DocumentsManager from "./components/DocumentsManager";
+import CaseMovementsTimeline from "./components/CaseMovementsTimeline";
+import RealFinancialPage from "./components/RealFinancialPage";
+import RealAppointmentsPage from "./components/RealAppointmentsPage";
 
 const tabs = [
   { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard },
@@ -44,6 +50,8 @@ const tabs = [
   { id: 'publications', label: 'Publicações', icon: FileText },
   { id: 'agenda', label: 'Agenda', icon: LayoutGrid },
   { id: 'cases', label: 'Processos', icon: Gavel },
+  { id: 'movements', label: 'Andamentos', icon: Clock },
+  { id: 'documents', label: 'Documentos', icon: FolderOpen },
   { id: 'contracts', label: 'Contratos', icon: FileText },
   { id: 'financial', label: 'Financeiro', icon: BarChart3 },
   { id: 'portal', label: 'Portal do Cliente', icon: MessageSquare },
@@ -135,11 +143,19 @@ export default function IpromedLegalHub() {
               </TabsContent>
 
               <TabsContent value="agenda" className="mt-0">
-                <AstreaAgendaPage />
+                <RealAppointmentsPage />
               </TabsContent>
 
               <TabsContent value="cases" className="mt-0">
                 <LegalCasesManager />
+              </TabsContent>
+
+              <TabsContent value="movements" className="mt-0">
+                <CaseMovementsTimeline showCaseSelector />
+              </TabsContent>
+
+              <TabsContent value="documents" className="mt-0">
+                <DocumentsManager />
               </TabsContent>
 
               <TabsContent value="contracts" className="mt-0">
@@ -147,7 +163,7 @@ export default function IpromedLegalHub() {
               </TabsContent>
 
               <TabsContent value="financial" className="mt-0">
-                <AstreaFinancialPage />
+                <RealFinancialPage />
               </TabsContent>
 
               <TabsContent value="portal" className="mt-0">
