@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
-import { ChamadoTimeline, ChamadoEtapaFlow, DistratoSwimLanesBpmn, PostVendaChecklistModal } from '../components';
+import { ChamadoTimeline, ChamadoEtapaFlow, DistratoSwimLanesBpmn, PostVendaChecklistModal, EtapaChecklistSection, useEtapaChecklistStatus } from '../components';
 import { DistratoEtapaFlow, DistratoEtapaBpmn, DistratoDecisao } from '../components/DistratoEtapaFlow';
 import { usePostVenda, useChamadoHistorico, ChamadoEtapa } from '../hooks/usePostVenda';
 import { ETAPA_LABELS, STATUS_LABELS, PRIORIDADE_LABELS, TIPO_DEMANDA_OPTIONS, DISTRATO_ETAPA_LABELS } from '../lib/permissions';
@@ -184,10 +184,11 @@ export default function ChamadoDetailPage() {
               <DistratoEtapaFlow
                 currentEtapa={(chamado as any).distrato_etapa_bpmn || 'solicitacao_recebida'}
                 decisao={(chamado as any).distrato_decisao || 'pendente'}
+                chamadoId={chamado.id}
+                tipoDemanda={chamado.tipo_demanda}
                 onAdvance={async (targetEtapa, metadata) => {
                   setIsSubmitting(true);
                   try {
-                    // Para distrato, atualizamos a etapa BPMN específica
                     await avancarEtapa(chamado.id, chamado.etapa_atual, metadata?.observacao);
                   } finally {
                     setIsSubmitting(false);
@@ -201,6 +202,8 @@ export default function ChamadoDetailPage() {
           /* Fluxo genérico para outros tipos de chamado */
           <ChamadoEtapaFlow
             currentEtapa={chamado.etapa_atual}
+            chamadoId={chamado.id}
+            tipoDemanda={chamado.tipo_demanda}
             onAdvance={handleAdvanceEtapa}
             onRevert={handleRevertEtapa}
             bpmnEnabled={bpmnEnabled}

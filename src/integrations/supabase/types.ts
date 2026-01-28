@@ -8221,6 +8221,7 @@ export type Database = {
           completed_by: string | null
           created_at: string
           description: string | null
+          etapa_bpmn: string | null
           guidance: string | null
           id: string
           is_completed: boolean | null
@@ -8236,6 +8237,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           description?: string | null
+          etapa_bpmn?: string | null
           guidance?: string | null
           id?: string
           is_completed?: boolean | null
@@ -8251,6 +8253,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           description?: string | null
+          etapa_bpmn?: string | null
           guidance?: string | null
           id?: string
           is_completed?: boolean | null
@@ -8281,6 +8284,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          etapa_bpmn: string | null
           guidance: string | null
           id: string
           order_index: number
@@ -8292,6 +8296,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          etapa_bpmn?: string | null
           guidance?: string | null
           id?: string
           order_index: number
@@ -8303,6 +8308,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          etapa_bpmn?: string | null
           guidance?: string | null
           id?: string
           order_index?: number
