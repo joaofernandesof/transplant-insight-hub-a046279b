@@ -328,7 +328,7 @@ Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhum</SelectItem>
+                        <SelectItem value="__none__">Nenhum</SelectItem>
                         {clients.map((c) => (
                           <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                         ))}
@@ -342,7 +342,7 @@ Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhum</SelectItem>
+                        <SelectItem value="__none__">Nenhum</SelectItem>
                         {cases.map((c) => (
                           <SelectItem key={c.id} value={c.id}>
                             {c.case_number || c.title}
