@@ -45,3 +45,6 @@ verify_jwt = false
 
 [functions.check-patient-orientations]
 verify_jwt = false
+
+[functions.send-referral-welcome]
+verify_jwt = false

@@ -15,6 +15,16 @@ interface StudentData {
   state?: string;
   course?: string;
   classId?: string;
+  sendReferralEmail?: boolean;
+}
+
+// Generate referral code from user_id
+function generateReferralCode(userId: string): string {
+  const hash = Array.from(userId + Date.now().toString())
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    .toString(16)
+    .toUpperCase();
+  return hash.substring(0, 8);
 }
 
 Deno.serve(async (req) => {
@@ -44,18 +54,31 @@ Deno.serve(async (req) => {
     // Check if user already exists
     const { data: existingUser } = await supabase
       .from("neohub_users")
-      .select("id, user_id")
+      .select("id, user_id, referral_code")
       .eq("email", email)
       .maybeSingle();
 
     let userId: string;
     let authUserId: string;
+    let referralCode: string;
+    let isNewUser = false;
 
     if (existingUser) {
       console.log("User already exists, using existing record");
       userId = existingUser.id;
       authUserId = existingUser.user_id;
+      referralCode = existingUser.referral_code || generateReferralCode(existingUser.user_id);
+      
+      // Update referral_code if missing
+      if (!existingUser.referral_code) {
+        await supabase
+          .from("neohub_users")
+          .update({ referral_code: referralCode })
+          .eq("id", userId);
+      }
     } else {
+      isNewUser = true;
+      
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email,
@@ -73,8 +96,9 @@ Deno.serve(async (req) => {
       }
 
       authUserId = authData.user.id;
+      referralCode = generateReferralCode(authUserId);
 
-      // Create neohub_users record
+      // Create neohub_users record with referral_code
       const { data: newUser, error: userError } = await supabase
         .from("neohub_users")
         .insert({
@@ -87,6 +111,7 @@ Deno.serve(async (req) => {
           state: student.state || null,
           role: "patient",
           is_active: true,
+          referral_code: referralCode,
         })
         .select("id")
         .single();
@@ -110,7 +135,7 @@ Deno.serve(async (req) => {
           profile_id: alunoProfileId,
         });
 
-      console.log(`Created new user: ${userId}`);
+      console.log(`Created new user: ${userId} with referral code: ${referralCode}`);
     }
 
     // Enroll in class if provided
@@ -142,6 +167,38 @@ Deno.serve(async (req) => {
       console.log("Already enrolled in class");
     }
 
+    // Send referral welcome email for new users (default: true)
+    const shouldSendReferralEmail = student.sendReferralEmail !== false && isNewUser;
+    
+    if (shouldSendReferralEmail) {
+      try {
+        console.log("Sending referral welcome email...");
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/send-referral-welcome`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseServiceKey}`,
+          },
+          body: JSON.stringify({
+            name: student.fullName,
+            email: email,
+            referral_code: referralCode,
+          }),
+        });
+
+        if (response.ok) {
+          console.log("Referral welcome email sent successfully");
+        } else {
+          const errorText = await response.text();
+          console.error("Failed to send referral welcome email:", errorText);
+        }
+      } catch (emailError) {
+        console.error("Error sending referral welcome email:", emailError);
+        // Don't fail the whole operation if email fails
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -149,6 +206,8 @@ Deno.serve(async (req) => {
         userId,
         email,
         password: existingUser ? "(unchanged)" : password,
+        referralCode,
+        referralEmailSent: shouldSendReferralEmail,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
