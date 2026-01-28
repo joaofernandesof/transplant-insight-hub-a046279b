@@ -5,23 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
-import { ChamadoTimeline } from '../components';
+import { ChamadoTimeline, ChamadoEtapaFlow } from '../components';
 import { usePostVenda, useChamadoHistorico, ChamadoEtapa } from '../hooks/usePostVenda';
 import { ETAPA_LABELS, STATUS_LABELS, PRIORIDADE_LABELS, TIPO_DEMANDA_OPTIONS } from '../lib/permissions';
 import { 
-  ArrowLeft, User, Phone, Mail, Clock, Calendar, 
-  MessageCircle, ChevronRight, AlertCircle, CheckCircle2,
-  ArrowRight, Loader2, FileText
+  ArrowLeft, User, Phone, Mail, Clock,
+  MessageCircle, AlertCircle, Loader2, FileText
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -46,19 +38,16 @@ const etapaColors: Record<string, string> = {
   encerrado: 'bg-muted text-muted-foreground',
 };
 
-const etapaFlow: ChamadoEtapa[] = ['triagem', 'atendimento', 'resolucao', 'validacao_paciente', 'nps', 'encerrado'];
-
 export default function ChamadoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { chamados, avancarEtapa, addHistorico, updateChamado } = usePostVenda();
+  const { chamados, avancarEtapa, addHistorico } = usePostVenda();
   const { historico, isLoading: historicoLoading } = useChamadoHistorico(id);
   
-  const [showAdvanceDialog, setShowAdvanceDialog] = useState(false);
-  const [advanceDescription, setAdvanceDescription] = useState('');
   const [showCommentDialog, setShowCommentDialog] = useState(false);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bpmnEnabled, setBpmnEnabled] = useState(false);
 
   const chamado = chamados.find(c => c.id === id);
 
@@ -77,21 +66,24 @@ export default function ChamadoDetailPage() {
     );
   }
 
-  const currentEtapaIndex = etapaFlow.indexOf(chamado.etapa_atual);
-  const nextEtapa = currentEtapaIndex < etapaFlow.length - 1 ? etapaFlow[currentEtapaIndex + 1] : null;
-
   const getTipoDemandaLabel = (value: string) => {
     const option = TIPO_DEMANDA_OPTIONS.find(o => o.value === value);
     return option?.label || value;
   };
 
-  const handleAdvanceEtapa = async () => {
-    if (!nextEtapa) return;
+  const handleAdvanceEtapa = async (targetEtapa: ChamadoEtapa, description?: string) => {
     setIsSubmitting(true);
     try {
-      await avancarEtapa(chamado.id, nextEtapa, advanceDescription || undefined);
-      setShowAdvanceDialog(false);
-      setAdvanceDescription('');
+      await avancarEtapa(chamado.id, targetEtapa, description);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRevertEtapa = async (targetEtapa: ChamadoEtapa, description?: string) => {
+    setIsSubmitting(true);
+    try {
+      await avancarEtapa(chamado.id, targetEtapa, description);
     } finally {
       setIsSubmitting(false);
     }
@@ -125,7 +117,7 @@ export default function ChamadoDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold">
               Chamado #{chamado.numero_chamado?.toString().padStart(5, '0')}
             </h1>
@@ -142,37 +134,15 @@ export default function ChamadoDetailPage() {
         </div>
       </div>
 
-      {/* Etapa Flow */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            {etapaFlow.map((etapa, index) => {
-              const isComplete = index < currentEtapaIndex;
-              const isCurrent = index === currentEtapaIndex;
-              return (
-                <div key={etapa} className="flex items-center flex-1">
-                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
-                    isCurrent ? 'bg-primary text-primary-foreground' :
-                    isComplete ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {isComplete ? (
-                      <CheckCircle2 className="h-4 w-4" />
-                    ) : (
-                      <span className="h-4 w-4 flex items-center justify-center text-xs font-bold">
-                        {index + 1}
-                      </span>
-                    )}
-                    <span className="text-sm font-medium hidden lg:inline">{ETAPA_LABELS[etapa]}</span>
-                  </div>
-                  {index < etapaFlow.length - 1 && (
-                    <ChevronRight className={`h-5 w-5 mx-2 ${isComplete ? 'text-primary' : 'text-muted-foreground'}`} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Enhanced Etapa Flow */}
+      <ChamadoEtapaFlow
+        currentEtapa={chamado.etapa_atual}
+        onAdvance={handleAdvanceEtapa}
+        onRevert={handleRevertEtapa}
+        bpmnEnabled={bpmnEnabled}
+        onToggleBpmn={setBpmnEnabled}
+        isSubmitting={isSubmitting}
+      />
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -206,21 +176,6 @@ export default function ChamadoDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Actions */}
-          {nextEtapa && chamado.etapa_atual !== 'encerrado' && (
-            <Card className="border-primary">
-              <CardContent className="p-4">
-                <Button 
-                  className="w-full gap-2" 
-                  onClick={() => setShowAdvanceDialog(true)}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                  Avançar para {ETAPA_LABELS[nextEtapa]}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Patient Info */}
           <Card>
             <CardHeader>
@@ -305,35 +260,6 @@ export default function ChamadoDetailPage() {
           </Card>
         </div>
       </div>
-
-      {/* Advance Etapa Dialog */}
-      <Dialog open={showAdvanceDialog} onOpenChange={setShowAdvanceDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Avançar para {nextEtapa ? ETAPA_LABELS[nextEtapa] : ''}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <label className="text-sm font-medium">Descrição (opcional)</label>
-              <Textarea
-                placeholder="Descreva o que foi feito ou observações..."
-                value={advanceDescription}
-                onChange={(e) => setAdvanceDescription(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdvanceDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAdvanceEtapa} disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Confirmar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Add Comment Dialog */}
       <Dialog open={showCommentDialog} onOpenChange={setShowCommentDialog}>
