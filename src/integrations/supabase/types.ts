@@ -4258,6 +4258,120 @@ export type Database = {
           },
         ]
       }
+      licensee_onboarding_checklists: {
+        Row: {
+          admin_user_id: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          licensee_user_id: string
+          notes: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          licensee_user_id: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          licensee_user_id?: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licensee_onboarding_checklists_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "licensee_onboarding_checklists_licensee_user_id_fkey"
+            columns: ["licensee_user_id"]
+            isOneToOne: true
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      licensee_onboarding_items: {
+        Row: {
+          checklist_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string
+          guidance: string
+          id: string
+          is_completed: boolean
+          notes: string | null
+          order_index: number
+          phase: string
+          subtopics: string[] | null
+          title: string
+        }
+        Insert: {
+          checklist_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description: string
+          guidance: string
+          id?: string
+          is_completed?: boolean
+          notes?: string | null
+          order_index: number
+          phase: string
+          subtopics?: string[] | null
+          title: string
+        }
+        Update: {
+          checklist_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string
+          guidance?: string
+          id?: string
+          is_completed?: boolean
+          notes?: string | null
+          order_index?: number
+          phase?: string
+          subtopics?: string[] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licensee_onboarding_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "licensee_onboarding_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "licensee_onboarding_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materials: {
         Row: {
           category: string

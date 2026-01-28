@@ -59,6 +59,7 @@ const moduleCategories = [
     icon: Shield,
     modules: [
       { id: 'licensees', title: 'Alunos IBRAMEC', description: 'Gerenciar alunos', icon: Users, path: '/alunos', color: 'bg-blue-500' },
+      { id: 'licensee-onboarding', title: 'Onboarding Licenciados', description: 'Integração de novos licenciados', icon: Award, path: '/admin/licensee-onboarding', color: 'bg-amber-500' },
       { id: 'monitoring', title: 'Monitoramento', description: 'Atividade de usuários', icon: Eye, path: '/monitoring', color: 'bg-teal-500' },
       { id: 'event-logs', title: 'Log de Eventos', description: 'Histórico do sistema', icon: Activity, path: '/admin/event-logs', color: 'bg-cyan-500' },
       { id: 'code-assistant', title: 'Assistente de Código', description: 'IA para análise técnica', icon: Bot, path: '/admin/code-assistant', color: 'bg-indigo-500' },
