@@ -97,7 +97,7 @@ export function PatientAutocomplete({
     <Popover open={open && (patients.length > 0 || isLoading)} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className={`relative ${className}`}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
           <Input
             placeholder={placeholder}
             value={value}
@@ -112,20 +112,26 @@ export function PatientAutocomplete({
                 setOpen(true);
               }
             }}
-            className="pl-9"
+            className="pl-9 pr-9"
           />
           {isLoading && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-        <Command>
-          <CommandList>
+      <PopoverContent 
+        className="w-[var(--radix-popover-trigger-width)] p-0 z-[100] bg-popover border shadow-lg" 
+        align="start"
+        sideOffset={4}
+      >
+        <Command className="bg-transparent">
+          <CommandList className="max-h-[200px]">
             {isLoading ? (
-              <div className="flex items-center justify-center py-6">
+              <div className="flex items-center justify-center py-4 gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                <span className="ml-2 text-sm text-muted-foreground">Buscando...</span>
+                <span className="text-sm text-muted-foreground">Buscando...</span>
               </div>
             ) : patients.length === 0 ? (
               <CommandEmpty>Nenhum paciente encontrado</CommandEmpty>
@@ -139,13 +145,13 @@ export function PatientAutocomplete({
                     className="cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <User className="h-4 w-4 text-primary" />
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{patient.full_name}</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">{patient.full_name}</p>
                         {patient.phone && (
-                          <p className="text-xs text-muted-foreground">{patient.phone}</p>
+                          <p className="text-xs text-muted-foreground truncate">{patient.phone}</p>
                         )}
                       </div>
                     </div>
