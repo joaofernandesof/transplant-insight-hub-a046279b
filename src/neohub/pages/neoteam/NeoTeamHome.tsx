@@ -7,7 +7,8 @@ import {
   Users, Calendar, Clock, Activity, 
   UserPlus, ClipboardList, Bell, ArrowRight,
   CheckCircle2, AlertCircle, Timer, ListTodo,
-  TrendingUp, Stethoscope, FileText, Building2
+  TrendingUp, Stethoscope, FileText, Building2,
+  HeadphonesIcon, Ticket
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -79,7 +80,7 @@ export default function NeoTeamHome() {
     { icon: UserPlus, label: 'Novo Paciente', path: '/neoteam/patients', color: 'text-blue-500' },
     { icon: Calendar, label: 'Agenda', path: '/neoteam/schedule', color: 'text-green-500' },
     { icon: Clock, label: 'Sala de Espera', path: '/neoteam/waiting-room', color: 'text-amber-500' },
-    { icon: ListTodo, label: 'Tarefas', path: '/neoteam/tasks', color: 'text-purple-500' },
+    { icon: Ticket, label: 'Chamados', path: '/neoteam/postvenda/chamados', color: 'text-rose-500' },
   ];
 
   const modules = [
@@ -88,7 +89,8 @@ export default function NeoTeamHome() {
     { icon: Stethoscope, label: 'Visão Médico', path: '/neoteam/doctor-view', description: 'Pacientes chamados', color: 'bg-green-100 dark:bg-green-900/30', iconColor: 'text-green-600' },
     { icon: Users, label: 'Pacientes', path: '/neoteam/patients', description: 'Cadastro de pacientes', color: 'bg-purple-100 dark:bg-purple-900/30', iconColor: 'text-purple-600' },
     { icon: FileText, label: 'Prontuários', path: '/neoteam/medical-records', description: 'Histórico médico', color: 'bg-rose-100 dark:bg-rose-900/30', iconColor: 'text-rose-600' },
-    { icon: ListTodo, label: 'Tarefas', path: '/neoteam/tasks', description: 'Gerenciar tarefas', color: 'bg-indigo-100 dark:bg-indigo-900/30', iconColor: 'text-indigo-600' },
+    { icon: Ticket, label: 'Chamados', path: '/neoteam/postvenda/chamados', description: 'Gestão de atendimento', color: 'bg-pink-100 dark:bg-pink-900/30', iconColor: 'text-pink-600' },
+    { icon: HeadphonesIcon, label: 'Pós-Venda', path: '/neoteam/postvenda', description: 'Dashboard completo', color: 'bg-teal-100 dark:bg-teal-900/30', iconColor: 'text-teal-600' },
   ];
 
   // Get recent waiting patients
