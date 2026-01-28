@@ -41,6 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import NewContractDialog from "./components/contracts/NewContractDialog";
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   draft: { label: 'Rascunho', color: 'bg-gray-500', icon: FileSignature },
@@ -53,6 +54,7 @@ export default function IpromedContracts() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
 
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['ipromed-contracts', searchTerm, statusFilter],
@@ -91,11 +93,13 @@ export default function IpromedContracts() {
           <span className="text-muted-foreground">/</span>
           <span className="font-medium">Contratos</span>
         </div>
-        <Button>
+        <Button onClick={() => setIsNewDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Novo Contrato
         </Button>
       </div>
+
+      <NewContractDialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen} />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -205,7 +209,7 @@ export default function IpromedContracts() {
               <FileSignature className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">Nenhum contrato encontrado</h3>
               <p className="text-muted-foreground mb-4">Comece criando o primeiro contrato</p>
-              <Button>
+              <Button onClick={() => setIsNewDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Contrato
               </Button>
