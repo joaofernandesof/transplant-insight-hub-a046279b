@@ -23,12 +23,14 @@ import {
   Sparkles,
   Grid3X3,
   ImageDown,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ImageCropper from "./ImageCropper";
 import { ScanCreditsDisplay } from "./ScanCreditsDisplay";
 import { ScanPlansModal } from "./ScanPlansModal";
+import { NewVersionGalleryModal } from "./NewVersionGalleryModal";
 import { useScanCredits } from "../hooks/useScanCredits";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
@@ -52,6 +54,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
   const [showPlansModal, setShowPlansModal] = useState(false);
+  const [showGalleryModal, setShowGalleryModal] = useState(false);
   
   const { consumeCredit, refreshTrigger, refreshCredits } = useScanCredits(userId);
   
@@ -1077,6 +1080,15 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                                   <Button
                                     variant="ghost"
                                     size="sm"
+                                    onClick={() => setShowGalleryModal(true)}
+                                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
+                                    title="Visualizar galeria"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={downloadCompositeImage}
                                     className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20"
                                     title="Baixar todas (antes + depois)"
@@ -1151,22 +1163,32 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                           }
                         </div>
                         
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
                           {newVersionImages.length > 0 && (
-                            <Button
-                              onClick={downloadCompositeImage}
-                              variant="outline"
-                              className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20"
-                            >
-                              <ImageDown className="h-4 w-4 mr-2" />
-                              Baixar Todas
-                            </Button>
+                            <>
+                              <Button
+                                onClick={() => setShowGalleryModal(true)}
+                                variant="outline"
+                                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/20"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Visualizar
+                              </Button>
+                              <Button
+                                onClick={downloadCompositeImage}
+                                variant="outline"
+                                className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20"
+                              >
+                                <ImageDown className="h-4 w-4 mr-2" />
+                                Baixar Grade
+                              </Button>
+                            </>
                           )}
                           
                           <Button
                             onClick={() => processImage("newversion")}
                             disabled={isProcessing || newVersionImages.length >= 12}
-                            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 min-w-[200px]"
+                            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 min-w-[180px]"
                           >
                             {isProcessing ? (
                               <>
@@ -1194,6 +1216,15 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
             </Tabs>
           </div>
         )}
+
+        {/* Gallery Modal */}
+        <NewVersionGalleryModal
+          open={showGalleryModal}
+          onOpenChange={setShowGalleryModal}
+          images={newVersionImages}
+          originalImage={originalImage}
+          onDownloadComposite={downloadCompositeImage}
+        />
       </div>
     </div>
   );
