@@ -23,26 +23,14 @@ export function NeoHairScanIcon({ className, ...props }: NeoHairScanIconProps) {
       aria-hidden={props["aria-label"] ? undefined : true}
       {...props}
     >
-      {/* Scan corners (maiores para aparecer bem em 24px) */}
-      <path d="M7 4H4v3" />
-      <path d="M17 4h3v3" />
-      <path d="M7 20H4v-3" />
-      <path d="M17 20h3v-3" />
+      {/* Scan corners - cantos arredondados */}
+      <path d="M7.5 5H5.5a.5.5 0 0 0-.5.5v2" />
+      <path d="M16.5 5h2a.5.5 0 0 1 .5.5v2" />
+      <path d="M7.5 19H5.5a.5.5 0 0 1-.5-.5v-2" />
+      <path d="M16.5 19h2a.5.5 0 0 0 .5-.5v-2" />
 
-      {/* Scan line */}
-      <path d="M7.25 12h9.5" />
-
-      {/* Follicle marker */}
-      <circle cx="12" cy="16.5" r="1.35" />
-
-      {/* Hair strands */}
-      <path d="M12 15.1V8.5" />
-      <path d="M10.2 14.6c.2-2.4 1.1-4.3 2.6-6.1" />
-      <path d="M13.8 14.6c-.2-2.4-1.1-4.3-2.6-6.1" />
-
-      {/* Pequeno "spark" (IA) */}
-      <path d="M16.2 9.2l.9-.9" />
-      <path d="M16.2 8.3l.9.9" />
+      {/* Ponto central */}
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
     </svg>
   );
 }
