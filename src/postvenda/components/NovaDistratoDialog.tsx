@@ -10,24 +10,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Mail } from 'lucide-react';
-import { useDestratoRequests, NovaDestratoSolicitacao } from '../hooks/useDestratoRequests';
+import { useDistratoRequests, NovaDistratoSolicitacao } from '../hooks/useDistrato';
 import { PatientAutocomplete } from '@/neohub/components/PatientAutocomplete';
 
-interface NovaDestratoDialogProps {
+interface NovaDistratoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function NovaDestratoDialog({ open, onOpenChange }: NovaDestratoDialogProps) {
-  const { criarSolicitacao } = useDestratoRequests();
+export function NovaDistratoDialog({ open, onOpenChange }: NovaDistratoDialogProps) {
+  const { criarSolicitacao } = useDistratoRequests();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [patientSearch, setPatientSearch] = useState('');
-  const [formData, setFormData] = useState<NovaDestratoSolicitacao>({
+  const [formData, setFormData] = useState<NovaDistratoSolicitacao>({
     paciente_nome: '',
     paciente_email: '',
     paciente_telefone: '',
     email_remetente: '',
-    email_assunto: 'Nova solicitação de destrato',
+    email_assunto: 'Nova solicitação de distrato',
     email_corpo: '',
   });
 
@@ -44,7 +44,7 @@ export function NovaDestratoDialog({ open, onOpenChange }: NovaDestratoDialogPro
         paciente_email: '',
         paciente_telefone: '',
         email_remetente: '',
-        email_assunto: 'Nova solicitação de destrato',
+        email_assunto: 'Nova solicitação de distrato',
         email_corpo: '',
       });
       setPatientSearch('');
@@ -71,7 +71,7 @@ export function NovaDestratoDialog({ open, onOpenChange }: NovaDestratoDialogPro
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Nova Solicitação de Destrato
+            Nova Solicitação de Distrato
           </DialogTitle>
         </DialogHeader>
 

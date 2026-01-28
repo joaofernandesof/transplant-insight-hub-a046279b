@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
 // Types
-export type DestratoEtapa = 
+export type DistratoEtapa = 
   | 'solicitacao_recebida'
   | 'checklist_preenchido'
   | 'aguardando_parecer_gerente'
@@ -14,19 +14,19 @@ export type DestratoEtapa =
   | 'aguardando_pagamento_financeiro'
   | 'caso_concluido';
 
-export type DestratoStatusFinal = 'em_andamento' | 'devolvido' | 'nao_devolvido' | 'cancelado';
+export type DistratoStatusFinal = 'em_andamento' | 'devolvido' | 'nao_devolvido' | 'cancelado';
 
 export type SubtarefaStatus = 'pendente' | 'em_andamento' | 'concluida' | 'atrasada' | 'cancelada';
 
-export interface DestratoSolicitacao {
+export interface DistratoSolicitacao {
   id: string;
   numero_solicitacao: number;
   paciente_id?: string;
   paciente_nome: string;
   paciente_email?: string;
   paciente_telefone?: string;
-  etapa_atual: DestratoEtapa;
-  status_final: DestratoStatusFinal;
+  etapa_atual: DistratoEtapa;
+  status_final: DistratoStatusFinal;
   responsavel_id?: string;
   responsavel_nome?: string;
   email_remetente?: string;
@@ -65,7 +65,7 @@ export interface DestratoSolicitacao {
   branch?: string;
 }
 
-export interface DestratoSubtarefa {
+export interface DistratoSubtarefa {
   id: string;
   solicitacao_id: string;
   titulo: string;
@@ -73,7 +73,7 @@ export interface DestratoSubtarefa {
   script_padrao?: string;
   status: SubtarefaStatus;
   ordem: number;
-  etapa_relacionada: DestratoEtapa;
+  etapa_relacionada: DistratoEtapa;
   responsavel_id?: string;
   responsavel_nome?: string;
   prazo?: string;
@@ -88,10 +88,10 @@ export interface DestratoSubtarefa {
   updated_at: string;
 }
 
-export interface DestratoHistorico {
+export interface DistratoHistorico {
   id: string;
   solicitacao_id: string;
-  etapa: DestratoEtapa;
+  etapa: DistratoEtapa;
   acao: string;
   descricao?: string;
   usuario_id?: string;
@@ -100,7 +100,7 @@ export interface DestratoHistorico {
   data_evento: string;
 }
 
-export interface NovaDestratoSolicitacao {
+export interface NovaDistratoSolicitacao {
   paciente_id?: string;
   paciente_nome: string;
   paciente_email?: string;
@@ -112,7 +112,7 @@ export interface NovaDestratoSolicitacao {
 }
 
 // Labels e Configurações
-export const DESTRATO_ETAPA_LABELS: Record<DestratoEtapa, string> = {
+export const DISTRATO_ETAPA_LABELS: Record<DistratoEtapa, string> = {
   solicitacao_recebida: 'Solicitação Recebida',
   checklist_preenchido: 'Checklist Preenchido',
   aguardando_parecer_gerente: 'Aguardando Parecer da Gerente',
@@ -123,7 +123,7 @@ export const DESTRATO_ETAPA_LABELS: Record<DestratoEtapa, string> = {
   caso_concluido: 'Caso Concluído',
 };
 
-export const DESTRATO_ETAPA_COLORS: Record<DestratoEtapa, string> = {
+export const DISTRATO_ETAPA_COLORS: Record<DistratoEtapa, string> = {
   solicitacao_recebida: 'bg-blue-100 dark:bg-blue-900/30 border-blue-500',
   checklist_preenchido: 'bg-amber-100 dark:bg-amber-900/30 border-amber-500',
   aguardando_parecer_gerente: 'bg-purple-100 dark:bg-purple-900/30 border-purple-500',
@@ -134,7 +134,7 @@ export const DESTRATO_ETAPA_COLORS: Record<DestratoEtapa, string> = {
   caso_concluido: 'bg-gray-100 dark:bg-gray-800 border-gray-500',
 };
 
-export const DESTRATO_STATUS_LABELS: Record<DestratoStatusFinal, string> = {
+export const DISTRATO_STATUS_LABELS: Record<DistratoStatusFinal, string> = {
   em_andamento: 'Em Andamento',
   devolvido: 'Devolvido',
   nao_devolvido: 'Não Devolvido',
@@ -161,7 +161,7 @@ Assim que tivermos isso, daremos sequência.`,
 };
 
 // Subtarefas automáticas por etapa
-export const SUBTAREFAS_POR_ETAPA: Record<DestratoEtapa, Array<{ titulo: string; descricao?: string; script_padrao?: string; prazo_horas: number }>> = {
+export const SUBTAREFAS_POR_ETAPA: Record<DistratoEtapa, Array<{ titulo: string; descricao?: string; script_padrao?: string; prazo_horas: number }>> = {
   solicitacao_recebida: [
     { titulo: 'Verificar remetente do e-mail', descricao: 'Comparar e-mail do remetente com cadastro do paciente', prazo_horas: 24 },
     { titulo: 'Responder e-mail ao paciente', descricao: 'Enviar resposta padrão conforme verificação', prazo_horas: 24 },
@@ -186,8 +186,8 @@ export const SUBTAREFAS_POR_ETAPA: Record<DestratoEtapa, Array<{ titulo: string;
   caso_concluido: [],
 };
 
-export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: DestratoStatusFinal }) {
-  const [solicitacoes, setSolicitacoes] = useState<DestratoSolicitacao[]>([]);
+export function useDistratoRequests(filters?: { etapa?: DistratoEtapa; status?: DistratoStatusFinal }) {
+  const [solicitacoes, setSolicitacoes] = useState<DistratoSolicitacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useUnifiedAuth();
@@ -205,16 +205,16 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
 
       const { data, error } = await query;
       if (error) throw error;
-      setSolicitacoes((data as unknown as DestratoSolicitacao[]) || []);
+      setSolicitacoes((data as unknown as DistratoSolicitacao[]) || []);
     } catch (error) {
-      console.error('Erro ao buscar solicitações de destrato:', error);
+      console.error('Erro ao buscar solicitações de distrato:', error);
       toast({ title: 'Erro', description: 'Não foi possível carregar as solicitações', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   }, [filters, toast]);
 
-  const criarSolicitacao = async (data: NovaDestratoSolicitacao) => {
+  const criarSolicitacao = async (data: NovaDistratoSolicitacao) => {
     try {
       const prazoInicial = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
@@ -240,7 +240,7 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
         solicitacao_id: solicitacao.id,
         etapa: 'solicitacao_recebida',
         acao: 'criacao',
-        descricao: 'Nova solicitação de destrato registrada',
+        descricao: 'Nova solicitação de distrato registrada',
         usuario_id: user?.id,
         usuario_nome: user?.fullName,
       });
@@ -262,9 +262,9 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
         });
       }
 
-      toast({ title: 'Sucesso', description: 'Solicitação de destrato criada' });
+      toast({ title: 'Sucesso', description: 'Solicitação de distrato criada' });
       await fetchSolicitacoes();
-      return solicitacao as unknown as DestratoSolicitacao;
+      return solicitacao as unknown as DistratoSolicitacao;
     } catch (error: any) {
       console.error('Erro ao criar solicitação:', error);
       toast({ title: 'Erro', description: 'Não foi possível criar a solicitação', variant: 'destructive' });
@@ -272,7 +272,7 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
     }
   };
 
-  const atualizarSolicitacao = async (id: string, updates: Partial<DestratoSolicitacao>) => {
+  const atualizarSolicitacao = async (id: string, updates: Partial<DistratoSolicitacao>) => {
     try {
       const { error } = await supabase
         .from('destrato_solicitacoes')
@@ -288,13 +288,13 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
     }
   };
 
-  const moverParaEtapa = async (solicitacaoId: string, novaEtapa: DestratoEtapa, descricao?: string) => {
+  const moverParaEtapa = async (solicitacaoId: string, novaEtapa: DistratoEtapa, descricao?: string) => {
     try {
       const solicitacao = solicitacoes.find(s => s.id === solicitacaoId);
       if (!solicitacao) throw new Error('Solicitação não encontrada');
 
       // Determinar status final
-      let statusFinal: DestratoStatusFinal = 'em_andamento';
+      let statusFinal: DistratoStatusFinal = 'em_andamento';
       if (novaEtapa === 'caso_concluido') {
         if (solicitacao.etapa_atual === 'devolver' || solicitacao.etapa_atual === 'aguardando_pagamento_financeiro') {
           statusFinal = 'devolvido';
@@ -318,7 +318,7 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
         solicitacao_id: solicitacaoId,
         etapa: novaEtapa,
         acao: 'transicao_etapa',
-        descricao: descricao || `Movido para ${DESTRATO_ETAPA_LABELS[novaEtapa]}`,
+        descricao: descricao || `Movido para ${DISTRATO_ETAPA_LABELS[novaEtapa]}`,
         usuario_id: user?.id,
         usuario_nome: user?.fullName,
       });
@@ -342,7 +342,7 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
         });
       }
 
-      toast({ title: 'Sucesso', description: `Movido para ${DESTRATO_ETAPA_LABELS[novaEtapa]}` });
+      toast({ title: 'Sucesso', description: `Movido para ${DISTRATO_ETAPA_LABELS[novaEtapa]}` });
       await fetchSolicitacoes();
     } catch (error) {
       console.error('Erro ao mover etapa:', error);
@@ -381,7 +381,7 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
     const byEtapa = solicitacoes.reduce((acc, s) => {
       acc[s.etapa_atual] = (acc[s.etapa_atual] || 0) + 1;
       return acc;
-    }, {} as Record<DestratoEtapa, number>);
+    }, {} as Record<DistratoEtapa, number>);
 
     const slaEstourados = solicitacoes.filter(s => s.sla_estourado).length;
     const emAndamento = solicitacoes.filter(s => s.status_final === 'em_andamento').length;
@@ -403,8 +403,8 @@ export function useDestratoRequests(filters?: { etapa?: DestratoEtapa; status?: 
 }
 
 // Hook para subtarefas de uma solicitação específica
-export function useDestratoSubtarefas(solicitacaoId: string | undefined) {
-  const [subtarefas, setSubtarefas] = useState<DestratoSubtarefa[]>([]);
+export function useDistratoSubtarefas(solicitacaoId: string | undefined) {
+  const [subtarefas, setSubtarefas] = useState<DistratoSubtarefa[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useUnifiedAuth();
@@ -430,7 +430,7 @@ export function useDestratoSubtarefas(solicitacaoId: string | undefined) {
         return s;
       });
       
-      setSubtarefas(subtarefasAtualizadas as DestratoSubtarefa[]);
+      setSubtarefas(subtarefasAtualizadas as DistratoSubtarefa[]);
     } catch (error) {
       console.error('Erro ao buscar subtarefas:', error);
     } finally {
@@ -476,8 +476,8 @@ export function useDestratoSubtarefas(solicitacaoId: string | undefined) {
 }
 
 // Hook para histórico
-export function useDestratoHistorico(solicitacaoId: string | undefined) {
-  const [historico, setHistorico] = useState<DestratoHistorico[]>([]);
+export function useDistratoHistorico(solicitacaoId: string | undefined) {
+  const [historico, setHistorico] = useState<DistratoHistorico[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -491,7 +491,7 @@ export function useDestratoHistorico(solicitacaoId: string | undefined) {
         .eq('solicitacao_id', solicitacaoId)
         .order('data_evento', { ascending: true });
 
-      if (!error) setHistorico((data as unknown as DestratoHistorico[]) || []);
+      if (!error) setHistorico((data as unknown as DistratoHistorico[]) || []);
       setIsLoading(false);
     };
 
