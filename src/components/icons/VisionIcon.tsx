@@ -36,7 +36,3 @@ export function VisionIcon({ className, ...props }: VisionIconProps) {
     </svg>
   );
 }
-
-// Alias for backward compatibility
-export const NeoHairScanIcon = VisionIcon;
-export type NeoHairScanIconProps = VisionIconProps;

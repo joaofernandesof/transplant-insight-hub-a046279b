@@ -359,7 +359,7 @@ export default function AdminDashboard() {
                 { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
                 { id: 'avivar', title: 'Avivar', icon: TrendingUp, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
                 { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed' },
-                { id: 'neohairscan', title: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', path: '/neohairscan' },
+                { id: 'vision', title: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', path: '/vision' },
               ].map((portal) => (
                 <button
                   key={portal.id}

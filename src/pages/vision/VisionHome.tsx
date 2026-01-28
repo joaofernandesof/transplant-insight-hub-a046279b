@@ -4,146 +4,45 @@
  */
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  ScanFace, 
   TrendingDown, 
   Zap, 
   Camera, 
-  ArrowRight, 
-  User, 
-  CreditCard, 
-  History, 
-  Settings, 
-  LogOut,
-  ChevronDown
+  ArrowRight
 } from "lucide-react";
 import HairScanAnalyzer from "./components/HairScanAnalyzer";
 import { ScanCreditsDisplay } from "./components/ScanCreditsDisplay";
-import { ScanPlansModal } from "./components/ScanPlansModal";
+import { VisionLayout } from "./components/VisionLayout";
+import { VisionIcon } from "@/components/icons/VisionIcon";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
-export default function NeoHairScanHome() {
-  const navigate = useNavigate();
+export default function VisionHome() {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
-  const [showPlansModal, setShowPlansModal] = useState(false);
-  const { user, logout } = useUnifiedAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  const { user } = useUnifiedAuth();
 
   if (showAnalyzer) {
     return <HairScanAnalyzer onBack={() => setShowAnalyzer(false)} />;
   }
 
-  const userInitials = user?.fullName
-    ?.split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
-      {/* Top Bar with Account Access */}
-      <div className="border-b border-purple-500/20 bg-slate-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-purple-300">
-            <ScanFace className="h-5 w-5" />
-            <span className="font-medium text-white">Vision</span>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {user && (
-              <ScanCreditsDisplay 
-                userId={user.id}
-                onUpgradeClick={() => setShowPlansModal(true)}
-              />
-            )}
-            
-            {/* User Menu Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/50 px-2"
-                >
-                  <Avatar className="h-8 w-8 border border-purple-500/30">
-                    <AvatarImage src={user?.avatarUrl || ''} />
-                    <AvatarFallback className="bg-purple-600 text-white text-xs">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden sm:inline text-sm max-w-[120px] truncate">
-                    {user?.fullName || user?.email?.split('@')[0]}
-                  </span>
-                  <ChevronDown className="h-4 w-4 opacity-60" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-700">
-                <DropdownMenuLabel className="text-slate-400 font-normal">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-white">{user?.fullName || 'Usuário'}</span>
-                    <span className="text-xs truncate">{user?.email}</span>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-slate-700" />
-                
-                <DropdownMenuItem 
-                  onClick={() => setShowPlansModal(true)}
-                  className="text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer"
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Planos & Assinatura
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem 
-                  onClick={() => setShowAnalyzer(true)}
-                  className="text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer"
-                >
-                  <History className="h-4 w-4 mr-2" />
-                  Histórico de Análises
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator className="bg-slate-700" />
-                
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+    <VisionLayout onStartAnalysis={() => setShowAnalyzer(true)}>
+      <div className="p-6 lg:p-8">
+        {/* Credits Display */}
+        <div className="flex justify-end mb-6">
+          {user && (
+            <ScanCreditsDisplay 
+              userId={user.id}
+              onUpgradeClick={() => window.dispatchEvent(new CustomEvent('open-scan-plans'))}
+            />
+          )}
         </div>
-      </div>
 
-      {/* Plans Modal */}
-      <ScanPlansModal 
-        open={showPlansModal} 
-        onOpenChange={setShowPlansModal}
-      />
-
-      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-2xl mb-4">
-            <ScanFace className="h-12 w-12 text-white" />
+            <VisionIcon className="h-12 w-12 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-white mb-2">Vision</h1>
           <p className="text-lg text-purple-200">
@@ -229,6 +128,6 @@ export default function NeoHairScanHome() {
           <p className="mt-1">As simulações são ilustrativas e não substituem avaliação médica</p>
         </div>
       </div>
-    </div>
+    </VisionLayout>
   );
 }

@@ -94,8 +94,8 @@ export const BLOCKED_MOBILE_MODULES = [
   'ipromed_documents',
   // Avivar - não otimizado para mobile
   'avivar',
-  // NeoHairScan - requer processamento IA pesado
-  'neohairscan',
+  // Vision - requer processamento IA pesado
+  'vision',
   // Admin - segurança
   'admin',
   'admin_users',
@@ -118,7 +118,7 @@ export const BLOCKED_MOBILE_ROUTES = [
   '/portal',
   '/ipromed',
   '/avivar',
-  '/neohairscan',
+  '/vision',
   '/admin',
 ] as const;
 

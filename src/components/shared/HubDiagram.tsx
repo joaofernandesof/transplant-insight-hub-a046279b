@@ -60,7 +60,7 @@ const portals: PortalNode[] = [
     color: 'bg-cyan-600',
   },
   {
-    id: 'neohairscan',
+    id: 'vision',
     name: 'Vision',
     subtitle: 'Diagnóstico IA',
     icon: <VisionIcon className="h-6 w-6 text-white" />,

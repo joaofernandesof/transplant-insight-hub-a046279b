@@ -104,8 +104,7 @@ const IpromedLayout = lazy(() => import("./pages/ipromed/components/IpromedLayou
 // ====================================
 // Pages - Vision (Diagnóstico Capilar IA)
 // ====================================
-const NeoHairScanHome = lazy(() => import("./pages/neohairscan/NeoHairScanHome"));
-
+const VisionHome = lazy(() => import("./pages/vision/VisionHome"));
 // IPROMED Layout Wrapper
 function IpromedLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -611,10 +610,13 @@ function AppRoutes() {
       <Route path="/ipromed/contracts" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedContracts /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/ipromed/legal" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedLegalHub /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       
-      {/* ====================================
+{/* ====================================
           Vision - Diagnóstico Capilar IA
           ==================================== */}
-      <Route path="/neohairscan" element={<ProtectedRoute><LazyRoute><NeoHairScanHome /></LazyRoute></ProtectedRoute>} />
+      <Route path="/vision" element={<ProtectedRoute><LazyRoute><VisionHome /></LazyRoute></ProtectedRoute>} />
+      <Route path="/vision/*" element={<ProtectedRoute><LazyRoute><VisionHome /></LazyRoute></ProtectedRoute>} />
+      {/* Legacy redirect */}
+      <Route path="/neohairscan" element={<Navigate to="/vision" replace />} />
       
       {/* ====================================
           Marketplace

@@ -88,11 +88,11 @@ const SYSTEM_MODULES: SystemModule[] = [
     requiredProfiles: ['cliente_avivar', 'administrador'],
   },
   {
-    key: 'neohairscan',
+    key: 'vision',
     name: 'Vision',
     description: 'Análise capilar com IA',
     icon: VisionIcon,
-    route: '/neohairscan',
+    route: '/vision',
     color: 'bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500',
     requiredProfiles: ['medico', 'colaborador', 'administrador'],
   },
