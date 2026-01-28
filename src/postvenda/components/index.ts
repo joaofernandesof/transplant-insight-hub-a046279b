@@ -3,3 +3,5 @@ export { PostVendaSidebar } from './PostVendaSidebar';
 export { ChamadoCard } from './ChamadoCard';
 export { ChamadoTimeline } from './ChamadoTimeline';
 export { NovoChamadoDialog } from './NovoChamadoDialog';
+export { ChamadosTabContent } from './ChamadosTabContent';
+export { DistratoKanban } from './DistratoKanban';
