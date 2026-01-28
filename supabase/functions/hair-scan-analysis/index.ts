@@ -12,6 +12,85 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+type GatewayResponse = {
+  choices?: Array<{
+    message?: {
+      content?: string;
+      images?: any[];
+    };
+  }>;
+};
+
+function extractFirstImageUrl(data: any): string | undefined {
+  const images = data?.choices?.[0]?.message?.images;
+  let generatedImage = images?.[0]?.image_url?.url;
+
+  if (!generatedImage && typeof images?.[0]?.image_url === "string") {
+    generatedImage = images[0].image_url;
+  }
+
+  if (!generatedImage && images?.[0]?.url) {
+    generatedImage = images[0].url;
+  }
+
+  if (!generatedImage && images?.[0]?.data) {
+    generatedImage = `data:image/png;base64,${images[0].data}`;
+  }
+
+  // Last resort: sometimes models embed a data URL in text
+  const text = data?.choices?.[0]?.message?.content;
+  if (!generatedImage && typeof text === "string") {
+    const match = text.match(/data:image\/[a-zA-Z0-9+.-]+;base64,[A-Za-z0-9+/=]+/);
+    if (match?.[0]) generatedImage = match[0];
+  }
+
+  return generatedImage;
+}
+
+async function callImageModel({
+  lovableApiKey,
+  prompt,
+  imageBase64,
+  model,
+  forceImageOnly,
+}: {
+  lovableApiKey: string;
+  prompt: string;
+  imageBase64: string;
+  model: string;
+  forceImageOnly: boolean;
+}) {
+  const body: any = {
+    model,
+    messages: [
+      ...(forceImageOnly
+        ? [{ role: "system", content: "Return exactly ONE edited image. Do not output any text." }]
+        : []),
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: imageBase64 } },
+        ],
+      },
+    ],
+    // For newversion we prefer to force image output.
+    modalities: forceImageOnly ? ["image"] : ["image", "text"],
+    temperature: forceImageOnly ? 0.2 : 0.7,
+  };
+
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${lovableApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  return response;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,6 +105,7 @@ serve(async (req) => {
     }
 
     let prompt: string;
+    let selectedStyleForNewversion: string | undefined;
     
     if (action === "progression") {
       // Simulate baldness progression
@@ -74,6 +154,7 @@ The result should help doctors identify areas of alopecia and density variations
       
       const randomIndex = Math.floor(Math.random() * hairstyleVariations.length);
       const selectedStyle = hairstyleVariations[randomIndex];
+      selectedStyleForNewversion = selectedStyle;
       
       prompt = `🎯 CRITICAL: Generate an ULTRA-REALISTIC post-transplant hair simulation. This is for men recovering their confidence after hair restoration.
 
@@ -106,28 +187,16 @@ STYLE TO APPLY: "${selectedStyle}"
     console.log(`Processing ${action} analysis...`);
     console.log("Image base64 length:", imageBase64?.length || 0);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: prompt },
-              {
-                type: "image_url",
-                image_url: { url: imageBase64 }
-              }
-            ]
-          }
-        ],
-        modalities: ["image", "text"]
-      }),
+    // Some model runs return only text (no images). For newversion we force image-only output and do 1 retry.
+    const forceImageOnly = action === "newversion";
+    const model = "google/gemini-2.5-flash-image";
+
+    let response = await callImageModel({
+      lovableApiKey: LOVABLE_API_KEY,
+      prompt,
+      imageBase64,
+      model,
+      forceImageOnly,
     });
 
     if (!response.ok) {
@@ -150,41 +219,49 @@ STYLE TO APPLY: "${selectedStyle}"
 
     const data = await response.json();
     
-    // Debug: log the full structure of images array
+    // Debug: log minimal structure for troubleshooting
     const images = data.choices?.[0]?.message?.images;
-    console.log("AI response structure:", JSON.stringify({
-      hasChoices: !!data.choices,
-      choicesLength: data.choices?.length,
-      hasMessage: !!data.choices?.[0]?.message,
-      hasImages: !!images,
-      imagesLength: images?.length,
-      firstImageKeys: images?.[0] ? Object.keys(images[0]) : null,
-      firstImageType: images?.[0]?.type,
-      hasImageUrl: !!images?.[0]?.image_url,
-      hasUrl: !!images?.[0]?.image_url?.url,
-      urlPrefix: images?.[0]?.image_url?.url?.substring(0, 50),
-      content: data.choices?.[0]?.message?.content?.substring(0, 200)
-    }));
+    console.log(
+      "AI response structure:",
+      JSON.stringify({
+        hasChoices: !!data.choices,
+        choicesLength: data.choices?.length,
+        hasMessage: !!data.choices?.[0]?.message,
+        hasImages: !!images,
+        imagesLength: images?.length,
+        firstImageType: images?.[0]?.type,
+        hasImageUrl: !!images?.[0]?.image_url,
+        hasUrl: !!images?.[0]?.image_url?.url,
+        content: data.choices?.[0]?.message?.content?.substring(0, 200),
+      })
+    );
 
-    // Try multiple extraction paths for the image
-    let generatedImage = images?.[0]?.image_url?.url;
-    
-    // Fallback: check if image_url is directly the URL string
-    if (!generatedImage && typeof images?.[0]?.image_url === 'string') {
-      generatedImage = images[0].image_url;
+    let generatedImage = extractFirstImageUrl(data);
+    let textResponse = data.choices?.[0]?.message?.content || "";
+
+    // If the model returned text-only, retry once with a shorter, stricter prompt.
+    if (!generatedImage && action === "newversion") {
+      console.warn("No image generated (text-only). Retrying once with stricter prompt...");
+      const compactPrompt = `Edit ONLY the hair in this photo. Apply hairstyle: ${selectedStyleForNewversion || "natural mature masculine style"}. Keep the face and background IDENTICAL. Ultra-realistic post-transplant result, natural hairline, no glossy/plastic shine, realistic density. Return ONE edited image only.`;
+
+      const retryResp = await callImageModel({
+        lovableApiKey: LOVABLE_API_KEY,
+        prompt: compactPrompt,
+        imageBase64,
+        model,
+        forceImageOnly: true,
+      });
+
+      if (!retryResp.ok) {
+        const retryText = await retryResp.text();
+        console.error("AI gateway retry error:", retryResp.status, retryText);
+        // Fall through to standard error handling below
+      } else {
+        const retryData: GatewayResponse = await retryResp.json();
+        generatedImage = extractFirstImageUrl(retryData);
+        textResponse = retryData.choices?.[0]?.message?.content || textResponse;
+      }
     }
-    
-    // Fallback: check if there's a url property directly on the image object
-    if (!generatedImage && images?.[0]?.url) {
-      generatedImage = images[0].url;
-    }
-    
-    // Fallback: check for data property
-    if (!generatedImage && images?.[0]?.data) {
-      generatedImage = `data:image/png;base64,${images[0].data}`;
-    }
-    
-    const textResponse = data.choices?.[0]?.message?.content || "";
 
     if (!generatedImage) {
       console.error("No image generated. Full response structure:", JSON.stringify({
