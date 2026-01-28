@@ -49,33 +49,49 @@ The progression should be proportional to ${yearsProgression} years of untreated
 - Keep facial features visible but muted
 The result should help doctors identify areas of alopecia and density variations.`;
     } else if (action === "newversion") {
-      // Generate 12 post-transplant hairstyle variations
-      const { hairStyle, generateMultiple } = await req.json().catch(() => ({ hairStyle: "natural", generateMultiple: true }));
+      // Generate 12 VARIED post-transplant hairstyle variations
+      // Each call should produce a UNIQUE look
       
-      const styleDescriptions: Record<string, string> = {
-        "natural": "natural, well-groomed with good volume",
-        "short": "short and neat, professionally styled",
-        "slick": "slicked back with gel, formal and elegant",
-        "textured": "textured and layered with volume",
-        "wavy": "wavy with natural movement",
-        "classic": "classic side part with clean lines",
-      };
+      // Array of distinctly different hairstyles to ensure variety
+      const hairstyleVariations = [
+        "short buzz cut with clean edges, military style, very short on sides",
+        "medium length textured crop with volume on top, natural messy look",
+        "classic side part with slicked back sides, elegant businessman style",
+        "longer wavy hair with natural flow and movement, surfer style",
+        "modern pompadour with volume, styled upward and back",
+        "caesar cut with straight bangs, short and neat all around",
+        "layered medium length with swept fringe, youthful style",
+        "curly/wavy texture with defined curls, full volume",
+        "undercut with longer top, trendy asymmetric look",
+        "classic taper fade with textured top, clean and professional",
+        "longer slicked back hair, wet look style, reaching neck",
+        "short spiky textured style with volume, edgy modern look",
+        "quiff hairstyle with height at front, rockabilly inspired",
+        "french crop with textured fringe, contemporary European style",
+        "medium length with curtain bangs, parted in middle, K-pop inspired",
+        "tight fade with dense curly top, afro-textured style"
+      ];
       
-      const styleDesc = styleDescriptions[hairStyle] || styleDescriptions["natural"];
+      // Pick a random hairstyle to ensure each generation is different
+      const randomIndex = Math.floor(Math.random() * hairstyleVariations.length);
+      const selectedStyle = hairstyleVariations[randomIndex];
       
       prompt = `CRITICAL INSTRUCTION: Edit ONLY the hair in this photo. The face, skin, eyes, nose, mouth, ears, beard, facial hair, clothing, and background MUST remain EXACTLY identical - do not alter them at all.
 
-Transform this person's hair to show a successful hair transplant result:
-- Add full, dense hair coverage where there is currently thinning or baldness
-- The new hair should look ${styleDesc}
-- Match the hair color exactly to any existing hair
-- Create a natural-looking hairline appropriate for the person's age and face shape
-- Show realistic hair density and texture
-- The hair should look like real, high-quality hair - ultra photorealistic
-- Maintain exact same lighting, shadows, and image quality
-- Generate a UNIQUE hairstyle variation - be creative with different hair lengths, textures, and styles while keeping it natural and professional
+Transform this person's hair to show a successful hair transplant result with THIS SPECIFIC HAIRSTYLE:
+**${selectedStyle}**
 
-This is a medical simulation of post-transplant results. The person should look like themselves but with a full head of hair.`;
+Requirements:
+- Add full, dense hair coverage where there is currently thinning or baldness
+- The new hair must be styled EXACTLY as described: ${selectedStyle}
+- Match the hair color exactly to any existing hair (do not change hair color)
+- Create a natural-looking hairline appropriate for the person's age and face shape
+- Show realistic hair density and texture for this specific style
+- The hair should look ultra photorealistic and professionally styled
+- Maintain exact same lighting, shadows, and image quality as original
+- This specific style should be clearly distinguishable from other hairstyles
+
+This is a medical simulation of post-transplant results. The person should look like themselves but with a full head of hair in the ${selectedStyle} style.`;
     } else {
       throw new Error("Invalid action. Use 'progression', 'scan' or 'newversion'");
     }

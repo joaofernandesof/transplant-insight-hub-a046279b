@@ -375,7 +375,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     link.click();
   };
 
-  // Download composite image (before + after grid)
+  // Download composite image (before + after grid) with logos
   const downloadCompositeImage = useCallback(async () => {
     if (!originalImage || newVersionImages.length === 0) {
       toast.error("Gere pelo menos uma variação antes de baixar");
@@ -399,15 +399,17 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       const gridWidth = cellSize * gridCols;
       const gridHeight = cellSize * gridRows;
       const gap = 4;
+      const headerHeight = 60; // Space for logos at top
+      const footerHeight = 50; // Space for website at bottom
       
       canvas.width = originalWidth + gridWidth + gap;
-      canvas.height = Math.max(originalHeight, gridHeight);
+      canvas.height = headerHeight + Math.max(originalHeight, gridHeight) + footerHeight;
 
       // Fill background
-      ctx.fillStyle = "#1a1a2e";
+      ctx.fillStyle = "#0f0a1f";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Load and draw original image
+      // Load image helper
       const loadImage = (src: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
           const img = new Image();
@@ -418,7 +420,33 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
         });
       };
 
-      // Draw original image on left
+      // Draw header with gradient
+      const headerGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      headerGradient.addColorStop(0, "#6b21a8");
+      headerGradient.addColorStop(0.5, "#86198f");
+      headerGradient.addColorStop(1, "#6b21a8");
+      ctx.fillStyle = headerGradient;
+      ctx.fillRect(0, 0, canvas.width, headerHeight);
+
+      // Draw NeoHairScan title on left side of header
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 24px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText("NeoHairScan", 20, 38);
+      ctx.font = "12px Arial";
+      ctx.fillStyle = "#d4b4ff";
+      ctx.fillText("Simulação de Transplante Capilar", 20, 52);
+
+      // Draw NeoFolic branding on right side of header
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px Arial";
+      ctx.textAlign = "right";
+      ctx.fillText("by NeoFolic", canvas.width - 20, 32);
+      ctx.font = "11px Arial";
+      ctx.fillStyle = "#fcd34d";
+      ctx.fillText("www.neofolic.com.br", canvas.width - 20, 48);
+
+      // Draw original image on left (below header)
       const origImg = await loadImage(originalImage);
       const origAspect = origImg.width / origImg.height;
       let drawWidth = originalWidth;
@@ -430,23 +458,23 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       }
       
       const origX = (originalWidth - drawWidth) / 2;
-      const origY = (originalHeight - drawHeight) / 2;
+      const origY = headerHeight + (originalHeight - drawHeight) / 2;
       ctx.drawImage(origImg, origX, origY, drawWidth, drawHeight);
 
       // Add "ANTES" label
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-      ctx.fillRect(0, originalHeight - 40, originalWidth, 40);
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(0, headerHeight + originalHeight - 40, originalWidth, 40);
+      ctx.fillStyle = "#ef4444";
       ctx.font = "bold 18px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("ANTES", originalWidth / 2, originalHeight - 14);
+      ctx.fillText("ANTES", originalWidth / 2, headerHeight + originalHeight - 14);
 
       // Draw grid of variations on right
       for (let i = 0; i < 12; i++) {
         const col = i % gridCols;
         const row = Math.floor(i / gridCols);
         const x = originalWidth + gap + col * cellSize;
-        const y = row * cellSize;
+        const y = headerHeight + row * cellSize;
 
         if (newVersionImages[i]) {
           try {
@@ -471,6 +499,16 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
             ctx.clip();
             ctx.drawImage(varImg, vx, vy, vw, vh);
             ctx.restore();
+            
+            // Add variation number badge
+            ctx.fillStyle = "rgba(139, 92, 246, 0.8)";
+            ctx.beginPath();
+            ctx.arc(x + 18, y + 18, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(`${i + 1}`, x + 18, y + 22);
           } catch {
             // Draw placeholder for failed image
             ctx.fillStyle = "#2d2d44";
@@ -482,7 +520,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
           }
         } else {
           // Draw empty placeholder
-          ctx.fillStyle = "#2d2d44";
+          ctx.fillStyle = "#1e1b2e";
           ctx.fillRect(x, y, cellSize, cellSize);
           ctx.strokeStyle = "#3d3d5c";
           ctx.setLineDash([4, 4]);
@@ -495,13 +533,35 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
         }
       }
 
-      // Add "POSSÍVEIS RESULTADOS" label
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-      ctx.fillRect(originalWidth + gap, gridHeight - 40, gridWidth, 40);
+      // Add "POSSÍVEIS RESULTADOS" label over grid
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(originalWidth + gap, headerHeight + gridHeight - 40, gridWidth, 40);
       ctx.fillStyle = "#10b981";
       ctx.font = "bold 16px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("POSSÍVEIS RESULTADOS PÓS-TRANSPLANTE", originalWidth + gap + gridWidth / 2, gridHeight - 14);
+      ctx.fillText("POSSÍVEIS RESULTADOS PÓS-TRANSPLANTE", originalWidth + gap + gridWidth / 2, headerHeight + gridHeight - 14);
+
+      // Draw footer with website
+      ctx.fillStyle = "#1a0f2e";
+      ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
+      
+      // Footer gradient line
+      const footerLineGradient = ctx.createLinearGradient(0, canvas.height - footerHeight, canvas.width, canvas.height - footerHeight);
+      footerLineGradient.addColorStop(0, "#a855f7");
+      footerLineGradient.addColorStop(0.5, "#d946ef");
+      footerLineGradient.addColorStop(1, "#a855f7");
+      ctx.fillStyle = footerLineGradient;
+      ctx.fillRect(0, canvas.height - footerHeight, canvas.width, 3);
+
+      // Footer text
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("www.neofolic.com.br", canvas.width / 2, canvas.height - 20);
+      
+      ctx.fillStyle = "#a0a0a0";
+      ctx.font = "11px Arial";
+      ctx.fillText("Simulação ilustrativa • Resultados podem variar • Consulte seu médico", canvas.width / 2, canvas.height - 6);
 
       // Download
       const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
