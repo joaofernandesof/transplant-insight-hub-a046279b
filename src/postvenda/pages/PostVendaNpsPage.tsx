@@ -28,8 +28,8 @@ type NpsRow = {
   canal_envio?: string | null;
   nota?: number | null;
   comentario?: string | null;
+  enviado_em?: string | null;
   respondido_em?: string | null;
-  created_at?: string | null;
   // Join (se existir)
   postvenda_chamados?: {
     paciente_nome?: string | null;
@@ -62,7 +62,7 @@ export default function PostVendaNpsPage() {
         const { data, error } = await supabase
           .from('postvenda_nps')
           .select('*, postvenda_chamados(paciente_nome, tipo_demanda)')
-          .order('created_at', { ascending: false })
+          .order('enviado_em', { ascending: false, nullsFirst: false })
           .limit(1000);
 
         if (error) throw error;
@@ -106,10 +106,10 @@ export default function PostVendaNpsPage() {
   }, [answered]);
 
   const trend = useMemo(() => {
-    // Agrupar por dia usando respondido_em (fallback created_at)
+    // Agrupar por dia usando respondido_em (fallback enviado_em)
     const map = new Map<string, { day: string; count: number; sum: number }>();
     for (const r of answered) {
-      const base = r.respondido_em || r.created_at;
+      const base = r.respondido_em || r.enviado_em;
       if (!base) continue;
       const day = format(new Date(base), 'dd/MM', { locale: ptBR });
       const prev = map.get(day) || { day, count: 0, sum: 0 };
