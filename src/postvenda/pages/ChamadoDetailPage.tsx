@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
-import { ChamadoTimeline, ChamadoEtapaFlow } from '../components';
+import { ChamadoTimeline, ChamadoEtapaFlow, DistratoSwimLanesBpmn } from '../components';
 import { DistratoEtapaFlow, DistratoEtapaBpmn, DistratoDecisao } from '../components/DistratoEtapaFlow';
 import { usePostVenda, useChamadoHistorico, ChamadoEtapa } from '../hooks/usePostVenda';
 import { ETAPA_LABELS, STATUS_LABELS, PRIORIDADE_LABELS, TIPO_DEMANDA_OPTIONS, DISTRATO_ETAPA_LABELS } from '../lib/permissions';
 import { 
   ArrowLeft, User, Phone, Mail, Clock,
-  MessageCircle, AlertCircle, Loader2, FileText
+  MessageCircle, AlertCircle, Loader2, FileText, LayoutList, GitBranch
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -49,7 +49,7 @@ export default function ChamadoDetailPage() {
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bpmnEnabled, setBpmnEnabled] = useState(false);
-
+  const [swimLanesView, setSwimLanesView] = useState(false);
   const chamado = chamados.find(c => c.id === id);
 
   if (!chamado) {
@@ -136,14 +136,51 @@ export default function ChamadoDetailPage() {
       </div>
 
       {/* Enhanced Etapa Flow */}
-      <ChamadoEtapaFlow
-        currentEtapa={chamado.etapa_atual}
-        onAdvance={handleAdvanceEtapa}
-        onRevert={handleRevertEtapa}
-        bpmnEnabled={bpmnEnabled}
-        onToggleBpmn={setBpmnEnabled}
-        isSubmitting={isSubmitting}
-      />
+      <div className="space-y-4">
+        {/* Toggle para Swim Lanes quando for Distrato */}
+        {chamado.tipo_demanda === 'distrato' && (
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-xs text-muted-foreground">Visualização:</span>
+            <div className="flex rounded-lg border border-border overflow-hidden">
+              <Button
+                variant={!swimLanesView ? "secondary" : "ghost"}
+                size="sm"
+                className="rounded-none gap-1.5 text-xs h-8"
+                onClick={() => setSwimLanesView(false)}
+              >
+                <LayoutList className="h-3.5 w-3.5" />
+                Etapas
+              </Button>
+              <Button
+                variant={swimLanesView ? "secondary" : "ghost"}
+                size="sm"
+                className="rounded-none gap-1.5 text-xs h-8"
+                onClick={() => setSwimLanesView(true)}
+              >
+                <GitBranch className="h-3.5 w-3.5" />
+                Swim Lanes
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Fluxo normal ou Swim Lanes */}
+        {chamado.tipo_demanda === 'distrato' && swimLanesView ? (
+          <DistratoSwimLanesBpmn
+            currentEtapa={(chamado as any).distrato_etapa_bpmn || 'solicitacao_recebida'}
+            decisao={(chamado as any).distrato_decisao || 'pendente'}
+          />
+        ) : (
+          <ChamadoEtapaFlow
+            currentEtapa={chamado.etapa_atual}
+            onAdvance={handleAdvanceEtapa}
+            onRevert={handleRevertEtapa}
+            bpmnEnabled={bpmnEnabled}
+            onToggleBpmn={setBpmnEnabled}
+            isSubmitting={isSubmitting}
+          />
+        )}
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main Content */}
