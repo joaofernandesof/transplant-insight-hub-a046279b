@@ -131,10 +131,10 @@ const moduleCategories = [
 ];
 // Profile quick access for admin to view system as different profiles
 const profileAccess = [
-  { profile: 'licenciado', title: 'Licenciado', description: 'Dono de clínica', icon: Award, path: '/home', color: 'bg-amber-500' },
+  { profile: 'licenciado', title: 'Licenciado', description: 'Dono de clínica', icon: Award, path: '/neolicense', color: 'bg-amber-500' },
   { profile: 'colaborador', title: 'Colaborador', description: 'Equipe clínica', icon: Users, path: '/neoteam', color: 'bg-blue-500' },
   { profile: 'medico', title: 'Médico', description: 'Visão clínica', icon: Stethoscope, path: '/neoteam/doctor-view', color: 'bg-cyan-500' },
-  { profile: 'aluno', title: 'Aluno', description: 'IBRAMEC', icon: GraduationCap, path: '/university', color: 'bg-indigo-500' },
+  { profile: 'aluno', title: 'Aluno', description: 'IBRAMEC', icon: GraduationCap, path: '/academy', color: 'bg-indigo-500' },
   { profile: 'paciente', title: 'Paciente', description: 'NeoCare', icon: Heart, path: '/neocare', color: 'bg-emerald-500' },
 ];
 
