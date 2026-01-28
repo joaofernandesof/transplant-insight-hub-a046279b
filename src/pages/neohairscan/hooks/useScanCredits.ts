@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
 interface ConsumeResult {
   success: boolean;
@@ -13,11 +14,17 @@ interface ConsumeResult {
 export function useScanCredits(userId?: string) {
   const [consuming, setConsuming] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { isAdmin } = useUnifiedAuth();
 
   const consumeCredit = useCallback(async (action: string): Promise<boolean> => {
     if (!userId) {
       toast.error("Você precisa estar logado para usar o scanner");
       return false;
+    }
+
+    // Admins have unlimited access - no credit consumption
+    if (isAdmin) {
+      return true;
     }
 
     setConsuming(true);
@@ -56,7 +63,7 @@ export function useScanCredits(userId?: string) {
     } finally {
       setConsuming(false);
     }
-  }, [userId]);
+  }, [userId, isAdmin]);
 
   const refreshCredits = useCallback(() => {
     setRefreshTrigger(prev => prev + 1);
@@ -66,6 +73,7 @@ export function useScanCredits(userId?: string) {
     consumeCredit,
     consuming,
     refreshTrigger,
-    refreshCredits
+    refreshCredits,
+    isUnlimited: isAdmin
   };
 }

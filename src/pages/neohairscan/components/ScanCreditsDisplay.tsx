@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Coins, Sparkles, Zap, Crown, ArrowRight } from "lucide-react";
+import { Coins, Sparkles, Zap, Crown, ArrowRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
 interface UserCredits {
   plan: 'free' | 'starter' | 'professional' | 'unlimited';
@@ -53,6 +54,7 @@ const planConfig = {
 export function ScanCreditsDisplay({ userId, onUpgradeClick, refreshTrigger }: ScanCreditsDisplayProps) {
   const [credits, setCredits] = useState<UserCredits | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isAdmin } = useUnifiedAuth();
 
   useEffect(() => {
     if (userId) {
@@ -86,6 +88,24 @@ export function ScanCreditsDisplay({ userId, onUpgradeClick, refreshTrigger }: S
       setLoading(false);
     }
   };
+
+  // Admin users have unlimited access
+  if (isAdmin) {
+    return (
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-primary/30">
+        <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30 gap-1">
+          <Shield className="w-3 h-3" />
+          Administrador
+        </Badge>
+        <div className="flex items-center gap-2">
+          <Crown className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-medium text-amber-400">
+            Acesso Ilimitado
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !credits) {
     return (
