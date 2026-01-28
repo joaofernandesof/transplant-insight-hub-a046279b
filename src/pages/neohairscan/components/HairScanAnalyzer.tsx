@@ -207,9 +207,10 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
 
     try {
       if (action === "newversion") {
-        // Generate multiple images to fill the grid (12 total)
-        const remaining = 12 - newVersionImages.length;
-        const toGenerate = Math.min(remaining, 12);
+        // Generate 6 variations for faster results (~15-20s total)
+        const MAX_VARIATIONS = 6;
+        const remaining = MAX_VARIATIONS - newVersionImages.length;
+        const toGenerate = Math.min(remaining, MAX_VARIATIONS);
         
         if (toGenerate <= 0) {
           toast.info("Grid já está completo! Limpe para gerar novas variações.");
@@ -392,10 +393,10 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas context not available");
 
-      // Professional layout dimensions
-      const gridCols = 4;
+      // Professional layout dimensions - 2x3 grid for 6 variations
+      const gridCols = 2;
       const gridRows = 3;
-      const cellSize = 220;
+      const cellSize = 280;
       const cellGap = 4;
       const originalWidth = Math.floor(cellSize * 2.2);
       const gridWidth = cellSize * gridCols + cellGap * (gridCols - 1);
@@ -492,7 +493,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       const gridStartX = originalWidth + middleGap;
       const gridStartY = headerHeight;
 
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 6; i++) {
         const col = i % gridCols;
         const row = Math.floor(i / gridCols);
         const x = gridStartX + col * (cellSize + cellGap);

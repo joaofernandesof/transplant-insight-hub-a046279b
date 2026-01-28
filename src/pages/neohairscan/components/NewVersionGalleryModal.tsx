@@ -128,8 +128,8 @@ export function NewVersionGalleryModal({
         {/* Content */}
         <div className="flex-1 overflow-auto p-6">
           {viewMode === "grid" ? (
-            /* Grid View */
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            /* Grid View - 2x3 layout for 6 variations */
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
               {images.map((img, index) => (
                 <div
                   key={index}
