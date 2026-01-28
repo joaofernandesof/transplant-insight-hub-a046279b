@@ -4578,6 +4578,39 @@ export type Database = {
         }
         Relationships: []
       }
+      neohairscan_history: {
+        Row: {
+          analysis_type: string
+          created_at: string
+          generated_images: Json | null
+          hair_style: string | null
+          id: string
+          metadata: Json | null
+          original_image_url: string
+          user_id: string
+        }
+        Insert: {
+          analysis_type: string
+          created_at?: string
+          generated_images?: Json | null
+          hair_style?: string | null
+          id?: string
+          metadata?: Json | null
+          original_image_url: string
+          user_id: string
+        }
+        Update: {
+          analysis_type?: string
+          created_at?: string
+          generated_images?: Json | null
+          hair_style?: string | null
+          id?: string
+          metadata?: Json | null
+          original_image_url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       neohub_module_permissions: {
         Row: {
           can_delete: boolean | null

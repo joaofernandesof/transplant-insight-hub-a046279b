@@ -24,6 +24,7 @@ import {
   Grid3X3,
   ImageDown,
   Eye,
+  Save,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +32,9 @@ import ImageCropper from "./ImageCropper";
 import { ScanCreditsDisplay } from "./ScanCreditsDisplay";
 import { ScanPlansModal } from "./ScanPlansModal";
 import { NewVersionGalleryModal } from "./NewVersionGalleryModal";
+import { ScanHistoryPanel } from "./ScanHistoryPanel";
 import { useScanCredits } from "../hooks/useScanCredits";
+import { useScanHistory } from "../hooks/useScanHistory";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
 interface HairScanAnalyzerProps {
@@ -58,6 +61,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
   const [galleryInitialIndex, setGalleryInitialIndex] = useState<number | null>(null);
   
   const { consumeCredit, refreshTrigger, refreshCredits } = useScanCredits(userId);
+  const { saveToHistory } = useScanHistory(userId || '');
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -662,67 +666,100 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
 
         {/* Image Capture Section */}
         {!originalImage && !showCropper && (
-          <Card className="bg-slate-900/80 border-purple-500/30 mb-6">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 text-center">
-                Capture ou faça upload da foto do paciente
-              </h2>
+          <div className="grid lg:grid-cols-3 gap-6 mb-6">
+            {/* Upload Card */}
+            <div className="lg:col-span-2">
+              <Card className="bg-slate-900/80 border-purple-500/30 h-full">
+                <CardContent className="p-6">
+                  <h2 className="text-lg font-semibold text-white mb-4 text-center">
+                    Capture ou faça upload da foto do paciente
+                  </h2>
 
-              {isCameraOpen ? (
-                <div className="space-y-4">
-                  <div className="relative aspect-square max-w-md mx-auto rounded-xl overflow-hidden bg-black">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Face guide overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-64 h-80 border-2 border-dashed border-white/50 rounded-[50%]" />
+                  {isCameraOpen ? (
+                    <div className="space-y-4">
+                      <div className="relative aspect-square max-w-md mx-auto rounded-xl overflow-hidden bg-black">
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Face guide overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-64 h-80 border-2 border-dashed border-white/50 rounded-[50%]" />
+                        </div>
+                      </div>
+                      <div className="flex justify-center gap-4">
+                        <Button onClick={capturePhoto} className="bg-fuchsia-600 hover:bg-fuchsia-700">
+                          <Camera className="h-4 w-4 mr-2" />
+                          Capturar
+                        </Button>
+                        <Button variant="outline" onClick={stopCamera} className="border-slate-600 text-slate-300">
+                          Cancelar
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex justify-center gap-4">
-                    <Button onClick={capturePhoto} className="bg-fuchsia-600 hover:bg-fuchsia-700">
-                      <Camera className="h-4 w-4 mr-2" />
-                      Capturar
-                    </Button>
-                    <Button variant="outline" onClick={stopCamera} className="border-slate-600 text-slate-300">
-                      Cancelar
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button
-                    size="lg"
-                    onClick={openCamera}
-                    className="bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-700 hover:to-purple-700"
-                  >
-                    <Camera className="h-5 w-5 mr-2" />
-                    Usar Câmera
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20"
-                  >
-                    <Upload className="h-5 w-5 mr-2" />
-                    Upload de Foto
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Button
+                        size="lg"
+                        onClick={openCamera}
+                        className="bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-700 hover:to-purple-700"
+                      >
+                        <Camera className="h-5 w-5 mr-2" />
+                        Usar Câmera
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20"
+                      >
+                        <Upload className="h-5 w-5 mr-2" />
+                        Upload de Foto
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* History Panel */}
+            {userId && (
+              <div className="lg:col-span-1">
+                <ScanHistoryPanel
+                  userId={userId}
+                  onLoadHistory={(item) => {
+                    setOriginalImage(item.original_image_url);
+                    if (item.generated_images?.length > 0) {
+                      if (item.analysis_type === 'newversion') {
+                        setNewVersionImages(item.generated_images);
+                        setActiveMode('newversion');
+                      } else if (item.analysis_type === 'progression') {
+                        setProgressionImage(item.generated_images[0]);
+                        setActiveMode('progression');
+                      } else if (item.analysis_type === 'scan') {
+                        setScanImage(item.generated_images[0]);
+                        setActiveMode('scan');
+                      }
+                    }
+                    if (item.hair_style) {
+                      setSelectedHairStyle(item.hair_style);
+                    }
+                    toast.success("Análise carregada do histórico");
+                  }}
+                />
+              </div>
+            )}
+          </div>
         )}
 
         {/* Canvas for capture (hidden) */}
@@ -795,14 +832,30 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                           +{yearsProgression[0]} anos
                         </Badge>
                         {progressionImage && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => downloadImage(progressionImage, `progressao-${yearsProgression[0]}anos.jpg`)}
-                            className="text-slate-400 hover:text-white"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => downloadImage(progressionImage, `progressao-${yearsProgression[0]}anos.jpg`)}
+                              className="text-slate-400 hover:text-white"
+                              title="Baixar imagem"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (originalImage) {
+                                  saveToHistory(originalImage, 'progression', [progressionImage], undefined, { years: yearsProgression[0] });
+                                }
+                              }}
+                              className="text-blue-400 hover:text-blue-300"
+                              title="Salvar no histórico"
+                            >
+                              <Save className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
                       </div>
                       <div className="aspect-square rounded-lg overflow-hidden bg-slate-800 flex items-center justify-center">
@@ -914,14 +967,30 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                           Mapa de Densidade
                         </Badge>
                         {scanImage && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => downloadImage(scanImage, "scan-densidade.jpg")}
-                            className="text-slate-400 hover:text-white"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => downloadImage(scanImage, "scan-densidade.jpg")}
+                              className="text-slate-400 hover:text-white"
+                              title="Baixar imagem"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (originalImage) {
+                                  saveToHistory(originalImage, 'scan', [scanImage]);
+                                }
+                              }}
+                              className="text-blue-400 hover:text-blue-300"
+                              title="Salvar no histórico"
+                            >
+                              <Save className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
                       </div>
                       <div className="aspect-square rounded-lg overflow-hidden bg-slate-800 flex items-center justify-center">
@@ -1186,6 +1255,23 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                               >
                                 <ImageDown className="h-4 w-4 mr-2" />
                                 Baixar Grade
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  if (originalImage) {
+                                    saveToHistory(
+                                      originalImage,
+                                      'newversion',
+                                      newVersionImages,
+                                      selectedHairStyle
+                                    );
+                                  }
+                                }}
+                                variant="outline"
+                                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/20"
+                              >
+                                <Save className="h-4 w-4 mr-2" />
+                                Salvar
                               </Button>
                             </>
                           )}
