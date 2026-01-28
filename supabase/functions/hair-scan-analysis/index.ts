@@ -49,8 +49,8 @@ The progression should be proportional to ${yearsProgression} years of untreated
 - Keep facial features visible but muted
 The result should help doctors identify areas of alopecia and density variations.`;
     } else if (action === "newversion") {
-      // Generate post-transplant hairstyle simulation
-      const { hairStyle } = await req.json().catch(() => ({ hairStyle: "natural" }));
+      // Generate 12 post-transplant hairstyle variations
+      const { hairStyle, generateMultiple } = await req.json().catch(() => ({ hairStyle: "natural", generateMultiple: true }));
       
       const styleDescriptions: Record<string, string> = {
         "natural": "natural, well-groomed with good volume",
@@ -73,6 +73,7 @@ Transform this person's hair to show a successful hair transplant result:
 - Show realistic hair density and texture
 - The hair should look like real, high-quality hair - ultra photorealistic
 - Maintain exact same lighting, shadows, and image quality
+- Generate a UNIQUE hairstyle variation - be creative with different hair lengths, textures, and styles while keeping it natural and professional
 
 This is a medical simulation of post-transplant results. The person should look like themselves but with a full head of hair.`;
     } else {

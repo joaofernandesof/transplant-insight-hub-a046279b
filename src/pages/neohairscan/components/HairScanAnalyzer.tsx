@@ -185,42 +185,87 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       return;
     }
 
-    // Check and consume credits first
-    const hasCredits = await consumeCredit(`scan_${action}`);
-    if (!hasCredits) {
-      return; // User doesn't have enough credits
-    }
-
     setIsProcessing(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("hair-scan-analysis", {
-        body: {
-          action,
-          imageBase64: originalImage,
-          yearsProgression: yearsProgression[0],
-          hairStyle: selectedHairStyle,
-        },
-      });
+      if (action === "newversion") {
+        // Generate multiple images to fill the grid (12 total)
+        const remaining = 12 - newVersionImages.length;
+        const toGenerate = Math.min(remaining, 12);
+        
+        if (toGenerate <= 0) {
+          toast.info("Grid já está completo! Limpe para gerar novas variações.");
+          setIsProcessing(false);
+          return;
+        }
 
-      if (error) throw error;
+        toast.info(`Gerando ${toGenerate} variações...`, { duration: 3000 });
+        
+        // Generate images one by one to show progress
+        for (let i = 0; i < toGenerate; i++) {
+          // Check credits for each generation
+          const hasCredits = await consumeCredit(`scan_${action}`);
+          if (!hasCredits) {
+            toast.warning(`Geradas ${i} de ${toGenerate} variações. Créditos insuficientes.`);
+            break;
+          }
 
-      if (data?.error) {
-        toast.error(data.error);
-        // Refund credit on error (we could implement this in the backend)
-        refreshCredits();
-        return;
-      }
+          try {
+            const { data, error } = await supabase.functions.invoke("hair-scan-analysis", {
+              body: {
+                action,
+                imageBase64: originalImage,
+                hairStyle: selectedHairStyle,
+              },
+            });
 
-      if (action === "progression") {
-        setProgressionImage(data.image);
-        toast.success(`Simulação de ${yearsProgression[0]} anos gerada!`);
-      } else if (action === "scan") {
-        setScanImage(data.image);
-        toast.success("Scan de densidade gerado!");
-      } else if (action === "newversion") {
-        setNewVersionImages(prev => [...prev, data.image]);
-        toast.success("Nova versão gerada!");
+            if (error) throw error;
+            if (data?.error) {
+              console.error("Generation error:", data.error);
+              continue;
+            }
+
+            if (data?.image) {
+              setNewVersionImages(prev => [...prev, data.image]);
+            }
+          } catch (err) {
+            console.error(`Error generating variation ${i + 1}:`, err);
+          }
+        }
+        
+        toast.success("Variações geradas!");
+      } else {
+        // Single image processing (progression/scan)
+        const hasCredits = await consumeCredit(`scan_${action}`);
+        if (!hasCredits) {
+          setIsProcessing(false);
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke("hair-scan-analysis", {
+          body: {
+            action,
+            imageBase64: originalImage,
+            yearsProgression: yearsProgression[0],
+            hairStyle: selectedHairStyle,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data?.error) {
+          toast.error(data.error);
+          refreshCredits();
+          return;
+        }
+
+        if (action === "progression") {
+          setProgressionImage(data.image);
+          toast.success(`Simulação de ${yearsProgression[0]} anos gerada!`);
+        } else if (action === "scan") {
+          setScanImage(data.image);
+          toast.success("Scan de densidade gerado!");
+        }
       }
     } catch (error: any) {
       console.error("Processing error:", error);
@@ -229,7 +274,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     } finally {
       setIsProcessing(false);
     }
-  }, [originalImage, yearsProgression, selectedHairStyle]);
+  }, [originalImage, yearsProgression, selectedHairStyle, newVersionImages.length, consumeCredit, refreshCredits]);
 
   // Reset analysis
   const resetAnalysis = () => {
@@ -660,132 +705,146 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                     </CardContent>
                   </Card>
 
-                  {/* Original + Generated Grid */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Original */}
-                    <Card className="bg-slate-900/80 border-purple-500/30">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="outline" className="text-white border-slate-600">
-                            Original
-                          </Badge>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleRecrop}
-                              className="text-slate-400 hover:text-white"
-                              title="Recortar área"
-                            >
-                              <Crop className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={resetAnalysis}
-                              className="text-slate-400 hover:text-white"
-                              title="Nova foto"
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <img
-                          src={originalImage}
-                          alt="Original"
-                          className="w-full aspect-square object-cover rounded-lg"
-                        />
-                      </CardContent>
-                    </Card>
-
-                    {/* Generated Versions */}
-                    <Card className="bg-slate-900/80 border-emerald-500/30">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge className="bg-emerald-600">
-                            <Grid3X3 className="h-3 w-3 mr-1" />
-                            Versões Geradas ({newVersionImages.length})
-                          </Badge>
-                          {newVersionImages.length > 0 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setNewVersionImages([])}
-                              className="text-slate-400 hover:text-white"
-                              title="Limpar todas"
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                        
-                        {newVersionImages.length === 0 ? (
-                          <div className="aspect-square rounded-lg bg-slate-800 flex items-center justify-center">
-                            <div className="text-center text-slate-500 p-4">
-                              <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                              <p className="text-sm">Gere opções de cabelo pós-transplante</p>
+                  {/* Grid Layout: Original (left) + 12 Variations (right) */}
+                  <div className="flex flex-col lg:flex-row gap-4">
+                    {/* Original Photo - Takes ~40% width */}
+                    <div className="lg:w-[40%] flex-shrink-0">
+                      <Card className="bg-slate-900/80 border-purple-500/30 h-full">
+                        <CardContent className="p-4 h-full flex flex-col">
+                          <div className="flex items-center justify-between mb-3">
+                            <Badge variant="outline" className="text-white border-slate-600">
+                              Foto Original
+                            </Badge>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleRecrop}
+                                className="text-slate-400 hover:text-white"
+                                title="Recortar área"
+                              >
+                                <Crop className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={resetAnalysis}
+                                className="text-slate-400 hover:text-white"
+                                title="Nova foto"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
-                        ) : (
-                          <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
-                            {newVersionImages.map((img, index) => (
-                              <div key={index} className="relative group">
-                                <img
-                                  src={img}
-                                  alt={`Versão ${index + 1}`}
-                                  className="w-full aspect-square object-cover rounded-lg"
-                                />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => downloadImage(img, `new-version-${index + 1}.jpg`)}
-                                    className="text-white hover:bg-white/20"
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                                <Badge className="absolute top-1 left-1 bg-black/70 text-xs">
-                                  {index + 1}
-                                </Badge>
-                              </div>
-                            ))}
+                          <div className="flex-1 flex items-center justify-center">
+                            <img
+                              src={originalImage}
+                              alt="Original"
+                              className="w-full max-h-[500px] object-contain rounded-lg"
+                            />
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Generated Variations Grid - 4 columns x 3 rows */}
+                    <div className="lg:w-[60%]">
+                      <Card className="bg-slate-900/80 border-emerald-500/30 h-full">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <Badge className="bg-emerald-600">
+                              <Grid3X3 className="h-3 w-3 mr-1" />
+                              Variações ({newVersionImages.length}/12)
+                            </Badge>
+                            {newVersionImages.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setNewVersionImages([])}
+                                className="text-slate-400 hover:text-white"
+                                title="Limpar todas"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                          
+                          {/* 4x3 Grid */}
+                          <div className="grid grid-cols-4 gap-1">
+                            {Array.from({ length: 12 }).map((_, index) => {
+                              const img = newVersionImages[index];
+                              return (
+                                <div 
+                                  key={index} 
+                                  className={`relative aspect-[3/4] rounded overflow-hidden ${
+                                    img ? '' : 'bg-slate-800/50 border border-dashed border-slate-700'
+                                  }`}
+                                >
+                                  {img ? (
+                                    <div className="relative group w-full h-full">
+                                      <img
+                                        src={img}
+                                        alt={`Versão ${index + 1}`}
+                                        className="w-full h-full object-cover"
+                                      />
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => downloadImage(img, `new-version-${index + 1}.jpg`)}
+                                          className="text-white hover:bg-white/20 h-6 w-6 p-0"
+                                        >
+                                          <Download className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-slate-600">
+                                      <span className="text-xs">{index + 1}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
 
                   {/* Generate Button */}
                   <Card className="bg-slate-900/80 border-purple-500/30">
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className="text-center text-slate-300 text-sm">
-                          Gera simulações realistas de como o paciente ficará após o transplante capilar,
-                          com diferentes opções de corte e estilo de cabelo.
+                    <CardContent className="p-4">
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <div className="flex-1 text-center sm:text-left text-slate-300 text-sm">
+                          {newVersionImages.length === 0 
+                            ? "Gera 12 simulações de como o paciente ficará após o transplante capilar."
+                            : `${newVersionImages.length}/12 variações geradas. ${12 - newVersionImages.length} restantes.`
+                          }
                         </div>
                         
                         <Button
                           onClick={() => processImage("newversion")}
-                          disabled={isProcessing}
-                          className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                          disabled={isProcessing || newVersionImages.length >= 12}
+                          className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 min-w-[200px]"
                         >
                           {isProcessing ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Gerando Nova Versão...
+                              Gerando... ({newVersionImages.length + 1}/12)
+                            </>
+                          ) : newVersionImages.length >= 12 ? (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Grid Completo!
                             </>
                           ) : (
                             <>
                               <Sparkles className="h-4 w-4 mr-2" />
-                              Gerar Nova Versão
+                              {newVersionImages.length === 0 ? "Gerar 12 Variações" : `Gerar Mais (+${12 - newVersionImages.length})`}
                             </>
                           )}
                         </Button>
-
-                        <p className="text-xs text-center text-slate-500">
-                          Clique várias vezes para gerar diferentes opções de cabelo
-                        </p>
                       </div>
                     </CardContent>
                   </Card>
