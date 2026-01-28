@@ -624,8 +624,8 @@ export default function NeoTeamTasks() {
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
-                        <Badge className={`${statusConfig[task.status].bg} ${statusConfig[task.status].color} text-xs`}>
-                          {statusConfig[task.status].label}
+                        <Badge className={`${statusConfig[task.status]?.bg || 'bg-muted'} ${statusConfig[task.status]?.color || 'text-muted-foreground'} text-xs`}>
+                          {statusConfig[task.status]?.label || task.status}
                         </Badge>
                         <Badge variant="outline" className={`gap-1 ${priorityConfig[task.priority].color}`}>
                           <PriorityIcon className="h-3 w-3" />

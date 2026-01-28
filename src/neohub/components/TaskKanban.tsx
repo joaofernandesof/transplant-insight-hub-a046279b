@@ -88,7 +88,8 @@ function SortableTaskCard({ task, onEditTask, onDeleteTask, onOpenDetail }: Sort
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const PriorityIcon = priorityConfig[task.priority].icon;
+  const priorityCfg = priorityConfig[task.priority] || priorityConfig.medium;
+  const PriorityIcon = priorityCfg.icon;
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
   const patient = task.patient;
 
@@ -178,9 +179,9 @@ function SortableTaskCard({ task, onEditTask, onDeleteTask, onOpenDetail }: Sort
               </span>
             )}
             
-            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 gap-1 ${priorityConfig[task.priority].color}`}>
+            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 gap-1 ${priorityCfg.color}`}>
               <PriorityIcon className="h-3 w-3" />
-              {priorityConfig[task.priority].label}
+              {priorityCfg.label}
             </Badge>
           </div>
 
@@ -234,7 +235,7 @@ function DroppableColumn({
   onOpenDetail: (task: Task) => void;
   onAddTask: (status: TaskStatus) => void;
 }) {
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.todo;
   
   // Use useDroppable to make the column a valid drop target
   const { setNodeRef, isOver } = useDroppable({
