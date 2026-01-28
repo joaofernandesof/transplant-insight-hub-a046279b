@@ -71,6 +71,7 @@ const ModuleOverridesAdmin = lazy(() => import("./pages/admin/ModuleOverridesAdm
 const ReferralsAdmin = lazy(() => import("./pages/admin/ReferralsAdmin"));
 const EventLogs = lazy(() => import("./pages/admin/EventLogs"));
 const CodeAssistantPage = lazy(() => import("./pages/admin/CodeAssistantPage"));
+const LicenseeOnboardingPage = lazy(() => import("./pages/admin/LicenseeOnboardingPage"));
 const WeeklyReports = lazy(() => import("./pages/WeeklyReports"));
 const SurgerySchedule = lazy(() => import("./pages/SurgerySchedule"));
 const SalaTecnica = lazy(() => import("./pages/SalaTecnica"));
@@ -585,6 +586,7 @@ function AppRoutes() {
       <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><LazyRoute><EventLogs /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/code-assistant" element={<AdminRoute><SidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/admin/surgery-schedule" element={<AdminRoute><SidebarWrapper><LazyRoute><SurgerySchedule /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/admin/licensee-onboarding" element={<AdminRoute><SidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></SidebarWrapper></AdminRoute>} />
       <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
