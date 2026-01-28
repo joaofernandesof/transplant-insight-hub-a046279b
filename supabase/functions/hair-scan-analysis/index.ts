@@ -142,20 +142,58 @@ This is a medical simulation of post-transplant results. The person should look 
     }
 
     const data = await response.json();
+    
+    // Debug: log the full structure of images array
+    const images = data.choices?.[0]?.message?.images;
     console.log("AI response structure:", JSON.stringify({
       hasChoices: !!data.choices,
       choicesLength: data.choices?.length,
       hasMessage: !!data.choices?.[0]?.message,
-      hasImages: !!data.choices?.[0]?.message?.images,
-      imagesLength: data.choices?.[0]?.message?.images?.length,
+      hasImages: !!images,
+      imagesLength: images?.length,
+      firstImageKeys: images?.[0] ? Object.keys(images[0]) : null,
+      firstImageType: images?.[0]?.type,
+      hasImageUrl: !!images?.[0]?.image_url,
+      hasUrl: !!images?.[0]?.image_url?.url,
+      urlPrefix: images?.[0]?.image_url?.url?.substring(0, 50),
       content: data.choices?.[0]?.message?.content?.substring(0, 200)
     }));
 
-    const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    // Try multiple extraction paths for the image
+    let generatedImage = images?.[0]?.image_url?.url;
+    
+    // Fallback: check if image_url is directly the URL string
+    if (!generatedImage && typeof images?.[0]?.image_url === 'string') {
+      generatedImage = images[0].image_url;
+    }
+    
+    // Fallback: check if there's a url property directly on the image object
+    if (!generatedImage && images?.[0]?.url) {
+      generatedImage = images[0].url;
+    }
+    
+    // Fallback: check for data property
+    if (!generatedImage && images?.[0]?.data) {
+      generatedImage = `data:image/png;base64,${images[0].data}`;
+    }
+    
     const textResponse = data.choices?.[0]?.message?.content || "";
 
     if (!generatedImage) {
-      console.error("No image generated. Full response:", JSON.stringify(data).substring(0, 1000));
+      console.error("No image generated. Full response structure:", JSON.stringify({
+        choices: data.choices?.map((c: any) => ({
+          message: {
+            role: c.message?.role,
+            contentLength: c.message?.content?.length,
+            images: c.message?.images?.map((img: any) => ({
+              type: img?.type,
+              keys: Object.keys(img || {}),
+              imageUrlType: typeof img?.image_url,
+              imageUrlKeys: img?.image_url ? Object.keys(img.image_url) : null
+            }))
+          }
+        }))
+      }));
       throw new Error("A IA não conseguiu gerar a imagem. Tente com outra foto ou área diferente.");
     }
 
