@@ -123,32 +123,7 @@ export default function ImageCropper({
           </div>
         </div>
 
-        {/* Cropper Container */}
-        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black">
-          <Cropper
-            image={imageSrc}
-            crop={crop}
-            zoom={zoom}
-            rotation={rotation}
-            aspect={1}
-            onCropChange={onCropChange}
-            onZoomChange={onZoomChange}
-            onCropComplete={onCropCompleteCallback}
-            cropShape="rect"
-            showGrid={true}
-            style={{
-              containerStyle: {
-                borderRadius: "0.75rem",
-              },
-              cropAreaStyle: {
-                border: "2px solid #d946ef",
-                boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.6)",
-              },
-            }}
-          />
-        </div>
-
-        {/* Zoom Control */}
+        {/* Zoom Control - ABOVE the image */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-slate-300">
@@ -170,7 +145,7 @@ export default function ImageCropper({
           />
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - ABOVE the image */}
         <div className="flex gap-3">
           <Button
             variant="outline"
@@ -202,6 +177,31 @@ export default function ImageCropper({
         <p className="text-xs text-center text-slate-500">
           Selecione a área do couro cabeludo que deseja analisar
         </p>
+
+        {/* Cropper Container - NOW at the bottom */}
+        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black">
+          <Cropper
+            image={imageSrc}
+            crop={crop}
+            zoom={zoom}
+            rotation={rotation}
+            aspect={1}
+            onCropChange={onCropChange}
+            onZoomChange={onZoomChange}
+            onCropComplete={onCropCompleteCallback}
+            cropShape="rect"
+            showGrid={true}
+            style={{
+              containerStyle: {
+                borderRadius: "0.75rem",
+              },
+              cropAreaStyle: {
+                border: "2px solid #d946ef",
+                boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.6)",
+              },
+            }}
+          />
+        </div>
       </CardContent>
     </Card>
   );
