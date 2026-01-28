@@ -1,24 +1,16 @@
 /**
  * IPROMED Legal Hub - Gestão de Contratos
- * Integrado com banco de dados real
+ * Interface melhorada com cards visuais e ações rápidas
  */
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -35,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   FileText,
   Search,
@@ -44,13 +37,25 @@ import {
   CheckCircle2,
   AlertTriangle,
   Send,
-  ChevronRight,
   Loader2,
   Eye,
+  Calendar,
+  Building2,
+  DollarSign,
+  MoreVertical,
+  ExternalLink,
+  Download,
+  Pencil,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Contract {
   id: string;
@@ -71,41 +76,31 @@ interface Contract {
   ipromed_legal_clients?: { name: string } | null;
 }
 
-const getStatusConfig = (status: Contract['status']) => {
-  const config: Record<string, { label: string; className: string; icon: typeof FileText }> = {
-    draft: { label: 'Rascunho', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400', icon: FileText },
-    pending_review: { label: 'Em Revisão', className: 'bg-blue-100 text-blue-700', icon: Eye },
-    pending_approval: { label: 'Aguard. Aprovação', className: 'bg-amber-100 text-amber-700', icon: Clock },
-    pending_signature: { label: 'Aguard. Assinatura', className: 'bg-purple-100 text-purple-700', icon: FileSignature },
-    signed: { label: 'Assinado', className: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
-    active: { label: 'Ativo', className: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
-    expired: { label: 'Expirado', className: 'bg-rose-100 text-rose-700', icon: AlertTriangle },
-    cancelled: { label: 'Cancelado', className: 'bg-slate-100 text-slate-700', icon: AlertTriangle },
-  };
-  return config[status] || config.draft;
+const statusConfig: Record<string, { label: string; className: string; icon: typeof FileText }> = {
+  draft: { label: 'Rascunho', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400', icon: FileText },
+  pending_review: { label: 'Em Revisão', className: 'bg-blue-100 text-blue-700', icon: Eye },
+  pending_approval: { label: 'Aguard. Aprovação', className: 'bg-amber-100 text-amber-700', icon: Clock },
+  pending_signature: { label: 'Aguard. Assinatura', className: 'bg-purple-100 text-purple-700', icon: FileSignature },
+  signed: { label: 'Assinado', className: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
+  active: { label: 'Ativo', className: 'bg-emerald-100 text-emerald-700', icon: CheckCircle2 },
+  expired: { label: 'Expirado', className: 'bg-rose-100 text-rose-700', icon: AlertTriangle },
+  cancelled: { label: 'Cancelado', className: 'bg-slate-100 text-slate-700', icon: AlertTriangle },
 };
 
-const getClicksignBadge = (status?: string | null) => {
-  if (!status) return null;
-  const config: Record<string, { label: string; className: string }> = {
-    pending: { label: 'Pendente', className: 'bg-gray-100 text-gray-600' },
-    sent: { label: 'Enviado', className: 'bg-blue-100 text-blue-700' },
-    signed: { label: 'Assinado', className: 'bg-emerald-100 text-emerald-700' },
-    expired: { label: 'Expirado', className: 'bg-rose-100 text-rose-700' },
-  };
-  const cfg = config[status] || config.pending;
-  return (
-    <Badge className={`${cfg.className} gap-1`}>
-      <FileSignature className="h-3 w-3" />
-      {cfg.label}
-    </Badge>
-  );
+const contractTypes: Record<string, string> = {
+  preventivo: 'Contrato Preventivo',
+  prestacao: 'Prestação de Serviços',
+  locacao: 'Locação',
+  parceria: 'Parceria',
+  manutencao: 'Manutenção',
+  trabalho: 'Trabalhista',
 };
 
 export default function ContractsManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isNewContractOpen, setIsNewContractOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [newContract, setNewContract] = useState({
     title: '',
     contract_type: '',
@@ -119,7 +114,6 @@ export default function ContractsManager() {
 
   const queryClient = useQueryClient();
 
-  // Fetch contracts from database
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['ipromed-contracts'],
     queryFn: async () => {
@@ -136,7 +130,6 @@ export default function ContractsManager() {
     },
   });
 
-  // Fetch clients for dropdown
   const { data: clients = [] } = useQuery({
     queryKey: ['ipromed-clients-dropdown'],
     queryFn: async () => {
@@ -149,10 +142,8 @@ export default function ContractsManager() {
     },
   });
 
-  // Create contract mutation
   const createContract = useMutation({
     mutationFn: async (contractData: typeof newContract) => {
-      // Generate contract number
       const contractNumber = `CTR-${new Date().getFullYear()}-${String(contracts.length + 1).padStart(3, '0')}`;
       
       const { data, error } = await supabase
@@ -226,6 +217,132 @@ export default function ContractsManager() {
     createContract.mutate(newContract);
   };
 
+  const getDaysUntilExpiry = (endDate: string | null) => {
+    if (!endDate) return null;
+    const days = differenceInDays(new Date(endDate), new Date());
+    return days;
+  };
+
+  const ContractCard = ({ contract }: { contract: Contract }) => {
+    const config = statusConfig[contract.status] || statusConfig.draft;
+    const StatusIcon = config.icon;
+    const daysUntilExpiry = getDaysUntilExpiry(contract.end_date);
+
+    return (
+      <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300 group">
+        <CardContent className="p-5">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-muted rounded-lg">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-mono text-xs text-muted-foreground">
+                  {contract.contract_number || 'Sem número'}
+                </p>
+                <h3 className="font-semibold text-sm line-clamp-1">{contract.title}</h3>
+              </div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Visualizar
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </DropdownMenuItem>
+                {contract.status === 'pending_signature' && (
+                  <DropdownMenuItem className="text-purple-600">
+                    <Send className="h-4 w-4 mr-2" />
+                    Enviar para assinatura
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Client */}
+          <div className="flex items-center gap-2 mb-3">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
+              {contract.ipromed_legal_clients?.name || 'Sem cliente'}
+            </span>
+          </div>
+
+          {/* Status and Type */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Badge className={`${config.className} gap-1`}>
+              <StatusIcon className="h-3 w-3" />
+              {config.label}
+            </Badge>
+            {contract.contract_type && (
+              <Badge variant="outline" className="text-xs">
+                {contractTypes[contract.contract_type] || contract.contract_type}
+              </Badge>
+            )}
+          </div>
+
+          {/* Value and Dates */}
+          <div className="grid grid-cols-2 gap-3 pt-3 border-t">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Valor</p>
+              <p className="font-semibold text-sm">
+                {contract.value ? (
+                  new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(contract.value)
+                ) : '-'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Vigência</p>
+              {contract.end_date ? (
+                <div className="flex items-center gap-1">
+                  <p className="font-semibold text-sm">
+                    {format(new Date(contract.end_date), 'dd/MM/yy', { locale: ptBR })}
+                  </p>
+                  {daysUntilExpiry !== null && daysUntilExpiry <= 30 && daysUntilExpiry > 0 && (
+                    <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 ml-1">
+                      {daysUntilExpiry}d
+                    </Badge>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">-</p>
+              )}
+            </div>
+          </div>
+
+          {/* Clicksign Status */}
+          {contract.clicksign_status && (
+            <div className="mt-3 pt-3 border-t">
+              <div className="flex items-center gap-2">
+                <FileSignature className="h-4 w-4 text-purple-500" />
+                <span className="text-xs text-muted-foreground">Clicksign:</span>
+                <Badge className="text-xs bg-purple-100 text-purple-700">
+                  {contract.clicksign_status}
+                </Badge>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -248,113 +365,112 @@ export default function ContractsManager() {
             <DialogHeader>
               <DialogTitle>Criar Novo Contrato</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Tipo de Contrato</Label>
-                  <Select 
-                    value={newContract.contract_type}
-                    onValueChange={(value) => setNewContract({ ...newContract, contract_type: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="preventivo">Contrato Preventivo</SelectItem>
-                      <SelectItem value="prestacao">Prestação de Serviços</SelectItem>
-                      <SelectItem value="locacao">Locação</SelectItem>
-                      <SelectItem value="parceria">Parceria</SelectItem>
-                      <SelectItem value="manutencao">Manutenção</SelectItem>
-                      <SelectItem value="trabalho">Trabalhista</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <ScrollArea className="max-h-[70vh]">
+              <div className="grid gap-4 py-4 pr-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Tipo de Contrato</Label>
+                    <Select 
+                      value={newContract.contract_type}
+                      onValueChange={(value) => setNewContract({ ...newContract, contract_type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(contractTypes).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Departamento</Label>
+                    <Select 
+                      value={newContract.department}
+                      onValueChange={(value) => setNewContract({ ...newContract, department: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="juridico">Jurídico</SelectItem>
+                        <SelectItem value="comercial">Comercial</SelectItem>
+                        <SelectItem value="operacoes">Operações</SelectItem>
+                        <SelectItem value="rh">RH</SelectItem>
+                        <SelectItem value="financeiro">Financeiro</SelectItem>
+                        <SelectItem value="diretoria">Diretoria</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Departamento</Label>
-                  <Select 
-                    value={newContract.department}
-                    onValueChange={(value) => setNewContract({ ...newContract, department: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="juridico">Jurídico</SelectItem>
-                      <SelectItem value="comercial">Comercial</SelectItem>
-                      <SelectItem value="operacoes">Operações</SelectItem>
-                      <SelectItem value="rh">RH</SelectItem>
-                      <SelectItem value="financeiro">Financeiro</SelectItem>
-                      <SelectItem value="diretoria">Diretoria</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Título do Contrato *</Label>
-                <Input 
-                  placeholder="Título descritivo do contrato" 
-                  value={newContract.title}
-                  onChange={(e) => setNewContract({ ...newContract, title: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Cliente / Contraparte</Label>
-                  <Select 
-                    value={newContract.client_id}
-                    onValueChange={(value) => setNewContract({ ...newContract, client_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Valor do Contrato (R$)</Label>
+                  <Label>Título do Contrato *</Label>
                   <Input 
-                    type="number" 
-                    placeholder="0,00" 
-                    value={newContract.value}
-                    onChange={(e) => setNewContract({ ...newContract, value: e.target.value })}
+                    placeholder="Título descritivo do contrato" 
+                    value={newContract.title}
+                    onChange={(e) => setNewContract({ ...newContract, title: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Cliente / Contraparte</Label>
+                    <Select 
+                      value={newContract.client_id}
+                      onValueChange={(value) => setNewContract({ ...newContract, client_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Valor do Contrato (R$)</Label>
+                    <Input 
+                      type="number" 
+                      placeholder="0,00" 
+                      value={newContract.value}
+                      onChange={(e) => setNewContract({ ...newContract, value: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Data de Início</Label>
+                    <Input 
+                      type="date" 
+                      value={newContract.start_date}
+                      onChange={(e) => setNewContract({ ...newContract, start_date: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data de Término</Label>
+                    <Input 
+                      type="date" 
+                      value={newContract.end_date}
+                      onChange={(e) => setNewContract({ ...newContract, end_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Descrição / Objeto</Label>
+                  <Textarea 
+                    placeholder="Descreva o objeto do contrato..." 
+                    rows={3} 
+                    value={newContract.description}
+                    onChange={(e) => setNewContract({ ...newContract, description: e.target.value })}
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Data de Início</Label>
-                  <Input 
-                    type="date" 
-                    value={newContract.start_date}
-                    onChange={(e) => setNewContract({ ...newContract, start_date: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Data de Término</Label>
-                  <Input 
-                    type="date" 
-                    value={newContract.end_date}
-                    onChange={(e) => setNewContract({ ...newContract, end_date: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Descrição / Objeto</Label>
-                <Textarea 
-                  placeholder="Descreva o objeto do contrato..." 
-                  rows={3} 
-                  value={newContract.description}
-                  onChange={(e) => setNewContract({ ...newContract, description: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
+            </ScrollArea>
+            <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => setIsNewContractOpen(false)}>
                 Cancelar
               </Button>
@@ -423,14 +539,14 @@ export default function ContractsManager() {
         </Card>
       </div>
 
-      {/* Tabs and Table */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <TabsList>
           <TabsTrigger value="all" onClick={() => setActiveTab('all')} data-state={activeTab === 'all' ? 'active' : ''}>
-            Todos
+            Todos ({contracts.length})
           </TabsTrigger>
           <TabsTrigger value="pending" onClick={() => setActiveTab('pending')} data-state={activeTab === 'pending' ? 'active' : ''}>
-            Pendentes
+            Pendentes ({pendingCount})
           </TabsTrigger>
           <TabsTrigger value="active" onClick={() => setActiveTab('active')} data-state={activeTab === 'active' ? 'active' : ''}>
             Ativos
@@ -450,98 +566,26 @@ export default function ContractsManager() {
         </div>
       </div>
 
-      <Card className="border-none shadow-md">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : filteredContracts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-muted-foreground">
-              <FileText className="h-12 w-12 mb-4 opacity-20" />
-              <p className="text-lg font-medium">Nenhum contrato encontrado</p>
-              <p className="text-sm">Clique em "Novo Contrato" para criar</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Contrato</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Clicksign</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Vigência</TableHead>
-                  <TableHead className="w-10"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredContracts.map((contract) => {
-                  const statusConfig = getStatusConfig(contract.status);
-                  const StatusIcon = statusConfig.icon;
-                  return (
-                    <TableRow key={contract.id} className="cursor-pointer hover:bg-muted/50">
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-sm">{contract.contract_number || 'Sem número'}</p>
-                          <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                            {contract.title}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {contract.ipromed_legal_clients?.name || '-'}
-                      </TableCell>
-                      <TableCell>
-                        {contract.contract_type ? (
-                          <Badge variant="outline">{contract.contract_type}</Badge>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${statusConfig.className} gap-1`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {statusConfig.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{getClicksignBadge(contract.clicksign_status)}</TableCell>
-                      <TableCell className="font-medium">
-                        {contract.value ? (
-                          new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL',
-                          }).format(contract.value)
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {contract.end_date ? (
-                          <div className="text-sm">
-                            {format(new Date(contract.end_date), 'dd/MM/yy', { locale: ptBR })}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {contract.status === 'pending_signature' && (
-                            <Button variant="ghost" size="icon" title="Enviar para assinatura">
-                              <Send className="h-4 w-4 text-purple-600" />
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="icon">
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Contracts Grid */}
+      {isLoading ? (
+        <div className="flex items-center justify-center p-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : filteredContracts.length === 0 ? (
+        <Card className="border-none shadow-md">
+          <CardContent className="flex flex-col items-center justify-center p-12 text-muted-foreground">
+            <FileText className="h-16 w-16 mb-4 opacity-20" />
+            <p className="text-lg font-medium">Nenhum contrato encontrado</p>
+            <p className="text-sm">Clique em "Novo Contrato" para criar</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredContracts.map((contract) => (
+            <ContractCard key={contract.id} contract={contract} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
