@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X } from 'lucide-react';
+import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Gavel } from 'lucide-react';
 import { NovoChamadoDialog } from './NovoChamadoDialog';
 import { Chamado, usePostVenda } from '../hooks/usePostVenda';
 import { ETAPA_LABELS, PRIORIDADE_LABELS, STATUS_LABELS, TIPO_DEMANDA_OPTIONS } from '../lib/permissions';
@@ -26,14 +26,18 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export function ChamadosTabContent() {
+interface ChamadosTabContentProps {
+  initialTipoFilter?: string;
+}
+
+export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProps) {
   const { chamados, isLoading } = usePostVenda();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   
   // Filters
-  const [tipoDemandaFilter, setTipoDemandaFilter] = useState<string>('all');
+  const [tipoDemandaFilter, setTipoDemandaFilter] = useState<string>(initialTipoFilter || 'all');
   const [prioridadeFilter, setPrioridadeFilter] = useState<string>('all');
   const [responsavelFilter, setResponsavelFilter] = useState<string>('all');
   const [etapaFilter, setEtapaFilter] = useState<string>('all');
@@ -150,13 +154,26 @@ export function ChamadosTabContent() {
     setPage(1);
   }, [search, tipoDemandaFilter, prioridadeFilter, responsavelFilter, etapaFilter, statusFilter, pageSize, sortField, sortDir]);
 
+  // Header dinâmico baseado no filtro
+  const isDistrato = tipoDemandaFilter === 'distrato';
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Lista de Chamados</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-semibold">
+            {isDistrato ? 'Chamados de Distrato' : 'Lista de Chamados'}
+          </h2>
+          {isDistrato && (
+            <Badge variant="outline" className="border-orange-500 text-orange-600 gap-1">
+              <Gavel className="h-3 w-3" />
+              Filtrado
+            </Badge>
+          )}
+        </div>
         <Button onClick={() => setDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          Novo Chamado
+          {isDistrato ? 'Novo Distrato' : 'Novo Chamado'}
         </Button>
       </div>
 
@@ -328,7 +345,12 @@ export function ChamadosTabContent() {
                         <div className="text-xs text-muted-foreground">{c.paciente_telefone || ''}</div>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {TIPO_DEMANDA_OPTIONS.find(o => o.value === c.tipo_demanda)?.label || c.tipo_demanda}
+                        <div className="flex items-center gap-2">
+                          {c.tipo_demanda === 'distrato' && (
+                            <Gavel className="h-4 w-4 text-orange-500" />
+                          )}
+                          <span>{TIPO_DEMANDA_OPTIONS.find(o => o.value === c.tipo_demanda)?.label || c.tipo_demanda}</span>
+                        </div>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <Badge variant="outline">{PRIORIDADE_LABELS[c.prioridade]}</Badge>

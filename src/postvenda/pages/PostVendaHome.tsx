@@ -7,15 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Ticket, Clock, AlertCircle, CheckCircle2, Star, 
-  ArrowRight, Plus, FileText, Gavel, HeadphonesIcon,
+  ArrowRight, Plus, Gavel, HeadphonesIcon,
   Settings, BarChart3
 } from 'lucide-react';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { usePostVenda } from '../hooks/usePostVenda';
-import { useDistratoRequests } from '../hooks/useDistrato';
 import { ETAPA_LABELS } from '../lib/permissions';
 import { ChamadosTabContent } from '../components/ChamadosTabContent';
-import { DistratoKanban } from '../components/DistratoKanban';
 
 type NpsRow = { nota: number | null; respondido_em: string | null; created_at: string | null };
 
@@ -30,16 +28,30 @@ export default function PostVendaHome() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dashboard';
+  const tipoFilter = searchParams.get('tipo') || undefined;
   
   const { chamados, stats } = usePostVenda();
-  const { stats: distratoStats } = useDistratoRequests();
   const [npsRows, setNpsRows] = useState<NpsRow[]>([]);
   const [isLoadingNps, setIsLoadingNps] = useState(true);
 
   const etapas = ['triagem', 'atendimento', 'resolucao', 'validacao_paciente', 'nps'] as const;
 
+  // Count distrato chamados
+  const distratoCount = useMemo(() => 
+    chamados.filter(c => c.tipo_demanda === 'distrato').length
+  , [chamados]);
+
   const handleTabChange = (value: string) => {
-    setSearchParams({ tab: value });
+    const params = new URLSearchParams();
+    params.set('tab', value);
+    setSearchParams(params);
+  };
+
+  const handleFilterDistrato = () => {
+    const params = new URLSearchParams();
+    params.set('tab', 'chamados');
+    params.set('tipo', 'distrato');
+    setSearchParams(params);
   };
 
   useEffect(() => {
@@ -77,7 +89,7 @@ export default function PostVendaHome() {
             <HeadphonesIcon className="h-6 w-6 text-primary" />
             Pós-Venda
           </h1>
-          <p className="text-muted-foreground">Gestão de atendimento, chamados e distratos</p>
+          <p className="text-muted-foreground">Gestão de chamados e atendimento ao paciente</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate('/neoteam/postvenda/sla')}>
@@ -93,20 +105,15 @@ export default function PostVendaHome() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+        <TabsList className="inline-flex">
           <TabsTrigger value="dashboard" className="gap-2">
             <BarChart3 className="h-4 w-4" />
-            <span className="hidden sm:inline">Dashboard</span>
+            Dashboard
           </TabsTrigger>
           <TabsTrigger value="chamados" className="gap-2">
             <Ticket className="h-4 w-4" />
-            <span className="hidden sm:inline">Chamados</span>
+            Chamados
             <Badge variant="secondary" className="ml-1 h-5 px-1.5">{stats.total}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="distrato" className="gap-2">
-            <Gavel className="h-4 w-4" />
-            <span className="hidden sm:inline">Distrato</span>
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5">{distratoStats.total}</Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -128,14 +135,14 @@ export default function PostVendaHome() {
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-orange-500" onClick={() => handleTabChange('distrato')}>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-orange-500" onClick={handleFilterDistrato}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-orange-500/10">
                     <Gavel className="h-5 w-5 text-orange-500" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{distratoStats.total}</p>
+                    <p className="text-2xl font-bold">{distratoCount}</p>
                     <p className="text-xs text-muted-foreground">Distratos</p>
                   </div>
                 </div>
@@ -268,9 +275,17 @@ export default function PostVendaHome() {
                             <p className="text-xs text-muted-foreground truncate">{chamado.tipo_demanda}</p>
                           </div>
                         </div>
-                        <Badge variant="outline" className="text-xs shrink-0">
-                          {ETAPA_LABELS[chamado.etapa_atual]}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          {chamado.tipo_demanda === 'distrato' && (
+                            <Badge variant="outline" className="text-xs border-orange-500 text-orange-600">
+                              <Gavel className="h-3 w-3 mr-1" />
+                              Distrato
+                            </Badge>
+                          )}
+                          <Badge variant="secondary" className="text-xs shrink-0">
+                            {ETAPA_LABELS[chamado.etapa_atual]}
+                          </Badge>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -278,43 +293,44 @@ export default function PostVendaHome() {
               </CardContent>
             </Card>
 
-            {/* Distratos Recentes (Summary) */}
+            {/* Atalhos Rápidos */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Gavel className="h-4 w-4" />
-                  Distratos em Andamento
-                </CardTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleTabChange('distrato')}
-                >
-                  Ver Kanban
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Atalhos Rápidos</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-lg bg-muted/50 text-center">
-                      <p className="text-2xl font-bold">{distratoStats.emAndamento}</p>
-                      <p className="text-xs text-muted-foreground">Em Andamento</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted/50 text-center">
-                      <p className="text-2xl font-bold text-destructive">{distratoStats.slaEstourados}</p>
-                      <p className="text-xs text-muted-foreground">SLA Estourado</p>
-                    </div>
-                  </div>
-                  <Button 
-                    className="w-full gap-2" 
-                    variant="outline"
-                    onClick={() => handleTabChange('distrato')}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Nova Solicitação de Distrato
-                  </Button>
-                </div>
+              <CardContent className="space-y-3">
+                <Button 
+                  className="w-full justify-start gap-2" 
+                  variant="outline"
+                  onClick={() => handleTabChange('chamados')}
+                >
+                  <Plus className="h-4 w-4" />
+                  Novo Chamado
+                </Button>
+                <Button 
+                  className="w-full justify-start gap-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700" 
+                  variant="outline"
+                  onClick={handleFilterDistrato}
+                >
+                  <Gavel className="h-4 w-4 text-orange-500" />
+                  Ver Distratos ({distratoCount})
+                </Button>
+                <Button 
+                  className="w-full justify-start gap-2" 
+                  variant="outline"
+                  onClick={() => navigate('/neoteam/postvenda/sla')}
+                >
+                  <Settings className="h-4 w-4" />
+                  Configurar SLA
+                </Button>
+                <Button 
+                  className="w-full justify-start gap-2" 
+                  variant="outline"
+                  onClick={() => navigate('/neoteam/postvenda/nps')}
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Relatórios NPS
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -322,12 +338,7 @@ export default function PostVendaHome() {
 
         {/* Chamados Tab */}
         <TabsContent value="chamados" className="mt-0">
-          <ChamadosTabContent />
-        </TabsContent>
-
-        {/* Distrato Tab */}
-        <TabsContent value="distrato" className="mt-0">
-          <DistratoKanban />
+          <ChamadosTabContent initialTipoFilter={tipoFilter} />
         </TabsContent>
       </Tabs>
     </div>
