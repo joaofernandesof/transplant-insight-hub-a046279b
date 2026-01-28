@@ -17,6 +17,7 @@ import { ScanCreditsDisplay } from "./components/ScanCreditsDisplay";
 import { VisionLayout } from "./components/VisionLayout";
 import { VisionIcon } from "@/components/icons/VisionIcon";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
+import { PortalBanner } from '@/components/shared/PortalBanner';
 
 export default function VisionHome() {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
@@ -29,29 +30,23 @@ export default function VisionHome() {
   return (
     <VisionLayout onStartAnalysis={() => setShowAnalyzer(true)}>
       <div className="p-6 lg:p-8">
-        {/* Credits Display */}
-        <div className="flex justify-end mb-6">
-          {user && (
-            <ScanCreditsDisplay 
-              userId={user.id}
-              onUpgradeClick={() => window.dispatchEvent(new CustomEvent('open-scan-plans'))}
-            />
-          )}
-        </div>
-
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-2xl mb-4">
-            <VisionIcon className="h-12 w-12 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Vision</h1>
-          <p className="text-lg text-purple-200">
-            Análise Capilar com Inteligência Artificial
-          </p>
-        </div>
+        {/* Portal Banner */}
+        <PortalBanner
+          portal="vision"
+          userName={user?.fullName}
+          icon={<VisionIcon className="h-6 w-6 text-white" />}
+          rightContent={
+            user && (
+              <ScanCreditsDisplay 
+                userId={user.id}
+                onUpgradeClick={() => window.dispatchEvent(new CustomEvent('open-scan-plans'))}
+              />
+            )
+          }
+        />
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8 mb-12">
           <Card className="bg-slate-900/80 border-purple-500/30 text-white">
             <CardHeader>
               <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl w-fit mb-2">

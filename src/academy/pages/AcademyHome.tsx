@@ -18,6 +18,8 @@ import {
   Star,
   FileText
 } from "lucide-react";
+import { PortalBanner } from '@/components/shared/PortalBanner';
+import { IbramecLogo } from '@/academy/components/IbramecLogo';
 
 
 
@@ -51,6 +53,18 @@ export function AcademyHome() {
   return (
     <div className="min-h-screen bg-background w-full max-w-full overflow-x-hidden">
       <main className="px-3 sm:px-4 lg:px-6 pt-16 lg:pt-6 pb-6 space-y-4 sm:space-y-6 w-full max-w-full">
+        {/* Portal Banner */}
+        <PortalBanner
+          portal="academy"
+          userName={user?.fullName}
+          icon={<GraduationCap className="h-6 w-6 text-white" />}
+          rightContent={
+            <Badge variant="secondary" className="bg-white/20 text-white border-0">
+              {enrolledCourses.length} cursos
+            </Badge>
+          }
+        />
+
         {/* Progress Overview Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 dark:from-emerald-950/50 dark:to-green-950/50 dark:border-emerald-800">

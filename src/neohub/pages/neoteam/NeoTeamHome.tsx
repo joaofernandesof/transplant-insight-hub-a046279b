@@ -23,6 +23,7 @@ import {
   DashboardPerformanceCard,
 } from '@/neohub/components/dashboard';
 import { MeetingAgendasList } from '@/components/meetings';
+import { PortalBanner } from '@/components/shared/PortalBanner';
 
 export default function NeoTeamHome() {
   const { user } = useUnifiedAuth();
@@ -164,19 +165,12 @@ export default function NeoTeamHome() {
       {/* Breadcrumb */}
       <NeoTeamBreadcrumb />
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">
-              Olá, {user?.fullName?.split(' ')[0] || 'Colaborador'}! 👋
-            </h1>
-            <p className="opacity-90">
-              {format(today, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-            </p>
-          </div>
-          
-          {/* Tasks Summary Badge */}
+      {/* Portal Banner */}
+      <PortalBanner
+        portal="neoteam"
+        userName={user?.fullName}
+        icon={<Users className="h-6 w-6 text-white" />}
+        rightContent={
           <div className="hidden md:flex items-center gap-3">
             {overdueTasks > 0 && (
               <Badge variant="destructive" className="text-sm px-3 py-1">
@@ -184,12 +178,12 @@ export default function NeoTeamHome() {
               </Badge>
             )}
             <div className="bg-white/20 rounded-lg px-4 py-2 flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5" />
-              <span className="font-medium">{pendingTasks} tarefas</span>
+              <ClipboardCheck className="h-5 w-5 text-white" />
+              <span className="font-medium text-white">{pendingTasks} tarefas</span>
             </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
