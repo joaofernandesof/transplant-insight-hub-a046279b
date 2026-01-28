@@ -25,7 +25,8 @@ import {
   Phone,
   RefreshCw,
   GraduationCap,
-  Shield
+  Shield,
+  MousePointerClick
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -52,6 +53,8 @@ interface ReferralStats {
   totalEarnings: number;
   pendingEarnings: number;
   paidEarnings: number;
+  linkClicks: number;
+  clicksLast7Days: number;
 }
 
 export default function ReferralProgram() {
@@ -66,7 +69,9 @@ export default function ReferralProgram() {
     convertedReferrals: 0,
     totalEarnings: 0,
     pendingEarnings: 0,
-    paidEarnings: 0
+    paidEarnings: 0,
+    linkClicks: 0,
+    clicksLast7Days: 0
   });
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -111,13 +116,33 @@ export default function ReferralProgram() {
         const paidCommissions = referralData.filter(r => r.commission_paid);
         const unpaidCommissions = converted.filter(r => !r.commission_paid);
 
+        // Fetch click stats
+        let clickStats = { total: 0, last7Days: 0 };
+        if (profile?.referral_code) {
+          const { data: clicks } = await supabase
+            .from('referral_link_clicks')
+            .select('clicked_at')
+            .eq('referrer_user_id', user?.id);
+          
+          if (clicks) {
+            clickStats.total = clicks.length;
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            clickStats.last7Days = clicks.filter(
+              c => new Date(c.clicked_at) >= sevenDaysAgo
+            ).length;
+          }
+        }
+
         setStats({
           totalReferrals: referralData.length,
           pendingReferrals: pending.length,
           convertedReferrals: converted.length,
           totalEarnings: referralData.reduce((acc, r) => acc + (r.commission_value || 0), 0),
           pendingEarnings: unpaidCommissions.reduce((acc, r) => acc + (r.commission_value || 0), 0),
-          paidEarnings: paidCommissions.reduce((acc, r) => acc + (r.commission_value || 0), 0)
+          paidEarnings: paidCommissions.reduce((acc, r) => acc + (r.commission_value || 0), 0),
+          linkClicks: clickStats.total,
+          clicksLast7Days: clickStats.last7Days
         });
       }
 
@@ -315,7 +340,24 @@ export default function ReferralProgram() {
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-500/10">
+                  <MousePointerClick className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.linkClicks}</p>
+                  <p className="text-xs text-muted-foreground">Cliques no Link</p>
+                  {stats.clicksLast7Days > 0 && (
+                    <p className="text-[10px] text-purple-600">+{stats.clicksLast7Days} últimos 7 dias</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
@@ -324,7 +366,7 @@ export default function ReferralProgram() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.totalReferrals}</p>
-                  <p className="text-xs text-muted-foreground">Total de Indicações</p>
+                  <p className="text-xs text-muted-foreground">Indicações</p>
                 </div>
               </div>
             </CardContent>
