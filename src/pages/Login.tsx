@@ -38,8 +38,8 @@ const modules = [
   { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Licenciados' },
   { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
   { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
-  // NeoHairScan: mesmo formato dos demais (tile + ícone), sem imagem.
-  { id: 'neohairscan', name: 'NeoHairScan', icon: NeoHairScanIcon, gradient: 'from-slate-700 to-slate-900', description: 'Diagnóstico IA' },
+  // NeoHairScan: gradiente rosa/laranja como na referência
+  { id: 'neohairscan', name: 'NeoHairScan', icon: NeoHairScanIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico IA' },
 ];
 
 export default function Login() {

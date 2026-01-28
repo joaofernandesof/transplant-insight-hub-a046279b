@@ -63,8 +63,8 @@ const portals: PortalNode[] = [
     id: 'neohairscan',
     name: 'NeoHairScan',
     subtitle: 'Diagnóstico IA',
-    icon: <NeoHairScanIcon className="h-6 w-6 text-amber-200" />,
-    color: 'bg-gradient-to-br from-slate-700 to-slate-900',
+    icon: <NeoHairScanIcon className="h-6 w-6 text-white" />,
+    color: 'bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500',
   },
 ];
 
