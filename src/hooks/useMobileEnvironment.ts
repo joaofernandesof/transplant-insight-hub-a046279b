@@ -68,22 +68,40 @@ export function getPlatform(): 'ios' | 'android' | 'web' {
  * Lista de módulos bloqueados no ambiente mobile (primeira versão)
  */
 export const BLOCKED_MOBILE_MODULES = [
+  // NeoCare - dados sensíveis de pacientes
   'neocare',
   'neocare_appointments',
   'neocare_documents',
   'neocare_history',
   'neocare_profile',
+  // NeoTeam - módulo interno de equipe
   'neoteam',
   'neoteam_schedule',
   'neoteam_patients',
   'neoteam_waiting_room',
   'neoteam_documents',
+  // Clínica - dados médicos
   'clinic',
   'prontuario',
   'anamnese',
   'document_upload',
+  // Marketplace e pós-venda
   'marketplace',
   'postvenda',
+  // IPROMED - módulo jurídico interno
+  'ipromed',
+  'ipromed_requests',
+  'ipromed_documents',
+  // Avivar - não otimizado para mobile
+  'avivar',
+  // NeoHairScan - requer processamento IA pesado
+  'neohairscan',
+  // Admin - segurança
+  'admin',
+  'admin_users',
+  'admin_settings',
+  'admin_permissions',
+  'admin_audit',
 ] as const;
 
 /**
@@ -98,6 +116,10 @@ export const BLOCKED_MOBILE_ROUTES = [
   '/marketplace',
   '/postvenda',
   '/portal',
+  '/ipromed',
+  '/avivar',
+  '/neohairscan',
+  '/admin',
 ] as const;
 
 /**
