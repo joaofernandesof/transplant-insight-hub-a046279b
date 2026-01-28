@@ -1660,6 +1660,311 @@ export type Database = {
           },
         ]
       }
+      destrato_historico: {
+        Row: {
+          acao: string
+          data_evento: string
+          descricao: string | null
+          etapa: Database["public"]["Enums"]["destrato_etapa"]
+          id: string
+          metadata: Json | null
+          solicitacao_id: string
+          usuario_id: string | null
+          usuario_nome: string | null
+        }
+        Insert: {
+          acao: string
+          data_evento?: string
+          descricao?: string | null
+          etapa: Database["public"]["Enums"]["destrato_etapa"]
+          id?: string
+          metadata?: Json | null
+          solicitacao_id: string
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Update: {
+          acao?: string
+          data_evento?: string
+          descricao?: string | null
+          etapa?: Database["public"]["Enums"]["destrato_etapa"]
+          id?: string
+          metadata?: Json | null
+          solicitacao_id?: string
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "destrato_historico_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "destrato_solicitacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "destrato_historico_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      destrato_solicitacoes: {
+        Row: {
+          branch: string | null
+          checklist_assinou_contrato: boolean | null
+          checklist_assinou_termo_sinal: boolean | null
+          checklist_data_contratacao: string | null
+          checklist_email: string | null
+          checklist_nome_completo: string | null
+          checklist_observacoes: string | null
+          checklist_preenchido: boolean | null
+          checklist_procedimento_contratado: string | null
+          checklist_status_procedimento: string | null
+          checklist_valor_pago: number | null
+          checklist_valor_total_contrato: number | null
+          comprovante_pagamento_url: string | null
+          concluido_em: string | null
+          created_at: string
+          created_by: string | null
+          data_pagamento_prevista: string | null
+          data_pagamento_realizado: string | null
+          email_assunto: string | null
+          email_corpo: string | null
+          email_recebido_em: string | null
+          email_remetente: string | null
+          etapa_atual: Database["public"]["Enums"]["destrato_etapa"]
+          id: string
+          numero_solicitacao: number
+          paciente_email: string | null
+          paciente_id: string | null
+          paciente_nome: string
+          paciente_telefone: string | null
+          parecer_gerente: string | null
+          parecer_gerente_data: string | null
+          parecer_gerente_por: string | null
+          prazo_atual: string | null
+          prazo_resposta_inicial: string | null
+          remetente_e_titular: boolean | null
+          responsavel_id: string | null
+          responsavel_nome: string | null
+          sla_estourado: boolean | null
+          status_final: Database["public"]["Enums"]["destrato_status_final"]
+          termo_destrato_assinado: boolean | null
+          termo_destrato_assinado_em: string | null
+          termo_destrato_url: string | null
+          updated_at: string
+          valor_devolver: number | null
+        }
+        Insert: {
+          branch?: string | null
+          checklist_assinou_contrato?: boolean | null
+          checklist_assinou_termo_sinal?: boolean | null
+          checklist_data_contratacao?: string | null
+          checklist_email?: string | null
+          checklist_nome_completo?: string | null
+          checklist_observacoes?: string | null
+          checklist_preenchido?: boolean | null
+          checklist_procedimento_contratado?: string | null
+          checklist_status_procedimento?: string | null
+          checklist_valor_pago?: number | null
+          checklist_valor_total_contrato?: number | null
+          comprovante_pagamento_url?: string | null
+          concluido_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_pagamento_prevista?: string | null
+          data_pagamento_realizado?: string | null
+          email_assunto?: string | null
+          email_corpo?: string | null
+          email_recebido_em?: string | null
+          email_remetente?: string | null
+          etapa_atual?: Database["public"]["Enums"]["destrato_etapa"]
+          id?: string
+          numero_solicitacao?: number
+          paciente_email?: string | null
+          paciente_id?: string | null
+          paciente_nome: string
+          paciente_telefone?: string | null
+          parecer_gerente?: string | null
+          parecer_gerente_data?: string | null
+          parecer_gerente_por?: string | null
+          prazo_atual?: string | null
+          prazo_resposta_inicial?: string | null
+          remetente_e_titular?: boolean | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          sla_estourado?: boolean | null
+          status_final?: Database["public"]["Enums"]["destrato_status_final"]
+          termo_destrato_assinado?: boolean | null
+          termo_destrato_assinado_em?: string | null
+          termo_destrato_url?: string | null
+          updated_at?: string
+          valor_devolver?: number | null
+        }
+        Update: {
+          branch?: string | null
+          checklist_assinou_contrato?: boolean | null
+          checklist_assinou_termo_sinal?: boolean | null
+          checklist_data_contratacao?: string | null
+          checklist_email?: string | null
+          checklist_nome_completo?: string | null
+          checklist_observacoes?: string | null
+          checklist_preenchido?: boolean | null
+          checklist_procedimento_contratado?: string | null
+          checklist_status_procedimento?: string | null
+          checklist_valor_pago?: number | null
+          checklist_valor_total_contrato?: number | null
+          comprovante_pagamento_url?: string | null
+          concluido_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_pagamento_prevista?: string | null
+          data_pagamento_realizado?: string | null
+          email_assunto?: string | null
+          email_corpo?: string | null
+          email_recebido_em?: string | null
+          email_remetente?: string | null
+          etapa_atual?: Database["public"]["Enums"]["destrato_etapa"]
+          id?: string
+          numero_solicitacao?: number
+          paciente_email?: string | null
+          paciente_id?: string | null
+          paciente_nome?: string
+          paciente_telefone?: string | null
+          parecer_gerente?: string | null
+          parecer_gerente_data?: string | null
+          parecer_gerente_por?: string | null
+          prazo_atual?: string | null
+          prazo_resposta_inicial?: string | null
+          remetente_e_titular?: boolean | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          sla_estourado?: boolean | null
+          status_final?: Database["public"]["Enums"]["destrato_status_final"]
+          termo_destrato_assinado?: boolean | null
+          termo_destrato_assinado_em?: string | null
+          termo_destrato_url?: string | null
+          updated_at?: string
+          valor_devolver?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "destrato_solicitacoes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "destrato_solicitacoes_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "destrato_solicitacoes_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      destrato_subtarefas: {
+        Row: {
+          concluida_em: string | null
+          concluida_por: string | null
+          created_at: string
+          descricao: string | null
+          e_recorrente: boolean | null
+          etapa_relacionada: Database["public"]["Enums"]["destrato_etapa"]
+          id: string
+          intervalo_recorrencia_horas: number | null
+          notas_conclusao: string | null
+          ordem: number
+          prazo: string | null
+          prazo_horas: number | null
+          proxima_execucao: string | null
+          responsavel_id: string | null
+          responsavel_nome: string | null
+          script_padrao: string | null
+          solicitacao_id: string
+          status: Database["public"]["Enums"]["destrato_subtarefa_status"]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          concluida_em?: string | null
+          concluida_por?: string | null
+          created_at?: string
+          descricao?: string | null
+          e_recorrente?: boolean | null
+          etapa_relacionada: Database["public"]["Enums"]["destrato_etapa"]
+          id?: string
+          intervalo_recorrencia_horas?: number | null
+          notas_conclusao?: string | null
+          ordem?: number
+          prazo?: string | null
+          prazo_horas?: number | null
+          proxima_execucao?: string | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          script_padrao?: string | null
+          solicitacao_id: string
+          status?: Database["public"]["Enums"]["destrato_subtarefa_status"]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          concluida_em?: string | null
+          concluida_por?: string | null
+          created_at?: string
+          descricao?: string | null
+          e_recorrente?: boolean | null
+          etapa_relacionada?: Database["public"]["Enums"]["destrato_etapa"]
+          id?: string
+          intervalo_recorrencia_horas?: number | null
+          notas_conclusao?: string | null
+          ordem?: number
+          prazo?: string | null
+          prazo_horas?: number | null
+          proxima_execucao?: string | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          script_padrao?: string | null
+          solicitacao_id?: string
+          status?: Database["public"]["Enums"]["destrato_subtarefa_status"]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "destrato_subtarefas_concluida_por_fkey"
+            columns: ["concluida_por"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "destrato_subtarefas_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "destrato_subtarefas_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "destrato_solicitacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_checklist_items: {
         Row: {
           category: string | null
@@ -10258,6 +10563,26 @@ export type Database = {
         | "retention"
         | "expansion"
         | "advocacy"
+      destrato_etapa:
+        | "solicitacao_recebida"
+        | "checklist_preenchido"
+        | "aguardando_parecer_gerente"
+        | "em_negociacao"
+        | "devolver"
+        | "nao_devolver"
+        | "aguardando_pagamento_financeiro"
+        | "caso_concluido"
+      destrato_status_final:
+        | "em_andamento"
+        | "devolvido"
+        | "nao_devolvido"
+        | "cancelado"
+      destrato_subtarefa_status:
+        | "pendente"
+        | "em_andamento"
+        | "concluida"
+        | "atrasada"
+        | "cancelada"
       legal_case_status:
         | "active"
         | "pending"
@@ -10476,6 +10801,29 @@ export const Constants = {
         "retention",
         "expansion",
         "advocacy",
+      ],
+      destrato_etapa: [
+        "solicitacao_recebida",
+        "checklist_preenchido",
+        "aguardando_parecer_gerente",
+        "em_negociacao",
+        "devolver",
+        "nao_devolver",
+        "aguardando_pagamento_financeiro",
+        "caso_concluido",
+      ],
+      destrato_status_final: [
+        "em_andamento",
+        "devolvido",
+        "nao_devolvido",
+        "cancelado",
+      ],
+      destrato_subtarefa_status: [
+        "pendente",
+        "em_andamento",
+        "concluida",
+        "atrasada",
+        "cancelada",
       ],
       legal_case_status: [
         "active",
