@@ -43,10 +43,11 @@ const mainNavItems: NavItem[] = [
   { id: 'contacts', label: 'Contatos', icon: Users, href: '/ipromed/clients' },
   { id: 'services', label: 'Atendimentos', icon: MessageCircle, href: '/ipromed/legal-hub?tab=portal' },
   { id: 'cases', label: 'Processos e casos', icon: FolderOpen, href: '/ipromed/legal-hub?tab=cases' },
+  { id: 'movements', label: 'Andamentos', icon: LayoutGrid, href: '/ipromed/legal-hub?tab=movements' },
+  { id: 'documents', label: 'Documentos', icon: FileBox, href: '/ipromed/legal-hub?tab=documents' },
   { id: 'publications', label: 'Publicações', icon: FileText, href: '/ipromed/legal-hub?tab=publications', badge: 99, badgeColor: 'bg-rose-500' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/legal-hub?tab=financial' },
   { id: 'ai', label: 'Criação de peças', icon: Sparkles, href: '/ipromed/legal-hub?tab=ai', isNew: true },
-  { id: 'documents', label: 'Documentos', icon: FileBox, href: '/ipromed/documents' },
   { id: 'indicators', label: 'Indicadores', icon: BarChart3, href: '/ipromed/legal-hub?tab=analytics' },
   { id: 'alerts', label: 'Alertas', icon: Bell, href: '/ipromed/legal-hub?tab=alerts', badge: 5, badgeColor: 'bg-rose-500' },
 ];
