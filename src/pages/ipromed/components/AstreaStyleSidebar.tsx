@@ -24,6 +24,10 @@ import {
   Home,
   LogOut,
   Scale,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -58,11 +62,18 @@ const mainNavItems: NavItem[] = [
 ];
 
 interface AstreaStyleSidebarProps {
-  isCollapsed?: boolean;
-  onToggle?: () => void;
+  isCollapsed: boolean;
+  onToggle: () => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-export default function AstreaStyleSidebar({ isCollapsed = false, onToggle }: AstreaStyleSidebarProps) {
+export default function AstreaStyleSidebar({ 
+  isCollapsed, 
+  onToggle,
+  isMobileOpen = false,
+  onMobileClose 
+}: AstreaStyleSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useUnifiedAuth();
@@ -77,93 +88,128 @@ export default function AstreaStyleSidebar({ isCollapsed = false, onToggle }: As
   };
 
   return (
-    <aside className={cn(
-      "h-screen bg-card border-r flex flex-col transition-all duration-300",
-      isCollapsed ? "w-16" : "w-60"
-    )}>
-      {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Scale className="h-5 w-5 text-primary-foreground" />
-          </div>
-          {!isCollapsed && (
-            <span className="font-bold text-lg text-primary">IPROMED</span>
-          )}
+    <>
+      {/* Overlay for mobile */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+      <aside className={cn(
+        "fixed left-0 top-0 h-full bg-card border-r flex flex-col transition-all duration-300 z-40",
+        isCollapsed ? "w-16" : "w-60",
+        isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
+        {/* Collapse button */}
+        <div className={cn(
+          "p-2 border-b flex",
+          isCollapsed ? "justify-center" : "justify-end"
+        )}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden lg:flex h-8 w-8"
+            onClick={onToggle}
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <ScrollArea className="flex-1 py-4">
-        <nav className="px-2 space-y-1">
-          {mainNavItems.map(item => {
-            const Icon = item.icon;
-            const active = isActive(item.href);
-            
-            return (
-              <NavLink
-                key={item.id}
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group",
-                  active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted"
-                )}
-              >
-                <Icon className={cn(
-                  "h-5 w-5 flex-shrink-0",
-                  active ? "text-primary" : "text-muted-foreground"
-                )} />
-                
-                {!isCollapsed && (
-                  <>
-                    <span className="flex-1">{item.label}</span>
-                    
-                    {item.isNew && (
-                      <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
-                        <Sparkles className="h-3 w-3 mr-0.5" />
-                        IA
-                      </Badge>
-                    )}
-                    
-                    {item.badge && (
-                      <Badge className={cn("text-white text-xs px-1.5 min-w-[20px] justify-center", item.badgeColor)}>
-                        {item.badge > 99 ? '99+' : item.badge}
-                      </Badge>
-                    )}
-                  </>
-                )}
-              </NavLink>
-            );
-          })}
-        </nav>
-      </ScrollArea>
+        {/* Logo */}
+        <div className={cn(
+          "h-14 flex items-center border-b",
+          isCollapsed ? "justify-center px-2" : "px-4"
+        )}>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+              <Scale className="h-5 w-5 text-primary-foreground" />
+            </div>
+            {!isCollapsed && (
+              <span className="font-bold text-lg text-primary">IPROMED</span>
+            )}
+          </div>
+        </div>
 
-      {/* Bottom Navigation */}
-      <div className="border-t py-4 px-2 space-y-1">
-        <NavLink
-          to="/ipromed/support"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-            "text-muted-foreground hover:bg-muted"
-          )}
-        >
-          <HelpCircle className="h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span>Suporte</span>}
-        </NavLink>
-        
-        <Separator className="my-2" />
-        
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 px-3 py-2.5 h-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span>Sair</span>}
-        </Button>
-      </div>
-    </aside>
+        {/* Navigation */}
+        <ScrollArea className="flex-1 py-4">
+          <nav className="px-2 space-y-1">
+            {mainNavItems.map(item => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.href}
+                  onClick={onMobileClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group",
+                    isCollapsed && "justify-center px-2",
+                    active
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  <Icon className={cn(
+                    "h-5 w-5 flex-shrink-0",
+                    active ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  
+                  {!isCollapsed && (
+                    <>
+                      <span className="flex-1">{item.label}</span>
+                      
+                      {item.isNew && (
+                        <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
+                          <Sparkles className="h-3 w-3 mr-0.5" />
+                          IA
+                        </Badge>
+                      )}
+                      
+                      {item.badge && (
+                        <Badge className={cn("text-white text-xs px-1.5 min-w-[20px] justify-center", item.badgeColor)}>
+                          {item.badge > 99 ? '99+' : item.badge}
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+          </nav>
+        </ScrollArea>
+
+        {/* Bottom Navigation */}
+        <div className="border-t py-4 px-2 space-y-1">
+          <NavLink
+            to="/ipromed/support"
+            onClick={onMobileClose}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              isCollapsed && "justify-center px-2",
+              "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <HelpCircle className="h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && <span>Suporte</span>}
+          </NavLink>
+          
+          <Separator className="my-2" />
+          
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 px-3 py-2.5 h-auto text-destructive hover:text-destructive hover:bg-destructive/10",
+              isCollapsed && "justify-center px-2"
+            )}
+            onClick={handleLogout}
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && <span>Sair</span>}
+          </Button>
+        </div>
+      </aside>
+    </>
   );
 }
