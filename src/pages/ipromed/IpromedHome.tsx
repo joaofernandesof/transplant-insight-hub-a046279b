@@ -176,7 +176,7 @@ export default function IpromedHome() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/ipromed/legal-hub')}>
+          <Button variant="outline" onClick={() => navigate('/ipromed/legal')}>
             <Scale className="h-4 w-4 mr-2" />
             Abrir Legal Hub
           </Button>
