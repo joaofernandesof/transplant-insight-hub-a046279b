@@ -5,3 +5,5 @@ export { ChamadoTimeline } from './ChamadoTimeline';
 export { NovoChamadoDialog } from './NovoChamadoDialog';
 export { ChamadosTabContent } from './ChamadosTabContent';
 export { ChamadoEtapaFlow } from './ChamadoEtapaFlow';
+export { DistratoEtapaFlow } from './DistratoEtapaFlow';
+export { DistratoSwimLanesBpmn } from './DistratoSwimLanesBpmn';
