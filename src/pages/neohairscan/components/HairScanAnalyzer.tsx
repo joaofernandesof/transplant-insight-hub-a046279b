@@ -55,6 +55,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
   const [showCropper, setShowCropper] = useState(false);
   const [showPlansModal, setShowPlansModal] = useState(false);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
+  const [galleryInitialIndex, setGalleryInitialIndex] = useState<number | null>(null);
   
   const { consumeCredit, refreshTrigger, refreshCredits } = useScanCredits(userId);
   
@@ -1132,10 +1133,13 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          onClick={() => downloadImage(img, `new-version-${index + 1}.jpg`)}
-                                          className="text-white hover:bg-white/20 h-6 w-6 p-0"
+                                          onClick={() => {
+                                            setGalleryInitialIndex(index);
+                                            setShowGalleryModal(true);
+                                          }}
+                                          className="text-white hover:bg-white/20 h-8 w-8 p-0"
                                         >
-                                          <Download className="h-3 w-3" />
+                                          <Eye className="h-4 w-4" />
                                         </Button>
                                       </div>
                                     </div>
@@ -1221,10 +1225,14 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
         {/* Gallery Modal */}
         <NewVersionGalleryModal
           open={showGalleryModal}
-          onOpenChange={setShowGalleryModal}
+          onOpenChange={(open) => {
+            setShowGalleryModal(open);
+            if (!open) setGalleryInitialIndex(null);
+          }}
           images={newVersionImages}
           originalImage={originalImage}
           onDownloadComposite={downloadCompositeImage}
+          initialIndex={galleryInitialIndex}
         />
       </div>
     </div>

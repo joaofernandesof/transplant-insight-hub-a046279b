@@ -3,7 +3,7 @@
  * Allows viewing, navigating, and downloading individual or all images
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ interface NewVersionGalleryModalProps {
   images: string[];
   originalImage: string | null;
   onDownloadComposite: () => void;
+  initialIndex?: number | null;
 }
 
 export function NewVersionGalleryModal({
@@ -32,9 +33,22 @@ export function NewVersionGalleryModal({
   images,
   originalImage,
   onDownloadComposite,
+  initialIndex = null,
 }: NewVersionGalleryModalProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "single">("grid");
+  
+  // Update when modal opens with initialIndex
+  useEffect(() => {
+    if (open && initialIndex !== null) {
+      setSelectedIndex(initialIndex);
+      setViewMode("single");
+    } else if (!open) {
+      // Reset when modal closes
+      setSelectedIndex(null);
+      setViewMode("grid");
+    }
+  }, [open, initialIndex]);
 
   // Download individual image
   const downloadImage = useCallback((imageData: string, index: number) => {
