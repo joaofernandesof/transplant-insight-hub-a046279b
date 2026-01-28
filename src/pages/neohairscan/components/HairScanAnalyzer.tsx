@@ -22,6 +22,7 @@ import {
   Crop,
   Sparkles,
   Grid3X3,
+  ImageDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -373,6 +374,148 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     link.download = filename;
     link.click();
   };
+
+  // Download composite image (before + after grid)
+  const downloadCompositeImage = useCallback(async () => {
+    if (!originalImage || newVersionImages.length === 0) {
+      toast.error("Gere pelo menos uma variação antes de baixar");
+      return;
+    }
+
+    toast.info("Gerando imagem composta...");
+
+    try {
+      // Create canvas for composite image
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas context not available");
+
+      // Layout: Original (left ~40%) + Grid (right ~60%)
+      const gridCols = 4;
+      const gridRows = 3;
+      const cellSize = 200; // Each variation cell
+      const originalWidth = Math.floor(cellSize * 2.5); // Original takes more space
+      const originalHeight = cellSize * gridRows; // Match grid height
+      const gridWidth = cellSize * gridCols;
+      const gridHeight = cellSize * gridRows;
+      const gap = 4;
+      
+      canvas.width = originalWidth + gridWidth + gap;
+      canvas.height = Math.max(originalHeight, gridHeight);
+
+      // Fill background
+      ctx.fillStyle = "#1a1a2e";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Load and draw original image
+      const loadImage = (src: string): Promise<HTMLImageElement> => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
+      };
+
+      // Draw original image on left
+      const origImg = await loadImage(originalImage);
+      const origAspect = origImg.width / origImg.height;
+      let drawWidth = originalWidth;
+      let drawHeight = originalWidth / origAspect;
+      
+      if (drawHeight > originalHeight) {
+        drawHeight = originalHeight;
+        drawWidth = originalHeight * origAspect;
+      }
+      
+      const origX = (originalWidth - drawWidth) / 2;
+      const origY = (originalHeight - drawHeight) / 2;
+      ctx.drawImage(origImg, origX, origY, drawWidth, drawHeight);
+
+      // Add "ANTES" label
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillRect(0, originalHeight - 40, originalWidth, 40);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("ANTES", originalWidth / 2, originalHeight - 14);
+
+      // Draw grid of variations on right
+      for (let i = 0; i < 12; i++) {
+        const col = i % gridCols;
+        const row = Math.floor(i / gridCols);
+        const x = originalWidth + gap + col * cellSize;
+        const y = row * cellSize;
+
+        if (newVersionImages[i]) {
+          try {
+            const varImg = await loadImage(newVersionImages[i]);
+            // Cover the cell maintaining aspect ratio
+            const varAspect = varImg.width / varImg.height;
+            let vw = cellSize;
+            let vh = cellSize / varAspect;
+            
+            if (vh < cellSize) {
+              vh = cellSize;
+              vw = cellSize * varAspect;
+            }
+            
+            const vx = x + (cellSize - vw) / 2;
+            const vy = y + (cellSize - vh) / 2;
+            
+            // Clip to cell
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x, y, cellSize, cellSize);
+            ctx.clip();
+            ctx.drawImage(varImg, vx, vy, vw, vh);
+            ctx.restore();
+          } catch {
+            // Draw placeholder for failed image
+            ctx.fillStyle = "#2d2d44";
+            ctx.fillRect(x, y, cellSize, cellSize);
+            ctx.fillStyle = "#666";
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(`${i + 1}`, x + cellSize / 2, y + cellSize / 2);
+          }
+        } else {
+          // Draw empty placeholder
+          ctx.fillStyle = "#2d2d44";
+          ctx.fillRect(x, y, cellSize, cellSize);
+          ctx.strokeStyle = "#3d3d5c";
+          ctx.setLineDash([4, 4]);
+          ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+          ctx.setLineDash([]);
+          ctx.fillStyle = "#555";
+          ctx.font = "12px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText(`${i + 1}`, x + cellSize / 2, y + cellSize / 2);
+        }
+      }
+
+      // Add "POSSÍVEIS RESULTADOS" label
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillRect(originalWidth + gap, gridHeight - 40, gridWidth, 40);
+      ctx.fillStyle = "#10b981";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("POSSÍVEIS RESULTADOS PÓS-TRANSPLANTE", originalWidth + gap + gridWidth / 2, gridHeight - 14);
+
+      // Download
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `neohairscan-comparativo-${Date.now()}.jpg`;
+      link.click();
+
+      toast.success("Imagem composta baixada!");
+    } catch (error) {
+      console.error("Error generating composite:", error);
+      toast.error("Erro ao gerar imagem composta");
+    }
+  }, [originalImage, newVersionImages]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background p-4">
@@ -833,17 +976,30 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                               <Grid3X3 className="h-3 w-3 mr-1" />
                               Variações ({newVersionImages.length}/12)
                             </Badge>
-                            {newVersionImages.length > 0 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setNewVersionImages([])}
-                                className="text-slate-400 hover:text-white"
-                                title="Limpar todas"
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {newVersionImages.length > 0 && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={downloadCompositeImage}
+                                    className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20"
+                                    title="Baixar todas (antes + depois)"
+                                  >
+                                    <ImageDown className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setNewVersionImages([])}
+                                    className="text-slate-400 hover:text-white"
+                                    title="Limpar todas"
+                                  >
+                                    <RotateCcw className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </div>
                           
                           {/* 4x3 Grid */}
@@ -889,7 +1045,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                     </div>
                   </div>
 
-                  {/* Generate Button */}
+                  {/* Generate Button + Download All */}
                   <Card className="bg-slate-900/80 border-purple-500/30">
                     <CardContent className="p-4">
                       <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -900,28 +1056,41 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                           }
                         </div>
                         
-                        <Button
-                          onClick={() => processImage("newversion")}
-                          disabled={isProcessing || newVersionImages.length >= 12}
-                          className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 min-w-[200px]"
-                        >
-                          {isProcessing ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Gerando... ({newVersionImages.length + 1}/12)
-                            </>
-                          ) : newVersionImages.length >= 12 ? (
-                            <>
-                              <Sparkles className="h-4 w-4 mr-2" />
-                              Grid Completo!
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4 mr-2" />
-                              {newVersionImages.length === 0 ? "Gerar 12 Variações" : `Gerar Mais (+${12 - newVersionImages.length})`}
-                            </>
+                        <div className="flex gap-2">
+                          {newVersionImages.length > 0 && (
+                            <Button
+                              onClick={downloadCompositeImage}
+                              variant="outline"
+                              className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20"
+                            >
+                              <ImageDown className="h-4 w-4 mr-2" />
+                              Baixar Todas
+                            </Button>
                           )}
-                        </Button>
+                          
+                          <Button
+                            onClick={() => processImage("newversion")}
+                            disabled={isProcessing || newVersionImages.length >= 12}
+                            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 min-w-[200px]"
+                          >
+                            {isProcessing ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Gerando... ({newVersionImages.length + 1}/12)
+                              </>
+                            ) : newVersionImages.length >= 12 ? (
+                              <>
+                                <Sparkles className="h-4 w-4 mr-2" />
+                                Grid Completo!
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-4 w-4 mr-2" />
+                                {newVersionImages.length === 0 ? "Gerar 12 Variações" : `Gerar Mais (+${12 - newVersionImages.length})`}
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
