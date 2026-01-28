@@ -6,7 +6,7 @@ import { Calendar, FileText, ClipboardCheck, Bell, Clock, ArrowRight, Loader2 } 
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { HubDiagram } from '@/components/shared/HubDiagram';
+
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -259,16 +259,6 @@ export default function NeoCareHome() {
         </CardContent>
       </Card>
 
-      {/* Hub Diagram Section */}
-      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
-        <CardHeader className="pb-2 text-center">
-          <CardTitle className="text-white text-lg">Ecossistema NeoHub</CardTitle>
-          <CardDescription className="text-slate-400">Você faz parte do nosso ecossistema</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <HubDiagram highlightPortal="neocare" />
-        </CardContent>
-      </Card>
     </div>
   );
 }

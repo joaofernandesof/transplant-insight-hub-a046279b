@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { HubDiagram } from "@/components/shared/HubDiagram";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   BarChart3, 
@@ -472,16 +472,6 @@ export default function LicenseeHome() {
           ))}
         </div>
 
-        {/* Hub Diagram Section */}
-        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 mt-8">
-          <CardHeader className="pb-2 text-center">
-            <CardTitle className="text-white text-lg">Ecossistema NeoHub</CardTitle>
-            <CardDescription className="text-slate-400">Você faz parte do nosso ecossistema</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <HubDiagram highlightPortal="neolicense" />
-          </CardContent>
-        </Card>
 
         {/* Footer Logo */}
         <div className="mt-12 text-center opacity-40">
