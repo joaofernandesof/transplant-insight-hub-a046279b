@@ -19,22 +19,26 @@ import {
   RotateCcw,
   Download,
   ScanFace,
+  Crop,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import ImageCropper from "./ImageCropper";
 
 interface HairScanAnalyzerProps {
   onBack: () => void;
 }
 
 export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
+  const [rawImage, setRawImage] = useState<string | null>(null); // Image before cropping
+  const [originalImage, setOriginalImage] = useState<string | null>(null); // Cropped image for analysis
   const [progressionImage, setProgressionImage] = useState<string | null>(null);
   const [scanImage, setScanImage] = useState<string | null>(null);
   const [yearsProgression, setYearsProgression] = useState([0]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeMode, setActiveMode] = useState<"progression" | "scan">("progression");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -67,7 +71,8 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       if (ctx) {
         ctx.drawImage(video, 0, 0);
         const imageData = canvas.toDataURL("image/jpeg", 0.9);
-        setOriginalImage(imageData);
+        setRawImage(imageData);
+        setShowCropper(true);
         stopCamera();
       }
     }
@@ -89,9 +94,32 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setOriginalImage(e.target?.result as string);
+        setRawImage(e.target?.result as string);
+        setShowCropper(true);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle crop complete
+  const handleCropComplete = (croppedImage: string) => {
+    setOriginalImage(croppedImage);
+    setShowCropper(false);
+    setRawImage(null);
+    toast.success("Área selecionada com sucesso!");
+  };
+
+  // Handle crop cancel
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setRawImage(null);
+  };
+
+  // Re-crop the image
+  const handleRecrop = () => {
+    if (originalImage) {
+      setRawImage(originalImage);
+      setShowCropper(true);
     }
   };
 
@@ -137,10 +165,12 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
 
   // Reset analysis
   const resetAnalysis = () => {
+    setRawImage(null);
     setOriginalImage(null);
     setProgressionImage(null);
     setScanImage(null);
     setYearsProgression([0]);
+    setShowCropper(false);
     stopCamera();
   };
 
@@ -167,8 +197,19 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       </div>
 
       <div className="max-w-6xl mx-auto">
+        {/* Image Cropper */}
+        {showCropper && rawImage && (
+          <div className="mb-6">
+            <ImageCropper
+              imageSrc={rawImage}
+              onCropComplete={handleCropComplete}
+              onCancel={handleCropCancel}
+            />
+          </div>
+        )}
+
         {/* Image Capture Section */}
-        {!originalImage && (
+        {!originalImage && !showCropper && (
           <Card className="bg-slate-900/80 border-purple-500/30 mb-6">
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold text-white mb-4 text-center">
@@ -261,14 +302,26 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                         <Badge variant="outline" className="text-white border-slate-600">
                           Original
                         </Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={resetAnalysis}
-                          className="text-slate-400 hover:text-white"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRecrop}
+                            className="text-slate-400 hover:text-white"
+                            title="Recortar área"
+                          >
+                            <Crop className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={resetAnalysis}
+                            className="text-slate-400 hover:text-white"
+                            title="Nova foto"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       <img
                         src={originalImage}
@@ -368,14 +421,26 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                         <Badge variant="outline" className="text-white border-slate-600">
                           Original
                         </Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={resetAnalysis}
-                          className="text-slate-400 hover:text-white"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRecrop}
+                            className="text-slate-400 hover:text-white"
+                            title="Recortar área"
+                          >
+                            <Crop className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={resetAnalysis}
+                            className="text-slate-400 hover:text-white"
+                            title="Nova foto"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       <img
                         src={originalImage}
