@@ -453,6 +453,145 @@ export type Database = {
           },
         ]
       }
+      clinic_contract_services: {
+        Row: {
+          baldness_grade: string | null
+          contract_id: string
+          created_at: string
+          id: string
+          service_type: string
+          unit_price: number | null
+        }
+        Insert: {
+          baldness_grade?: string | null
+          contract_id: string
+          created_at?: string
+          id?: string
+          service_type: string
+          unit_price?: number | null
+        }
+        Update: {
+          baldness_grade?: string | null
+          contract_id?: string
+          created_at?: string
+          id?: string
+          service_type?: string
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_contract_services_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_contracts: {
+        Row: {
+          balance_due: number | null
+          branch: string
+          category: string | null
+          consultant: string | null
+          contract_number: string
+          contract_status: string | null
+          created_at: string
+          created_by: string | null
+          distrato_date: string | null
+          down_payment: number | null
+          id: string
+          lead_source: string | null
+          lead_source_detail: string | null
+          monthly_payments_defined: boolean | null
+          observations: string | null
+          patient_id: string | null
+          registered_agenda: boolean | null
+          registered_conta_azul: boolean | null
+          registered_monday: boolean | null
+          registered_shosp: boolean | null
+          sale_date: string
+          seller: string | null
+          signal_term_signed: boolean | null
+          source_row_hash: string | null
+          surgery_date_defined: boolean | null
+          surgery_done: boolean | null
+          swap_value: number | null
+          updated_at: string
+          vgv: number | null
+        }
+        Insert: {
+          balance_due?: number | null
+          branch: string
+          category?: string | null
+          consultant?: string | null
+          contract_number: string
+          contract_status?: string | null
+          created_at?: string
+          created_by?: string | null
+          distrato_date?: string | null
+          down_payment?: number | null
+          id?: string
+          lead_source?: string | null
+          lead_source_detail?: string | null
+          monthly_payments_defined?: boolean | null
+          observations?: string | null
+          patient_id?: string | null
+          registered_agenda?: boolean | null
+          registered_conta_azul?: boolean | null
+          registered_monday?: boolean | null
+          registered_shosp?: boolean | null
+          sale_date: string
+          seller?: string | null
+          signal_term_signed?: boolean | null
+          source_row_hash?: string | null
+          surgery_date_defined?: boolean | null
+          surgery_done?: boolean | null
+          swap_value?: number | null
+          updated_at?: string
+          vgv?: number | null
+        }
+        Update: {
+          balance_due?: number | null
+          branch?: string
+          category?: string | null
+          consultant?: string | null
+          contract_number?: string
+          contract_status?: string | null
+          created_at?: string
+          created_by?: string | null
+          distrato_date?: string | null
+          down_payment?: number | null
+          id?: string
+          lead_source?: string | null
+          lead_source_detail?: string | null
+          monthly_payments_defined?: boolean | null
+          observations?: string | null
+          patient_id?: string | null
+          registered_agenda?: boolean | null
+          registered_conta_azul?: boolean | null
+          registered_monday?: boolean | null
+          registered_shosp?: boolean | null
+          sale_date?: string
+          seller?: string | null
+          signal_term_signed?: boolean | null
+          source_row_hash?: string | null
+          surgery_date_defined?: boolean | null
+          surgery_done?: boolean | null
+          swap_value?: number | null
+          updated_at?: string
+          vgv?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_contracts_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_patients: {
         Row: {
           cpf: string | null
@@ -2414,6 +2553,48 @@ export type Database = {
             referencedColumns: ["photo_id"]
           },
         ]
+      }
+      import_logs: {
+        Row: {
+          created_at: string
+          error_count: number | null
+          errors: Json | null
+          file_name: string | null
+          id: string
+          import_type: string
+          imported_by: string | null
+          inserted_count: number | null
+          skipped_count: number | null
+          total_rows: number | null
+          updated_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          error_count?: number | null
+          errors?: Json | null
+          file_name?: string | null
+          id?: string
+          import_type: string
+          imported_by?: string | null
+          inserted_count?: number | null
+          skipped_count?: number | null
+          total_rows?: number | null
+          updated_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          error_count?: number | null
+          errors?: Json | null
+          file_name?: string | null
+          id?: string
+          import_type?: string
+          imported_by?: string | null
+          inserted_count?: number | null
+          skipped_count?: number | null
+          total_rows?: number | null
+          updated_count?: number | null
+        }
+        Relationships: []
       }
       ipromed_activity_log: {
         Row: {
