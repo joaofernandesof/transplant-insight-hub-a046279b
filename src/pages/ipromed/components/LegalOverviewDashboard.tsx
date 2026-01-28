@@ -15,15 +15,15 @@ export default function LegalOverviewDashboard() {
 
   return (
     <>
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Main Content */}
-        <div className="flex-1 space-y-6 min-w-0">
+        <div className="flex-1 space-y-6 min-w-0 order-2 lg:order-1">
           {/* Task List */}
           <AstreaTaskList />
         </div>
 
-        {/* Right Sidebar Widgets */}
-        <div className="w-80 flex-shrink-0 space-y-4">
+        {/* Right Sidebar Widgets - Stacks on mobile, side on desktop */}
+        <div className="w-full lg:w-80 flex-shrink-0 space-y-4 order-1 lg:order-2">
           <ActivityWidget />
           <CasesWidget />
           <StatsWidget />
