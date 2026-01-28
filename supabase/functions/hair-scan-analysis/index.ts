@@ -53,6 +53,7 @@ The result should help doctors identify areas of alopecia and density variations
     }
 
     console.log(`Processing ${action} analysis...`);
+    console.log("Image base64 length:", imageBase64?.length || 0);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -97,11 +98,21 @@ The result should help doctors identify areas of alopecia and density variations
     }
 
     const data = await response.json();
+    console.log("AI response structure:", JSON.stringify({
+      hasChoices: !!data.choices,
+      choicesLength: data.choices?.length,
+      hasMessage: !!data.choices?.[0]?.message,
+      hasImages: !!data.choices?.[0]?.message?.images,
+      imagesLength: data.choices?.[0]?.message?.images?.length,
+      content: data.choices?.[0]?.message?.content?.substring(0, 200)
+    }));
+
     const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     const textResponse = data.choices?.[0]?.message?.content || "";
 
     if (!generatedImage) {
-      throw new Error("Não foi possível gerar a imagem");
+      console.error("No image generated. Full response:", JSON.stringify(data).substring(0, 1000));
+      throw new Error("A IA não conseguiu gerar a imagem. Tente com outra foto ou área diferente.");
     }
 
     return new Response(
