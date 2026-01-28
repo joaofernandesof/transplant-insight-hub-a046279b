@@ -8,23 +8,10 @@ const corsHeaders = {
 
 const DEFAULT_PASSWORD = "Licenciado2026!";
 
+// Only create accounts for those who don't exist as students
 const LICENSEES = [
-  { email: "gleyldes.leao@licenciado.neofolic.com", full_name: "Gleyldes Leão" },
-  { email: "erika.coimbra@licenciado.neofolic.com", full_name: "Erika Alves Coimbra" },
-  { email: "jean.romao@licenciado.neofolic.com", full_name: "Jean Carlos Romão de Sousa" },
-  { email: "ana.pierazo@licenciado.neofolic.com", full_name: "Ana Flávia Pierazo Rodrigues" },
-  { email: "eder.eiji@licenciado.neofolic.com", full_name: "Eder Eiji e Ednéia Gaspar" },
-  { email: "regia.reis@licenciado.neofolic.com", full_name: "Regia Débora Cardoso da Silva Reis" },
-  { email: "robister.oliveira@licenciado.neofolic.com", full_name: "Robister Moreno de Oliveira Mac Cornick" },
-  { email: "paulo.neto@licenciado.neofolic.com", full_name: "Paulo Batista da Costa Neto" },
-  { email: "joselio.sousa@licenciado.neofolic.com", full_name: "Joselio Alves Sousa" },
-  { email: "livia.gomes@licenciado.neofolic.com", full_name: "Livia Alana Silva de Souza Gomes" },
   { email: "cintia.andrade@licenciado.neofolic.com", full_name: "Cintia de Andrade" },
-  { email: "flavio.felipe@licenciado.neofolic.com", full_name: "Flávio Henrique e Felipe Teles Arruda" },
-  { email: "andre.valente@licenciado.neofolic.com", full_name: "André Luis Chaves Valente" },
-  { email: "marcia.dertkigil@licenciado.neofolic.com", full_name: "Marcia San Juan Dertkigil" },
-  { email: "fabio.branaro@licenciado.neofolic.com", full_name: "Fabio Branaro" },
-  { email: "deibson.lisboa@licenciado.neofolic.com", full_name: "Deibson Santos Lisboa" },
+  { email: "regia.reis@licenciado.neofolic.com", full_name: "Regia Débora Cardoso da Silva Reis" },
 ];
 
 serve(async (req) => {
