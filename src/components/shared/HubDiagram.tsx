@@ -4,9 +4,8 @@
  */
 
 import React from 'react';
-import { Heart, Users, GraduationCap, Building2, Sparkles, Scale } from 'lucide-react';
+import { Heart, Users, GraduationCap, Building2, Sparkles, Scale, ScanFace } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import neohairscanIcon from '@/assets/neohairscan-icon.png';
 
 interface PortalNode {
   id: string;
@@ -14,7 +13,6 @@ interface PortalNode {
   subtitle: string;
   icon: React.ReactNode;
   color: string;
-  isCustomIcon?: boolean;
 }
 
 const portals: PortalNode[] = [
@@ -64,9 +62,8 @@ const portals: PortalNode[] = [
     id: 'neohairscan',
     name: 'NeoHairScan',
     subtitle: 'Diagnóstico IA',
-    icon: <img src={neohairscanIcon} alt="NeoHairScan" className="h-10 w-10 object-contain" />,
-    color: 'bg-transparent',
-    isCustomIcon: true,
+    icon: <ScanFace className="h-6 w-6" />,
+    color: 'bg-gradient-to-br from-fuchsia-500 to-purple-600',
   },
 ];
 
@@ -131,26 +128,15 @@ export function HubDiagram({ className, highlightPortal }: HubDiagramProps) {
             }}
           >
             <div className="flex flex-col items-center gap-1">
-              {portal.isCustomIcon ? (
-                <div
-                  className={cn(
-                    'w-12 h-12 flex items-center justify-center transition-all',
-                    isHighlighted && 'scale-110'
-                  )}
-                >
-                  {portal.icon}
-                </div>
-              ) : (
-                <div
-                  className={cn(
-                    'w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md transition-all overflow-hidden',
-                    portal.color,
-                    isHighlighted && 'ring-2 ring-offset-2 ring-offset-background ring-primary scale-110'
-                  )}
-                >
-                  {portal.icon}
-                </div>
-              )}
+              <div
+                className={cn(
+                  'w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md transition-all overflow-hidden',
+                  portal.color,
+                  isHighlighted && 'ring-2 ring-offset-2 ring-offset-background ring-primary scale-110'
+                )}
+              >
+                {portal.icon}
+              </div>
               <span className="text-xs font-semibold text-foreground whitespace-nowrap text-center">
                 {portal.name}
               </span>
