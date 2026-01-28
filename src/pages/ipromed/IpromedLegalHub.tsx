@@ -24,6 +24,8 @@ import {
   User,
   FolderOpen,
   Clock,
+  Scale,
+  Users,
 } from "lucide-react";
 
 import LegalOverviewDashboard from "./components/LegalOverviewDashboard";
@@ -40,19 +42,23 @@ import AstreaClientPortal from "./components/AstreaClientPortal";
 import DocumentsManager from "./components/DocumentsManager";
 import CaseMovementsTimeline from "./components/CaseMovementsTimeline";
 import RealFinancialPage from "./components/RealFinancialPage";
-import RealAppointmentsPage from "./components/RealAppointmentsPage";
+import EnhancedAgendaPage from "./components/EnhancedAgendaPage";
 import IndicatorsDashboard from "./components/IndicatorsDashboard";
 import TimesheetManager from "./components/TimesheetManager";
 import AIDocumentGenerator from "./components/AIDocumentGenerator";
 import DocumentTemplates from "./components/DocumentTemplates";
 import BillingRulesManager from "./components/BillingRulesManager";
 import TagsManager from "./components/TagsManager";
+import JurisprudenciasPage from "./components/JurisprudenciasPage";
+import MeetingToolPage from "./components/MeetingToolPage";
 
 const tabs = [
   { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard },
   { id: 'alerts', label: 'Alertas', icon: Bell },
   { id: 'publications', label: 'Publicações', icon: FileText },
   { id: 'agenda', label: 'Agenda', icon: LayoutGrid },
+  { id: 'meetings', label: 'Reuniões', icon: Users },
+  { id: 'jurisprudencias', label: 'Jurisprudências', icon: Scale },
   { id: 'cases', label: 'Processos', icon: Gavel },
   { id: 'movements', label: 'Andamentos', icon: Clock },
   { id: 'documents', label: 'Documentos', icon: FolderOpen },
@@ -166,7 +172,15 @@ export default function IpromedLegalHub() {
             </TabsContent>
 
             <TabsContent value="agenda" className="mt-0">
-              <RealAppointmentsPage />
+              <EnhancedAgendaPage />
+            </TabsContent>
+
+            <TabsContent value="meetings" className="mt-0">
+              <MeetingToolPage />
+            </TabsContent>
+
+            <TabsContent value="jurisprudencias" className="mt-0">
+              <JurisprudenciasPage />
             </TabsContent>
 
             <TabsContent value="cases" className="mt-0">

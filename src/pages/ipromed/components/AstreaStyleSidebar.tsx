@@ -47,9 +47,11 @@ const mainNavItems: NavItem[] = [
   { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
   { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda' },
+  { id: 'meetings', label: 'Reuniões', icon: Users, href: '/ipromed/legal?tab=meetings', isNew: true },
+  { id: 'jurisprudencias', label: 'Jurisprudências', icon: Scale, href: '/ipromed/legal?tab=jurisprudencias' },
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases' },
   { id: 'documents', label: 'Documentos', icon: FileBox, href: '/ipromed/legal?tab=documents' },
-  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', isNew: true },
+  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai' },
   { id: 'indicators', label: 'Indicadores', icon: BarChart3, href: '/ipromed/legal?tab=analytics' },
 ];
 
