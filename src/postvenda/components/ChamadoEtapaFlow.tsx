@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { EtapaChecklistSection, useEtapaChecklistStatus } from './EtapaChecklistSection';
 
 const etapaFlow: ChamadoEtapa[] = ['triagem', 'atendimento', 'resolucao', 'validacao_paciente', 'nps', 'encerrado'];
 
@@ -48,6 +49,8 @@ const etapaColors: Record<string, { bg: string; border: string; text: string; ri
 
 interface ChamadoEtapaFlowProps {
   currentEtapa: ChamadoEtapa;
+  chamadoId?: string;
+  tipoDemanda?: string;
   onAdvance: (targetEtapa: ChamadoEtapa, description?: string) => Promise<void>;
   onRevert?: (targetEtapa: ChamadoEtapa, description?: string) => Promise<void>;
   bpmnEnabled?: boolean;
@@ -57,6 +60,8 @@ interface ChamadoEtapaFlowProps {
 
 export function ChamadoEtapaFlow({ 
   currentEtapa, 
+  chamadoId,
+  tipoDemanda,
   onAdvance, 
   onRevert,
   bpmnEnabled = false,
@@ -69,10 +74,14 @@ export function ChamadoEtapaFlow({
   const [description, setDescription] = useState('');
   const [targetEtapa, setTargetEtapa] = useState<ChamadoEtapa | null>(null);
 
+  // Verificar status do checklist da etapa atual
+  const { isComplete: checklistComplete, hasChecklist } = 
+    useEtapaChecklistStatus(chamadoId, currentEtapa);
+
   const currentIndex = etapaFlow.indexOf(currentEtapa);
   const nextEtapa = currentIndex < etapaFlow.length - 1 ? etapaFlow[currentIndex + 1] : null;
   const prevEtapa = currentIndex > 0 ? etapaFlow[currentIndex - 1] : null;
-  const canAdvance = nextEtapa !== null && currentEtapa !== 'encerrado';
+  const canAdvance = nextEtapa !== null && currentEtapa !== 'encerrado' && checklistComplete;
   const canRevert = prevEtapa !== null && onRevert;
 
   const handleAdvance = async () => {
@@ -204,6 +213,18 @@ export function ChamadoEtapaFlow({
             );
           })}
         </div>
+
+        {/* Checklist da Etapa Atual - Integrado ao fluxo */}
+        {chamadoId && tipoDemanda && hasChecklist && (
+          <div className="mt-4">
+            <EtapaChecklistSection
+              chamadoId={chamadoId}
+              tipoDemanda={tipoDemanda}
+              currentEtapa={currentEtapa}
+              compact={true}
+            />
+          </div>
+        )}
 
         {/* Navigation Actions */}
         <div className="mt-6 flex items-center justify-center gap-2 lg:gap-3">

@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { EtapaChecklistSection, useEtapaChecklistStatus } from './EtapaChecklistSection';
 
 // Tipos para o fluxo BPMN de Distrato
 export type DistratoEtapaBpmn = 
@@ -137,6 +138,8 @@ const getEtapaConfig = (etapa: DistratoEtapaBpmn) =>
 interface DistratoEtapaFlowProps {
   currentEtapa: DistratoEtapaBpmn;
   decisao: DistratoDecisao;
+  chamadoId?: string;
+  tipoDemanda?: string;
   onAdvance: (targetEtapa: DistratoEtapaBpmn, metadata?: Record<string, any>) => Promise<void>;
   onSetDecisao?: (decisao: DistratoDecisao) => Promise<void>;
   canAdvance?: boolean;
@@ -147,6 +150,8 @@ interface DistratoEtapaFlowProps {
 export function DistratoEtapaFlow({ 
   currentEtapa, 
   decisao,
+  chamadoId,
+  tipoDemanda,
   onAdvance, 
   onSetDecisao,
   canAdvance = true,
@@ -157,6 +162,10 @@ export function DistratoEtapaFlow({
   const [showDecisaoDialog, setShowDecisaoDialog] = useState(false);
   const [observacao, setObservacao] = useState('');
   const [selectedDecisao, setSelectedDecisao] = useState<DistratoDecisao>('pendente');
+
+  // Verificar status do checklist da etapa atual
+  const { isComplete: checklistComplete, hasChecklist, completedCount, totalCount } = 
+    useEtapaChecklistStatus(chamadoId, currentEtapa);
 
   const currentIndex = getEtapaIndex(currentEtapa);
   const currentConfig = getEtapaConfig(currentEtapa);
@@ -189,8 +198,8 @@ export function DistratoEtapaFlow({
   const nextEtapa = getNextEtapa();
   const nextConfig = nextEtapa ? getEtapaConfig(nextEtapa) : null;
 
-  // Verificar se pode avançar
-  const canAdvanceNow = canAdvance && nextEtapa !== null && validationErrors.length === 0;
+  // Verificar se pode avançar - agora também verifica o checklist
+  const canAdvanceNow = canAdvance && nextEtapa !== null && validationErrors.length === 0 && checklistComplete;
   
   // No parecer da gerente, precisa definir decisão primeiro
   const needsDecision = currentEtapa === 'aguardando_parecer_gerente' && decisao === 'pendente';
@@ -339,6 +348,16 @@ export function DistratoEtapaFlow({
               </p>
             )}
           </div>
+        )}
+
+        {/* Checklist da Etapa Atual - Integrado ao fluxo */}
+        {chamadoId && tipoDemanda && hasChecklist && (
+          <EtapaChecklistSection
+            chamadoId={chamadoId}
+            tipoDemanda={tipoDemanda}
+            currentEtapa={currentEtapa}
+            compact={true}
+          />
         )}
 
         {/* Validation Errors */}

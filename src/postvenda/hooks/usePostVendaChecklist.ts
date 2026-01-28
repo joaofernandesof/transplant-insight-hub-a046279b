@@ -8,6 +8,7 @@ export interface ChecklistTemplate {
   tipo_demanda: string;
   order_index: number;
   phase: string;
+  etapa_bpmn: string | null;
   title: string;
   description: string | null;
   guidance: string | null;
@@ -21,6 +22,7 @@ export interface ChecklistItem {
   template_id: string;
   order_index: number;
   phase: string;
+  etapa_bpmn: string | null;
   title: string;
   description: string | null;
   guidance: string | null;
@@ -115,6 +117,7 @@ export function usePostVendaChecklist(chamadoId: string | undefined) {
         template_id: t.id,
         order_index: t.order_index,
         phase: t.phase,
+        etapa_bpmn: t.etapa_bpmn,
         title: t.title,
         description: t.description,
         guidance: t.guidance,
