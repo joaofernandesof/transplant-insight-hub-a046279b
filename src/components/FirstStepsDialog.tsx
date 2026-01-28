@@ -136,7 +136,7 @@ export default function FirstStepsDialog() {
                   </Badge>
                 </DialogTitle>
                 <DialogDescription className="text-sm">
-                  Olá! Sou o Jon Jobs, seu guia aqui no sistema. Vamos configurar tudo juntos?
+                  Olá! Sou o <span className="font-bold text-foreground">JON JOBS</span>, seu guia aqui no sistema. Vamos configurar tudo juntos?
                 </DialogDescription>
               </div>
             </div>
