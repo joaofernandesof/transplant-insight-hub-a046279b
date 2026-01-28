@@ -7,3 +7,6 @@ export {
   KANBAN_STATUS_COLORS
 } from './StyledKanban';
 export type { KanbanColumn } from './StyledKanban';
+
+export { PortalBanner, PORTAL_CONFIGS } from './PortalBanner';
+export type { PortalType } from './PortalBanner';

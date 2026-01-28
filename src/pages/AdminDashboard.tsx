@@ -48,6 +48,7 @@ import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SystemAlertsWidget } from '@/components/admin/SystemAlertsWidget';
 import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
+import { PortalBanner } from '@/components/shared/PortalBanner';
 
 // Hierarchical module structure with individual colors per module
 const moduleCategories = [
@@ -318,23 +319,22 @@ export default function AdminDashboard() {
         {/* Breadcrumb */}
         <GlobalBreadcrumb />
         
-        {/* Header with Welcome */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Dashboard Administrativo
-            </h1>
-            <p className="text-sm text-muted-foreground">Acesso rápido a todos os módulos do sistema</p>
-          </div>
-          <Button
-            onClick={() => setIsNotificationDialogOpen(true)}
-            className="flex items-center gap-2"
-            size="sm"
-          >
-            <Send className="h-4 w-4" />
-            Enviar Notificação
-          </Button>
-        </div>
+        {/* Portal Banner */}
+        <PortalBanner
+          portal="admin"
+          userName={user?.name}
+          icon={<Shield className="h-6 w-6 text-white" />}
+          rightContent={
+            <Button
+              onClick={() => setIsNotificationDialogOpen(true)}
+              variant="secondary"
+              size="sm"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Enviar Notificação
+            </Button>
+          }
+        />
 
         <NotificationDialog
           open={isNotificationDialogOpen}

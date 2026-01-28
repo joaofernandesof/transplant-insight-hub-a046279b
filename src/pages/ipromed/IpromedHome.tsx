@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PortalBanner } from '@/components/shared/PortalBanner';
+import IpromedLogo from '@/components/icons/IpromedLogo';
 
 import {
   Scale,
@@ -160,32 +162,23 @@ export default function IpromedHome() {
 
   return (
     <div className="container mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="p-4 bg-gradient-to-br from-[#00629B] to-[#004d7a] rounded-2xl shadow-lg">
-            <Scale className="h-8 w-8 text-white" />
+      {/* Portal Banner */}
+      <PortalBanner
+        portal="ipromed"
+        icon={<Scale className="h-6 w-6 text-white" />}
+        rightContent={
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" onClick={() => navigate('/ipromed/legal')}>
+              <Scale className="h-4 w-4 mr-2" />
+              Abrir Legal Hub
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => navigate('/ipromed/clients')}>
+              <Users className="h-4 w-4 mr-2" />
+              Gerenciar Clientes
+            </Button>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#00629B] to-[#004d7a] bg-clip-text text-transparent">
-              IPROMED
-            </h1>
-            <p className="text-muted-foreground">
-              Instituto de Proteção Médica • Portal Jurídico
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/ipromed/legal')}>
-            <Scale className="h-4 w-4 mr-2" />
-            Abrir Legal Hub
-          </Button>
-          <Button onClick={() => navigate('/ipromed/clients')}>
-            <Users className="h-4 w-4 mr-2" />
-            Gerenciar Clientes
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

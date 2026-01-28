@@ -20,6 +20,7 @@ import {
   DashboardPriorityList,
   DashboardDeadlineList,
 } from '@/neohub/components/dashboard';
+import { PortalBanner } from '@/components/shared/PortalBanner';
 
 type NpsRow = { nota: number | null; respondido_em: string | null; enviado_em: string | null };
 
@@ -119,26 +120,23 @@ export default function PostVendaHome() {
     <div className="p-4 lg:p-6 space-y-6">
       <GlobalBreadcrumb />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <HeadphonesIcon className="h-6 w-6 text-primary" />
-            Pós-Venda
-          </h1>
-          <p className="text-muted-foreground">Gestão de chamados e atendimento ao paciente</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate('/neoteam/postvenda/sla')}>
-            <Settings className="h-4 w-4 mr-2" />
-            SLA
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate('/neoteam/postvenda/nps')}>
-            <BarChart3 className="h-4 w-4 mr-2" />
-            NPS
-          </Button>
-        </div>
-      </div>
+      {/* Portal Banner */}
+      <PortalBanner
+        portal="postvenda"
+        icon={<HeadphonesIcon className="h-6 w-6 text-white" />}
+        rightContent={
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" size="sm" onClick={() => navigate('/neoteam/postvenda/sla')}>
+              <Settings className="h-4 w-4 mr-2" />
+              SLA
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => navigate('/neoteam/postvenda/nps')}>
+              <BarChart3 className="h-4 w-4 mr-2" />
+              NPS
+            </Button>
+          </div>
+        }
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
