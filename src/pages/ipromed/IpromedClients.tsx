@@ -186,7 +186,7 @@ export default function IpromedClients() {
       {/* Title and Actions */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Gestão de Clientes IPROMED</h1>
+          <h1 className="text-2xl font-bold">Gestão de Contratos</h1>
           <p className="text-muted-foreground">Controle de clientes e processos jurídicos</p>
         </div>
         <div className="flex gap-2">
