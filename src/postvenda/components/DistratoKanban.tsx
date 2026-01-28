@@ -183,18 +183,12 @@ export function DistratoKanban() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header com Stats */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <FileText className="h-6 w-6 text-primary" />
-            Gestão de Solicitações de Distrato
-          </h2>
-          <p className="text-muted-foreground">Kanban de acompanhamento jurídico</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-semibold">Kanban de Distratos</h2>
+          <div className="flex items-center gap-3 text-sm">
             <div className="flex items-center gap-1">
               <Badge variant="outline">{stats.total}</Badge>
               <span className="text-muted-foreground">Total</span>
@@ -206,15 +200,15 @@ export function DistratoKanban() {
             {stats.slaEstourados > 0 && (
               <div className="flex items-center gap-1">
                 <Badge variant="destructive">{stats.slaEstourados}</Badge>
-                <span className="text-muted-foreground">SLA estourado</span>
+                <span className="text-muted-foreground">SLA</span>
               </div>
             )}
           </div>
-          <Button className="gap-2" onClick={() => setIsNovaDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Nova Solicitação
-          </Button>
         </div>
+        <Button className="gap-2" onClick={() => setIsNovaDialogOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Nova Solicitação
+        </Button>
       </div>
 
       {/* Kanban Board */}
