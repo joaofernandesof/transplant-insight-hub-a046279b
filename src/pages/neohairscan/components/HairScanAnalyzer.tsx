@@ -215,12 +215,16 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
 
         toast.info(`Gerando ${toGenerate} variações...`, { duration: 3000 });
         
+        let successCount = 0;
+        let rateLimitError = false;
+        let creditsError = false;
+        
         // Generate images one by one to show progress
         for (let i = 0; i < toGenerate; i++) {
           // Check credits for each generation
           const hasCredits = await consumeCredit(`scan_${action}`);
           if (!hasCredits) {
-            toast.warning(`Geradas ${i} de ${toGenerate} variações. Créditos insuficientes.`);
+            toast.warning(`Geradas ${successCount} de ${toGenerate} variações. Créditos insuficientes.`);
             break;
           }
 
@@ -233,21 +237,76 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
               },
             });
 
-            if (error) throw error;
+            if (error) {
+              // Check for specific HTTP errors
+              const errorContext = (error as any)?.context;
+              if (errorContext?.status === 402) {
+                creditsError = true;
+                toast.error("Créditos Lovable AI insuficientes. Adicione créditos ao workspace.", {
+                  duration: 5000,
+                  action: {
+                    label: "Saber mais",
+                    onClick: () => window.open("https://docs.lovable.dev/features/ai", "_blank")
+                  }
+                });
+                break;
+              }
+              if (errorContext?.status === 429) {
+                rateLimitError = true;
+                toast.error("Limite de requisições atingido. Aguarde alguns minutos.", { duration: 5000 });
+                break;
+              }
+              throw error;
+            }
+            
             if (data?.error) {
+              // Check for error messages from the function itself
+              if (data.error.includes("Créditos insuficientes") || data.error.includes("402")) {
+                creditsError = true;
+                toast.error("Créditos Lovable AI insuficientes. Adicione créditos ao workspace.", {
+                  duration: 5000,
+                  action: {
+                    label: "Saber mais",
+                    onClick: () => window.open("https://docs.lovable.dev/features/ai", "_blank")
+                  }
+                });
+                break;
+              }
               console.error("Generation error:", data.error);
               continue;
             }
 
             if (data?.image) {
               setNewVersionImages(prev => [...prev, data.image]);
+              successCount++;
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error(`Error generating variation ${i + 1}:`, err);
+            // Try to extract status from error
+            if (err?.context?.status === 402 || err?.message?.includes("402")) {
+              creditsError = true;
+              toast.error("Créditos Lovable AI insuficientes. Adicione créditos ao workspace.", {
+                duration: 5000,
+                action: {
+                  label: "Saber mais",
+                  onClick: () => window.open("https://docs.lovable.dev/features/ai", "_blank")
+                }
+              });
+              break;
+            }
           }
         }
         
-        toast.success("Variações geradas!");
+        // Show appropriate message based on result
+        if (creditsError && successCount === 0) {
+          // Already showed error toast above
+        } else if (rateLimitError && successCount === 0) {
+          // Already showed error toast above
+        } else if (successCount > 0) {
+          toast.success(`${successCount} variações geradas!`);
+        } else {
+          toast.error("Não foi possível gerar variações. Tente novamente.");
+        }
       } else {
         // Single image processing (progression/scan)
         const hasCredits = await consumeCredit(`scan_${action}`);
