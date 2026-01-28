@@ -1,11 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+/**
+ * Surgery Kanban - Styled Kanban for surgery scheduling
+ */
+
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { SurgerySchedule } from "@/hooks/useSurgerySchedule";
 import { SurgeryCard } from "./SurgeryCard";
-import { format, parseISO, isToday, isTomorrow, addDays, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+import { format, parseISO, isToday, isTomorrow, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useMemo } from "react";
+import { StyledKanban, StyledKanbanCard, KanbanColumn } from "@/components/shared/StyledKanban";
 
 interface SurgeryKanbanProps {
   surgeries: SurgerySchedule[];
@@ -17,7 +20,15 @@ export function SurgeryKanban({ surgeries, onSelectSurgery }: SurgeryKanbanProps
   const weekStart = startOfWeek(today, { locale: ptBR });
   const weekEnd = endOfWeek(today, { locale: ptBR });
 
-  const groupedSurgeries = useMemo(() => {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
+  const getColumnTotal = (columnSurgeries: SurgerySchedule[]) => {
+    return columnSurgeries.reduce((sum, s) => sum + (s.final_value || 0), 0);
+  };
+
+  const columns: KanbanColumn<SurgerySchedule>[] = useMemo(() => {
     const todaySurgeries = surgeries.filter(s => isToday(parseISO(s.surgery_date)));
     const tomorrowSurgeries = surgeries.filter(s => isTomorrow(parseISO(s.surgery_date)));
     const thisWeekSurgeries = surgeries.filter(s => {
@@ -31,94 +42,60 @@ export function SurgeryKanban({ surgeries, onSelectSurgery }: SurgeryKanbanProps
       return date > weekEnd;
     });
 
-    return {
-      today: todaySurgeries,
-      tomorrow: tomorrowSurgeries,
-      thisWeek: thisWeekSurgeries,
-      upcoming: upcomingSurgeries,
-    };
+    return [
+      { 
+        id: 'today', 
+        title: 'Hoje', 
+        subtitle: formatCurrency(getColumnTotal(todaySurgeries)),
+        items: todaySurgeries,
+        color: 'from-emerald-500 to-emerald-600',
+        statusColor: 'bg-emerald-500',
+      },
+      { 
+        id: 'tomorrow', 
+        title: 'Amanhã', 
+        subtitle: formatCurrency(getColumnTotal(tomorrowSurgeries)),
+        items: tomorrowSurgeries,
+        color: 'from-blue-500 to-blue-600',
+        statusColor: 'bg-blue-500',
+      },
+      { 
+        id: 'thisWeek', 
+        title: 'Esta Semana', 
+        subtitle: formatCurrency(getColumnTotal(thisWeekSurgeries)),
+        items: thisWeekSurgeries,
+        color: 'from-amber-500 to-amber-600',
+        statusColor: 'bg-amber-500',
+      },
+      { 
+        id: 'upcoming', 
+        title: 'Próximas', 
+        subtitle: formatCurrency(getColumnTotal(upcomingSurgeries)),
+        items: upcomingSurgeries,
+        color: 'from-purple-500 to-purple-600',
+        statusColor: 'bg-purple-500',
+      },
+    ];
   }, [surgeries, weekStart, weekEnd]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
-
-  const getColumnTotal = (columnSurgeries: SurgerySchedule[]) => {
-    return columnSurgeries.reduce((sum, s) => sum + (s.final_value || 0), 0);
-  };
-
-  const columns = [
-    { 
-      id: 'today', 
-      title: 'Hoje', 
-      surgeries: groupedSurgeries.today,
-      color: 'bg-green-500',
-      emptyMessage: 'Nenhuma cirurgia hoje',
-    },
-    { 
-      id: 'tomorrow', 
-      title: 'Amanhã', 
-      surgeries: groupedSurgeries.tomorrow,
-      color: 'bg-blue-500',
-      emptyMessage: 'Nenhuma cirurgia amanhã',
-    },
-    { 
-      id: 'thisWeek', 
-      title: 'Esta Semana', 
-      surgeries: groupedSurgeries.thisWeek,
-      color: 'bg-amber-500',
-      emptyMessage: 'Sem cirurgias esta semana',
-    },
-    { 
-      id: 'upcoming', 
-      title: 'Próximas', 
-      surgeries: groupedSurgeries.upcoming,
-      color: 'bg-purple-500',
-      emptyMessage: 'Sem cirurgias futuras',
-    },
-  ];
+  const renderCard = (surgery: SurgerySchedule) => (
+    <div key={surgery.id}>
+      <SurgeryCard surgery={surgery} onEdit={onSelectSurgery} />
+    </div>
+  );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-[calc(100vh-350px)] min-h-[500px]">
-      {columns.map((column) => (
-        <Card key={column.id} className="flex flex-col">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={`h-2 w-2 rounded-full ${column.color}`} />
-                <CardTitle className="text-sm font-medium">{column.title}</CardTitle>
-              </div>
-              <Badge variant="secondary" className="text-xs">
-                {column.surgeries.length}
-              </Badge>
-            </div>
-            {column.surgeries.length > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Total: {formatCurrency(getColumnTotal(column.surgeries))}
-              </p>
-            )}
-          </CardHeader>
-          <CardContent className="flex-1 p-3 pt-0">
-            <ScrollArea className="h-full pr-2">
-              {column.surgeries.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-center">
-                  <p className="text-sm text-muted-foreground">{column.emptyMessage}</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {column.surgeries.map((surgery) => (
-                    <SurgeryCard
-                      key={surgery.id}
-                      surgery={surgery}
-                      onEdit={onSelectSurgery}
-                    />
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <StyledKanban
+      columns={columns}
+      renderCard={renderCard}
+      renderEmptyState={(columnId) => (
+        <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
+          {columnId === 'today' ? 'Nenhuma cirurgia hoje' :
+           columnId === 'tomorrow' ? 'Nenhuma cirurgia amanhã' :
+           columnId === 'thisWeek' ? 'Sem cirurgias esta semana' :
+           'Sem cirurgias futuras'}
+        </div>
+      )}
+    />
   );
 }
