@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
-import { ChamadoTimeline, ChamadoEtapaFlow, DistratoSwimLanesBpmn } from '../components';
+import { ChamadoTimeline, ChamadoEtapaFlow, DistratoSwimLanesBpmn, PostVendaChecklistModal } from '../components';
 import { DistratoEtapaFlow, DistratoEtapaBpmn, DistratoDecisao } from '../components/DistratoEtapaFlow';
 import { usePostVenda, useChamadoHistorico, ChamadoEtapa } from '../hooks/usePostVenda';
 import { ETAPA_LABELS, STATUS_LABELS, PRIORIDADE_LABELS, TIPO_DEMANDA_OPTIONS, DISTRATO_ETAPA_LABELS } from '../lib/permissions';
 import { 
   ArrowLeft, User, Phone, Mail, Clock,
-  MessageCircle, AlertCircle, Loader2, FileText, LayoutList, GitBranch
+  MessageCircle, AlertCircle, Loader2, FileText, LayoutList, GitBranch,
+  ClipboardCheck
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -46,6 +47,7 @@ export default function ChamadoDetailPage() {
   const { historico, isLoading: historicoLoading } = useChamadoHistorico(id);
   
   const [showCommentDialog, setShowCommentDialog] = useState(false);
+  const [showChecklistModal, setShowChecklistModal] = useState(false);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bpmnEnabled, setBpmnEnabled] = useState(false);
@@ -133,6 +135,14 @@ export default function ChamadoDetailPage() {
             {getTipoDemandaLabel(chamado.tipo_demanda)} • {STATUS_LABELS[chamado.status]}
           </p>
         </div>
+        <Button 
+          variant="outline" 
+          onClick={() => setShowChecklistModal(true)}
+          className="gap-2"
+        >
+          <ClipboardCheck className="h-4 w-4" />
+          Checklist
+        </Button>
       </div>
 
       {/* Enhanced Etapa Flow */}
@@ -324,6 +334,15 @@ export default function ChamadoDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Checklist Modal */}
+      <PostVendaChecklistModal
+        isOpen={showChecklistModal}
+        onClose={() => setShowChecklistModal(false)}
+        chamadoId={chamado.id}
+        tipoDemanda={chamado.tipo_demanda}
+        pacienteNome={chamado.paciente_nome}
+      />
     </div>
   );
 }

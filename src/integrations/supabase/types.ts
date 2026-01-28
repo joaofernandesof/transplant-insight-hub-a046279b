@@ -8067,6 +8067,105 @@ export type Database = {
           },
         ]
       }
+      postvenda_checklist_items: {
+        Row: {
+          chamado_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          guidance: string | null
+          id: string
+          is_completed: boolean | null
+          notes: string | null
+          order_index: number
+          phase: string
+          template_id: string
+          title: string
+        }
+        Insert: {
+          chamado_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          guidance?: string | null
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          order_index: number
+          phase: string
+          template_id: string
+          title: string
+        }
+        Update: {
+          chamado_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          guidance?: string | null
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          order_index?: number
+          phase?: string
+          template_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "postvenda_checklist_items_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "postvenda_chamados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "postvenda_checklist_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "postvenda_checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      postvenda_checklist_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          guidance: string | null
+          id: string
+          order_index: number
+          phase: string
+          required_before_next: boolean | null
+          tipo_demanda: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          guidance?: string | null
+          id?: string
+          order_index: number
+          phase: string
+          required_before_next?: boolean | null
+          tipo_demanda: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          guidance?: string | null
+          id?: string
+          order_index?: number
+          phase?: string
+          required_before_next?: boolean | null
+          tipo_demanda?: string
+          title?: string
+        }
+        Relationships: []
+      }
       postvenda_distrato_sla: {
         Row: {
           ativo: boolean | null

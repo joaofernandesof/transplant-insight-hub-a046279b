@@ -7,3 +7,4 @@ export { ChamadosTabContent } from './ChamadosTabContent';
 export { ChamadoEtapaFlow } from './ChamadoEtapaFlow';
 export { DistratoEtapaFlow } from './DistratoEtapaFlow';
 export { DistratoSwimLanesBpmn } from './DistratoSwimLanesBpmn';
+export { PostVendaChecklistModal } from './PostVendaChecklistModal';
