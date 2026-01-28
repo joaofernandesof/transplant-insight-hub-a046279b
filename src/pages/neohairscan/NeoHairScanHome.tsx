@@ -6,11 +6,16 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScanFace, TrendingDown, Zap, Camera, ArrowRight } from "lucide-react";
+import { ScanFace, TrendingDown, Zap, Camera, ArrowRight, User, CreditCard } from "lucide-react";
 import HairScanAnalyzer from "./components/HairScanAnalyzer";
+import { ScanCreditsDisplay } from "./components/ScanCreditsDisplay";
+import { ScanPlansModal } from "./components/ScanPlansModal";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
 export default function NeoHairScanHome() {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
+  const [showPlansModal, setShowPlansModal] = useState(false);
+  const { user } = useUnifiedAuth();
 
   if (showAnalyzer) {
     return <HairScanAnalyzer onBack={() => setShowAnalyzer(false)} />;
@@ -18,6 +23,40 @@ export default function NeoHairScanHome() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
+      {/* Top Bar with Account Access */}
+      <div className="border-b border-purple-500/20 bg-slate-900/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-purple-300">
+            <ScanFace className="h-5 w-5" />
+            <span className="font-medium text-white">NeoHairScan</span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {user && (
+              <ScanCreditsDisplay 
+                userId={user.id}
+                onUpgradeClick={() => setShowPlansModal(true)}
+              />
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPlansModal(true)}
+              className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 gap-2"
+            >
+              <CreditCard className="h-4 w-4" />
+              <span className="hidden sm:inline">Planos & Assinatura</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Plans Modal */}
+      <ScanPlansModal 
+        open={showPlansModal} 
+        onOpenChange={setShowPlansModal}
+      />
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
