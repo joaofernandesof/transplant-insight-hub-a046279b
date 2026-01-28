@@ -84,14 +84,14 @@ const PORTAL_CONFIG: Record<string, {
     profiles: ['cliente_avivar'],
     route: '/avivar',
   },
-  neohairscan: {
+  vision: {
     title: 'Vision',
     description: 'Análise capilar com IA',
     icon: VisionIcon,
     gradient: 'from-pink-500 via-rose-500 to-orange-500',
     bgColor: 'bg-pink-50 dark:bg-pink-950/30',
     profiles: ['medico', 'colaborador'],
-    route: '/neohairscan',
+    route: '/vision',
   },
 };
 

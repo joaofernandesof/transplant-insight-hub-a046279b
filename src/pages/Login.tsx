@@ -39,7 +39,7 @@ const modules = [
   { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Marketing' },
   { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Jurídico' },
   // Vision: gradiente rosa/laranja como na referência
-  { id: 'neohairscan', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico IA' },
+  { id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico IA' },
 ];
 
 export default function Login() {
@@ -290,7 +290,7 @@ export default function Login() {
                   >
                     <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg`}>
                       <Icon
-                        className={`w-6 h-6 ${module.id === 'neohairscan' ? 'text-amber-200' : 'text-white'}`}
+                        className={`w-6 h-6 ${module.id === 'vision' ? 'text-amber-200' : 'text-white'}`}
                       />
                     </div>
                     <span className="block w-[92px] text-white text-xs font-medium text-center leading-tight">
@@ -317,7 +317,7 @@ export default function Login() {
                 >
                   {Icon && (
                     <Icon
-                      className={`w-7 h-7 ${module.id === 'neohairscan' ? 'text-amber-200' : 'text-white'}`}
+                      className={`w-7 h-7 ${module.id === 'vision' ? 'text-amber-200' : 'text-white'}`}
                     />
                   )}
                 </div>
