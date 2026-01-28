@@ -246,7 +246,7 @@ export default function Login() {
               />
             </div>
             <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2">
-              Neo<span style={{ color: '#C9A86C' }}>Hub</span>
+              Neo<span className="bg-gradient-to-b from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">Hub</span>
             </h1>
             <p className="text-slate-400 text-lg">
               Ecossistema Integrado
