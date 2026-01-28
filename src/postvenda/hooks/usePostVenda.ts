@@ -137,12 +137,34 @@ export function usePostVenda(filters?: { status?: ChamadoStatus; etapa?: Chamado
         ? new Date(Date.now() + slaConfig.tempo_limite_horas * 60 * 60 * 1000).toISOString()
         : null;
 
+      // Clean up empty strings to null for database compatibility
+      const cleanedData = {
+        paciente_id: data.paciente_id || null,
+        paciente_nome: data.paciente_nome,
+        paciente_telefone: data.paciente_telefone || null,
+        paciente_email: data.paciente_email || null,
+        procedimento_id: data.procedimento_id || null,
+        tipo_demanda: data.tipo_demanda,
+        prioridade: data.prioridade || 'normal',
+        canal_origem: data.canal_origem || 'whatsapp',
+        motivo_abertura: data.motivo_abertura || null,
+        branch: data.branch || null,
+        // Campos específicos de Distrato - converter strings vazias para null
+        distrato_valor_pago: data.distrato_valor_pago || null,
+        distrato_data_pagamento_sinal: data.distrato_data_pagamento_sinal && data.distrato_data_pagamento_sinal.trim() !== '' 
+          ? data.distrato_data_pagamento_sinal 
+          : null,
+        distrato_forma_pagamento: data.distrato_forma_pagamento || null,
+        distrato_termo_sinal_assinado: data.distrato_termo_sinal_assinado ?? null,
+        distrato_termo_sinal_anexo: data.distrato_termo_sinal_anexo ?? null,
+        distrato_contrato_assinado: data.distrato_contrato_assinado ?? null,
+        distrato_contrato_anexo: data.distrato_contrato_anexo ?? null,
+      };
+
       const { data: chamado, error } = await supabase
         .from('postvenda_chamados')
         .insert({
-          ...data,
-          prioridade: data.prioridade || 'normal',
-          canal_origem: data.canal_origem || 'whatsapp',
+          ...cleanedData,
           status: 'aberto',
           etapa_atual: 'triagem',
           sla_id: slaConfig?.id,
