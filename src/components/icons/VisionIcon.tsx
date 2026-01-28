@@ -31,8 +31,8 @@ export function VisionIcon({ className, ...props }: VisionIconProps) {
       <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
       <path d="M17 21h2a2 2 0 0 0 2-2v-2" />
       
-      {/* Ponto central */}
-      <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+      {/* V central */}
+      <path d="M8 7l4 8 4-8" strokeWidth={2.5} fill="none" />
     </svg>
   );
 }
