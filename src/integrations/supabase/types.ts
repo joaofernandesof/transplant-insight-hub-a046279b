@@ -2547,6 +2547,122 @@ export type Database = {
           },
         ]
       }
+      ipromed_client_journey: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          deliverable_id: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          deliverable_id: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          deliverable_id?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_client_journey_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_client_journey_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_journey_deliverables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_client_risk_scores: {
+        Row: {
+          assessed_by: string | null
+          civel_factors: Json | null
+          civel_score: number | null
+          client_id: string
+          created_at: string
+          criminal_factors: Json | null
+          criminal_score: number | null
+          crm_factors: Json | null
+          crm_score: number | null
+          id: string
+          last_assessed_at: string | null
+          notes: string | null
+          risk_level: string | null
+          total_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          assessed_by?: string | null
+          civel_factors?: Json | null
+          civel_score?: number | null
+          client_id: string
+          created_at?: string
+          criminal_factors?: Json | null
+          criminal_score?: number | null
+          crm_factors?: Json | null
+          crm_score?: number | null
+          id?: string
+          last_assessed_at?: string | null
+          notes?: string | null
+          risk_level?: string | null
+          total_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          assessed_by?: string | null
+          civel_factors?: Json | null
+          civel_score?: number | null
+          client_id?: string
+          created_at?: string
+          criminal_factors?: Json | null
+          criminal_score?: number | null
+          crm_factors?: Json | null
+          crm_score?: number | null
+          id?: string
+          last_assessed_at?: string | null
+          notes?: string | null
+          risk_level?: string | null
+          total_score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_client_risk_scores_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_comments: {
         Row: {
           appointment_id: string | null
@@ -2930,6 +3046,83 @@ export type Database = {
           },
         ]
       }
+      ipromed_generated_documents: {
+        Row: {
+          case_id: string | null
+          client_id: string | null
+          content: string
+          contract_id: string | null
+          created_at: string
+          generated_by: string | null
+          id: string
+          status: string | null
+          storage_path: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          variables_used: Json | null
+        }
+        Insert: {
+          case_id?: string | null
+          client_id?: string | null
+          content: string
+          contract_id?: string | null
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          status?: string | null
+          storage_path?: string | null
+          template_id?: string | null
+          title: string
+          updated_at?: string
+          variables_used?: Json | null
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string | null
+          content?: string
+          contract_id?: string | null
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          status?: string | null
+          storage_path?: string | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+          variables_used?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_generated_documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_generated_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_generated_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_generated_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_goals: {
         Row: {
           created_at: string | null
@@ -3143,6 +3336,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ipromed_journey_deliverables: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          is_required: boolean | null
+          order_index: number
+          phase: string
+          title: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean | null
+          order_index?: number
+          phase: string
+          title: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean | null
+          order_index?: number
+          phase?: string
+          title?: string
+        }
+        Relationships: []
       }
       ipromed_legal_cases: {
         Row: {
