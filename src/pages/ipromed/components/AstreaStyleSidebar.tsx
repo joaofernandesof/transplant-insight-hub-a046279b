@@ -3,8 +3,7 @@
  * Navegação lateral inspirada no Astrea
  */
 
-import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,10 +21,12 @@ import {
   BarChart3,
   Bell,
   HelpCircle,
-  Settings,
+  Home,
+  LogOut,
   Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
 interface NavItem {
   id: string;
@@ -38,6 +39,7 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
+  { id: 'home', label: 'Início', icon: Home, href: '/ipromed' },
   { id: 'workspace', label: 'Área de trabalho', icon: LayoutGrid, href: '/ipromed/legal' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda' },
   { id: 'contacts', label: 'Contatos', icon: Users, href: '/ipromed/clients' },
@@ -56,10 +58,6 @@ const mainNavItems: NavItem[] = [
   { id: 'alerts', label: 'Alertas', icon: Bell, href: '/ipromed/legal?tab=alerts', badge: 5, badgeColor: 'bg-rose-500' },
 ];
 
-const bottomNavItems: NavItem[] = [
-  { id: 'support', label: 'Suporte', icon: HelpCircle, href: '/ipromed/support' },
-];
-
 interface AstreaStyleSidebarProps {
   isCollapsed?: boolean;
   onToggle?: () => void;
@@ -67,24 +65,31 @@ interface AstreaStyleSidebarProps {
 
 export default function AstreaStyleSidebar({ isCollapsed = false, onToggle }: AstreaStyleSidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useUnifiedAuth();
 
   const isActive = (href: string) => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   return (
     <aside className={cn(
-      "h-screen bg-white border-r flex flex-col transition-all duration-300",
+      "h-screen bg-card border-r flex flex-col transition-all duration-300",
       isCollapsed ? "w-16" : "w-60"
     )}>
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#0066CC] rounded-lg flex items-center justify-center">
-            <Scale className="h-5 w-5 text-white" />
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <Scale className="h-5 w-5 text-primary-foreground" />
           </div>
           {!isCollapsed && (
-            <span className="font-bold text-lg text-[#0066CC]">IPROMED</span>
+            <span className="font-bold text-lg text-primary">IPROMED</span>
           )}
         </div>
       </div>
@@ -103,13 +108,13 @@ export default function AstreaStyleSidebar({ isCollapsed = false, onToggle }: As
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group",
                   active
-                    ? "bg-[#0066CC]/10 text-[#0066CC]"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <Icon className={cn(
                   "h-5 w-5 flex-shrink-0",
-                  active ? "text-[#0066CC]" : "text-gray-500"
+                  active ? "text-primary" : "text-muted-foreground"
                 )} />
                 
                 {!isCollapsed && (
@@ -117,7 +122,7 @@ export default function AstreaStyleSidebar({ isCollapsed = false, onToggle }: As
                     <span className="flex-1">{item.label}</span>
                     
                     {item.isNew && (
-                      <Badge className="bg-purple-100 text-purple-700 text-[10px] px-1.5">
+                      <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
                         <Sparkles className="h-3 w-3 mr-0.5" />
                         IA
                       </Badge>
@@ -137,23 +142,28 @@ export default function AstreaStyleSidebar({ isCollapsed = false, onToggle }: As
       </ScrollArea>
 
       {/* Bottom Navigation */}
-      <div className="border-t py-4 px-2">
-        {bottomNavItems.map(item => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.id}
-              to={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                "text-gray-700 hover:bg-gray-100"
-              )}
-            >
-              <Icon className="h-5 w-5 text-gray-500 flex-shrink-0" />
-              {!isCollapsed && <span>{item.label}</span>}
-            </NavLink>
-          );
-        })}
+      <div className="border-t py-4 px-2 space-y-1">
+        <NavLink
+          to="/ipromed/support"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+            "text-muted-foreground hover:bg-muted"
+          )}
+        >
+          <HelpCircle className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && <span>Suporte</span>}
+        </NavLink>
+        
+        <Separator className="my-2" />
+        
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 px-3 py-2.5 h-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && <span>Sair</span>}
+        </Button>
       </div>
     </aside>
   );
