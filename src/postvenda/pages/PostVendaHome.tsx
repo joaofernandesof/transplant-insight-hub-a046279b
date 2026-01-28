@@ -8,12 +8,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Ticket, Clock, AlertCircle, CheckCircle2, Star, 
   ArrowRight, Plus, Gavel, HeadphonesIcon,
-  Settings, BarChart3
+  Settings, BarChart3, Target, Flame, Calendar
 } from 'lucide-react';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { usePostVenda } from '../hooks/usePostVenda';
 import { ETAPA_LABELS } from '../lib/permissions';
 import { ChamadosTabContent } from '../components/ChamadosTabContent';
+import {
+  DashboardKpiCard,
+  DashboardProgressCard,
+  DashboardPriorityList,
+  DashboardDeadlineList,
+} from '@/neohub/components/dashboard';
 
 type NpsRow = { nota: number | null; respondido_em: string | null; enviado_em: string | null };
 
@@ -75,8 +81,39 @@ export default function PostVendaHome() {
     return { nps, avg, answered: scores.length };
   }, [npsRows]);
 
-  // Recent tickets for quick access
+  // SLA estourados como lista de prazos - baseado nos chamados com prioridade urgente ou atrasados
+  const slaEstouradosList = useMemo(() => {
+    // Filtrar chamados que parecem estar atrasados (usando uma lógica simplificada)
+    const atrasados = chamados.filter(c => 
+      c.prioridade === 'urgente' || c.prioridade === 'alta'
+    ).slice(0, 5);
+    
+    return atrasados.map(c => ({
+      id: c.id,
+      title: `${c.paciente_nome}: ${c.tipo_demanda}`,
+      status: 'overdue' as const,
+      onClick: () => navigate(`/neoteam/postvenda/chamados/${c.id}`),
+    }));
+  }, [chamados, navigate]);
+
+  // Prioridades como contadores
+  const prioridadesCounts = useMemo(() => {
+    const counts = { urgent: 0, high: 0, normal: 0, low: 0 };
+    chamados.forEach(c => {
+      if (c.prioridade === 'urgente') counts.urgent++;
+      else if (c.prioridade === 'alta') counts.high++;
+      else if (c.prioridade === 'normal') counts.normal++;
+      else if (c.prioridade === 'baixa') counts.low++;
+    });
+    return counts;
+  }, [chamados]);
+
+  // Chamados recentes
   const recentChamados = chamados.slice(0, 5);
+
+  // Calculo de taxa de resolução
+  const resolvidos = chamados.filter(c => c.status === 'resolvido' || c.status === 'fechado').length;
+  const taxaResolucao = chamados.length > 0 ? Math.round((resolvidos / chamados.length) * 100) : 0;
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -119,124 +156,83 @@ export default function PostVendaHome() {
 
         {/* Dashboard Tab */}
         <TabsContent value="dashboard" className="space-y-6 mt-0">
-          {/* KPIs */}
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-            <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-primary" onClick={() => handleTabChange('chamados')}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Ticket className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.total}</p>
-                    <p className="text-xs text-muted-foreground">Chamados</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-orange-500" onClick={handleFilterDistrato}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-orange-500/10">
-                    <Gavel className="h-5 w-5 text-orange-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{distratoCount}</p>
-                    <p className="text-xs text-muted-foreground">Distratos</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleTabChange('chamados')}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.slaOk}</p>
-                    <p className="text-xs text-muted-foreground">SLA OK</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleTabChange('chamados')}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-amber-500/10">
-                    <Clock className="h-5 w-5 text-amber-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.slaWarning}</p>
-                    <p className="text-xs text-muted-foreground">SLA Atenção</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleTabChange('chamados')}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-destructive/10">
-                    <AlertCircle className="h-5 w-5 text-destructive" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.slaEstourados}</p>
-                    <p className="text-xs text-muted-foreground">SLA Estourado</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/neoteam/postvenda/nps')}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-yellow-500/10">
-                    <Star className="h-5 w-5 text-yellow-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{isLoadingNps ? '—' : npsKpis.avg}</p>
-                    <p className="text-xs text-muted-foreground">NPS Médio</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <DashboardKpiCard
+              icon={Ticket}
+              value={stats.total}
+              label="Total de Chamados"
+              badge={String(distratoCount)}
+              onClick={() => handleTabChange('chamados')}
+            />
+            <DashboardKpiCard
+              icon={Gavel}
+              value={distratoCount}
+              label="Distratos"
+              badge="Atenção"
+              badgeVariant={distratoCount > 0 ? 'warning' : 'default'}
+              variant={distratoCount > 0 ? 'info' : 'default'}
+              onClick={handleFilterDistrato}
+            />
+            <DashboardKpiCard
+              icon={AlertCircle}
+              value={stats.slaEstourados}
+              label="SLA Estourado"
+              badge="Crítico"
+              badgeVariant="warning"
+              variant={stats.slaEstourados > 0 ? 'warning' : 'default'}
+              onClick={() => handleTabChange('chamados')}
+            />
+            <DashboardKpiCard
+              icon={Star}
+              value={isLoadingNps ? '—' : npsKpis.avg}
+              label="NPS Médio"
+              badge={`${npsKpis.answered} respostas`}
+              badgeVariant="success"
+              variant="success"
+              onClick={() => navigate('/neoteam/postvenda/nps')}
+            />
           </div>
 
-          {/* Chamados por Etapa */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg">Chamados por Etapa</CardTitle>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => handleTabChange('chamados')}
-              >
-                Ver todos
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-5 gap-4">
-                {etapas.map(etapa => (
-                  <div 
-                    key={etapa} 
-                    className="text-center p-4 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
-                    onClick={() => handleTabChange('chamados')}
-                  >
-                    <p className="text-3xl font-bold">{stats.byEtapa[etapa] || 0}</p>
-                    <p className="text-sm text-muted-foreground">{ETAPA_LABELS[etapa]}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Progress and Priority Row */}
+          <div className="grid lg:grid-cols-2 gap-4">
+            <DashboardProgressCard
+              icon={Target}
+              title="Taxa de Resolução"
+              subtitle="Chamados resolvidos vs total"
+              current={resolvidos}
+              total={chamados.length}
+              metrics={[
+                { value: stats.byEtapa.triagem || 0, label: 'Triagem', color: 'default' },
+                { value: stats.byEtapa.atendimento || 0, label: 'Atendimento', color: 'primary' },
+                { value: stats.byEtapa.resolucao || 0, label: 'Resolução', color: 'warning' },
+                { value: resolvidos, label: 'Resolvido', color: 'success' },
+              ]}
+            />
+            <DashboardPriorityList
+              icon={Flame}
+              title="Prioridades Pendentes"
+              subtitle="Distribuição por nível de urgência"
+              items={[
+                { level: 'urgent', count: prioridadesCounts.urgent },
+                { level: 'high', count: prioridadesCounts.high },
+                { level: 'normal', count: prioridadesCounts.normal },
+                { level: 'low', count: prioridadesCounts.low },
+              ]}
+            />
+          </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Chamados Recentes */}
+          {/* SLA e Chamados Recentes */}
+          <div className="grid lg:grid-cols-2 gap-4">
+            <DashboardDeadlineList
+              icon={Clock}
+              title="SLA Estourados"
+              subtitle="Chamados que ultrapassaram o prazo"
+              items={slaEstouradosList}
+              emptyMessage="Nenhum SLA estourado 🎉"
+            />
+
+            {/* Chamados Recentes Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -263,7 +259,7 @@ export default function PostVendaHome() {
                     {recentChamados.map((chamado) => (
                       <div 
                         key={chamado.id}
-                        className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                        className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
                         onClick={() => navigate(`/neoteam/postvenda/chamados/${chamado.id}`)}
                       >
                         <div className="flex items-center gap-3 min-w-0">
@@ -277,7 +273,7 @@ export default function PostVendaHome() {
                         </div>
                         <div className="flex items-center gap-2">
                           {chamado.tipo_demanda === 'distrato' && (
-                            <Badge variant="outline" className="text-xs border-orange-500 text-orange-600">
+                            <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">
                               <Gavel className="h-3 w-3 mr-1" />
                               Distrato
                             </Badge>
@@ -292,47 +288,42 @@ export default function PostVendaHome() {
                 )}
               </CardContent>
             </Card>
+          </div>
 
-            {/* Atalhos Rápidos */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Atalhos Rápidos</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  className="w-full justify-start gap-2" 
-                  variant="outline"
-                  onClick={() => handleTabChange('chamados')}
-                >
-                  <Plus className="h-4 w-4" />
-                  Novo Chamado
-                </Button>
-                <Button 
-                  className="w-full justify-start gap-2 border-orange-200 hover:bg-orange-50 hover:text-orange-700" 
-                  variant="outline"
-                  onClick={handleFilterDistrato}
-                >
-                  <Gavel className="h-4 w-4 text-orange-500" />
-                  Ver Distratos ({distratoCount})
-                </Button>
-                <Button 
-                  className="w-full justify-start gap-2" 
-                  variant="outline"
-                  onClick={() => navigate('/neoteam/postvenda/sla')}
-                >
-                  <Settings className="h-4 w-4" />
-                  Configurar SLA
-                </Button>
-                <Button 
-                  className="w-full justify-start gap-2" 
-                  variant="outline"
-                  onClick={() => navigate('/neoteam/postvenda/nps')}
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  Relatórios NPS
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Atalhos Rápidos */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Button 
+              className="h-auto py-4 flex flex-col items-center gap-2" 
+              variant="outline"
+              onClick={() => handleTabChange('chamados')}
+            >
+              <Plus className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">Novo Chamado</span>
+            </Button>
+            <Button 
+              className="h-auto py-4 flex flex-col items-center gap-2" 
+              variant="outline"
+              onClick={handleFilterDistrato}
+            >
+              <Gavel className="h-5 w-5 text-amber-500" />
+              <span className="text-sm font-medium">Ver Distratos</span>
+            </Button>
+            <Button 
+              className="h-auto py-4 flex flex-col items-center gap-2" 
+              variant="outline"
+              onClick={() => navigate('/neoteam/postvenda/sla')}
+            >
+              <Settings className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">Configurar SLA</span>
+            </Button>
+            <Button 
+              className="h-auto py-4 flex flex-col items-center gap-2" 
+              variant="outline"
+              onClick={() => navigate('/neoteam/postvenda/nps')}
+            >
+              <BarChart3 className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">Relatórios NPS</span>
+            </Button>
           </div>
         </TabsContent>
 

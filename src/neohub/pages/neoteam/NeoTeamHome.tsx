@@ -6,43 +6,95 @@ import {
   Users, Calendar, ArrowRight, ListTodo,
   AlertCircle, Stethoscope, FileText, 
   HeadphonesIcon, ClipboardCheck, BarChart3, 
-  FolderOpen, Scissors, GraduationCap
+  FolderOpen, Scissors, GraduationCap, Clock, 
+  CheckCircle2, Target, Flame
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNeoTeamTasks } from '@/neohub/hooks/useNeoTeamTasks';
 import { NeoTeamBreadcrumb } from '@/neohub/components/NeoTeamBreadcrumb';
-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import {
+  DashboardKpiCard,
+  DashboardProgressCard,
+  DashboardPriorityList,
+  DashboardDeadlineList,
+  DashboardPerformanceCard,
+} from '@/neohub/components/dashboard';
 
 export default function NeoTeamHome() {
   const { user } = useUnifiedAuth();
   const navigate = useNavigate();
   const today = new Date();
-
   const { tasks } = useNeoTeamTasks();
 
   // Task stats
-  const pendingTasks = tasks.filter(t => t.status !== 'done').length;
+  const todoTasks = tasks.filter(t => t.status === 'todo').length;
+  const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length;
+  const doneTasks = tasks.filter(t => t.status === 'done').length;
+  const cancelledTasks = tasks.filter(t => t.status === 'cancelled').length;
+  const totalTasks = tasks.length;
+  
+  const pendingTasks = tasks.filter(t => t.status !== 'done' && t.status !== 'cancelled').length;
   const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'done').length;
   const highPriorityTasks = tasks.filter(t => t.priority === 'high' && t.status !== 'done').length;
+  const normalTasks = tasks.filter(t => (t.priority === 'medium' || t.priority === undefined) && t.status !== 'done').length;
+  const lowTasks = tasks.filter(t => t.priority === 'low' && t.status !== 'done').length;
+  
+  const dueTodayTasks = tasks.filter(t => {
+    if (t.status === 'done' || !t.due_date) return false;
+    const dueDate = new Date(t.due_date);
+    const todayDate = new Date();
+    return dueDate.toDateString() === todayDate.toDateString();
+  }).length;
+
   const overdueTasks = tasks.filter(t => {
     if (t.status === 'done' || !t.due_date) return false;
     return new Date(t.due_date) < new Date();
   }).length;
 
-  // Get urgent/high priority tasks for display
-  const priorityTasksList = tasks
-    .filter(t => ['urgent', 'high'].includes(t.priority) && t.status !== 'done')
-    .sort((a, b) => {
-      // Urgentes primeiro, depois por data
-      if (a.priority === 'urgent' && b.priority !== 'urgent') return -1;
-      if (b.priority === 'urgent' && a.priority !== 'urgent') return 1;
-      if (a.due_date && b.due_date) return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-      return 0;
+  // Get overdue tasks for deadline list
+  const overdueTasksList = tasks
+    .filter(t => {
+      if (t.status === 'done' || !t.due_date) return false;
+      return new Date(t.due_date) < new Date();
     })
-    .slice(0, 5);
+    .slice(0, 5)
+    .map(t => ({
+      id: t.id,
+      title: t.title,
+      status: 'overdue' as const,
+      dueDate: t.due_date,
+      onClick: () => navigate('/neoteam/tasks'),
+    }));
+
+  // Performance by assignee
+  const performanceByAssignee = React.useMemo(() => {
+    const assigneeMap: Record<string, { done: number; total: number; overdue: number }> = {};
+    
+    tasks.forEach(t => {
+      const assignee = t.assignee_name || 'Não atribuído';
+      if (!assigneeMap[assignee]) {
+        assigneeMap[assignee] = { done: 0, total: 0, overdue: 0 };
+      }
+      assigneeMap[assignee].total++;
+      if (t.status === 'done') {
+        assigneeMap[assignee].done++;
+      }
+      if (t.status !== 'done' && t.due_date && new Date(t.due_date) < new Date()) {
+        assigneeMap[assignee].overdue++;
+      }
+    });
+
+    return Object.entries(assigneeMap).map(([name, stats]) => ({
+      id: name,
+      name,
+      current: stats.done,
+      total: stats.total,
+      overdueCount: stats.overdue,
+    }));
+  }, [tasks]);
 
   // Main modules for quick access
   const mainModules = [
@@ -98,31 +150,13 @@ export default function NeoTeamHome() {
 
   // Secondary modules  
   const secondaryModules = [
-    { 
-      icon: ListTodo, 
-      label: 'Tarefas', 
-      path: '/neoteam/tasks', 
-      description: 'Gestão de tarefas'
-    },
-    { 
-      icon: FolderOpen, 
-      label: 'Documentos', 
-      path: '/neoteam/documents', 
-      description: 'Arquivos e contratos'
-    },
-    { 
-      icon: GraduationCap, 
-      label: 'Educação', 
-      path: '/neoteam/education', 
-      description: 'Cursos e eventos'
-    },
-    { 
-      icon: BarChart3, 
-      label: 'Relatórios', 
-      path: '/neoteam/reports', 
-      description: 'Analytics'
-    },
+    { icon: ListTodo, label: 'Tarefas', path: '/neoteam/tasks' },
+    { icon: FolderOpen, label: 'Documentos', path: '/neoteam/documents' },
+    { icon: GraduationCap, label: 'Educação', path: '/neoteam/education' },
+    { icon: BarChart3, label: 'Relatórios', path: '/neoteam/reports' },
   ];
+
+  const completionPercent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -156,67 +190,86 @@ export default function NeoTeamHome() {
         </div>
       </div>
 
-      {/* Task Stats Cards */}
+      {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card 
-          className="hover:shadow-md transition-shadow cursor-pointer"
+        <DashboardKpiCard
+          icon={ListTodo}
+          value={todoTasks}
+          label="Tarefas a fazer"
+          badge={String(totalTasks)}
           onClick={() => navigate('/neoteam/tasks')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-blue-500 w-10 h-10 rounded-lg flex items-center justify-center">
-                <ListTodo className="h-5 w-5 text-white" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{pendingTasks}</p>
-            <p className="text-sm text-muted-foreground">Tarefas Pendentes</p>
-          </CardContent>
-        </Card>
-        
-        <Card 
-          className="hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => navigate('/neoteam/tasks?priority=urgent')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-destructive w-10 h-10 rounded-lg flex items-center justify-center">
-                <AlertCircle className="h-5 w-5 text-white" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{urgentTasks}</p>
-            <p className="text-sm text-muted-foreground">Urgentes</p>
-          </CardContent>
-        </Card>
-        
-        <Card 
-          className="hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => navigate('/neoteam/tasks?priority=high')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="bg-orange-500 w-10 h-10 rounded-lg flex items-center justify-center">
-                <AlertCircle className="h-5 w-5 text-white" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{highPriorityTasks}</p>
-            <p className="text-sm text-muted-foreground">Alta Prioridade</p>
-          </CardContent>
-        </Card>
-        
-        <Card 
-          className={`hover:shadow-md transition-shadow cursor-pointer ${overdueTasks > 0 ? 'border-destructive' : ''}`}
+        />
+        <DashboardKpiCard
+          icon={Clock}
+          value={dueTodayTasks}
+          label="Vencem hoje"
+          badge={String(inProgressTasks)}
+          badgeVariant="info"
+          onClick={() => navigate('/neoteam/tasks?due=today')}
+        />
+        <DashboardKpiCard
+          icon={AlertCircle}
+          value={overdueTasks}
+          label="Em atraso"
+          badge="Atenção"
+          badgeVariant="warning"
+          variant={overdueTasks > 0 ? 'warning' : 'default'}
           onClick={() => navigate('/neoteam/tasks?overdue=true')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`${overdueTasks > 0 ? 'bg-destructive' : 'bg-muted'} w-10 h-10 rounded-lg flex items-center justify-center`}>
-                <AlertCircle className={`h-5 w-5 ${overdueTasks > 0 ? 'text-white' : 'text-muted-foreground'}`} />
-              </div>
-            </div>
-            <p className="text-2xl font-bold">{overdueTasks}</p>
-            <p className="text-sm text-muted-foreground">Atrasadas</p>
-          </CardContent>
-        </Card>
+        />
+        <DashboardKpiCard
+          icon={CheckCircle2}
+          value={doneTasks}
+          label="Concluídas"
+          badge={`${completionPercent}%`}
+          badgeVariant="success"
+          variant="success"
+          onClick={() => navigate('/neoteam/tasks?status=done')}
+        />
+      </div>
+
+      {/* Progress and Priority Row */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        <DashboardProgressCard
+          icon={Target}
+          title="Progresso Geral"
+          subtitle="Taxa de conclusão das tarefas"
+          current={doneTasks}
+          total={totalTasks}
+          metrics={[
+            { value: todoTasks, label: 'A Fazer', color: 'default' },
+            { value: inProgressTasks, label: 'Em Andamento', color: 'primary' },
+            { value: doneTasks, label: 'Concluído', color: 'success' },
+            { value: cancelledTasks, label: 'Cancelados', color: 'default' },
+          ]}
+        />
+        <DashboardPriorityList
+          icon={Flame}
+          title="Prioridades Pendentes"
+          subtitle="Distribuição por nível de urgência"
+          items={[
+            { level: 'urgent', count: urgentTasks },
+            { level: 'high', count: highPriorityTasks },
+            { level: 'normal', count: normalTasks },
+            { level: 'low', count: lowTasks },
+          ]}
+        />
+      </div>
+
+      {/* Deadlines and Performance Row */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        <DashboardDeadlineList
+          icon={Calendar}
+          title="Próximos Prazos"
+          subtitle="Tarefas com vencimento próximo"
+          items={overdueTasksList}
+          emptyMessage="Nenhuma tarefa atrasada 🎉"
+        />
+        <DashboardPerformanceCard
+          icon={BarChart3}
+          title="Performance da Equipe"
+          subtitle="Desempenho por colaborador"
+          items={performanceByAssignee}
+        />
       </div>
 
       {/* Main Modules Grid */}
@@ -258,67 +311,6 @@ export default function NeoTeamHome() {
           </Button>
         ))}
       </div>
-
-      {/* Priority Tasks */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              Tarefas Prioritárias
-            </CardTitle>
-            <CardDescription>
-              {urgentTasks + highPriorityTasks} tarefas de alta prioridade
-            </CardDescription>
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/neoteam/tasks')}>
-            Ver todas
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {priorityTasksList.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <ClipboardCheck className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>Nenhuma tarefa prioritária pendente</p>
-            </div>
-          ) : (
-            priorityTasksList.map((task) => {
-              const isOverdue = task.due_date && new Date(task.due_date) < new Date();
-              return (
-                <div 
-                  key={task.id} 
-                  className={`flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer ${isOverdue ? 'border-l-4 border-destructive' : ''}`}
-                  onClick={() => navigate('/neoteam/tasks')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      task.priority === 'urgent' ? 'bg-destructive/20' : 'bg-orange-100 dark:bg-orange-900/30'
-                    }`}>
-                      <AlertCircle className={`h-5 w-5 ${
-                        task.priority === 'urgent' ? 'text-destructive' : 'text-orange-600'
-                      }`} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{task.title}</p>
-                      {task.due_date && (
-                        <p className={`text-xs ${isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-                          {isOverdue ? '⚠️ Atrasado: ' : 'Prazo: '}
-                          {format(new Date(task.due_date), 'dd/MM')}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <Badge variant={task.priority === 'urgent' ? 'destructive' : 'secondary'}>
-                    {task.priority === 'urgent' ? 'Urgente' : 'Alta'}
-                  </Badge>
-                </div>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
-
     </div>
   );
 }
