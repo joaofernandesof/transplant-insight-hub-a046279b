@@ -152,18 +152,25 @@ export function ScanCreditsDisplay({ userId, onUpgradeClick, refreshTrigger }: S
         </div>
       </div>
 
-      {credits.plan === 'free' && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onUpgradeClick}
-          className="gap-1 text-primary border-primary/30 hover:bg-primary/10"
-        >
-          <Sparkles className="w-3 h-3" />
-          Upgrade
-          <ArrowRight className="w-3 h-3" />
-        </Button>
-      )}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onUpgradeClick}
+        className="gap-1 text-primary border-primary/30 hover:bg-primary/10"
+      >
+        {credits.plan === 'free' ? (
+          <>
+            <Sparkles className="w-3 h-3" />
+            Upgrade
+            <ArrowRight className="w-3 h-3" />
+          </>
+        ) : (
+          <>
+            <Crown className="w-3 h-3" />
+            Gerenciar Plano
+          </>
+        )}
+      </Button>
     </div>
   );
 }
