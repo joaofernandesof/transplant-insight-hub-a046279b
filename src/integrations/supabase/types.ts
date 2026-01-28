@@ -4906,6 +4906,153 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_agenda_items: {
+        Row: {
+          agenda_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          estimated_minutes: number | null
+          guidance: string | null
+          id: string
+          is_completed: boolean | null
+          notes: string | null
+          order_index: number
+          talking_points: string[] | null
+          template_id: string | null
+          title: string
+        }
+        Insert: {
+          agenda_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_minutes?: number | null
+          guidance?: string | null
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          order_index: number
+          talking_points?: string[] | null
+          template_id?: string | null
+          title: string
+        }
+        Update: {
+          agenda_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_minutes?: number | null
+          guidance?: string | null
+          id?: string
+          is_completed?: boolean | null
+          notes?: string | null
+          order_index?: number
+          talking_points?: string[] | null
+          template_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_agenda_items_agenda_id_fkey"
+            columns: ["agenda_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_agendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_agenda_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_agenda_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_agenda_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estimated_minutes: number | null
+          guidance: string | null
+          id: string
+          order_index: number
+          required_before_next: boolean | null
+          talking_points: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_minutes?: number | null
+          guidance?: string | null
+          id?: string
+          order_index: number
+          required_before_next?: boolean | null
+          talking_points?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_minutes?: number | null
+          guidance?: string | null
+          id?: string
+          order_index?: number
+          required_before_next?: boolean | null
+          talking_points?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meeting_agendas: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          meeting_date: string | null
+          meeting_time: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          meeting_date?: string | null
+          meeting_time?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          meeting_date?: string | null
+          meeting_time?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metric_alerts: {
         Row: {
           comparison_operator: string

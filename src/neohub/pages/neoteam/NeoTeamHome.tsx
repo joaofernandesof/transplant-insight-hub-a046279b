@@ -22,6 +22,7 @@ import {
   DashboardDeadlineList,
   DashboardPerformanceCard,
 } from '@/neohub/components/dashboard';
+import { MeetingAgendasList } from '@/components/meetings';
 
 export default function NeoTeamHome() {
   const { user } = useUnifiedAuth();
@@ -271,6 +272,9 @@ export default function NeoTeamHome() {
           items={performanceByAssignee}
         />
       </div>
+
+      {/* Meeting Agendas */}
+      <MeetingAgendasList />
 
       {/* Main Modules Grid */}
       <div>
