@@ -4,9 +4,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Gavel } from 'lucide-react';
+import { Loader2, Plus, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Gavel, ExternalLink } from 'lucide-react';
 import { NovoChamadoDialog } from './NovoChamadoDialog';
-import { Chamado, usePostVenda } from '../hooks/usePostVenda';
+import { Chamado, usePostVenda, getSlaStatus } from '../hooks/usePostVenda';
 import { ETAPA_LABELS, PRIORIDADE_LABELS, STATUS_LABELS, TIPO_DEMANDA_OPTIONS } from '../lib/permissions';
 import {
   Select,
@@ -25,10 +25,45 @@ import {
 } from '@/components/ui/table';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface ChamadosTabContentProps {
   initialTipoFilter?: string;
 }
+
+// Badge color configurations
+const PRIORIDADE_COLORS: Record<string, string> = {
+  urgente: 'bg-destructive text-destructive-foreground',
+  alta: 'bg-orange-500 text-white',
+  normal: 'bg-blue-500 text-white',
+  baixa: 'bg-muted text-muted-foreground',
+};
+
+const ETAPA_COLORS: Record<string, string> = {
+  triagem: 'bg-slate-600 text-white',
+  atendimento: 'bg-blue-600 text-white',
+  resolucao: 'bg-purple-600 text-white',
+  validacao_paciente: 'bg-amber-600 text-white',
+  nps: 'bg-emerald-600 text-white',
+  encerrado: 'bg-gray-400 text-white',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  aberto: 'bg-blue-100 text-blue-800 border-blue-200',
+  em_andamento: 'bg-amber-100 text-amber-800 border-amber-200',
+  aguardando_paciente: 'bg-purple-100 text-purple-800 border-purple-200',
+  resolvido: 'bg-green-100 text-green-800 border-green-200',
+  fechado: 'bg-gray-100 text-gray-800 border-gray-200',
+  reaberto: 'bg-orange-100 text-orange-800 border-orange-200',
+  cancelado: 'bg-red-100 text-red-800 border-red-200',
+};
+
+const SLA_COLORS = {
+  ok: 'text-green-600',
+  warning: 'text-amber-600 font-medium',
+  danger: 'text-destructive font-bold',
+  none: 'text-muted-foreground',
+};
 
 export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProps) {
   const { chamados, isLoading } = usePostVenda();
@@ -44,7 +79,7 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Sorting
-  type SortField = 'created_at' | 'paciente_nome' | 'tipo_demanda' | 'prioridade' | 'etapa_atual' | 'status' | 'responsavel_nome' | 'sla';
+  type SortField = 'created_at' | 'paciente_nome' | 'paciente_telefone' | 'tipo_demanda' | 'prioridade' | 'etapa_atual' | 'status' | 'sla';
   type SortDir = 'asc' | 'desc';
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -68,7 +103,8 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
       const matchesSearch = !search || 
         c.paciente_nome.toLowerCase().includes(search.toLowerCase()) ||
         c.tipo_demanda.toLowerCase().includes(search.toLowerCase()) ||
-        c.numero_chamado?.toString().includes(search);
+        c.numero_chamado?.toString().includes(search) ||
+        c.paciente_telefone?.includes(search);
 
       const matchesTipo = tipoDemandaFilter === 'all' || c.tipo_demanda === tipoDemandaFilter;
       const matchesPrioridade = prioridadeFilter === 'all' || c.prioridade === prioridadeFilter;
@@ -94,6 +130,9 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
         case 'paciente_nome':
           cmp = (a.paciente_nome || '').localeCompare(b.paciente_nome || '');
           break;
+        case 'paciente_telefone':
+          cmp = (a.paciente_telefone || '').localeCompare(b.paciente_telefone || '');
+          break;
         case 'tipo_demanda':
           cmp = (a.tipo_demanda || '').localeCompare(b.tipo_demanda || '');
           break;
@@ -107,9 +146,6 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
           break;
         case 'status':
           cmp = (a.status || '').localeCompare(b.status || '');
-          break;
-        case 'responsavel_nome':
-          cmp = (a.responsavel_nome || '').localeCompare(b.responsavel_nome || '');
           break;
         case 'sla':
           cmp = getSlaValue(a) - getSlaValue(b);
@@ -157,6 +193,23 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
   // Header dinâmico baseado no filtro
   const isDistrato = tipoDemandaFilter === 'distrato';
 
+  // Render SLA with color
+  const renderSla = (chamado: Chamado) => {
+    if (!chamado.sla_prazo_fim) {
+      return <span className={SLA_COLORS.none}>Sem SLA</span>;
+    }
+    
+    const slaStatus = getSlaStatus(chamado);
+    const prazo = new Date(chamado.sla_prazo_fim);
+    const isExpired = prazo < new Date();
+    
+    return (
+      <span className={SLA_COLORS[slaStatus]}>
+        {isExpired ? 'Estourado' : formatDistanceToNow(prazo, { locale: ptBR, addSuffix: true })}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -165,7 +218,7 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
             {isDistrato ? 'Chamados de Distrato' : 'Lista de Chamados'}
           </h2>
           {isDistrato && (
-            <Badge variant="outline" className="border-orange-500 text-orange-600 gap-1">
+            <Badge variant="outline" className="border-destructive text-destructive gap-1">
               <Gavel className="h-3 w-3" />
               Filtrado
             </Badge>
@@ -184,7 +237,7 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por paciente, tipo ou número..."
+                placeholder="Buscar por paciente, tipo, número ou telefone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -297,25 +350,28 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('created_at')}>
+                  <TableHead className="whitespace-nowrap cursor-pointer w-[100px]" onClick={() => toggleSort('created_at')}>
                     <div className="flex items-center gap-2">Criado <SortIcon field="created_at" /></div>
                   </TableHead>
                   <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('paciente_nome')}>
                     <div className="flex items-center gap-2">Paciente <SortIcon field="paciente_nome" /></div>
                   </TableHead>
+                  <TableHead className="whitespace-nowrap cursor-pointer w-[130px]" onClick={() => toggleSort('paciente_telefone')}>
+                    <div className="flex items-center gap-2">Telefone <SortIcon field="paciente_telefone" /></div>
+                  </TableHead>
                   <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('tipo_demanda')}>
                     <div className="flex items-center gap-2">Tipo <SortIcon field="tipo_demanda" /></div>
                   </TableHead>
-                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('prioridade')}>
+                  <TableHead className="whitespace-nowrap cursor-pointer w-[100px]" onClick={() => toggleSort('prioridade')}>
                     <div className="flex items-center gap-2">Prioridade <SortIcon field="prioridade" /></div>
                   </TableHead>
-                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('etapa_atual')}>
+                  <TableHead className="whitespace-nowrap cursor-pointer w-[140px]" onClick={() => toggleSort('etapa_atual')}>
                     <div className="flex items-center gap-2">Etapa <SortIcon field="etapa_atual" /></div>
                   </TableHead>
-                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('status')}>
+                  <TableHead className="whitespace-nowrap cursor-pointer w-[140px]" onClick={() => toggleSort('status')}>
                     <div className="flex items-center gap-2">Status <SortIcon field="status" /></div>
                   </TableHead>
-                  <TableHead className="whitespace-nowrap cursor-pointer" onClick={() => toggleSort('sla')}>
+                  <TableHead className="whitespace-nowrap cursor-pointer w-[120px]" onClick={() => toggleSort('sla')}>
                     <div className="flex items-center gap-2">SLA <SortIcon field="sla" /></div>
                   </TableHead>
                 </TableRow>
@@ -323,7 +379,7 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
               <TableBody>
                 {paginatedChamados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                       Nenhum chamado encontrado.
                     </TableCell>
                   </TableRow>
@@ -334,41 +390,76 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => navigate(`/neoteam/postvenda/chamados/${c.id}`)}
                     >
+                      {/* Criado */}
                       <TableCell className="whitespace-nowrap">
                         <div className="text-sm">
                           {formatDistanceToNow(new Date(c.created_at), { locale: ptBR, addSuffix: true })}
                         </div>
                         <div className="text-xs text-muted-foreground font-mono">#{String(c.numero_chamado ?? '').padStart(5, '0')}</div>
                       </TableCell>
+                      
+                      {/* Paciente - Nome com link para perfil */}
                       <TableCell className="whitespace-nowrap">
-                        <div className="font-medium">{c.paciente_nome}</div>
-                        <div className="text-xs text-muted-foreground">{c.paciente_telefone || ''}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{c.paciente_nome}</span>
+                          {c.paciente_id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 opacity-50 hover:opacity-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/neoteam/patients/${c.paciente_id}`);
+                              }}
+                              title="Ver perfil do paciente"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
+                      
+                      {/* Telefone */}
+                      <TableCell className="whitespace-nowrap">
+                        <span className="text-muted-foreground text-sm font-mono">
+                          {c.paciente_telefone || '-'}
+                        </span>
+                      </TableCell>
+                      
+                      {/* Tipo */}
                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {c.tipo_demanda === 'distrato' && (
-                            <Gavel className="h-4 w-4 text-orange-500" />
+                            <Gavel className="h-4 w-4 text-destructive" />
                           )}
                           <span>{TIPO_DEMANDA_OPTIONS.find(o => o.value === c.tipo_demanda)?.label || c.tipo_demanda}</span>
                         </div>
                       </TableCell>
+                      
+                      {/* Prioridade */}
                       <TableCell className="whitespace-nowrap">
-                        <Badge variant="outline">{PRIORIDADE_LABELS[c.prioridade]}</Badge>
+                        <Badge className={cn("border-0", PRIORIDADE_COLORS[c.prioridade])}>
+                          {PRIORIDADE_LABELS[c.prioridade]}
+                        </Badge>
                       </TableCell>
+                      
+                      {/* Etapa */}
                       <TableCell className="whitespace-nowrap">
-                        <Badge variant="secondary">{ETAPA_LABELS[c.etapa_atual]}</Badge>
+                        <Badge className={cn("border-0", ETAPA_COLORS[c.etapa_atual])}>
+                          {ETAPA_LABELS[c.etapa_atual]}
+                        </Badge>
                       </TableCell>
+                      
+                      {/* Status */}
                       <TableCell className="whitespace-nowrap">
-                        <Badge variant="outline">{STATUS_LABELS[c.status]}</Badge>
+                        <Badge variant="outline" className={cn("border", STATUS_COLORS[c.status])}>
+                          {STATUS_LABELS[c.status]}
+                        </Badge>
                       </TableCell>
+                      
+                      {/* SLA */}
                       <TableCell className="whitespace-nowrap">
-                        {c.sla_prazo_fim ? (
-                          <span className={c.sla_estourado ? 'text-destructive font-medium' : ''}>
-                            {new Date(c.sla_prazo_fim) < new Date() ? 'Estourado' : formatDistanceToNow(new Date(c.sla_prazo_fim), { locale: ptBR, addSuffix: true })}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">Sem SLA</span>
-                        )}
+                        {renderSla(c)}
                       </TableCell>
                     </TableRow>
                   ))
@@ -420,7 +511,11 @@ export function ChamadosTabContent({ initialTipoFilter }: ChamadosTabContentProp
         </div>
       )}
 
-      <NovoChamadoDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <NovoChamadoDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen}
+        initialTipoDemanda={isDistrato ? 'distrato' : undefined}
+      />
     </div>
   );
 }
