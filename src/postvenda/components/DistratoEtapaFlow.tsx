@@ -266,21 +266,27 @@ export function DistratoEtapaFlow({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className={cn(
-                      "flex flex-col items-center flex-1 transition-opacity",
+                      "flex flex-col items-center flex-1 transition-all relative",
                       !isReachable && "opacity-30"
                     )}>
+                      {/* Badge "Atual" para a etapa corrente */}
+                      {isCurrent && (
+                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-20">
+                          <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shadow-lg whitespace-nowrap animate-pulse">
+                            Atual
+                          </span>
+                        </div>
+                      )}
+                      
                       {/* Step Circle */}
                       <div
                         className={cn(
                           "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10",
                           isComplete && "bg-primary border-primary text-primary-foreground shadow-md",
                           isCurrent && cn(
-                            etapa.cor.bg, 
-                            etapa.cor.border, 
-                            etapa.cor.text, 
-                            "ring-2",
-                            etapa.cor.ring,
-                            "shadow-lg scale-110"
+                            "bg-primary/20 border-primary text-primary",
+                            "ring-4 ring-primary/30",
+                            "shadow-xl scale-125"
                           ),
                           isFuture && "bg-muted border-muted-foreground/30 text-muted-foreground"
                         )}
@@ -288,15 +294,18 @@ export function DistratoEtapaFlow({
                         {isComplete ? (
                           <CheckCircle2 className="h-5 w-5" />
                         ) : (
-                          <Icon className="h-4 w-4" />
+                          <Icon className={cn("h-4 w-4", isCurrent && "h-5 w-5")} />
                         )}
                       </div>
 
-                      {/* Label - Only show on larger screens */}
-                      <div className="mt-1.5 text-center max-w-[60px] hidden lg:block">
+                      {/* Label */}
+                      <div className={cn(
+                        "mt-2 text-center max-w-[70px] hidden lg:block",
+                        isCurrent && "bg-primary/10 px-2 py-0.5 rounded-full"
+                      )}>
                         <p className={cn(
-                          "text-[9px] font-medium leading-tight",
-                          isCurrent && cn(etapa.cor.text, "font-bold"),
+                          "text-[10px] font-medium leading-tight",
+                          isCurrent && "text-primary font-bold",
                           isFuture && "text-muted-foreground",
                           isComplete && "text-foreground"
                         )}>
@@ -308,6 +317,9 @@ export function DistratoEtapaFlow({
                   <TooltipContent side="bottom" className="max-w-[200px]">
                     <div className="space-y-1">
                       <p className="font-medium">{etapa.label}</p>
+                      {isCurrent && (
+                        <Badge variant="default" className="text-[10px]">Etapa Atual</Badge>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Responsável: {etapa.responsavel}
                       </p>
