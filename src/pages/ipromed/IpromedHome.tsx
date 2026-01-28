@@ -34,7 +34,7 @@ const quickAccessModules = [
   },
   {
     id: 'clients',
-    title: 'Clientes Jurídicos',
+    title: 'Clientes',
     description: 'Gestão de clientes e casos',
     icon: Building2,
     route: '/ipromed/clients',
