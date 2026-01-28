@@ -375,7 +375,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     link.click();
   };
 
-  // Download composite image (before + after grid) with logos
+  // Download composite image (before + after grid) with professional UI style
   const downloadCompositeImage = useCallback(async () => {
     if (!originalImage || newVersionImages.length === 0) {
       toast.error("Gere pelo menos uma variação antes de baixar");
@@ -385,31 +385,34 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     toast.info("Gerando imagem composta...");
 
     try {
-      // Create canvas for composite image
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas context not available");
 
-      // Layout: Original (left ~40%) + Grid (right ~60%)
+      // Professional layout dimensions
       const gridCols = 4;
       const gridRows = 3;
-      const cellSize = 200; // Each variation cell
-      const originalWidth = Math.floor(cellSize * 2.5); // Original takes more space
-      const originalHeight = cellSize * gridRows; // Match grid height
-      const gridWidth = cellSize * gridCols;
-      const gridHeight = cellSize * gridRows;
-      const gap = 4;
-      const headerHeight = 60; // Space for logos at top
-      const footerHeight = 50; // Space for website at bottom
+      const cellSize = 220;
+      const cellGap = 4;
+      const originalWidth = Math.floor(cellSize * 2.2);
+      const gridWidth = cellSize * gridCols + cellGap * (gridCols - 1);
+      const contentHeight = cellSize * gridRows + cellGap * (gridRows - 1);
+      const headerHeight = 50;
+      const labelHeight = 36;
+      const footerHeight = 56;
+      const middleGap = 8;
       
-      canvas.width = originalWidth + gridWidth + gap;
-      canvas.height = headerHeight + Math.max(originalHeight, gridHeight) + footerHeight;
+      canvas.width = originalWidth + middleGap + gridWidth;
+      canvas.height = headerHeight + contentHeight + labelHeight + footerHeight;
 
-      // Fill background
-      ctx.fillStyle = "#0f0a1f";
+      // Background - dark purple gradient
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      bgGradient.addColorStop(0, "#1a0f2e");
+      bgGradient.addColorStop(1, "#0d0618");
+      ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Load image helper
+      // Helper function to load images
       const loadImage = (src: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
           const img = new Image();
@@ -420,66 +423,81 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
         });
       };
 
-      // Draw header with gradient
+      // Helper to draw rounded rect
+      const roundRect = (x: number, y: number, w: number, h: number, r: number) => {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      };
+
+      // ===== HEADER =====
       const headerGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-      headerGradient.addColorStop(0, "#6b21a8");
-      headerGradient.addColorStop(0.5, "#86198f");
-      headerGradient.addColorStop(1, "#6b21a8");
+      headerGradient.addColorStop(0, "#7c3aed");
+      headerGradient.addColorStop(0.5, "#a855f7");
+      headerGradient.addColorStop(1, "#7c3aed");
       ctx.fillStyle = headerGradient;
       ctx.fillRect(0, 0, canvas.width, headerHeight);
 
-      // Draw NeoHairScan title on left side of header
+      // NeoHairScan title (left)
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 24px Arial";
+      ctx.font = "bold 22px 'Segoe UI', Arial, sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText("NeoHairScan", 20, 38);
-      ctx.font = "12px Arial";
-      ctx.fillStyle = "#d4b4ff";
-      ctx.fillText("Simulação de Transplante Capilar", 20, 52);
+      ctx.fillText("NeoHairScan", 16, 32);
+      ctx.font = "12px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = "#e9d5ff";
+      ctx.fillText("Simulação de Transplante Capilar", 16, 46);
 
-      // Draw NeoFolic branding on right side of header
+      // by NeoFolic (right)
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 18px Arial";
+      ctx.font = "bold 16px 'Segoe UI', Arial, sans-serif";
       ctx.textAlign = "right";
-      ctx.fillText("by NeoFolic", canvas.width - 20, 32);
-      ctx.font = "11px Arial";
-      ctx.fillStyle = "#fcd34d";
-      ctx.fillText("www.neofolic.com.br", canvas.width - 20, 48);
+      ctx.fillText("by NeoFolic", canvas.width - 16, 28);
+      ctx.font = "11px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = "#fde68a";
+      ctx.fillText("www.neofolic.com.br", canvas.width - 16, 44);
 
-      // Draw original image on left (below header)
+      // ===== ORIGINAL IMAGE (left side) =====
       const origImg = await loadImage(originalImage);
       const origAspect = origImg.width / origImg.height;
       let drawWidth = originalWidth;
       let drawHeight = originalWidth / origAspect;
       
-      if (drawHeight > originalHeight) {
-        drawHeight = originalHeight;
-        drawWidth = originalHeight * origAspect;
+      if (drawHeight > contentHeight) {
+        drawHeight = contentHeight;
+        drawWidth = contentHeight * origAspect;
       }
       
       const origX = (originalWidth - drawWidth) / 2;
-      const origY = headerHeight + (originalHeight - drawHeight) / 2;
+      const origY = headerHeight + (contentHeight - drawHeight) / 2;
+      
+      // Draw original with slight rounded corners
+      ctx.save();
+      roundRect(0, headerHeight, originalWidth, contentHeight, 0);
+      ctx.clip();
       ctx.drawImage(origImg, origX, origY, drawWidth, drawHeight);
+      ctx.restore();
 
-      // Add "ANTES" label
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-      ctx.fillRect(0, headerHeight + originalHeight - 40, originalWidth, 40);
-      ctx.fillStyle = "#ef4444";
-      ctx.font = "bold 18px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("ANTES", originalWidth / 2, headerHeight + originalHeight - 14);
+      // ===== GRID OF VARIATIONS (right side) =====
+      const gridStartX = originalWidth + middleGap;
+      const gridStartY = headerHeight;
 
-      // Draw grid of variations on right
       for (let i = 0; i < 12; i++) {
         const col = i % gridCols;
         const row = Math.floor(i / gridCols);
-        const x = originalWidth + gap + col * cellSize;
-        const y = headerHeight + row * cellSize;
+        const x = gridStartX + col * (cellSize + cellGap);
+        const y = gridStartY + row * (cellSize + cellGap);
 
         if (newVersionImages[i]) {
           try {
             const varImg = await loadImage(newVersionImages[i]);
-            // Cover the cell maintaining aspect ratio
             const varAspect = varImg.width / varImg.height;
             let vw = cellSize;
             let vh = cellSize / varAspect;
@@ -492,79 +510,96 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
             const vx = x + (cellSize - vw) / 2;
             const vy = y + (cellSize - vh) / 2;
             
-            // Clip to cell
+            // Clip to cell with rounded corners
             ctx.save();
-            ctx.beginPath();
-            ctx.rect(x, y, cellSize, cellSize);
+            roundRect(x, y, cellSize, cellSize, 8);
             ctx.clip();
             ctx.drawImage(varImg, vx, vy, vw, vh);
             ctx.restore();
             
-            // Add variation number badge
-            ctx.fillStyle = "rgba(139, 92, 246, 0.8)";
+            // Numbered badge (purple circle)
+            ctx.fillStyle = "#8b5cf6";
             ctx.beginPath();
-            ctx.arc(x + 18, y + 18, 12, 0, Math.PI * 2);
+            ctx.arc(x + 20, y + 20, 14, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 11px Arial";
+            ctx.font = "bold 13px 'Segoe UI', Arial, sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText(`${i + 1}`, x + 18, y + 22);
+            ctx.fillText(`${i + 1}`, x + 20, y + 25);
           } catch {
-            // Draw placeholder for failed image
+            // Placeholder for failed image
             ctx.fillStyle = "#2d2d44";
-            ctx.fillRect(x, y, cellSize, cellSize);
+            roundRect(x, y, cellSize, cellSize, 8);
+            ctx.fill();
             ctx.fillStyle = "#666";
-            ctx.font = "14px Arial";
+            ctx.font = "bold 16px 'Segoe UI', Arial, sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText(`${i + 1}`, x + cellSize / 2, y + cellSize / 2);
+            ctx.fillText(`${i + 1}`, x + cellSize / 2, y + cellSize / 2 + 6);
           }
         } else {
-          // Draw empty placeholder
+          // Empty placeholder with dashed border
           ctx.fillStyle = "#1e1b2e";
-          ctx.fillRect(x, y, cellSize, cellSize);
-          ctx.strokeStyle = "#3d3d5c";
-          ctx.setLineDash([4, 4]);
-          ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+          roundRect(x, y, cellSize, cellSize, 8);
+          ctx.fill();
+          ctx.strokeStyle = "#4c4c6d";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([6, 4]);
+          roundRect(x + 4, y + 4, cellSize - 8, cellSize - 8, 6);
+          ctx.stroke();
           ctx.setLineDash([]);
           ctx.fillStyle = "#555";
-          ctx.font = "12px Arial";
+          ctx.font = "14px 'Segoe UI', Arial, sans-serif";
           ctx.textAlign = "center";
-          ctx.fillText(`${i + 1}`, x + cellSize / 2, y + cellSize / 2);
+          ctx.fillText(`${i + 1}`, x + cellSize / 2, y + cellSize / 2 + 5);
         }
       }
 
-      // Add "POSSÍVEIS RESULTADOS" label over grid
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-      ctx.fillRect(originalWidth + gap, headerHeight + gridHeight - 40, gridWidth, 40);
-      ctx.fillStyle = "#10b981";
-      ctx.font = "bold 16px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("POSSÍVEIS RESULTADOS PÓS-TRANSPLANTE", originalWidth + gap + gridWidth / 2, headerHeight + gridHeight - 14);
-
-      // Draw footer with website
+      // ===== LABELS BAR =====
+      const labelY = headerHeight + contentHeight;
+      
+      // "ANTES" label (coral/red)
       ctx.fillStyle = "#1a0f2e";
-      ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
-      
-      // Footer gradient line
-      const footerLineGradient = ctx.createLinearGradient(0, canvas.height - footerHeight, canvas.width, canvas.height - footerHeight);
-      footerLineGradient.addColorStop(0, "#a855f7");
-      footerLineGradient.addColorStop(0.5, "#d946ef");
-      footerLineGradient.addColorStop(1, "#a855f7");
-      ctx.fillStyle = footerLineGradient;
-      ctx.fillRect(0, canvas.height - footerHeight, canvas.width, 3);
-
-      // Footer text
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 16px Arial";
+      ctx.fillRect(0, labelY, originalWidth, labelHeight);
+      ctx.fillStyle = "#f97316";
+      ctx.font = "bold 16px 'Segoe UI', Arial, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("www.neofolic.com.br", canvas.width / 2, canvas.height - 20);
-      
-      ctx.fillStyle = "#a0a0a0";
-      ctx.font = "11px Arial";
-      ctx.fillText("Simulação ilustrativa • Resultados podem variar • Consulte seu médico", canvas.width / 2, canvas.height - 6);
+      ctx.fillText("ANTES", originalWidth / 2, labelY + 24);
 
-      // Download
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      // "POSSÍVEIS RESULTADOS PÓS-TRANSPLANTE" label (turquoise/green)
+      ctx.fillStyle = "#1a0f2e";
+      ctx.fillRect(gridStartX, labelY, gridWidth, labelHeight);
+      ctx.fillStyle = "#10b981";
+      ctx.font = "bold 15px 'Segoe UI', Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("POSSÍVEIS RESULTADOS PÓS-TRANSPLANTE", gridStartX + gridWidth / 2, labelY + 24);
+
+      // ===== FOOTER =====
+      const footerY = labelY + labelHeight;
+      
+      // Footer background with gradient accent line
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(0, footerY, canvas.width, footerHeight);
+      
+      const footerLineGradient = ctx.createLinearGradient(0, footerY, canvas.width, footerY);
+      footerLineGradient.addColorStop(0, "#7c3aed");
+      footerLineGradient.addColorStop(0.5, "#d946ef");
+      footerLineGradient.addColorStop(1, "#7c3aed");
+      ctx.fillStyle = footerLineGradient;
+      ctx.fillRect(0, footerY, canvas.width, 2);
+
+      // Website URL
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px 'Segoe UI', Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("www.neofolic.com.br", canvas.width / 2, footerY + 26);
+      
+      // Disclaimer
+      ctx.fillStyle = "#9ca3af";
+      ctx.font = "11px 'Segoe UI', Arial, sans-serif";
+      ctx.fillText("Simulação ilustrativa • Resultados podem variar • Consulte seu médico", canvas.width / 2, footerY + 44);
+
+      // Download the image
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
       const link = document.createElement("a");
       link.href = dataUrl;
       link.download = `neohairscan-comparativo-${Date.now()}.jpg`;

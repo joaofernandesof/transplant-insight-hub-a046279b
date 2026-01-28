@@ -156,25 +156,31 @@ The result should help doctors identify areas of alopecia and density variations
       const selectedStyle = hairstyleVariations[randomIndex];
       selectedStyleForNewversion = selectedStyle;
       
-      prompt = `🎯 CRITICAL: Generate an ULTRA-REALISTIC post-transplant hair simulation. This is for men recovering their confidence after hair restoration.
+      prompt = `🎯 CRITICAL: Generate an ULTRA-REALISTIC post-transplant hair simulation showing FULL HAIR COVERAGE. This is for men recovering their confidence after hair restoration.
+
+⚠️ ABSOLUTE REQUIREMENT - NO BALDNESS:
+- The result MUST show a FULL HEAD OF HAIR with COMPLETE COVERAGE
+- NO visible scalp, NO thinning, NO receding hairline, NO bald spots
+- The person must look like they have NEVER experienced hair loss
+- Hair must be DENSE and THICK across the entire head
+- Hairline must be FULL and NATURAL (no recession at temples)
 
 STYLE TO APPLY: "${selectedStyle}"
 
 📋 STRICT REQUIREMENTS:
-1. FACE PRESERVATION: Keep face, skin texture, eyes, nose, mouth, ears, beard, clothing, and background EXACTLY identical - zero facial morphing or smoothing
-2. REALISTIC HAIRLINE: Create a natural hairline appropriate for the person's age and face shape - NO artificial plastic look, NO perfect symmetry
-3. HAIR DENSITY: Match density to realistic post-transplant results - full but natural, not unnaturally thick
-4. TEXTURE & DIRECTION: Respect natural hair growth direction, use subtle texture (2A/2B wave pattern as default if unclear) - NO glossy/shiny artificial look
-5. COLOR MATCHING: Match hair color exactly to any existing hair - NO color changes
-6. LIGHTING: Use cinematic soft-light style, maintain exact same lighting and shadows as original photo
-7. SCALP BLENDING: Blend naturally with scalp and forehead - use subtle shadows and depth to anchor the hairstyle naturally
-8. NO CARTOON TEXTURES: Avoid overly defined strands, plastic shine, or artificial highlights
+1. FULL HAIR COVERAGE: Dense, thick hair covering entire scalp - absolutely NO visible baldness or thinning
+2. FACE PRESERVATION: Keep face, skin texture, eyes, nose, mouth, ears, beard, clothing, and background EXACTLY identical - zero facial morphing or smoothing
+3. NATURAL HAIRLINE: Create a full, natural hairline with NO recession - appropriate for a person with healthy hair
+4. HAIR DENSITY: Show full, dense hair coverage - this is a POST-TRANSPLANT result showing the BEST possible outcome
+5. TEXTURE & DIRECTION: Natural hair texture (2A/2B wave pattern as default), realistic growth direction
+6. COLOR MATCHING: Match hair color exactly to any existing hair on the person
+7. LIGHTING: Maintain exact same lighting and shadows as original photo
+8. NO ARTIFICIAL LOOK: No plastic shine, no cartoon textures, no overly perfect styling
 
 🧠 EMOTIONAL DIRECTION:
-- This person is recovering confidence after hair loss
-- Style should look NATURAL as if they always had this hair
-- Professional styles = calm, confident, reliable appearance
-- Casual styles = balanced, thoughtful, subtly stylish
+- Show what the person would look like with a FULL head of hair
+- The result should boost confidence and show realistic best-case results
+- Hair should look NATURAL as if they always had full coverage
 
 🎨 OUTPUT QUALITY: 
 - Photorealistic quality with preserved skin texture
@@ -242,7 +248,7 @@ STYLE TO APPLY: "${selectedStyle}"
     // If the model returned text-only, retry once with a shorter, stricter prompt.
     if (!generatedImage && action === "newversion") {
       console.warn("No image generated (text-only). Retrying once with stricter prompt...");
-      const compactPrompt = `Edit ONLY the hair in this photo. Apply hairstyle: ${selectedStyleForNewversion || "natural mature masculine style"}. Keep the face and background IDENTICAL. Ultra-realistic post-transplant result, natural hairline, no glossy/plastic shine, realistic density. Return ONE edited image only.`;
+      const compactPrompt = `Edit ONLY the hair in this photo. CRITICAL: Show FULL HEAD OF HAIR with COMPLETE COVERAGE - NO baldness, NO thinning, NO visible scalp. Apply hairstyle: ${selectedStyleForNewversion || "natural dense masculine style"}. The person must look like they have NEVER had hair loss. Keep face and background IDENTICAL. Ultra-realistic, natural dense hair. Return ONE edited image only.`;
 
       const retryResp = await callImageModel({
         lovableApiKey: LOVABLE_API_KEY,
