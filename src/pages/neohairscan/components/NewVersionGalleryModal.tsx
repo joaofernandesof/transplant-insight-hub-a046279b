@@ -1,6 +1,7 @@
 /**
  * NewVersionGalleryModal - Full-size gallery viewer for generated variations
  * Allows viewing, navigating, and downloading individual or all images
+ * Downloads always include branding with "Antes/Depois" comparison
  */
 
 import { useState, useCallback, useEffect } from "react";
@@ -11,7 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  X,
   Grid3X3,
   Maximize2,
   ImageDown,
@@ -27,6 +27,165 @@ interface NewVersionGalleryModalProps {
   initialIndex?: number | null;
 }
 
+/**
+ * Creates a branded "Antes/Depois" image with NeoFolic branding
+ */
+async function createBrandedComparison(
+  originalImageSrc: string,
+  generatedImageSrc: string,
+  variationNumber: number
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const originalImg = new Image();
+    const generatedImg = new Image();
+    originalImg.crossOrigin = "anonymous";
+    generatedImg.crossOrigin = "anonymous";
+
+    let loadedCount = 0;
+    const onLoad = () => {
+      loadedCount++;
+      if (loadedCount < 2) return;
+
+      try {
+        // Canvas dimensions
+        const imgWidth = 400;
+        const imgHeight = 500;
+        const headerHeight = 80;
+        const footerHeight = 60;
+        const gap = 20;
+        const padding = 30;
+        
+        const canvasWidth = (imgWidth * 2) + gap + (padding * 2);
+        const canvasHeight = imgHeight + headerHeight + footerHeight + (padding * 2);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx) {
+          reject(new Error("Could not get canvas context"));
+          return;
+        }
+
+        // Background gradient
+        const bgGradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
+        bgGradient.addColorStop(0, "#1e1b4b");
+        bgGradient.addColorStop(0.5, "#312e81");
+        bgGradient.addColorStop(1, "#1e1b4b");
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        // Header - NeoFolic branding
+        ctx.fillStyle = "#c9a86c";
+        ctx.font = "bold 28px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Neo Folic", canvasWidth / 2, 40);
+        
+        ctx.fillStyle = "#a78bfa";
+        ctx.font = "16px Arial, sans-serif";
+        ctx.fillText("Saúde Capilar • www.neofolic.com.br", canvasWidth / 2, 65);
+
+        // Draw "ANTES" image (original)
+        const beforeX = padding;
+        const beforeY = headerHeight + padding;
+        
+        // Image container with rounded corners effect
+        ctx.fillStyle = "#1f2937";
+        ctx.fillRect(beforeX - 4, beforeY - 4, imgWidth + 8, imgHeight + 8);
+        
+        // Draw original image
+        const origAspect = originalImg.width / originalImg.height;
+        let drawOrigW = imgWidth;
+        let drawOrigH = imgHeight;
+        let origOffsetX = 0;
+        let origOffsetY = 0;
+        
+        if (origAspect > imgWidth / imgHeight) {
+          drawOrigH = imgWidth / origAspect;
+          origOffsetY = (imgHeight - drawOrigH) / 2;
+        } else {
+          drawOrigW = imgHeight * origAspect;
+          origOffsetX = (imgWidth - drawOrigW) / 2;
+        }
+        
+        ctx.drawImage(originalImg, beforeX + origOffsetX, beforeY + origOffsetY, drawOrigW, drawOrigH);
+        
+        // "ANTES" label
+        ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+        ctx.fillRect(beforeX, beforeY + imgHeight - 40, 100, 32);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 18px Arial, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("ANTES", beforeX + 15, beforeY + imgHeight - 17);
+
+        // Draw "DEPOIS" image (generated)
+        const afterX = padding + imgWidth + gap;
+        const afterY = headerHeight + padding;
+        
+        // Image container
+        ctx.fillStyle = "#1f2937";
+        ctx.fillRect(afterX - 4, afterY - 4, imgWidth + 8, imgHeight + 8);
+        
+        // Draw generated image
+        const genAspect = generatedImg.width / generatedImg.height;
+        let drawGenW = imgWidth;
+        let drawGenH = imgHeight;
+        let genOffsetX = 0;
+        let genOffsetY = 0;
+        
+        if (genAspect > imgWidth / imgHeight) {
+          drawGenH = imgWidth / genAspect;
+          genOffsetY = (imgHeight - drawGenH) / 2;
+        } else {
+          drawGenW = imgHeight * genAspect;
+          genOffsetX = (imgWidth - drawGenW) / 2;
+        }
+        
+        ctx.drawImage(generatedImg, afterX + genOffsetX, afterY + genOffsetY, drawGenW, drawGenH);
+        
+        // "DEPOIS" label with variation number
+        ctx.fillStyle = "rgba(16, 185, 129, 0.9)";
+        ctx.fillRect(afterX, afterY + imgHeight - 40, 140, 32);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 18px Arial, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(`DEPOIS #${variationNumber}`, afterX + 12, afterY + imgHeight - 17);
+
+        // Footer
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "12px Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          "Simulação ilustrativa gerada por IA • Resultados podem variar",
+          canvasWidth / 2,
+          canvasHeight - 25
+        );
+        
+        ctx.fillStyle = "#9ca3af";
+        ctx.font = "11px Arial, sans-serif";
+        ctx.fillText(
+          "NeoHairScan - Tecnologia NeoFolic © 2026",
+          canvasWidth / 2,
+          canvasHeight - 10
+        );
+
+        resolve(canvas.toDataURL("image/jpeg", 0.95));
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    originalImg.onload = onLoad;
+    generatedImg.onload = onLoad;
+    originalImg.onerror = () => reject(new Error("Failed to load original image"));
+    generatedImg.onerror = () => reject(new Error("Failed to load generated image"));
+    
+    originalImg.src = originalImageSrc;
+    generatedImg.src = generatedImageSrc;
+  });
+}
+
 export function NewVersionGalleryModal({
   open,
   onOpenChange,
@@ -37,6 +196,7 @@ export function NewVersionGalleryModal({
 }: NewVersionGalleryModalProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "single">("grid");
+  const [isDownloading, setIsDownloading] = useState(false);
   
   // Update when modal opens with initialIndex
   useEffect(() => {
@@ -50,14 +210,29 @@ export function NewVersionGalleryModal({
     }
   }, [open, initialIndex]);
 
-  // Download individual image
-  const downloadImage = useCallback((imageData: string, index: number) => {
-    const link = document.createElement("a");
-    link.href = imageData;
-    link.download = `neohairscan-variacao-${index + 1}.jpg`;
-    link.click();
-    toast.success(`Variação ${index + 1} baixada!`);
-  }, []);
+  // Download individual image with branding
+  const downloadImage = useCallback(async (imageData: string, index: number) => {
+    if (!originalImage) {
+      toast.error("Imagem original não disponível");
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const brandedImage = await createBrandedComparison(originalImage, imageData, index + 1);
+      
+      const link = document.createElement("a");
+      link.href = brandedImage;
+      link.download = `neofolic-antes-depois-variacao-${index + 1}.jpg`;
+      link.click();
+      toast.success(`Comparação ${index + 1} baixada com sucesso!`);
+    } catch (error) {
+      console.error("Error creating branded image:", error);
+      toast.error("Erro ao gerar imagem. Tente novamente.");
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [originalImage]);
 
   // Navigate to next/previous image
   const navigateImage = useCallback((direction: "prev" | "next") => {
@@ -175,6 +350,7 @@ export function NewVersionGalleryModal({
                             e.stopPropagation();
                             downloadImage(img, index);
                           }}
+                          disabled={isDownloading}
                           className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
                         >
                           <Download className="h-4 w-4" />
@@ -246,12 +422,18 @@ export function NewVersionGalleryModal({
                     <div className="flex gap-3">
                       <Button
                         onClick={() => downloadImage(images[selectedIndex], selectedIndex)}
+                        disabled={isDownloading}
                         className="bg-emerald-600 hover:bg-emerald-700"
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        Baixar Esta Variação
+                        {isDownloading ? "Gerando..." : "Baixar Antes/Depois"}
                       </Button>
                     </div>
+                    
+                    {/* Info about download */}
+                    <p className="text-xs text-slate-500 text-center max-w-md">
+                      O download inclui comparação "Antes e Depois" com a marca Neo Folic
+                    </p>
 
                     {/* Thumbnail navigation */}
                     <div className="flex gap-2 mt-4 overflow-x-auto max-w-full pb-2">
@@ -285,7 +467,7 @@ export function NewVersionGalleryModal({
           <p className="text-xs text-slate-500 text-center">
             {viewMode === "single" 
               ? "Use as setas ← → do teclado para navegar • ESC para voltar à grade"
-              : "Clique em uma imagem para ampliar • Passe o mouse para ver opções"
+              : "Clique em uma imagem para ampliar • Downloads incluem branding NeoFolic"
             }
           </p>
         </div>
