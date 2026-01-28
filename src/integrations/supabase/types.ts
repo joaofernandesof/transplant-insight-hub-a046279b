@@ -7930,6 +7930,39 @@ export type Database = {
           },
         ]
       }
+      scan_credit_transactions: {
+        Row: {
+          action: string
+          created_at: string
+          credits_after: number
+          credits_before: number
+          credits_change: number
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          credits_after: number
+          credits_before: number
+          credits_change: number
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          credits_after?: number
+          credits_before?: number
+          credits_change?: number
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       sentinel_alert_recipients: {
         Row: {
           created_at: string
@@ -9586,6 +9619,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_scan_credits: {
+        Row: {
+          created_at: string
+          credits_used_month: number
+          credits_used_today: number
+          daily_credits: number
+          id: string
+          last_daily_reset: string | null
+          last_monthly_reset: string | null
+          monthly_credits: number
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          plan_expires_at: string | null
+          plan_started_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_used_month?: number
+          credits_used_today?: number
+          daily_credits?: number
+          id?: string
+          last_daily_reset?: string | null
+          last_monthly_reset?: string | null
+          monthly_credits?: number
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          plan_expires_at?: string | null
+          plan_started_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_used_month?: number
+          credits_used_today?: number
+          daily_credits?: number
+          id?: string
+          last_daily_reset?: string | null
+          last_monthly_reset?: string | null
+          monthly_credits?: number
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          plan_expires_at?: string | null
+          plan_started_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           created_at: string
@@ -9821,6 +9902,34 @@ export type Database = {
         Args: { _action?: string; _module_code: string; _user_id: string }
         Returns: boolean
       }
+      check_and_reset_daily_credits: {
+        Args: { _user_id: string }
+        Returns: {
+          created_at: string
+          credits_used_month: number
+          credits_used_today: number
+          daily_credits: number
+          id: string
+          last_daily_reset: string | null
+          last_monthly_reset: string | null
+          monthly_credits: number
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          plan_expires_at: string | null
+          plan_started_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_scan_credits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      consume_scan_credit: {
+        Args: { _action: string; _user_id: string }
+        Returns: Json
+      }
       get_all_enrolled_user_ids: { Args: never; Returns: string[] }
       get_exam_results_with_answers: {
         Args: { p_attempt_id: string }
@@ -9840,6 +9949,30 @@ export type Database = {
         Returns: {
           profile: Database["public"]["Enums"]["neohub_profile"]
         }[]
+      }
+      get_or_create_user_scan_credits: {
+        Args: { _user_id: string }
+        Returns: {
+          created_at: string
+          credits_used_month: number
+          credits_used_today: number
+          daily_credits: number
+          id: string
+          last_daily_reset: string | null
+          last_monthly_reset: string | null
+          monthly_credits: number
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          plan_expires_at: string | null
+          plan_started_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_scan_credits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_portal_user_id: { Args: { _auth_user_id: string }; Returns: string }
       get_staff_profile: {
@@ -10024,6 +10157,7 @@ export type Database = {
         | "ti_dados"
         | "gestao"
         | "executivo"
+      subscription_plan: "free" | "starter" | "professional" | "unlimited"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -10248,6 +10382,7 @@ export const Constants = {
         "gestao",
         "executivo",
       ],
+      subscription_plan: ["free", "starter", "professional", "unlimited"],
     },
   },
 } as const

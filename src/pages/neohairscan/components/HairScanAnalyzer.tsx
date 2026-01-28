@@ -3,7 +3,7 @@
  * Handles photo capture, progression simulation, and scan visualization
  */
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -26,14 +26,21 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ImageCropper from "./ImageCropper";
+import { ScanCreditsDisplay } from "./ScanCreditsDisplay";
+import { ScanPlansModal } from "./ScanPlansModal";
+import { useScanCredits } from "../hooks/useScanCredits";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 
 interface HairScanAnalyzerProps {
   onBack: () => void;
 }
 
 export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
-  const [rawImage, setRawImage] = useState<string | null>(null); // Image before cropping
-  const [originalImage, setOriginalImage] = useState<string | null>(null); // Cropped image for analysis
+  const { session } = useUnifiedAuth();
+  const userId = session?.user?.id;
+  
+  const [rawImage, setRawImage] = useState<string | null>(null);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [progressionImage, setProgressionImage] = useState<string | null>(null);
   const [scanImage, setScanImage] = useState<string | null>(null);
   const [newVersionImages, setNewVersionImages] = useState<string[]>([]);
@@ -43,10 +50,20 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
   const [selectedHairStyle, setSelectedHairStyle] = useState("natural");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
+  const [showPlansModal, setShowPlansModal] = useState(false);
+  
+  const { consumeCredit, refreshTrigger, refreshCredits } = useScanCredits(userId);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Listen for open plans event
+  useEffect(() => {
+    const handleOpenPlans = () => setShowPlansModal(true);
+    window.addEventListener('open-scan-plans', handleOpenPlans);
+    return () => window.removeEventListener('open-scan-plans', handleOpenPlans);
+  }, []);
 
   // Open camera
   const openCamera = async () => {
@@ -168,6 +185,12 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       return;
     }
 
+    // Check and consume credits first
+    const hasCredits = await consumeCredit(`scan_${action}`);
+    if (!hasCredits) {
+      return; // User doesn't have enough credits
+    }
+
     setIsProcessing(true);
 
     try {
@@ -184,6 +207,8 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
 
       if (data?.error) {
         toast.error(data.error);
+        // Refund credit on error (we could implement this in the backend)
+        refreshCredits();
         return;
       }
 
@@ -228,16 +253,33 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background p-4">
+      {/* Plans Modal */}
+      <ScanPlansModal 
+        open={showPlansModal} 
+        onOpenChange={setShowPlansModal}
+      />
+      
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" onClick={onBack} className="text-white hover:bg-white/10">
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Voltar
-        </Button>
-        <div className="flex items-center gap-2">
-          <ScanFace className="h-6 w-6 text-fuchsia-400" />
-          <h1 className="text-xl font-bold text-white">NeoHairScan</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={onBack} className="hover:bg-muted">
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Voltar
+          </Button>
+          <div className="flex items-center gap-2">
+            <ScanFace className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-bold">NeoHairScan</h1>
+          </div>
+        </div>
+        
+        {/* Credits Display */}
+        <div className="flex-1 flex justify-end">
+          <ScanCreditsDisplay 
+            userId={userId}
+            onUpgradeClick={() => setShowPlansModal(true)}
+            refreshTrigger={refreshTrigger}
+          />
         </div>
       </div>
 
