@@ -51,7 +51,9 @@ const mainNavItems: NavItem[] = [
   { id: 'jurisprudencias', label: 'Jurisprudências', icon: Scale, href: '/ipromed/legal?tab=jurisprudencias' },
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases' },
   { id: 'documents', label: 'Documentos', icon: FileBox, href: '/ipromed/legal?tab=documents' },
-  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai' },
+  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', isNew: true },
+  { id: 'risk', label: 'Scoring de Risco', icon: Scale, href: '/ipromed/legal?tab=risk', isNew: true },
+  { id: 'sla', label: 'SLA / Produtividade', icon: BarChart3, href: '/ipromed/legal?tab=sla' },
   { id: 'indicators', label: 'Indicadores', icon: BarChart3, href: '/ipromed/legal?tab=analytics' },
 ];
 
