@@ -20,6 +20,8 @@ import {
   Download,
   ScanFace,
   Crop,
+  Sparkles,
+  Grid3X3,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,9 +36,11 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
   const [originalImage, setOriginalImage] = useState<string | null>(null); // Cropped image for analysis
   const [progressionImage, setProgressionImage] = useState<string | null>(null);
   const [scanImage, setScanImage] = useState<string | null>(null);
+  const [newVersionImages, setNewVersionImages] = useState<string[]>([]);
   const [yearsProgression, setYearsProgression] = useState([0]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeMode, setActiveMode] = useState<"progression" | "scan">("progression");
+  const [activeMode, setActiveMode] = useState<"progression" | "scan" | "newversion">("progression");
+  const [selectedHairStyle, setSelectedHairStyle] = useState("natural");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
   
@@ -158,7 +162,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
   };
 
   // Process with AI
-  const processImage = useCallback(async (action: "progression" | "scan") => {
+  const processImage = useCallback(async (action: "progression" | "scan" | "newversion") => {
     if (!originalImage) {
       toast.error("Capture ou faça upload de uma foto primeiro");
       return;
@@ -172,6 +176,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
           action,
           imageBase64: originalImage,
           yearsProgression: yearsProgression[0],
+          hairStyle: selectedHairStyle,
         },
       });
 
@@ -185,9 +190,12 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       if (action === "progression") {
         setProgressionImage(data.image);
         toast.success(`Simulação de ${yearsProgression[0]} anos gerada!`);
-      } else {
+      } else if (action === "scan") {
         setScanImage(data.image);
         toast.success("Scan de densidade gerado!");
+      } else if (action === "newversion") {
+        setNewVersionImages(prev => [...prev, data.image]);
+        toast.success("Nova versão gerada!");
       }
     } catch (error: any) {
       console.error("Processing error:", error);
@@ -196,7 +204,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     } finally {
       setIsProcessing(false);
     }
-  }, [originalImage, yearsProgression]);
+  }, [originalImage, yearsProgression, selectedHairStyle]);
 
   // Reset analysis
   const resetAnalysis = () => {
@@ -204,8 +212,10 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     setOriginalImage(null);
     setProgressionImage(null);
     setScanImage(null);
+    setNewVersionImages([]);
     setYearsProgression([0]);
     setShowCropper(false);
+    setSelectedHairStyle("natural");
     stopCamera();
   };
 
@@ -314,9 +324,9 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
         {/* Analysis Section */}
         {originalImage && (
           <div className="space-y-6">
-            {/* Mode Tabs */}
-            <Tabs value={activeMode} onValueChange={(v) => setActiveMode(v as "progression" | "scan")}>
-              <TabsList className="grid w-full grid-cols-2 bg-slate-900/80">
+          {/* Mode Tabs */}
+            <Tabs value={activeMode} onValueChange={(v) => setActiveMode(v as "progression" | "scan" | "newversion")}>
+              <TabsList className="grid w-full grid-cols-3 bg-slate-900/80">
                 <TabsTrigger value="progression" className="gap-2 data-[state=active]:bg-orange-600">
                   <TrendingDown className="h-4 w-4" />
                   Progressão
@@ -324,6 +334,10 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                 <TabsTrigger value="scan" className="gap-2 data-[state=active]:bg-cyan-600">
                   <Zap className="h-4 w-4" />
                   Scan
+                </TabsTrigger>
+                <TabsTrigger value="newversion" className="gap-2 data-[state=active]:bg-emerald-600">
+                  <Sparkles className="h-4 w-4" />
+                  New Version
                 </TabsTrigger>
               </TabsList>
 
@@ -566,6 +580,174 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* New Version Mode */}
+              <TabsContent value="newversion" className="mt-6">
+                <div className="space-y-6">
+                  {/* Hair Style Selector */}
+                  <Card className="bg-slate-900/80 border-emerald-500/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Sparkles className="h-5 w-5 text-emerald-400" />
+                        <span className="text-white font-medium">Escolha o estilo de cabelo</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {[
+                          { id: "natural", label: "Natural" },
+                          { id: "short", label: "Curto" },
+                          { id: "slick", label: "Penteado" },
+                          { id: "textured", label: "Texturizado" },
+                          { id: "wavy", label: "Ondulado" },
+                          { id: "classic", label: "Clássico" },
+                        ].map((style) => (
+                          <Button
+                            key={style.id}
+                            variant={selectedHairStyle === style.id ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSelectedHairStyle(style.id)}
+                            className={selectedHairStyle === style.id 
+                              ? "bg-emerald-600 hover:bg-emerald-700" 
+                              : "border-slate-600 text-slate-300 hover:bg-slate-800"
+                            }
+                          >
+                            {style.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Original + Generated Grid */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Original */}
+                    <Card className="bg-slate-900/80 border-purple-500/30">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge variant="outline" className="text-white border-slate-600">
+                            Original
+                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRecrop}
+                              className="text-slate-400 hover:text-white"
+                              title="Recortar área"
+                            >
+                              <Crop className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={resetAnalysis}
+                              className="text-slate-400 hover:text-white"
+                              title="Nova foto"
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <img
+                          src={originalImage}
+                          alt="Original"
+                          className="w-full aspect-square object-cover rounded-lg"
+                        />
+                      </CardContent>
+                    </Card>
+
+                    {/* Generated Versions */}
+                    <Card className="bg-slate-900/80 border-emerald-500/30">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge className="bg-emerald-600">
+                            <Grid3X3 className="h-3 w-3 mr-1" />
+                            Versões Geradas ({newVersionImages.length})
+                          </Badge>
+                          {newVersionImages.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setNewVersionImages([])}
+                              className="text-slate-400 hover:text-white"
+                              title="Limpar todas"
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {newVersionImages.length === 0 ? (
+                          <div className="aspect-square rounded-lg bg-slate-800 flex items-center justify-center">
+                            <div className="text-center text-slate-500 p-4">
+                              <Sparkles className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                              <p className="text-sm">Gere opções de cabelo pós-transplante</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
+                            {newVersionImages.map((img, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={img}
+                                  alt={`Versão ${index + 1}`}
+                                  className="w-full aspect-square object-cover rounded-lg"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => downloadImage(img, `new-version-${index + 1}.jpg`)}
+                                    className="text-white hover:bg-white/20"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <Badge className="absolute top-1 left-1 bg-black/70 text-xs">
+                                  {index + 1}
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Generate Button */}
+                  <Card className="bg-slate-900/80 border-purple-500/30">
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="text-center text-slate-300 text-sm">
+                          Gera simulações realistas de como o paciente ficará após o transplante capilar,
+                          com diferentes opções de corte e estilo de cabelo.
+                        </div>
+                        
+                        <Button
+                          onClick={() => processImage("newversion")}
+                          disabled={isProcessing}
+                          className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Gerando Nova Versão...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Gerar Nova Versão
+                            </>
+                          )}
+                        </Button>
+
+                        <p className="text-xs text-center text-slate-500">
+                          Clique várias vezes para gerar diferentes opções de cabelo
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             </Tabs>
           </div>
