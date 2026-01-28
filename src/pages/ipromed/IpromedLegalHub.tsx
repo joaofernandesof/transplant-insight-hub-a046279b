@@ -43,6 +43,12 @@ import DocumentsManager from "./components/DocumentsManager";
 import CaseMovementsTimeline from "./components/CaseMovementsTimeline";
 import RealFinancialPage from "./components/RealFinancialPage";
 import RealAppointmentsPage from "./components/RealAppointmentsPage";
+import IndicatorsDashboard from "./components/IndicatorsDashboard";
+import TimesheetManager from "./components/TimesheetManager";
+import AIDocumentGenerator from "./components/AIDocumentGenerator";
+import DocumentTemplates from "./components/DocumentTemplates";
+import BillingRulesManager from "./components/BillingRulesManager";
+import TagsManager from "./components/TagsManager";
 
 const tabs = [
   { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard },
@@ -52,9 +58,14 @@ const tabs = [
   { id: 'cases', label: 'Processos', icon: Gavel },
   { id: 'movements', label: 'Andamentos', icon: Clock },
   { id: 'documents', label: 'Documentos', icon: FolderOpen },
+  { id: 'templates', label: 'Templates', icon: FileText },
   { id: 'contracts', label: 'Contratos', icon: FileText },
   { id: 'financial', label: 'Financeiro', icon: BarChart3 },
+  { id: 'billing', label: 'Régua Cobrança', icon: Bell },
+  { id: 'timesheet', label: 'Timesheet', icon: Clock },
+  { id: 'ai', label: 'IA Jurídica', icon: LayoutGrid },
   { id: 'portal', label: 'Portal do Cliente', icon: MessageSquare },
+  { id: 'tags', label: 'Etiquetas', icon: LayoutGrid },
   { id: 'requests', label: 'Solicitações', icon: MessageSquare },
   { id: 'tasks', label: 'Atividades', icon: LayoutGrid },
   { id: 'analytics', label: 'Indicadores', icon: BarChart3 },
@@ -158,6 +169,10 @@ export default function IpromedLegalHub() {
                 <DocumentsManager />
               </TabsContent>
 
+              <TabsContent value="templates" className="mt-0">
+                <DocumentTemplates />
+              </TabsContent>
+
               <TabsContent value="contracts" className="mt-0">
                 <ContractsManager />
               </TabsContent>
@@ -166,8 +181,24 @@ export default function IpromedLegalHub() {
                 <RealFinancialPage />
               </TabsContent>
 
+              <TabsContent value="billing" className="mt-0">
+                <BillingRulesManager />
+              </TabsContent>
+
+              <TabsContent value="timesheet" className="mt-0">
+                <TimesheetManager />
+              </TabsContent>
+
+              <TabsContent value="ai" className="mt-0">
+                <AIDocumentGenerator />
+              </TabsContent>
+
               <TabsContent value="portal" className="mt-0">
                 <AstreaClientPortal />
+              </TabsContent>
+
+              <TabsContent value="tags" className="mt-0">
+                <TagsManager />
               </TabsContent>
 
               <TabsContent value="requests" className="mt-0">
@@ -179,7 +210,7 @@ export default function IpromedLegalHub() {
               </TabsContent>
 
               <TabsContent value="analytics" className="mt-0">
-                <LegalAnalytics />
+                <IndicatorsDashboard />
               </TabsContent>
             </Tabs>
           </div>

@@ -2149,6 +2149,92 @@ export type Database = {
         }
         Relationships: []
       }
+      ipromed_ai_documents: {
+        Row: {
+          ai_model: string | null
+          case_id: string | null
+          client_id: string | null
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          document_type: string
+          formatted_content: string | null
+          generation_status: string | null
+          id: string
+          parent_document_id: string | null
+          prompt_used: string | null
+          template_id: string | null
+          title: string
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          ai_model?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          document_type: string
+          formatted_content?: string | null
+          generation_status?: string | null
+          id?: string
+          parent_document_id?: string | null
+          prompt_used?: string | null
+          template_id?: string | null
+          title: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          ai_model?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          document_type?: string
+          formatted_content?: string | null
+          generation_status?: string | null
+          id?: string
+          parent_document_id?: string | null
+          prompt_used?: string | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_ai_documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_ai_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_ai_documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_ai_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_ai_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_alerts: {
         Row: {
           alert_type: string
@@ -2310,6 +2396,48 @@ export type Database = {
           },
         ]
       }
+      ipromed_billing_rules: {
+        Row: {
+          created_at: string | null
+          days_after_due: number[] | null
+          days_before_due: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          overdue_template: string | null
+          reminder_template: string | null
+          send_email: boolean | null
+          send_whatsapp: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          days_after_due?: number[] | null
+          days_before_due?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          overdue_template?: string | null
+          reminder_template?: string | null
+          send_email?: boolean | null
+          send_whatsapp?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          days_after_due?: number[] | null
+          days_before_due?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          overdue_template?: string | null
+          reminder_template?: string | null
+          send_email?: boolean | null
+          send_whatsapp?: boolean | null
+        }
+        Relationships: []
+      }
       ipromed_case_events: {
         Row: {
           case_id: string
@@ -2415,6 +2543,74 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_comments: {
+        Row: {
+          appointment_id: string | null
+          author_id: string | null
+          case_id: string | null
+          client_id: string | null
+          content: string
+          created_at: string | null
+          document_id: string | null
+          id: string
+          mentions: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          author_id?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          content: string
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          mentions?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          author_id?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          content?: string
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          mentions?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_comments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_comments_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_comments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_comments_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -2537,6 +2733,48 @@ export type Database = {
           },
         ]
       }
+      ipromed_document_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+          variables: Json | null
+          version: number | null
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: number | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       ipromed_documents: {
         Row: {
           case_id: string | null
@@ -2625,6 +2863,189 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ipromed_entity_tags: {
+        Row: {
+          appointment_id: string | null
+          case_id: string | null
+          client_id: string | null
+          created_at: string | null
+          document_id: string | null
+          id: string
+          tag_id: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          tag_id?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          tag_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_entity_tags_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_entity_tags_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_entity_tags_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_entity_tags_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_entity_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_goals: {
+        Row: {
+          created_at: string | null
+          current_value: number | null
+          description: string | null
+          end_date: string
+          id: string
+          metric_type: string
+          start_date: string
+          status: string | null
+          target_value: number
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_value?: number | null
+          description?: string | null
+          end_date: string
+          id?: string
+          metric_type: string
+          start_date: string
+          status?: string | null
+          target_value: number
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_value?: number | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          metric_type?: string
+          start_date?: string
+          status?: string | null
+          target_value?: number
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      ipromed_indicator_snapshots: {
+        Row: {
+          active_cases: number | null
+          billable_hours: number | null
+          cases_lost: number | null
+          cases_settled: number | null
+          cases_won: number | null
+          created_at: string | null
+          deadlines_met: number | null
+          deadlines_missed: number | null
+          id: string
+          new_clients: number | null
+          period_type: string | null
+          publications_treated: number | null
+          snapshot_date: string
+          total_billed: number | null
+          total_cases: number | null
+          total_clients: number | null
+          total_deadlines: number | null
+          total_hours_logged: number | null
+          total_overdue: number | null
+          total_pending: number | null
+          total_received: number | null
+        }
+        Insert: {
+          active_cases?: number | null
+          billable_hours?: number | null
+          cases_lost?: number | null
+          cases_settled?: number | null
+          cases_won?: number | null
+          created_at?: string | null
+          deadlines_met?: number | null
+          deadlines_missed?: number | null
+          id?: string
+          new_clients?: number | null
+          period_type?: string | null
+          publications_treated?: number | null
+          snapshot_date?: string
+          total_billed?: number | null
+          total_cases?: number | null
+          total_clients?: number | null
+          total_deadlines?: number | null
+          total_hours_logged?: number | null
+          total_overdue?: number | null
+          total_pending?: number | null
+          total_received?: number | null
+        }
+        Update: {
+          active_cases?: number | null
+          billable_hours?: number | null
+          cases_lost?: number | null
+          cases_settled?: number | null
+          cases_won?: number | null
+          created_at?: string | null
+          deadlines_met?: number | null
+          deadlines_missed?: number | null
+          id?: string
+          new_clients?: number | null
+          period_type?: string | null
+          publications_treated?: number | null
+          snapshot_date?: string
+          total_billed?: number | null
+          total_cases?: number | null
+          total_clients?: number | null
+          total_deadlines?: number | null
+          total_hours_logged?: number | null
+          total_overdue?: number | null
+          total_pending?: number | null
+          total_received?: number | null
+        }
+        Relationships: []
       }
       ipromed_invoices: {
         Row: {
@@ -3246,6 +3667,109 @@ export type Database = {
             columns: ["generated_deadline_id"]
             isOneToOne: false
             referencedRelation: "ipromed_appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_tags: {
+        Row: {
+          category: string | null
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category?: string | null
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string | null
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      ipromed_timesheets: {
+        Row: {
+          activity_type: string | null
+          case_id: string | null
+          client_id: string | null
+          created_at: string | null
+          description: string
+          duration_minutes: number | null
+          end_time: string | null
+          hourly_rate: number | null
+          id: string
+          invoice_id: string | null
+          is_billable: boolean | null
+          is_running: boolean | null
+          start_time: string
+          total_value: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          description: string
+          duration_minutes?: number | null
+          end_time?: string | null
+          hourly_rate?: number | null
+          id?: string
+          invoice_id?: string | null
+          is_billable?: boolean | null
+          is_running?: boolean | null
+          start_time: string
+          total_value?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string
+          duration_minutes?: number | null
+          end_time?: string | null
+          hourly_rate?: number | null
+          id?: string
+          invoice_id?: string | null
+          is_billable?: boolean | null
+          is_running?: boolean | null
+          start_time?: string
+          total_value?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_timesheets_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_timesheets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_timesheets_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_invoices"
             referencedColumns: ["id"]
           },
         ]

@@ -1,0 +1,506 @@
+/**
+ * IPROMED - Gerador de Peças com IA
+ * Criação de documentos jurídicos assistida por IA
+ */
+
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Sparkles,
+  FileText,
+  Send,
+  Copy,
+  Download,
+  Loader2,
+  RefreshCw,
+  History,
+  Wand2,
+  FileCheck,
+  AlertCircle,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
+
+interface GeneratedDocument {
+  id: string;
+  title: string;
+  document_type: string;
+  content: string | null;
+  generation_status: string;
+  created_at: string;
+  ipromed_legal_clients?: { name: string } | null;
+  ipromed_legal_cases?: { title: string } | null;
+}
+
+const documentTypes = [
+  { value: 'peticao_inicial', label: 'Petição Inicial' },
+  { value: 'contestacao', label: 'Contestação' },
+  { value: 'recurso', label: 'Recurso' },
+  { value: 'parecer', label: 'Parecer Jurídico' },
+  { value: 'contrato', label: 'Contrato' },
+  { value: 'notificacao', label: 'Notificação Extrajudicial' },
+  { value: 'procuracao', label: 'Procuração' },
+  { value: 'tcle', label: 'TCLE' },
+];
+
+const promptTemplates: Record<string, string> = {
+  peticao_inicial: `Elabore uma petição inicial completa para o seguinte caso:
+
+FATOS:
+{fatos}
+
+FUNDAMENTOS JURÍDICOS:
+{fundamentos}
+
+PEDIDOS:
+{pedidos}
+
+Inclua: qualificação das partes, dos fatos, fundamentos legais detalhados, pedidos específicos e valor da causa.`,
+
+  contestacao: `Elabore uma contestação para o seguinte caso:
+
+RESUMO DA AÇÃO:
+{resumo}
+
+ARGUMENTOS DE DEFESA:
+{defesa}
+
+Inclua: preliminares se aplicável, contestação do mérito, impugnação específica dos fatos e pedidos.`,
+
+  parecer: `Elabore um parecer jurídico sobre:
+
+CONSULTA:
+{consulta}
+
+DOCUMENTOS ANALISADOS:
+{documentos}
+
+Inclua: resumo da consulta, análise jurídica, fundamentação legal, riscos envolvidos e conclusão com recomendações.`,
+
+  contrato: `Elabore um contrato de {tipo_contrato}:
+
+PARTES:
+{partes}
+
+OBJETO:
+{objeto}
+
+CONDIÇÕES:
+{condicoes}
+
+Inclua: qualificação completa das partes, cláusulas essenciais, obrigações, penalidades e foro.`,
+};
+
+export default function AIDocumentGenerator() {
+  const [activeTab, setActiveTab] = useState('generate');
+  const [selectedType, setSelectedType] = useState('peticao_inicial');
+  const [prompt, setPrompt] = useState('');
+  const [title, setTitle] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [caseId, setCaseId] = useState('');
+  const [generatedContent, setGeneratedContent] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  // Fetch clients
+  const { data: clients = [] } = useQuery({
+    queryKey: ['ipromed-clients-dropdown'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('ipromed_legal_clients')
+        .select('id, name')
+        .order('name');
+      return data || [];
+    },
+  });
+
+  // Fetch cases
+  const { data: cases = [] } = useQuery({
+    queryKey: ['ipromed-cases-dropdown'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('ipromed_legal_cases')
+        .select('id, title, case_number')
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Fetch history
+  const { data: history = [] } = useQuery({
+    queryKey: ['ipromed-ai-documents'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('ipromed_ai_documents')
+        .select(`
+          *,
+          ipromed_legal_clients(name),
+          ipromed_legal_cases(title)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      return data as GeneratedDocument[] || [];
+    },
+  });
+
+  // Generate document
+  const generateDocument = async () => {
+    if (!prompt.trim()) {
+      toast.error('Descreva o documento que deseja gerar');
+      return;
+    }
+
+    setIsGenerating(true);
+    setGeneratedContent('');
+
+    try {
+      // Save to database first
+      const { data: docRecord, error: insertError } = await supabase
+        .from('ipromed_ai_documents')
+        .insert([{
+          title: title || `Documento - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
+          document_type: selectedType,
+          prompt_used: prompt,
+          client_id: clientId || null,
+          case_id: caseId || null,
+          generation_status: 'generating',
+        }])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Call AI edge function
+      const { data, error } = await supabase.functions.invoke('ai-legal-document', {
+        body: {
+          prompt,
+          documentType: selectedType,
+          context: {
+            clientId,
+            caseId,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      const content = data?.content || 'Não foi possível gerar o documento.';
+      setGeneratedContent(content);
+
+      // Update record with content
+      await supabase
+        .from('ipromed_ai_documents')
+        .update({
+          content,
+          generation_status: 'completed',
+        })
+        .eq('id', docRecord.id);
+
+      queryClient.invalidateQueries({ queryKey: ['ipromed-ai-documents'] });
+      toast.success('Documento gerado com sucesso!');
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      
+      // Fallback: generate locally with template
+      const fallbackContent = generateFallbackDocument();
+      setGeneratedContent(fallbackContent);
+      toast.info('Documento gerado com template padrão');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generateFallbackDocument = () => {
+    const docType = documentTypes.find(d => d.value === selectedType)?.label || 'Documento';
+    return `# ${docType}
+
+## ${title || 'Título do Documento'}
+
+${prompt}
+
+---
+
+*Documento gerado automaticamente. Revise antes de utilizar.*
+
+Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+`;
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedContent);
+    toast.success('Copiado para a área de transferência');
+  };
+
+  const useTemplate = () => {
+    const template = promptTemplates[selectedType] || promptTemplates.peticao_inicial;
+    setPrompt(template);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-purple-600" />
+            Criação de Peças com IA
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Gere documentos jurídicos assistido por inteligência artificial
+          </p>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="generate" className="gap-2">
+            <Wand2 className="h-4 w-4" />
+            Gerar Documento
+          </TabsTrigger>
+          <TabsTrigger value="history" className="gap-2">
+            <History className="h-4 w-4" />
+            Histórico
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Generate Tab */}
+        <TabsContent value="generate" className="mt-6">
+          <div className="grid grid-cols-2 gap-6">
+            {/* Input Panel */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Configuração</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Tipo de Documento</Label>
+                  <Select value={selectedType} onValueChange={setSelectedType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {documentTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Título (opcional)</Label>
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Nome do documento"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Cliente</Label>
+                    <Select value={clientId} onValueChange={setClientId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum</SelectItem>
+                        {clients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Processo</Label>
+                    <Select value={caseId} onValueChange={setCaseId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum</SelectItem>
+                        {cases.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.case_number || c.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Instruções para a IA</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={useTemplate}
+                      className="text-xs text-purple-600"
+                    >
+                      <FileText className="h-3 w-3 mr-1" />
+                      Usar Template
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="Descreva os detalhes do documento que deseja gerar. Inclua fatos, partes envolvidas, fundamentos jurídicos, pedidos, etc."
+                    rows={10}
+                    className="resize-none"
+                  />
+                </div>
+
+                <Button
+                  className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
+                  onClick={generateDocument}
+                  disabled={isGenerating || !prompt.trim()}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Gerar Documento
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Output Panel */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Resultado</CardTitle>
+                  {generatedContent && (
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={copyToClipboard}>
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copiar
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-1" />
+                        Exportar
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isGenerating ? (
+                  <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                    <Loader2 className="h-12 w-12 animate-spin text-purple-600 mb-4" />
+                    <p className="font-medium">Gerando documento...</p>
+                    <p className="text-sm">Isso pode levar alguns segundos</p>
+                  </div>
+                ) : generatedContent ? (
+                  <ScrollArea className="h-[400px] border rounded-lg p-4 bg-gray-50">
+                    <pre className="whitespace-pre-wrap text-sm font-sans">
+                      {generatedContent}
+                    </pre>
+                  </ScrollArea>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                    <FileText className="h-12 w-12 opacity-20 mb-4" />
+                    <p className="font-medium">Nenhum documento gerado</p>
+                    <p className="text-sm">Configure e clique em "Gerar Documento"</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* History Tab */}
+        <TabsContent value="history" className="mt-6">
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-0">
+              {history.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
+                  <History className="h-12 w-12 opacity-20 mb-4" />
+                  <p className="font-medium">Nenhum documento gerado</p>
+                  <p className="text-sm">Os documentos gerados aparecerão aqui</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {history.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="p-4 hover:bg-gray-50 cursor-pointer flex items-start justify-between"
+                      onClick={() => {
+                        setGeneratedContent(doc.content || '');
+                        setActiveTab('generate');
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                          <FileCheck className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{doc.title}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {documentTypes.find(t => t.value === doc.document_type)?.label || doc.document_type}
+                            </Badge>
+                            {doc.ipromed_legal_clients?.name && (
+                              <span className="text-xs text-muted-foreground">
+                                {doc.ipromed_legal_clients.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge className={
+                          doc.generation_status === 'completed' 
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : doc.generation_status === 'failed'
+                            ? 'bg-rose-100 text-rose-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }>
+                          {doc.generation_status === 'completed' ? 'Concluído' : 
+                           doc.generation_status === 'failed' ? 'Falhou' : 'Gerando'}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {format(new Date(doc.created_at), 'dd/MM/yy HH:mm')}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
