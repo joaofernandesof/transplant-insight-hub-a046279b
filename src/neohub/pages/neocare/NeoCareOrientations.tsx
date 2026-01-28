@@ -207,7 +207,7 @@ export default function NeoCareOrientations() {
   const phases = [
     { key: 'pre' as Phase, label: 'Pré-operatório', icon: Calendar },
     { key: 'd0' as Phase, label: 'Cirurgia', icon: null, customIcon: HairFollicleIcon },
-    { key: 'pos' as Phase, label: 'Cuidados Contínuos', icon: Droplets },
+    { key: 'pos' as Phase, label: 'Pós-Operatório', icon: Droplets },
   ];
 
   // Loading state
