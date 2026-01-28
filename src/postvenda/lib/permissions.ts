@@ -80,6 +80,7 @@ export const PRIORIDADE_LABELS: Record<string, string> = {
 };
 
 export const TIPO_DEMANDA_OPTIONS = [
+  { value: 'distrato', label: 'Distrato' },
   { value: 'duvida_pre_operatorio', label: 'Dúvida Pré-Operatório' },
   { value: 'duvida_pos_operatorio', label: 'Dúvida Pós-Operatório' },
   { value: 'reclamacao_atendimento', label: 'Reclamação - Atendimento' },
