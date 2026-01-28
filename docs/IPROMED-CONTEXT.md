@@ -166,10 +166,85 @@ O sistema calcula automaticamente scores de risco em três dimensões:
 
 ## Equipe Jurídica (Perfis no Sistema)
 
-- **Dra. Larissa Guerreiro** - Advogada especialista
-- **Dra. Caroline Parahyba** - Advogada especialista  
-- **Isabele Cartaxo** - Suporte jurídico
+### Larissa Guerreiro - Sócia Fundadora
+- Pós-graduação em Direito Médico
+- Fundadora do IPROMED
+- Consultora jurídica de clínicas capilares
+- Criadora de método próprio de segurança jurídica
+- Especialista em Compliance, LGPD e prontuário
+
+### Isabele Cartaxo - Especialista
+- Especialista em Direito Médico e Societário
+- Atuação estratégica em contencioso
+- Defesa ética, cível e criminal
+- Casos de maior complexidade
+- Representação institucional e OAB
+
+### Caroline Parahyba - Especialista
+- Mestre em Direito Constitucional, foco em saúde
+- Gestão de casos estratégicos
+- Atuação em processos sensíveis
+- Produção técnica e teses jurídicas
+- Supervisão de qualidade das entregas
+
+---
+
+## Planos de Assessoria
+
+### Plano Essencial - R$ 1.900/mês
+- Consultoria jurídica preventiva ilimitada
+- Defesa ética perante CRM
+- Defesa cível (danos morais e materiais)
+- Acompanhamento em audiências
+- Até 3 processos concomitantes
+- Documentação Jurídica com desconto
+
+### Plano Integral - R$ 2.900/mês
+- Tudo do Essencial +
+- Análise e revisão de contratos médicos
+- Defesa criminal médica
+- Defesa administrativa (Vigilância, ANS)
+- Gestão de crise e reputação
+- Parecer jurídico técnico
+- Processos concomitantes ilimitados
+- Documentação Jurídica Preventiva inclusa
+
+---
+
+## Documentação Jurídica Preventiva (Valor de mercado: R$ 15.200)
+
+1. Contrato de Prestação de Serviços
+2. Formulário de Anamnese Guiado
+3. Política de Agendamento
+4. Termo de Uso de Imagem
+5. Política de Prontuário
+6. Termo de Sigilo
+7. TCLE para Teleconsulta
+8. Termo de Recusa de Tratamento
+9. TCLEs Específicos por Procedimento
+
+---
+
+## KPIs do IPROMED
+
+| Métrica | Valor |
+|---------|-------|
+| Médicos protegidos | +500 |
+| Tempo de resposta | 24h |
+| Foco em saúde | 100% |
+
+---
+
+## Custos de Defesa Avulsa (Risco Total: R$ 100.000)
+
+| Tipo de Defesa | Valor |
+|----------------|-------|
+| Defesa ética (CRM) | R$ 10.000 |
+| Defesa cível | R$ 30.000 |
+| Defesa criminal | R$ 30.000 |
+| Defesa administrativa | R$ 30.000 |
 
 ---
 
 *Documento de contexto para o sistema IPROMED - Atualizado em Janeiro 2026*
+*Fonte: ipromed.com.br*
