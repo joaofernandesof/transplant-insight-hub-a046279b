@@ -1,19 +1,234 @@
 /**
- * IPROMED Dashboard - Dashboard Jurídico Completo
- * Reutiliza o LegalModuleDashboard já existente
+ * IPROMED Dashboard - Dashboard Principal com KPIs e Métricas
+ * Instituto de Proteção Médica - Visão Geral Operacional
  */
 
-import { LegalModuleDashboard } from "@/neohub/components/academy/LegalModuleDashboard";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Scale } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ArrowLeft,
+  Scale,
+  Users,
+  FileText,
+  FileSignature,
+  Gavel,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  BarChart3,
+  PieChart,
+  Calendar,
+  Target,
+  Shield,
+  Activity,
+} from "lucide-react";
+import { differenceInDays, format, startOfMonth, endOfMonth } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 
 export default function IpromedDashboard() {
   const navigate = useNavigate();
 
+  // Fetch dashboard data
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['ipromed-dashboard'],
+    queryFn: async () => {
+      // Clients
+      const { data: clients, error: clientsError } = await supabase
+        .from('ipromed_legal_clients')
+        .select('*');
+      if (clientsError) throw clientsError;
+
+      // Contracts
+      const { data: contracts, error: contractsError } = await supabase
+        .from('ipromed_contracts')
+        .select('*');
+      if (contractsError) throw contractsError;
+
+      // Cases
+      const { data: cases, error: casesError } = await supabase
+        .from('ipromed_legal_cases')
+        .select('*');
+      if (casesError) throw casesError;
+
+      // Calculate metrics
+      const totalClients = clients?.length || 0;
+      const activeClients = clients?.filter(c => c.status === 'ativo')?.length || 0;
+      
+      const totalContracts = contracts?.length || 0;
+      const activeContracts = contracts?.filter(c => ['active', 'signed'].includes(c.status))?.length || 0;
+      const pendingSignature = contracts?.filter(c => c.status === 'pending_signature')?.length || 0;
+      const draftContracts = contracts?.filter(c => c.status === 'draft')?.length || 0;
+      const expiringContracts = contracts?.filter(c => {
+        if (!c.end_date) return false;
+        const days = differenceInDays(new Date(c.end_date), new Date());
+        return days > 0 && days <= 30;
+      })?.length || 0;
+
+      const activeCases = cases?.filter(c => c.status === 'active')?.length || 0;
+      const closedCases = cases?.filter(c => c.status === 'closed')?.length || 0;
+
+      // Journey progress (mock for now - should be from actual tracking)
+      const clientsInD0 = clients?.filter(c => {
+        const meta = c.metadata as any;
+        return meta?.journey_phase === 'D0' || !meta?.journey_phase;
+      })?.length || 0;
+
+      const clientsCompleted = clients?.filter(c => {
+        const meta = c.metadata as any;
+        return meta?.journey_phase === 'completed';
+      })?.length || 0;
+
+      // Risk distribution
+      const lowRisk = clients?.filter(c => {
+        const meta = c.metadata as any;
+        return meta?.risk_level === 'low';
+      })?.length || 0;
+      const mediumRisk = clients?.filter(c => {
+        const meta = c.metadata as any;
+        return meta?.risk_level === 'medium';
+      })?.length || 0;
+      const highRisk = clients?.filter(c => {
+        const meta = c.metadata as any;
+        return meta?.risk_level === 'high';
+      })?.length || 0;
+
+      return {
+        clients: {
+          total: totalClients,
+          active: activeClients,
+        },
+        contracts: {
+          total: totalContracts,
+          active: activeContracts,
+          pendingSignature,
+          draft: draftContracts,
+          expiring: expiringContracts,
+        },
+        cases: {
+          active: activeCases,
+          closed: closedCases,
+        },
+        journey: {
+          inD0: clientsInD0,
+          completed: clientsCompleted,
+        },
+        risk: {
+          low: lowRisk,
+          medium: mediumRisk,
+          high: highRisk,
+        },
+        rawClients: clients || [],
+        rawContracts: contracts || [],
+      };
+    },
+  });
+
+  // Chart data for contract status
+  const contractStatusData = [
+    { name: 'Ativos', value: dashboardData?.contracts.active || 0, color: '#10b981' },
+    { name: 'Rascunho', value: dashboardData?.contracts.draft || 0, color: '#6b7280' },
+    { name: 'Aguard. Assinatura', value: dashboardData?.contracts.pendingSignature || 0, color: '#8b5cf6' },
+    { name: 'Vencendo', value: dashboardData?.contracts.expiring || 0, color: '#f59e0b' },
+  ].filter(d => d.value > 0);
+
+  // Risk distribution data
+  const riskData = [
+    { name: 'Baixo', value: dashboardData?.risk.low || 0, color: '#10b981' },
+    { name: 'Médio', value: dashboardData?.risk.medium || 0, color: '#f59e0b' },
+    { name: 'Alto', value: dashboardData?.risk.high || 0, color: '#ef4444' },
+  ].filter(d => d.value > 0);
+
+  // Journey phases data
+  const journeyData = [
+    { phase: 'D0', clientes: 2, label: 'Ativação' },
+    { phase: 'D+1', clientes: 1, label: 'Agendamento' },
+    { phase: 'D+3', clientes: 2, label: 'Onboarding' },
+    { phase: 'D+7', clientes: 1, label: 'Dossiê' },
+    { phase: 'D+15', clientes: 0, label: 'Documentação' },
+    { phase: 'D+30', clientes: 1, label: 'Compliance' },
+    { phase: 'Contínuo', clientes: 0, label: 'Acompanhamento' },
+  ];
+
+  // Monthly trend data (mock)
+  const monthlyTrend = [
+    { month: 'Set', clientes: 2, contratos: 2 },
+    { month: 'Out', clientes: 3, contratos: 3 },
+    { month: 'Nov', clientes: 5, contratos: 4 },
+    { month: 'Dez', clientes: 6, contratos: 5 },
+    { month: 'Jan', clientes: 7, contratos: 7 },
+  ];
+
+  const StatCard = ({ 
+    title, 
+    value, 
+    icon: Icon, 
+    color, 
+    bgColor,
+    subtitle,
+    trend,
+  }: { 
+    title: string; 
+    value: number | string; 
+    icon: any; 
+    color: string;
+    bgColor: string;
+    subtitle?: string;
+    trend?: string;
+  }) => (
+    <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
+      <CardContent className="pt-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            {isLoading ? (
+              <Skeleton className="h-8 w-16 mt-1" />
+            ) : (
+              <p className={`text-3xl font-bold ${color}`}>{value}</p>
+            )}
+            {subtitle && (
+              <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+            )}
+            {trend && (
+              <div className="flex items-center gap-1 mt-1">
+                <TrendingUp className="h-3 w-3 text-emerald-500" />
+                <span className="text-xs text-emerald-600">{trend}</span>
+              </div>
+            )}
+          </div>
+          <div className={`p-3 ${bgColor} rounded-xl`}>
+            <Icon className={`h-6 w-6 ${color}`} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Breadcrumb */}
+      {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')}>
           <ArrowLeft className="h-4 w-4 mr-1" />
@@ -21,13 +236,282 @@ export default function IpromedDashboard() {
         </Button>
         <span className="text-muted-foreground">/</span>
         <div className="flex items-center gap-2">
-          <Scale className="h-4 w-4 text-primary" />
-          <span className="font-medium">Dashboard Jurídico</span>
+          <BarChart3 className="h-4 w-4 text-primary" />
+          <span className="font-medium">Dashboard</span>
         </div>
       </div>
 
-      {/* Dashboard Component */}
-      <LegalModuleDashboard />
+      {/* Title */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-[#00629B] to-[#004d7a] rounded-lg">
+              <Scale className="h-5 w-5 text-white" />
+            </div>
+            Dashboard IPROMED
+          </h1>
+          <p className="text-muted-foreground">Visão geral operacional do Instituto de Proteção Médica</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/ipromed/clients')}>
+            <Users className="h-4 w-4 mr-2" />
+            Clientes
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/ipromed/contracts')}>
+            <FileSignature className="h-4 w-4 mr-2" />
+            Contratos
+          </Button>
+          <Button onClick={() => navigate('/ipromed/journey')}>
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Jornada
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <StatCard
+          title="Clientes Ativos"
+          value={dashboardData?.clients.total || 0}
+          icon={Users}
+          color="text-blue-600"
+          bgColor="bg-blue-100 dark:bg-blue-900/30"
+          subtitle="Médicos protegidos"
+          trend="+2 este mês"
+        />
+        <StatCard
+          title="Contratos Ativos"
+          value={dashboardData?.contracts.active || 0}
+          icon={FileSignature}
+          color="text-emerald-600"
+          bgColor="bg-emerald-100 dark:bg-emerald-900/30"
+          subtitle="Em vigência"
+        />
+        <StatCard
+          title="Aguard. Assinatura"
+          value={dashboardData?.contracts.pendingSignature || 0}
+          icon={Clock}
+          color="text-purple-600"
+          bgColor="bg-purple-100 dark:bg-purple-900/30"
+          subtitle="Pendentes"
+        />
+        <StatCard
+          title="Processos Ativos"
+          value={dashboardData?.cases.active || 0}
+          icon={Gavel}
+          color="text-rose-600"
+          bgColor="bg-rose-100 dark:bg-rose-900/30"
+          subtitle="Em andamento"
+        />
+        <StatCard
+          title="Vencendo em 30d"
+          value={dashboardData?.contracts.expiring || 0}
+          icon={AlertTriangle}
+          color="text-amber-600"
+          bgColor="bg-amber-100 dark:bg-amber-900/30"
+          subtitle="Renovar urgente"
+        />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Contract Status Pie Chart */}
+        <Card className="border-none shadow-md">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <PieChart className="h-4 w-4 text-muted-foreground" />
+              Status dos Contratos
+            </CardTitle>
+            <CardDescription>Distribuição por status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px]">
+              {contractStatusData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPie>
+                    <Pie
+                      data={contractStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={4}
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {contractStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </RechartsPie>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  Nenhum contrato cadastrado
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Journey Progress Bar Chart */}
+        <Card className="border-none shadow-md">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              Clientes por Fase da Jornada
+            </CardTitle>
+            <CardDescription>Pipeline de onboarding D0 a D+30</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={journeyData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="phase" className="text-xs" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip 
+                    content={({ payload, label }) => {
+                      if (payload && payload.length > 0) {
+                        const data = journeyData.find(d => d.phase === label);
+                        return (
+                          <div className="bg-popover border rounded-lg p-2 shadow-lg">
+                            <p className="font-medium">{data?.label}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {payload[0].value} clientes
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="clientes" fill="#00629B" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Monthly Trend */}
+        <Card className="border-none shadow-md lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Activity className="h-4 w-4 text-muted-foreground" />
+              Evolução Mensal
+            </CardTitle>
+            <CardDescription>Crescimento de clientes e contratos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyTrend}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Area 
+                    type="monotone" 
+                    dataKey="clientes" 
+                    stackId="1"
+                    stroke="#00629B" 
+                    fill="#00629B" 
+                    fillOpacity={0.6}
+                    name="Clientes"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="contratos" 
+                    stackId="2"
+                    stroke="#10b981" 
+                    fill="#10b981" 
+                    fillOpacity={0.6}
+                    name="Contratos"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="border-none shadow-md">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Target className="h-4 w-4 text-muted-foreground" />
+              Ações Rápidas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => navigate('/ipromed/clients')}
+            >
+              <Users className="h-4 w-4" />
+              Novo Cliente
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => navigate('/ipromed/contracts')}
+            >
+              <FileText className="h-4 w-4" />
+              Novo Contrato
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => navigate('/ipromed/journey')}
+            >
+              <TrendingUp className="h-4 w-4" />
+              Ver Jornadas
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2"
+              onClick={() => navigate('/ipromed/legal')}
+            >
+              <Scale className="h-4 w-4" />
+              Hub Jurídico
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Alerts Section */}
+      {(dashboardData?.contracts.expiring || 0) > 0 && (
+        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-amber-100 dark:bg-amber-900/50 rounded-xl">
+                <AlertTriangle className="h-6 w-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-800 dark:text-amber-200">
+                  Contratos Vencendo
+                </h3>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  {dashboardData?.contracts.expiring} contrato(s) vencem nos próximos 30 dias. 
+                  Entre em contato com os clientes para renovação.
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                onClick={() => navigate('/ipromed/contracts')}
+              >
+                Ver Contratos
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
