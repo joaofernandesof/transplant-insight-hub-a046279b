@@ -65,6 +65,9 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     return () => window.removeEventListener('open-scan-plans', handleOpenPlans);
   }, []);
 
+  // Store stream reference for assignment after video element is ready
+  const pendingStreamRef = useRef<MediaStream | null>(null);
+
   // Open camera
   const openCamera = async () => {
     try {
@@ -92,11 +95,10 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
         });
       }
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setIsCameraOpen(true);
-      }
+      // Store the stream and open camera UI
+      // The video element will be rendered, then we assign the stream in useEffect
+      pendingStreamRef.current = stream;
+      setIsCameraOpen(true);
     } catch (error) {
       console.error("Camera error:", error);
       if (error instanceof DOMException) {
@@ -114,6 +116,18 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
       }
     }
   };
+
+  // Effect to attach stream to video element after it's rendered
+  useEffect(() => {
+    if (isCameraOpen && pendingStreamRef.current && videoRef.current) {
+      videoRef.current.srcObject = pendingStreamRef.current;
+      videoRef.current.play().catch(err => {
+        console.error("Error playing video:", err);
+        toast.error("Erro ao iniciar vídeo da câmera");
+      });
+      pendingStreamRef.current = null;
+    }
+  }, [isCameraOpen]);
 
   // Capture photo from camera
   const capturePhoto = () => {
