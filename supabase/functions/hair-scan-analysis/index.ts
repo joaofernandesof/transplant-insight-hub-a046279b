@@ -195,7 +195,7 @@ STYLE TO APPLY: "${selectedStyle}"
 
     // Some model runs return only text (no images). For newversion we force image-only output and do 1 retry.
     const forceImageOnly = action === "newversion";
-    const model = "google/gemini-2.5-flash-image";
+    const model = action === "newversion" ? "google/gemini-3-pro-image-preview" : "google/gemini-2.5-flash-image";
 
     let response = await callImageModel({
       lovableApiKey: LOVABLE_API_KEY,
