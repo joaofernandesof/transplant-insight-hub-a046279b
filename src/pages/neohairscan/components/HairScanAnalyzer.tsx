@@ -74,6 +74,42 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     return () => window.removeEventListener('open-scan-plans', handleOpenPlans);
   }, []);
 
+  // Auto-save to history when images are generated
+  const lastSavedRef = useRef<{ type: string; count: number } | null>(null);
+  
+  useEffect(() => {
+    if (!originalImage || !userId) return;
+    
+    // Auto-save progression
+    if (progressionImage && lastSavedRef.current?.type !== 'progression') {
+      lastSavedRef.current = { type: 'progression', count: 1 };
+      saveToHistory(originalImage, 'progression', [progressionImage], undefined, { years: yearsProgression[0] });
+    }
+  }, [progressionImage, originalImage, userId, yearsProgression, saveToHistory]);
+
+  useEffect(() => {
+    if (!originalImage || !userId) return;
+    
+    // Auto-save scan
+    if (scanImage && lastSavedRef.current?.type !== 'scan') {
+      lastSavedRef.current = { type: 'scan', count: 1 };
+      saveToHistory(originalImage, 'scan', [scanImage]);
+    }
+  }, [scanImage, originalImage, userId, saveToHistory]);
+
+  useEffect(() => {
+    if (!originalImage || !userId) return;
+    
+    // Auto-save newversion when images are added
+    if (newVersionImages.length > 0) {
+      const savedCount = lastSavedRef.current?.type === 'newversion' ? lastSavedRef.current.count : 0;
+      if (newVersionImages.length > savedCount) {
+        lastSavedRef.current = { type: 'newversion', count: newVersionImages.length };
+        saveToHistory(originalImage, 'newversion', newVersionImages, selectedHairStyle);
+      }
+    }
+  }, [newVersionImages, originalImage, userId, selectedHairStyle, saveToHistory]);
+
   // Store stream reference for assignment after video element is ready
   const pendingStreamRef = useRef<MediaStream | null>(null);
 
@@ -373,6 +409,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
     setYearsProgression([0]);
     setShowCropper(false);
     setSelectedHairStyle("natural");
+    lastSavedRef.current = null; // Reset saved state tracker
     stopCamera();
   };
 
