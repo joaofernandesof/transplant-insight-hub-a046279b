@@ -49,49 +49,56 @@ The progression should be proportional to ${yearsProgression} years of untreated
 - Keep facial features visible but muted
 The result should help doctors identify areas of alopecia and density variations.`;
     } else if (action === "newversion") {
-      // Generate 12 VARIED post-transplant hairstyle variations
-      // Each call should produce a UNIQUE look
+      // 🎯 Generate ultra-realistic post-transplant hairstyle variations
+      // Emotional context: Help men post-transplant visualize cuts that respect their current aesthetics,
+      // hair density and maturity. Avoid plastic exaggeration. Realistic, confident, natural aesthetics.
       
-      // Array of distinctly different hairstyles to ensure variety
       const hairstyleVariations = [
-        "short buzz cut with clean edges, military style, very short on sides",
-        "medium length textured crop with volume on top, natural messy look",
-        "classic side part with slicked back sides, elegant businessman style",
-        "longer wavy hair with natural flow and movement, surfer style",
-        "modern pompadour with volume, styled upward and back",
-        "caesar cut with straight bangs, short and neat all around",
-        "layered medium length with swept fringe, youthful style",
-        "curly/wavy texture with defined curls, full volume",
-        "undercut with longer top, trendy asymmetric look",
-        "classic taper fade with textured top, clean and professional",
-        "longer slicked back hair, wet look style, reaching neck",
-        "short spiky textured style with volume, edgy modern look",
-        "quiff hairstyle with height at front, rockabilly inspired",
-        "french crop with textured fringe, contemporary European style",
-        "medium length with curtain bangs, parted in middle, K-pop inspired",
-        "tight fade with dense curly top, afro-textured style"
+        "short buzz cut with clean edges, military style, very short on sides, mature professional look",
+        "medium length textured crop with natural volume on top, slightly messy everyday look",
+        "classic side part with neatly combed sides, elegant businessman style, clean and refined",
+        "longer wavy hair with natural flow and soft movement, relaxed casual style",
+        "modern pompadour with subtle volume, styled gently upward and back, not exaggerated",
+        "caesar cut with straight natural bangs, short and neat all around, timeless style",
+        "layered medium length with soft swept fringe, balanced and thoughtful look",
+        "natural wavy texture with soft defined waves, medium volume, effortless style",
+        "undercut with longer textured top, contemporary asymmetric look, subtle contrast",
+        "classic taper fade with lightly textured top, clean and professional finish",
+        "longer slicked back hair with natural shine (not wet look), reaching collar, distinguished",
+        "short textured style with soft volume, modern everyday look, low maintenance",
+        "quiff hairstyle with gentle height at front, subtle lift, not rockabilly extreme",
+        "french crop with soft textured fringe, contemporary European style, refined edges",
+        "medium length with natural center part, soft layers framing face, balanced style",
+        "tight fade with natural dense top, respecting natural curl pattern if present"
       ];
       
-      // Pick a random hairstyle to ensure each generation is different
       const randomIndex = Math.floor(Math.random() * hairstyleVariations.length);
       const selectedStyle = hairstyleVariations[randomIndex];
       
-      prompt = `CRITICAL INSTRUCTION: Edit ONLY the hair in this photo. The face, skin, eyes, nose, mouth, ears, beard, facial hair, clothing, and background MUST remain EXACTLY identical - do not alter them at all.
+      prompt = `🎯 CRITICAL: Generate an ULTRA-REALISTIC post-transplant hair simulation. This is for men recovering their confidence after hair restoration.
 
-Transform this person's hair to show a successful hair transplant result with THIS SPECIFIC HAIRSTYLE:
-**${selectedStyle}**
+STYLE TO APPLY: "${selectedStyle}"
 
-Requirements:
-- Add full, dense hair coverage where there is currently thinning or baldness
-- The new hair must be styled EXACTLY as described: ${selectedStyle}
-- Match the hair color exactly to any existing hair (do not change hair color)
-- Create a natural-looking hairline appropriate for the person's age and face shape
-- Show realistic hair density and texture for this specific style
-- The hair should look ultra photorealistic and professionally styled
-- Maintain exact same lighting, shadows, and image quality as original
-- This specific style should be clearly distinguishable from other hairstyles
+📋 STRICT REQUIREMENTS:
+1. FACE PRESERVATION: Keep face, skin texture, eyes, nose, mouth, ears, beard, clothing, and background EXACTLY identical - zero facial morphing or smoothing
+2. REALISTIC HAIRLINE: Create a natural hairline appropriate for the person's age and face shape - NO artificial plastic look, NO perfect symmetry
+3. HAIR DENSITY: Match density to realistic post-transplant results - full but natural, not unnaturally thick
+4. TEXTURE & DIRECTION: Respect natural hair growth direction, use subtle texture (2A/2B wave pattern as default if unclear) - NO glossy/shiny artificial look
+5. COLOR MATCHING: Match hair color exactly to any existing hair - NO color changes
+6. LIGHTING: Use cinematic soft-light style, maintain exact same lighting and shadows as original photo
+7. SCALP BLENDING: Blend naturally with scalp and forehead - use subtle shadows and depth to anchor the hairstyle naturally
+8. NO CARTOON TEXTURES: Avoid overly defined strands, plastic shine, or artificial highlights
 
-This is a medical simulation of post-transplant results. The person should look like themselves but with a full head of hair in the ${selectedStyle} style.`;
+🧠 EMOTIONAL DIRECTION:
+- This person is recovering confidence after hair loss
+- Style should look NATURAL as if they always had this hair
+- Professional styles = calm, confident, reliable appearance
+- Casual styles = balanced, thoughtful, subtly stylish
+
+🎨 OUTPUT QUALITY: 
+- Photorealistic quality with preserved skin texture
+- Clean facial capture without beautification filters
+- The result must be indistinguishable from a real photo`;
     } else {
       throw new Error("Invalid action. Use 'progression', 'scan' or 'newversion'");
     }
