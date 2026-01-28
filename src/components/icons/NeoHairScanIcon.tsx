@@ -16,21 +16,23 @@ export function NeoHairScanIcon({ className, ...props }: NeoHairScanIconProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       stroke="currentColor"
-      strokeWidth={2.25}
+      strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={cn("shrink-0", className)}
+      width="24"
+      height="24"
       aria-hidden={props["aria-label"] ? undefined : true}
       {...props}
     >
-      {/* Scan corners - cantos arredondados */}
-      <path d="M7.5 5H5.5a.5.5 0 0 0-.5.5v2" />
-      <path d="M16.5 5h2a.5.5 0 0 1 .5.5v2" />
-      <path d="M7.5 19H5.5a.5.5 0 0 1-.5-.5v-2" />
-      <path d="M16.5 19h2a.5.5 0 0 0 .5-.5v-2" />
-
+      {/* Scan corners */}
+      <path d="M7 3H5a2 2 0 0 0-2 2v2" />
+      <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+      <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+      <path d="M17 21h2a2 2 0 0 0 2-2v-2" />
+      
       {/* Ponto central */}
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
     </svg>
   );
 }
