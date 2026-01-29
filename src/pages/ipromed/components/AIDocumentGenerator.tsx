@@ -326,18 +326,18 @@ Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </TabsList>
 
         {/* Generate Tab */}
-        <TabsContent value="generate" className="mt-6">
-          <div className="grid grid-cols-2 gap-6">
+        <TabsContent value="generate" className="mt-4 sm:mt-6">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Input Panel */}
             <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Configuração</CardTitle>
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className="text-base sm:text-lg">Configuração</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Tipo de Documento</Label>
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-sm">Tipo de Documento</Label>
                   <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10 sm:h-11">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -350,20 +350,21 @@ Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Título (opcional)</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-sm">Título (opcional)</Label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Nome do documento"
+                    className="h-10 sm:h-11"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Cliente</Label>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-sm">Cliente</Label>
                     <Select value={clientId} onValueChange={setClientId}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 sm:h-11">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
@@ -374,10 +375,10 @@ Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Processo</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-sm">Processo</Label>
                     <Select value={caseId} onValueChange={setCaseId}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 sm:h-11">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
@@ -392,30 +393,30 @@ Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label>Instruções para a IA</Label>
+                    <Label className="text-sm">Instruções para a IA</Label>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={useTemplate}
-                      className="text-xs text-purple-600"
+                      className="text-xs text-purple-600 h-8 px-2"
                     >
                       <FileText className="h-3 w-3 mr-1" />
-                      Usar Template
+                      Template
                     </Button>
                   </div>
                   <Textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Descreva os detalhes do documento que deseja gerar. Inclua fatos, partes envolvidas, fundamentos jurídicos, pedidos, etc."
-                    rows={10}
-                    className="resize-none"
+                    placeholder="Descreva os detalhes do documento..."
+                    rows={6}
+                    className="resize-none text-sm"
                   />
                 </div>
 
                 <Button
-                  className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
+                  className="w-full gap-2 bg-purple-600 hover:bg-purple-700 h-11"
                   onClick={generateDocument}
                   disabled={isGenerating || !prompt.trim()}
                 >
@@ -436,18 +437,18 @@ Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
 
             {/* Output Panel */}
             <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Resultado</CardTitle>
+              <CardHeader className="pb-2 sm:pb-3">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-base sm:text-lg">Resultado</CardTitle>
                   {generatedContent && (
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={copyToClipboard}>
-                        <Copy className="h-4 w-4 mr-1" />
-                        Copiar
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <Button variant="outline" size="sm" onClick={copyToClipboard} className="h-8 px-2 sm:px-3">
+                        <Copy className="h-3.5 w-3.5 sm:mr-1" />
+                        <span className="hidden sm:inline">Copiar</span>
                       </Button>
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4 mr-1" />
-                        Exportar
+                      <Button variant="outline" size="sm" className="h-8 px-2 sm:px-3">
+                        <Download className="h-3.5 w-3.5 sm:mr-1" />
+                        <span className="hidden sm:inline">Exportar</span>
                       </Button>
                     </div>
                   )}
@@ -455,22 +456,22 @@ Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </CardHeader>
               <CardContent>
                 {isGenerating ? (
-                  <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
-                    <Loader2 className="h-12 w-12 animate-spin text-purple-600 mb-4" />
-                    <p className="font-medium">Gerando documento...</p>
-                    <p className="text-sm">Isso pode levar alguns segundos</p>
+                  <div className="flex flex-col items-center justify-center h-[250px] sm:h-[400px] text-muted-foreground">
+                    <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-purple-600 mb-3 sm:mb-4" />
+                    <p className="font-medium text-sm sm:text-base">Gerando documento...</p>
+                    <p className="text-xs sm:text-sm">Isso pode levar alguns segundos</p>
                   </div>
                 ) : generatedContent ? (
-                  <ScrollArea className="h-[400px] border rounded-lg p-4 bg-gray-50">
-                    <pre className="whitespace-pre-wrap text-sm font-sans">
+                  <ScrollArea className="h-[250px] sm:h-[400px] border rounded-lg p-3 sm:p-4 bg-gray-50">
+                    <pre className="whitespace-pre-wrap text-xs sm:text-sm font-sans">
                       {generatedContent}
                     </pre>
                   </ScrollArea>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
-                    <FileText className="h-12 w-12 opacity-20 mb-4" />
-                    <p className="font-medium">Nenhum documento gerado</p>
-                    <p className="text-sm">Configure e clique em "Gerar Documento"</p>
+                  <div className="flex flex-col items-center justify-center h-[250px] sm:h-[400px] text-muted-foreground">
+                    <FileText className="h-10 w-10 sm:h-12 sm:w-12 opacity-20 mb-3 sm:mb-4" />
+                    <p className="font-medium text-sm sm:text-base">Nenhum documento gerado</p>
+                    <p className="text-xs sm:text-sm text-center px-4">Configure e clique em "Gerar Documento"</p>
                   </div>
                 )}
               </CardContent>
