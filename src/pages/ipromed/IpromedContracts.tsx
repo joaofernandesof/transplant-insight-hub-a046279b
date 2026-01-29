@@ -82,81 +82,82 @@ export default function IpromedContracts() {
   });
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')}>
             <ArrowLeft className="h-4 w-4 mr-1" />
-            IPROMED
+            <span className="hidden sm:inline">IPROMED</span>
           </Button>
-          <span className="text-muted-foreground">/</span>
-          <span className="font-medium">Contratos</span>
+          <span className="text-muted-foreground hidden sm:inline">/</span>
+          <span className="font-medium text-sm sm:text-base">Contratos</span>
         </div>
-        <Button onClick={() => setIsNewDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Contrato
+        <Button onClick={() => setIsNewDialogOpen(true)} size="sm" className="sm:size-default">
+          <Plus className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Novo Contrato</span>
+          <span className="sm:hidden">Novo</span>
         </Button>
       </div>
 
       <NewContractDialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen} />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Stats Cards - Grid responsivo */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <FileSignature className="h-6 w-6 text-primary" />
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-primary/10 rounded-lg sm:rounded-xl">
+                <FileSignature className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{contracts.length}</p>
-                <p className="text-sm text-muted-foreground">Total de Contratos</p>
+                <p className="text-lg sm:text-2xl font-bold">{contracts.length}</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Total</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
-                <Clock className="h-6 w-6 text-amber-600" />
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg sm:rounded-xl">
+                <Clock className="h-4 w-4 sm:h-6 sm:w-6 text-amber-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-lg sm:text-2xl font-bold">
                   {contracts.filter(c => c.status === 'pending_signature').length}
                 </p>
-                <p className="text-sm text-muted-foreground">Aguardando Assinatura</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Aguardando</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
-                <CheckCircle className="h-6 w-6 text-emerald-600" />
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg sm:rounded-xl">
+                <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 text-emerald-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-lg sm:text-2xl font-bold">
                   {contracts.filter(c => c.status === 'signed').length}
                 </p>
-                <p className="text-sm text-muted-foreground">Assinados</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Assinados</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gray-100 dark:bg-gray-900/30 rounded-xl">
-                <FileSignature className="h-6 w-6 text-gray-600" />
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-gray-100 dark:bg-gray-900/30 rounded-lg sm:rounded-xl">
+                <FileSignature className="h-4 w-4 sm:h-6 sm:w-6 text-gray-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-lg sm:text-2xl font-bold">
                   {contracts.filter(c => c.status === 'draft').length}
                 </p>
-                <p className="text-sm text-muted-foreground">Rascunhos</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Rascunhos</p>
               </div>
             </div>
           </CardContent>

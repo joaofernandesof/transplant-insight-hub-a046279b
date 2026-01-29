@@ -169,101 +169,102 @@ export default function IpromedClients() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')}>
           <ArrowLeft className="h-4 w-4 mr-1" />
-          IPROMED
+          <span className="hidden sm:inline">IPROMED</span>
         </Button>
-        <span className="text-muted-foreground">/</span>
+        <span className="text-muted-foreground hidden sm:inline">/</span>
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-primary" />
-          <span className="font-medium">Clientes</span>
+          <span className="font-medium text-sm sm:text-base">Clientes</span>
         </div>
       </div>
 
       {/* Title and Actions */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Gestão de Contratos</h1>
-          <p className="text-muted-foreground">Controle de clientes e processos jurídicos</p>
+          <h1 className="text-xl sm:text-2xl font-bold">Gestão de Contratos</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Controle de clientes e processos</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/ipromed/journey')}>
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Jornada do Cliente
+          <Button variant="outline" size="sm" onClick={() => navigate('/ipromed/journey')}>
+            <TrendingUp className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Jornada</span>
           </Button>
-          <Button onClick={() => { setEditingClient(undefined); setIsFormOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Cliente
+          <Button size="sm" onClick={() => { setEditingClient(undefined); setIsFormOpen(true); }}>
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Novo Cliente</span>
+            <span className="sm:hidden">Novo</span>
           </Button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Stats Cards - Grid responsivo */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm text-muted-foreground">Total de Clientes</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Total</p>
+                <p className="text-lg sm:text-2xl font-bold">{stats.total}</p>
               </div>
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                <Users className="h-5 w-5 text-blue-600" />
+              <div className="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg sm:rounded-xl">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm text-muted-foreground">Ativos</p>
-                <p className="text-2xl font-bold text-emerald-600">{stats.active}</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Ativos</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-600">{stats.active}</p>
               </div>
-              <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
+              <div className="p-2 sm:p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg sm:rounded-xl">
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm text-muted-foreground">Prospectos</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.prospects}</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Prospectos</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-600">{stats.prospects}</p>
               </div>
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                <Briefcase className="h-5 w-5 text-blue-600" />
+              <div className="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg sm:rounded-xl">
+                <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm text-muted-foreground">Pagos</p>
-                <p className="text-2xl font-bold text-emerald-600">{stats.paid}</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Pagos</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-600">{stats.paid}</p>
               </div>
-              <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
-                <DollarSign className="h-5 w-5 text-emerald-600" />
+              <div className="p-2 sm:p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg sm:rounded-xl">
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+        <Card className="col-span-2 sm:col-span-1">
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm text-muted-foreground">Aguardando Assinatura</p>
-                <p className="text-2xl font-bold text-amber-600">{stats.pendingSignature}</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Aguard. Assinatura</p>
+                <p className="text-lg sm:text-2xl font-bold text-amber-600">{stats.pendingSignature}</p>
               </div>
-              <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
-                <FileSignature className="h-5 w-5 text-amber-600" />
+              <div className="p-2 sm:p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg sm:rounded-xl">
+                <FileSignature className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
               </div>
             </div>
           </CardContent>

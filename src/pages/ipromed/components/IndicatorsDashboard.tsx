@@ -159,17 +159,17 @@ export default function IndicatorsDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Indicadores</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-semibold">Indicadores</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Métricas e análises do escritório
           </p>
         </div>
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-full sm:w-[160px]">
             <Calendar className="h-4 w-4 mr-2" />
             <SelectValue />
           </SelectTrigger>
@@ -182,154 +182,158 @@ export default function IndicatorsDashboard() {
         </Select>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-6 gap-4">
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-muted-foreground">Clientes Ativos</div>
-                <div className="text-2xl font-bold">{activeClients}</div>
-                <div className="flex items-center text-xs text-emerald-600 mt-1">
-                  <ArrowUpRight className="h-3 w-3" />
-                  <span>+12%</span>
-                </div>
-              </div>
-              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Users className="h-5 w-5 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-muted-foreground">Processos Ativos</div>
-                <div className="text-2xl font-bold">{activeCases}</div>
-                <div className="flex items-center text-xs text-emerald-600 mt-1">
-                  <ArrowUpRight className="h-3 w-3" />
-                  <span>+5%</span>
-                </div>
-              </div>
-              <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Gavel className="h-5 w-5 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-muted-foreground">Taxa de Sucesso</div>
-                <div className="text-2xl font-bold text-emerald-600">
-                  {totalCases > 0 ? Math.round((wonCases / (wonCases + lostCases || 1)) * 100) : 0}%
-                </div>
-                <div className="flex items-center text-xs text-emerald-600 mt-1">
-                  <ArrowUpRight className="h-3 w-3" />
-                  <span>+8%</span>
-                </div>
-              </div>
-              <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <Target className="h-5 w-5 text-emerald-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-muted-foreground">Prazos Cumpridos</div>
-                <div className="text-2xl font-bold">
-                  {deadlinesTotal > 0 ? Math.round((deadlinesMet / deadlinesTotal) * 100) : 100}%
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {deadlinesMet}/{deadlinesTotal}
-                </div>
-              </div>
-              <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-amber-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-muted-foreground">Recebido</div>
-                <div className="text-xl font-bold text-emerald-600">
-                  {formatCurrency(totalReceived)}
-                </div>
-                <div className="flex items-center text-xs text-emerald-600 mt-1">
-                  <ArrowUpRight className="h-3 w-3" />
-                  <span>+15%</span>
-                </div>
-              </div>
-              <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-emerald-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-muted-foreground">A Receber</div>
-                <div className="text-xl font-bold text-amber-600">
-                  {formatCurrency(totalPending)}
-                </div>
-                {totalOverdue > 0 && (
-                  <div className="flex items-center text-xs text-rose-600 mt-1">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    <span>{formatCurrency(totalOverdue)} vencido</span>
+      {/* KPI Cards - Scroll horizontal no mobile */}
+      <div className="overflow-x-auto -mx-2 px-2 pb-2 sm:overflow-visible sm:mx-0 sm:px-0">
+        <div className="flex gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6 min-w-max sm:min-w-0">
+          <Card className="border-0 shadow-sm min-w-[140px] sm:min-w-0">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground truncate">Clientes Ativos</div>
+                  <div className="text-xl sm:text-2xl font-bold">{activeClients}</div>
+                  <div className="flex items-center text-[10px] sm:text-xs text-emerald-600 mt-0.5">
+                    <ArrowUpRight className="h-3 w-3" />
+                    <span>+12%</span>
                   </div>
-                )}
+                </div>
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                </div>
               </div>
-              <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-amber-600" />
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm min-w-[140px] sm:min-w-0">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground truncate">Processos Ativos</div>
+                  <div className="text-xl sm:text-2xl font-bold">{activeCases}</div>
+                  <div className="flex items-center text-[10px] sm:text-xs text-emerald-600 mt-0.5">
+                    <ArrowUpRight className="h-3 w-3" />
+                    <span>+5%</span>
+                  </div>
+                </div>
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                  <Gavel className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm min-w-[140px] sm:min-w-0">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground truncate">Taxa de Sucesso</div>
+                  <div className="text-xl sm:text-2xl font-bold text-emerald-600">
+                    {totalCases > 0 ? Math.round((wonCases / (wonCases + lostCases || 1)) * 100) : 0}%
+                  </div>
+                  <div className="flex items-center text-[10px] sm:text-xs text-emerald-600 mt-0.5">
+                    <ArrowUpRight className="h-3 w-3" />
+                    <span>+8%</span>
+                  </div>
+                </div>
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm min-w-[140px] sm:min-w-0">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground truncate">Prazos Cumpridos</div>
+                  <div className="text-xl sm:text-2xl font-bold">
+                    {deadlinesTotal > 0 ? Math.round((deadlinesMet / deadlinesTotal) * 100) : 100}%
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+                    {deadlinesMet}/{deadlinesTotal}
+                  </div>
+                </div>
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm min-w-[140px] sm:min-w-0">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground truncate">Recebido</div>
+                  <div className="text-lg sm:text-xl font-bold text-emerald-600">
+                    {formatCurrency(totalReceived)}
+                  </div>
+                  <div className="flex items-center text-[10px] sm:text-xs text-emerald-600 mt-0.5">
+                    <ArrowUpRight className="h-3 w-3" />
+                    <span>+15%</span>
+                  </div>
+                </div>
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm min-w-[140px] sm:min-w-0">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground truncate">A Receber</div>
+                  <div className="text-lg sm:text-xl font-bold text-amber-600">
+                    {formatCurrency(totalPending)}
+                  </div>
+                  {totalOverdue > 0 && (
+                    <div className="flex items-center text-[10px] sm:text-xs text-rose-600 mt-0.5">
+                      <AlertTriangle className="h-3 w-3 mr-0.5" />
+                      <span className="truncate">{formatCurrency(totalOverdue)}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - Scroll horizontal no mobile */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="geral">Visão Geral</TabsTrigger>
-          <TabsTrigger value="processos">Processos</TabsTrigger>
-          <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
-          <TabsTrigger value="clientes">Clientes</TabsTrigger>
-          <TabsTrigger value="produtividade">Produtividade</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-2 px-2 sm:overflow-visible sm:mx-0 sm:px-0">
+          <TabsList className="w-max sm:w-auto">
+            <TabsTrigger value="geral" className="text-xs sm:text-sm">Visão Geral</TabsTrigger>
+            <TabsTrigger value="processos" className="text-xs sm:text-sm">Processos</TabsTrigger>
+            <TabsTrigger value="financeiro" className="text-xs sm:text-sm">Financeiro</TabsTrigger>
+            <TabsTrigger value="clientes" className="text-xs sm:text-sm">Clientes</TabsTrigger>
+            <TabsTrigger value="produtividade" className="text-xs sm:text-sm">Produtividade</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Visão Geral */}
-        <TabsContent value="geral" className="space-y-6 mt-6">
-          <div className="grid grid-cols-2 gap-6">
+        <TabsContent value="geral" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Processos por Status */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Processos por Status</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Processos por Status</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[250px]">
+                <div className="h-[200px] sm:h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={casesByStatus}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={90}
+                        innerRadius={40}
+                        outerRadius={70}
                         paddingAngle={2}
                         dataKey="value"
                       >
@@ -338,7 +342,7 @@ export default function IndicatorsDashboard() {
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => [value, 'Processos']} />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -348,15 +352,15 @@ export default function IndicatorsDashboard() {
             {/* Processos por Tipo */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Processos por Área</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Processos por Área</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[250px]">
+                <div className="h-[200px] sm:h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={casesByType} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={100} />
+                      <XAxis type="number" tick={{ fontSize: 10 }} />
+                      <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10 }} />
                       <Tooltip />
                       <Bar dataKey="value" fill="#0066CC" radius={[0, 4, 4, 0]} />
                     </BarChart>
@@ -369,19 +373,19 @@ export default function IndicatorsDashboard() {
           {/* Evolução Financeira */}
           <Card className="border-0 shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Evolução Financeira</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Evolução Financeira</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
+              <div className="h-[200px] sm:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={financialTrend}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(v) => `R$ ${(v/1000).toFixed(0)}k`} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                    <YAxis tickFormatter={(v) => `R$ ${(v/1000).toFixed(0)}k`} tick={{ fontSize: 10 }} />
                     <Tooltip 
                       formatter={(value: number) => [formatCurrency(value)]}
                     />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Area 
                       type="monotone" 
                       dataKey="faturado" 
@@ -403,140 +407,6 @@ export default function IndicatorsDashboard() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Processos */}
-        <TabsContent value="processos" className="space-y-6 mt-6">
-          <div className="grid grid-cols-4 gap-4">
-            <Card className="border-0 shadow-sm bg-blue-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-blue-600">{totalCases}</div>
-                <div className="text-sm text-blue-600">Total de Processos</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm bg-emerald-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-emerald-600">{wonCases}</div>
-                <div className="text-sm text-emerald-600">Ganhos</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm bg-rose-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-rose-600">{lostCases}</div>
-                <div className="text-sm text-rose-600">Perdidos</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm bg-amber-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-amber-600">{deadlinesMissed}</div>
-                <div className="text-sm text-amber-600">Prazos Perdidos</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Risco dos Processos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {['baixo', 'medio', 'alto', 'critico'].map((risk) => {
-                  const count = cases.filter(c => c.risk_level === risk).length;
-                  const percentage = totalCases > 0 ? (count / totalCases) * 100 : 0;
-                  const colors: Record<string, string> = {
-                    baixo: 'bg-emerald-500',
-                    medio: 'bg-amber-500',
-                    alto: 'bg-orange-500',
-                    critico: 'bg-rose-500',
-                  };
-                  return (
-                    <div key={risk}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="capitalize">{risk}</span>
-                        <span>{count} processos ({percentage.toFixed(0)}%)</span>
-                      </div>
-                      <Progress value={percentage} className={`h-2 ${colors[risk]}`} />
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Financeiro */}
-        <TabsContent value="financeiro" className="space-y-6 mt-6">
-          <div className="grid grid-cols-4 gap-4">
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">Total Faturado</div>
-                <div className="text-2xl font-bold">{formatCurrency(totalBilled)}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm bg-emerald-50">
-              <CardContent className="p-4">
-                <div className="text-sm text-emerald-600">Recebido</div>
-                <div className="text-2xl font-bold text-emerald-600">{formatCurrency(totalReceived)}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm bg-amber-50">
-              <CardContent className="p-4">
-                <div className="text-sm text-amber-600">Pendente</div>
-                <div className="text-2xl font-bold text-amber-600">{formatCurrency(totalPending)}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm bg-rose-50">
-              <CardContent className="p-4">
-                <div className="text-sm text-rose-600">Vencido</div>
-                <div className="text-2xl font-bold text-rose-600">{formatCurrency(totalOverdue)}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Taxa de Adimplência</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-6">
-                <div className="flex-1">
-                  <Progress 
-                    value={totalBilled > 0 ? (totalReceived / totalBilled) * 100 : 0} 
-                    className="h-4"
-                  />
-                </div>
-                <div className="text-2xl font-bold text-emerald-600">
-                  {totalBilled > 0 ? Math.round((totalReceived / totalBilled) * 100) : 0}%
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Clientes */}
-        <TabsContent value="clientes" className="space-y-6 mt-6">
-          <div className="grid grid-cols-3 gap-4">
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold">{totalClients}</div>
-                <div className="text-sm text-muted-foreground">Total de Clientes</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm bg-emerald-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-emerald-600">{activeClients}</div>
-                <div className="text-sm text-emerald-600">Ativos</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm bg-blue-50">
-              <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-blue-600">
-                  {clients.filter(c => c.client_type === 'pf').length}
-                </div>
-                <div className="text-sm text-blue-600">Pessoa Física</div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         {/* Produtividade */}
