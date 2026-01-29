@@ -5605,6 +5605,864 @@ export type Database = {
         }
         Relationships: []
       }
+      neopay_automation_logs: {
+        Row: {
+          automation_id: string
+          error_message: string | null
+          executed_at: string
+          id: string
+          result_message: string | null
+          success: boolean
+          trigger_data: Json | null
+          trigger_event: string
+        }
+        Insert: {
+          automation_id: string
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          result_message?: string | null
+          success: boolean
+          trigger_data?: Json | null
+          trigger_event: string
+        }
+        Update: {
+          automation_id?: string
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          result_message?: string | null
+          success?: boolean
+          trigger_data?: Json | null
+          trigger_event?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_automation_logs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_automations: {
+        Row: {
+          action_config: Json
+          action_type: string
+          conditions: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          action_config?: Json
+          action_type: string
+          conditions?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          trigger_event: string
+          updated_at?: string
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          conditions?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          trigger_event?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      neopay_chargeback_evidence: {
+        Row: {
+          chargeback_id: string
+          description: string | null
+          evidence_type: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          chargeback_id: string
+          description?: string | null
+          evidence_type?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          chargeback_id?: string
+          description?: string | null
+          evidence_type?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_chargeback_evidence_chargeback_id_fkey"
+            columns: ["chargeback_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_chargebacks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_chargebacks: {
+        Row: {
+          amount: number
+          charge_id: string
+          created_at: string
+          dispute_deadline: string | null
+          evidence_deadline: string | null
+          evidence_submitted: boolean | null
+          external_id: string | null
+          gateway_response: Json | null
+          id: string
+          reason_code: string | null
+          reason_description: string | null
+          resolution: string | null
+          resolved_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          charge_id: string
+          created_at?: string
+          dispute_deadline?: string | null
+          evidence_deadline?: string | null
+          evidence_submitted?: boolean | null
+          external_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          reason_code?: string | null
+          reason_description?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          charge_id?: string
+          created_at?: string
+          dispute_deadline?: string | null
+          evidence_deadline?: string | null
+          evidence_submitted?: boolean | null
+          external_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          reason_code?: string | null
+          reason_description?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_chargebacks_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_charges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_charges: {
+        Row: {
+          amount: number
+          boleto_barcode: string | null
+          boleto_url: string | null
+          cancelled_at: string | null
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          customer_id: string
+          description: string | null
+          due_date: string | null
+          external_id: string | null
+          gateway_response: Json | null
+          id: string
+          installment_amount: number | null
+          installments: number | null
+          metadata: Json | null
+          paid_at: string | null
+          payment_link: string | null
+          payment_method: Database["public"]["Enums"]["neopay_payment_method"]
+          pix_code: string | null
+          pix_qr_code: string | null
+          product_id: string | null
+          status: Database["public"]["Enums"]["neopay_transaction_status"]
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          boleto_barcode?: string | null
+          boleto_url?: string | null
+          cancelled_at?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_id: string
+          description?: string | null
+          due_date?: string | null
+          external_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          installment_amount?: number | null
+          installments?: number | null
+          metadata?: Json | null
+          paid_at?: string | null
+          payment_link?: string | null
+          payment_method: Database["public"]["Enums"]["neopay_payment_method"]
+          pix_code?: string | null
+          pix_qr_code?: string | null
+          product_id?: string | null
+          status?: Database["public"]["Enums"]["neopay_transaction_status"]
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          boleto_barcode?: string | null
+          boleto_url?: string | null
+          cancelled_at?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_id?: string
+          description?: string | null
+          due_date?: string | null
+          external_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          installment_amount?: number | null
+          installments?: number | null
+          metadata?: Json | null
+          paid_at?: string | null
+          payment_link?: string | null
+          payment_method?: Database["public"]["Enums"]["neopay_payment_method"]
+          pix_code?: string | null
+          pix_qr_code?: string | null
+          product_id?: string | null
+          status?: Database["public"]["Enums"]["neopay_transaction_status"]
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_charges_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neopay_charges_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_customers: {
+        Row: {
+          cpf_cnpj: string | null
+          created_at: string
+          default_payment_method_id: string | null
+          email: string
+          external_customer_id: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          neohub_user_id: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cpf_cnpj?: string | null
+          created_at?: string
+          default_payment_method_id?: string | null
+          email: string
+          external_customer_id?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          neohub_user_id?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cpf_cnpj?: string | null
+          created_at?: string
+          default_payment_method_id?: string | null
+          email?: string
+          external_customer_id?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          neohub_user_id?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_customers_neohub_user_id_fkey"
+            columns: ["neohub_user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_delinquency: {
+        Row: {
+          access_blocked: boolean | null
+          blocked_at: string | null
+          charge_id: string | null
+          created_at: string
+          customer_id: string
+          days_overdue: number
+          id: string
+          last_notification_at: string | null
+          last_retry_at: string | null
+          next_retry_at: string | null
+          notifications_sent: number | null
+          overdue_amount: number
+          resolution_notes: string | null
+          resolved_at: string | null
+          retry_count: number | null
+          status: Database["public"]["Enums"]["neopay_delinquency_status"]
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_blocked?: boolean | null
+          blocked_at?: string | null
+          charge_id?: string | null
+          created_at?: string
+          customer_id: string
+          days_overdue?: number
+          id?: string
+          last_notification_at?: string | null
+          last_retry_at?: string | null
+          next_retry_at?: string | null
+          notifications_sent?: number | null
+          overdue_amount: number
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          retry_count?: number | null
+          status?: Database["public"]["Enums"]["neopay_delinquency_status"]
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_blocked?: boolean | null
+          blocked_at?: string | null
+          charge_id?: string | null
+          created_at?: string
+          customer_id?: string
+          days_overdue?: number
+          id?: string
+          last_notification_at?: string | null
+          last_retry_at?: string | null
+          next_retry_at?: string | null
+          notifications_sent?: number | null
+          overdue_amount?: number
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          retry_count?: number | null
+          status?: Database["public"]["Enums"]["neopay_delinquency_status"]
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_delinquency_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_charges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neopay_delinquency_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neopay_delinquency_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_products: {
+        Row: {
+          billing_interval: string | null
+          billing_interval_count: number | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          external_id: string | null
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          name: string
+          price: number
+          trial_days: number | null
+          type: Database["public"]["Enums"]["neopay_product_type"]
+          updated_at: string
+        }
+        Insert: {
+          billing_interval?: string | null
+          billing_interval_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name: string
+          price: number
+          trial_days?: number | null
+          type?: Database["public"]["Enums"]["neopay_product_type"]
+          updated_at?: string
+        }
+        Update: {
+          billing_interval?: string | null
+          billing_interval_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name?: string
+          price?: number
+          trial_days?: number | null
+          type?: Database["public"]["Enums"]["neopay_product_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      neopay_refunds: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          charge_id: string
+          completed_at: string | null
+          created_at: string
+          external_id: string | null
+          gateway_response: Json | null
+          id: string
+          notes: string | null
+          reason: string
+          refund_type: string
+          requested_by: string | null
+          status: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          charge_id: string
+          completed_at?: string | null
+          created_at?: string
+          external_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          notes?: string | null
+          reason: string
+          refund_type?: string
+          requested_by?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          charge_id?: string
+          completed_at?: string | null
+          created_at?: string
+          external_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          notes?: string | null
+          reason?: string
+          refund_type?: string
+          requested_by?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_refunds_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_charges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neopay_refunds_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      neopay_split_recipients: {
+        Row: {
+          admin_fee_percentage: number | null
+          bank_account_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          recipient_cpf_cnpj: string | null
+          recipient_email: string | null
+          recipient_name: string
+          recipient_user_id: string | null
+          split_rule_id: string
+          split_type: string
+          split_value: number
+          updated_at: string
+        }
+        Insert: {
+          admin_fee_percentage?: number | null
+          bank_account_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          recipient_cpf_cnpj?: string | null
+          recipient_email?: string | null
+          recipient_name: string
+          recipient_user_id?: string | null
+          split_rule_id: string
+          split_type?: string
+          split_value: number
+          updated_at?: string
+        }
+        Update: {
+          admin_fee_percentage?: number | null
+          bank_account_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          recipient_cpf_cnpj?: string | null
+          recipient_email?: string | null
+          recipient_name?: string
+          recipient_user_id?: string | null
+          split_rule_id?: string
+          split_type?: string
+          split_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_split_recipients_split_rule_id_fkey"
+            columns: ["split_rule_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_split_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_split_rules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          product_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          product_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          product_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_split_rules_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          cancelled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          customer_id: string
+          external_id: string | null
+          id: string
+          metadata: Json | null
+          product_id: string
+          status: string
+          trial_end: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_id: string
+          external_id?: string | null
+          id?: string
+          metadata?: Json | null
+          product_id: string
+          status?: string
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_id?: string
+          external_id?: string | null
+          id?: string
+          metadata?: Json | null
+          product_id?: string
+          status?: string
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_subscriptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neopay_subscriptions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_transactions: {
+        Row: {
+          amount: number
+          charge_id: string
+          created_at: string
+          error_message: string | null
+          external_id: string | null
+          gateway_response: Json | null
+          id: string
+          operation: string
+          processed_at: string
+          processed_by: string | null
+          status: Database["public"]["Enums"]["neopay_transaction_status"]
+        }
+        Insert: {
+          amount: number
+          charge_id: string
+          created_at?: string
+          error_message?: string | null
+          external_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          operation: string
+          processed_at?: string
+          processed_by?: string | null
+          status: Database["public"]["Enums"]["neopay_transaction_status"]
+        }
+        Update: {
+          amount?: number
+          charge_id?: string
+          created_at?: string
+          error_message?: string | null
+          external_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          operation?: string
+          processed_at?: string
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["neopay_transaction_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_transactions_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_charges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neopay_transfers: {
+        Row: {
+          admin_fee: number | null
+          charge_id: string
+          created_at: string
+          external_id: string | null
+          gateway_response: Json | null
+          gross_amount: number
+          id: string
+          net_amount: number
+          recipient_id: string
+          scheduled_date: string | null
+          status: Database["public"]["Enums"]["neopay_split_status"]
+          transferred_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_fee?: number | null
+          charge_id: string
+          created_at?: string
+          external_id?: string | null
+          gateway_response?: Json | null
+          gross_amount: number
+          id?: string
+          net_amount: number
+          recipient_id: string
+          scheduled_date?: string | null
+          status?: Database["public"]["Enums"]["neopay_split_status"]
+          transferred_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_fee?: number | null
+          charge_id?: string
+          created_at?: string
+          external_id?: string | null
+          gateway_response?: Json | null
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          recipient_id?: string
+          scheduled_date?: string | null
+          status?: Database["public"]["Enums"]["neopay_split_status"]
+          transferred_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neopay_transfers_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_charges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neopay_transfers_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "neopay_split_recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neoteam_anamnesis: {
         Row: {
           additional_info: string | null
@@ -11327,6 +12185,29 @@ export type Database = {
         | "cliente_avivar"
         | "medico"
         | "ipromed"
+      neopay_delinquency_status:
+        | "current"
+        | "late"
+        | "delinquent"
+        | "blocked"
+        | "recovered"
+      neopay_payment_method:
+        | "credit_card"
+        | "debit_card"
+        | "pix"
+        | "boleto"
+        | "payment_link"
+      neopay_product_type: "product" | "service" | "subscription" | "plan"
+      neopay_split_status: "pending" | "processing" | "completed" | "failed"
+      neopay_transaction_status:
+        | "pending"
+        | "authorized"
+        | "captured"
+        | "cancelled"
+        | "failed"
+        | "refunded"
+        | "partially_refunded"
+        | "chargeback"
       portal_role:
         | "patient"
         | "doctor"
@@ -11594,6 +12475,32 @@ export const Constants = {
         "cliente_avivar",
         "medico",
         "ipromed",
+      ],
+      neopay_delinquency_status: [
+        "current",
+        "late",
+        "delinquent",
+        "blocked",
+        "recovered",
+      ],
+      neopay_payment_method: [
+        "credit_card",
+        "debit_card",
+        "pix",
+        "boleto",
+        "payment_link",
+      ],
+      neopay_product_type: ["product", "service", "subscription", "plan"],
+      neopay_split_status: ["pending", "processing", "completed", "failed"],
+      neopay_transaction_status: [
+        "pending",
+        "authorized",
+        "captured",
+        "cancelled",
+        "failed",
+        "refunded",
+        "partially_refunded",
+        "chargeback",
       ],
       portal_role: [
         "patient",
