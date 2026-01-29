@@ -82,15 +82,15 @@ export default function ResetPassword() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 p-1 shadow-2xl">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 p-1 shadow-2xl overflow-hidden">
             <img 
               src={iconeNeofolic} 
               alt="NeoHub" 
-              className="w-full h-full object-contain rounded-xl"
+              className="w-full h-full object-cover rounded-full"
             />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
-            Neo<span className="text-primary">Hub</span>
+            Neo<span className="bg-gradient-to-b from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">Hub</span>
           </h1>
         </div>
 

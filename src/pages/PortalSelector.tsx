@@ -146,8 +146,8 @@ export default function PortalSelector() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 p-1 shadow-2xl animate-pulse">
-            <img src={iconeNeofolic} alt="NeoHub" className="w-full h-full object-contain rounded-xl" />
+          <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-slate-700 to-slate-800 p-1 shadow-2xl animate-pulse overflow-hidden">
+            <img src={iconeNeofolic} alt="NeoHub" className="w-full h-full object-cover rounded-full" />
           </div>
           <Skeleton className="h-6 w-32 mx-auto" />
         </div>
@@ -171,12 +171,12 @@ export default function PortalSelector() {
       {/* Header */}
       <header className="p-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 p-0.5 shadow-lg">
-            <img src={iconeNeofolic} alt="NeoHub" className="w-full h-full object-contain rounded-lg" />
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 p-0.5 shadow-lg overflow-hidden">
+            <img src={iconeNeofolic} alt="NeoHub" className="w-full h-full object-cover rounded-full" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">
-              Neo<span className="text-primary">Hub</span>
+              Neo<span className="bg-gradient-to-b from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">Hub</span>
             </h1>
             <p className="text-xs text-slate-400">Ecossistema Integrado</p>
           </div>
