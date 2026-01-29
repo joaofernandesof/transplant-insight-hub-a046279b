@@ -63,7 +63,7 @@ export default function IpromedContracts() {
         .from('ipromed_contracts')
         .select(`
           *,
-          client:ipromed_legal_clients(id, name, email)
+          client:ipromed_legal_clients!ipromed_contracts_client_id_fkey(id, name, email)
         `)
         .order('created_at', { ascending: false });
 
