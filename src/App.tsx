@@ -17,6 +17,7 @@ import { EventTracker } from "@/components/EventTracker";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { queryClient } from "@/lib/queryClient";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { ProtectedRoute, ProfileGuard, AdminRoute, MobileGuard } from "@/components/guards";
 import { PROFILE_ROUTES, getDefaultRouteForProfile } from "@/neohub/lib/permissions";
 import { MobileAppWrapper } from "@/components/MobileAppWrapper";
@@ -26,6 +27,7 @@ import { Loader2 } from "lucide-react";
 // Pages - Públicas
 // ====================================
 import Login from "./pages/Login";
+import LandingPage from "./pages/LandingPage";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ReferralLanding from "./pages/ReferralLanding";
@@ -478,9 +480,14 @@ function AppRoutes() {
       {/* ====================================
           Rotas Públicas
           ==================================== */}
+      {/* Landing Page - Pública */}
+      <Route 
+        path="/" 
+        element={user ? <HomeRouter /> : <LandingPage />} 
+      />
       <Route 
         path="/login" 
-        element={user ? <Navigate to="/" replace /> : <Login />} 
+        element={user ? <Navigate to="/portal-selector" replace /> : <Login />} 
       />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/indicacao/:code" element={<ReferralLanding />} />
@@ -491,13 +498,13 @@ function AppRoutes() {
       <Route path="/neocare-protect" element={<NeoCareProductLanding />} />
       <Route path="/audit-report" element={<AuditReportExport />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/public/dashboard/:token" element={<Suspense fallback={<div className="p-6 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}><PublicDashboardPage /></Suspense>} />
 
       {/* ====================================
-          Home - Roteamento dinâmico por perfil
+          Rotas Protegidas - Seleção de Perfil
           ==================================== */}
-      <Route path="/" element={<HomeRouter />} />
       <Route 
         path="/select-profile" 
         element={
@@ -664,6 +671,14 @@ function PresenceTracker() {
 }
 
 // ====================================
+// Session Manager - Controle de expiração
+// ====================================
+function SessionManager() {
+  useSessionTimeout();
+  return null;
+}
+
+// ====================================
 // App with Support
 // ====================================
 function AppWithSupport() {
@@ -674,6 +689,7 @@ function AppWithSupport() {
       <EventTracker />
       <AppRoutes />
       {user && <PresenceTracker />}
+      {user && <SessionManager />}
       {user && <SupportChat />}
     </MobileAppWrapper>
   );

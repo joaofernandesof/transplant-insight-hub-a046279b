@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
@@ -15,21 +15,12 @@ const loginSchema = z.object({
   password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
 });
 
-const signupSchema = z.object({
-  name: z.string().trim().min(3, { message: 'Nome deve ter no mínimo 3 caracteres' }).max(100),
-  email: z.string().trim().email({ message: 'Email inválido' }),
-  password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Senhas não coincidem',
-  path: ['confirmPassword'],
-});
-
 const resetPasswordSchema = z.object({
   email: z.string().trim().email({ message: 'Email inválido' }),
 });
 
-type ViewMode = 'login' | 'signup' | 'forgot-password';
+// NOTA: Cadastro desabilitado - apenas login e recuperação de senha
+type ViewMode = 'login' | 'forgot-password';
 
 const modules = [
   { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Pacientes' },
@@ -44,10 +35,8 @@ const modules = [
 
 export default function Login() {
   const [viewMode, setViewMode] = useState<ViewMode>('login');
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
@@ -58,7 +47,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   
-  const { login, signup } = useUnifiedAuth();
+  const { login } = useUnifiedAuth();
   const navigate = useNavigate();
 
   // Load remembered email on mount
@@ -122,87 +111,56 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      if (viewMode === 'signup') {
-        const result = signupSchema.safeParse({ name, email, password, confirmPassword });
-        
-        if (!result.success) {
-          const errors: Record<string, string> = {};
-          result.error.errors.forEach((err) => {
-            if (err.path[0]) {
-              errors[err.path[0] as string] = err.message;
-            }
-          });
-          setFieldErrors(errors);
-          setIsLoading(false);
-          return;
-        }
-
-        const { success, error: signupError } = await signup({
-          email,
-          password,
-          fullName: name,
-        });
-        
-        if (success) {
-          setSuccessMessage('Conta criada com sucesso! Você já pode fazer login.');
-          setViewMode('login');
-          setPassword('');
-          setConfirmPassword('');
-        } else {
-          setError(signupError || 'Erro ao criar conta');
-        }
-      } else {
-        const result = loginSchema.safeParse({ email, password });
-        
-        if (!result.success) {
-          const errors: Record<string, string> = {};
-          result.error.errors.forEach((err) => {
-            if (err.path[0]) {
-              errors[err.path[0] as string] = err.message;
-            }
-          });
-          setFieldErrors(errors);
-          setIsLoading(false);
-          return;
-        }
-
-        const { success, error: loginError } = await login(email, password);
-        
-        if (success) {
-          if (rememberMe) {
-            localStorage.setItem('rememberedEmail', email);
-          } else {
-            localStorage.removeItem('rememberedEmail');
+      const result = loginSchema.safeParse({ email, password });
+      
+      if (!result.success) {
+        const errors: Record<string, string> = {};
+        result.error.errors.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0] as string] = err.message;
           }
+        });
+        setFieldErrors(errors);
+        setIsLoading(false);
+        return;
+      }
+
+      const { success, error: loginError } = await login(email, password);
+      
+      if (success) {
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
+        
+        // Nova arquitetura de redirecionamento:
+        // - Admin → direto para /admin-dashboard
+        // - Outros → /portal-selector para escolher o portal
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          // Check if user is admin via user_roles table
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', authUser.id)
+            .eq('role', 'admin')
+            .single();
           
-          // Nova arquitetura de redirecionamento:
-          // - Admin → direto para /admin-dashboard
-          // - Outros → /portal-selector para escolher o portal
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          if (authUser) {
-            // Check if user is admin via user_roles table
-            const { data: roleData } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', authUser.id)
-              .eq('role', 'admin')
-              .single();
-            
-            const isAdmin = !!roleData;
-            
-            if (isAdmin) {
-              // Admin vai direto para o Dashboard Administrativo
-              navigate('/admin-dashboard');
-            } else {
-              // Todos os outros perfis vão para o seletor de portal
-              navigate('/portal-selector');
-            }
+          const isAdmin = !!roleData;
+          
+          if (isAdmin) {
+            // Admin vai direto para o Dashboard Administrativo
+            navigate('/admin-dashboard');
           } else {
+            // Todos os outros perfis vão para o seletor de portal
             navigate('/portal-selector');
           }
         } else {
-          setError(loginError || 'Email ou senha incorretos');
+          navigate('/portal-selector');
         }
+      } else {
+        setError(loginError || 'Email ou senha incorretos');
       }
     } catch (err) {
       setError('Ocorreu um erro. Tente novamente.');
@@ -216,7 +174,6 @@ export default function Login() {
     setFieldErrors({});
     setSuccessMessage('');
     setPassword('');
-    setConfirmPassword('');
   };
   
   return (
@@ -409,7 +366,7 @@ export default function Login() {
             ) : (
               <>
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-5 sm:mb-6 text-center">
-                  {viewMode === 'signup' ? 'Criar conta' : 'Acesse sua conta'}
+                  Acesse sua conta
                 </h2>
                 
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
@@ -426,28 +383,6 @@ export default function Login() {
                     </div>
                   )}
 
-                  {viewMode === 'signup' && (
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
-                        Nome completo
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <input
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="Seu nome"
-                          required
-                          className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.name ? 'border-destructive' : ''}`}
-                        />
-                      </div>
-                      {fieldErrors.name && (
-                        <p className="text-destructive text-xs mt-1">{fieldErrors.name}</p>
-                      )}
-                    </div>
-                  )}
-                  
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
                       Email
@@ -481,7 +416,7 @@ export default function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
                         required
-                        autoComplete={viewMode === 'signup' ? "new-password" : "current-password"}
+                        autoComplete="current-password"
                         className={`input-metric pl-10 pr-12 w-full h-12 text-base ${fieldErrors.password ? 'border-destructive' : ''}`}
                       />
                       <button
@@ -497,70 +432,40 @@ export default function Login() {
                     )}
                   </div>
 
-                  {viewMode === 'signup' && (
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1.5 sm:mb-2">
-                        Confirmar senha
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="••••••••"
-                          required
-                          autoComplete="new-password"
-                          className={`input-metric pl-10 w-full h-12 text-base ${fieldErrors.confirmPassword ? 'border-destructive' : ''}`}
-                        />
-                      </div>
-                      {fieldErrors.confirmPassword && (
-                        <p className="text-destructive text-xs mt-1">{fieldErrors.confirmPassword}</p>
-                      )}
-                    </div>
-                  )}
-                  
-                  {viewMode === 'login' && (
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-2">
-                      <label className="flex items-center gap-2 cursor-pointer order-1 sm:order-none">
-                        <input
-                          type="checkbox"
-                          checked={rememberMe}
-                          onChange={(e) => setRememberMe(e.target.checked)}
-                          className="w-5 h-5 sm:w-4 sm:h-4 rounded border-border text-primary focus:ring-primary/20"
-                        />
-                        <span className="text-sm text-muted-foreground">Lembrar meu login</span>
-                      </label>
-                      <button
-                        type="button"
-                        className="text-sm text-primary hover:underline text-left sm:text-right order-2 sm:order-none"
-                        onClick={() => { setViewMode('forgot-password'); resetForm(); }}
-                      >
-                        Esqueceu a senha?
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-2">
+                    <label className="flex items-center gap-2 cursor-pointer order-1 sm:order-none">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-5 h-5 sm:w-4 sm:h-4 rounded border-border text-primary focus:ring-primary/20"
+                      />
+                      <span className="text-sm text-muted-foreground">Lembrar meu login</span>
+                    </label>
+                    <button
+                      type="button"
+                      className="text-sm text-primary hover:underline text-left sm:text-right order-2 sm:order-none"
+                      onClick={() => { setViewMode('forgot-password'); resetForm(); }}
+                    >
+                      Esqueceu a senha?
+                    </button>
+                  </div>
                   
                   <button
                     type="submit"
                     disabled={isLoading}
                     className="btn-primary w-full py-3.5 sm:py-3 text-base font-semibold mt-2"
                   >
-                    {isLoading ? (viewMode === 'signup' ? 'Criando conta...' : 'Entrando...') : (viewMode === 'signup' ? 'Criar conta' : 'Entrar')}
+                    {isLoading ? 'Entrando...' : 'Entrar'}
                   </button>
                 </form>
                 
-                {/* Toggle Login/Signup */}
+                {/* Aviso de acesso restrito */}
                 <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {viewMode === 'signup' ? 'Já tem uma conta?' : 'Não tem uma conta?'}
-                    <button
-                      type="button"
-                      onClick={() => { setViewMode(viewMode === 'signup' ? 'login' : 'signup'); resetForm(); }}
-                      className="ml-2 text-primary hover:underline font-medium"
-                    >
-                      {viewMode === 'signup' ? 'Fazer login' : 'Criar conta'}
-                    </button>
+                  <p className="text-xs text-muted-foreground">
+                    Acesso restrito a usuários autorizados.
+                    <br />
+                    <span className="text-muted-foreground/70">Não é possível criar uma conta diretamente.</span>
                   </p>
                 </div>
               </>

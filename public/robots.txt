@@ -1,14 +1,29 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# NeoHub - Plataforma de Acesso Restrito
+# Indexação desabilitada para proteger conteúdo interno
 
 User-agent: *
-Allow: /
+Disallow: /
+
+# Permitir acesso à landing page para SEO mínimo
+User-agent: Googlebot
+Allow: /$
+Disallow: /
+
+User-agent: Bingbot
+Allow: /$
+Disallow: /
+
+# Bloquear todas as outras áreas
+User-agent: *
+Disallow: /login
+Disallow: /academy
+Disallow: /neocare
+Disallow: /neoteam
+Disallow: /neolicense
+Disallow: /avivar
+Disallow: /ipromed
+Disallow: /vision
+Disallow: /admin
+Disallow: /portal
+Disallow: /clinic
+Disallow: /marketplace
