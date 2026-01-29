@@ -176,38 +176,79 @@ export default function AIDocumentGenerator() {
     setIsGenerating(true);
     setGeneratedContent('');
 
+    // Preparar o prompt final - substituir placeholders por texto real
+    const docType = documentTypes.find(d => d.value === selectedType)?.label || 'Documento';
+    const selectedClient = clients.find(c => c.id === clientId);
+    const selectedCase = cases.find(c => c.id === caseId);
+    
+    // Build enriched prompt
+    let enrichedPrompt = prompt;
+    
+    // Replace common placeholders with actual instructions
+    enrichedPrompt = enrichedPrompt
+      .replace(/\{consulta\}/g, title || 'conforme descrito abaixo')
+      .replace(/\{documentos\}/g, 'conforme informações fornecidas')
+      .replace(/\{fatos\}/g, 'conforme descrito')
+      .replace(/\{fundamentos\}/g, 'fundamentação jurídica aplicável')
+      .replace(/\{pedidos\}/g, 'pedidos pertinentes ao caso')
+      .replace(/\{resumo\}/g, 'resumo do caso')
+      .replace(/\{defesa\}/g, 'argumentos de defesa')
+      .replace(/\{tipo_contrato\}/g, 'prestação de serviços médicos')
+      .replace(/\{partes\}/g, 'partes envolvidas')
+      .replace(/\{objeto\}/g, 'objeto do contrato')
+      .replace(/\{condicoes\}/g, 'condições acordadas');
+
     try {
       // Save to database first
       const { data: docRecord, error: insertError } = await supabase
         .from('ipromed_ai_documents')
         .insert([{
-          title: title || `Documento - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
+          title: title || `${docType} - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
           document_type: selectedType,
-          prompt_used: prompt,
-          client_id: clientId || null,
-          case_id: caseId || null,
+          prompt_used: enrichedPrompt,
+          client_id: clientId && clientId !== '__none__' ? clientId : null,
+          case_id: caseId && caseId !== '__none__' ? caseId : null,
           generation_status: 'generating',
         }])
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        throw insertError;
+      }
 
       // Call AI edge function
       const { data, error } = await supabase.functions.invoke('ai-legal-document', {
         body: {
-          prompt,
+          prompt: enrichedPrompt,
           documentType: selectedType,
           context: {
-            clientId,
-            caseId,
+            clientId: clientId && clientId !== '__none__' ? clientId : null,
+            caseId: caseId && caseId !== '__none__' ? caseId : null,
+            clientName: selectedClient?.name,
+            caseNumber: selectedCase?.case_number,
+            title: title,
           },
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
-      const content = data?.content || 'Não foi possível gerar o documento.';
+      if (data?.error) {
+        console.error('AI returned error:', data.error);
+        throw new Error(data.error);
+      }
+
+      const content = data?.content;
+      
+      if (!content || content.trim() === '') {
+        throw new Error('Resposta vazia da IA');
+      }
+      
       setGeneratedContent(content);
 
       // Update record with content
@@ -223,27 +264,25 @@ export default function AIDocumentGenerator() {
       toast.success('Documento gerado com sucesso!');
     } catch (error: any) {
       console.error('AI generation error:', error);
+      toast.error(`Erro ao gerar documento: ${error.message || 'Tente novamente'}`);
       
-      // Fallback: generate locally with template
-      const fallbackContent = generateFallbackDocument();
-      setGeneratedContent(fallbackContent);
-      toast.info('Documento gerado com template padrão');
+      // Update status to failed if we have a record
+      setGeneratedContent('');
     } finally {
       setIsGenerating(false);
     }
   };
 
   const generateFallbackDocument = () => {
+    // This is no longer used as fallback - we show error instead
     const docType = documentTypes.find(d => d.value === selectedType)?.label || 'Documento';
     return `# ${docType}
 
 ## ${title || 'Título do Documento'}
 
-${prompt}
+*Erro ao gerar documento com IA. Por favor, tente novamente.*
 
 ---
-
-*Documento gerado automaticamente. Revise antes de utilizar.*
 
 Data: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
 `;
