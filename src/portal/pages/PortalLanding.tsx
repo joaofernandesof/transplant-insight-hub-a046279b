@@ -65,11 +65,8 @@ export default function PortalLanding() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild>
-              <Link to="/portal/login">Entrar</Link>
-            </Button>
             <Button asChild>
-              <Link to="/portal/register">Cadastrar</Link>
+              <Link to="/login">Entrar</Link>
             </Button>
           </div>
         </div>
@@ -89,13 +86,10 @@ export default function PortalLanding() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" asChild>
-                <Link to="/portal/register">
-                  Começar Agora
+                <Link to="/login">
+                  Fazer Login
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link to="/portal/login">Já tenho conta</Link>
               </Button>
             </div>
           </div>
@@ -162,13 +156,14 @@ export default function PortalLanding() {
       {/* CTA */}
       <section className="bg-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4 text-center">
-          <h3 className="text-3xl font-bold mb-4">Pronto para começar?</h3>
+          <h3 className="text-3xl font-bold mb-4">Acesso ao Portal</h3>
           <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            Crie sua conta gratuitamente e tenha acesso a todas as funcionalidades do Portal Neo Folic.
+            O acesso ao Portal Neo Folic é exclusivo para usuários autorizados.
+            Entre em contato com a clínica para solicitar seu acesso.
           </p>
           <Button size="lg" variant="secondary" asChild>
-            <Link to="/portal/register">
-              Criar Minha Conta
+            <Link to="/login">
+              Acessar Minha Conta
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
