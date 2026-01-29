@@ -14,3 +14,4 @@ export { default as IpromedClients } from './IpromedClients';
 export { default as IpromedClientDetail } from './IpromedClientDetail';
 export { default as IpromedJourney } from './IpromedJourney';
 export { default as IpromedLegalHub } from './IpromedLegalHub';
+export { default as IpromedUniversity } from './IpromedUniversity';
