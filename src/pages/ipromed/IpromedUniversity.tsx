@@ -165,104 +165,104 @@ export default function IpromedUniversity() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <GraduationCap className="h-7 w-7 text-primary" />
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <GraduationCap className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
             Universidade IPROMED
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Educação continuada em Direito Médico
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar cursos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-64"
-            />
-          </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar cursos..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 w-full sm:w-64"
+          />
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Stats Cards - Grid responsivo */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/20 rounded-lg">
-                <BookOpen className="h-5 w-5 text-primary" />
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-primary/20 rounded-lg">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{mockCourses.length}</p>
-                <p className="text-sm text-muted-foreground">Cursos Disponíveis</p>
+                <p className="text-lg sm:text-2xl font-bold">{mockCourses.length}</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Cursos</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/20 rounded-lg">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg">
+                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{totalProgress}%</p>
-                <p className="text-sm text-muted-foreground">Progresso Geral</p>
+                <p className="text-lg sm:text-2xl font-bold">{totalProgress}%</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Progresso</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/20 rounded-lg">
-                <Clock className="h-5 w-5 text-amber-500" />
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-amber-500/20 rounded-lg">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">30h 50min</p>
-                <p className="text-sm text-muted-foreground">Conteúdo Total</p>
+                <p className="text-lg sm:text-2xl font-bold">30h</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Conteúdo</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-violet-500/10 to-violet-500/5 border-violet-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-violet-500/20 rounded-lg">
-                <GraduationCap className="h-5 w-5 text-violet-500" />
+          <CardContent className="p-3 sm:pt-6 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-violet-500/20 rounded-lg">
+                <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-violet-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">0</p>
-                <p className="text-sm text-muted-foreground">Certificados</p>
+                <p className="text-lg sm:text-2xl font-bold">0</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Certificados</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Categories Filter */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        {categories.map((category) => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(category)}
-            className="whitespace-nowrap"
-          >
-            {category}
-          </Button>
-        ))}
+      {/* Categories Filter - Scroll horizontal */}
+      <div className="overflow-x-auto -mx-3 px-3 pb-2 sm:overflow-visible sm:mx-0 sm:px-0">
+        <div className="flex items-center gap-2 min-w-max sm:min-w-0 sm:flex-wrap">
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant={selectedCategory === category ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory(category)}
+              className="whitespace-nowrap text-xs sm:text-sm"
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Courses Grid */}

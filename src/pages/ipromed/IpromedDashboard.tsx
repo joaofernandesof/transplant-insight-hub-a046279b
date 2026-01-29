@@ -198,28 +198,28 @@ export default function IpromedDashboard() {
     subtitle?: string;
     trend?: string;
   }) => (
-    <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
-      <CardContent className="pt-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+    <Card className="border-none shadow-md hover:shadow-lg transition-shadow min-w-[130px] sm:min-w-0">
+      <CardContent className="p-3 sm:pt-6 sm:px-6">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
             {isLoading ? (
-              <Skeleton className="h-8 w-16 mt-1" />
+              <Skeleton className="h-6 sm:h-8 w-12 sm:w-16 mt-1" />
             ) : (
-              <p className={`text-3xl font-bold ${color}`}>{value}</p>
+              <p className={`text-xl sm:text-3xl font-bold ${color}`}>{value}</p>
             )}
             {subtitle && (
-              <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">{subtitle}</p>
             )}
             {trend && (
-              <div className="flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3 text-emerald-500" />
-                <span className="text-xs text-emerald-600">{trend}</span>
+              <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
+                <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-emerald-500" />
+                <span className="text-[10px] sm:text-xs text-emerald-600">{trend}</span>
               </div>
             )}
           </div>
-          <div className={`p-3 ${bgColor} rounded-xl`}>
-            <Icon className={`h-6 w-6 ${color}`} />
+          <div className={`p-2 sm:p-3 ${bgColor} rounded-lg sm:rounded-xl shrink-0`}>
+            <Icon className={`h-4 w-4 sm:h-6 sm:w-6 ${color}`} />
           </div>
         </div>
       </CardContent>
@@ -227,90 +227,92 @@ export default function IpromedDashboard() {
   );
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')}>
+      <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')} className="shrink-0">
           <ArrowLeft className="h-4 w-4 mr-1" />
-          IPROMED
+          <span className="hidden sm:inline">IPROMED</span>
         </Button>
-        <span className="text-muted-foreground">/</span>
-        <div className="flex items-center gap-2">
+        <span className="text-muted-foreground hidden sm:inline">/</span>
+        <div className="flex items-center gap-2 shrink-0">
           <BarChart3 className="h-4 w-4 text-primary" />
-          <span className="font-medium">Dashboard</span>
+          <span className="font-medium text-sm sm:text-base">Dashboard</span>
         </div>
       </div>
 
       {/* Title */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-[#00629B] to-[#004d7a] rounded-lg">
-              <Scale className="h-5 w-5 text-white" />
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-[#00629B] to-[#004d7a] rounded-lg">
+              <Scale className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
             Dashboard IPROMED
           </h1>
-          <p className="text-muted-foreground">Visão geral operacional do Instituto de Proteção Médica</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Visão geral operacional</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/ipromed/clients')}>
-            <Users className="h-4 w-4 mr-2" />
-            Clientes
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <Button variant="outline" size="sm" onClick={() => navigate('/ipromed/clients')} className="shrink-0">
+            <Users className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Clientes</span>
           </Button>
-          <Button variant="outline" onClick={() => navigate('/ipromed/contracts')}>
-            <FileSignature className="h-4 w-4 mr-2" />
-            Contratos
+          <Button variant="outline" size="sm" onClick={() => navigate('/ipromed/contracts')} className="shrink-0">
+            <FileSignature className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Contratos</span>
           </Button>
-          <Button onClick={() => navigate('/ipromed/journey')}>
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Jornada
+          <Button size="sm" onClick={() => navigate('/ipromed/journey')} className="shrink-0">
+            <TrendingUp className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Jornada</span>
           </Button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        <StatCard
-          title="Clientes Ativos"
-          value={dashboardData?.clients.total || 0}
-          icon={Users}
-          color="text-blue-600"
-          bgColor="bg-blue-100 dark:bg-blue-900/30"
-          subtitle="Médicos protegidos"
-          trend="+2 este mês"
-        />
-        <StatCard
-          title="Contratos Ativos"
-          value={dashboardData?.contracts.active || 0}
-          icon={FileSignature}
-          color="text-emerald-600"
-          bgColor="bg-emerald-100 dark:bg-emerald-900/30"
-          subtitle="Em vigência"
-        />
-        <StatCard
-          title="Aguard. Assinatura"
-          value={dashboardData?.contracts.pendingSignature || 0}
-          icon={Clock}
-          color="text-purple-600"
-          bgColor="bg-purple-100 dark:bg-purple-900/30"
-          subtitle="Pendentes"
-        />
-        <StatCard
-          title="Processos Ativos"
-          value={dashboardData?.cases.active || 0}
-          icon={Gavel}
-          color="text-rose-600"
-          bgColor="bg-rose-100 dark:bg-rose-900/30"
-          subtitle="Em andamento"
-        />
-        <StatCard
-          title="Vencendo em 30d"
-          value={dashboardData?.contracts.expiring || 0}
-          icon={AlertTriangle}
-          color="text-amber-600"
-          bgColor="bg-amber-100 dark:bg-amber-900/30"
-          subtitle="Renovar urgente"
-        />
+      {/* KPI Cards - Scroll horizontal no mobile */}
+      <div className="overflow-x-auto -mx-3 px-3 pb-2 sm:overflow-visible sm:mx-0 sm:px-0">
+        <div className="flex gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 min-w-max sm:min-w-0">
+          <StatCard
+            title="Clientes Ativos"
+            value={dashboardData?.clients.total || 0}
+            icon={Users}
+            color="text-blue-600"
+            bgColor="bg-blue-100 dark:bg-blue-900/30"
+            subtitle="Médicos protegidos"
+            trend="+2 este mês"
+          />
+          <StatCard
+            title="Contratos Ativos"
+            value={dashboardData?.contracts.active || 0}
+            icon={FileSignature}
+            color="text-emerald-600"
+            bgColor="bg-emerald-100 dark:bg-emerald-900/30"
+            subtitle="Em vigência"
+          />
+          <StatCard
+            title="Aguard. Assinatura"
+            value={dashboardData?.contracts.pendingSignature || 0}
+            icon={Clock}
+            color="text-purple-600"
+            bgColor="bg-purple-100 dark:bg-purple-900/30"
+            subtitle="Pendentes"
+          />
+          <StatCard
+            title="Processos Ativos"
+            value={dashboardData?.cases.active || 0}
+            icon={Gavel}
+            color="text-rose-600"
+            bgColor="bg-rose-100 dark:bg-rose-900/30"
+            subtitle="Em andamento"
+          />
+          <StatCard
+            title="Vencendo 30d"
+            value={dashboardData?.contracts.expiring || 0}
+            icon={AlertTriangle}
+            color="text-amber-600"
+            bgColor="bg-amber-100 dark:bg-amber-900/30"
+            subtitle="Renovar"
+          />
+        </div>
       </div>
 
       {/* Charts Section */}
