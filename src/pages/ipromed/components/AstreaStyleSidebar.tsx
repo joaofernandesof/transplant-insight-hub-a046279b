@@ -50,17 +50,13 @@ const mainNavItems: NavItem[] = [
   { id: 'clients', label: 'Clientes', icon: Users, href: '/ipromed/clients' },
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
+  { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', isNew: true },
   { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
   { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda' },
-  { id: 'meetings', label: 'Reuniões', icon: Users, href: '/ipromed/legal?tab=meetings', isNew: true },
-  { id: 'jurisprudencias', label: 'Jurisprudências', icon: Scale, href: '/ipromed/legal?tab=jurisprudencias' },
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases' },
   { id: 'documents', label: 'Documentos', icon: FileBox, href: '/ipromed/legal?tab=documents' },
   { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', isNew: true },
-  { id: 'risk', label: 'Scoring de Risco', icon: Scale, href: '/ipromed/legal?tab=risk', isNew: true },
-  { id: 'sla', label: 'SLA / Produtividade', icon: BarChart3, href: '/ipromed/legal?tab=sla' },
-  { id: 'indicators', label: 'Indicadores', icon: BarChart3, href: '/ipromed/legal?tab=analytics' },
 ];
 
 interface AstreaStyleSidebarProps {
