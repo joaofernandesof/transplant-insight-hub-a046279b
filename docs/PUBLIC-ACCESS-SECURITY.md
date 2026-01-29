@@ -4,6 +4,8 @@
 
 Esta documentação descreve as implementações de segurança para tornar o NeoHub acessível publicamente via web com controle restrito de acesso.
 
+**Última atualização**: Janeiro 2026
+
 ---
 
 ## 🔐 Arquitetura de Acesso
@@ -41,10 +43,12 @@ Todas as demais rotas exigem autenticação válida:
 
 ## 🛡️ Medidas de Segurança Implementadas
 
-### 1. Cadastro Desabilitado
+### 1. Cadastro TOTALMENTE Desabilitado
 
-- ❌ Botão "Criar conta" removido da interface
+- ❌ Botão "Criar conta" removido de TODAS as interfaces
 - ❌ Formulário de signup eliminado do código
+- ❌ Rotas de registro (`/register`, `/portal/register`) redirecionam para login
+- ❌ Componentes NeoHubRegister e PortalRegister desativados
 - ✅ Apenas login e recuperação de senha disponíveis
 - ✅ Mensagem clara: "Acesso restrito a usuários autorizados"
 
@@ -110,8 +114,11 @@ Allow: /$
 
 | Arquivo | Alteração |
 |---------|-----------|
+| `index.html` | Favicon atualizado para app-icon.png do NeoHub |
 | `src/pages/Login.tsx` | Removido signup, adicionado aviso de acesso restrito |
 | `src/App.tsx` | Adicionada landing como rota `/`, SessionManager |
+| `src/portal/PortalApp.tsx` | Rota /register agora redireciona para /login |
+| `src/portal/pages/PortalLanding.tsx` | Removidos botões de cadastro |
 | `public/robots.txt` | Bloqueio de indexação |
 
 ---

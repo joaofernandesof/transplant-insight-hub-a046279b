@@ -3,7 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { PortalAuthProvider, usePortalAuth } from './contexts/PortalAuthContext';
 import { PortalSidebar } from './components/PortalSidebar';
 import PortalLanding from './pages/PortalLanding';
-import PortalRegister from './pages/PortalRegister';
+// NOTA: Registro desabilitado - apenas via script interno
+// import PortalRegister from './pages/PortalRegister';
 import PortalHome from './pages/PortalHome';
 import PortalSettings from './pages/PortalSettings';
 import InventoryDashboard from './pages/dashboards/InventoryDashboard';
@@ -40,7 +41,8 @@ function PortalRoutes() {
       {/* Public routes */}
       <Route path="landing" element={<PortalLanding />} />
       <Route path="login" element={<Navigate to="/login" replace />} />
-      <Route path="register" element={<PortalRegister />} />
+      {/* NOTA: Registro desabilitado - redireciona para login */}
+      <Route path="register" element={<Navigate to="/login" replace />} />
       <Route path="forgot-password" element={<ForgotPassword />} />
       <Route path="reset-password" element={<ResetPassword />} />
       <Route path="auth-diagnostic" element={<AuthDiagnostic />} />
