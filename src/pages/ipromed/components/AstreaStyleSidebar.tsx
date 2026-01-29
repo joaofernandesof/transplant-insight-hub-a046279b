@@ -28,6 +28,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -45,6 +46,7 @@ interface NavItem {
 const mainNavItems: NavItem[] = [
   { id: 'home', label: 'Início', icon: Home, href: '/ipromed' },
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/ipromed/dashboard' },
+  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', isNew: true },
   { id: 'clients', label: 'Clientes', icon: Users, href: '/ipromed/clients' },
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
