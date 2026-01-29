@@ -237,20 +237,9 @@ export default function SalesUrgencyPage() {
     }
   };
 
-  // Calcular ocupação da turma
-  const getClassOccupancy = () => {
-    if (!nextClass) return { enrolled: 0, max: 10, remaining: 10, percentage: 0 };
-    
-    const maxStudents = nextClass.max_students || 10;
-    const enrolled = nextClass.enrolledCount;
-    const remaining = Math.max(0, maxStudents - enrolled);
-    const percentage = Math.min(100, (enrolled / maxStudents) * 100);
-    
-    return { enrolled, max: maxStudents, remaining, percentage };
-  };
-
-  const occupancy = getClassOccupancy();
-  const isAlmostFull = occupancy.remaining <= 2;
+  // Ocupação fixa em 95% para escassez
+  const occupancy = { percentage: 95, remaining: 2 };
+  const isAlmostFull = true;
 
   return (
     <div className="p-4 lg:p-8 space-y-6 max-w-5xl mx-auto">
@@ -367,13 +356,13 @@ export default function SalesUrgencyPage() {
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-muted-foreground">Ocupação da Turma</span>
-                    <span className={`font-semibold ${isAlmostFull ? 'text-destructive' : ''}`}>
-                      {occupancy.enrolled}/{occupancy.max} vagas preenchidas
+                    <span className="font-semibold text-destructive">
+                      95% preenchida
                     </span>
                   </div>
                   <Progress 
-                    value={occupancy.percentage} 
-                    className={`h-3 ${isAlmostFull ? '[&>div]:bg-destructive' : ''}`}
+                    value={95} 
+                    className="h-4 w-full [&>div]:bg-destructive"
                   />
                 </div>
 
