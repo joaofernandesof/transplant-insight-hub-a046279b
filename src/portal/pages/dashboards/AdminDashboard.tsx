@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Users, Calendar, DollarSign, Package, TrendingUp, 
   Activity, AlertTriangle, CheckCircle2, Clock, ArrowRight,
-  Stethoscope, UserPlus
+  Stethoscope, UserPlus, Flame
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../../contexts/PortalAuthContext';
@@ -21,10 +21,10 @@ export default function PortalAdminDashboard() {
   ];
 
   const secondaryStats = [
-    { label: 'Estoque Baixo', value: '0', icon: Package, color: 'text-red-500' },
+    { label: 'Estoque Baixo', value: '0', icon: Package, color: 'text-destructive' },
     { label: 'Consultas Semana', value: '0', icon: TrendingUp, color: 'text-green-500' },
     { label: 'Pendências', value: '0', icon: AlertTriangle, color: 'text-yellow-500' },
-    { label: 'NPS Médio', value: '-', icon: Activity, color: 'text-blue-500' },
+    { label: 'NPS Médio', value: '-', icon: Activity, color: 'text-primary' },
   ];
 
   const quickActions = [
@@ -43,6 +43,27 @@ export default function PortalAdminDashboard() {
         </h1>
         <p className="opacity-90">Bem-vindo, {user?.full_name}. Aqui está o resumo do sistema.</p>
       </div>
+
+      {/* Banner Escassez */}
+      <Card 
+        className="cursor-pointer border-2 border-destructive/50 bg-gradient-to-r from-destructive/5 to-orange-500/5 hover:border-destructive transition-all"
+        onClick={() => navigate('/admin/sales-urgency')}
+      >
+        <CardContent className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-destructive rounded-xl">
+              <Flame className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">Promoção Cirurgia Center - ÚLTIMAS VAGAS</h3>
+              <p className="text-sm text-muted-foreground">
+                Voucher de Passagem Aérea ou Hospedagem para próximas turmas
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="h-5 w-5 text-muted-foreground" />
+        </CardContent>
+      </Card>
 
       {/* Main Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
