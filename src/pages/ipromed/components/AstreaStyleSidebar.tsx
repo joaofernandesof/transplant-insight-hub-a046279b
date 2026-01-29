@@ -29,6 +29,7 @@ import {
   Menu,
   X,
   GraduationCap,
+  Radar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -51,7 +52,7 @@ const mainNavItems: NavItem[] = [
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', isNew: true },
-  { id: 'push', label: 'Push Jurídico', icon: Bell, href: '/ipromed/push-juridico', isNew: true },
+  { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico', isNew: true },
   { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
   { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda' },
