@@ -134,7 +134,7 @@ export default function ProfileSelector() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   // Ordenar módulos: acessíveis primeiro, depois bloqueados

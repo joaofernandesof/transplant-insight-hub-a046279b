@@ -47,7 +47,7 @@ export function VisionSidebar({ onOpenPlans, onStartAnalysis }: VisionSidebarPro
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   const handleItemClick = (item: typeof menuItems[0]) => {
