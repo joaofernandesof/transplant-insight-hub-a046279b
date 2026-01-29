@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Users, Calendar, DollarSign, Package, TrendingUp, 
   Activity, AlertTriangle, CheckCircle2, Clock, ArrowRight,
-  Stethoscope, UserPlus, Flame
+  Stethoscope, UserPlus, GraduationCap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../../contexts/PortalAuthContext';
@@ -44,20 +44,20 @@ export default function PortalAdminDashboard() {
         <p className="opacity-90">Bem-vindo, {user?.full_name}. Aqui está o resumo do sistema.</p>
       </div>
 
-      {/* Banner Escassez */}
+      {/* Banner Cadastro Alunos */}
       <Card 
-        className="cursor-pointer border-2 border-destructive/50 bg-gradient-to-r from-destructive/5 to-orange-500/5 hover:border-destructive transition-all"
+        className="cursor-pointer border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 hover:border-primary/50 transition-all"
         onClick={() => navigate('/admin/sales-urgency')}
       >
         <CardContent className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-destructive rounded-xl">
-              <Flame className="h-6 w-6 text-white" />
+            <div className="p-3 bg-primary rounded-xl">
+              <GraduationCap className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="font-bold text-lg">Promoção Cirurgia Center - ÚLTIMAS VAGAS</h3>
+              <h3 className="font-bold text-lg">Cadastro de Alunos - Voucher Cirurgia Center</h3>
               <p className="text-sm text-muted-foreground">
-                Voucher de Passagem Aérea ou Hospedagem para próximas turmas
+                Registro de fechamentos com benefício de passagem/hospedagem
               </p>
             </div>
           </div>

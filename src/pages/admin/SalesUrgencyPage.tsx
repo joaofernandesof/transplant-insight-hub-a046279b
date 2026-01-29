@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,9 @@ import { toast } from 'sonner';
 import { format, differenceInSeconds, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
-  Clock, AlertTriangle, Plane, Hotel, Users, 
-  GraduationCap, FileText, Upload, CheckCircle2,
-  Flame, Timer, MapPin
+  Clock, Plane, Hotel, Users, 
+  GraduationCap, FileText, CheckCircle2,
+  Flame, MapPin
 } from 'lucide-react';
 
 // Máscaras de input
@@ -50,11 +50,15 @@ const formatCurrency = (value: string) => {
   return number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
+// Tipos de curso disponíveis
+const COURSE_OPTIONS = [
+  { value: 'formacao360', label: 'Formação 360' },
+  { value: 'brows', label: 'Curso Brows' }
+];
+
 export default function SalesUrgencyPage() {
-  const queryClient = useQueryClient();
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
-  const [selectedClass, setSelectedClass] = useState<string | null>(null);
-  const [residenceProof, setResidenceProof] = useState<File | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -72,15 +76,9 @@ export default function SalesUrgencyPage() {
     state: '',
     cep: '',
     instagram: '',
-    licenseFee: '',
-    signalPaid: '',
+    contractValue: '',
+    signalValue: '',
     signalPaymentMethod: '',
-    signalPaymentDate: '',
-    balanceDue: '',
-    balancePaymentMethod: '',
-    monthlyFee: '',
-    firstMonthlyDate: '',
-    monthlyPaymentMethod: '',
     observations: ''
   });
 
@@ -123,6 +121,7 @@ export default function SalesUrgencyPage() {
         `)
         .in('status', ['active', 'confirmed', 'in_progress'])
         .not('start_date', 'is', null)
+        .gte('start_date', new Date().toISOString().split('T')[0])
         .order('start_date', { ascending: true });
 
       if (error) throw error;
@@ -147,16 +146,23 @@ export default function SalesUrgencyPage() {
     }
   });
 
-  // Filtrar turmas por curso
-  const formacao360Classes = classes.filter(c => 
-    c.course?.title?.toLowerCase().includes('formação') || 
-    c.course?.title?.toLowerCase().includes('360')
-  );
-  
-  const browsClasses = classes.filter(c => 
-    c.course?.title?.toLowerCase().includes('brow') ||
-    c.course?.title?.toLowerCase().includes('sobrancelha')
-  );
+  // Filtrar próxima turma do curso selecionado
+  const nextClass = useMemo(() => {
+    if (!selectedCourse) return null;
+    
+    const filtered = classes.filter(c => {
+      const title = c.course?.title?.toLowerCase() || '';
+      if (selectedCourse === 'formacao360') {
+        return title.includes('formação') || title.includes('360');
+      } else if (selectedCourse === 'brows') {
+        return title.includes('brow') || title.includes('sobrancelha');
+      }
+      return false;
+    });
+    
+    // Retorna apenas a próxima turma (primeira da lista ordenada por data)
+    return filtered[0] || null;
+  }, [classes, selectedCourse]);
 
   const handleInputChange = (field: string, value: string) => {
     let formattedValue = value;
@@ -171,10 +177,8 @@ export default function SalesUrgencyPage() {
       case 'cep':
         formattedValue = formatCEP(value);
         break;
-      case 'licenseFee':
-      case 'signalPaid':
-      case 'balanceDue':
-      case 'monthlyFee':
+      case 'contractValue':
+      case 'signalValue':
         formattedValue = formatCurrency(value);
         break;
     }
@@ -182,21 +186,9 @@ export default function SalesUrgencyPage() {
     setFormData(prev => ({ ...prev, [field]: formattedValue }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Arquivo muito grande. Máximo 5MB.');
-        return;
-      }
-      setResidenceProof(file);
-      toast.success('Comprovante anexado com sucesso!');
-    }
-  };
-
   const handleSubmit = async () => {
-    if (!selectedClass) {
-      toast.error('Selecione uma turma');
+    if (!nextClass) {
+      toast.error('Selecione um curso com turma disponível');
       return;
     }
     
@@ -205,43 +197,28 @@ export default function SalesUrgencyPage() {
       return;
     }
 
-    if (!residenceProof) {
-      toast.error('Anexe o comprovante de residência');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      // Upload do comprovante
-      const fileExt = residenceProof.name.split('.').pop();
-      const fileName = `${formData.cpf.replace(/\D/g, '')}_${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('patient-documents')
-        .upload(`vouchers/${fileName}`, residenceProof);
-
-      if (uploadError) throw uploadError;
-
-      // Determinar tipo de voucher baseado na cidade
-      const isSaoPaulo = formData.city.toLowerCase().includes('são paulo') || 
-                         formData.state.toLowerCase() === 'sp';
+      // Determinar tipo de voucher baseado no estado
+      const isSaoPaulo = formData.state.toLowerCase() === 'sp';
       const voucherType = isSaoPaulo ? 'hospedagem' : 'passagem_aerea';
 
-      // Salvar registro (usando tabela existente ou criando log)
+      // Dados do registro
       const registrationData = {
-        class_id: selectedClass,
+        class_id: nextClass.id,
+        course_name: selectedCourse === 'formacao360' ? 'Formação 360' : 'Curso Brows',
+        class_date: nextClass.start_date,
         ...formData,
         voucher_type: voucherType,
-        residence_proof_path: `vouchers/${fileName}`,
         created_at: new Date().toISOString()
       };
 
       // Log para acompanhamento
-      console.log('Registro de venda urgente:', registrationData);
+      console.log('Cadastro de aluno:', registrationData);
       
       toast.success(
-        `Cadastro realizado com sucesso! Voucher de ${isSaoPaulo ? 'HOSPEDAGEM' : 'PASSAGEM AÉREA'} será processado.`,
+        `Cadastro realizado! Benefício: ${isSaoPaulo ? 'Hospedagem' : 'Passagem Aérea'}`,
         { duration: 5000 }
       );
 
@@ -249,13 +226,9 @@ export default function SalesUrgencyPage() {
       setFormData({
         fullName: '', phone: '', cpf: '', email: '', crm: '', birthDate: '',
         street: '', number: '', complement: '', neighborhood: '', city: '',
-        state: '', cep: '', instagram: '', licenseFee: '', signalPaid: '',
-        signalPaymentMethod: '', signalPaymentDate: '', balanceDue: '',
-        balancePaymentMethod: '', monthlyFee: '', firstMonthlyDate: '',
-        monthlyPaymentMethod: '', observations: ''
+        state: '', cep: '', instagram: '', contractValue: '', signalValue: '',
+        signalPaymentMethod: '', observations: ''
       });
-      setResidenceProof(null);
-      setSelectedClass(null);
 
     } catch (error: any) {
       toast.error('Erro ao processar cadastro: ' + error.message);
@@ -264,93 +237,39 @@ export default function SalesUrgencyPage() {
     }
   };
 
-  const renderClassCard = (cls: any) => {
-    const maxStudents = cls.max_students || 10;
-    const enrolled = cls.enrolledCount;
+  // Calcular ocupação da turma
+  const getClassOccupancy = () => {
+    if (!nextClass) return { enrolled: 0, max: 10, remaining: 10, percentage: 0 };
+    
+    const maxStudents = nextClass.max_students || 10;
+    const enrolled = nextClass.enrolledCount;
     const remaining = Math.max(0, maxStudents - enrolled);
     const percentage = Math.min(100, (enrolled / maxStudents) * 100);
-    const isAlmostFull = remaining <= 2;
-
-    return (
-      <Card 
-        key={cls.id} 
-        className={`cursor-pointer transition-all ${
-          selectedClass === cls.id 
-            ? 'ring-2 ring-primary border-primary' 
-            : 'hover:border-primary/50'
-        } ${isAlmostFull ? 'bg-red-50 dark:bg-red-950/20' : ''}`}
-        onClick={() => setSelectedClass(cls.id)}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h4 className="font-semibold">{cls.name}</h4>
-              <p className="text-sm text-muted-foreground">{cls.code}</p>
-            </div>
-            {isAlmostFull && (
-              <Badge variant="destructive" className="animate-pulse">
-                <Flame className="h-3 w-3 mr-1" />
-                ÚLTIMAS VAGAS
-              </Badge>
-            )}
-          </div>
-
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>
-                {cls.start_date && format(new Date(cls.start_date), "dd 'de' MMMM", { locale: ptBR })}
-                {cls.end_date && ` - ${format(new Date(cls.end_date), "dd 'de' MMMM", { locale: ptBR })}`}
-              </span>
-            </div>
-            {cls.location && (
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>{cls.location}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-muted-foreground">Ocupação</span>
-              <span className={`font-semibold ${isAlmostFull ? 'text-red-600' : ''}`}>
-                {enrolled}/{maxStudents} vagas
-              </span>
-            </div>
-            <Progress 
-              value={percentage} 
-              className={`h-2 ${isAlmostFull ? '[&>div]:bg-red-500' : ''}`}
-            />
-            {isAlmostFull && (
-              <p className="text-xs text-red-600 mt-1 font-medium">
-                Apenas {remaining} {remaining === 1 ? 'vaga restante' : 'vagas restantes'}!
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
+    
+    return { enrolled, max: maxStudents, remaining, percentage };
   };
 
+  const occupancy = getClassOccupancy();
+  const isAlmostFull = occupancy.remaining <= 2;
+
   return (
-    <div className="p-4 lg:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Header com Urgência */}
-      <div className="bg-gradient-to-r from-red-600 to-orange-500 rounded-2xl p-6 text-white">
+    <div className="p-4 lg:p-8 space-y-6 max-w-5xl mx-auto">
+      {/* Header Interno */}
+      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-xl">
-              <AlertTriangle className="h-8 w-8" />
+            <div className="p-3 bg-primary-foreground/20 rounded-xl">
+              <GraduationCap className="h-8 w-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Promoção Exclusiva - Cirurgia Center</h1>
-              <p className="opacity-90">Voucher de Passagem Aérea ou Hospedagem para as próximas turmas</p>
+              <h1 className="text-2xl font-bold">Cadastro de Alunos - Voucher Cirurgia Center</h1>
+              <p className="opacity-90">Registro de alunos que fecharem até o prazo do dia</p>
             </div>
           </div>
           
           {/* Contador Regressivo */}
-          <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
-            <p className="text-sm text-center mb-2 opacity-90">Oferta expira em:</p>
+          <div className="bg-primary-foreground/20 rounded-xl p-4 backdrop-blur-sm">
+            <p className="text-sm text-center mb-2 opacity-90">Prazo do dia:</p>
             <div className="flex gap-2 items-center">
               <div className="text-center">
                 <div className="text-3xl font-bold font-mono">
@@ -377,450 +296,407 @@ export default function SalesUrgencyPage() {
         </div>
       </div>
 
-      {/* Info Vouchers */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 bg-blue-500 rounded-xl">
-              <Plane className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100">Passagem Aérea</h3>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                Para médicos de fora de São Paulo
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 bg-purple-500 rounded-xl">
-              <Hotel className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-purple-900 dark:text-purple-100">Hospedagem</h3>
-              <p className="text-sm text-purple-700 dark:text-purple-300">
-                Para médicos residentes em São Paulo
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Turmas Disponíveis */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Formação 360 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-primary" />
-              Formação 360
-            </CardTitle>
-            <CardDescription>Turmas com datas confirmadas</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {isLoading ? (
-              <p className="text-muted-foreground">Carregando turmas...</p>
-            ) : formacao360Classes.length > 0 ? (
-              formacao360Classes.map(renderClassCard)
-            ) : (
-              <p className="text-muted-foreground">Nenhuma turma confirmada no momento</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Brows */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-primary" />
-              Curso Brows
-            </CardTitle>
-            <CardDescription>Turmas com datas confirmadas</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {isLoading ? (
-              <p className="text-muted-foreground">Carregando turmas...</p>
-            ) : browsClasses.length > 0 ? (
-              browsClasses.map(renderClassCard)
-            ) : (
-              <p className="text-muted-foreground">Nenhuma turma confirmada no momento</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Formulário de Cadastro */}
+      {/* Seletor de Curso */}
       <Card>
-        <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Cadastro - Licença ByNeofolic
+            <GraduationCap className="h-5 w-5" />
+            Selecione o Curso
           </CardTitle>
-          <CardDescription>
-            Preencha os dados do médico para garantir a vaga com voucher
-          </CardDescription>
+          <CardDescription>Escolha o curso para ver a próxima turma disponível</CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-6">
-            {/* Dados Pessoais */}
-            <div>
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Dados Pessoais
-              </h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Nome Completo *</Label>
-                  <Input
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    placeholder="Nome completo do médico"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone *</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cpf">CPF *</Label>
-                  <Input
-                    id="cpf"
-                    value={formData.cpf}
-                    onChange={(e) => handleInputChange('cpf', e.target.value)}
-                    placeholder="000.000.000-00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="email@exemplo.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="crm">CRM</Label>
-                  <Input
-                    id="crm"
-                    value={formData.crm}
-                    onChange={(e) => handleInputChange('crm', e.target.value)}
-                    placeholder="CRM/UF 00000"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="birthDate">Data de Nascimento</Label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={formData.birthDate}
-                    onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="instagram">Link do Instagram</Label>
-                  <Input
-                    id="instagram"
-                    value={formData.instagram}
-                    onChange={(e) => handleInputChange('instagram', e.target.value)}
-                    placeholder="@usuario ou URL"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Endereço */}
-            <div>
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Endereço (para definição do voucher)
-              </h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2 lg:col-span-2">
-                  <Label htmlFor="street">Rua/Avenida *</Label>
-                  <Input
-                    id="street"
-                    value={formData.street}
-                    onChange={(e) => handleInputChange('street', e.target.value)}
-                    placeholder="Nome da rua"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="number">Número *</Label>
-                  <Input
-                    id="number"
-                    value={formData.number}
-                    onChange={(e) => handleInputChange('number', e.target.value)}
-                    placeholder="Nº"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="complement">Complemento</Label>
-                  <Input
-                    id="complement"
-                    value={formData.complement}
-                    onChange={(e) => handleInputChange('complement', e.target.value)}
-                    placeholder="Apto, Sala..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="neighborhood">Bairro *</Label>
-                  <Input
-                    id="neighborhood"
-                    value={formData.neighborhood}
-                    onChange={(e) => handleInputChange('neighborhood', e.target.value)}
-                    placeholder="Bairro"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">Cidade *</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange('city', e.target.value)}
-                    placeholder="Cidade"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">Estado *</Label>
-                  <Select
-                    value={formData.state}
-                    onValueChange={(value) => handleInputChange('state', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="UF" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
-                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cep">CEP *</Label>
-                  <Input
-                    id="cep"
-                    value={formData.cep}
-                    onChange={(e) => handleInputChange('cep', e.target.value)}
-                    placeholder="00000-000"
-                  />
-                </div>
-              </div>
-
-              {/* Upload Comprovante */}
-              <div className="mt-4 p-4 border-2 border-dashed rounded-lg">
-                <Label htmlFor="residenceProof" className="cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${residenceProof ? 'bg-green-100 text-green-600' : 'bg-muted'}`}>
-                      {residenceProof ? <CheckCircle2 className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {residenceProof ? residenceProof.name : 'Anexar Comprovante de Residência *'}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        PDF, JPG ou PNG (máx. 5MB) - Necessário para definir tipo de voucher
-                      </p>
-                    </div>
-                  </div>
-                </Label>
-                <Input
-                  id="residenceProof"
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Dados Financeiros */}
-            <div>
-              <h3 className="font-semibold mb-4">💰 Dados Financeiros</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="licenseFee">Taxa de Licença</Label>
-                  <Input
-                    id="licenseFee"
-                    value={formData.licenseFee}
-                    onChange={(e) => handleInputChange('licenseFee', e.target.value)}
-                    placeholder="R$ 0,00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signalPaid">Sinal Pago</Label>
-                  <Input
-                    id="signalPaid"
-                    value={formData.signalPaid}
-                    onChange={(e) => handleInputChange('signalPaid', e.target.value)}
-                    placeholder="R$ 0,00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signalPaymentMethod">Forma de Pagamento do Sinal</Label>
-                  <Select
-                    value={formData.signalPaymentMethod}
-                    onValueChange={(value) => handleInputChange('signalPaymentMethod', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pix">Pix</SelectItem>
-                      <SelectItem value="credito">Cartão de Crédito</SelectItem>
-                      <SelectItem value="debito">Cartão de Débito</SelectItem>
-                      <SelectItem value="boleto">Boleto</SelectItem>
-                      <SelectItem value="transferencia">Transferência</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signalPaymentDate">Data de Pagamento do Sinal</Label>
-                  <Input
-                    id="signalPaymentDate"
-                    type="date"
-                    value={formData.signalPaymentDate}
-                    onChange={(e) => handleInputChange('signalPaymentDate', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="balanceDue">Saldo Devedor</Label>
-                  <Input
-                    id="balanceDue"
-                    value={formData.balanceDue}
-                    onChange={(e) => handleInputChange('balanceDue', e.target.value)}
-                    placeholder="R$ 0,00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="balancePaymentMethod">Forma de Pagamento do Saldo</Label>
-                  <Select
-                    value={formData.balancePaymentMethod}
-                    onValueChange={(value) => handleInputChange('balancePaymentMethod', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pix">Pix</SelectItem>
-                      <SelectItem value="credito">Cartão de Crédito</SelectItem>
-                      <SelectItem value="parcelado">Parcelado</SelectItem>
-                      <SelectItem value="boleto">Boleto</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Mensalidade da Licença */}
-            <div>
-              <h3 className="font-semibold mb-4">📅 Mensalidade da Licença</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="monthlyFee">Valor da Mensalidade</Label>
-                  <Input
-                    id="monthlyFee"
-                    value={formData.monthlyFee}
-                    onChange={(e) => handleInputChange('monthlyFee', e.target.value)}
-                    placeholder="R$ 0,00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="firstMonthlyDate">Data da Primeira Mensalidade</Label>
-                  <Input
-                    id="firstMonthlyDate"
-                    type="date"
-                    value={formData.firstMonthlyDate}
-                    onChange={(e) => handleInputChange('firstMonthlyDate', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="monthlyPaymentMethod">Forma de Pagamento</Label>
-                  <Select
-                    value={formData.monthlyPaymentMethod}
-                    onValueChange={(value) => handleInputChange('monthlyPaymentMethod', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="stripe_recorrente">Stripe - Crédito Recorrente</SelectItem>
-                      <SelectItem value="stripe_fatura">Stripe - Fatura Mensal</SelectItem>
-                      <SelectItem value="pix_mensal">Pix Mensal</SelectItem>
-                      <SelectItem value="boleto_mensal">Boleto Mensal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Observações */}
-            <div className="space-y-2">
-              <Label htmlFor="observations">Observações Adicionais</Label>
-              <Textarea
-                id="observations"
-                value={formData.observations}
-                onChange={(e) => handleInputChange('observations', e.target.value)}
-                placeholder="Informações adicionais relevantes..."
-                rows={3}
-              />
-            </div>
-
-            {/* Botão Submit */}
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setFormData({
-                    fullName: '', phone: '', cpf: '', email: '', crm: '', birthDate: '',
-                    street: '', number: '', complement: '', neighborhood: '', city: '',
-                    state: '', cep: '', instagram: '', licenseFee: '', signalPaid: '',
-                    signalPaymentMethod: '', signalPaymentDate: '', balanceDue: '',
-                    balancePaymentMethod: '', monthlyFee: '', firstMonthlyDate: '',
-                    monthlyPaymentMethod: '', observations: ''
-                  });
-                  setResidenceProof(null);
-                  setSelectedClass(null);
-                }}
-              >
-                Limpar Formulário
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={isSubmitting || !selectedClass}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-              >
-                {isSubmitting ? (
-                  <>Processando...</>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Garantir Vaga com Voucher
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+        <CardContent>
+          <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+            <SelectTrigger className="w-full max-w-md">
+              <SelectValue placeholder="Selecione um curso..." />
+            </SelectTrigger>
+            <SelectContent>
+              {COURSE_OPTIONS.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
+
+      {/* Próxima Turma do Curso Selecionado */}
+      {selectedCourse && (
+        <Card className={isAlmostFull ? 'border-destructive bg-destructive/5' : ''}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>
+                Próxima Turma - {selectedCourse === 'formacao360' ? 'Formação 360' : 'Curso Brows'}
+              </CardTitle>
+              {isAlmostFull && (
+                <Badge variant="destructive" className="animate-pulse">
+                  <Flame className="h-3 w-3 mr-1" />
+                  Últimas {occupancy.remaining} vagas
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <p className="text-muted-foreground">Carregando...</p>
+            ) : nextClass ? (
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold text-lg">{nextClass.name}</h4>
+                    <p className="text-sm text-muted-foreground">{nextClass.code}</p>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span>
+                        {nextClass.start_date && format(new Date(nextClass.start_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      </span>
+                    </div>
+                    {nextClass.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span>{nextClass.location}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Barra de Ocupação */}
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Ocupação da Turma</span>
+                    <span className={`font-semibold ${isAlmostFull ? 'text-destructive' : ''}`}>
+                      {occupancy.enrolled}/{occupancy.max} vagas preenchidas
+                    </span>
+                  </div>
+                  <Progress 
+                    value={occupancy.percentage} 
+                    className={`h-3 ${isAlmostFull ? '[&>div]:bg-destructive' : ''}`}
+                  />
+                </div>
+
+                {/* Info Vouchers */}
+                <div className="grid sm:grid-cols-2 gap-3 pt-2">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+                    <Plane className="h-5 w-5 text-blue-600" />
+                    <div className="text-sm">
+                      <p className="font-medium text-blue-900 dark:text-blue-100">Passagem Aérea</p>
+                      <p className="text-blue-700 dark:text-blue-300 text-xs">Médicos de fora de SP</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900">
+                    <Hotel className="h-5 w-5 text-purple-600" />
+                    <div className="text-sm">
+                      <p className="font-medium text-purple-900 dark:text-purple-100">Hospedagem</p>
+                      <p className="text-purple-700 dark:text-purple-300 text-xs">Médicos de SP</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Nenhuma turma confirmada para este curso</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Formulário de Cadastro */}
+      {selectedCourse && nextClass && (
+        <Card>
+          <CardHeader className="bg-muted/50">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Cadastro - Curso {selectedCourse === 'formacao360' ? 'Formação 360' : 'Brows'}
+            </CardTitle>
+            <CardDescription>
+              Preencha os dados do aluno para registro
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              {/* Dados Pessoais */}
+              <div>
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Dados Pessoais
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Nome Completo *</Label>
+                    <Input
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) => handleInputChange('fullName', e.target.value)}
+                      placeholder="Nome completo"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefone *</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="(00) 00000-0000"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cpf">CPF *</Label>
+                    <Input
+                      id="cpf"
+                      value={formData.cpf}
+                      onChange={(e) => handleInputChange('cpf', e.target.value)}
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">E-mail *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="email@exemplo.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="crm">CRM</Label>
+                    <Input
+                      id="crm"
+                      value={formData.crm}
+                      onChange={(e) => handleInputChange('crm', e.target.value)}
+                      placeholder="CRM/UF 00000"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="birthDate">Data de Nascimento</Label>
+                    <Input
+                      id="birthDate"
+                      type="date"
+                      value={formData.birthDate}
+                      onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Endereço */}
+              <div>
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Endereço
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-2 lg:col-span-2">
+                    <Label htmlFor="street">Rua/Avenida</Label>
+                    <Input
+                      id="street"
+                      value={formData.street}
+                      onChange={(e) => handleInputChange('street', e.target.value)}
+                      placeholder="Nome da rua"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="number">Número</Label>
+                    <Input
+                      id="number"
+                      value={formData.number}
+                      onChange={(e) => handleInputChange('number', e.target.value)}
+                      placeholder="Nº"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="complement">Complemento</Label>
+                    <Input
+                      id="complement"
+                      value={formData.complement}
+                      onChange={(e) => handleInputChange('complement', e.target.value)}
+                      placeholder="Apto, Sala..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="neighborhood">Bairro</Label>
+                    <Input
+                      id="neighborhood"
+                      value={formData.neighborhood}
+                      onChange={(e) => handleInputChange('neighborhood', e.target.value)}
+                      placeholder="Bairro"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">Cidade</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      placeholder="Cidade"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">Estado</Label>
+                    <Select
+                      value={formData.state}
+                      onValueChange={(value) => handleInputChange('state', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="UF" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                          <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cep">CEP</Label>
+                    <Input
+                      id="cep"
+                      value={formData.cep}
+                      onChange={(e) => handleInputChange('cep', e.target.value)}
+                      placeholder="00000-000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Instagram e Curso */}
+              <div>
+                <h3 className="font-semibold mb-4">Informações Adicionais</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram">Link do Instagram</Label>
+                    <Input
+                      id="instagram"
+                      value={formData.instagram}
+                      onChange={(e) => handleInputChange('instagram', e.target.value)}
+                      placeholder="@usuario ou URL"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Curso</Label>
+                    <Input
+                      value={selectedCourse === 'formacao360' ? 'Formação 360' : 'Curso Brows'}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Cidade da Turma</Label>
+                    <Input
+                      value="São Paulo"
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Dados Financeiros Simplificados */}
+              <div>
+                <h3 className="font-semibold mb-4">💰 Dados do Contrato</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contractValue">Valor do Contrato</Label>
+                    <Input
+                      id="contractValue"
+                      value={formData.contractValue}
+                      onChange={(e) => handleInputChange('contractValue', e.target.value)}
+                      placeholder="R$ 0,00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data da Turma</Label>
+                    <Input
+                      value={nextClass.start_date ? format(new Date(nextClass.start_date), "dd/MM/yyyy") : ''}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signalValue">Valor do Sinal</Label>
+                    <Input
+                      id="signalValue"
+                      value={formData.signalValue}
+                      onChange={(e) => handleInputChange('signalValue', e.target.value)}
+                      placeholder="R$ 0,00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signalPaymentMethod">Forma de Pgto Sinal</Label>
+                    <Select
+                      value={formData.signalPaymentMethod}
+                      onValueChange={(value) => handleInputChange('signalPaymentMethod', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pix">Pix</SelectItem>
+                        <SelectItem value="credito">Cartão de Crédito</SelectItem>
+                        <SelectItem value="debito">Cartão de Débito</SelectItem>
+                        <SelectItem value="boleto">Boleto</SelectItem>
+                        <SelectItem value="transferencia">Transferência</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Observações */}
+              <div className="space-y-2">
+                <Label htmlFor="observations">Observações Adicionais</Label>
+                <Textarea
+                  id="observations"
+                  value={formData.observations}
+                  onChange={(e) => handleInputChange('observations', e.target.value)}
+                  placeholder="Informações adicionais relevantes..."
+                  rows={3}
+                />
+              </div>
+
+              {/* Botão Submit */}
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFormData({
+                      fullName: '', phone: '', cpf: '', email: '', crm: '', birthDate: '',
+                      street: '', number: '', complement: '', neighborhood: '', city: '',
+                      state: '', cep: '', instagram: '', contractValue: '', signalValue: '',
+                      signalPaymentMethod: '', observations: ''
+                    });
+                  }}
+                >
+                  Limpar Formulário
+                </Button>
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>Processando...</>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Registrar Aluno
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
