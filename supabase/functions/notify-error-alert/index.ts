@@ -19,6 +19,7 @@ interface ErrorAlertRequest {
   userName?: string;
   pageUrl: string;
   userAgent?: string;
+  reportedByUser?: boolean;
 }
 
 // Error explanations and solutions database
@@ -105,6 +106,10 @@ const handler = async (req: Request): Promise<Response> => {
     
     const solutionsList = solutions.map(s => `<li>${s}</li>`).join('');
     
+    const reportBadge = data.reportedByUser 
+      ? '<div style="background: #059669; color: white; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-bottom: 15px; font-weight: bold;">👆 REPORTADO PELO USUÁRIO</div>'
+      : '<div style="background: #6b7280; color: white; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">🔄 Alerta Automático</div>';
+
     const emailHtml = `
       <!DOCTYPE html>
       <html>
@@ -128,15 +133,18 @@ const handler = async (req: Request): Promise<Response> => {
           .solutions li { margin: 5px 0; }
           .technical { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 15px 0; font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
           .footer { background: #374151; color: #9ca3af; padding: 15px; text-align: center; font-size: 12px; border-radius: 0 0 8px 8px; }
+          .user-reported { background: #059669; }
         </style>
       </head>
       <body>
         <div class="container">
-          <div class="header">
-            <h1>🚨 Alerta de Erro - NeoHub</h1>
+          <div class="header ${data.reportedByUser ? 'user-reported' : ''}">
+            <h1>🚨 ${data.reportedByUser ? 'Erro Reportado' : 'Alerta de Erro'} - NeoHub</h1>
           </div>
           
           <div class="content">
+            ${reportBadge}
+            
             <div class="error-code">
               <h3>Código do Erro: ${data.errorCode}</h3>
               <p style="margin: 0; font-size: 16px;">${data.errorMessage}</p>

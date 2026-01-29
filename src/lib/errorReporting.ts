@@ -161,6 +161,31 @@ export function formatErrorForDisplay(details: ErrorDetails): {
 // Helper to report and show error in one call
 import { toast } from 'sonner';
 
+// Send error report email
+async function sendErrorReport(details: ErrorDetails, userContext: UserContext): Promise<boolean> {
+  try {
+    const response = await supabase.functions.invoke('notify-error-alert', {
+      body: {
+        errorCode: details.code,
+        errorMessage: details.message,
+        context: details.context,
+        originalError: details.originalError,
+        timestamp: details.timestamp,
+        userId: userContext.userId,
+        userEmail: userContext.userEmail,
+        userName: userContext.userName,
+        pageUrl: window.location.href,
+        userAgent: navigator.userAgent,
+        reportedByUser: true, // Flag to indicate user clicked the report button
+      },
+    });
+    return !response.error;
+  } catch (e) {
+    console.warn('Failed to send error report:', e);
+    return false;
+  }
+}
+
 export function reportError(
   prefix: keyof typeof ERROR_PREFIXES,
   message: string,
@@ -169,24 +194,38 @@ export function reportError(
 ): ErrorDetails {
   const details = createErrorDetails(prefix, message, context, originalError);
   
-  // Show toast with error code
+  // Show toast with error code and report button
   toast.error(details.message, {
     description: `Código: ${details.code}`,
-    duration: 8000, // Keep visible longer so user can screenshot
+    duration: 10000, // Keep visible longer so user can report
     action: {
-      label: 'Copiar',
-      onClick: () => {
-        navigator.clipboard.writeText(
-          `Erro: ${details.message}\nCódigo: ${details.code}\nHorário: ${details.timestamp}\nDetalhes: ${details.originalError || 'N/A'}`
-        );
-        toast.success('Informações copiadas!');
+      label: '📧 Reportar Erro',
+      onClick: async () => {
+        // Show loading toast
+        const loadingToast = toast.loading('Enviando relatório de erro...');
+        
+        try {
+          const userContext = await getUserContext();
+          const success = await sendErrorReport(details, userContext);
+          
+          toast.dismiss(loadingToast);
+          
+          if (success) {
+            toast.success('Erro reportado com sucesso!', {
+              description: 'Nossa equipe foi notificada e analisará o problema.',
+              duration: 5000,
+            });
+          } else {
+            toast.error('Não foi possível enviar o relatório', {
+              description: 'Tente novamente ou copie as informações manualmente.',
+            });
+          }
+        } catch (e) {
+          toast.dismiss(loadingToast);
+          toast.error('Falha ao enviar relatório');
+        }
       },
     },
-  });
-  
-  // Send email alert asynchronously (non-blocking)
-  getUserContext().then(userContext => {
-    sendErrorAlert(details, userContext);
   });
   
   return details;
