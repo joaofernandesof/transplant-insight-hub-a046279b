@@ -122,8 +122,10 @@ export default function PortalSelector() {
   };
 
   const handleLogout = async () => {
+    // Primeiro deslogar, depois redirecionar após o estado ser limpo
     await logout();
-    navigate('/login');
+    // Usar window.location para evitar race condition com React state
+    window.location.href = '/login';
   };
 
   // Get available portals based on user profiles

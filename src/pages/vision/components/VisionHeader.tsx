@@ -29,7 +29,7 @@ export function VisionHeader() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   return (
