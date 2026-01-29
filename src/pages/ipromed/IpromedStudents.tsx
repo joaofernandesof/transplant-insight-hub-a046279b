@@ -26,6 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   Users, 
@@ -36,8 +42,12 @@ import {
   Thermometer,
   Snowflake,
   Eye,
+  Loader2,
+  FileText,
+  Phone,
+  Mail,
 } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface StudentData {
   userId: string;
@@ -80,6 +90,41 @@ export default function IpromedStudents() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClassification, setFilterClassification] = useState<string>('all');
+  const [viewStudent, setViewStudent] = useState<StudentData | null>(null);
+
+  // Export students to CSV
+  const handleExport = () => {
+    if (!students || students.length === 0) {
+      toast.error('Nenhum dado para exportar');
+      return;
+    }
+    
+    const headers = ['Nome', 'Email', 'Classificação', 'Score Legal', 'Nota Prova', 'Sentimento'];
+    const rows = students.map(s => [
+      s.name,
+      s.email || '',
+      s.classification.toUpperCase(),
+      `${s.scoreLegal}/18`,
+      s.examScore !== null ? `${s.examScore}%` : '-',
+      s.feeling || '-',
+    ]);
+    
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `alunos-ipromed-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    toast.success('Dados exportados com sucesso!');
+  };
+
+  // View student details
+  const handleViewStudent = (student: StudentData) => {
+    setViewStudent(student);
+  };
 
   // Fetch students with legal survey data
   const { data: students, isLoading } = useQuery({
@@ -190,7 +235,7 @@ export default function IpromedStudents() {
             Visualize e gerencie os alunos por classificação jurídica
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleExport}>
           <Download className="h-4 w-4 mr-2" />
           Exportar
         </Button>
@@ -319,7 +364,7 @@ export default function IpromedStudents() {
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => handleViewStudent(student)}>
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -337,6 +382,78 @@ export default function IpromedStudents() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Student Details Dialog */}
+      <Dialog open={!!viewStudent} onOpenChange={(open) => !open && setViewStudent(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Detalhes do Aluno
+            </DialogTitle>
+          </DialogHeader>
+          {viewStudent && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={viewStudent.avatarUrl || undefined} />
+                  <AvatarFallback className="text-lg">
+                    {viewStudent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-lg font-semibold">{viewStudent.name}</h3>
+                  {viewStudent.email && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      {viewStudent.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Classificação</p>
+                  <Badge className={`mt-1 ${classificationConfig[viewStudent.classification].bg} ${classificationConfig[viewStudent.classification].text}`}>
+                    {classificationConfig[viewStudent.classification].label}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Score Legal</p>
+                  <p className="text-xl font-bold">{viewStudent.scoreLegal}/18</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Nota da Prova</p>
+                  <p className="text-xl font-bold">
+                    {viewStudent.examScore !== null ? `${viewStudent.examScore}%` : '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Timing</p>
+                  <p className="text-sm">{viewStudent.timing || '-'}</p>
+                </div>
+              </div>
+              
+              <div>
+                <p className="text-sm text-muted-foreground">Sentimento Jurídico</p>
+                <p className="text-sm mt-1 p-3 bg-muted rounded-lg">{viewStudent.feeling || 'Não informado'}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-muted-foreground">Influência nas Decisões</p>
+                <p className="text-sm mt-1 p-3 bg-muted rounded-lg">{viewStudent.influence || 'Não informado'}</p>
+              </div>
+              
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setViewStudent(null)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -24,6 +24,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   ArrowLeft,
   Plus,
   Search,
@@ -36,12 +42,14 @@ import {
   Download,
   Filter,
   Loader2,
+  FileText,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import NewContractDialog from "./components/contracts/NewContractDialog";
+import { toast } from "sonner";
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   draft: { label: 'Rascunho', color: 'bg-gray-500', icon: FileSignature },
@@ -55,6 +63,40 @@ export default function IpromedContracts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+  const [viewContract, setViewContract] = useState<any>(null);
+  const queryClient = useQueryClient();
+
+  // Send contract for signature
+  const sendForSignature = useMutation({
+    mutationFn: async (contractId: string) => {
+      const { error } = await supabase
+        .from('ipromed_contracts')
+        .update({ status: 'pending_signature', sent_at: new Date().toISOString() })
+        .eq('id', contractId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-contracts'] });
+      toast.success('Contrato enviado para assinatura!', {
+        description: 'A integração ClickSign/GOV.BR será ativada em breve.',
+      });
+    },
+    onError: (error) => {
+      toast.error('Erro ao enviar: ' + error.message);
+    },
+  });
+
+  // Download contract (placeholder)
+  const handleDownload = (contract: any) => {
+    toast.info('Download em preparação', {
+      description: `O contrato "${contract.title}" será baixado quando a integração ClickSign/GOV.BR estiver ativa.`,
+    });
+  };
+
+  // View contract details
+  const handleView = (contract: any) => {
+    setViewContract(contract);
+  };
 
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['ipromed-contracts', searchTerm, statusFilter],
@@ -255,16 +297,26 @@ export default function IpromedContracts() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" title="Ver">
+                          <Button variant="ghost" size="icon" title="Ver" onClick={() => handleView(contract)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                           {contract.status === 'draft' && (
-                            <Button variant="ghost" size="icon" title="Enviar para assinatura">
-                              <Send className="h-4 w-4" />
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              title="Enviar para assinatura"
+                              onClick={() => sendForSignature.mutate(contract.id)}
+                              disabled={sendForSignature.isPending}
+                            >
+                              {sendForSignature.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Send className="h-4 w-4" />
+                              )}
                             </Button>
                           )}
                           {contract.status === 'signed' && (
-                            <Button variant="ghost" size="icon" title="Download">
+                            <Button variant="ghost" size="icon" title="Download" onClick={() => handleDownload(contract)}>
                               <Download className="h-4 w-4" />
                             </Button>
                           )}
@@ -278,6 +330,77 @@ export default function IpromedContracts() {
           )}
         </CardContent>
       </Card>
+
+      {/* Contract Details Dialog */}
+      <Dialog open={!!viewContract} onOpenChange={(open) => !open && setViewContract(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Detalhes do Contrato
+            </DialogTitle>
+          </DialogHeader>
+          {viewContract && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Número</p>
+                  <p className="font-mono">{viewContract.contract_number || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <Badge className={statusConfig[viewContract.status]?.color + ' text-white'}>
+                    {statusConfig[viewContract.status]?.label}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Título</p>
+                  <p className="font-medium">{viewContract.title}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Cliente</p>
+                  <p>{viewContract.client?.name || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Tipo</p>
+                  <p>{viewContract.contract_type || 'Prestação de Serviço'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Data de Criação</p>
+                  <p>{format(new Date(viewContract.created_at), 'dd/MM/yyyy', { locale: ptBR })}</p>
+                </div>
+              </div>
+              {viewContract.description && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Descrição</p>
+                  <p className="text-sm">{viewContract.description}</p>
+                </div>
+              )}
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                  <FileSignature className="h-5 w-5" />
+                  <span className="font-medium">Assinatura Digital</span>
+                  <Badge variant="outline" className="ml-2">Em preparação</Badge>
+                </div>
+                <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                  A integração com ClickSign e GOV.BR (ICP-Brasil) será ativada em breve.
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                {viewContract.status === 'draft' && (
+                  <Button onClick={() => { sendForSignature.mutate(viewContract.id); setViewContract(null); }}>
+                    <Send className="h-4 w-4 mr-2" />
+                    Enviar para Assinatura
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => setViewContract(null)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

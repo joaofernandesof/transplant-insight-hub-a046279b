@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Gavel,
   Search,
@@ -43,6 +44,11 @@ import {
   Sparkles,
   Loader2,
   AlertCircle,
+  Eye,
+  FileText,
+  Calendar,
+  DollarSign,
+  Shield,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -91,6 +97,7 @@ export default function LegalCasesManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
+  const [viewCase, setViewCase] = useState<LegalCase | null>(null);
   const [newCase, setNewCase] = useState({
     case_number: '',
     title: '',
@@ -101,6 +108,29 @@ export default function LegalCasesManager() {
     risk_level: '',
     description: '',
   });
+
+  // Update case status
+  const updateCaseStatus = useMutation({
+    mutationFn: async ({ caseId, newStatus }: { caseId: string; newStatus: 'active' | 'pending' | 'closed' | 'archived' | 'suspended' }) => {
+      const { error } = await supabase
+        .from('ipromed_legal_cases')
+        .update({ status: newStatus })
+        .eq('id', caseId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-legal-cases'] });
+      toast.success('Status atualizado!');
+    },
+    onError: (error) => {
+      toast.error('Erro: ' + error.message);
+    },
+  });
+
+  // Handle view case
+  const handleViewCase = (caseItem: LegalCase) => {
+    setViewCase(caseItem);
+  };
 
   const queryClient = useQueryClient();
 
@@ -214,7 +244,11 @@ export default function LegalCasesManager() {
           <p className="text-muted-foreground">Contencioso e andamentos processuais</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => {
+            toast.info('IA Jurídica', {
+              description: 'A geração de peças com IA será ativada em breve. Configure a integração na aba de IA.',
+            });
+          }}>
             <Sparkles className="h-4 w-4" />
             Gerar Peça com IA
           </Button>
@@ -442,8 +476,8 @@ export default function LegalCasesManager() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon">
-                        <ChevronRight className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" onClick={() => handleViewCase(caseItem)}>
+                        <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -453,6 +487,139 @@ export default function LegalCasesManager() {
           )}
         </CardContent>
       </Card>
+
+      {/* Case Details Dialog */}
+      <Dialog open={!!viewCase} onOpenChange={(open) => !open && setViewCase(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gavel className="h-5 w-5" />
+              Detalhes do Processo
+            </DialogTitle>
+          </DialogHeader>
+          {viewCase && (
+            <Tabs defaultValue="info" className="mt-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="info">Informações</TabsTrigger>
+                <TabsTrigger value="timeline">Andamentos</TabsTrigger>
+                <TabsTrigger value="actions">Ações</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="info" className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Número</p>
+                    <p className="font-mono">{viewCase.case_number || 'Sem número'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    {getStatusBadge(viewCase.status)}
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Título</p>
+                    <p className="font-medium">{viewCase.title}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tipo</p>
+                    <p>{viewCase.case_type || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tribunal</p>
+                    <p>{viewCase.court || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Cliente</p>
+                    <p>{viewCase.ipromed_legal_clients?.name || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Valor Estimado</p>
+                    <p className="flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      {viewCase.estimated_value 
+                        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(viewCase.estimated_value)
+                        : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nível de Risco</p>
+                    {getRiskBadge(viewCase.risk_level)}
+                  </div>
+                </div>
+                {viewCase.description && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Descrição</p>
+                    <p className="text-sm p-3 bg-muted rounded-lg">{viewCase.description}</p>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="timeline" className="mt-4">
+                <div className="p-8 text-center text-muted-foreground border border-dashed rounded-lg">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                  <p className="font-medium">Histórico de Andamentos</p>
+                  <p className="text-sm">A integração com TJ/PJe para acompanhamento automático será ativada em breve.</p>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="actions" className="mt-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => {
+                      updateCaseStatus.mutate({ caseId: viewCase.id, newStatus: 'pending' });
+                      setViewCase(null);
+                    }}
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Marcar como Pendente
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => {
+                      updateCaseStatus.mutate({ caseId: viewCase.id, newStatus: 'active' });
+                      setViewCase(null);
+                    }}
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Marcar como Ativo
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => {
+                      updateCaseStatus.mutate({ caseId: viewCase.id, newStatus: 'closed' });
+                      setViewCase(null);
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Encerrar Processo
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => {
+                      updateCaseStatus.mutate({ caseId: viewCase.id, newStatus: 'archived' });
+                      setViewCase(null);
+                    }}
+                  >
+                    <Gavel className="h-4 w-4 mr-2" />
+                    Arquivar
+                  </Button>
+                </div>
+                
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800 text-sm">
+                  <p className="font-medium text-amber-800 dark:text-amber-300 mb-1">🚧 Em desenvolvimento</p>
+                  <p className="text-amber-700 dark:text-amber-400">
+                    A integração automática com TJ, e-SAJ e PJe para acompanhamento de andamentos será ativada em breve.
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

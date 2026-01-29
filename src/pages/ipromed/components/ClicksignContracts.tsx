@@ -434,14 +434,28 @@ export default function ClicksignContracts({
         </Tabs>
 
         {/* Clicksign Integration Notice */}
-        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
             <FileSignature className="h-5 w-5" />
-            <span className="font-medium">Integração Clicksign</span>
-            <Badge variant="outline" className="ml-2">Em preparação</Badge>
+            <span className="font-medium">Assinatura Digital</span>
           </div>
-          <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-            A assinatura digital via Clicksign será ativada em breve. Os contratos já estão prontos para integração.
+          <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+            O sistema suporta dois provedores de assinatura digital:
+          </p>
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className="p-3 bg-white dark:bg-background rounded-lg border">
+              <p className="font-medium text-sm">ClickSign</p>
+              <p className="text-xs text-muted-foreground">Assinatura eletrônica simples</p>
+              <Badge variant="outline" className="mt-2 text-xs">API Key pendente</Badge>
+            </div>
+            <div className="p-3 bg-white dark:bg-background rounded-lg border">
+              <p className="font-medium text-sm">GOV.BR (ICP-Brasil)</p>
+              <p className="text-xs text-muted-foreground">Assinatura com validade jurídica plena</p>
+              <Badge variant="outline" className="mt-2 text-xs">Credenciais pendentes</Badge>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Configure as credenciais de API para ativar a assinatura digital automática.
           </p>
         </div>
       </CardContent>

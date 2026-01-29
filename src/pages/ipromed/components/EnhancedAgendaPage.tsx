@@ -45,6 +45,7 @@ import {
   List,
   LayoutGrid,
   ExternalLink,
+  Download,
 } from "lucide-react";
 import { 
   format, 
@@ -566,21 +567,72 @@ export default function EnhancedAgendaPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Conectar ao Google Agenda</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-primary" />
+                  Sincronizar com Google Agenda
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <p className="text-sm text-muted-foreground">
-                  Para sincronizar seus compromissos com o Google Agenda, siga os passos:
+                  A integração com Google Calendar permitirá sincronização automática dos seus compromissos.
                 </p>
-                <ol className="list-decimal list-inside space-y-2 text-sm">
-                  <li>Acesse <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">calendar.google.com</a></li>
-                  <li>Clique em "Configurações" (engrenagem)</li>
-                  <li>Selecione "Adicionar calendário" → "Inscrever-se no calendário"</li>
-                  <li>Use a URL iCal do IPROMED (em breve)</li>
-                </ol>
-                <div className="bg-amber-50 text-amber-800 p-3 rounded-lg text-sm">
-                  <strong>Em desenvolvimento:</strong> A integração completa com o Google Calendar API estará disponível em breve, permitindo sincronização bidirecional automática.
+                
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm">Funcionalidades planejadas:</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                    <li>Sincronização bidirecional automática</li>
+                    <li>Notificações no Google Calendar</li>
+                    <li>Compartilhamento de agenda com equipe</li>
+                    <li>Integração com Google Meet</li>
+                  </ul>
                 </div>
+                
+                <div className="bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 p-4 rounded-lg text-sm border border-amber-200 dark:border-amber-800">
+                  <p className="font-medium mb-1">🚧 Em desenvolvimento</p>
+                  <p>A API do Google Calendar será integrada em breve. Por enquanto, você pode exportar seus compromissos manualmente.</p>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    // Export appointments as ICS file
+                    const icsContent = appointments.map(apt => {
+                      const start = new Date(apt.start_datetime);
+                      const end = apt.end_datetime ? new Date(apt.end_datetime) : new Date(start.getTime() + 60*60*1000);
+                      const formatICS = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                      return `BEGIN:VEVENT
+DTSTART:${formatICS(start)}
+DTEND:${formatICS(end)}
+SUMMARY:${apt.title}
+DESCRIPTION:${apt.description || ''}
+LOCATION:${apt.location || ''}
+END:VEVENT`;
+                    }).join('\n');
+                    
+                    const ics = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//IPROMED//Agenda//PT
+${icsContent}
+END:VCALENDAR`;
+                    
+                    const blob = new Blob([ics], { type: 'text/calendar' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `agenda-ipromed-${format(new Date(), 'yyyy-MM-dd')}.ics`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    toast.success('Agenda exportada!', {
+                      description: 'Importe o arquivo .ics no Google Calendar',
+                    });
+                    setShowGoogleCalendarInfo(false);
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar para Importação Manual (.ics)
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
