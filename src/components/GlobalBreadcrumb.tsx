@@ -93,6 +93,7 @@ const routeLabels: Record<string, string> = {
   '/comparison': 'Comparar Clínicas',
   '/access-matrix': 'Matriz de Acessos',
   '/admin': 'Painel Admin',
+  '/admin/sales-urgency': 'Promoção Cirurgia Center',
   
   // ====================================
   // Módulos Compartilhados
