@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 import ClientJourneyTracker from "./components/ClientJourneyTracker";
 
 // Journey phases with colors
@@ -227,7 +228,35 @@ export default function IpromedJourney() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => {
+            if (!clients || clients.length === 0) {
+              toast.error('Nenhum dado para exportar');
+              return;
+            }
+            const headers = ['Cliente', 'Email', 'Telefone', 'Fase Atual', 'Progresso', 'Data Início'];
+            const rows = clients.map(c => {
+              const phase = getClientPhase(c);
+              const meta = c.metadata as any;
+              const progress = meta?.journey_progress || Math.min(100, (differenceInDays(new Date(), new Date(c.created_at)) / 30) * 100);
+              return [
+                c.name,
+                c.email || '',
+                c.phone || '',
+                phase,
+                `${Math.round(progress)}%`,
+                format(new Date(c.created_at), 'dd/MM/yyyy', { locale: ptBR }),
+              ];
+            });
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `jornada-clientes-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            toast.success('Jornada exportada com sucesso!');
+          }}>
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>

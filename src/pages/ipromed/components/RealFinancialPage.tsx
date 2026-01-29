@@ -508,6 +508,28 @@ export default function RealFinancialPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* ContaAzul Integration Notice */}
+      <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
+              <QrCode className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-blue-800 dark:text-blue-200">
+                Integração ContaAzul
+              </h3>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                A sincronização automática com o ContaAzul está em preparação para importação de notas fiscais e conciliação bancária.
+              </p>
+            </div>
+            <Badge variant="outline" className="border-blue-300 text-blue-700">
+              Em breve
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
