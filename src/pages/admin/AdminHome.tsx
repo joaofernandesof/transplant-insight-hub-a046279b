@@ -202,33 +202,41 @@ export default function AdminHome() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
       </div>
     );
   }
 
   return (
-    <div className="p-4 lg:p-6 overflow-x-hidden w-full space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 p-4 lg:p-6 overflow-x-hidden w-full space-y-6">
       {/* Breadcrumb */}
       <GlobalBreadcrumb />
       
       {/* Portal Banner */}
-      <PortalBanner
-        portal="admin"
-        userName={user?.name}
-        icon={<Shield className="h-6 w-6 text-white" />}
-        rightContent={
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-800 via-slate-800/80 to-blue-900/30 border border-slate-700/50 p-6">
+        <div className="absolute inset-0 bg-grid-white/[0.02]" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <Shield className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Portal Administrativo</h1>
+              <p className="text-slate-400">Bem-vindo, {user?.name?.split(' ')[0] || 'Administrador'}</p>
+            </div>
+          </div>
           <Button
             onClick={() => setIsNotificationDialogOpen(true)}
-            variant="secondary"
+            className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30"
             size="sm"
           >
             <Send className="h-4 w-4 mr-2" />
             Enviar Notificação
           </Button>
-        }
-      />
+        </div>
+      </div>
 
       <NotificationDialog
         open={isNotificationDialogOpen}
@@ -236,167 +244,157 @@ export default function AdminHome() {
       />
 
       {/* Portais do NeoHub */}
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Eye className="h-4 w-4 text-primary" />
-            Portais do NeoHub
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-3">
-            {portals.map((portal) => (
-              <button
-                key={portal.id}
-                onClick={() => navigate(portal.path)}
-                className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-background/50 transition-all"
-              >
-                <div className={`p-2.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
-                  <portal.icon className="h-5 w-5" />
-                </div>
-                <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{portal.title}</span>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Eye className="h-4 w-4 text-blue-400" />
+          <h3 className="text-sm font-semibold text-white">Portais do NeoHub</h3>
+        </div>
+        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-3">
+          {portals.map((portal) => (
+            <button
+              key={portal.id}
+              onClick={() => navigate(portal.path)}
+              className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
+            >
+              <div className={`p-2.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
+                <portal.icon className="h-5 w-5" />
+              </div>
+              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Total Usuários</p>
-                <p className="text-2xl font-bold">{stats.totalUsers}</p>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mt-1">
-                  {stats.activeUsers} ativos
-                </Badge>
-              </div>
-              <Users className="h-8 w-8 text-blue-500 opacity-80" />
+        <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-blue-600 rounded-l-xl" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400">Total Usuários</p>
+              <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300 mt-1 inline-block">
+                {stats.activeUsers} ativos
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            <Users className="h-8 w-8 text-blue-400 opacity-80" />
+          </div>
+        </div>
 
-        <Card className="border-l-4 border-l-green-500">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Online Agora</p>
-                <p className="text-2xl font-bold">{stats.onlineUsers}</p>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mt-1 bg-green-100 text-green-700">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1 animate-pulse" />
-                  Ativos
-                </Badge>
-              </div>
-              <Activity className="h-8 w-8 text-green-500 opacity-80" />
+        <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-green-600 rounded-l-xl" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400">Online Agora</p>
+              <p className="text-2xl font-bold text-white">{stats.onlineUsers}</p>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 mt-1 inline-flex items-center gap-1">
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                Ativos
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            <Activity className="h-8 w-8 text-green-400 opacity-80" />
+          </div>
+        </div>
 
-        <Card className="border-l-4 border-l-amber-500">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Licenciados</p>
-                <p className="text-2xl font-bold">{stats.totalLicensees}</p>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mt-1">
-                  Ativos
-                </Badge>
-              </div>
-              <Award className="h-8 w-8 text-amber-500 opacity-80" />
+        <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-amber-600 rounded-l-xl" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400">Licenciados</p>
+              <p className="text-2xl font-bold text-white">{stats.totalLicensees}</p>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300 mt-1 inline-block">
+                Ativos
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            <Award className="h-8 w-8 text-amber-400 opacity-80" />
+          </div>
+        </div>
 
-        <Card className="border-l-4 border-l-indigo-500">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Alunos</p>
-                <p className="text-2xl font-bold">{stats.totalStudents}</p>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mt-1">
-                  Matriculados
-                </Badge>
-              </div>
-              <GraduationCap className="h-8 w-8 text-indigo-500 opacity-80" />
+        <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-l-xl" />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400">Alunos</p>
+              <p className="text-2xl font-bold text-white">{stats.totalStudents}</p>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300 mt-1 inline-block">
+                Matriculados
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            <GraduationCap className="h-8 w-8 text-indigo-400 opacity-80" />
+          </div>
+        </div>
       </div>
 
       {/* Quick Access Modules */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Zap className="h-4 w-4 text-primary" />
-            Acesso Rápido
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-            {quickModules.map((mod) => (
-              <button
-                key={mod.id}
-                onClick={() => navigate(mod.path)}
-                className="group flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all bg-muted/30"
-              >
-                <div className={`p-3 rounded-xl ${mod.color} text-white shadow-md`}>
-                  <mod.icon className="h-6 w-6" />
-                </div>
-                <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{mod.title}</span>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Zap className="h-4 w-4 text-blue-400" />
+          <h3 className="text-sm font-semibold text-white">Acesso Rápido</h3>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+          {quickModules.map((mod) => (
+            <button
+              key={mod.id}
+              onClick={() => navigate(mod.path)}
+              className="group flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all bg-slate-800/30"
+            >
+              <div className={`p-3 rounded-xl ${mod.color} text-white shadow-md`}>
+                <mod.icon className="h-6 w-6" />
+              </div>
+              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{mod.title}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Usuários Online + Alertas */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Online Users */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Activity className="h-4 w-4 text-green-500" />
-              Usuários Online
-              <Badge variant="secondary" className="ml-auto">{onlineUsers.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {onlineUsers.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum usuário online no momento
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {onlineUsers.slice(0, 5).map((u, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                    <div className="relative">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={u.avatar_url || undefined} />
-                        <AvatarFallback className="text-xs">{getInitials(u.name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{u.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Visto há {format(new Date(u.last_seen_at), 'mm', { locale: ptBR })} min
-                      </p>
-                    </div>
+        <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="h-4 w-4 text-green-400" />
+            <h3 className="text-sm font-semibold text-white">Usuários Online</h3>
+            <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300">
+              {onlineUsers.length}
+            </span>
+          </div>
+          {onlineUsers.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-4">
+              Nenhum usuário online no momento
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {onlineUsers.slice(0, 5).map((u, i) => (
+                <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-700/30 transition-colors">
+                  <div className="relative">
+                    <Avatar className="h-8 w-8 border border-slate-600">
+                      <AvatarImage src={u.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs bg-slate-700 text-slate-300">{getInitials(u.name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-slate-800" />
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{u.name}</p>
+                    <p className="text-xs text-slate-400">
+                      Visto há {format(new Date(u.last_seen_at), 'mm', { locale: ptBR })} min
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* System Alerts */}
-        <SystemAlertsWidget />
+        <div className="[&_.card]:bg-slate-800/50 [&_.card]:border-slate-700/50 [&_.card-header]:text-white [&_.text-muted-foreground]:text-slate-400">
+          <SystemAlertsWidget />
+        </div>
       </div>
 
       {/* Trend Charts */}
-      <AdminTrendCharts />
+      <div className="[&_.card]:bg-slate-800/50 [&_.card]:border-slate-700/50 [&_.card-header]:text-white [&_.text-muted-foreground]:text-slate-400">
+        <AdminTrendCharts />
+      </div>
     </div>
   );
 }
