@@ -22,6 +22,9 @@ import {
   TrendingUp,
   Megaphone,
   GraduationCap,
+  RefreshCw,
+  Package,
+  Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -35,12 +38,16 @@ const menuItems = [
   { id: 'inbox', label: 'Caixa de Entrada', icon: MessageSquare, href: '/avivar/inbox', badge: '5' },
   { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: '3' },
   { id: 'leads', label: 'Leads', icon: Users, href: '/avivar/leads' },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/avivar/analytics' },
+  { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup', badge: '12' },
+  { id: 'catalog', label: 'Catálogo', icon: Package, href: '/avivar/catalog' },
   { id: 'divider1', label: '', icon: null, href: '', isDivider: true },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/avivar/analytics' },
+  { id: 'productivity', label: 'Produtividade', icon: Activity, href: '/avivar/productivity' },
+  { id: 'divider2', label: '', icon: null, href: '', isDivider: true },
   { id: 'traffic', label: 'Tráfego', icon: TrendingUp, href: '/avivar/traffic' },
   { id: 'marketing', label: 'Marketing', icon: Megaphone, href: '/avivar/marketing' },
   { id: 'mentorship', label: 'Mentoria', icon: GraduationCap, href: '/avivar/mentorship' },
-  { id: 'divider2', label: '', icon: null, href: '', isDivider: true },
+  { id: 'divider3', label: '', icon: null, href: '', isDivider: true },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/avivar/settings' },
 ];
 

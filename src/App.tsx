@@ -145,6 +145,9 @@ const AvivarTasks = lazy(() => import("./pages/avivar/AvivarTasks"));
 const AvivarLeads = lazy(() => import("./pages/avivar/AvivarLeads"));
 const AvivarAnalytics = lazy(() => import("./pages/avivar/AvivarAnalytics"));
 const AvivarSettings = lazy(() => import("./pages/avivar/AvivarSettings"));
+const AvivarFollowUp = lazy(() => import("./pages/avivar/AvivarFollowUp"));
+const AvivarCatalog = lazy(() => import("./pages/avivar/AvivarCatalog"));
+const AvivarProductivity = lazy(() => import("./pages/avivar/AvivarProductivity"));
 const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
 
 // ====================================
@@ -517,6 +520,9 @@ function AvivarRoutes() {
             <Route path="tasks" element={<AvivarTasks />} />
             <Route path="leads" element={<AvivarLeads />} />
             <Route path="analytics" element={<AvivarAnalytics />} />
+            <Route path="followup" element={<AvivarFollowUp />} />
+            <Route path="catalog" element={<AvivarCatalog />} />
+            <Route path="productivity" element={<AvivarProductivity />} />
             <Route path="hotleads" element={<HotLeads />} />
             <Route path="traffic" element={<PlaceholderPage title="Indicadores de Tráfego" />} />
             <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
