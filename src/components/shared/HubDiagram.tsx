@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Heart, Users, GraduationCap, Building2, Sparkles, Scale, CreditCard, Target } from 'lucide-react';
+import { Heart, Users, GraduationCap, Building2, Zap, Scale, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 
@@ -48,9 +48,9 @@ const portals: PortalNode[] = [
   {
     id: 'avivar',
     name: 'Avivar',
-    subtitle: 'Marketing',
-    icon: <Sparkles className="h-6 w-6" />,
-    color: 'bg-violet-500',
+    subtitle: 'CRM + IA',
+    icon: <Zap className="h-6 w-6" />,
+    color: 'bg-gradient-to-br from-purple-500 to-violet-600',
   },
   {
     id: 'ipromed',
@@ -72,13 +72,6 @@ const portals: PortalNode[] = [
     subtitle: 'Pagamentos',
     icon: <CreditCard className="h-6 w-6" />,
     color: 'bg-gradient-to-br from-green-500 to-emerald-600',
-  },
-  {
-    id: 'neocrm',
-    name: 'NeoCRM',
-    subtitle: 'Vendas',
-    icon: <Target className="h-6 w-6" />,
-    color: 'bg-gradient-to-br from-orange-500 to-red-500',
   },
 ];
 

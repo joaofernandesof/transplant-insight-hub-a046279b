@@ -124,7 +124,7 @@ const NeoPaySettings = lazy(() => import("./pages/neopay/NeoPaySettings"));
 const NeoPaySidebar = lazy(() => import("./pages/neopay/components/NeoPaySidebar"));
 
 // ====================================
-// Pages - NeoCRM (CRM de Vendas)
+// Pages - NeoCRM (CRM de Vendas) - DEPRECATED: merged into Avivar
 // ====================================
 const NeoCrmDashboard = lazy(() => import("./pages/neocrm/NeoCrmDashboard"));
 const NeoCrmPipeline = lazy(() => import("./pages/neocrm/NeoCrmPipeline"));
@@ -134,6 +134,18 @@ const NeoCrmLeads = lazy(() => import("./pages/neocrm/NeoCrmLeads"));
 const NeoCrmAnalytics = lazy(() => import("./pages/neocrm/NeoCrmAnalytics"));
 const NeoCrmSettings = lazy(() => import("./pages/neocrm/NeoCrmSettings"));
 const NeoCrmSidebar = lazy(() => import("./pages/neocrm/components/NeoCrmSidebar"));
+
+// ====================================
+// Pages - Avivar (Portal CRM + IA)
+// ====================================
+const AvivarDashboard = lazy(() => import("./pages/avivar/AvivarDashboard"));
+const AvivarPipeline = lazy(() => import("./pages/avivar/AvivarPipeline"));
+const AvivarInbox = lazy(() => import("./pages/avivar/AvivarInbox"));
+const AvivarTasks = lazy(() => import("./pages/avivar/AvivarTasks"));
+const AvivarLeads = lazy(() => import("./pages/avivar/AvivarLeads"));
+const AvivarAnalytics = lazy(() => import("./pages/avivar/AvivarAnalytics"));
+const AvivarSettings = lazy(() => import("./pages/avivar/AvivarSettings"));
+const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
 
 // ====================================
 // Pages - Vision (Diagnóstico Capilar IA)
@@ -478,23 +490,31 @@ function NeoLicenseRoutes() {
 }
 
 // ====================================
-// Avivar Routes (Portal Cliente Avivar)
+// Avivar Routes (Portal CRM + IA Avivar)
 // ====================================
 function AvivarRoutes() {
   return (
     <ProfileGuard allowedProfiles={['cliente_avivar', 'administrador']}>
-      <SidebarWrapper>
-        <Routes>
-          <Route index element={<PlaceholderPage title="Avivar - Marketing & Crescimento" />} />
-          <Route path="dashboard" element={<PlaceholderPage title="Dashboard Marketing" />} />
-          <Route path="hotleads" element={<HotLeads />} />
-          <Route path="traffic" element={<PlaceholderPage title="Indicadores de Tráfego" />} />
-          <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
-          <Route path="mentorship" element={<PlaceholderPage title="Mentoria Avivar" />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="*" element={<Navigate to="/avivar" replace />} />
-        </Routes>
-      </SidebarWrapper>
+      <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0612]"><Loader2 className="h-8 w-8 animate-spin text-purple-400" /></div>}>
+        <AvivarSidebar>
+          <Routes>
+            <Route index element={<AvivarDashboard />} />
+            <Route path="dashboard" element={<AvivarDashboard />} />
+            <Route path="pipeline" element={<AvivarPipeline />} />
+            <Route path="inbox" element={<AvivarInbox />} />
+            <Route path="tasks" element={<AvivarTasks />} />
+            <Route path="leads" element={<AvivarLeads />} />
+            <Route path="analytics" element={<AvivarAnalytics />} />
+            <Route path="hotleads" element={<HotLeads />} />
+            <Route path="traffic" element={<PlaceholderPage title="Indicadores de Tráfego" />} />
+            <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
+            <Route path="mentorship" element={<PlaceholderPage title="Mentoria AVIVAR" />} />
+            <Route path="settings" element={<AvivarSettings />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="*" element={<Navigate to="/avivar" replace />} />
+          </Routes>
+        </AvivarSidebar>
+      </Suspense>
     </ProfileGuard>
   );
 }
@@ -591,6 +611,9 @@ function AppRoutes() {
       
       {/* HotLeads -> Avivar */}
       <Route path="/hotleads" element={<Navigate to="/avivar/hotleads" replace />} />
+      
+      {/* NeoCRM -> Avivar (merged) */}
+      <Route path="/neocrm/*" element={<Navigate to="/avivar" replace />} />
       
       {/* Surgery -> NeoLicense */}
       <Route path="/surgery-schedule" element={<Navigate to="/neolicense/surgery" replace />} />

@@ -52,6 +52,7 @@ import {
   UserCog,
   Scale,
   Gavel,
+  Kanban,
 } from 'lucide-react';
 
 // Tipos base
@@ -293,13 +294,17 @@ export const NEOLICENSE_MENU_ITEMS: MenuItem[] = [
 ];
 
 export const AVIVAR_MENU_ITEMS: MenuItem[] = [
-  { id: 'avivar_home', code: 'avivar_home', title: 'Início', icon: Home, route: '/avivar' },
-  { id: 'avivar_dashboard', code: 'avivar_dashboard', title: 'Dashboard', icon: BarChart3, route: '/avivar/dashboard' },
+  { id: 'avivar_home', code: 'avivar_home', title: 'Dashboard', icon: BarChart3, route: '/avivar' },
+  { id: 'avivar_pipeline', code: 'avivar_pipeline', title: 'Pipeline', icon: Kanban, route: '/avivar/pipeline' },
+  { id: 'avivar_inbox', code: 'avivar_inbox', title: 'Caixa de Entrada', icon: MessageCircle, route: '/avivar/inbox' },
+  { id: 'avivar_tasks', code: 'avivar_tasks', title: 'Tarefas', icon: ListTodo, route: '/avivar/tasks' },
+  { id: 'avivar_leads', code: 'avivar_leads', title: 'Leads', icon: Users, route: '/avivar/leads' },
+  { id: 'avivar_analytics', code: 'avivar_analytics', title: 'Analytics', icon: BarChart2, route: '/avivar/analytics' },
   { id: 'avivar_hotleads', code: 'avivar_hotleads', title: 'HotLeads', icon: Flame, route: '/avivar/hotleads' },
   { id: 'avivar_traffic', code: 'avivar_traffic', title: 'Tráfego', icon: TrendingUp, route: '/avivar/traffic' },
   { id: 'avivar_marketing', code: 'avivar_marketing', title: 'Marketing', icon: Megaphone, route: '/avivar/marketing' },
   { id: 'avivar_mentorship', code: 'avivar_mentorship', title: 'Mentoria', icon: Users, route: '/avivar/mentorship' },
-  { id: 'avivar_profile', code: 'avivar_profile', title: 'Perfil', icon: Settings, route: '/avivar/profile' },
+  { id: 'avivar_settings', code: 'avivar_settings', title: 'Configurações', icon: Settings, route: '/avivar/settings' },
 ];
 
 // Mapeamento de portal para menu flat (compatibilidade)
