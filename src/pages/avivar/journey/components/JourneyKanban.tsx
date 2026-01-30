@@ -1,6 +1,7 @@
 /**
  * Kanban board for patient journeys
  * With horizontal scroll, filters support, and drag-and-drop
+ * Updated with compact cards and expanded view
  */
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -30,8 +31,8 @@ import {
   getNextStage, 
   getStageConfig 
 } from '../hooks/usePatientJourneys';
-import { JourneyCard } from './JourneyCard';
-import { JourneyDetailSheet } from './JourneyDetailSheet';
+import { CompactJourneyCard } from './CompactJourneyCard';
+import { JourneyExpandedView } from './JourneyExpandedView';
 import { DroppableColumn } from './DroppableColumn';
 import { Button } from '@/components/ui/button';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -310,8 +311,6 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
               <DroppableColumn
                 key={column.id}
                 column={column}
-                onUpdate={handleUpdate}
-                onAdvance={handleAdvance}
                 onSelect={setSelectedJourney}
                 isOver={overId === column.id}
               />
@@ -322,11 +321,8 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
           <DragOverlay>
             {activeJourney && activeStageConfig && (
               <div className="opacity-90 shadow-xl rotate-2">
-                <JourneyCard
+                <CompactJourneyCard
                   journey={activeJourney}
-                  stageConfig={activeStageConfig}
-                  onUpdate={() => {}}
-                  onAdvance={() => {}}
                   onSelect={() => {}}
                 />
               </div>
@@ -335,8 +331,8 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
         </DndContext>
       </div>
 
-      {/* Detail Sheet */}
-      <JourneyDetailSheet
+      {/* Expanded View Dialog */}
+      <JourneyExpandedView
         journey={selectedJourney}
         open={!!selectedJourney}
         onClose={() => setSelectedJourney(null)}
