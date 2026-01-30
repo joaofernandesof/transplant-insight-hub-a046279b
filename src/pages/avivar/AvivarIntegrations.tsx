@@ -3,7 +3,7 @@
  * Permite integrar canais de comunicação (Instagram, WhatsApp, Facebook, TikTok)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Plug, 
   MessageCircle, 
@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { WhatsAppQRCodeDialog } from '@/components/avivar/WhatsAppQRCodeDialog';
+import { useWhatsAppIntegration } from '@/hooks/useWhatsAppIntegration';
 
 // Channel configuration type
 interface ChannelConfig {
@@ -136,18 +138,30 @@ const CHANNELS: ChannelConfig[] = [
 ];
 
 // Channel Card Component
-function ChannelCard({ channel, onConnect, onDisconnect, onConfigure }: {
+function ChannelCard({ channel, onConnect, onDisconnect, onConfigure, isWhatsAppConnected }: {
   channel: ChannelConfig;
   onConnect: (id: string) => void;
   onDisconnect: (id: string) => void;
   onConfigure: (id: string) => void;
+  isWhatsAppConnected?: boolean;
 }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const Icon = channel.icon;
   
+  // Override status for WhatsApp based on actual connection
+  const displayStatus = channel.id === 'whatsapp' && isWhatsAppConnected 
+    ? 'connected' 
+    : channel.status;
+  
   const handleConnect = async () => {
+    if (channel.id === 'whatsapp') {
+      // WhatsApp uses QR code dialog
+      onConnect(channel.id);
+      return;
+    }
+    
     setIsConnecting(true);
-    // Simulate connection process
+    // Simulate connection process for other channels
     await new Promise(resolve => setTimeout(resolve, 2000));
     onConnect(channel.id);
     setIsConnecting(false);
@@ -156,23 +170,23 @@ function ChannelCard({ channel, onConnect, onDisconnect, onConfigure }: {
   return (
     <Card className={cn(
       "relative overflow-hidden transition-all hover:shadow-lg",
-      channel.status === 'connected' && "ring-2 ring-green-500/50"
+      displayStatus === 'connected' && "ring-2 ring-[hsl(var(--avivar-primary))]/50"
     )}>
       {/* Status Badge */}
       <div className="absolute top-3 right-3">
         <Badge 
-          variant={channel.status === 'connected' ? 'default' : 'secondary'}
+          variant={displayStatus === 'connected' ? 'default' : 'secondary'}
           className={cn(
             "gap-1",
-            channel.status === 'connected' && "bg-green-600 text-white",
-            channel.status === 'pending' && "bg-yellow-500 text-white"
+            displayStatus === 'connected' && "bg-[hsl(var(--avivar-primary))] text-white",
+            displayStatus === 'pending' && "bg-yellow-500 text-white"
           )}
         >
-          {channel.status === 'connected' && <CheckCircle2 className="h-3 w-3" />}
-          {channel.status === 'disconnected' && <XCircle className="h-3 w-3" />}
-          {channel.status === 'pending' && <AlertCircle className="h-3 w-3" />}
-          {channel.status === 'connected' ? 'Conectado' : 
-           channel.status === 'pending' ? 'Pendente' : 'Desconectado'}
+          {displayStatus === 'connected' && <CheckCircle2 className="h-3 w-3" />}
+          {displayStatus === 'disconnected' && <XCircle className="h-3 w-3" />}
+          {displayStatus === 'pending' && <AlertCircle className="h-3 w-3" />}
+          {displayStatus === 'connected' ? 'Conectado' : 
+           displayStatus === 'pending' ? 'Pendente' : 'Desconectado'}
         </Badge>
       </div>
 
@@ -184,7 +198,7 @@ function ChannelCard({ channel, onConnect, onDisconnect, onConfigure }: {
           <div>
             <CardTitle className="text-lg">{channel.name}</CardTitle>
             <CardDescription className="text-xs">
-              {channel.status === 'connected' ? 'Recebendo mensagens' : 'Clique para conectar'}
+              {displayStatus === 'connected' ? 'Recebendo mensagens' : 'Clique para conectar'}
             </CardDescription>
           </div>
         </div>
@@ -211,7 +225,7 @@ function ChannelCard({ channel, onConnect, onDisconnect, onConfigure }: {
 
         {/* Actions */}
         <div className="flex gap-2">
-          {channel.status === 'connected' ? (
+          {displayStatus === 'connected' ? (
             <>
               <Button 
                 variant="outline" 
@@ -260,10 +274,27 @@ function ChannelCard({ channel, onConnect, onDisconnect, onConfigure }: {
 export default function AvivarIntegrations() {
   const [channels, setChannels] = useState(CHANNELS);
   const [configDialog, setConfigDialog] = useState<string | null>(null);
+  const [whatsappQRDialog, setWhatsappQRDialog] = useState(false);
+  
+  // WhatsApp integration hook
+  const { 
+    isConnected: isWhatsAppConnected, 
+    disconnect: disconnectWhatsApp 
+  } = useWhatsAppIntegration();
 
-  const connectedCount = channels.filter(c => c.status === 'connected').length;
+  // Calculate connected count including real WhatsApp status
+  const connectedCount = channels.filter(c => {
+    if (c.id === 'whatsapp') return isWhatsAppConnected;
+    return c.status === 'connected';
+  }).length;
 
   const handleConnect = (id: string) => {
+    if (id === 'whatsapp') {
+      // Open QR code dialog for WhatsApp
+      setWhatsappQRDialog(true);
+      return;
+    }
+    
     setChannels(prev => prev.map(c => 
       c.id === id ? { ...c, status: 'connected' as const } : c
     ));
@@ -272,7 +303,12 @@ export default function AvivarIntegrations() {
     });
   };
 
-  const handleDisconnect = (id: string) => {
+  const handleDisconnect = async (id: string) => {
+    if (id === 'whatsapp') {
+      await disconnectWhatsApp();
+      return;
+    }
+    
     setChannels(prev => prev.map(c => 
       c.id === id ? { ...c, status: 'disconnected' as const } : c
     ));
@@ -281,6 +317,13 @@ export default function AvivarIntegrations() {
 
   const handleConfigure = (id: string) => {
     setConfigDialog(id);
+  };
+
+  const handleWhatsAppConnected = () => {
+    toast.success('WhatsApp conectado com sucesso!', {
+      description: 'As mensagens agora aparecerão na aba Chats.'
+    });
+    setWhatsappQRDialog(false);
   };
 
   const selectedChannel = channels.find(c => c.id === configDialog);
@@ -326,6 +369,7 @@ export default function AvivarIntegrations() {
             onConnect={handleConnect}
             onDisconnect={handleDisconnect}
             onConfigure={handleConfigure}
+            isWhatsAppConnected={channel.id === 'whatsapp' ? isWhatsAppConnected : undefined}
           />
         ))}
       </div>
@@ -344,7 +388,19 @@ export default function AvivarIntegrations() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-3">
-              {channels.filter(c => c.status === 'connected').map(channel => {
+              {/* WhatsApp - check real connection status */}
+              {isWhatsAppConnected && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                  <Phone className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium">WhatsApp Business</span>
+                  <Badge variant="secondary" className="text-xs">
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Sincronizado
+                  </Badge>
+                </div>
+              )}
+              {/* Other channels */}
+              {channels.filter(c => c.id !== 'whatsapp' && c.status === 'connected').map(channel => {
                 const Icon = channel.icon;
                 return (
                   <div 
@@ -463,6 +519,13 @@ export default function AvivarIntegrations() {
           </div>
         </CardContent>
       </Card>
+
+      {/* WhatsApp QR Code Dialog */}
+      <WhatsAppQRCodeDialog 
+        open={whatsappQRDialog} 
+        onOpenChange={setWhatsappQRDialog}
+        onConnected={handleWhatsAppConnected}
+      />
     </div>
   );
 }
