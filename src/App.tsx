@@ -149,6 +149,10 @@ const AvivarFollowUp = lazy(() => import("./pages/avivar/AvivarFollowUp"));
 const AvivarCatalog = lazy(() => import("./pages/avivar/AvivarCatalog"));
 const AvivarProductivity = lazy(() => import("./pages/avivar/AvivarProductivity"));
 const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
+const AvivarConfigWizard = lazy(() => import("./pages/avivar/config/AvivarConfigWizard"));
+const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge"));
+const AvivarTestChat = lazy(() => import("./pages/avivar/config/AvivarTestChat"));
+const AvivarPromptPreview = lazy(() => import("./pages/avivar/config/AvivarPromptPreview"));
 
 // ====================================
 // Pages - Vision (Diagnóstico Capilar IA)
@@ -527,6 +531,10 @@ function AvivarRoutes() {
             <Route path="traffic" element={<PlaceholderPage title="Indicadores de Tráfego" />} />
             <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
             <Route path="mentorship" element={<PlaceholderPage title="Mentoria AVIVAR" />} />
+            <Route path="config" element={<AvivarConfigWizard />} />
+            <Route path="config/knowledge" element={<AvivarKnowledge />} />
+            <Route path="config/test" element={<AvivarTestChat />} />
+            <Route path="config/preview" element={<AvivarPromptPreview />} />
             <Route path="settings" element={<AvivarSettings />} />
             <Route path="profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/avivar" replace />} />
