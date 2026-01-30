@@ -5325,6 +5325,471 @@ export type Database = {
         }
         Relationships: []
       }
+      neohair_evaluations: {
+        Row: {
+          age: number | null
+          ai_analysis: string | null
+          baldness_grade: number | null
+          baldness_pattern: string | null
+          city: string | null
+          completed_at: string | null
+          created_at: string
+          current_medications: string | null
+          expectation_level: string | null
+          family_history_father: boolean | null
+          family_history_grandparents: boolean | null
+          family_history_mother: boolean | null
+          full_name: string
+          hair_loss_started_at: string | null
+          health_conditions: string[] | null
+          id: string
+          main_concern: string | null
+          phone: string | null
+          photo_back_url: string | null
+          photo_front_url: string | null
+          photo_left_url: string | null
+          photo_right_url: string | null
+          photo_top_url: string | null
+          previous_treatments: string[] | null
+          scalp_condition: string | null
+          state: string | null
+          status: string | null
+          transplant_score: number | null
+          treatment_recommendation: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          ai_analysis?: string | null
+          baldness_grade?: number | null
+          baldness_pattern?: string | null
+          city?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_medications?: string | null
+          expectation_level?: string | null
+          family_history_father?: boolean | null
+          family_history_grandparents?: boolean | null
+          family_history_mother?: boolean | null
+          full_name: string
+          hair_loss_started_at?: string | null
+          health_conditions?: string[] | null
+          id?: string
+          main_concern?: string | null
+          phone?: string | null
+          photo_back_url?: string | null
+          photo_front_url?: string | null
+          photo_left_url?: string | null
+          photo_right_url?: string | null
+          photo_top_url?: string | null
+          previous_treatments?: string[] | null
+          scalp_condition?: string | null
+          state?: string | null
+          status?: string | null
+          transplant_score?: number | null
+          treatment_recommendation?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          ai_analysis?: string | null
+          baldness_grade?: number | null
+          baldness_pattern?: string | null
+          city?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_medications?: string | null
+          expectation_level?: string | null
+          family_history_father?: boolean | null
+          family_history_grandparents?: boolean | null
+          family_history_mother?: boolean | null
+          full_name?: string
+          hair_loss_started_at?: string | null
+          health_conditions?: string[] | null
+          id?: string
+          main_concern?: string | null
+          phone?: string | null
+          photo_back_url?: string | null
+          photo_front_url?: string | null
+          photo_left_url?: string | null
+          photo_right_url?: string | null
+          photo_top_url?: string | null
+          previous_treatments?: string[] | null
+          scalp_condition?: string | null
+          state?: string | null
+          status?: string | null
+          transplant_score?: number | null
+          treatment_recommendation?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      neohair_evolution: {
+        Row: {
+          ai_comparison: string | null
+          created_at: string
+          evaluation_id: string | null
+          id: string
+          improvement_score: number | null
+          month_number: number | null
+          observations: string | null
+          perceived_improvement: string | null
+          photo_front_url: string | null
+          photo_left_url: string | null
+          photo_right_url: string | null
+          photo_top_url: string | null
+          side_effects: string | null
+          treatment_adherence: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_comparison?: string | null
+          created_at?: string
+          evaluation_id?: string | null
+          id?: string
+          improvement_score?: number | null
+          month_number?: number | null
+          observations?: string | null
+          perceived_improvement?: string | null
+          photo_front_url?: string | null
+          photo_left_url?: string | null
+          photo_right_url?: string | null
+          photo_top_url?: string | null
+          side_effects?: string | null
+          treatment_adherence?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_comparison?: string | null
+          created_at?: string
+          evaluation_id?: string | null
+          id?: string
+          improvement_score?: number | null
+          month_number?: number | null
+          observations?: string | null
+          perceived_improvement?: string | null
+          photo_front_url?: string | null
+          photo_left_url?: string | null
+          photo_right_url?: string | null
+          photo_top_url?: string | null
+          side_effects?: string | null
+          treatment_adherence?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neohair_evolution_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "neohair_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neohair_lead_distribution: {
+        Row: {
+          accepted_cities: string[] | null
+          accepted_states: string[] | null
+          commission_percentage: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          lead_fee: number | null
+          leads_converted: number | null
+          leads_received_month: number | null
+          leads_received_today: number | null
+          max_leads_per_day: number | null
+          max_leads_per_month: number | null
+          priority_score: number | null
+          professional_level: string | null
+          professional_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_cities?: string[] | null
+          accepted_states?: string[] | null
+          commission_percentage?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          lead_fee?: number | null
+          leads_converted?: number | null
+          leads_received_month?: number | null
+          leads_received_today?: number | null
+          max_leads_per_day?: number | null
+          max_leads_per_month?: number | null
+          priority_score?: number | null
+          professional_level?: string | null
+          professional_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_cities?: string[] | null
+          accepted_states?: string[] | null
+          commission_percentage?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          lead_fee?: number | null
+          leads_converted?: number | null
+          leads_received_month?: number | null
+          leads_received_today?: number | null
+          max_leads_per_day?: number | null
+          max_leads_per_month?: number | null
+          priority_score?: number | null
+          professional_level?: string | null
+          professional_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      neohair_leads: {
+        Row: {
+          assigned_at: string | null
+          assigned_to: string | null
+          baldness_grade: number | null
+          commission_value: number | null
+          consultation_type: string | null
+          consultation_unit: string | null
+          contact_attempts: number | null
+          converted_at: string | null
+          created_at: string
+          evaluation_id: string
+          id: string
+          last_contact_at: string | null
+          lead_priority: string | null
+          lead_source: string | null
+          notes: string | null
+          patient_city: string | null
+          patient_email: string | null
+          patient_name: string
+          patient_phone: string | null
+          patient_state: string | null
+          patient_user_id: string
+          scheduled_date: string | null
+          scheduled_time: string | null
+          status: string | null
+          status_reason: string | null
+          surgery_value: number | null
+          transplant_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          baldness_grade?: number | null
+          commission_value?: number | null
+          consultation_type?: string | null
+          consultation_unit?: string | null
+          contact_attempts?: number | null
+          converted_at?: string | null
+          created_at?: string
+          evaluation_id: string
+          id?: string
+          last_contact_at?: string | null
+          lead_priority?: string | null
+          lead_source?: string | null
+          notes?: string | null
+          patient_city?: string | null
+          patient_email?: string | null
+          patient_name: string
+          patient_phone?: string | null
+          patient_state?: string | null
+          patient_user_id: string
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: string | null
+          status_reason?: string | null
+          surgery_value?: number | null
+          transplant_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          baldness_grade?: number | null
+          commission_value?: number | null
+          consultation_type?: string | null
+          consultation_unit?: string | null
+          contact_attempts?: number | null
+          converted_at?: string | null
+          created_at?: string
+          evaluation_id?: string
+          id?: string
+          last_contact_at?: string | null
+          lead_priority?: string | null
+          lead_source?: string | null
+          notes?: string | null
+          patient_city?: string | null
+          patient_email?: string | null
+          patient_name?: string
+          patient_phone?: string | null
+          patient_state?: string | null
+          patient_user_id?: string
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: string | null
+          status_reason?: string | null
+          surgery_value?: number | null
+          transplant_score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neohair_leads_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "neohair_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neohair_orders: {
+        Row: {
+          created_at: string
+          discount: number | null
+          evaluation_id: string | null
+          id: string
+          is_recurring: boolean | null
+          items: Json
+          next_billing_date: string | null
+          payment_method: string | null
+          payment_status: string | null
+          shipping_address: Json | null
+          shipping_status: string | null
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_subscription_id: string | null
+          subtotal: number
+          total: number
+          tracking_code: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount?: number | null
+          evaluation_id?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          items?: Json
+          next_billing_date?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          shipping_address?: Json | null
+          shipping_status?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_subscription_id?: string | null
+          subtotal: number
+          total: number
+          tracking_code?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount?: number | null
+          evaluation_id?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          items?: Json
+          next_billing_date?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          shipping_address?: Json | null
+          shipping_status?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_subscription_id?: string | null
+          subtotal?: number
+          total?: number
+          tracking_code?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neohair_orders_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "neohair_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neohair_products: {
+        Row: {
+          category: string
+          compare_price: number | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string | null
+          included_items: Json | null
+          is_active: boolean | null
+          is_recurring: boolean | null
+          level: string | null
+          name: string
+          price: number
+          recurring_interval: string | null
+          short_description: string | null
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          stripe_recurring_price_id: string | null
+          target_grades: number[] | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          compare_price?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          included_items?: Json | null
+          is_active?: boolean | null
+          is_recurring?: boolean | null
+          level?: string | null
+          name: string
+          price: number
+          recurring_interval?: string | null
+          short_description?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_recurring_price_id?: string | null
+          target_grades?: number[] | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          compare_price?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          included_items?: Json | null
+          is_active?: boolean | null
+          is_recurring?: boolean | null
+          level?: string | null
+          name?: string
+          price?: number
+          recurring_interval?: string | null
+          short_description?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_recurring_price_id?: string | null
+          target_grades?: number[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       neohairscan_history: {
         Row: {
           analysis_type: string

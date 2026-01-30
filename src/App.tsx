@@ -151,6 +151,18 @@ const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
 // Pages - Vision (Diagnóstico Capilar IA)
 // ====================================
 const VisionHome = lazy(() => import("./pages/vision/VisionHome"));
+
+// ====================================
+// Pages - NeoHair (Tratamento Capilar)
+// ====================================
+const NeoHairLanding = lazy(() => import("./pages/neohair/NeoHairLanding"));
+const NeoHairHome = lazy(() => import("./pages/neohair/NeoHairHome"));
+const NeoHairEvaluation = lazy(() => import("./pages/neohair/NeoHairEvaluation"));
+const NeoHairStore = lazy(() => import("./pages/neohair/NeoHairStore"));
+const NeoHairProfessionalDashboard = lazy(() => import("./pages/neohair/NeoHairProfessionalDashboard"));
+const NeoHairAdminDashboard = lazy(() => import("./pages/neohair/NeoHairAdminDashboard"));
+const NeoHairSidebar = lazy(() => import("./pages/neohair/components/NeoHairSidebar"));
+
 // IPROMED Layout Wrapper
 function IpromedLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -698,6 +710,17 @@ function AppRoutes() {
       <Route path="/neopay/chargebacks" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayChargebacks /></NeoPaySidebar></Suspense></AdminRoute>} />
       <Route path="/neopay/automations" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayAutomations /></NeoPaySidebar></Suspense></AdminRoute>} />
       <Route path="/neopay/settings" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPaySettings /></NeoPaySidebar></Suspense></AdminRoute>} />
+
+      {/* ====================================
+          NeoHair - Tratamento Capilar
+          ==================================== */}
+      <Route path="/neohair-landing" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairLanding /></Suspense>} />
+      <Route path="/neohair" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neohair/avaliacao" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairEvaluation /></NeoHairSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neohair/loja" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairStore /></NeoHairSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neohair/profissional" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairProfessionalDashboard /></NeoHairSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neohair/admin" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairAdminDashboard /></NeoHairSidebar></Suspense></AdminRoute>} />
+      <Route path="/neohair/*" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProtectedRoute>} />
 
       {/* ====================================
           NeoCRM - CRM de Vendas
