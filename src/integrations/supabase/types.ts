@@ -223,6 +223,209 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_cadence_executions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          id: string
+          journey_id: string | null
+          lead_email: string | null
+          lead_name: string
+          lead_phone: string | null
+          next_step_at: string | null
+          sequence_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          journey_id?: string | null
+          lead_email?: string | null
+          lead_name: string
+          lead_phone?: string | null
+          next_step_at?: string | null
+          sequence_id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          journey_id?: string | null
+          lead_email?: string | null
+          lead_name?: string
+          lead_phone?: string | null
+          next_step_at?: string | null
+          sequence_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_cadence_executions_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_patient_journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_cadence_executions_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_cadence_sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_cadence_messages: {
+        Row: {
+          channel: string
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          execution_id: string
+          id: string
+          message_content: string
+          read_at: string | null
+          sent_at: string | null
+          status: string
+          step_id: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          execution_id: string
+          id?: string
+          message_content: string
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string
+          step_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          execution_id?: string
+          id?: string
+          message_content?: string
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string
+          step_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_cadence_messages_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_cadence_executions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_cadence_messages_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_cadence_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_cadence_sequences: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_template: boolean
+          name: string
+          template_category: string | null
+          trigger_stage: string | null
+          trigger_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_template?: boolean
+          name: string
+          template_category?: string | null
+          trigger_stage?: string | null
+          trigger_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_template?: boolean
+          name?: string
+          template_category?: string | null
+          trigger_stage?: string | null
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      avivar_cadence_steps: {
+        Row: {
+          channel: string
+          created_at: string
+          delay_minutes: number
+          id: string
+          is_active: boolean
+          message_template: string
+          sequence_id: string
+          step_order: number
+          subject: string | null
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          delay_minutes?: number
+          id?: string
+          is_active?: boolean
+          message_template: string
+          sequence_id: string
+          step_order?: number
+          subject?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          delay_minutes?: number
+          id?: string
+          is_active?: boolean
+          message_template?: string
+          sequence_id?: string
+          step_order?: number
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_cadence_steps_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_cadence_sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_patient_journeys: {
         Row: {
           assigned_to: string | null
