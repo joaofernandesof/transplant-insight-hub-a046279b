@@ -81,11 +81,11 @@ const portals = [
 // Módulos rápidos
 const quickModules = [
   { id: 'surgery', title: 'Agenda Cirurgias', icon: Calendar, path: '/admin/surgery-schedule', color: 'bg-rose-500' },
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, path: '/hotleads', color: 'bg-orange-500' },
+  { id: 'hotleads', title: 'HotLeads', icon: Flame, path: '/avivar/hotleads', color: 'bg-orange-500' },
   { id: 'results', title: 'Resultados', icon: BarChart3, path: '/consolidated-results', color: 'bg-indigo-500' },
-  { id: 'users', title: 'Usuários', icon: Users, path: '/admin/users', color: 'bg-blue-500' },
-  { id: 'exams', title: 'Provas', icon: BookOpen, path: '/exams', color: 'bg-purple-500' },
-  { id: 'materials', title: 'Materiais', icon: BookOpen, path: '/materials', color: 'bg-teal-500' },
+  { id: 'users', title: 'Usuários', icon: Users, path: '/admin', color: 'bg-blue-500' },
+  { id: 'exams', title: 'Provas', icon: BookOpen, path: '/academy/exams', color: 'bg-purple-500' },
+  { id: 'materials', title: 'Materiais', icon: BookOpen, path: '/neolicense/materials', color: 'bg-teal-500' },
 ];
 
 export default function AdminHome() {
