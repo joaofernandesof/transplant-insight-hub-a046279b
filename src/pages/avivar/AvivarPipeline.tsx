@@ -1,5 +1,5 @@
 /**
- * AvivarPipeline - Kanban de leads com visual roxo/violeta IA
+ * AvivarPipeline - Kanban de leads com suporte a tema claro/escuro
  */
 
 import React, { useState } from 'react';
@@ -52,17 +52,17 @@ const mockLeads = [
 ];
 
 const columns = [
-  { id: 'new', title: 'Novos', color: 'from-slate-800/90 to-slate-900/90 border-purple-500/30' },
-  { id: 'contacted', title: 'Contatados', color: 'from-slate-800/90 to-slate-900/90 border-violet-500/30' },
-  { id: 'scheduled', title: 'Agendados', color: 'from-slate-800/90 to-slate-900/90 border-indigo-500/30' },
-  { id: 'converted', title: 'Convertidos', color: 'from-slate-800/90 to-slate-900/90 border-green-500/30' },
-  { id: 'lost', title: 'Perdidos', color: 'from-slate-800/90 to-slate-900/90 border-slate-500/30' },
+  { id: 'new', title: 'Novos', borderColor: 'border-t-purple-500' },
+  { id: 'contacted', title: 'Contatados', borderColor: 'border-t-violet-500' },
+  { id: 'scheduled', title: 'Agendados', borderColor: 'border-t-indigo-500' },
+  { id: 'converted', title: 'Convertidos', borderColor: 'border-t-green-500' },
+  { id: 'lost', title: 'Perdidos', borderColor: 'border-t-slate-500' },
 ];
 
 const interestConfig = {
-  hot: { icon: Flame, color: 'text-red-400', label: 'Quente' },
-  warm: { icon: ThermometerSun, color: 'text-amber-400', label: 'Morno' },
-  cold: { icon: Snowflake, color: 'text-blue-400', label: 'Frio' },
+  hot: { icon: Flame, color: 'text-red-500', label: 'Quente' },
+  warm: { icon: ThermometerSun, color: 'text-amber-500', label: 'Morno' },
+  cold: { icon: Snowflake, color: 'text-blue-500', label: 'Frio' },
 };
 
 export default function AvivarPipeline() {
@@ -100,23 +100,23 @@ export default function AvivarPipeline() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Pipeline de Vendas
-            <Sparkles className="h-5 w-5 text-purple-400" />
+            <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
           </h1>
-          <p className="text-slate-400">Gerencie seus leads no formato Kanban</p>
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">Gerencie seus leads no formato Kanban</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400/60" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
             <Input
               placeholder="Buscar leads..."
-              className="pl-10 w-64 bg-purple-900/30 border-purple-500/30 text-white placeholder:text-purple-400/40 focus:border-purple-400"
+              className="pl-10 w-64 bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] focus:border-[hsl(var(--avivar-primary))]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 shadow-lg shadow-purple-500/25">
+          <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]">
             <Plus className="h-4 w-4 mr-2" />
             Novo Lead
           </Button>
@@ -131,15 +131,15 @@ export default function AvivarPipeline() {
 
           return (
             <Card key={column.id} className={cn(
-              'min-h-[600px] border-t-2 bg-gradient-to-b',
-              column.color
+              'min-h-[600px] border-t-2 bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]',
+              column.borderColor
             )}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-white">{column.title}</CardTitle>
-                  <Badge className="bg-purple-500/30 text-purple-200 border-purple-500/40">{leads.length}</Badge>
+                  <CardTitle className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">{column.title}</CardTitle>
+                  <Badge className="bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] border-[hsl(var(--avivar-primary)/0.3)]">{leads.length}</Badge>
                 </div>
-                <p className="text-xs text-slate-400">{formatCurrency(total)}</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{formatCurrency(total)}</p>
               </CardHeader>
               <CardContent className="p-2">
                 <ScrollArea className="h-[500px]">
@@ -151,55 +151,55 @@ export default function AvivarPipeline() {
                       return (
                         <div
                           key={lead.id}
-                          className="p-3 bg-slate-900/90 rounded-xl border border-slate-700/50 shadow-sm cursor-pointer hover:shadow-lg hover:border-purple-500/40 transition-all group"
+                          className="p-3 bg-[hsl(var(--avivar-secondary))] rounded-xl border border-[hsl(var(--avivar-border))] shadow-sm cursor-pointer hover:shadow-lg hover:border-[hsl(var(--avivar-primary)/0.4)] transition-all group"
                           onClick={() => setSelectedLead(lead)}
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <InterestIcon className={`h-4 w-4 ${Interest.color}`} />
-                              <span className="font-medium text-sm text-white">{lead.name}</span>
+                              <span className="font-medium text-sm text-[hsl(var(--avivar-foreground))]">{lead.name}</span>
                             </div>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white hover:bg-purple-500/20">
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
                                   <MoreVertical className="h-3 w-3" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700">
-                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMoveToNext(lead); }} className="text-slate-200 focus:bg-purple-500/20 focus:text-white">
+                              <DropdownMenuContent align="end" className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMoveToNext(lead); }} className="text-[hsl(var(--avivar-foreground))] focus:bg-[hsl(var(--avivar-primary)/0.1)]">
                                   <ArrowRight className="h-4 w-4 mr-2" />
                                   Avançar Etapa
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-slate-200 focus:bg-purple-500/20 focus:text-white">
+                                <DropdownMenuItem className="text-[hsl(var(--avivar-foreground))] focus:bg-[hsl(var(--avivar-primary)/0.1)]">
                                   <Phone className="h-4 w-4 mr-2" />
                                   Ligar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-slate-200 focus:bg-purple-500/20 focus:text-white">
+                                <DropdownMenuItem className="text-[hsl(var(--avivar-foreground))] focus:bg-[hsl(var(--avivar-primary)/0.1)]">
                                   <MessageSquare className="h-4 w-4 mr-2" />
                                   WhatsApp
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                          <p className="text-xs text-slate-400 mb-1">{lead.procedure}</p>
+                          <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mb-1">{lead.procedure}</p>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1 text-xs text-slate-500">
+                            <div className="flex items-center gap-1 text-xs text-[hsl(var(--avivar-muted-foreground))]">
                               <MapPin className="h-3 w-3" />
                               {lead.city}/{lead.state}
                             </div>
-                            <span className="text-xs font-medium text-slate-300">
+                            <span className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">
                               {formatCurrency(lead.value)}
                             </span>
                           </div>
-                          <div className="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-between">
-                            <Badge className="text-xs bg-purple-500/20 text-purple-200 border-purple-500/30">
+                          <div className="mt-2 pt-2 border-t border-[hsl(var(--avivar-border))] flex items-center justify-between">
+                            <Badge className="text-xs bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-primary))] border-[hsl(var(--avivar-primary)/0.2)]">
                               {lead.source}
                             </Badge>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white hover:bg-purple-500/20" onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]" onClick={(e) => e.stopPropagation()}>
                                 <Phone className="h-3 w-3" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white hover:bg-purple-500/20" onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]" onClick={(e) => e.stopPropagation()}>
                                 <MessageSquare className="h-3 w-3" />
                               </Button>
                             </div>
@@ -217,9 +217,9 @@ export default function AvivarPipeline() {
 
       {/* Lead Detail Dialog */}
       <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
-        <DialogContent className="max-w-lg bg-slate-900 border-slate-700">
+        <DialogContent className="max-w-lg bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-[hsl(var(--avivar-foreground))]">
               {selectedLead && (
                 <>
                   {React.createElement(interestConfig[selectedLead.interest_level as keyof typeof interestConfig].icon, {
@@ -229,46 +229,46 @@ export default function AvivarPipeline() {
                 </>
               )}
             </DialogTitle>
-            <DialogDescription className="text-slate-400">Detalhes do lead</DialogDescription>
+            <DialogDescription className="text-[hsl(var(--avivar-muted-foreground))]">Detalhes do lead</DialogDescription>
           </DialogHeader>
           {selectedLead && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-slate-400">Telefone</p>
-                  <p className="font-medium text-white">{selectedLead.phone}</p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Telefone</p>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">{selectedLead.phone}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">E-mail</p>
-                  <p className="font-medium text-white">{selectedLead.email}</p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">E-mail</p>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">{selectedLead.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">Cidade</p>
-                  <p className="font-medium text-white">{selectedLead.city}/{selectedLead.state}</p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Cidade</p>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">{selectedLead.city}/{selectedLead.state}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">Fonte</p>
-                  <p className="font-medium text-white">{selectedLead.source}</p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Fonte</p>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">{selectedLead.source}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">Procedimento</p>
-                  <p className="font-medium text-white">{selectedLead.procedure}</p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Procedimento</p>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">{selectedLead.procedure}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">Valor Estimado</p>
-                  <p className="font-medium text-slate-300">{formatCurrency(selectedLead.value)}</p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Valor Estimado</p>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">{formatCurrency(selectedLead.value)}</p>
                 </div>
               </div>
               <div className="flex gap-2 pt-4">
-                <Button className="flex-1 border-slate-600 text-slate-200 hover:bg-slate-700" variant="outline">
+                <Button className="flex-1 border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]" variant="outline">
                   <Phone className="h-4 w-4 mr-2" />
                   Ligar
                 </Button>
-                <Button className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500">
+                <Button className="flex-1 bg-green-600 hover:bg-green-500 text-white">
                   <MessageSquare className="h-4 w-4 mr-2" />
                   WhatsApp
                 </Button>
-                <Button className="flex-1 border-slate-600 text-slate-200 hover:bg-slate-700" variant="outline">
+                <Button className="flex-1 border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]" variant="outline">
                   <Calendar className="h-4 w-4 mr-2" />
                   Agendar
                 </Button>

@@ -1,5 +1,6 @@
 /**
- * AvivarDashboard - Dashboard principal do portal Avivar com visual IA contemporâneo
+ * AvivarDashboard - Dashboard principal do portal Avivar
+ * Suporte a tema claro e escuro com identidade roxa
  */
 
 import React from 'react';
@@ -84,20 +85,20 @@ export default function AvivarDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Dashboard
-            <Badge className="bg-gradient-to-r from-purple-500 to-violet-600 border-0 text-white">
+            <Badge className="bg-[hsl(var(--avivar-primary))] border-0 text-white">
               <Bot className="h-3 w-3 mr-1" />
               IA Ativa
             </Badge>
           </h1>
-          <p className="text-purple-300/60">Visão geral do seu funil comercial com IA</p>
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">Visão geral do seu funil comercial com IA</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-200 hover:bg-purple-500/20" asChild>
+          <Button variant="outline" size="sm" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]" asChild>
             <Link to="/avivar/leads">Ver Todos Leads</Link>
           </Button>
-          <Button size="sm" className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 shadow-lg shadow-purple-500/25">
+          <Button size="sm" className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]">
             <Zap className="h-4 w-4 mr-2" />
             Novo Lead
           </Button>
@@ -106,68 +107,68 @@ export default function AvivarDashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-slate-900/80 border-purple-500/30 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all" />
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-[hsl(var(--avivar-primary)/0.1)] rounded-full blur-2xl group-hover:bg-[hsl(var(--avivar-primary)/0.2)] transition-all" />
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center justify-between text-slate-300">
+            <CardDescription className="flex items-center justify-between text-[hsl(var(--avivar-muted-foreground))]">
               <span>Total de Leads</span>
-              <Flame className="h-4 w-4 text-purple-400" />
+              <Flame className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">127</div>
-            <div className="flex items-center text-xs text-emerald-400 mt-1">
+            <div className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">127</div>
+            <div className="flex items-center text-xs text-emerald-600 dark:text-emerald-400 mt-1">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               +18% vs mês anterior
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30 relative overflow-hidden group">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-all" />
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center justify-between text-slate-300">
+            <CardDescription className="flex items-center justify-between text-[hsl(var(--avivar-muted-foreground))]">
               <span>Taxa de Conversão</span>
-              <Target className="h-4 w-4 text-emerald-400" />
+              <Target className="h-4 w-4 text-emerald-500" />
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">24.5%</div>
-            <div className="flex items-center text-xs text-emerald-400 mt-1">
+            <div className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">24.5%</div>
+            <div className="flex items-center text-xs text-emerald-600 dark:text-emerald-400 mt-1">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               +3.2% vs mês anterior
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-all" />
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-[hsl(var(--avivar-accent)/0.1)] rounded-full blur-2xl group-hover:bg-[hsl(var(--avivar-accent)/0.2)] transition-all" />
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center justify-between text-slate-300">
+            <CardDescription className="flex items-center justify-between text-[hsl(var(--avivar-muted-foreground))]">
               <span>Receita do Mês</span>
-              <DollarSign className="h-4 w-4 text-violet-400" />
+              <DollarSign className="h-4 w-4 text-[hsl(var(--avivar-accent))]" />
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{formatCurrency(87500)}</div>
-            <div className="flex items-center text-xs text-slate-400 mt-1">
+            <div className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{formatCurrency(87500)}</div>
+            <div className="flex items-center text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">
               Total: {formatCurrency(425000)}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30 relative overflow-hidden group">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all" />
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center justify-between text-slate-300">
+            <CardDescription className="flex items-center justify-between text-[hsl(var(--avivar-muted-foreground))]">
               <span>Tarefas Pendentes</span>
-              <Clock className="h-4 w-4 text-amber-400" />
+              <Clock className="h-4 w-4 text-amber-500" />
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">12</div>
+            <div className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">12</div>
             <div className="flex items-center gap-2 mt-1">
-              <Badge className="text-xs bg-red-500/20 text-red-300 border-red-500/30">
+              <Badge className="text-xs bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 3 atrasadas
               </Badge>
@@ -177,17 +178,17 @@ export default function AvivarDashboard() {
       </div>
 
       {/* AI Assistant Card */}
-      <Card className="bg-slate-900/90 border-purple-500/30 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-purple-500/10 via-transparent to-transparent" />
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[hsl(var(--avivar-primary)/0.1)] via-transparent to-transparent" />
         <CardContent className="p-4 flex items-center gap-4 relative z-10">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+          <div className="w-12 h-12 rounded-xl bg-[hsl(var(--avivar-primary))] flex items-center justify-center shadow-lg shadow-[hsl(var(--avivar-primary)/0.3)]">
             <Sparkles className="h-6 w-6 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-white">Assistente AVIVAR IA</h3>
-            <p className="text-sm text-slate-300">5 leads qualificados automaticamente hoje • 12 mensagens automáticas enviadas</p>
+            <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">Assistente AVIVAR IA</h3>
+            <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">5 leads qualificados automaticamente hoje • 12 mensagens automáticas enviadas</p>
           </div>
-          <Button variant="outline" size="sm" className="border-purple-400/50 text-white hover:bg-purple-500/20">
+          <Button variant="outline" size="sm" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
             Ver Atividades
           </Button>
         </CardContent>
@@ -196,10 +197,10 @@ export default function AvivarDashboard() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Leads Trend */}
-        <Card className="lg:col-span-2 bg-slate-900/80 border-purple-500/30">
+        <Card className="lg:col-span-2 bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardHeader>
-            <CardTitle className="text-base text-white">Evolução de Leads</CardTitle>
-            <CardDescription className="text-slate-400">Leads captados vs convertidos</CardDescription>
+            <CardTitle className="text-base text-[hsl(var(--avivar-foreground))]">Evolução de Leads</CardTitle>
+            <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Leads captados vs convertidos</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[280px]">
@@ -215,15 +216,15 @@ export default function AvivarDashboard() {
                       <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(139, 92, 246, 0.15)" />
-                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
-                  <YAxis stroke="#94a3b8" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[hsl(var(--avivar-border))]" />
+                  <XAxis dataKey="date" className="text-[hsl(var(--avivar-muted-foreground))]" stroke="currentColor" fontSize={12} />
+                  <YAxis className="text-[hsl(var(--avivar-muted-foreground))]" stroke="currentColor" fontSize={12} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                      backgroundColor: 'hsl(var(--avivar-card))', 
                       borderRadius: '12px', 
-                      border: '1px solid rgba(139, 92, 246, 0.3)',
-                      color: '#fff'
+                      border: '1px solid hsl(var(--avivar-border))',
+                      color: 'hsl(var(--avivar-foreground))'
                     }} 
                   />
                   <Area
@@ -251,10 +252,10 @@ export default function AvivarDashboard() {
         </Card>
 
         {/* Pipeline Distribution */}
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardHeader>
-            <CardTitle className="text-base text-white">Pipeline</CardTitle>
-            <CardDescription className="text-slate-400">Distribuição por etapa</CardDescription>
+            <CardTitle className="text-base text-[hsl(var(--avivar-foreground))]">Pipeline</CardTitle>
+            <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Distribuição por etapa</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[180px]">
@@ -275,10 +276,10 @@ export default function AvivarDashboard() {
                   </Pie>
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(15, 10, 30, 0.9)', 
+                      backgroundColor: 'hsl(var(--avivar-card))', 
                       borderRadius: '12px', 
-                      border: '1px solid rgba(139, 92, 246, 0.3)',
-                      color: '#fff'
+                      border: '1px solid hsl(var(--avivar-border))',
+                      color: 'hsl(var(--avivar-foreground))'
                     }} 
                   />
                 </PieChart>
@@ -288,8 +289,8 @@ export default function AvivarDashboard() {
               {pipelineData.slice(0, 4).map((item) => (
                 <div key={item.stage} className="flex items-center gap-2 text-sm">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-slate-400 text-xs">{item.stage}</span>
-                  <span className="font-medium ml-auto text-xs text-white">{item.count}</span>
+                  <span className="text-[hsl(var(--avivar-muted-foreground))] text-xs">{item.stage}</span>
+                  <span className="font-medium ml-auto text-xs text-[hsl(var(--avivar-foreground))]">{item.count}</span>
                 </div>
               ))}
             </div>
@@ -300,29 +301,29 @@ export default function AvivarDashboard() {
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Urgent Tasks */}
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base text-white">Tarefas Urgentes</CardTitle>
-              <CardDescription className="text-slate-400">Follow-ups prioritários</CardDescription>
+              <CardTitle className="text-base text-[hsl(var(--avivar-foreground))]">Tarefas Urgentes</CardTitle>
+              <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Follow-ups prioritários</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white hover:bg-purple-500/20" asChild>
+            <Button variant="ghost" size="sm" className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]" asChild>
               <Link to="/avivar/tasks">Ver todas</Link>
             </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {urgentTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-700/50 bg-slate-800/50">
+                <div key={task.id} className="flex items-center justify-between p-3 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary))]">
                   <div>
-                    <p className="font-medium text-sm text-white">{task.lead}</p>
-                    <p className="text-xs text-slate-400">{task.task}</p>
+                    <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))]">{task.lead}</p>
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{task.task}</p>
                   </div>
                   <Badge className={cn(
                     "text-xs",
                     task.priority === 'high' 
-                      ? 'bg-red-500/20 text-red-300 border-red-500/30' 
-                      : 'bg-purple-500/20 text-purple-200 border-purple-500/30'
+                      ? 'bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30' 
+                      : 'bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] border-[hsl(var(--avivar-primary)/0.3)]'
                   )}>
                     {task.due}
                   </Badge>
@@ -333,33 +334,33 @@ export default function AvivarDashboard() {
         </Card>
 
         {/* Recent Conversations */}
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base text-white">Conversas Recentes</CardTitle>
-              <CardDescription className="text-slate-400">Mensagens não lidas</CardDescription>
+              <CardTitle className="text-base text-[hsl(var(--avivar-foreground))]">Conversas Recentes</CardTitle>
+              <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Mensagens não lidas</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white hover:bg-purple-500/20" asChild>
+            <Button variant="ghost" size="sm" className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]" asChild>
               <Link to="/avivar/inbox">Ver todas</Link>
             </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {recentConversations.map((conv) => (
-                <div key={conv.id} className="flex items-start gap-3 p-3 rounded-xl border border-slate-700/50 bg-slate-800/50">
+                <div key={conv.id} className="flex items-start gap-3 p-3 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary))]">
                   <MessageSquare className={cn(
                     "h-5 w-5 mt-0.5",
-                    conv.unread ? "text-purple-400" : "text-slate-500"
+                    conv.unread ? "text-[hsl(var(--avivar-primary))]" : "text-[hsl(var(--avivar-muted-foreground))]"
                   )} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm text-white">{conv.lead}</p>
-                      <span className="text-xs text-slate-500">{conv.time}</span>
+                      <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))]">{conv.lead}</p>
+                      <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{conv.time}</span>
                     </div>
-                    <p className="text-xs text-slate-400 truncate">{conv.message}</p>
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] truncate">{conv.message}</p>
                   </div>
                   {conv.unread && (
-                    <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-[hsl(var(--avivar-primary))] animate-pulse" />
                   )}
                 </div>
               ))}
@@ -368,24 +369,24 @@ export default function AvivarDashboard() {
         </Card>
 
         {/* Sources */}
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardHeader>
-            <CardTitle className="text-base text-white">Leads por Fonte</CardTitle>
-            <CardDescription className="text-slate-400">Origem dos leads</CardDescription>
+            <CardTitle className="text-base text-[hsl(var(--avivar-foreground))]">Leads por Fonte</CardTitle>
+            <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Origem dos leads</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={sourceData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(139, 92, 246, 0.15)" />
-                  <XAxis type="number" stroke="#94a3b8" fontSize={10} />
-                  <YAxis dataKey="source" type="category" stroke="#94a3b8" fontSize={10} width={70} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[hsl(var(--avivar-border))]" />
+                  <XAxis type="number" className="text-[hsl(var(--avivar-muted-foreground))]" stroke="currentColor" fontSize={10} />
+                  <YAxis dataKey="source" type="category" className="text-[hsl(var(--avivar-muted-foreground))]" stroke="currentColor" fontSize={10} width={70} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                      backgroundColor: 'hsl(var(--avivar-card))', 
                       borderRadius: '12px', 
-                      border: '1px solid rgba(139, 92, 246, 0.3)',
-                      color: '#fff'
+                      border: '1px solid hsl(var(--avivar-border))',
+                      color: 'hsl(var(--avivar-foreground))'
                     }} 
                   />
                   <Bar dataKey="count" fill="url(#barGradient)" radius={[0, 4, 4, 0]}>

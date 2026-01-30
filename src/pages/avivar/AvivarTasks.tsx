@@ -1,5 +1,5 @@
 /**
- * AvivarTasks - Gestão de tarefas e follow-ups com visual IA roxo/violeta
+ * AvivarTasks - Gestão de tarefas e follow-ups com suporte a tema claro/escuro
  */
 
 import React from 'react';
@@ -14,13 +14,13 @@ export default function AvivarTasks() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Tarefas & Follow-ups
-            <Sparkles className="h-5 w-5 text-purple-400" />
+            <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
           </h1>
-          <p className="text-slate-400">Gerencie suas atividades de vendas</p>
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">Gerencie suas atividades de vendas</p>
         </div>
-        <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 shadow-lg shadow-purple-500/25">
+        <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]">
           <Plus className="h-4 w-4 mr-2" />
           Nova Tarefa
         </Button>
@@ -28,54 +28,54 @@ export default function AvivarTasks() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-slate-900/80 border-slate-700/50 border-l-4 border-l-amber-500">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] border-l-4 border-l-amber-500">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <Clock className="h-8 w-8 text-amber-400" />
+              <Clock className="h-8 w-8 text-amber-500" />
               <div>
-                <p className="text-2xl font-bold text-white">12</p>
-                <p className="text-xs text-slate-400">Pendentes</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">12</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Pendentes</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-900/80 border-slate-700/50 border-l-4 border-l-red-500">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] border-l-4 border-l-red-500">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="h-8 w-8 text-red-400" />
+              <AlertTriangle className="h-8 w-8 text-red-500" />
               <div>
-                <p className="text-2xl font-bold text-white">3</p>
-                <p className="text-xs text-slate-400">Atrasadas</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">3</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Atrasadas</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-900/80 border-slate-700/50 border-l-4 border-l-blue-500">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] border-l-4 border-l-blue-500">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <CalendarDays className="h-8 w-8 text-blue-400" />
+              <CalendarDays className="h-8 w-8 text-blue-500" />
               <div>
-                <p className="text-2xl font-bold text-white">5</p>
-                <p className="text-xs text-slate-400">Para Hoje</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">5</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Para Hoje</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-900/80 border-slate-700/50 border-l-4 border-l-emerald-500">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] border-l-4 border-l-emerald-500">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+              <CheckCircle2 className="h-8 w-8 text-emerald-500" />
               <div>
-                <p className="text-2xl font-bold text-white">28</p>
-                <p className="text-xs text-slate-400">Concluídas (mês)</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">28</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Concluídas (mês)</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tasks Panel */}
-      <div className="[&_.bg-background]:bg-slate-900/80 [&_.border]:border-slate-700/50 [&_.text-muted-foreground]:text-slate-400">
+      {/* Tasks Panel with themed wrapper */}
+      <div className="[&_.bg-background]:bg-[hsl(var(--avivar-card))] [&_.border]:border-[hsl(var(--avivar-border))] [&_.text-muted-foreground]:text-[hsl(var(--avivar-muted-foreground))]">
         <CrmTasksPanel />
       </div>
     </div>

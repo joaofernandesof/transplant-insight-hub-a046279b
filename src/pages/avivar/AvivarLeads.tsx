@@ -1,5 +1,5 @@
 /**
- * AvivarLeads - Lista de leads com visual IA roxo/violeta
+ * AvivarLeads - Lista de leads com suporte a tema claro/escuro
  */
 
 import React from 'react';
@@ -27,17 +27,17 @@ const mockLeads = [
 ];
 
 const interestConfig = {
-  hot: { icon: Flame, color: 'text-red-400', bgColor: 'bg-red-500/20', label: 'Quente' },
-  warm: { icon: ThermometerSun, color: 'text-amber-400', bgColor: 'bg-amber-500/20', label: 'Morno' },
-  cold: { icon: Snowflake, color: 'text-blue-400', bgColor: 'bg-blue-500/20', label: 'Frio' },
+  hot: { icon: Flame, color: 'text-red-500', bgColor: 'bg-red-500/15', label: 'Quente' },
+  warm: { icon: ThermometerSun, color: 'text-amber-500', bgColor: 'bg-amber-500/15', label: 'Morno' },
+  cold: { icon: Snowflake, color: 'text-blue-500', bgColor: 'bg-blue-500/15', label: 'Frio' },
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  new: { label: 'Novo', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
-  contacted: { label: 'Contatado', color: 'bg-violet-500/20 text-violet-300 border-violet-500/30' },
-  scheduled: { label: 'Agendado', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
-  converted: { label: 'Convertido', color: 'bg-green-500/20 text-green-300 border-green-500/30' },
-  lost: { label: 'Perdido', color: 'bg-slate-500/20 text-slate-300 border-slate-500/30' },
+  new: { label: 'Novo', color: 'bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] border-[hsl(var(--avivar-primary)/0.3)]' },
+  contacted: { label: 'Contatado', color: 'bg-violet-500/20 text-violet-600 dark:text-violet-400 border-violet-500/30' },
+  scheduled: { label: 'Agendado', color: 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/30' },
+  converted: { label: 'Convertido', color: 'bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30' },
+  lost: { label: 'Perdido', color: 'bg-slate-500/20 text-slate-600 dark:text-slate-400 border-slate-500/30' },
 };
 
 export default function AvivarLeads() {
@@ -50,25 +50,25 @@ export default function AvivarLeads() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Leads
-            <Sparkles className="h-5 w-5 text-purple-400" />
+            <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
           </h1>
-          <p className="text-slate-400">Gerencie todos os seus leads</p>
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">Gerencie todos os seus leads</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400/60" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
             <Input
               placeholder="Buscar leads..."
-              className="pl-10 w-64 bg-purple-900/30 border-purple-500/30 text-white placeholder:text-purple-400/40 focus:border-purple-400"
+              className="pl-10 w-64 bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] focus:border-[hsl(var(--avivar-primary))]"
             />
           </div>
-          <Button variant="outline" className="border-purple-500/30 text-purple-200 hover:bg-purple-500/20">
+          <Button variant="outline" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
-          <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 shadow-lg shadow-purple-500/25">
+          <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]">
             <Plus className="h-4 w-4 mr-2" />
             Novo Lead
           </Button>
@@ -76,19 +76,19 @@ export default function AvivarLeads() {
       </div>
 
       {/* Table */}
-      <Card className="bg-slate-900/90 border-slate-700/50">
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-700/50 hover:bg-slate-800/50">
-                <TableHead className="text-slate-300">Nome</TableHead>
-                <TableHead className="text-slate-300">Interesse</TableHead>
-                <TableHead className="text-slate-300">Status</TableHead>
-                <TableHead className="text-slate-300">Procedimento</TableHead>
-                <TableHead className="text-slate-300">Cidade</TableHead>
-                <TableHead className="text-slate-300">Fonte</TableHead>
-                <TableHead className="text-slate-300 text-right">Valor</TableHead>
-                <TableHead className="text-slate-300 text-right">Ações</TableHead>
+              <TableRow className="border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))]">
+                <TableHead className="text-[hsl(var(--avivar-muted-foreground))]">Nome</TableHead>
+                <TableHead className="text-[hsl(var(--avivar-muted-foreground))]">Interesse</TableHead>
+                <TableHead className="text-[hsl(var(--avivar-muted-foreground))]">Status</TableHead>
+                <TableHead className="text-[hsl(var(--avivar-muted-foreground))]">Procedimento</TableHead>
+                <TableHead className="text-[hsl(var(--avivar-muted-foreground))]">Cidade</TableHead>
+                <TableHead className="text-[hsl(var(--avivar-muted-foreground))]">Fonte</TableHead>
+                <TableHead className="text-[hsl(var(--avivar-muted-foreground))] text-right">Valor</TableHead>
+                <TableHead className="text-[hsl(var(--avivar-muted-foreground))] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,11 +98,11 @@ export default function AvivarLeads() {
                 const InterestIcon = interest.icon;
 
                 return (
-                  <TableRow key={lead.id} className="border-slate-700/50 hover:bg-slate-800/50">
+                  <TableRow key={lead.id} className="border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))]">
                     <TableCell>
                       <div>
-                        <p className="font-medium text-white">{lead.name}</p>
-                        <p className="text-xs text-slate-400">{lead.email}</p>
+                        <p className="font-medium text-[hsl(var(--avivar-foreground))]">{lead.name}</p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{lead.email}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -114,16 +114,16 @@ export default function AvivarLeads() {
                     <TableCell>
                       <Badge className={status.color}>{status.label}</Badge>
                     </TableCell>
-                    <TableCell className="text-slate-200">{lead.procedure}</TableCell>
-                    <TableCell className="text-slate-400">{lead.city}</TableCell>
-                    <TableCell className="text-slate-400">{lead.source}</TableCell>
-                    <TableCell className="text-right text-slate-200 font-medium">{formatCurrency(lead.value)}</TableCell>
+                    <TableCell className="text-[hsl(var(--avivar-foreground))]">{lead.procedure}</TableCell>
+                    <TableCell className="text-[hsl(var(--avivar-muted-foreground))]">{lead.city}</TableCell>
+                    <TableCell className="text-[hsl(var(--avivar-muted-foreground))]">{lead.source}</TableCell>
+                    <TableCell className="text-right text-[hsl(var(--avivar-foreground))] font-medium">{formatCurrency(lead.value)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-purple-500/20">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
                           <Phone className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-purple-500/20">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
                           <MessageSquare className="h-4 w-4" />
                         </Button>
                       </div>
