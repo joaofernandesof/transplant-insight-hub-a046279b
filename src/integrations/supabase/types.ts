@@ -554,6 +554,51 @@ export type Database = {
           },
         ]
       }
+      avivar_conversas: {
+        Row: {
+          conversa_id: string | null
+          created_at: string | null
+          id: string
+          importante: boolean | null
+          nao_lidas: number | null
+          nome_contato: string | null
+          numero: string
+          status: string | null
+          ultima_mensagem: string | null
+          ultimo_horario: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversa_id?: string | null
+          created_at?: string | null
+          id?: string
+          importante?: boolean | null
+          nao_lidas?: number | null
+          nome_contato?: string | null
+          numero: string
+          status?: string | null
+          ultima_mensagem?: string | null
+          ultimo_horario?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversa_id?: string | null
+          created_at?: string | null
+          id?: string
+          importante?: boolean | null
+          nao_lidas?: number | null
+          nome_contato?: string | null
+          numero?: string
+          status?: string | null
+          ultima_mensagem?: string | null
+          ultimo_horario?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       avivar_knowledge_chunks: {
         Row: {
           chunk_index: number
@@ -630,6 +675,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      avivar_mensagens: {
+        Row: {
+          conversa_id: string
+          created_at: string | null
+          data_hora: string | null
+          direcao: string
+          id: string
+          lida: boolean | null
+          mensagem: string | null
+          metadata: Json | null
+          nome_contato: string | null
+          numero: string
+          tipo_mensagem: string | null
+          updated_at: string | null
+          url_arquivo: string | null
+        }
+        Insert: {
+          conversa_id: string
+          created_at?: string | null
+          data_hora?: string | null
+          direcao: string
+          id?: string
+          lida?: boolean | null
+          mensagem?: string | null
+          metadata?: Json | null
+          nome_contato?: string | null
+          numero: string
+          tipo_mensagem?: string | null
+          updated_at?: string | null
+          url_arquivo?: string | null
+        }
+        Update: {
+          conversa_id?: string
+          created_at?: string | null
+          data_hora?: string | null
+          direcao?: string
+          id?: string
+          lida?: boolean | null
+          mensagem?: string | null
+          metadata?: Json | null
+          nome_contato?: string | null
+          numero?: string
+          tipo_mensagem?: string | null
+          updated_at?: string | null
+          url_arquivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_mensagens_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_conversas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_patient_journeys: {
         Row: {
@@ -13271,6 +13372,15 @@ export type Database = {
           profile: Database["public"]["Enums"]["neohub_profile"]
         }[]
       }
+      get_or_create_avivar_conversa: {
+        Args: {
+          p_conversa_id?: string
+          p_nome_contato?: string
+          p_numero: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       get_or_create_user_scan_credits: {
         Args: { _user_id: string }
         Returns: {
@@ -13372,6 +13482,10 @@ export type Database = {
       }
       is_neohub_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff_admin_or_gestao: { Args: { _user_id: string }; Returns: boolean }
+      mark_avivar_messages_as_read: {
+        Args: { p_conversa_id: string }
+        Returns: undefined
+      }
       user_has_any_enrollment: { Args: { _user_id: string }; Returns: boolean }
       user_has_permission: {
         Args: { _permission_key: string }
