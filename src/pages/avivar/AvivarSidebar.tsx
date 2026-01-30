@@ -1,6 +1,6 @@
 /**
  * AvivarSidebar - Sidebar do Portal Avivar com branding roxo/violeta IA
- * Estilo contemporâneo, futurístico, com gradientes roxos e efeitos de brilho
+ * Suporte a tema claro e escuro mantendo a identidade roxa
  */
 
 import React, { useState } from 'react';
@@ -31,6 +31,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/avivar' },
@@ -59,25 +60,25 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
   const location = useLocation();
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-[#0f0a1e] via-[#1a0f2e] to-[#0f0a1e] relative overflow-hidden">
+    <div className="flex flex-col h-full bg-[hsl(var(--avivar-card))] relative overflow-hidden border-r border-[hsl(var(--avivar-border))]">
       {/* Animated gradient orbs */}
-      <div className="absolute top-20 left-1/2 w-32 h-32 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-40 right-0 w-24 h-24 bg-violet-500/15 rounded-full blur-2xl animate-pulse delay-1000" />
+      <div className="absolute top-20 left-1/2 w-32 h-32 bg-[hsl(var(--avivar-primary)/0.15)] rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-40 right-0 w-24 h-24 bg-[hsl(var(--avivar-accent)/0.1)] rounded-full blur-2xl animate-pulse delay-1000" />
       
       {/* Header */}
-      <div className="p-4 border-b border-purple-500/20 relative z-10">
+      <div className="p-4 border-b border-[hsl(var(--avivar-border))] relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30 relative">
+          <div className="w-10 h-10 rounded-xl bg-[var(--avivar-gradient)] flex items-center justify-center shadow-lg shadow-[hsl(var(--avivar-primary)/0.3)] relative">
             <Zap className="h-5 w-5 text-white" />
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-400/50 to-transparent animate-pulse" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent animate-pulse" />
           </div>
           {!collapsed && (
-            <div>
-              <h1 className="font-bold text-white text-lg flex items-center gap-1.5">
+            <div className="flex-1">
+              <h1 className="font-bold text-[hsl(var(--avivar-foreground))] text-lg flex items-center gap-1.5">
                 AVIVAR
-                <Sparkles className="h-4 w-4 text-purple-400" />
+                <Sparkles className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
               </h1>
-              <p className="text-xs text-purple-300/60">Inteligência Artificial</p>
+              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Inteligência Artificial</p>
             </div>
           )}
         </div>
@@ -89,7 +90,7 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
           {menuItems.map((item) => {
             if (item.isDivider) {
               return (
-                <div key={item.id} className="my-3 border-t border-purple-500/20" />
+                <div key={item.id} className="my-3 border-t border-[hsl(var(--avivar-border))]" />
               );
             }
 
@@ -105,22 +106,22 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden',
                   isActive
-                    ? 'bg-gradient-to-r from-purple-600/30 to-violet-600/20 text-white shadow-lg shadow-purple-500/10'
-                    : 'text-purple-200/60 hover:bg-purple-500/10 hover:text-purple-100'
+                    ? 'bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-foreground))] shadow-lg shadow-[hsl(var(--avivar-primary)/0.1)]'
+                    : 'text-[hsl(var(--avivar-muted-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.08)] hover:text-[hsl(var(--avivar-foreground))]'
                 )}
               >
                 {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-purple-400 to-violet-500 rounded-r-full" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--avivar-gradient)] rounded-r-full" />
                 )}
                 <Icon className={cn(
                   'h-5 w-5 flex-shrink-0 transition-all duration-300',
-                  isActive ? 'text-purple-300' : 'text-purple-400/50 group-hover:text-purple-300'
+                  isActive ? 'text-[hsl(var(--avivar-primary))]' : 'text-[hsl(var(--avivar-muted-foreground))] group-hover:text-[hsl(var(--avivar-primary))]'
                 )} />
                 {!collapsed && (
                   <>
                     <span className="flex-1 text-sm font-medium">{item.label}</span>
                     {item.badge && (
-                      <Badge className="h-5 px-1.5 text-xs bg-gradient-to-r from-purple-500 to-violet-600 border-0 text-white">
+                      <Badge className="h-5 px-1.5 text-xs bg-[hsl(var(--avivar-primary))] border-0 text-white">
                         {item.badge}
                       </Badge>
                     )}
@@ -133,15 +134,15 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       </ScrollArea>
 
       {/* Footer Stats */}
-      <div className="p-3 border-t border-purple-500/20 relative z-10">
+      <div className="p-3 border-t border-[hsl(var(--avivar-border))] relative z-10">
         {!collapsed && (
-          <div className="px-3 py-3 rounded-xl bg-gradient-to-br from-purple-900/50 to-violet-900/30 border border-purple-500/20">
+          <div className="px-3 py-3 rounded-xl bg-[hsl(var(--avivar-primary)/0.1)] border border-[hsl(var(--avivar-border))]">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <p className="text-xs text-purple-300/70">IA Ativa</p>
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">IA Ativa</p>
             </div>
-            <p className="text-lg font-bold text-white">127 leads</p>
-            <p className="text-xs text-purple-300/50">Processados hoje</p>
+            <p className="text-lg font-bold text-[hsl(var(--avivar-foreground))]">127 leads</p>
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Processados hoje</p>
           </div>
         )}
       </div>
@@ -156,30 +157,33 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
 
   if (isMobile) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#0a0612]">
-        {/* Mobile Header - NeoPay style */}
-        <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#0f0a1e] to-[#1a0f2e] border-b border-purple-500/20">
+      <div className="flex flex-col min-h-screen bg-[hsl(var(--avivar-background))]">
+        {/* Mobile Header */}
+        <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[hsl(var(--avivar-card))] border-b border-[hsl(var(--avivar-border))]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <div className="w-8 h-8 rounded-lg bg-[var(--avivar-gradient)] flex items-center justify-center shadow-lg shadow-[hsl(var(--avivar-primary)/0.2)]">
               <Zap className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-white flex items-center gap-1">
+            <span className="font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-1">
               AVIVAR
-              <Sparkles className="h-3 w-3 text-purple-400" />
+              <Sparkles className="h-3 w-3 text-[hsl(var(--avivar-primary))]" />
             </span>
           </div>
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-purple-100 hover:bg-purple-500/20">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72 border-purple-500/30 bg-transparent">
-              <SidebarContent collapsed={false} onCollapse={() => setMobileOpen(false)} />
-            </SheetContent>
-          </Sheet>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-72 border-[hsl(var(--avivar-border))] bg-transparent">
+                <SidebarContent collapsed={false} onCollapse={() => setMobileOpen(false)} />
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
-        <main className="flex-1 overflow-auto bg-gradient-to-br from-[#0a0612] via-[#12081f] to-[#0a0612]">
+        <main className="flex-1 overflow-auto bg-[hsl(var(--avivar-background))]">
           {children}
         </main>
       </div>
@@ -187,10 +191,10 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0a0612]">
+    <div className="flex min-h-screen bg-[hsl(var(--avivar-background))]">
       {/* Sidebar */}
       <aside className={cn(
-        'fixed left-0 top-0 h-screen transition-all duration-300 z-40 border-r border-purple-500/20',
+        'fixed left-0 top-0 h-screen transition-all duration-300 z-40',
         collapsed ? 'w-16' : 'w-64'
       )}>
         <SidebarContent collapsed={collapsed} />
@@ -198,7 +202,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-20 h-6 w-6 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 text-white hover:from-purple-500 hover:to-violet-500 shadow-md shadow-purple-500/30"
+          className="absolute -right-3 top-20 h-6 w-6 rounded-full bg-[hsl(var(--avivar-primary))] text-white hover:bg-[hsl(var(--avivar-accent))] shadow-md shadow-[hsl(var(--avivar-primary)/0.3)]"
         >
           {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </Button>
@@ -206,9 +210,13 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
 
       {/* Main Content */}
       <main className={cn(
-        'flex-1 min-h-screen transition-all duration-300 bg-gradient-to-br from-[#0a0612] via-[#12081f] to-[#0a0612]',
+        'flex-1 min-h-screen transition-all duration-300 bg-[hsl(var(--avivar-background))]',
         collapsed ? 'ml-16' : 'ml-64'
       )}>
+        {/* Top bar with theme toggle */}
+        <div className="sticky top-0 z-30 flex justify-end p-3 bg-[hsl(var(--avivar-background))]">
+          <ThemeToggle />
+        </div>
         {children}
       </main>
     </div>
