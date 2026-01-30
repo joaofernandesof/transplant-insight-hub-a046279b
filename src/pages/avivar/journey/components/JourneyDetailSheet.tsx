@@ -123,46 +123,46 @@ export function JourneyDetailSheet({
             
             <div className="space-y-3">
               <div>
-                <Label htmlFor="name">Nome Completo</Label>
+                <Label htmlFor="name" className="text-foreground">Nome Completo</Label>
                 <Input
                   id="name"
                   value={journey.patient_name}
                   onChange={(e) => onUpdate({ patient_name: e.target.value })}
-                  className="mt-1"
+                  className="mt-1 bg-background border-input focus:ring-2 focus:ring-primary cursor-text"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="phone">Telefone</Label>
+                  <Label htmlFor="phone" className="text-foreground">Telefone</Label>
                   <Input
                     id="phone"
                     value={journey.patient_phone || ''}
                     onChange={(e) => onUpdate({ patient_phone: e.target.value })}
                     placeholder="(11) 99999-9999"
-                    className="mt-1"
+                    className="mt-1 bg-background border-input focus:ring-2 focus:ring-primary cursor-text"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-foreground">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     value={journey.patient_email || ''}
                     onChange={(e) => onUpdate({ patient_email: e.target.value })}
                     placeholder="email@exemplo.com"
-                    className="mt-1"
+                    className="mt-1 bg-background border-input focus:ring-2 focus:ring-primary cursor-text"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="service">Tipo de Serviço</Label>
+                <Label htmlFor="service" className="text-foreground">Tipo de Serviço</Label>
                 <Select
                   value={journey.service_type}
                   onValueChange={(value) => onUpdate({ service_type: value as any })}
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="mt-1 bg-background border-input cursor-pointer hover:bg-accent/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
