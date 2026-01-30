@@ -41,7 +41,7 @@ const menuItems = [
   { id: 'posvenda', label: 'Kanban Pós-Venda', icon: HeartPulse, href: '/avivar/posvenda', isHighlight: true },
   { id: 'pipeline', label: 'Pipeline Legado', icon: Kanban, href: '/avivar/pipeline' },
   { id: 'divider0', label: '', icon: null, href: '', isDivider: true },
-  { id: 'inbox', label: 'Caixa de Entrada', icon: MessageSquare, href: '/avivar/inbox', badge: '5' },
+  { id: 'inbox', label: 'Chats', icon: MessageSquare, href: '/avivar/inbox', badge: '5' },
   { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: '3' },
   { id: 'leads', label: 'Leads', icon: Users, href: '/avivar/leads' },
   { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup', badge: '12' },
