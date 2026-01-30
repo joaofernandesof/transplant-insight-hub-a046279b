@@ -68,17 +68,17 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       {/* Header */}
       <div className="p-4 border-b border-[hsl(var(--avivar-border))] relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--avivar-gradient)] flex items-center justify-center shadow-lg shadow-[hsl(var(--avivar-primary)/0.3)] relative">
-            <Zap className="h-5 w-5 text-white" />
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent animate-pulse" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(270_75%_45%)] to-[hsl(280_80%_50%)] flex items-center justify-center shadow-lg shadow-[hsl(270_75%_45%/0.4)] relative overflow-hidden">
+            <Zap className="h-5 w-5 text-white relative z-10" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
           </div>
           {!collapsed && (
             <div className="flex-1">
-              <h1 className="font-bold text-[hsl(var(--avivar-foreground))] text-lg flex items-center gap-1.5">
+              <h1 className="font-bold text-[hsl(260_40%_12%)] text-lg flex items-center gap-1.5">
                 AVIVAR
-                <Sparkles className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                <Sparkles className="h-4 w-4 text-[hsl(270_75%_45%)]" />
               </h1>
-              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Inteligência Artificial</p>
+              <p className="text-xs text-[hsl(260_20%_40%)] font-medium">Inteligência Artificial</p>
             </div>
           )}
         </div>
@@ -161,12 +161,12 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
         {/* Mobile Header */}
         <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[hsl(var(--avivar-card))] border-b border-[hsl(var(--avivar-border))]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[var(--avivar-gradient)] flex items-center justify-center shadow-lg shadow-[hsl(var(--avivar-primary)/0.2)]">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(270_75%_45%)] to-[hsl(280_80%_50%)] flex items-center justify-center shadow-lg shadow-[hsl(270_75%_45%/0.3)]">
               <Zap className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-1">
+            <span className="font-bold text-[hsl(260_40%_12%)] flex items-center gap-1">
               AVIVAR
-              <Sparkles className="h-3 w-3 text-[hsl(var(--avivar-primary))]" />
+              <Sparkles className="h-3 w-3 text-[hsl(270_75%_45%)]" />
             </span>
           </div>
           <div className="flex items-center gap-2">
