@@ -53,20 +53,20 @@ const portals = [
 // Menu principal enxuto
 const mainMenu = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin-portal' },
-  { id: 'metrics', label: 'Métricas', icon: BarChart3, href: '/admin/metrics' },
+  { id: 'metrics', label: 'Métricas', icon: BarChart3, href: '/system-metrics' },
 ];
 
 // Menu de gestão
 const managementMenu = [
-  { id: 'users', label: 'Usuários', icon: Users, href: '/admin/users' },
-  { id: 'permissions', label: 'Permissões', icon: Shield, href: '/admin/permissions' },
+  { id: 'users', label: 'Usuários', icon: Users, href: '/admin' },
+  { id: 'permissions', label: 'Permissões', icon: Shield, href: '/access-matrix' },
 ];
 
 // Menu do sistema
 const systemMenu = [
   { id: 'announcements', label: 'Anúncios', icon: Bell, href: '/admin/announcements' },
   { id: 'event-logs', label: 'Logs', icon: Activity, href: '/admin/event-logs' },
-  { id: 'settings', label: 'Configurações', icon: Settings, href: '/admin/settings' },
+  { id: 'settings', label: 'Configurações', icon: Settings, href: '/admin/sentinel' },
 ];
 
 interface AdminSidebarProps {
