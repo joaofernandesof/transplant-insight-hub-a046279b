@@ -92,14 +92,14 @@ export function ScanCreditsDisplay({ userId, onUpgradeClick, refreshTrigger }: S
   // Admin users have unlimited access
   if (isAdmin) {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-primary/30">
-        <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30 gap-1">
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/80 border border-purple-500/30">
+        <Badge variant="outline" className="bg-purple-500/20 text-purple-300 border-purple-500/30 gap-1">
           <Shield className="w-3 h-3" />
           Administrador
         </Badge>
         <div className="flex items-center gap-2">
           <Crown className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-medium text-amber-400">
+          <span className="text-sm font-medium text-amber-300">
             Acesso Ilimitado
           </span>
         </div>
