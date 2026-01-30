@@ -41,9 +41,13 @@ const PublicDashboardPage = lazy(() => import("./pages/public/PublicDashboardPag
 // Pages - Admin/Licenciado (Lazy Loaded)
 // ====================================
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const AdminHome = lazy(() => import("./pages/AdminHome"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminHomeLegacy = lazy(() => import("./pages/AdminHome"));
+const AdminDashboardLegacy = lazy(() => import("./pages/AdminDashboard"));
 const ClinicComparison = lazy(() => import("./pages/ClinicComparison"));
+
+// Admin Portal with dedicated layout
+const AdminPortalHome = lazy(() => import("./pages/admin/AdminHome"));
+const AdminLayout = lazy(() => import("./pages/admin/components/AdminLayout"));
 const LicenseeHome = lazy(() => import("./pages/LicenseeHome"));
 const LicenseesPanel = lazy(() => import("./pages/LicenseesPanel"));
 const University = lazy(() => import("./pages/University"));
@@ -342,9 +346,9 @@ function HomeRouter() {
     return <Navigate to={targetRoute} replace />;
   }
 
-  // Fallback para admins - redirecionar para dashboard
+  // Fallback para admins - redirecionar para portal admin
   if (isAdmin) {
-    return <Navigate to="/admin-dashboard" replace />;
+    return <Navigate to="/admin-portal" replace />;
   }
 
   return <SidebarWrapper><LicenseeHome /></SidebarWrapper>;
@@ -661,9 +665,15 @@ function AppRoutes() {
       <Route path="/home" element={<Navigate to="/" replace />} />
       
       {/* ====================================
-          Rotas Admin (sem redirect - únicas)
+          Portal Administrativo (com layout próprio)
           ==================================== */}
-      <Route path="/admin-dashboard" element={<ProtectedRoute><SidebarWrapper><LazyRoute><AdminDashboard /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/admin-portal" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
+      <Route path="/admin-portal/*" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><AdminLayout><AdminPortalHome /></AdminLayout></Suspense></AdminRoute>} />
+      
+      {/* ====================================
+          Rotas Admin Legado (mantidas para compatibilidade)
+          ==================================== */}
+      <Route path="/admin-dashboard" element={<ProtectedRoute><SidebarWrapper><LazyRoute><AdminDashboardLegacy /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/alunos" element={<ProtectedRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
