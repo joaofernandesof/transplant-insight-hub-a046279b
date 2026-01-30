@@ -1,10 +1,10 @@
 /**
- * AdminSidebar - Sidebar dedicada do Portal Administrativo
- * Design azul/slate profissional com acesso a todos os módulos do sistema
+ * AdminSidebar - Sidebar enxuta do Portal Administrativo
+ * Design azul/slate profissional com portais em menu expansível
  */
 
 import React, { useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -19,98 +19,54 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Menu,
+  ChevronDown,
   Zap,
   Scale,
   CreditCard,
   Eye,
-  Building2,
-  FileText,
-  Megaphone,
-  Calendar,
-  Bot,
-  GitCompare,
-  Flame,
-  BookOpen,
+  Layers,
   Server,
-  Send,
+  Bell,
   Home,
-  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { VisionIcon } from '@/components/icons/VisionIcon';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
-const menuSections = [
-  {
-    id: 'main',
-    title: 'Principal',
-    items: [
-      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-      { id: 'metrics', label: 'Métricas', icon: BarChart3, href: '/admin/metrics' },
-    ]
-  },
-  {
-    id: 'portals',
-    title: 'Portais do NeoHub',
-    items: [
-      { id: 'academy', label: 'Aluno', icon: GraduationCap, href: '/academy', external: true, gradient: 'from-emerald-500 to-green-600' },
-      { id: 'license', label: 'Licenciado', icon: Award, href: '/neolicense', external: true, gradient: 'from-amber-400 to-yellow-500' },
-      { id: 'patient', label: 'Paciente', icon: Heart, href: '/neocare', external: true, gradient: 'from-rose-500 to-pink-600' },
-      { id: 'staff', label: 'Colaborador', icon: Users, href: '/neoteam', external: true, gradient: 'from-blue-500 to-cyan-600' },
-      { id: 'doctor', label: 'Médico', icon: Stethoscope, href: '/neoteam/doctor-view', external: true, gradient: 'from-teal-500 to-cyan-600' },
-      { id: 'avivar', label: 'Avivar', icon: Zap, href: '/avivar', external: true, gradient: 'from-purple-500 to-violet-600' },
-      { id: 'ipromed', label: 'IPROMED', icon: Scale, href: '/ipromed', external: true, gradient: 'from-blue-600 to-indigo-700' },
-      { id: 'vision', label: 'Vision', icon: Eye, href: '/vision', external: true, gradient: 'from-pink-500 to-rose-500' },
-      { id: 'neopay', label: 'NeoPay', icon: CreditCard, href: '/neopay', external: true, gradient: 'from-green-500 to-emerald-600' },
-    ]
-  },
-  {
-    id: 'users',
-    title: 'Gestão de Usuários',
-    items: [
-      { id: 'all-users', label: 'Todos os Usuários', icon: Users, href: '/admin/users' },
-      { id: 'licensees', label: 'Alunos IBRAMEC', icon: Award, href: '/alunos' },
-      { id: 'onboarding', label: 'Onboarding', icon: Sparkles, href: '/admin/licensee-onboarding' },
-      { id: 'permissions', label: 'Permissões', icon: Shield, href: '/admin/permissions' },
-    ]
-  },
-  {
-    id: 'operations',
-    title: 'Operações',
-    items: [
-      { id: 'surgery', label: 'Agenda Cirurgias', icon: Calendar, href: '/admin/surgery-schedule' },
-      { id: 'hotleads', label: 'HotLeads', icon: Flame, href: '/hotleads' },
-      { id: 'comparison', label: 'Comparar Clínicas', icon: GitCompare, href: '/comparison' },
-      { id: 'results', label: 'Resultados', icon: BarChart3, href: '/consolidated-results' },
-    ]
-  },
-  {
-    id: 'content',
-    title: 'Conteúdo & Educação',
-    items: [
-      { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/university' },
-      { id: 'materials', label: 'Materiais', icon: FileText, href: '/materials' },
-      { id: 'exams', label: 'Provas', icon: BookOpen, href: '/exams' },
-      { id: 'announcements', label: 'Anúncios', icon: Megaphone, href: '/admin/announcements' },
-    ]
-  },
-  {
-    id: 'system',
-    title: 'Sistema',
-    items: [
-      { id: 'monitoring', label: 'Monitoramento', icon: Eye, href: '/monitoring' },
-      { id: 'event-logs', label: 'Log de Eventos', icon: Activity, href: '/admin/event-logs' },
-      { id: 'sentinel', label: 'System Sentinel', icon: Server, href: '/admin/sentinel' },
-      { id: 'code-assistant', label: 'Assistente IA', icon: Bot, href: '/admin/code-assistant' },
-      { id: 'api-docs', label: 'API Docs', icon: Zap, href: '/api-docs' },
-      { id: 'settings', label: 'Configurações', icon: Settings, href: '/admin/settings' },
-    ]
-  },
+// Portais disponíveis (menu expansível)
+const portals = [
+  { id: 'academy', label: 'Aluno', icon: GraduationCap, href: '/academy', gradient: 'from-emerald-500 to-green-600' },
+  { id: 'license', label: 'Licenciado', icon: Award, href: '/neolicense', gradient: 'from-amber-400 to-yellow-500' },
+  { id: 'patient', label: 'Paciente', icon: Heart, href: '/neocare', gradient: 'from-rose-500 to-pink-600' },
+  { id: 'staff', label: 'Colaborador', icon: Users, href: '/neoteam', gradient: 'from-blue-500 to-cyan-600' },
+  { id: 'doctor', label: 'Médico', icon: Stethoscope, href: '/neoteam/doctor-view', gradient: 'from-teal-500 to-cyan-600' },
+  { id: 'avivar', label: 'Avivar', icon: Zap, href: '/avivar', gradient: 'from-purple-500 to-violet-600' },
+  { id: 'ipromed', label: 'IPROMED', icon: Scale, href: '/ipromed', gradient: 'from-blue-600 to-indigo-700' },
+  { id: 'vision', label: 'Vision', icon: Eye, href: '/vision', gradient: 'from-pink-500 to-rose-500' },
+  { id: 'neopay', label: 'NeoPay', icon: CreditCard, href: '/neopay', gradient: 'from-green-500 to-emerald-600' },
+];
+
+// Menu principal enxuto
+const mainMenu = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin-portal' },
+  { id: 'metrics', label: 'Métricas', icon: BarChart3, href: '/admin/metrics' },
+];
+
+// Menu de gestão
+const managementMenu = [
+  { id: 'users', label: 'Usuários', icon: Users, href: '/admin/users' },
+  { id: 'permissions', label: 'Permissões', icon: Shield, href: '/admin/permissions' },
+];
+
+// Menu do sistema
+const systemMenu = [
+  { id: 'announcements', label: 'Anúncios', icon: Bell, href: '/admin/announcements' },
+  { id: 'event-logs', label: 'Logs', icon: Activity, href: '/admin/event-logs' },
+  { id: 'settings', label: 'Configurações', icon: Settings, href: '/admin/settings' },
 ];
 
 interface AdminSidebarProps {
@@ -122,22 +78,55 @@ interface AdminSidebarProps {
 function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onCollapse?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [portalsOpen, setPortalsOpen] = useState(false);
+
+  const handleNavigate = (href: string) => {
+    navigate(href);
+    onCollapse?.();
+  };
+
+  const isActive = (href: string) => 
+    location.pathname === href || 
+    (href !== '/admin-portal' && location.pathname.startsWith(href));
+
+  const MenuItem = ({ item }: { item: { id: string; label: string; icon: React.ElementType; href: string } }) => {
+    const Icon = item.icon;
+    const active = isActive(item.href);
+    
+    return (
+      <button
+        onClick={() => handleNavigate(item.href)}
+        className={cn(
+          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative',
+          active
+            ? 'bg-blue-500/20 text-white'
+            : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+        )}
+      >
+        {active && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-gradient-to-b from-blue-400 to-indigo-500 rounded-r-full" />
+        )}
+        <Icon className={cn(
+          'h-5 w-5 flex-shrink-0 transition-colors',
+          active ? 'text-blue-400' : 'text-slate-500 group-hover:text-blue-400'
+        )} />
+        {!collapsed && (
+          <span className="text-sm font-medium">{item.label}</span>
+        )}
+      </button>
+    );
+  };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 to-slate-950 relative overflow-hidden border-r border-slate-800">
-      {/* Gradient orbs */}
-      <div className="absolute top-20 left-1/2 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-40 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl" />
-      
+    <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800">
       {/* Header */}
-      <div className="p-4 border-b border-slate-800 relative z-10">
+      <div className="p-4 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 relative overflow-hidden">
-            <Shield className="h-5 w-5 text-white relative z-10" />
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <Shield className="h-5 w-5 text-white" />
           </div>
           {!collapsed && (
-            <div className="flex-1">
+            <div>
               <h1 className="font-bold text-white text-lg">Admin</h1>
               <p className="text-xs text-slate-400">Portal Administrativo</p>
             </div>
@@ -146,78 +135,110 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       </div>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 px-3 py-4 relative z-10">
+      <ScrollArea className="flex-1 px-3 py-4">
         <nav className="space-y-6">
-          {menuSections.map((section) => (
-            <div key={section.id}>
-              {!collapsed && (
-                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
-                  {section.title}
-                </p>
-              )}
-              <div className="space-y-1">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.href || 
-                    (item.href !== '/admin' && location.pathname.startsWith(item.href));
-                  const isExternal = (item as any).external;
+          {/* Principal */}
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+                Principal
+              </p>
+            )}
+            {mainMenu.map((item) => (
+              <MenuItem key={item.id} item={item} />
+            ))}
+          </div>
 
+          {/* Portais - Collapsible */}
+          <div>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+                Portais
+              </p>
+            )}
+            <Collapsible open={portalsOpen} onOpenChange={setPortalsOpen}>
+              <CollapsibleTrigger asChild>
+                <button
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+                    'text-slate-400 hover:bg-slate-800/50 hover:text-white',
+                    portalsOpen && 'bg-slate-800/30 text-white'
+                  )}
+                >
+                  <Layers className="h-5 w-5 text-slate-500" />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1 text-sm font-medium text-left">Acessar Portal</span>
+                      <ChevronDown className={cn(
+                        'h-4 w-4 text-slate-500 transition-transform duration-200',
+                        portalsOpen && 'rotate-180'
+                      )} />
+                    </>
+                  )}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-1 space-y-1 pl-2">
+                {portals.map((portal) => {
+                  const Icon = portal.icon;
                   return (
                     <button
-                      key={item.id}
-                      onClick={() => {
-                        navigate(item.href);
-                        onCollapse?.();
-                      }}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden',
-                        isActive
-                          ? 'bg-blue-500/20 text-white shadow-lg shadow-blue-500/10'
-                          : 'text-slate-400 hover:bg-slate-800/50 hover:text-white',
-                        isExternal && 'border border-slate-700/50'
-                      )}
+                      key={portal.id}
+                      onClick={() => handleNavigate(portal.href)}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:bg-slate-800/50 hover:text-white group"
                     >
-                      {isActive && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-blue-400 to-indigo-500 rounded-r-full" />
-                      )}
-                      {isExternal && (item as any).gradient ? (
-                        <div className={cn(
-                          'p-1.5 rounded-lg bg-gradient-to-br',
-                          (item as any).gradient
-                        )}>
-                          <Icon className="h-4 w-4 text-white" />
-                        </div>
-                      ) : (
-                        <Icon className={cn(
-                          'h-5 w-5 flex-shrink-0 transition-all duration-300',
-                          isActive ? 'text-blue-400' : 'text-slate-500 group-hover:text-blue-400'
-                        )} />
-                      )}
+                      <div className={cn(
+                        'p-1.5 rounded-md bg-gradient-to-br',
+                        portal.gradient
+                      )}>
+                        <Icon className="h-3.5 w-3.5 text-white" />
+                      </div>
                       {!collapsed && (
-                        <span className="flex-1 text-sm font-medium text-left">{item.label}</span>
-                      )}
-                      {isExternal && !collapsed && (
-                        <ChevronRight className="h-4 w-4 text-slate-600" />
+                        <>
+                          <span className="text-sm">{portal.label}</span>
+                          <ChevronRight className="h-3.5 w-3.5 ml-auto text-slate-600 group-hover:text-slate-400" />
+                        </>
                       )}
                     </button>
                   );
                 })}
-              </div>
-            </div>
-          ))}
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+
+          {/* Gestão */}
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+                Gestão
+              </p>
+            )}
+            {managementMenu.map((item) => (
+              <MenuItem key={item.id} item={item} />
+            ))}
+          </div>
+
+          {/* Sistema */}
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+                Sistema
+              </p>
+            )}
+            {systemMenu.map((item) => (
+              <MenuItem key={item.id} item={item} />
+            ))}
+          </div>
         </nav>
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-3 border-t border-slate-800 relative z-10">
+      <div className="p-3 border-t border-slate-800">
         {!collapsed && (
-          <div className="px-3 py-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/50">
+            <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               <p className="text-xs text-slate-400">Sistema Online</p>
             </div>
-            <p className="text-sm font-semibold text-white">Acesso Total</p>
-            <p className="text-xs text-slate-500">Todos os módulos disponíveis</p>
           </div>
         )}
       </div>
