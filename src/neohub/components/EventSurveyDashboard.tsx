@@ -1707,7 +1707,7 @@ export function EventSurveyDashboard({ classId }: EventSurveyDashboardProps) {
   const [exportingTab, setExportingTab] = useState<string | null>(null);
   const { activeTab, setActiveTab } = useTabFromUrl({
     defaultTab: 'overview',
-    validTabs: ['overview', 'questions', 'students', 'matrix', 'answers', 'ai'],
+    validTabs: ['overview', 'matrix', 'ranking', 'questions', 'students', 'timing', 'insights', 'answers'],
   });
   
   // AI Insights state
