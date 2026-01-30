@@ -114,16 +114,16 @@ export function AdminTrendCharts() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-popover border rounded-lg shadow-lg p-3">
-          <p className="text-sm font-medium mb-1">{label}</p>
+        <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-3">
+          <p className="text-sm font-medium mb-1 text-white">{label}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-xs">
               <div 
                 className="w-2 h-2 rounded-full" 
                 style={{ backgroundColor: entry.color }}
               />
-              <span className="text-muted-foreground">{entry.name}:</span>
-              <span className="font-medium">{entry.value}</span>
+              <span className="text-slate-400">{entry.name}:</span>
+              <span className="font-medium text-white">{entry.value}</span>
             </div>
           ))}
         </div>
@@ -136,10 +136,10 @@ export function AdminTrendCharts() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-slate-800/50 border-slate-700/50">
         <CardContent className="p-6">
           <div className="h-[300px] flex items-center justify-center">
-            <div className="animate-pulse text-muted-foreground">Carregando gráficos...</div>
+            <div className="animate-pulse text-slate-400">Carregando gráficos...</div>
           </div>
         </CardContent>
       </Card>
@@ -150,7 +150,7 @@ export function AdminTrendCharts() {
     <div className="space-y-4">
       {/* Period Filter */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-slate-400">
           <Calendar className="h-4 w-4" />
           <span>Período de análise</span>
         </div>
@@ -165,7 +165,7 @@ export function AdminTrendCharts() {
               key={opt.value} 
               value={opt.value} 
               size="sm"
-              className="h-7 px-3 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+              className="h-7 px-3 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 data-[state=on]:bg-blue-600 data-[state=on]:text-white border-slate-600"
             >
               {opt.label}
             </ToggleGroupItem>
@@ -175,14 +175,14 @@ export function AdminTrendCharts() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* User Growth Chart */}
-        <Card>
+        <Card className="bg-slate-800/50 border-slate-700/50">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2 text-white">
                 <Users className="h-4 w-4" />
                 Crescimento de Usuários
               </CardTitle>
-              <Badge variant="secondary" className="text-[10px]">
+              <Badge variant="secondary" className="text-[10px] bg-slate-700 text-slate-300">
                 +{totals.newUsers} novos ({selectedPeriod?.label})
               </Badge>
             </div>
@@ -192,20 +192,20 @@ export function AdminTrendCharts() {
               <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                 <defs>
                   <linearGradient id="colorNewUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis 
                   dataKey="displayDate" 
-                  tick={{ fontSize: 10 }}
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
                   tickLine={false}
                   axisLine={false}
                   interval={period === '30d' ? 2 : 'preserveStartEnd'}
                 />
                 <YAxis 
-                  tick={{ fontSize: 10 }}
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
                   tickLine={false}
                   axisLine={false}
                 />
@@ -214,7 +214,7 @@ export function AdminTrendCharts() {
                   type="monotone" 
                   dataKey="newUsers" 
                   name="Novos Usuários"
-                  stroke="hsl(var(--primary))" 
+                  stroke="#3b82f6" 
                   fillOpacity={1} 
                   fill="url(#colorNewUsers)" 
                   strokeWidth={2}
@@ -225,14 +225,14 @@ export function AdminTrendCharts() {
         </Card>
 
         {/* Activity Chart */}
-        <Card>
+        <Card className="bg-slate-800/50 border-slate-700/50">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2 text-white">
                 <Activity className="h-4 w-4" />
                 Atividade Diária
               </CardTitle>
-              <Badge variant="secondary" className="text-[10px]">
+              <Badge variant="secondary" className="text-[10px] bg-slate-700 text-slate-300">
                 {totals.sessions} sessões ({selectedPeriod?.label})
               </Badge>
             </div>
@@ -240,16 +240,16 @@ export function AdminTrendCharts() {
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis 
                   dataKey="displayDate" 
-                  tick={{ fontSize: 10 }}
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
                   tickLine={false}
                   axisLine={false}
                   interval={period === '30d' ? 2 : 'preserveStartEnd'}
                 />
                 <YAxis 
-                  tick={{ fontSize: 10 }}
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
                   tickLine={false}
                   axisLine={false}
                 />
@@ -257,7 +257,7 @@ export function AdminTrendCharts() {
                 <Bar 
                   dataKey="sessions" 
                   name="Sessões"
-                  fill="hsl(var(--primary))" 
+                  fill="#3b82f6" 
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

@@ -386,15 +386,11 @@ export default function AdminHome() {
         </div>
 
         {/* System Alerts */}
-        <div className="[&_.card]:bg-slate-800/50 [&_.card]:border-slate-700/50 [&_.card-header]:text-white [&_.text-muted-foreground]:text-slate-400">
-          <SystemAlertsWidget />
-        </div>
+        <SystemAlertsWidget />
       </div>
 
       {/* Trend Charts */}
-      <div className="[&_.card]:bg-slate-800/50 [&_.card]:border-slate-700/50 [&_.card-header]:text-white [&_.text-muted-foreground]:text-slate-400">
-        <AdminTrendCharts />
-      </div>
+      <AdminTrendCharts />
     </div>
   );
 }
