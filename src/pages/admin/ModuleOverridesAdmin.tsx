@@ -4,7 +4,6 @@
 // Permite administradores liberarem acesso manual a módulos.
 
 import React, { useState, useMemo } from 'react';
-import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -181,8 +180,7 @@ export default function ModuleOverridesAdmin() {
   }));
 
   return (
-    <AdminLayout>
-      <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-6 min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -350,7 +348,6 @@ export default function ModuleOverridesAdmin() {
             )}
           </CardContent>
         </Card>
-      </div>
 
       {/* Dialog: Nova Liberação */}
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -521,6 +518,6 @@ export default function ModuleOverridesAdmin() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </div>
   );
 }

@@ -271,6 +271,15 @@ function SidebarWrapper({ children }: { children: React.ReactNode }) {
   return <UnifiedSidebar>{children}</UnifiedSidebar>;
 }
 
+// Admin Portal Sidebar Wrapper - usa o layout dedicado do portal admin
+function AdminSidebarWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-900"><Loader2 className="h-8 w-8 animate-spin text-blue-400" /></div>}>
+      <AdminLayout>{children}</AdminLayout>
+    </Suspense>
+  );
+}
+
 // ====================================
 // LazyRoute - Wrapper com Suspense para rotas lazy
 // ====================================
@@ -685,22 +694,22 @@ function AppRoutes() {
       <Route path="/financial" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Financial /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/mentorship" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Mentorship /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/systems" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Systems /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><SidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/access-matrix" element={<ProtectedRoute><SidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/admin" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AdminPanel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/access-matrix" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AccessMatrix /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/certificates" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Certificates /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/license-payments" element={<ProtectedRoute><SidebarWrapper><LazyRoute><LicensePayments /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/monitoring" element={<ProtectedRoute><SidebarWrapper><LazyRoute><UserMonitoring /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/system-metrics" element={<ProtectedRoute><SidebarWrapper><LazyRoute><SystemMetrics /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
-      <Route path="/admin/sentinel" element={<AdminRoute><SidebarWrapper><LazyRoute><SystemSentinel /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/announcements" element={<AdminRoute><SidebarWrapper><LazyRoute><AnnouncementsAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/banners" element={<AdminRoute><SidebarWrapper><LazyRoute><BannersAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/module-overrides" element={<AdminRoute><SidebarWrapper><LazyRoute><ModuleOverridesAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/referrals" element={<AdminRoute><SidebarWrapper><LazyRoute><ReferralsAdmin /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/event-logs" element={<AdminRoute><SidebarWrapper><LazyRoute><EventLogs /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/code-assistant" element={<AdminRoute><SidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/surgery-schedule" element={<AdminRoute><SidebarWrapper><LazyRoute><SurgerySchedule /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/licensee-onboarding" element={<AdminRoute><SidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></SidebarWrapper></AdminRoute>} />
-      <Route path="/admin/sales-urgency" element={<AdminRoute><SidebarWrapper><LazyRoute><SalesUrgencyPage /></LazyRoute></SidebarWrapper></AdminRoute>} />
+      <Route path="/system-metrics" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemMetrics /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/sentinel" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SystemSentinel /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/announcements" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><AnnouncementsAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/banners" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><BannersAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/module-overrides" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><ModuleOverridesAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/referrals" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><ReferralsAdmin /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/event-logs" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><EventLogs /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/code-assistant" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><CodeAssistantPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/surgery-schedule" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SurgerySchedule /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/licensee-onboarding" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><LicenseeOnboardingPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
+      <Route path="/admin/sales-urgency" element={<AdminRoute><AdminSidebarWrapper><LazyRoute><SalesUrgencyPage /></LazyRoute></AdminSidebarWrapper></AdminRoute>} />
       <Route path="/weekly-reports" element={<ProtectedRoute><SidebarWrapper><LazyRoute><WeeklyReports /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/sala-tecnica" element={<ProtectedRoute><SidebarWrapper><LazyRoute><SalaTecnica /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/consolidated-results" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ConsolidatedResults /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
