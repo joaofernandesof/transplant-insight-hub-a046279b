@@ -25,6 +25,10 @@ export function ThemeToggle() {
           <Sun className="mr-2 h-4 w-4" />
           Claro
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          <Moon className="mr-2 h-4 w-4" />
+          Escuro
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
           <span className="mr-2">💻</span>
           Sistema
