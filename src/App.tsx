@@ -144,7 +144,7 @@ const NeoCrmSidebar = lazy(() => import("./pages/neocrm/components/NeoCrmSidebar
 // Pages - Avivar (Portal CRM + IA)
 // ====================================
 const AvivarDashboard = lazy(() => import("./pages/avivar/AvivarDashboard"));
-const AvivarPipeline = lazy(() => import("./pages/avivar/AvivarPipeline"));
+
 const AvivarInbox = lazy(() => import("./pages/avivar/AvivarInbox"));
 const AvivarTasks = lazy(() => import("./pages/avivar/AvivarTasks"));
 const AvivarLeads = lazy(() => import("./pages/avivar/AvivarLeads"));
@@ -531,7 +531,7 @@ function AvivarRoutes() {
             <Route path="dashboard" element={<AvivarDashboard />} />
             <Route path="comercial" element={<AvivarComercialPage />} />
             <Route path="posvenda" element={<AvivarPosVendaPage />} />
-            <Route path="pipeline" element={<AvivarPipeline />} />
+            
             <Route path="inbox" element={<AvivarInbox />} />
             <Route path="tasks" element={<AvivarTasks />} />
             <Route path="leads" element={<AvivarLeads />} />
