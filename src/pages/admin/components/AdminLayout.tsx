@@ -91,10 +91,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         "flex-1 min-h-screen overflow-auto transition-all duration-300",
         isCollapsed ? "ml-16" : "ml-64"
       )}>
-        {/* Top bar with theme toggle */}
-        <div className="sticky top-0 z-30 flex justify-end p-3 bg-slate-900/80 backdrop-blur-sm border-b border-slate-800">
-          <ThemeToggle />
-        </div>
         {children}
       </main>
     </div>
