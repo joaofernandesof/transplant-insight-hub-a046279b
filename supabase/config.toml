@@ -51,3 +51,6 @@ verify_jwt = false
 
 [functions.avivar-chat-test]
 verify_jwt = false
+
+[functions.n8n-whatsapp-webhook]
+verify_jwt = false
