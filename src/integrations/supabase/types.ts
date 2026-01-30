@@ -854,6 +854,219 @@ export type Database = {
           },
         ]
       }
+      avivar_whatsapp_contacts: {
+        Row: {
+          created_at: string
+          crm_lead_id: string | null
+          id: string
+          is_business: boolean | null
+          jid: string
+          last_message_at: string | null
+          name: string | null
+          phone: string
+          profile_picture_url: string | null
+          push_name: string | null
+          session_id: string
+          synced_to_crm: boolean | null
+          unread_count: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          crm_lead_id?: string | null
+          id?: string
+          is_business?: boolean | null
+          jid: string
+          last_message_at?: string | null
+          name?: string | null
+          phone: string
+          profile_picture_url?: string | null
+          push_name?: string | null
+          session_id: string
+          synced_to_crm?: boolean | null
+          unread_count?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          crm_lead_id?: string | null
+          id?: string
+          is_business?: boolean | null
+          jid?: string
+          last_message_at?: string | null
+          name?: string | null
+          phone?: string
+          profile_picture_url?: string | null
+          push_name?: string | null
+          session_id?: string
+          synced_to_crm?: boolean | null
+          unread_count?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_whatsapp_contacts_crm_lead_id_fkey"
+            columns: ["crm_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_whatsapp_contacts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_whatsapp_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_whatsapp_messages: {
+        Row: {
+          contact_name: string | null
+          contact_phone: string | null
+          content: string | null
+          created_at: string
+          crm_conversation_id: string | null
+          from_me: boolean
+          group_name: string | null
+          id: string
+          is_group: boolean | null
+          media_mime_type: string | null
+          media_type: string | null
+          media_url: string | null
+          message_id: string
+          metadata: Json | null
+          quoted_message_id: string | null
+          remote_jid: string
+          session_id: string
+          status: string | null
+          synced_to_crm: boolean | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          contact_name?: string | null
+          contact_phone?: string | null
+          content?: string | null
+          created_at?: string
+          crm_conversation_id?: string | null
+          from_me?: boolean
+          group_name?: string | null
+          id?: string
+          is_group?: boolean | null
+          media_mime_type?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          message_id: string
+          metadata?: Json | null
+          quoted_message_id?: string | null
+          remote_jid: string
+          session_id: string
+          status?: string | null
+          synced_to_crm?: boolean | null
+          timestamp: string
+          user_id: string
+        }
+        Update: {
+          contact_name?: string | null
+          contact_phone?: string | null
+          content?: string | null
+          created_at?: string
+          crm_conversation_id?: string | null
+          from_me?: boolean
+          group_name?: string | null
+          id?: string
+          is_group?: boolean | null
+          media_mime_type?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          message_id?: string
+          metadata?: Json | null
+          quoted_message_id?: string | null
+          remote_jid?: string
+          session_id?: string
+          status?: string | null
+          synced_to_crm?: boolean | null
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_whatsapp_messages_crm_conversation_id_fkey"
+            columns: ["crm_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "crm_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_whatsapp_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_whatsapp_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_whatsapp_sessions: {
+        Row: {
+          connected_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          instance_id: string
+          last_sync_at: string | null
+          phone_name: string | null
+          phone_number: string | null
+          qr_code: string | null
+          qr_code_expires_at: string | null
+          session_name: string
+          settings: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          connected_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          instance_id: string
+          last_sync_at?: string | null
+          phone_name?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          qr_code_expires_at?: string | null
+          session_name?: string
+          settings?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          connected_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          instance_id?: string
+          last_sync_at?: string | null
+          phone_name?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          qr_code_expires_at?: string | null
+          session_name?: string
+          settings?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       banner_clicks: {
         Row: {
           banner_id: string
