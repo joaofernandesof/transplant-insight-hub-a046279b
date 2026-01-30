@@ -673,7 +673,7 @@ function AppRoutes() {
       {/* ====================================
           Rotas Admin Legado (mantidas para compatibilidade)
           ==================================== */}
-      <Route path="/admin-dashboard" element={<ProtectedRoute><SidebarWrapper><LazyRoute><AdminDashboardLegacy /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
+      <Route path="/admin-dashboard" element={<Navigate to="/admin-portal" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute><SidebarWrapper><LazyRoute><Dashboard /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/alunos" element={<ProtectedRoute><SidebarWrapper><LazyRoute><LicenseesPanel /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
       <Route path="/comparison" element={<ProtectedRoute><SidebarWrapper><LazyRoute><ClinicComparison /></LazyRoute></SidebarWrapper></ProtectedRoute>} />
