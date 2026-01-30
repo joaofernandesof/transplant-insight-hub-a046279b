@@ -1,5 +1,5 @@
 /**
- * AvivarInbox - Caixa de entrada de mensagens com visual IA roxo/violeta
+ * AvivarInbox - Caixa de entrada de mensagens com suporte a tema claro/escuro
  */
 
 import React from 'react';
@@ -10,13 +10,13 @@ export default function AvivarInbox() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
           Caixa de Entrada
-          <Sparkles className="h-5 w-5 text-purple-400" />
+          <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
         </h1>
-        <p className="text-slate-400">Conversas via WhatsApp e Instagram</p>
+        <p className="text-[hsl(var(--avivar-muted-foreground))]">Conversas via WhatsApp e Instagram</p>
       </div>
-      <div className="[&_.bg-background]:bg-slate-900/80 [&_.border]:border-slate-700/50 [&_.text-muted-foreground]:text-slate-400">
+      <div className="[&_.bg-background]:bg-[hsl(var(--avivar-card))] [&_.bg-card]:bg-[hsl(var(--avivar-card))] [&_.border]:border-[hsl(var(--avivar-border))] [&_.text-foreground]:text-[hsl(var(--avivar-foreground))] [&_.text-muted-foreground]:text-[hsl(var(--avivar-muted-foreground))] [&_.text-card-foreground]:text-[hsl(var(--avivar-card-foreground))]">
         <CrmInbox />
       </div>
     </div>

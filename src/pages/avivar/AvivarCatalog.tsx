@@ -1,6 +1,7 @@
 /**
  * AvivarCatalog - Catálogo de Produtos e Serviços
  * Gestão de produtos para envio via WhatsApp
+ * Suporte a tema claro e escuro
  */
 
 import React, { useState } from 'react';
@@ -131,13 +132,13 @@ export default function AvivarCatalog() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Catálogo de Produtos
-            <Sparkles className="h-5 w-5 text-purple-400" />
+            <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
           </h1>
-          <p className="text-slate-400">Gerencie seus produtos e serviços para envio via WhatsApp</p>
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">Gerencie seus produtos e serviços para envio via WhatsApp</p>
         </div>
-        <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 shadow-lg shadow-purple-500/25">
+        <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]">
           <Plus className="h-4 w-4 mr-2" />
           Novo Produto
         </Button>
@@ -145,68 +146,68 @@ export default function AvivarCatalog() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Total de Produtos</p>
-                <p className="text-2xl font-bold text-white">{catalogStats.totalProducts}</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Total de Produtos</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{catalogStats.totalProducts}</p>
               </div>
-              <Package className="h-8 w-8 text-purple-400" />
+              <Package className="h-8 w-8 text-[hsl(var(--avivar-primary))]" />
             </div>
-            <p className="text-xs text-emerald-400 mt-1">{catalogStats.activeProducts} ativos</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{catalogStats.activeProducts} ativos</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Visualizações</p>
-                <p className="text-2xl font-bold text-white">{catalogStats.totalViews}</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Visualizações</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{catalogStats.totalViews}</p>
               </div>
-              <Eye className="h-8 w-8 text-blue-400" />
+              <Eye className="h-8 w-8 text-blue-500" />
             </div>
-            <p className="text-xs text-slate-500 mt-1">Últimos 30 dias</p>
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">Últimos 30 dias</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Envios</p>
-                <p className="text-2xl font-bold text-white">{catalogStats.totalSends}</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Envios</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{catalogStats.totalSends}</p>
               </div>
-              <Send className="h-8 w-8 text-green-400" />
+              <Send className="h-8 w-8 text-green-500" />
             </div>
-            <p className="text-xs text-slate-500 mt-1">Via WhatsApp</p>
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">Via WhatsApp</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Taxa Conversão</p>
-                <p className="text-2xl font-bold text-white">{catalogStats.conversionRate}%</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Taxa Conversão</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{catalogStats.conversionRate}%</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-emerald-400" />
+              <TrendingUp className="h-8 w-8 text-emerald-500" />
             </div>
-            <p className="text-xs text-emerald-400 mt-1">+5% vs mês anterior</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">+5% vs mês anterior</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Vendas</p>
-                <p className="text-2xl font-bold text-white">87</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Vendas</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">87</p>
               </div>
-              <ShoppingCart className="h-8 w-8 text-amber-400" />
+              <ShoppingCart className="h-8 w-8 text-amber-500" />
             </div>
-            <p className="text-xs text-slate-500 mt-1">Este mês</p>
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">Este mês</p>
           </CardContent>
         </Card>
       </div>
@@ -214,24 +215,24 @@ export default function AvivarCatalog() {
       {/* Search and Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
           <Input
             placeholder="Buscar produtos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-slate-900/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-purple-400"
+            className="pl-10 bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] focus:border-[hsl(var(--avivar-primary))]"
           />
         </div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-          <TabsList className="bg-slate-900/50 border border-purple-500/30">
-            <TabsTrigger value="all" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          <TabsList className="bg-[hsl(var(--avivar-secondary))] border border-[hsl(var(--avivar-border))]">
+            <TabsTrigger value="all" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
               Todos
             </TabsTrigger>
-            <TabsTrigger value="product" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <TabsTrigger value="product" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
               <Package className="h-4 w-4 mr-2" />
               Produtos
             </TabsTrigger>
-            <TabsTrigger value="service" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <TabsTrigger value="service" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
               <Briefcase className="h-4 w-4 mr-2" />
               Serviços
             </TabsTrigger>
@@ -245,14 +246,14 @@ export default function AvivarCatalog() {
           <Card 
             key={product.id}
             className={cn(
-              "bg-slate-900/80 border-slate-700/50 hover:border-purple-500/40 transition-all group relative overflow-hidden",
+              "bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.4)] transition-all group relative overflow-hidden",
               !product.active && "opacity-60"
             )}
           >
             {product.featured && (
               <div className="absolute top-3 right-3">
-                <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30">
-                  <Star className="h-3 w-3 mr-1 fill-amber-300" />
+                <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                  <Star className="h-3 w-3 mr-1 fill-current" />
                   Destaque
                 </Badge>
               </div>
@@ -262,8 +263,8 @@ export default function AvivarCatalog() {
                 <div className={cn(
                   "w-12 h-12 rounded-xl flex items-center justify-center",
                   product.type === 'product' 
-                    ? "bg-purple-600/20 text-purple-400" 
-                    : "bg-blue-600/20 text-blue-400"
+                    ? "bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))]" 
+                    : "bg-blue-500/20 text-blue-500"
                 )}>
                   {product.type === 'product' ? (
                     <Package className="h-6 w-6" />
@@ -272,40 +273,40 @@ export default function AvivarCatalog() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white truncate">{product.name}</h3>
-                  <p className="text-xs text-slate-400">{product.category}</p>
+                  <h3 className="font-semibold text-[hsl(var(--avivar-foreground))] truncate">{product.name}</h3>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{product.category}</p>
                 </div>
               </div>
 
               <div className="mt-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xl font-bold text-white">{formatCurrency(product.price)}</p>
+                  <p className="text-xl font-bold text-[hsl(var(--avivar-foreground))]">{formatCurrency(product.price)}</p>
                   {product.price > 0 && (
-                    <p className="text-xs text-slate-500">ou 12x de {formatCurrency(product.price / 12)}</p>
+                    <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">ou 12x de {formatCurrency(product.price / 12)}</p>
                   )}
                 </div>
                 <Badge className={cn(
                   "text-xs",
                   product.active 
-                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                    : "bg-slate-700/50 text-slate-400 border-slate-600"
+                    ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                    : "bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))] border-[hsl(var(--avivar-border))]"
                 )}>
                   {product.active ? 'Ativo' : 'Inativo'}
                 </Badge>
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-2 py-3 border-t border-slate-700/50">
+              <div className="mt-4 grid grid-cols-3 gap-2 py-3 border-t border-[hsl(var(--avivar-border))]">
                 <div className="text-center">
-                  <p className="text-lg font-semibold text-white">{product.views}</p>
-                  <p className="text-xs text-slate-400">Views</p>
+                  <p className="text-lg font-semibold text-[hsl(var(--avivar-foreground))]">{product.views}</p>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Views</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-semibold text-white">{product.sends}</p>
-                  <p className="text-xs text-slate-400">Envios</p>
+                  <p className="text-lg font-semibold text-[hsl(var(--avivar-foreground))]">{product.sends}</p>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Envios</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-semibold text-emerald-400">{product.conversions}</p>
-                  <p className="text-xs text-slate-400">Vendas</p>
+                  <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">{product.conversions}</p>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Vendas</p>
                 </div>
               </div>
 
@@ -313,15 +314,15 @@ export default function AvivarCatalog() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-500/20"
+                  className="flex-1 border-[hsl(var(--avivar-primary)/0.3)] text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
                 >
                   <Send className="h-3.5 w-3.5 mr-1" />
                   Enviar
                 </Button>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-700">
+                <Button variant="ghost" size="icon" className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
                   <Edit2 className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-400 hover:bg-red-500/10">
+                <Button variant="ghost" size="icon" className="text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-500/10">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -330,13 +331,13 @@ export default function AvivarCatalog() {
         ))}
 
         {/* Add New Card */}
-        <Card className="bg-slate-900/50 border-dashed border-purple-500/30 hover:border-purple-500/50 transition-all cursor-pointer group">
+        <Card className="bg-[hsl(var(--avivar-card)/0.5)] border-dashed border-[hsl(var(--avivar-primary)/0.3)] hover:border-[hsl(var(--avivar-primary)/0.5)] transition-all cursor-pointer group">
           <CardContent className="p-4 h-full flex flex-col items-center justify-center min-h-[280px]">
-            <div className="w-16 h-16 rounded-xl bg-purple-600/20 flex items-center justify-center mb-3 group-hover:bg-purple-600/30 transition-colors">
-              <Plus className="h-8 w-8 text-purple-400" />
+            <div className="w-16 h-16 rounded-xl bg-[hsl(var(--avivar-primary)/0.2)] flex items-center justify-center mb-3 group-hover:bg-[hsl(var(--avivar-primary)/0.3)] transition-colors">
+              <Plus className="h-8 w-8 text-[hsl(var(--avivar-primary))]" />
             </div>
-            <p className="font-medium text-purple-300">Adicionar Produto</p>
-            <p className="text-xs text-slate-500 text-center mt-1">
+            <p className="font-medium text-[hsl(var(--avivar-primary))]">Adicionar Produto</p>
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] text-center mt-1">
               Crie um novo produto ou serviço para seu catálogo
             </p>
           </CardContent>
