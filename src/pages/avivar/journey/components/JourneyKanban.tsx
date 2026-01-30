@@ -1,10 +1,11 @@
 /**
  * Kanban board for patient journeys
  * With horizontal scroll, filters support, and drag-and-drop
- * Updated with compact cards and expanded view
+ * Updated with compact cards - clicks navigate to Chats page
  */
 
 import { useMemo, useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   DndContext,
   DragOverlay,
@@ -32,7 +33,6 @@ import {
   getStageConfig 
 } from '../hooks/usePatientJourneys';
 import { CompactJourneyCard } from './CompactJourneyCard';
-import { JourneyExpandedView } from './JourneyExpandedView';
 import { DroppableColumn } from './DroppableColumn';
 import { Button } from '@/components/ui/button';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -46,7 +46,7 @@ interface JourneyKanbanProps {
 }
 
 export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all' }: JourneyKanbanProps) {
-  const [selectedJourney, setSelectedJourney] = useState<PatientJourney | null>(null);
+  const navigate = useNavigate();
   const [activeJourney, setActiveJourney] = useState<PatientJourney | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const { journeys, isLoading, createJourney, updateJourney } = usePatientJourneys(journeyType);
@@ -311,7 +311,7 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
               <DroppableColumn
                 key={column.id}
                 column={column}
-                onSelect={setSelectedJourney}
+                onSelect={(journey) => navigate(`/avivar/inbox?leadId=${journey.id}`)}
                 isOver={overId === column.id}
               />
             ))}
@@ -330,24 +330,6 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
           </DragOverlay>
         </DndContext>
       </div>
-
-      {/* Expanded View Dialog */}
-      <JourneyExpandedView
-        journey={selectedJourney}
-        open={!!selectedJourney}
-        onClose={() => setSelectedJourney(null)}
-        onUpdate={(updates) => {
-          if (selectedJourney) {
-            handleUpdate(selectedJourney.id, updates);
-          }
-        }}
-        onAdvance={() => {
-          if (selectedJourney) {
-            handleAdvance(selectedJourney);
-            setSelectedJourney(null);
-          }
-        }}
-      />
     </div>
   );
 }
