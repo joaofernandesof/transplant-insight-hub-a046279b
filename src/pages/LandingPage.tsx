@@ -9,7 +9,9 @@ import {
   Scale, 
   ShieldCheck, 
   Lock,
-  ArrowRight
+  ArrowRight,
+  CreditCard,
+  Target
 } from 'lucide-react';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -23,6 +25,8 @@ const modules = [
   { id: 'avivar', name: 'Avivar', icon: Sparkles, gradient: 'from-purple-500 to-violet-500', description: 'Gestão de Marketing' },
   { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Proteção Médico-Legal' },
   { id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico por IA' },
+  { id: 'neopay', name: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', description: 'Gateway de Pagamentos' },
+  { id: 'neocrm', name: 'NeoCRM', icon: Target, gradient: 'from-orange-500 to-red-500', description: 'Vendas e Leads' },
 ];
 
 export default function LandingPage() {
