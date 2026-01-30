@@ -42,6 +42,8 @@ import {
   TrendingUp,
   Bot,
   Scale,
+  CreditCard,
+  Target,
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import { format, subDays } from 'date-fns';
@@ -350,7 +352,7 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2">
               {[
                 { id: 'academy', title: 'Aluno', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
                 { id: 'license', title: 'Licenciado', icon: Award, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
@@ -360,6 +362,8 @@ export default function AdminDashboard() {
                 { id: 'avivar', title: 'Avivar', icon: TrendingUp, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
                 { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed' },
                 { id: 'vision', title: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', path: '/vision' },
+                { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
+                { id: 'neocrm', title: 'NeoCRM', icon: Target, gradient: 'from-orange-500 to-red-500', path: '/neocrm' },
               ].map((portal) => (
                 <button
                   key={portal.id}
