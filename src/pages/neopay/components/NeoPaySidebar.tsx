@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { AdminBackButton } from '@/components/shared/AdminBackButton';
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/neopay' },
@@ -68,6 +69,9 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="space-y-1">
+          {/* Admin Back Button */}
+          <AdminBackButton isCollapsed={collapsed} variant="light" />
+          
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href || 
