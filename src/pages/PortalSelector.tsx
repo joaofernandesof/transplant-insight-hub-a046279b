@@ -100,10 +100,10 @@ export default function PortalSelector() {
   const { user, isLoading, setActiveProfile, logout } = useUnifiedAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Redirect admins to admin dashboard
+  // Redirect admins to admin portal
   useEffect(() => {
     if (!isLoading && user?.isAdmin) {
-      navigate('/admin-dashboard');
+      navigate('/admin-portal');
     }
   }, [user, isLoading, navigate]);
 
