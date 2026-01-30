@@ -150,7 +150,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   if (isMobile) {
     return (
       <div className="flex flex-col min-h-screen bg-[#0a0612]">
-        {/* Mobile Header */}
+        {/* Mobile Header - NeoPay style */}
         <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#0f0a1e] to-[#1a0f2e] border-b border-purple-500/20">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/20">

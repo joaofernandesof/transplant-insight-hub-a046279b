@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  Zap,
   LogOut,
   Layers,
   User,
@@ -94,16 +95,19 @@ interface PortalConfig {
   name: string;
   color: string;
   bgColor: string;
+  headerBg: string;
+  headerText: string;
+  icon: React.ElementType;
 }
 
 const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
-  admin: { name: 'Administração', color: 'text-purple-700', bgColor: 'bg-purple-100' },
-  neocare: { name: 'NeoCare', color: 'text-rose-700', bgColor: 'bg-rose-100' },
-  neoteam: { name: 'NeoTeam', color: 'text-blue-700', bgColor: 'bg-blue-100' },
-  academy: { name: 'Academy IBRAMEC', color: 'text-emerald-700', bgColor: 'bg-emerald-100' },
-  neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100' },
-  avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100' },
-  main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10' },
+  admin: { name: 'Administração', color: 'text-purple-700', bgColor: 'bg-purple-100', headerBg: 'bg-gradient-to-r from-purple-900 to-purple-800', headerText: 'text-white', icon: Crown },
+  neocare: { name: 'NeoCare', color: 'text-rose-700', bgColor: 'bg-rose-100', headerBg: 'bg-gradient-to-r from-rose-900 to-rose-800', headerText: 'text-white', icon: Heart },
+  neoteam: { name: 'NeoTeam', color: 'text-blue-700', bgColor: 'bg-blue-100', headerBg: 'bg-gradient-to-r from-blue-900 to-blue-800', headerText: 'text-white', icon: Users },
+  academy: { name: 'Academy', color: 'text-emerald-700', bgColor: 'bg-emerald-100', headerBg: 'bg-gradient-to-r from-emerald-900 to-emerald-800', headerText: 'text-white', icon: GraduationCap },
+  neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100', headerBg: 'bg-gradient-to-r from-amber-900 to-amber-800', headerText: 'text-white', icon: Building2 },
+  avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-900 to-orange-800', headerText: 'text-white', icon: Zap },
+  main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10', headerBg: 'bg-gradient-to-r from-slate-900 to-slate-800', headerText: 'text-white', icon: Layers },
 };
 
 function detectPortal(pathname: string): PortalKey {
@@ -240,17 +244,34 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
     }));
   };
 
+  const PortalIcon = portalConfig.icon;
+
+  // Mobile layout with header like NeoPay
+  const isMobileView = typeof window !== 'undefined' && window.innerWidth < 1024;
+
   return (
-    <div className="min-h-screen flex w-full overflow-x-hidden">
-      {/* Mobile Menu Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-4 left-4 z-50 lg:hidden"
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-      >
-        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </Button>
+    <div className="min-h-screen flex flex-col lg:flex-row w-full overflow-x-hidden">
+      {/* Mobile Header - NeoPay style */}
+      <header className={cn(
+        "sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b lg:hidden",
+        portalConfig.headerBg,
+        "border-white/10"
+      )}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+            <PortalIcon className={cn("h-4 w-4", portalConfig.headerText)} />
+          </div>
+          <span className={cn("font-bold", portalConfig.headerText)}>{portalConfig.name}</span>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={cn("hover:bg-white/10", portalConfig.headerText)}
+          onClick={() => setIsMobileOpen(true)}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </header>
 
       {/* Overlay for mobile */}
       {isMobileOpen && (
@@ -506,6 +527,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
       {/* Main Content */}
       <main className={cn(
         "flex-1 transition-all duration-300 overflow-x-hidden w-full min-w-0",
+        "lg:ml-0",
         isCollapsed ? "lg:ml-16" : "lg:ml-64"
       )}>
         {children}
