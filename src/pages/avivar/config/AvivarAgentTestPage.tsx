@@ -77,10 +77,14 @@ export default function AvivarAgentTestPage() {
 
   const generateAIResponse = async (userMessage: string, history: Message[]): Promise<string> => {
     try {
+      // Get current user for RAG filtering
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase.functions.invoke('avivar-chat-test', {
         body: {
           message: userMessage,
           history: history.map(m => ({ role: m.role, content: m.content })),
+          userId: user?.id,
           config: {
             attendantName: config.attendantName,
             companyName: config.companyName,
@@ -96,7 +100,18 @@ export default function AvivarAgentTestPage() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle rate limit and payment errors
+        if (error.message?.includes('429') || error.message?.includes('Rate limit')) {
+          toast.error('Limite de requisições excedido. Aguarde um momento.');
+          return 'Desculpe, estou um pouco sobrecarregada. Pode tentar novamente em alguns segundos? 😊';
+        }
+        if (error.message?.includes('402') || error.message?.includes('Payment')) {
+          toast.error('Créditos insuficientes para o agente de IA.');
+          return 'Desculpe, preciso que você verifique seus créditos de IA. Entre em contato com o suporte.';
+        }
+        throw error;
+      }
       return data?.response || 'Desculpe, não consegui processar sua mensagem.';
       
     } catch (error) {
