@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TemplateType } from '../../types';
 import { cn } from '@/lib/utils';
-import { Scissors, Home, Sparkles, Check } from 'lucide-react';
+import { Scissors, Check } from 'lucide-react';
 
 interface StepTemplateProps {
   selected: TemplateType | null;
@@ -23,22 +23,6 @@ const templates = [
     icon: Scissors,
     available: true,
     color: 'from-purple-500 to-violet-600'
-  },
-  {
-    id: 'imobiliaria' as TemplateType,
-    title: 'Imobiliária',
-    description: 'Para corretores e imobiliárias que desejam automatizar atendimento',
-    icon: Home,
-    available: false,
-    color: 'from-blue-500 to-cyan-600'
-  },
-  {
-    id: 'estetica' as TemplateType,
-    title: 'Estética e Bem-Estar',
-    description: 'Clínicas de estética, spas e centros de bem-estar',
-    icon: Sparkles,
-    available: false,
-    color: 'from-pink-500 to-rose-600'
   }
 ];
 
