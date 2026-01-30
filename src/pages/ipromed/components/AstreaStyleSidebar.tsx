@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
+import { AdminBackButton } from "@/components/shared/AdminBackButton";
 
 interface NavItem {
   id: string;
@@ -134,6 +135,9 @@ export default function AstreaStyleSidebar({
         {/* Navigation */}
         <ScrollArea className="flex-1 py-4">
           <nav className="px-2 space-y-1">
+            {/* Admin Back Button */}
+            <AdminBackButton isCollapsed={isCollapsed} />
+            
             {mainNavItems.map(item => {
               const Icon = item.icon;
               const active = isActive(item.href);
