@@ -283,18 +283,18 @@ export function SystemAlertsWidget() {
   }, {} as Record<string, number>);
 
   return (
-    <Card>
+    <Card className="bg-slate-800/50 border-slate-700/50">
       <CardHeader className="pb-2">
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2 text-white">
               <Bell className="h-4 w-4" />
               Alertas do Sistema
             </CardTitle>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-7 w-7"
+              className="h-7 w-7 text-slate-300 hover:text-white hover:bg-slate-700/50"
               onClick={fetchAlerts}
               disabled={isLoading}
             >
@@ -304,7 +304,7 @@ export function SystemAlertsWidget() {
           
           {/* Category Filters */}
           <div className="flex items-center gap-2">
-            <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+            <Filter className="h-3.5 w-3.5 text-slate-400" />
             <ToggleGroup 
               type="multiple" 
               value={selectedCategories}
@@ -316,12 +316,12 @@ export function SystemAlertsWidget() {
                   key={cat} 
                   value={cat} 
                   size="sm"
-                  className="h-6 px-2 text-[10px] data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  className="h-6 px-2 text-[10px] text-slate-300 hover:text-white hover:bg-slate-700/50 data-[state=on]:bg-blue-600 data-[state=on]:text-white border-slate-600"
                 >
                   {categoryConfig[cat].icon}
                   <span className="ml-1">{categoryConfig[cat].label}</span>
                   {categoryCounts[cat] > 0 && (
-                    <span className="ml-1 bg-muted rounded-full px-1.5 text-[9px]">
+                    <span className="ml-1 bg-slate-700 rounded-full px-1.5 text-[9px]">
                       {categoryCounts[cat]}
                     </span>
                   )}
@@ -334,7 +334,7 @@ export function SystemAlertsWidget() {
       <CardContent>
         <ScrollArea className="h-[250px]">
           {filteredAlerts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-8 text-slate-400">
               <CheckCircle className="h-8 w-8 mb-2 text-green-500" />
               <p className="text-sm">
                 {selectedCategories.length > 0 
@@ -347,24 +347,24 @@ export function SystemAlertsWidget() {
               {filteredAlerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-700/30 transition-colors"
                 >
                   <div className="mt-0.5">{getAlertIcon(alert.type)}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium truncate">{alert.title}</p>
+                      <p className="text-sm font-medium truncate text-white">{alert.title}</p>
                       {getCategoryBadge(alert.category)}
                       {getTypeBadge(alert.type)}
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{alert.message}</p>
+                    <p className="text-xs text-slate-400 line-clamp-2">{alert.message}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[10px] text-slate-500">
                         {formatDistanceToNow(alert.timestamp, { addSuffix: true, locale: ptBR })}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">•</span>
-                      <span className="text-[10px] text-muted-foreground">{alert.source}</span>
+                      <span className="text-[10px] text-slate-500">•</span>
+                      <span className="text-[10px] text-slate-500">{alert.source}</span>
                       {alert.link && (
-                        <Button variant="link" size="sm" className="h-auto p-0 text-[10px]" asChild>
+                        <Button variant="link" size="sm" className="h-auto p-0 text-[10px] text-blue-400" asChild>
                           <a href={alert.link}>
                             Ver <ExternalLink className="h-2.5 w-2.5 ml-0.5" />
                           </a>
