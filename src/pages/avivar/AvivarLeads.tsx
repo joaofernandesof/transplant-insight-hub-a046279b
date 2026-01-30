@@ -54,7 +54,7 @@ export default function AvivarLeads() {
             Leads
             <Sparkles className="h-5 w-5 text-purple-400" />
           </h1>
-          <p className="text-purple-300/60">Gerencie todos os seus leads</p>
+          <p className="text-slate-400">Gerencie todos os seus leads</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -76,19 +76,19 @@ export default function AvivarLeads() {
       </div>
 
       {/* Table */}
-      <Card className="bg-gradient-to-br from-purple-950/50 to-violet-950/30 border-purple-500/20">
+      <Card className="bg-slate-900/90 border-slate-700/50">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-purple-500/20 hover:bg-purple-500/10">
-                <TableHead className="text-purple-300">Nome</TableHead>
-                <TableHead className="text-purple-300">Interesse</TableHead>
-                <TableHead className="text-purple-300">Status</TableHead>
-                <TableHead className="text-purple-300">Procedimento</TableHead>
-                <TableHead className="text-purple-300">Cidade</TableHead>
-                <TableHead className="text-purple-300">Fonte</TableHead>
-                <TableHead className="text-purple-300 text-right">Valor</TableHead>
-                <TableHead className="text-purple-300 text-right">Ações</TableHead>
+              <TableRow className="border-slate-700/50 hover:bg-slate-800/50">
+                <TableHead className="text-slate-300">Nome</TableHead>
+                <TableHead className="text-slate-300">Interesse</TableHead>
+                <TableHead className="text-slate-300">Status</TableHead>
+                <TableHead className="text-slate-300">Procedimento</TableHead>
+                <TableHead className="text-slate-300">Cidade</TableHead>
+                <TableHead className="text-slate-300">Fonte</TableHead>
+                <TableHead className="text-slate-300 text-right">Valor</TableHead>
+                <TableHead className="text-slate-300 text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,11 +98,11 @@ export default function AvivarLeads() {
                 const InterestIcon = interest.icon;
 
                 return (
-                  <TableRow key={lead.id} className="border-purple-500/20 hover:bg-purple-500/10">
+                  <TableRow key={lead.id} className="border-slate-700/50 hover:bg-slate-800/50">
                     <TableCell>
                       <div>
                         <p className="font-medium text-white">{lead.name}</p>
-                        <p className="text-xs text-purple-300/60">{lead.email}</p>
+                        <p className="text-xs text-slate-400">{lead.email}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -114,16 +114,16 @@ export default function AvivarLeads() {
                     <TableCell>
                       <Badge className={status.color}>{status.label}</Badge>
                     </TableCell>
-                    <TableCell className="text-purple-200">{lead.procedure}</TableCell>
-                    <TableCell className="text-purple-300/60">{lead.city}</TableCell>
-                    <TableCell className="text-purple-300/60">{lead.source}</TableCell>
-                    <TableCell className="text-right text-purple-200 font-medium">{formatCurrency(lead.value)}</TableCell>
+                    <TableCell className="text-slate-200">{lead.procedure}</TableCell>
+                    <TableCell className="text-slate-400">{lead.city}</TableCell>
+                    <TableCell className="text-slate-400">{lead.source}</TableCell>
+                    <TableCell className="text-right text-slate-200 font-medium">{formatCurrency(lead.value)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-purple-400 hover:text-white hover:bg-purple-500/20">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-purple-500/20">
                           <Phone className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-purple-400 hover:text-white hover:bg-purple-500/20">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-purple-500/20">
                           <MessageSquare className="h-4 w-4" />
                         </Button>
                       </div>

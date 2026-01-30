@@ -14,9 +14,9 @@ export default function AvivarInbox() {
           Caixa de Entrada
           <Sparkles className="h-5 w-5 text-purple-400" />
         </h1>
-        <p className="text-purple-300/60">Conversas via WhatsApp e Instagram</p>
+        <p className="text-slate-400">Conversas via WhatsApp e Instagram</p>
       </div>
-      <div className="[&_.bg-background]:bg-[#0f0a1e]/80 [&_.border]:border-purple-500/20">
+      <div className="[&_.bg-background]:bg-slate-900/80 [&_.border]:border-slate-700/50 [&_.text-muted-foreground]:text-slate-400">
         <CrmInbox />
       </div>
     </div>

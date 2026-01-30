@@ -52,11 +52,11 @@ const mockLeads = [
 ];
 
 const columns = [
-  { id: 'new', title: 'Novos', color: 'from-purple-600/20 to-purple-700/10 border-purple-500/30' },
-  { id: 'contacted', title: 'Contatados', color: 'from-violet-600/20 to-violet-700/10 border-violet-500/30' },
-  { id: 'scheduled', title: 'Agendados', color: 'from-indigo-600/20 to-indigo-700/10 border-indigo-500/30' },
-  { id: 'converted', title: 'Convertidos', color: 'from-green-600/20 to-green-700/10 border-green-500/30' },
-  { id: 'lost', title: 'Perdidos', color: 'from-slate-600/20 to-slate-700/10 border-slate-500/30' },
+  { id: 'new', title: 'Novos', color: 'from-slate-800/90 to-slate-900/90 border-purple-500/30' },
+  { id: 'contacted', title: 'Contatados', color: 'from-slate-800/90 to-slate-900/90 border-violet-500/30' },
+  { id: 'scheduled', title: 'Agendados', color: 'from-slate-800/90 to-slate-900/90 border-indigo-500/30' },
+  { id: 'converted', title: 'Convertidos', color: 'from-slate-800/90 to-slate-900/90 border-green-500/30' },
+  { id: 'lost', title: 'Perdidos', color: 'from-slate-800/90 to-slate-900/90 border-slate-500/30' },
 ];
 
 const interestConfig = {
@@ -104,7 +104,7 @@ export default function AvivarPipeline() {
             Pipeline de Vendas
             <Sparkles className="h-5 w-5 text-purple-400" />
           </h1>
-          <p className="text-purple-300/60">Gerencie seus leads no formato Kanban</p>
+          <p className="text-slate-400">Gerencie seus leads no formato Kanban</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -137,9 +137,9 @@ export default function AvivarPipeline() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium text-white">{column.title}</CardTitle>
-                  <Badge className="bg-purple-500/20 text-purple-200 border-purple-500/30">{leads.length}</Badge>
+                  <Badge className="bg-purple-500/30 text-purple-200 border-purple-500/40">{leads.length}</Badge>
                 </div>
-                <p className="text-xs text-purple-300/60">{formatCurrency(total)}</p>
+                <p className="text-xs text-slate-400">{formatCurrency(total)}</p>
               </CardHeader>
               <CardContent className="p-2">
                 <ScrollArea className="h-[500px]">
@@ -151,7 +151,7 @@ export default function AvivarPipeline() {
                       return (
                         <div
                           key={lead.id}
-                          className="p-3 bg-[#0f0a1e]/80 rounded-xl border border-purple-500/20 shadow-sm cursor-pointer hover:shadow-lg hover:border-purple-500/40 transition-all group"
+                          className="p-3 bg-slate-900/90 rounded-xl border border-slate-700/50 shadow-sm cursor-pointer hover:shadow-lg hover:border-purple-500/40 transition-all group"
                           onClick={() => setSelectedLead(lead)}
                         >
                           <div className="flex items-start justify-between mb-2">
@@ -161,45 +161,45 @@ export default function AvivarPipeline() {
                             </div>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-purple-300 hover:text-white hover:bg-purple-500/20">
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white hover:bg-purple-500/20">
                                   <MoreVertical className="h-3 w-3" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-[#1a0f2e] border-purple-500/30">
-                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMoveToNext(lead); }} className="text-purple-200 focus:bg-purple-500/20 focus:text-white">
+                              <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700">
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMoveToNext(lead); }} className="text-slate-200 focus:bg-purple-500/20 focus:text-white">
                                   <ArrowRight className="h-4 w-4 mr-2" />
                                   Avançar Etapa
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-purple-200 focus:bg-purple-500/20 focus:text-white">
+                                <DropdownMenuItem className="text-slate-200 focus:bg-purple-500/20 focus:text-white">
                                   <Phone className="h-4 w-4 mr-2" />
                                   Ligar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-purple-200 focus:bg-purple-500/20 focus:text-white">
+                                <DropdownMenuItem className="text-slate-200 focus:bg-purple-500/20 focus:text-white">
                                   <MessageSquare className="h-4 w-4 mr-2" />
                                   WhatsApp
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                          <p className="text-xs text-purple-300/60 mb-1">{lead.procedure}</p>
+                          <p className="text-xs text-slate-400 mb-1">{lead.procedure}</p>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1 text-xs text-purple-300/50">
+                            <div className="flex items-center gap-1 text-xs text-slate-500">
                               <MapPin className="h-3 w-3" />
                               {lead.city}/{lead.state}
                             </div>
-                            <span className="text-xs font-medium text-purple-300">
+                            <span className="text-xs font-medium text-slate-300">
                               {formatCurrency(lead.value)}
                             </span>
                           </div>
-                          <div className="mt-2 pt-2 border-t border-purple-500/20 flex items-center justify-between">
+                          <div className="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-between">
                             <Badge className="text-xs bg-purple-500/20 text-purple-200 border-purple-500/30">
                               {lead.source}
                             </Badge>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" className="h-6 w-6 text-purple-400 hover:text-white hover:bg-purple-500/20" onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white hover:bg-purple-500/20" onClick={(e) => e.stopPropagation()}>
                                 <Phone className="h-3 w-3" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 text-purple-400 hover:text-white hover:bg-purple-500/20" onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white hover:bg-purple-500/20" onClick={(e) => e.stopPropagation()}>
                                 <MessageSquare className="h-3 w-3" />
                               </Button>
                             </div>
@@ -217,7 +217,7 @@ export default function AvivarPipeline() {
 
       {/* Lead Detail Dialog */}
       <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
-        <DialogContent className="max-w-lg bg-[#0f0a1e] border-purple-500/30">
+        <DialogContent className="max-w-lg bg-slate-900 border-slate-700">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               {selectedLead && (
@@ -229,38 +229,38 @@ export default function AvivarPipeline() {
                 </>
               )}
             </DialogTitle>
-            <DialogDescription className="text-purple-300/60">Detalhes do lead</DialogDescription>
+            <DialogDescription className="text-slate-400">Detalhes do lead</DialogDescription>
           </DialogHeader>
           {selectedLead && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-purple-300/60">Telefone</p>
+                  <p className="text-sm text-slate-400">Telefone</p>
                   <p className="font-medium text-white">{selectedLead.phone}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-purple-300/60">E-mail</p>
+                  <p className="text-sm text-slate-400">E-mail</p>
                   <p className="font-medium text-white">{selectedLead.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-purple-300/60">Cidade</p>
+                  <p className="text-sm text-slate-400">Cidade</p>
                   <p className="font-medium text-white">{selectedLead.city}/{selectedLead.state}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-purple-300/60">Fonte</p>
+                  <p className="text-sm text-slate-400">Fonte</p>
                   <p className="font-medium text-white">{selectedLead.source}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-purple-300/60">Procedimento</p>
+                  <p className="text-sm text-slate-400">Procedimento</p>
                   <p className="font-medium text-white">{selectedLead.procedure}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-purple-300/60">Valor Estimado</p>
-                  <p className="font-medium text-purple-300">{formatCurrency(selectedLead.value)}</p>
+                  <p className="text-sm text-slate-400">Valor Estimado</p>
+                  <p className="font-medium text-slate-300">{formatCurrency(selectedLead.value)}</p>
                 </div>
               </div>
               <div className="flex gap-2 pt-4">
-                <Button className="flex-1 border-purple-500/30 text-purple-200 hover:bg-purple-500/20" variant="outline">
+                <Button className="flex-1 border-slate-600 text-slate-200 hover:bg-slate-700" variant="outline">
                   <Phone className="h-4 w-4 mr-2" />
                   Ligar
                 </Button>
@@ -268,7 +268,7 @@ export default function AvivarPipeline() {
                   <MessageSquare className="h-4 w-4 mr-2" />
                   WhatsApp
                 </Button>
-                <Button className="flex-1 border-purple-500/30 text-purple-200 hover:bg-purple-500/20" variant="outline">
+                <Button className="flex-1 border-slate-600 text-slate-200 hover:bg-slate-700" variant="outline">
                   <Calendar className="h-4 w-4 mr-2" />
                   Agendar
                 </Button>
