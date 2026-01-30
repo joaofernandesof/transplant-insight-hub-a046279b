@@ -42,6 +42,8 @@ const menuItems = [
   { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup', badge: '12' },
   { id: 'catalog', label: 'Catálogo', icon: Package, href: '/avivar/catalog' },
   { id: 'divider1', label: '', icon: null, href: '', isDivider: true },
+  { id: 'config', label: 'Configurar IA', icon: Sparkles, href: '/avivar/config', isHighlight: true },
+  { id: 'divider1b', label: '', icon: null, href: '', isDivider: true },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/avivar/analytics' },
   { id: 'productivity', label: 'Produtividade', icon: Activity, href: '/avivar/productivity' },
   { id: 'divider2', label: '', icon: null, href: '', isDivider: true },
@@ -107,7 +109,8 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden',
                   isActive
                     ? 'bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-foreground))] shadow-lg shadow-[hsl(var(--avivar-primary)/0.1)]'
-                    : 'text-[hsl(var(--avivar-muted-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.08)] hover:text-[hsl(var(--avivar-foreground))]'
+                    : 'text-[hsl(var(--avivar-muted-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.08)] hover:text-[hsl(var(--avivar-foreground))]',
+                  (item as any).isHighlight && !isActive && 'bg-gradient-to-r from-[hsl(var(--avivar-primary)/0.05)] to-[hsl(var(--avivar-accent)/0.05)] border border-[hsl(var(--avivar-primary)/0.2)]'
                 )}
               >
                 {isActive && (
@@ -115,7 +118,8 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
                 )}
                 <Icon className={cn(
                   'h-5 w-5 flex-shrink-0 transition-all duration-300',
-                  isActive ? 'text-[hsl(var(--avivar-primary))]' : 'text-[hsl(var(--avivar-muted-foreground))] group-hover:text-[hsl(var(--avivar-primary))]'
+                  isActive ? 'text-[hsl(var(--avivar-primary))]' : 'text-[hsl(var(--avivar-muted-foreground))] group-hover:text-[hsl(var(--avivar-primary))]',
+                  (item as any).isHighlight && 'text-[hsl(var(--avivar-primary))]'
                 )} />
                 {!collapsed && (
                   <>
