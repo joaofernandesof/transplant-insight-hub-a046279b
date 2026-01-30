@@ -11,20 +11,47 @@ import {
   Lock,
   ArrowRight,
   CreditCard,
+  Leaf,
 } from 'lucide-react';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 
-const modules = [
-  { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Portal do Paciente' },
-  { id: 'neoteam', name: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-500', description: 'Portal do Colaborador' },
-  { id: 'academy', name: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Academia de Ensino' },
-  { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Portal do Licenciado' },
-  { id: 'avivar', name: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-500', description: 'CRM + IA para Vendas' },
-  { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Proteção Médico-Legal' },
-  { id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico por IA' },
-  { id: 'neopay', name: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', description: 'Gateway de Pagamentos' },
+// Organização por categoria
+const moduleCategories = [
+  {
+    id: 'portals',
+    label: 'Portais de Acesso',
+    modules: [
+      { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Portal do Paciente' },
+      { id: 'neoteam', name: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-500', description: 'Portal do Colaborador' },
+      { id: 'neolicense', name: 'Licença', icon: Building2, gradient: 'from-amber-400 to-yellow-500', description: 'Portal do Licenciado' },
+    ]
+  },
+  {
+    id: 'education',
+    label: 'Educação & Capacitação',
+    modules: [
+      { id: 'academy', name: 'IBRAMEC', icon: GraduationCap, gradient: 'from-emerald-500 to-green-500', description: 'Academia de Ensino' },
+    ]
+  },
+  {
+    id: 'tools',
+    label: 'Ferramentas de Gestão',
+    modules: [
+      { id: 'avivar', name: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-500', description: 'CRM + IA para Vendas' },
+      { id: 'ipromed', name: 'IPROMED', icon: Scale, gradient: 'from-cyan-500 to-cyan-600', description: 'Proteção Médico-Legal' },
+      { id: 'vision', name: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', description: 'Diagnóstico por IA' },
+    ]
+  },
+  {
+    id: 'services',
+    label: 'Serviços',
+    modules: [
+      { id: 'neopay', name: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', description: 'Gateway de Pagamentos' },
+      { id: 'neohair', name: 'NeoHair', icon: Leaf, gradient: 'from-teal-500 to-cyan-500', description: 'Tratamento Capilar' },
+    ]
+  },
 ];
 
 export default function LandingPage() {
@@ -72,7 +99,7 @@ export default function LandingPage() {
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
           {/* Main Title */}
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm text-slate-300 mb-6">
@@ -94,23 +121,37 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Modules Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-10">
-            {modules.map((module) => {
-              const Icon = module.icon;
-              return (
-                <div
-                  key={module.id}
-                  className="group flex flex-col items-center gap-2 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl hover:bg-slate-800/50 transition-colors"
-                >
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                    <Icon className={`w-6 h-6 ${module.id === 'vision' ? 'text-amber-200' : 'text-white'}`} />
-                  </div>
-                  <span className="text-white text-sm font-medium text-center">{module.name}</span>
-                  <span className="text-slate-400 text-xs text-center hidden sm:block">{module.description}</span>
+          {/* Modules by Category */}
+          <div className="space-y-6 mb-10">
+            {moduleCategories.map((category) => (
+              <div key={category.id}>
+                {/* Category Label */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-600 to-transparent" />
+                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{category.label}</span>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-600 to-transparent" />
                 </div>
-              );
-            })}
+                
+                {/* Modules Grid - Centered */}
+                <div className="flex flex-wrap justify-center gap-3">
+                  {category.modules.map((module) => {
+                    const Icon = module.icon;
+                    return (
+                      <div
+                        key={module.id}
+                        className="group flex flex-col items-center gap-2 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl hover:bg-slate-800/50 hover:border-slate-600/50 transition-all w-[140px]"
+                      >
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                          <Icon className={`w-6 h-6 ${module.id === 'vision' ? 'text-amber-200' : 'text-white'}`} />
+                        </div>
+                        <span className="text-white text-sm font-medium text-center">{module.name}</span>
+                        <span className="text-slate-400 text-[10px] text-center leading-tight">{module.description}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* CTA Section */}
