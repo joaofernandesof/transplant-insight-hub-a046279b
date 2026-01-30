@@ -1,6 +1,7 @@
 /**
  * AvivarProductivity - Dashboard de Produtividade e Análise IA
  * Métricas de equipe, performance e automação
+ * Suporte a tema claro e escuro
  */
 
 import React from 'react';
@@ -137,34 +138,34 @@ export default function AvivarProductivity() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Produtividade & IA
-            <Sparkles className="h-5 w-5 text-purple-400" />
+            <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
           </h1>
-          <p className="text-slate-400">Métricas de equipe, performance e automação inteligente</p>
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">Métricas de equipe, performance e automação inteligente</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="border-purple-500/30 text-purple-200 hover:bg-purple-500/20">
+          <Button variant="outline" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
             Exportar Relatório
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="productivity" className="space-y-6">
-        <TabsList className="bg-slate-900/50 border border-purple-500/30">
-          <TabsTrigger value="productivity" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+        <TabsList className="bg-[hsl(var(--avivar-secondary))] border border-[hsl(var(--avivar-border))]">
+          <TabsTrigger value="productivity" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <BarChart3 className="h-4 w-4 mr-2" />
             Produtividade
           </TabsTrigger>
-          <TabsTrigger value="sales" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          <TabsTrigger value="sales" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <Target className="h-4 w-4 mr-2" />
             Vendas
           </TabsTrigger>
-          <TabsTrigger value="ai" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          <TabsTrigger value="ai" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <Bot className="h-4 w-4 mr-2" />
             IA & Automação
           </TabsTrigger>
-          <TabsTrigger value="team" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          <TabsTrigger value="team" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <Users className="h-4 w-4 mr-2" />
             Equipe
           </TabsTrigger>
@@ -174,53 +175,53 @@ export default function AvivarProductivity() {
         <TabsContent value="productivity" className="space-y-6">
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Total de Conversas</p>
-                  <MessageSquare className="h-4 w-4 text-purple-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Total de Conversas</p>
+                  <MessageSquare className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{generalMetrics.totalConversations}</p>
-                <div className="flex items-center text-xs text-emerald-400 mt-1">
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{generalMetrics.totalConversations}</p>
+                <div className="flex items-center text-xs text-emerald-600 dark:text-emerald-400 mt-1">
                   <ArrowUpRight className="h-3 w-3 mr-1" />
                   +12% vs ontem
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Conversas Ativas</p>
-                  <Activity className="h-4 w-4 text-green-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Conversas Ativas</p>
+                  <Activity className="h-4 w-4 text-green-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{generalMetrics.activeConversations}</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{generalMetrics.activeConversations}</p>
                 <Progress value={(generalMetrics.activeConversations / generalMetrics.totalConversations) * 100} className="mt-2 h-1" />
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Taxa de Qualificação</p>
-                  <Target className="h-4 w-4 text-blue-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Taxa de Qualificação</p>
+                  <Target className="h-4 w-4 text-blue-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{generalMetrics.qualificationRate}%</p>
-                <div className="flex items-center text-xs text-red-400 mt-1">
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{generalMetrics.qualificationRate}%</p>
+                <div className="flex items-center text-xs text-red-600 dark:text-red-400 mt-1">
                   <ArrowDownRight className="h-3 w-3 mr-1" />
                   -2% vs ontem
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Taxa de Conversão</p>
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Taxa de Conversão</p>
+                  <TrendingUp className="h-4 w-4 text-emerald-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{generalMetrics.conversionRate}%</p>
-                <div className="flex items-center text-xs text-emerald-400 mt-1">
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{generalMetrics.conversionRate}%</p>
+                <div className="flex items-center text-xs text-emerald-600 dark:text-emerald-400 mt-1">
                   <ArrowUpRight className="h-3 w-3 mr-1" />
                   +5% vs ontem
                 </div>
@@ -229,10 +230,10 @@ export default function AvivarProductivity() {
           </div>
 
           {/* Gráfico de Performance */}
-          <Card className="bg-slate-900/80 border-purple-500/30">
+          <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
             <CardHeader>
-              <CardTitle className="text-white">Performance ao Longo do Dia</CardTitle>
-              <CardDescription className="text-slate-400">Conversas iniciadas vs respondidas</CardDescription>
+              <CardTitle className="text-[hsl(var(--avivar-foreground))]">Performance ao Longo do Dia</CardTitle>
+              <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Conversas iniciadas vs respondidas</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
@@ -248,15 +249,15 @@ export default function AvivarProductivity() {
                         <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(139, 92, 246, 0.15)" />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} />
-                    <YAxis stroke="#94a3b8" fontSize={12} />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-[hsl(var(--avivar-border))]" />
+                    <XAxis dataKey="time" className="text-[hsl(var(--avivar-muted-foreground))]" stroke="currentColor" fontSize={12} />
+                    <YAxis className="text-[hsl(var(--avivar-muted-foreground))]" stroke="currentColor" fontSize={12} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        backgroundColor: 'hsl(var(--avivar-card))',
                         borderRadius: '12px',
-                        border: '1px solid rgba(139, 92, 246, 0.3)',
-                        color: '#fff',
+                        border: '1px solid hsl(var(--avivar-border))',
+                        color: 'hsl(var(--avivar-foreground))',
                       }}
                     />
                     <Area
@@ -287,43 +288,43 @@ export default function AvivarProductivity() {
         {/* Dashboard de Vendas */}
         <TabsContent value="sales" className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Total de Mensagens</p>
-                  <MessageSquare className="h-4 w-4 text-purple-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Total de Mensagens</p>
+                  <MessageSquare className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{generalMetrics.totalMessages.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{generalMetrics.totalMessages.toLocaleString()}</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Taxa de Reabertura</p>
-                  <Zap className="h-4 w-4 text-amber-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Taxa de Reabertura</p>
+                  <Zap className="h-4 w-4 text-amber-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{generalMetrics.reopenRate}%</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{generalMetrics.reopenRate}%</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Total de Vendas</p>
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Total de Vendas</p>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{generalMetrics.totalSales}</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{generalMetrics.totalSales}</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Valor Total</p>
-                  <TrendingUp className="h-4 w-4 text-green-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Valor Total</p>
+                  <TrendingUp className="h-4 w-4 text-green-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">
                   R$ {generalMetrics.totalRevenue.toLocaleString()}
                 </p>
               </CardContent>
@@ -335,61 +336,61 @@ export default function AvivarProductivity() {
         <TabsContent value="ai" className="space-y-6">
           {/* KPIs de IA */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Automação Coverage</p>
-                  <Bot className="h-4 w-4 text-purple-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Automação Coverage</p>
+                  <Bot className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{aiMetrics.automationCoverage}%</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{aiMetrics.automationCoverage}%</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Deflection Rate</p>
-                  <Zap className="h-4 w-4 text-amber-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Deflection Rate</p>
+                  <Zap className="h-4 w-4 text-amber-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{aiMetrics.deflectionRate}%</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{aiMetrics.deflectionRate}%</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Total com IA</p>
-                  <Activity className="h-4 w-4 text-blue-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Total com IA</p>
+                  <Activity className="h-4 w-4 text-blue-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{aiMetrics.totalWithAi}</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{aiMetrics.totalWithAi}</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Transferências IA→Humano</p>
-                  <Users className="h-4 w-4 text-orange-400" />
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Transferências IA→Humano</p>
+                  <Users className="h-4 w-4 text-orange-500" />
                 </div>
-                <p className="text-2xl font-bold text-white mt-2">{aiMetrics.transfers}</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mt-2">{aiMetrics.transfers}</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Tipos de Atendimento */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardHeader>
-                <CardTitle className="text-white">Tipos de Atendimento</CardTitle>
-                <CardDescription className="text-slate-400">Distribuição por tipo de atendimento</CardDescription>
+                <CardTitle className="text-[hsl(var(--avivar-foreground))]">Tipos de Atendimento</CardTitle>
+                <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Distribuição por tipo de atendimento</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {serviceTypes.map((type) => (
                     <div key={type.type} className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-300">{type.type}</span>
-                        <span className="text-white font-medium">{type.value}%</span>
+                        <span className="text-[hsl(var(--avivar-secondary-foreground))]">{type.type}</span>
+                        <span className="text-[hsl(var(--avivar-foreground))] font-medium">{type.value}%</span>
                       </div>
                       <Progress 
                         value={type.value} 
@@ -402,38 +403,38 @@ export default function AvivarProductivity() {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/80 border-purple-500/30">
+            <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
               <CardHeader>
-                <CardTitle className="text-white">Métricas de Resposta</CardTitle>
-                <CardDescription className="text-slate-400">Performance do atendimento</CardDescription>
+                <CardTitle className="text-[hsl(var(--avivar-foreground))]">Métricas de Resposta</CardTitle>
+                <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Performance do atendimento</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[hsl(var(--avivar-secondary))]">
                   <div className="flex items-center gap-2">
-                    <Timer className="h-5 w-5 text-purple-400" />
-                    <span className="text-slate-300">Duração Média</span>
+                    <Timer className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+                    <span className="text-[hsl(var(--avivar-secondary-foreground))]">Duração Média</span>
                   </div>
-                  <span className="text-white font-semibold">{aiMetrics.avgDuration}</span>
+                  <span className="text-[hsl(var(--avivar-foreground))] font-semibold">{aiMetrics.avgDuration}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[hsl(var(--avivar-secondary))]">
                   <div className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-amber-400" />
-                    <span className="text-slate-300">Primeira Resposta</span>
+                    <Zap className="h-5 w-5 text-amber-500" />
+                    <span className="text-[hsl(var(--avivar-secondary-foreground))]">Primeira Resposta</span>
                   </div>
-                  <span className="text-white font-semibold">{aiMetrics.firstResponse}</span>
+                  <span className="text-[hsl(var(--avivar-foreground))] font-semibold">{aiMetrics.firstResponse}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[hsl(var(--avivar-secondary))]">
                   <div className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-blue-400" />
-                    <span className="text-slate-300">NPS Score</span>
+                    <Target className="h-5 w-5 text-blue-500" />
+                    <span className="text-[hsl(var(--avivar-secondary-foreground))]">NPS Score</span>
                   </div>
                   <Badge className={cn(
                     "text-xs",
                     aiMetrics.npsScore >= 7 
-                      ? "bg-emerald-500/20 text-emerald-300" 
+                      ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" 
                       : aiMetrics.npsScore >= 5 
-                        ? "bg-amber-500/20 text-amber-300"
-                        : "bg-red-500/20 text-red-300"
+                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                        : "bg-red-500/20 text-red-600 dark:text-red-400"
                   )}>
                     {aiMetrics.npsScore}/10
                   </Badge>
@@ -445,85 +446,55 @@ export default function AvivarProductivity() {
 
         {/* Dashboard de Equipe */}
         <TabsContent value="team" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="bg-slate-900/80 border-purple-500/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Usuários Ativos</p>
-                  <Users className="h-4 w-4 text-purple-400" />
-                </div>
-                <p className="text-2xl font-bold text-white mt-2">
-                  {teamMembers.filter(m => m.status !== 'offline').length}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">de {teamMembers.length} totais</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-slate-900/80 border-purple-500/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-400">Taxa Média de Ocupação</p>
-                  <Activity className="h-4 w-4 text-blue-400" />
-                </div>
-                <p className="text-2xl font-bold text-white mt-2">
-                  {Math.round(teamMembers.reduce((acc, m) => acc + m.occupation, 0) / teamMembers.length)}%
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="bg-slate-900/80 border-purple-500/30">
+          <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
             <CardHeader>
-              <CardTitle className="text-white">Produtividade da Equipe</CardTitle>
-              <CardDescription className="text-slate-400">Performance individual dos atendentes</CardDescription>
+              <CardTitle className="text-[hsl(var(--avivar-foreground))]">Performance da Equipe</CardTitle>
+              <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">Métricas individuais de cada atendente</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {teamMembers.map((member) => (
                   <div 
                     key={member.id}
-                    className="flex items-center justify-between p-4 rounded-xl border border-slate-700/50 bg-slate-800/50"
+                    className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary))]"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center text-white font-medium">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[hsl(var(--avivar-primary))] to-[hsl(var(--avivar-accent))] flex items-center justify-center text-white font-bold text-lg">
                           {member.avatar}
                         </div>
                         <div className={cn(
-                          "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-slate-800",
+                          "absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-[hsl(var(--avivar-card))]",
                           member.status === 'online' ? "bg-emerald-500" :
-                          member.status === 'busy' ? "bg-amber-500" : "bg-slate-500"
+                          member.status === 'busy' ? "bg-amber-500" : "bg-[hsl(var(--avivar-muted))]"
                         )} />
                       </div>
                       <div>
-                        <p className="font-medium text-white">{member.name}</p>
-                        <p className="text-xs text-slate-400 capitalize">{member.status}</p>
+                        <p className="font-medium text-[hsl(var(--avivar-foreground))]">{member.name}</p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] capitalize">{member.status === 'online' ? 'Disponível' : member.status === 'busy' ? 'Ocupado' : 'Offline'}</p>
                       </div>
                     </div>
-
+                    
                     <div className="flex items-center gap-6">
                       <div className="text-center">
-                        <p className="text-lg font-semibold text-white">{member.conversations}</p>
-                        <p className="text-xs text-slate-400">Conversas</p>
+                        <p className="text-lg font-semibold text-[hsl(var(--avivar-foreground))]">{member.conversations}</p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Conversas</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-lg font-semibold text-white">{member.avgResponseTime}</p>
-                        <p className="text-xs text-slate-400">Resposta</p>
+                        <p className="text-lg font-semibold text-[hsl(var(--avivar-foreground))]">{member.avgResponseTime}</p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tempo Resp.</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-lg font-semibold text-amber-400">{member.satisfaction}</p>
-                        <p className="text-xs text-slate-400">Satisfação</p>
+                        <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">{member.conversions}</p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Conversões</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-lg font-semibold text-emerald-400">{member.conversions}</p>
-                        <p className="text-xs text-slate-400">Conversões</p>
+                        <p className="text-lg font-semibold text-amber-600 dark:text-amber-400">⭐ {member.satisfaction}</p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Satisfação</p>
                       </div>
                       <div className="w-24">
-                        <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="text-slate-400">Ocupação</span>
-                          <span className="text-white">{member.occupation}%</span>
-                        </div>
                         <Progress value={member.occupation} className="h-2" />
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] text-center mt-1">{member.occupation}% ocupação</p>
                       </div>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 /**
  * AvivarFollowUp - Sistema de Follow-up Automático
  * Configuração de tentativas automáticas com prazos e agendamento
+ * Suporte a tema claro e escuro
  */
 
 import React, { useState } from 'react';
@@ -128,13 +129,13 @@ export default function AvivarFollowUp() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             Follow-up Automático
-            <Sparkles className="h-5 w-5 text-purple-400" />
+            <Sparkles className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
           </h1>
-          <p className="text-slate-400">Nunca perca um lead! Sistema inteligente de follow-up com IA</p>
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">Nunca perca um lead! Sistema inteligente de follow-up com IA</p>
         </div>
-        <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 shadow-lg shadow-purple-500/25">
+        <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]">
           <Plus className="h-4 w-4 mr-2" />
           Nova Regra
         </Button>
@@ -142,70 +143,70 @@ export default function AvivarFollowUp() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Follow-ups Agendados</p>
-                <p className="text-2xl font-bold text-white">{followUpStats.total}</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Follow-ups Agendados</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{followUpStats.total}</p>
               </div>
-              <Calendar className="h-8 w-8 text-purple-400" />
+              <Calendar className="h-8 w-8 text-[hsl(var(--avivar-primary))]" />
             </div>
-            <p className="text-xs text-slate-500 mt-1">Próximas 24 horas</p>
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">Próximas 24 horas</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Para Hoje</p>
-                <p className="text-2xl font-bold text-white">{followUpStats.today}</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Para Hoje</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{followUpStats.today}</p>
               </div>
-              <Clock className="h-8 w-8 text-amber-400" />
+              <Clock className="h-8 w-8 text-amber-500" />
             </div>
-            <p className="text-xs text-amber-400 mt-1">3 nas próximas 2h</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">3 nas próximas 2h</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Taxa de Sucesso</p>
-                <p className="text-2xl font-bold text-white">{followUpStats.successRate}%</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Taxa de Sucesso</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{followUpStats.successRate}%</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-emerald-400" />
+              <TrendingUp className="h-8 w-8 text-emerald-500" />
             </div>
-            <p className="text-xs text-emerald-400 mt-1">+5% vs semana passada</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">+5% vs semana passada</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900/80 border-purple-500/30">
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Tempo de Resposta</p>
-                <p className="text-2xl font-bold text-white">{followUpStats.avgResponseTime}</p>
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tempo de Resposta</p>
+                <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">{followUpStats.avgResponseTime}</p>
               </div>
-              <Timer className="h-8 w-8 text-blue-400" />
+              <Timer className="h-8 w-8 text-blue-500" />
             </div>
-            <p className="text-xs text-blue-400 mt-1">Média após follow-up</p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Média após follow-up</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="config" className="space-y-4">
-        <TabsList className="bg-slate-900/50 border border-purple-500/30">
-          <TabsTrigger value="config" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+        <TabsList className="bg-[hsl(var(--avivar-secondary))] border border-[hsl(var(--avivar-border))]">
+          <TabsTrigger value="config" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <Zap className="h-4 w-4 mr-2" />
             Configuração
           </TabsTrigger>
-          <TabsTrigger value="scheduled" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          <TabsTrigger value="scheduled" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <Calendar className="h-4 w-4 mr-2" />
             Agendados ({followUpStats.total})
           </TabsTrigger>
-          <TabsTrigger value="history" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          <TabsTrigger value="history" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
             <Clock className="h-4 w-4 mr-2" />
             Histórico
           </TabsTrigger>
@@ -213,10 +214,10 @@ export default function AvivarFollowUp() {
 
         {/* Configuração de Regras */}
         <TabsContent value="config">
-          <Card className="bg-slate-900/90 border-slate-700/50">
+          <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
             <CardHeader>
-              <CardTitle className="text-white">Configuração de Follow-up</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle className="text-[hsl(var(--avivar-foreground))]">Configuração de Follow-up</CardTitle>
+              <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">
                 Defina as regras de follow-up automático para leads que não respondem
               </CardDescription>
             </CardHeader>
@@ -227,8 +228,8 @@ export default function AvivarFollowUp() {
                   className={cn(
                     "p-4 rounded-xl border transition-all",
                     rule.active 
-                      ? "border-purple-500/40 bg-slate-800/50" 
-                      : "border-slate-700/50 bg-slate-800/30 opacity-60"
+                      ? "border-[hsl(var(--avivar-primary)/0.4)] bg-[hsl(var(--avivar-secondary))]" 
+                      : "border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-muted)/0.3)] opacity-60"
                   )}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -236,24 +237,24 @@ export default function AvivarFollowUp() {
                       <div className={cn(
                         "w-10 h-10 rounded-lg flex items-center justify-center font-bold",
                         rule.active 
-                          ? "bg-purple-600/30 text-purple-300" 
-                          : "bg-slate-700/50 text-slate-500"
+                          ? "bg-[hsl(var(--avivar-primary)/0.3)] text-[hsl(var(--avivar-primary))]" 
+                          : "bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))]"
                       )}>
                         {rule.attempt}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-white">Tentativa {rule.attempt}</p>
+                          <p className="font-medium text-[hsl(var(--avivar-foreground))]">Tentativa {rule.attempt}</p>
                           <Badge className={cn(
                             "text-xs",
                             rule.active 
-                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                              : "bg-slate-700/50 text-slate-400 border-slate-600"
+                              ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                              : "bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))] border-[hsl(var(--avivar-border))]"
                           )}>
                             {rule.active ? 'Ativo' : 'Inativo'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-slate-400 mt-1">
+                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] mt-1">
                           <Clock className="h-3 w-3 inline mr-1" />
                           Após {rule.time} sem resposta
                         </p>
@@ -264,24 +265,24 @@ export default function AvivarFollowUp() {
                         checked={rule.active}
                         onCheckedChange={() => toggleRule(rule.id)}
                       />
-                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-700">
+                      <Button variant="ghost" size="icon" className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-400 hover:bg-red-500/10">
+                      <Button variant="ghost" size="icon" className="text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-500/10">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                  <div className="mt-3 p-3 rounded-lg bg-slate-900/50 border border-slate-700/30">
-                    <p className="text-sm text-slate-300 flex items-start gap-2">
-                      <MessageSquare className="h-4 w-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div className="mt-3 p-3 rounded-lg bg-[hsl(var(--avivar-muted)/0.5)] border border-[hsl(var(--avivar-border)/0.5)]">
+                    <p className="text-sm text-[hsl(var(--avivar-secondary-foreground))] flex items-start gap-2">
+                      <MessageSquare className="h-4 w-4 text-[hsl(var(--avivar-primary))] mt-0.5 flex-shrink-0" />
                       {rule.message}
                     </p>
                   </div>
                 </div>
               ))}
 
-              <Button variant="outline" className="w-full border-dashed border-purple-500/30 text-purple-300 hover:bg-purple-500/10">
+              <Button variant="outline" className="w-full border-dashed border-[hsl(var(--avivar-primary)/0.3)] text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Nova Tentativa
               </Button>
@@ -291,15 +292,15 @@ export default function AvivarFollowUp() {
 
         {/* Follow-ups Agendados */}
         <TabsContent value="scheduled">
-          <Card className="bg-slate-900/90 border-slate-700/50">
+          <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
                 Follow-ups Agendados
-                <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                <Badge className="bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] border-[hsl(var(--avivar-primary)/0.3)]">
                   {scheduledFollowUps.length} pendentes
                 </Badge>
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">
                 Mensagens automáticas programadas para os próximos dias
               </CardDescription>
             </CardHeader>
@@ -308,16 +309,16 @@ export default function AvivarFollowUp() {
                 {scheduledFollowUps.map((followUp) => (
                   <div 
                     key={followUp.id}
-                    className="flex items-center justify-between p-4 rounded-xl border border-slate-700/50 bg-slate-800/50 hover:border-purple-500/30 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary))] hover:border-[hsl(var(--avivar-primary)/0.3)] transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center text-white font-medium">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(var(--avivar-primary))] to-[hsl(var(--avivar-accent))] flex items-center justify-center text-white font-medium">
                         {followUp.lead.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium text-white">{followUp.lead}</p>
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                          <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
+                        <p className="font-medium text-[hsl(var(--avivar-foreground))]">{followUp.lead}</p>
+                        <div className="flex items-center gap-2 text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                          <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-secondary-foreground))]">
                             Tentativa {followUp.attempt}
                           </Badge>
                           <span>•</span>
@@ -329,19 +330,19 @@ export default function AvivarFollowUp() {
                       <div className="text-right">
                         <p className={cn(
                           "text-sm font-medium",
-                          followUp.status === 'pending' ? "text-amber-400" : "text-slate-300"
+                          followUp.status === 'pending' ? "text-amber-600 dark:text-amber-400" : "text-[hsl(var(--avivar-secondary-foreground))]"
                         )}>
                           {followUp.scheduledFor}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
                           {followUp.status === 'pending' ? 'Próximo' : 'Agendado'}
                         </p>
                       </div>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-primary)/0.1)]">
                           <Edit2 className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-400 hover:bg-red-500/10">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-500/10">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -355,10 +356,10 @@ export default function AvivarFollowUp() {
 
         {/* Histórico */}
         <TabsContent value="history">
-          <Card className="bg-slate-900/90 border-slate-700/50">
+          <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
             <CardHeader>
-              <CardTitle className="text-white">Histórico de Follow-ups</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle className="text-[hsl(var(--avivar-foreground))]">Histórico de Follow-ups</CardTitle>
+              <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">
                 Mensagens enviadas automaticamente nos últimos 7 dias
               </CardDescription>
             </CardHeader>
@@ -373,7 +374,7 @@ export default function AvivarFollowUp() {
                 ].map((item, index) => (
                   <div 
                     key={index}
-                    className="flex items-center justify-between p-4 rounded-xl border border-slate-700/50 bg-slate-800/30"
+                    className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary)/0.5)]"
                   >
                     <div className="flex items-center gap-3">
                       <div className={cn(
@@ -382,33 +383,33 @@ export default function AvivarFollowUp() {
                           ? "bg-emerald-500/20" 
                           : item.result === 'Respondeu' 
                             ? "bg-blue-500/20" 
-                            : "bg-slate-700/50"
+                            : "bg-[hsl(var(--avivar-muted))]"
                       )}>
                         {item.result === 'Converteu' ? (
-                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                         ) : item.result === 'Respondeu' ? (
-                          <MessageSquare className="h-4 w-4 text-blue-400" />
+                          <MessageSquare className="h-4 w-4 text-blue-500" />
                         ) : (
-                          <AlertTriangle className="h-4 w-4 text-slate-500" />
+                          <AlertTriangle className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-white">{item.lead}</p>
-                        <p className="text-xs text-slate-400">Tentativa {item.attempt}</p>
+                        <p className="font-medium text-[hsl(var(--avivar-foreground))]">{item.lead}</p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tentativa {item.attempt}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <Badge className={cn(
                         "text-xs",
                         item.result === 'Converteu' 
-                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                          ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
                           : item.result === 'Respondeu'
-                            ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
-                            : "bg-slate-700/50 text-slate-400 border-slate-600"
+                            ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30"
+                            : "bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))] border-[hsl(var(--avivar-border))]"
                       )}>
                         {item.result}
                       </Badge>
-                      <p className="text-xs text-slate-500 mt-1">{item.time}</p>
+                      <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">{item.time}</p>
                     </div>
                   </div>
                 ))}
