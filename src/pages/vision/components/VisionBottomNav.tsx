@@ -41,7 +41,7 @@ export function VisionBottomNav({ onOpenPlans, onStartAnalysis }: VisionBottomNa
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 border-t border-purple-500/20 backdrop-blur-sm safe-area-bottom">
-      <div className="flex items-center justify-around py-2 px-2">
+      <div className="grid grid-cols-4 items-center py-2 px-2 max-w-md mx-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
@@ -51,7 +51,7 @@ export function VisionBottomNav({ onOpenPlans, onStartAnalysis }: VisionBottomNa
               key={item.id}
               onClick={() => handleItemClick(item)}
               className={cn(
-                "flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all min-w-[64px]",
+                "flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all",
                 active 
                   ? "bg-purple-500/20 text-purple-400" 
                   : "text-slate-400 hover:text-white active:scale-95",
