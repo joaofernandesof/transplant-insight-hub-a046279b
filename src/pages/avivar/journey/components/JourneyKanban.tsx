@@ -1,9 +1,22 @@
 /**
  * Kanban board for patient journeys
- * With horizontal scroll, filters support
+ * With horizontal scroll, filters support, and drag-and-drop
  */
 
 import { useMemo, useState, useRef, useEffect } from 'react';
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+} from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { 
   PatientJourney, 
   JourneyType, 
@@ -19,11 +32,9 @@ import {
 } from '../hooks/usePatientJourneys';
 import { JourneyCard } from './JourneyCard';
 import { JourneyDetailSheet } from './JourneyDetailSheet';
-import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { DroppableColumn } from './DroppableColumn';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -35,12 +46,26 @@ interface JourneyKanbanProps {
 
 export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all' }: JourneyKanbanProps) {
   const [selectedJourney, setSelectedJourney] = useState<PatientJourney | null>(null);
+  const [activeJourney, setActiveJourney] = useState<PatientJourney | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const { journeys, isLoading, createJourney, updateJourney } = usePatientJourneys(journeyType);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const stages = journeyType === 'comercial' ? COMMERCIAL_STAGES : POST_SALE_STAGES;
+
+  // Configure sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Filter journeys
   const filteredJourneys = useMemo(() => {
@@ -146,6 +171,64 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
     }
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const journey = journeys.find(j => j.id === active.id);
+    if (journey) {
+      setActiveJourney(journey);
+    }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    setOverId(over?.id as string || null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    setActiveJourney(null);
+    setOverId(null);
+
+    if (!over) return;
+
+    const activeJourneyData = journeys.find(j => j.id === active.id);
+    if (!activeJourneyData) return;
+
+    // Determine target stage
+    let targetStage: JourneyStage | null = null;
+
+    // Check if dropped on a column
+    const column = columns.find(c => c.id === over.id);
+    if (column) {
+      targetStage = column.id as JourneyStage;
+    } else {
+      // Check if dropped on another journey card - use that card's column
+      const targetJourney = journeys.find(j => j.id === over.id);
+      if (targetJourney) {
+        targetStage = targetJourney.current_stage;
+      }
+    }
+
+    if (!targetStage || targetStage === activeJourneyData.current_stage) return;
+
+    // Update the journey's stage
+    updateJourney.mutate({
+      id: activeJourneyData.id,
+      updates: { current_stage: targetStage }
+    }, {
+      onSuccess: () => {
+        const stageConfig = getStageConfig(targetStage!);
+        toast.success(`Movido para ${stageConfig?.label || targetStage}`);
+      }
+    });
+  };
+
+  const activeStageConfig = activeJourney 
+    ? getStageConfig(activeJourney.current_stage) 
+    : null;
+
   return (
     <div className="space-y-4">
       {/* Summary Row */}
@@ -207,58 +290,49 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
           </Button>
         )}
 
-        {/* Kanban Columns - Scrollable */}
-        <div 
-          ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto pb-4 scroll-smooth scrollbar-thin scrollbar-thumb-[hsl(var(--avivar-border))] scrollbar-track-transparent"
-          style={{ 
-            scrollbarWidth: 'thin',
-            WebkitOverflowScrolling: 'touch'
-          }}
+        {/* Kanban Columns - Scrollable with DnD */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
         >
-          {columns.map(column => (
-            <div 
-              key={column.id}
-              className="flex-shrink-0 w-[240px] lg:w-[260px]"
-            >
-              <Card className="border-[hsl(var(--avivar-border))] shadow-sm overflow-hidden">
-                {/* Column Header */}
-                <div className={cn(
-                  "px-4 py-3 rounded-t-xl bg-gradient-to-r text-white text-center",
-                  column.color
-                )}>
-                  <h3 className="font-semibold text-sm">{column.label}</h3>
-                  <p className="text-xs opacity-90">{column.description}</p>
-                </div>
+          <div 
+            ref={scrollContainerRef}
+            className="flex gap-4 overflow-x-auto pb-4 scroll-smooth scrollbar-thin scrollbar-thumb-[hsl(var(--avivar-border))] scrollbar-track-transparent"
+            style={{ 
+              scrollbarWidth: 'thin',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {columns.map(column => (
+              <DroppableColumn
+                key={column.id}
+                column={column}
+                onUpdate={handleUpdate}
+                onAdvance={handleAdvance}
+                onSelect={setSelectedJourney}
+                isOver={overId === column.id}
+              />
+            ))}
+          </div>
 
-                {/* Column Content */}
-                <CardContent className="p-3 bg-[hsl(var(--avivar-muted)/0.2)] min-h-[400px]">
-                  {column.items.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-[300px] text-[hsl(var(--avivar-muted-foreground))] text-sm">
-                      <Users className="h-8 w-8 mb-2 opacity-50" />
-                      <span>Nenhum paciente</span>
-                    </div>
-                  ) : (
-                    <ScrollArea className="h-[400px]">
-                      <div className="space-y-2 pr-2">
-                        {column.items.map(journey => (
-                          <JourneyCard
-                            key={journey.id}
-                            journey={journey}
-                            stageConfig={column}
-                            onUpdate={(updates) => handleUpdate(journey.id, updates)}
-                            onAdvance={() => handleAdvance(journey)}
-                            onSelect={() => setSelectedJourney(journey)}
-                          />
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          ))}
-        </div>
+          {/* Drag Overlay */}
+          <DragOverlay>
+            {activeJourney && activeStageConfig && (
+              <div className="opacity-90 shadow-xl rotate-2">
+                <JourneyCard
+                  journey={activeJourney}
+                  stageConfig={activeStageConfig}
+                  onUpdate={() => {}}
+                  onAdvance={() => {}}
+                  onSelect={() => {}}
+                />
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
       </div>
 
       {/* Detail Sheet */}
