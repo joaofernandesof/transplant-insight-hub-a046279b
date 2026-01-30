@@ -44,7 +44,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (isMobile) {
     return (
-      <div className="flex flex-col min-h-screen bg-slate-950">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
         {/* Mobile Header */}
         <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700">
           <div className="flex items-center gap-3">
@@ -73,7 +73,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Sheet>
           </div>
         </header>
-        <main className="flex-1 overflow-auto bg-background">
+        <main className="flex-1 overflow-auto bg-gradient-to-b from-slate-900 to-slate-950">
           {children}
         </main>
       </div>
@@ -81,7 +81,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen flex w-full bg-gradient-to-b from-slate-900 to-slate-950">
       <AdminSidebar 
         collapsed={isCollapsed}
         onToggle={() => setIsCollapsed(!isCollapsed)}
@@ -92,7 +92,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         isCollapsed ? "ml-16" : "ml-64"
       )}>
         {/* Top bar with theme toggle */}
-        <div className="sticky top-0 z-30 flex justify-end p-3 bg-background/80 backdrop-blur-sm border-b border-border">
+        <div className="sticky top-0 z-30 flex justify-end p-3 bg-slate-900/80 backdrop-blur-sm border-b border-slate-800">
           <ThemeToggle />
         </div>
         {children}
