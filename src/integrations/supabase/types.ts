@@ -223,6 +223,191 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_patient_journeys: {
+        Row: {
+          assigned_to: string | null
+          attended: boolean | null
+          confirmation_sent: boolean | null
+          contact_attempts: number | null
+          contract_doubts_cleared: boolean | null
+          contract_sent: boolean | null
+          contract_signed: boolean | null
+          converted_at: string | null
+          created_at: string | null
+          current_stage: Database["public"]["Enums"]["avivar_stage"]
+          desired_area: string | null
+          discharge_instructions_given: boolean | null
+          evaluation_requested: boolean | null
+          exams_requested: boolean | null
+          exams_verified: boolean | null
+          id: string
+          initial_expectation: string | null
+          initial_instructions_sent: boolean | null
+          issues_registered: boolean | null
+          journey_type: Database["public"]["Enums"]["avivar_journey_type"]
+          lead_source: string | null
+          legal_status_validated: boolean | null
+          next_day_contact: boolean | null
+          next_step: string | null
+          notes: string | null
+          pain_point: string | null
+          patient_email: string | null
+          patient_name: string
+          patient_phone: string | null
+          payment_confirmed: boolean | null
+          pending_reason: string | null
+          photo_record_done: boolean | null
+          pre_op_instructions_sent: boolean | null
+          procedure_done: boolean | null
+          referral_program_presented: boolean | null
+          reminder_active: boolean | null
+          same_day_contact: boolean | null
+          scheduled_date: string | null
+          selected_time: string | null
+          service_type: Database["public"]["Enums"]["avivar_service_type"]
+          signature_requested: boolean | null
+          support_channel_informed: boolean | null
+          testimonial_invited: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          welcome_sent: boolean | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          attended?: boolean | null
+          confirmation_sent?: boolean | null
+          contact_attempts?: number | null
+          contract_doubts_cleared?: boolean | null
+          contract_sent?: boolean | null
+          contract_signed?: boolean | null
+          converted_at?: string | null
+          created_at?: string | null
+          current_stage?: Database["public"]["Enums"]["avivar_stage"]
+          desired_area?: string | null
+          discharge_instructions_given?: boolean | null
+          evaluation_requested?: boolean | null
+          exams_requested?: boolean | null
+          exams_verified?: boolean | null
+          id?: string
+          initial_expectation?: string | null
+          initial_instructions_sent?: boolean | null
+          issues_registered?: boolean | null
+          journey_type?: Database["public"]["Enums"]["avivar_journey_type"]
+          lead_source?: string | null
+          legal_status_validated?: boolean | null
+          next_day_contact?: boolean | null
+          next_step?: string | null
+          notes?: string | null
+          pain_point?: string | null
+          patient_email?: string | null
+          patient_name: string
+          patient_phone?: string | null
+          payment_confirmed?: boolean | null
+          pending_reason?: string | null
+          photo_record_done?: boolean | null
+          pre_op_instructions_sent?: boolean | null
+          procedure_done?: boolean | null
+          referral_program_presented?: boolean | null
+          reminder_active?: boolean | null
+          same_day_contact?: boolean | null
+          scheduled_date?: string | null
+          selected_time?: string | null
+          service_type?: Database["public"]["Enums"]["avivar_service_type"]
+          signature_requested?: boolean | null
+          support_channel_informed?: boolean | null
+          testimonial_invited?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          welcome_sent?: boolean | null
+        }
+        Update: {
+          assigned_to?: string | null
+          attended?: boolean | null
+          confirmation_sent?: boolean | null
+          contact_attempts?: number | null
+          contract_doubts_cleared?: boolean | null
+          contract_sent?: boolean | null
+          contract_signed?: boolean | null
+          converted_at?: string | null
+          created_at?: string | null
+          current_stage?: Database["public"]["Enums"]["avivar_stage"]
+          desired_area?: string | null
+          discharge_instructions_given?: boolean | null
+          evaluation_requested?: boolean | null
+          exams_requested?: boolean | null
+          exams_verified?: boolean | null
+          id?: string
+          initial_expectation?: string | null
+          initial_instructions_sent?: boolean | null
+          issues_registered?: boolean | null
+          journey_type?: Database["public"]["Enums"]["avivar_journey_type"]
+          lead_source?: string | null
+          legal_status_validated?: boolean | null
+          next_day_contact?: boolean | null
+          next_step?: string | null
+          notes?: string | null
+          pain_point?: string | null
+          patient_email?: string | null
+          patient_name?: string
+          patient_phone?: string | null
+          payment_confirmed?: boolean | null
+          pending_reason?: string | null
+          photo_record_done?: boolean | null
+          pre_op_instructions_sent?: boolean | null
+          procedure_done?: boolean | null
+          referral_program_presented?: boolean | null
+          reminder_active?: boolean | null
+          same_day_contact?: boolean | null
+          scheduled_date?: string | null
+          selected_time?: string | null
+          service_type?: Database["public"]["Enums"]["avivar_service_type"]
+          signature_requested?: boolean | null
+          support_channel_informed?: boolean | null
+          testimonial_invited?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          welcome_sent?: boolean | null
+        }
+        Relationships: []
+      }
+      avivar_stage_history: {
+        Row: {
+          blocked_reason: string | null
+          changed_by: string | null
+          created_at: string | null
+          from_stage: Database["public"]["Enums"]["avivar_stage"] | null
+          id: string
+          journey_id: string | null
+          to_stage: Database["public"]["Enums"]["avivar_stage"]
+        }
+        Insert: {
+          blocked_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          from_stage?: Database["public"]["Enums"]["avivar_stage"] | null
+          id?: string
+          journey_id?: string | null
+          to_stage: Database["public"]["Enums"]["avivar_stage"]
+        }
+        Update: {
+          blocked_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          from_stage?: Database["public"]["Enums"]["avivar_stage"] | null
+          id?: string
+          journey_id?: string | null
+          to_stage?: Database["public"]["Enums"]["avivar_stage"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_stage_history_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_patient_journeys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       banner_clicks: {
         Row: {
           banner_id: string
@@ -12549,6 +12734,21 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "licensee" | "colaborador" | "aluno" | "paciente"
+      avivar_journey_type: "comercial" | "pos_venda"
+      avivar_service_type: "capilar" | "barba" | "sobrancelha"
+      avivar_stage:
+        | "lead_entrada"
+        | "triagem"
+        | "agendamento"
+        | "follow_up"
+        | "paciente"
+        | "onboarding"
+        | "contrato"
+        | "contrato_assinado"
+        | "pre_operatorio"
+        | "procedimento"
+        | "pos_operatorio"
+        | "relacionamento"
       chamado_etapa:
         | "triagem"
         | "atendimento"
@@ -12826,6 +13026,22 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "licensee", "colaborador", "aluno", "paciente"],
+      avivar_journey_type: ["comercial", "pos_venda"],
+      avivar_service_type: ["capilar", "barba", "sobrancelha"],
+      avivar_stage: [
+        "lead_entrada",
+        "triagem",
+        "agendamento",
+        "follow_up",
+        "paciente",
+        "onboarding",
+        "contrato",
+        "contrato_assinado",
+        "pre_operatorio",
+        "procedimento",
+        "pos_operatorio",
+        "relacionamento",
+      ],
       chamado_etapa: [
         "triagem",
         "atendimento",
