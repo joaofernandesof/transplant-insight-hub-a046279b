@@ -88,22 +88,22 @@ html {
     --neocare-gradient: linear-gradient(135deg, hsl(152 69% 40%), hsl(152 60% 50%));
 
     /* Avivar Theme - Purple/Violet - Light Mode */
-    --avivar-background: 250 25% 97%;
-    --avivar-foreground: 260 30% 15%;
+    --avivar-background: 250 20% 97%;
+    --avivar-foreground: 260 40% 12%;
     --avivar-card: 0 0% 100%;
-    --avivar-card-foreground: 260 30% 15%;
-    --avivar-primary: 270 65% 50%;
+    --avivar-card-foreground: 260 40% 12%;
+    --avivar-primary: 270 70% 45%;
     --avivar-primary-foreground: 0 0% 100%;
-    --avivar-secondary: 265 30% 92%;
-    --avivar-secondary-foreground: 260 30% 20%;
-    --avivar-muted: 265 20% 94%;
-    --avivar-muted-foreground: 260 15% 45%;
-    --avivar-accent: 280 70% 55%;
+    --avivar-secondary: 265 35% 90%;
+    --avivar-secondary-foreground: 260 40% 15%;
+    --avivar-muted: 265 25% 92%;
+    --avivar-muted-foreground: 260 20% 40%;
+    --avivar-accent: 280 75% 50%;
     --avivar-accent-foreground: 0 0% 100%;
-    --avivar-border: 265 20% 88%;
-    --avivar-input: 265 20% 90%;
-    --avivar-gradient: linear-gradient(135deg, hsl(270 65% 50%), hsl(280 70% 55%));
-    --avivar-gradient-subtle: linear-gradient(135deg, hsl(270 65% 50% / 0.1), hsl(280 70% 55% / 0.1));
+    --avivar-border: 265 25% 85%;
+    --avivar-input: 265 25% 88%;
+    --avivar-gradient: linear-gradient(135deg, hsl(270 75% 45%), hsl(280 80% 50%));
+    --avivar-gradient-subtle: linear-gradient(135deg, hsl(270 75% 45% / 0.15), hsl(280 80% 50% / 0.15));
   }
 
   .dark {
