@@ -1,28 +1,74 @@
 /**
  * Droppable column wrapper for Kanban columns using @dnd-kit
+ * Updated with compact card design
  */
 
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PatientJourney, StageConfig } from '../types';
-import { DraggableJourneyCard } from './DraggableJourneyCard';
+import { CompactJourneyCard } from './CompactJourneyCard';
 
 interface DroppableColumnProps {
   column: StageConfig & { items: PatientJourney[] };
-  onUpdate: (journeyId: string, updates: Partial<PatientJourney>) => void;
-  onAdvance: (journey: PatientJourney) => void;
   onSelect: (journey: PatientJourney) => void;
   isOver?: boolean;
 }
 
+// Draggable wrapper for compact card
+function DraggableCompactCard({ 
+  journey, 
+  onSelect 
+}: { 
+  journey: PatientJourney; 
+  onSelect: () => void; 
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ 
+    id: journey.id,
+    data: {
+      type: 'journey',
+      journey
+    }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "touch-none",
+        isDragging && "opacity-50 z-50"
+      )}
+      {...attributes}
+      {...listeners}
+    >
+      <CompactJourneyCard
+        journey={journey}
+        onSelect={onSelect}
+      />
+    </div>
+  );
+}
+
 export function DroppableColumn({
   column,
-  onUpdate,
-  onAdvance,
   onSelect,
   isOver
 }: DroppableColumnProps) {
@@ -37,7 +83,7 @@ export function DroppableColumn({
   const itemIds = column.items.map(item => item.id);
 
   return (
-    <div className="flex-shrink-0 w-[240px] lg:w-[260px]">
+    <div className="flex-shrink-0 w-[240px] lg:w-[280px]">
       <Card className={cn(
         "border-[hsl(var(--avivar-border))] shadow-sm overflow-hidden transition-all duration-200",
         isOver && "ring-2 ring-[hsl(var(--avivar-primary))] ring-offset-2"
@@ -69,15 +115,12 @@ export function DroppableColumn({
                 <span>{isOver ? "Solte aqui" : "Nenhum paciente"}</span>
               </div>
             ) : (
-              <ScrollArea className="h-[400px]">
+              <ScrollArea className="h-[450px]">
                 <div className="space-y-2 pr-2">
                   {column.items.map(journey => (
-                    <DraggableJourneyCard
+                    <DraggableCompactCard
                       key={journey.id}
                       journey={journey}
-                      stageConfig={column}
-                      onUpdate={(updates) => onUpdate(journey.id, updates)}
-                      onAdvance={() => onAdvance(journey)}
                       onSelect={() => onSelect(journey)}
                     />
                   ))}
