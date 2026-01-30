@@ -1,48 +1,34 @@
 /**
  * AdminHome - Dashboard principal do Portal Administrativo
- * Visão consolidada de todos os portais do ecossistema
+ * Visão consolidada de métricas e acesso aos portais do ecossistema
  */
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import NotificationDialog from '@/components/NotificationDialog';
 import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import {
   Users,
   Activity,
-  DollarSign,
-  BookOpen,
-  Award,
-  Eye,
   Loader2,
   Shield,
-  CheckCircle,
   Send,
-  ChevronRight,
-  Settings,
-  BarChart3,
   GraduationCap,
   Heart,
   Stethoscope,
-  TrendingUp,
   Zap,
   Scale,
   CreditCard,
-  Calendar,
-  Flame,
+  Eye,
+  Award,
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
-import { format, subDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { subDays } from 'date-fns';
 import { SystemAlertsWidget } from '@/components/admin/SystemAlertsWidget';
 import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
-import { PortalBanner } from '@/components/shared/PortalBanner';
 
 interface SystemStats {
   totalUsers: number;
@@ -51,18 +37,8 @@ interface SystemStats {
   totalStudents: number;
   totalPatients: number;
   totalCollaborators: number;
-  totalCourses: number;
-  totalEnrollments: number;
-  completedEnrollments: number;
   onlineUsers: number;
   weeklyActiveUsers: number;
-}
-
-interface UserPresence {
-  name: string;
-  avatar_url: string | null;
-  last_seen_at: string;
-  status: string;
 }
 
 // Portais do ecossistema
@@ -78,16 +54,6 @@ const portals = [
   { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay', description: 'Gateway pagamentos' },
 ];
 
-// Módulos rápidos
-const quickModules = [
-  { id: 'surgery', title: 'Agenda Cirurgias', icon: Calendar, path: '/admin/surgery-schedule', color: 'bg-rose-500' },
-  { id: 'hotleads', title: 'HotLeads', icon: Flame, path: '/avivar/hotleads', color: 'bg-orange-500' },
-  { id: 'results', title: 'Resultados', icon: BarChart3, path: '/consolidated-results', color: 'bg-indigo-500' },
-  { id: 'users', title: 'Usuários', icon: Users, path: '/admin', color: 'bg-blue-500' },
-  { id: 'exams', title: 'Provas', icon: BookOpen, path: '/academy/exams', color: 'bg-purple-500' },
-  { id: 'materials', title: 'Materiais', icon: BookOpen, path: '/neolicense/materials', color: 'bg-teal-500' },
-];
-
 export default function AdminHome() {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
@@ -100,104 +66,62 @@ export default function AdminHome() {
     totalStudents: 0,
     totalPatients: 0,
     totalCollaborators: 0,
-    totalCourses: 0,
-    totalEnrollments: 0,
-    completedEnrollments: 0,
     onlineUsers: 0,
     weeklyActiveUsers: 0,
   });
-  const [onlineUsers, setOnlineUsers] = useState<UserPresence[]>([]);
 
   useEffect(() => {
     if (!isAdmin) {
       navigate('/');
       return;
     }
-    fetchAllData();
+    fetchStats();
   }, [isAdmin]);
 
-  const fetchAllData = async () => {
+  const fetchStats = async () => {
     try {
-      await Promise.all([
-        fetchStats(),
-        fetchOnlineUsers()
+      const now = new Date();
+      const weekAgo = subDays(now, 7);
+      const fiveMinutesAgo = subDays(now, 1 / 288);
+
+      const [
+        neohubUsersRes,
+        profilesRes,
+        studentsRes,
+        patientsRes,
+        collaboratorsRes,
+        licensedRes,
+        onlineUsersRes,
+        weeklyActiveRes,
+      ] = await Promise.all([
+        supabase.from('neohub_users').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('profiles').select('status'),
+        supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'aluno').eq('is_active', true),
+        supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'paciente').eq('is_active', true),
+        supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'colaborador').eq('is_active', true),
+        supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'licenciado').eq('is_active', true),
+        supabase.from('neohub_users').select('id', { count: 'exact', head: true }).gte('last_seen_at', fiveMinutesAgo.toISOString()),
+        supabase.from('neohub_users').select('id', { count: 'exact', head: true }).gte('last_seen_at', weekAgo.toISOString()),
       ]);
+
+      const profiles = profilesRes.data || [];
+      const activeProfiles = profiles.filter(p => p.status === 'active').length;
+
+      setStats({
+        totalUsers: neohubUsersRes.count || 0,
+        activeUsers: activeProfiles,
+        totalLicensees: licensedRes.count || 0,
+        totalStudents: studentsRes.count || 0,
+        totalPatients: patientsRes.count || 0,
+        totalCollaborators: collaboratorsRes.count || 0,
+        onlineUsers: onlineUsersRes.count || 0,
+        weeklyActiveUsers: weeklyActiveRes.count || 0,
+      });
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching stats:', error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const fetchStats = async () => {
-    const now = new Date();
-    const weekAgo = subDays(now, 7);
-    const fiveMinutesAgo = subDays(now, 1 / 288);
-
-    const [
-      neohubUsersRes,
-      profilesRes,
-      studentsRes,
-      patientsRes,
-      collaboratorsRes,
-      licensedRes,
-      coursesRes,
-      enrollmentsRes,
-      completedEnrollmentsRes,
-      onlineUsersRes,
-      weeklyActiveRes,
-    ] = await Promise.all([
-      supabase.from('neohub_users').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      supabase.from('profiles').select('status'),
-      supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'aluno').eq('is_active', true),
-      supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'paciente').eq('is_active', true),
-      supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'colaborador').eq('is_active', true),
-      supabase.from('neohub_user_profiles').select('id', { count: 'exact', head: true }).eq('profile', 'licenciado').eq('is_active', true),
-      supabase.from('courses').select('id', { count: 'exact', head: true }),
-      supabase.from('user_course_enrollments').select('id', { count: 'exact', head: true }),
-      supabase.from('user_course_enrollments').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
-      supabase.from('neohub_users').select('id', { count: 'exact', head: true }).gte('last_seen_at', fiveMinutesAgo.toISOString()),
-      supabase.from('neohub_users').select('id', { count: 'exact', head: true }).gte('last_seen_at', weekAgo.toISOString()),
-    ]);
-
-    const profiles = profilesRes.data || [];
-    const activeProfiles = profiles.filter(p => p.status === 'active').length;
-
-    setStats({
-      totalUsers: neohubUsersRes.count || 0,
-      activeUsers: activeProfiles,
-      totalLicensees: licensedRes.count || 0,
-      totalStudents: studentsRes.count || 0,
-      totalPatients: patientsRes.count || 0,
-      totalCollaborators: collaboratorsRes.count || 0,
-      totalCourses: coursesRes.count || 0,
-      totalEnrollments: enrollmentsRes.count || 0,
-      completedEnrollments: completedEnrollmentsRes.count || 0,
-      onlineUsers: onlineUsersRes.count || 0,
-      weeklyActiveUsers: weeklyActiveRes.count || 0,
-    });
-  };
-
-  const fetchOnlineUsers = async () => {
-    const fiveMinutesAgo = subDays(new Date(), 1 / 288);
-    
-    const { data } = await supabase
-      .from('neohub_users')
-      .select('full_name, avatar_url, last_seen_at')
-      .gte('last_seen_at', fiveMinutesAgo.toISOString())
-      .order('last_seen_at', { ascending: false })
-      .limit(10);
-
-    setOnlineUsers((data || []).map(u => ({
-      name: u.full_name,
-      avatar_url: u.avatar_url,
-      last_seen_at: u.last_seen_at,
-      status: 'online'
-    })));
-  };
-
-  const getInitials = (name: string) => {
-    return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
   };
 
   if (isLoading) {
@@ -265,7 +189,7 @@ export default function AdminHome() {
         </div>
       </div>
 
-      {/* Stats Row */}
+      {/* Stats Row - Métricas do Sistema */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-blue-600 rounded-l-xl" />
@@ -325,71 +249,10 @@ export default function AdminHome() {
         </div>
       </div>
 
-      {/* Quick Access Modules */}
-      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Zap className="h-4 w-4 text-blue-400" />
-          <h3 className="text-sm font-semibold text-white">Acesso Rápido</h3>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-          {quickModules.map((mod) => (
-            <button
-              key={mod.id}
-              onClick={() => navigate(mod.path)}
-              className="group flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all bg-slate-800/30"
-            >
-              <div className={`p-3 rounded-xl ${mod.color} text-white shadow-md`}>
-                <mod.icon className="h-6 w-6" />
-              </div>
-              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{mod.title}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Alertas do Sistema */}
+      <SystemAlertsWidget />
 
-      {/* Usuários Online + Alertas */}
-      <div className="grid lg:grid-cols-2 gap-4">
-        {/* Online Users */}
-        <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="h-4 w-4 text-green-400" />
-            <h3 className="text-sm font-semibold text-white">Usuários Online</h3>
-            <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300">
-              {onlineUsers.length}
-            </span>
-          </div>
-          {onlineUsers.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">
-              Nenhum usuário online no momento
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {onlineUsers.slice(0, 5).map((u, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-700/30 transition-colors">
-                  <div className="relative">
-                    <Avatar className="h-8 w-8 border border-slate-600">
-                      <AvatarImage src={u.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs bg-slate-700 text-slate-300">{getInitials(u.name)}</AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-slate-800" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{u.name}</p>
-                    <p className="text-xs text-slate-400">
-                      Visto há {format(new Date(u.last_seen_at), 'mm', { locale: ptBR })} min
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* System Alerts */}
-        <SystemAlertsWidget />
-      </div>
-
-      {/* Trend Charts */}
+      {/* Gráficos de Tendência */}
       <AdminTrendCharts />
     </div>
   );
