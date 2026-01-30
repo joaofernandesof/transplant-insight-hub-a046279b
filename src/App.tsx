@@ -153,6 +153,8 @@ const AvivarConfigWizard = lazy(() => import("./pages/avivar/config/AvivarConfig
 const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge"));
 const AvivarTestChat = lazy(() => import("./pages/avivar/config/AvivarTestChat"));
 const AvivarPromptPreview = lazy(() => import("./pages/avivar/config/AvivarPromptPreview"));
+const AvivarComercialPage = lazy(() => import("./pages/avivar/AvivarComercialPage"));
+const AvivarPosVendaPage = lazy(() => import("./pages/avivar/AvivarPosVendaPage"));
 
 // ====================================
 // Pages - Vision (Diagnóstico Capilar IA)
@@ -519,6 +521,8 @@ function AvivarRoutes() {
           <Routes>
             <Route index element={<AvivarDashboard />} />
             <Route path="dashboard" element={<AvivarDashboard />} />
+            <Route path="comercial" element={<AvivarComercialPage />} />
+            <Route path="posvenda" element={<AvivarPosVendaPage />} />
             <Route path="pipeline" element={<AvivarPipeline />} />
             <Route path="inbox" element={<AvivarInbox />} />
             <Route path="tasks" element={<AvivarTasks />} />

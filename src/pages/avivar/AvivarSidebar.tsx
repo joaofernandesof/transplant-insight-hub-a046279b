@@ -25,6 +25,8 @@ import {
   RefreshCw,
   Package,
   Activity,
+  Briefcase,
+  HeartPulse,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -35,14 +37,17 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/avivar' },
-  { id: 'pipeline', label: 'Pipeline (Kanban)', icon: Kanban, href: '/avivar/pipeline' },
+  { id: 'comercial', label: 'Kanban Comercial', icon: Briefcase, href: '/avivar/comercial', isHighlight: true },
+  { id: 'posvenda', label: 'Kanban Pós-Venda', icon: HeartPulse, href: '/avivar/posvenda', isHighlight: true },
+  { id: 'pipeline', label: 'Pipeline Legado', icon: Kanban, href: '/avivar/pipeline' },
+  { id: 'divider0', label: '', icon: null, href: '', isDivider: true },
   { id: 'inbox', label: 'Caixa de Entrada', icon: MessageSquare, href: '/avivar/inbox', badge: '5' },
   { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: '3' },
   { id: 'leads', label: 'Leads', icon: Users, href: '/avivar/leads' },
   { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup', badge: '12' },
   { id: 'catalog', label: 'Catálogo', icon: Package, href: '/avivar/catalog' },
   { id: 'divider1', label: '', icon: null, href: '', isDivider: true },
-  { id: 'config', label: 'Configurar IA', icon: Sparkles, href: '/avivar/config', isHighlight: true },
+  { id: 'config', label: 'Configurar IA', icon: Sparkles, href: '/avivar/config' },
   { id: 'divider1b', label: '', icon: null, href: '', isDivider: true },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/avivar/analytics' },
   { id: 'productivity', label: 'Produtividade', icon: Activity, href: '/avivar/productivity' },
