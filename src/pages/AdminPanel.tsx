@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { AdminLayout } from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { useModulePermissions, ACCESS_PROFILES as HOOK_ACCESS_PROFILES } from '@/hooks/useModulePermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -454,17 +453,14 @@ export default function AdminPanel() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AdminLayout>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
-      <div className="p-6 lg:p-8 overflow-x-hidden w-full">
+    <div className="p-6 lg:p-8 overflow-x-hidden w-full bg-gradient-to-b from-slate-900 to-slate-950 min-h-screen">
         <div className="flex items-center gap-3 mb-6">
           <Settings className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold text-foreground">Configurações do Sistema</h1>
@@ -1034,6 +1030,5 @@ export default function AdminPanel() {
           </DialogContent>
         </Dialog>
       </div>
-    </AdminLayout>
   );
 }

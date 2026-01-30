@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ModuleLayout } from '@/components/ModuleLayout';
+import { GlobalBreadcrumb } from '@/components/GlobalBreadcrumb';
 import { useSystemMetrics, formatDurationShort } from '@/hooks/useSystemMetrics';
 import { queryClient, CACHE_TIMES } from '@/lib/queryClient';
 import { MetricHistoryCharts } from '@/components/MetricHistoryCharts';
@@ -79,32 +79,32 @@ export default function SystemMetrics() {
 
   if (isLoading && !metrics) {
     return (
-      <ModuleLayout>
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
         <div className="p-4 pt-16 lg:pt-4 lg:p-6 flex items-center justify-center min-h-[50vh]">
           <div className="flex flex-col items-center gap-3">
-            <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Carregando métricas...</p>
+            <RefreshCw className="h-8 w-8 animate-spin text-blue-400" />
+            <p className="text-slate-400">Carregando métricas...</p>
           </div>
         </div>
-      </ModuleLayout>
+      </div>
     );
   }
 
   if (!metrics) {
     return (
-      <ModuleLayout>
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
         <div className="p-4 pt-16 lg:pt-4 lg:p-6">
-          <p className="text-muted-foreground">Sem permissão para acessar métricas do sistema.</p>
+          <p className="text-slate-400">Sem permissão para acessar métricas do sistema.</p>
         </div>
-      </ModuleLayout>
+      </div>
     );
   }
 
   const totalRows = Object.values(metrics.database.totalRows).reduce((a, b) => a + b, 0);
 
   return (
-    <ModuleLayout>
-      <div className="p-4 pt-16 lg:pt-4 lg:p-6 overflow-x-hidden w-full space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
+      <div className="p-4 pt-6 lg:p-6 overflow-x-hidden w-full space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -540,6 +540,6 @@ export default function SystemMetrics() {
           </TabsContent>
         </Tabs>
       </div>
-    </ModuleLayout>
+    </div>
   );
 }

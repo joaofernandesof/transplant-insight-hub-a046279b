@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { ModuleLayout } from "@/components/ModuleLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -112,7 +111,7 @@ export default function AccessMatrix() {
   };
 
   return (
-    <ModuleLayout>
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
         <div className="px-4 py-4">
@@ -333,6 +332,6 @@ export default function AccessMatrix() {
           getModulesByPortal={getModulesByPortal}
         />
       )}
-    </ModuleLayout>
+    </div>
   );
 }
