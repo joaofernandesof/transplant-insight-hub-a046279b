@@ -1,13 +1,12 @@
 /**
  * CrmInbox - Interface principal de chat do Avivar
- * Layout: Lista de conversas | Detalhes do lead | Histórico de mensagens
+ * Layout 3 colunas: Lista de conversas | Detalhes do lead | Chat
  */
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { MessageCircle, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useCrmConversations } from '@/hooks/useCrmConversations';
 
 // Componentes focados
@@ -19,7 +18,6 @@ import { ChatHeader } from './chat/ChatHeader';
 
 export function CrmInbox() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [showLeadDetails, setShowLeadDetails] = useState(true);
 
   const {
     conversations,
@@ -74,8 +72,8 @@ export function CrmInbox() {
     <div className="h-[calc(100vh-12rem)] flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
       {/* Coluna 1: Lista de Conversas */}
       <div className={cn(
-        "w-full md:w-[350px] shrink-0 border-r border-[hsl(var(--avivar-border))]",
-        selectedConversation && "hidden md:block"
+        "w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col",
+        selectedConversation && "hidden md:flex"
       )}>
         <ConversationList
           conversations={conversations}
@@ -85,9 +83,14 @@ export function CrmInbox() {
         />
       </div>
 
-      {/* Coluna 2: Painel de Chat */}
       {selectedConversation && currentConversation ? (
         <>
+          {/* Coluna 2: Detalhes do Lead */}
+          <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col overflow-hidden">
+            <LeadDetailsSidebar conversation={currentConversation} />
+          </div>
+
+          {/* Coluna 3: Chat */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Header do chat */}
             <ChatHeader
@@ -96,28 +99,6 @@ export function CrmInbox() {
               onBack={() => setSelectedConversation(null)}
               showBackButton
             />
-
-            {/* Toggle para mostrar/ocultar detalhes do lead */}
-            <div className="flex items-center justify-end px-2 py-1 border-b border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))]">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowLeadDetails(!showLeadDetails)}
-                className="text-xs text-[hsl(var(--avivar-muted-foreground))] gap-1"
-              >
-                {showLeadDetails ? (
-                  <>
-                    <PanelLeftClose className="h-4 w-4" />
-                    Ocultar detalhes
-                  </>
-                ) : (
-                  <>
-                    <PanelLeft className="h-4 w-4" />
-                    Mostrar detalhes
-                  </>
-                )}
-              </Button>
-            </div>
 
             {/* Área de mensagens */}
             <MessageThread
@@ -132,13 +113,6 @@ export function CrmInbox() {
               placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
             />
           </div>
-
-          {/* Coluna 3: Detalhes do Lead (sidebar direita) */}
-          {showLeadDetails && (
-            <div className="hidden lg:block w-[300px] shrink-0">
-              <LeadDetailsSidebar conversation={currentConversation} />
-            </div>
-          )}
         </>
       ) : (
         /* Estado sem conversa selecionada */
