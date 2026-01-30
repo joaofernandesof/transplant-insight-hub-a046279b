@@ -153,6 +153,7 @@ const AvivarConfigWizard = lazy(() => import("./pages/avivar/config/AvivarConfig
 const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge"));
 const AvivarTestChat = lazy(() => import("./pages/avivar/config/AvivarTestChat"));
 const AvivarPromptPreview = lazy(() => import("./pages/avivar/config/AvivarPromptPreview"));
+const AvivarAgentTestPage = lazy(() => import("./pages/avivar/config/AvivarAgentTestPage"));
 const AvivarComercialPage = lazy(() => import("./pages/avivar/AvivarComercialPage"));
 const AvivarPosVendaPage = lazy(() => import("./pages/avivar/AvivarPosVendaPage"));
 const AvivarCadencesPage = lazy(() => import("./pages/avivar/AvivarCadencesPage"));
