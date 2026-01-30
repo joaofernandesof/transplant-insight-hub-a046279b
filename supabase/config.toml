@@ -48,3 +48,6 @@ verify_jwt = false
 
 [functions.send-referral-welcome]
 verify_jwt = false
+
+[functions.avivar-chat-test]
+verify_jwt = false

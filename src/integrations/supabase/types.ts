@@ -223,6 +223,134 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_agent_configs: {
+        Row: {
+          address: string | null
+          approved_at: string | null
+          attendant_name: string
+          before_after_images: Json | null
+          calendar_connected: boolean | null
+          calendar_email: string | null
+          city: string | null
+          company_name: string
+          consultation_duration: number | null
+          consultation_type: Json | null
+          created_at: string
+          crm: string | null
+          id: string
+          instagram: string | null
+          is_approved: boolean | null
+          is_complete: boolean | null
+          openai_api_key_hash: string | null
+          payment_methods: Json | null
+          professional_name: string
+          schedule: Json
+          services: Json | null
+          state: string | null
+          template: string
+          tone_of_voice: string | null
+          transfer_message: string | null
+          updated_at: string
+          user_id: string
+          welcome_message: string | null
+        }
+        Insert: {
+          address?: string | null
+          approved_at?: string | null
+          attendant_name: string
+          before_after_images?: Json | null
+          calendar_connected?: boolean | null
+          calendar_email?: string | null
+          city?: string | null
+          company_name: string
+          consultation_duration?: number | null
+          consultation_type?: Json | null
+          created_at?: string
+          crm?: string | null
+          id?: string
+          instagram?: string | null
+          is_approved?: boolean | null
+          is_complete?: boolean | null
+          openai_api_key_hash?: string | null
+          payment_methods?: Json | null
+          professional_name: string
+          schedule: Json
+          services?: Json | null
+          state?: string | null
+          template: string
+          tone_of_voice?: string | null
+          transfer_message?: string | null
+          updated_at?: string
+          user_id: string
+          welcome_message?: string | null
+        }
+        Update: {
+          address?: string | null
+          approved_at?: string | null
+          attendant_name?: string
+          before_after_images?: Json | null
+          calendar_connected?: boolean | null
+          calendar_email?: string | null
+          city?: string | null
+          company_name?: string
+          consultation_duration?: number | null
+          consultation_type?: Json | null
+          created_at?: string
+          crm?: string | null
+          id?: string
+          instagram?: string | null
+          is_approved?: boolean | null
+          is_complete?: boolean | null
+          openai_api_key_hash?: string | null
+          payment_methods?: Json | null
+          professional_name?: string
+          schedule?: Json
+          services?: Json | null
+          state?: string | null
+          template?: string
+          tone_of_voice?: string | null
+          transfer_message?: string | null
+          updated_at?: string
+          user_id?: string
+          welcome_message?: string | null
+        }
+        Relationships: []
+      }
+      avivar_agent_prompts: {
+        Row: {
+          agent_config_id: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          prompt_content: string
+          version: number | null
+        }
+        Insert: {
+          agent_config_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          prompt_content: string
+          version?: number | null
+        }
+        Update: {
+          agent_config_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          prompt_content?: string
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_agent_prompts_agent_config_id_fkey"
+            columns: ["agent_config_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_agent_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_cadence_executions: {
         Row: {
           completed_at: string | null
@@ -426,6 +554,83 @@ export type Database = {
           },
         ]
       }
+      avivar_knowledge_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          document_id: string
+          embedding_json: string | null
+          id: string
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          document_id: string
+          embedding_json?: string | null
+          id?: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          document_id?: string
+          embedding_json?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_knowledge_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_knowledge_documents: {
+        Row: {
+          chunk_size: number | null
+          chunks_count: number | null
+          content: string
+          content_type: string | null
+          created_at: string
+          file_size: number | null
+          id: string
+          name: string
+          original_filename: string | null
+          overlap: number | null
+          user_id: string
+        }
+        Insert: {
+          chunk_size?: number | null
+          chunks_count?: number | null
+          content: string
+          content_type?: string | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          name: string
+          original_filename?: string | null
+          overlap?: number | null
+          user_id: string
+        }
+        Update: {
+          chunk_size?: number | null
+          chunks_count?: number | null
+          content?: string
+          content_type?: string | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          name?: string
+          original_filename?: string | null
+          overlap?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       avivar_patient_journeys: {
         Row: {
           assigned_to: string | null
@@ -607,6 +812,44 @@ export type Database = {
             columns: ["journey_id"]
             isOneToOne: false
             referencedRelation: "avivar_patient_journeys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_test_conversations: {
+        Row: {
+          agent_config_id: string
+          created_at: string
+          id: string
+          messages: Json | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_config_id: string
+          created_at?: string
+          id?: string
+          messages?: Json | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_config_id?: string
+          created_at?: string
+          id?: string
+          messages?: Json | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_test_conversations_agent_config_id_fkey"
+            columns: ["agent_config_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_agent_configs"
             referencedColumns: ["id"]
           },
         ]

@@ -540,6 +540,7 @@ function AvivarRoutes() {
             <Route path="config" element={<AvivarConfigWizard />} />
             <Route path="config/knowledge" element={<AvivarKnowledge />} />
             <Route path="config/test" element={<AvivarTestChat />} />
+            <Route path="config/agent-test" element={<AvivarAgentTestPage />} />
             <Route path="config/preview" element={<AvivarPromptPreview />} />
             <Route path="settings" element={<AvivarSettings />} />
             <Route path="profile" element={<Profile />} />
