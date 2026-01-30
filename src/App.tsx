@@ -108,6 +108,34 @@ const IpromedPushJuridico = lazy(() => import("./pages/ipromed/IpromedPushJuridi
 const IpromedLayout = lazy(() => import("./pages/ipromed/components/IpromedLayout"));
 
 // ====================================
+// Pages - NeoPay (Gateway de Pagamentos)
+// ====================================
+const NeoPayDashboard = lazy(() => import("./pages/neopay/NeoPayDashboard"));
+const NeoPayProducts = lazy(() => import("./pages/neopay/NeoPayProducts"));
+const NeoPayCharges = lazy(() => import("./pages/neopay/NeoPayCharges"));
+const NeoPayTransactions = lazy(() => import("./pages/neopay/NeoPayTransactions"));
+const NeoPaySplit = lazy(() => import("./pages/neopay/NeoPaySplit"));
+const NeoPaySubscriptions = lazy(() => import("./pages/neopay/NeoPaySubscriptions"));
+const NeoPayDelinquency = lazy(() => import("./pages/neopay/NeoPayDelinquency"));
+const NeoPayRefunds = lazy(() => import("./pages/neopay/NeoPayRefunds"));
+const NeoPayChargebacks = lazy(() => import("./pages/neopay/NeoPayChargebacks"));
+const NeoPayAutomations = lazy(() => import("./pages/neopay/NeoPayAutomations"));
+const NeoPaySettings = lazy(() => import("./pages/neopay/NeoPaySettings"));
+const NeoPaySidebar = lazy(() => import("./pages/neopay/components/NeoPaySidebar"));
+
+// ====================================
+// Pages - NeoCRM (CRM de Vendas)
+// ====================================
+const NeoCrmDashboard = lazy(() => import("./pages/neocrm/NeoCrmDashboard"));
+const NeoCrmPipeline = lazy(() => import("./pages/neocrm/NeoCrmPipeline"));
+const NeoCrmInbox = lazy(() => import("./pages/neocrm/NeoCrmInbox"));
+const NeoCrmTasks = lazy(() => import("./pages/neocrm/NeoCrmTasks"));
+const NeoCrmLeads = lazy(() => import("./pages/neocrm/NeoCrmLeads"));
+const NeoCrmAnalytics = lazy(() => import("./pages/neocrm/NeoCrmAnalytics"));
+const NeoCrmSettings = lazy(() => import("./pages/neocrm/NeoCrmSettings"));
+const NeoCrmSidebar = lazy(() => import("./pages/neocrm/components/NeoCrmSidebar"));
+
+// ====================================
 // Pages - Vision (Diagnóstico Capilar IA)
 // ====================================
 const VisionHome = lazy(() => import("./pages/vision/VisionHome"));
@@ -632,6 +660,32 @@ function AppRoutes() {
       <Route path="/vision/*" element={<ProtectedRoute><LazyRoute><VisionHome /></LazyRoute></ProtectedRoute>} />
       {/* Legacy redirect */}
       <Route path="/neohairscan" element={<Navigate to="/vision" replace />} />
+
+      {/* ====================================
+          NeoPay - Gateway de Pagamentos
+          ==================================== */}
+      <Route path="/neopay" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayDashboard /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/products" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayProducts /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/charges" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayCharges /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/transactions" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayTransactions /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/split" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPaySplit /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/subscriptions" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPaySubscriptions /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/delinquency" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayDelinquency /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/refunds" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayRefunds /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/chargebacks" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayChargebacks /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/automations" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPayAutomations /></NeoPaySidebar></Suspense></AdminRoute>} />
+      <Route path="/neopay/settings" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoPaySidebar><NeoPaySettings /></NeoPaySidebar></Suspense></AdminRoute>} />
+
+      {/* ====================================
+          NeoCRM - CRM de Vendas
+          ==================================== */}
+      <Route path="/neocrm" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmDashboard /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neocrm/pipeline" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmPipeline /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neocrm/inbox" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmInbox /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neocrm/tasks" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmTasks /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neocrm/leads" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmLeads /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neocrm/analytics" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmAnalytics /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
+      <Route path="/neocrm/settings" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmSettings /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
       
       {/* ====================================
           Marketplace
