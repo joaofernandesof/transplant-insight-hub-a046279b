@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Users, Calendar, DollarSign, Package, TrendingUp, 
   Activity, AlertTriangle, CheckCircle2, Clock, ArrowRight,
-  Stethoscope, UserPlus, GraduationCap
+  Stethoscope, UserPlus, GraduationCap, CreditCard, Target
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../../contexts/PortalAuthContext';
@@ -64,6 +64,49 @@ export default function PortalAdminDashboard() {
           <ArrowRight className="h-5 w-5 text-muted-foreground" />
         </CardContent>
       </Card>
+
+      {/* Portais Financeiro e CRM */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card 
+          className="cursor-pointer border-2 border-emerald-500/30 bg-gradient-to-r from-emerald-500/5 to-green-500/10 hover:border-emerald-500/50 transition-all"
+          onClick={() => navigate('/neopay')}
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+                <CreditCard className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">NeoPay</h3>
+                <p className="text-sm text-muted-foreground">
+                  Gateway de pagamentos, split e cobranças
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="cursor-pointer border-2 border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-red-500/10 hover:border-orange-500/50 transition-all"
+          onClick={() => navigate('/neocrm')}
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
+                <Target className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">NeoCRM</h3>
+                <p className="text-sm text-muted-foreground">
+                  Gestão de vendas, leads e pipeline comercial
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Main Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
