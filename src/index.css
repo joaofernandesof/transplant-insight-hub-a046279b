@@ -152,21 +152,21 @@ html {
 
     /* Avivar Theme - Purple/Violet - Dark Mode */
     --avivar-background: 260 30% 6%;
-    --avivar-foreground: 260 15% 95%;
+    --avivar-foreground: 0 0% 98%;
     --avivar-card: 260 25% 10%;
-    --avivar-card-foreground: 260 15% 95%;
-    --avivar-primary: 270 70% 60%;
-    --avivar-primary-foreground: 260 30% 6%;
-    --avivar-secondary: 265 25% 15%;
-    --avivar-secondary-foreground: 260 15% 90%;
-    --avivar-muted: 265 25% 14%;
-    --avivar-muted-foreground: 260 15% 60%;
-    --avivar-accent: 280 75% 60%;
-    --avivar-accent-foreground: 260 30% 6%;
-    --avivar-border: 265 25% 18%;
-    --avivar-input: 265 25% 18%;
-    --avivar-gradient: linear-gradient(135deg, hsl(270 70% 60%), hsl(280 75% 65%));
-    --avivar-gradient-subtle: linear-gradient(135deg, hsl(270 70% 60% / 0.15), hsl(280 75% 65% / 0.15));
+    --avivar-card-foreground: 0 0% 98%;
+    --avivar-primary: 270 70% 65%;
+    --avivar-primary-foreground: 0 0% 100%;
+    --avivar-secondary: 265 25% 18%;
+    --avivar-secondary-foreground: 0 0% 95%;
+    --avivar-muted: 265 25% 16%;
+    --avivar-muted-foreground: 260 20% 75%;
+    --avivar-accent: 280 75% 65%;
+    --avivar-accent-foreground: 0 0% 100%;
+    --avivar-border: 265 25% 22%;
+    --avivar-input: 265 25% 20%;
+    --avivar-gradient: linear-gradient(135deg, hsl(270 70% 65%), hsl(280 75% 70%));
+    --avivar-gradient-subtle: linear-gradient(135deg, hsl(270 70% 65% / 0.2), hsl(280 75% 70% / 0.2));
   }
 
 }
