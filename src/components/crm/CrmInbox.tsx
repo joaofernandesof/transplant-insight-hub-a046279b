@@ -1,11 +1,12 @@
 /**
  * CrmInbox - Interface principal de chat do Avivar
  * Layout 3 colunas: Lista de conversas | Detalhes do lead | Chat
+ * Suporta initialLeadId para abrir conversa de um lead específico
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useCrmConversations } from '@/hooks/useCrmConversations';
 
@@ -16,8 +17,13 @@ import { MessageThread } from './chat/MessageThread';
 import { MessageInput } from './chat/MessageInput';
 import { ChatHeader } from './chat/ChatHeader';
 
-export function CrmInbox() {
+interface CrmInboxProps {
+  initialLeadId?: string;
+}
+
+export function CrmInbox({ initialLeadId }: CrmInboxProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(!!initialLeadId);
 
   const {
     conversations,
@@ -26,9 +32,37 @@ export function CrmInbox() {
     isLoadingMessages,
     sendMessage,
     updateConversationStatus,
+    createConversation,
   } = useCrmConversations(selectedConversation || undefined);
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
+
+  // Auto-select or create conversation when initialLeadId is provided
+  useEffect(() => {
+    if (!initialLeadId || isLoadingConversations) return;
+
+    // Find existing conversation for this lead
+    const existingConversation = conversations.find(c => c.lead_id === initialLeadId);
+    
+    if (existingConversation) {
+      setSelectedConversation(existingConversation.id);
+      setIsInitializing(false);
+    } else if (isInitializing) {
+      // Create new conversation for this lead
+      createConversation.mutate(
+        { leadId: initialLeadId, channel: 'whatsapp' },
+        {
+          onSuccess: (data) => {
+            setSelectedConversation(data.id);
+            setIsInitializing(false);
+          },
+          onError: () => {
+            setIsInitializing(false);
+          }
+        }
+      );
+    }
+  }, [initialLeadId, conversations, isLoadingConversations, isInitializing, createConversation]);
 
   const handleSendMessage = (content: string) => {
     if (!selectedConversation) return;
@@ -48,10 +82,22 @@ export function CrmInbox() {
     });
   };
 
-  // Estado vazio - sem conversas
-  if (!isLoadingConversations && conversations.length === 0) {
+  // Estado de loading inicial (quando vem do Kanban)
+  if (isInitializing || isLoadingConversations) {
     return (
-      <Card className="flex flex-col items-center justify-center p-8 text-center h-[calc(100vh-12rem)] bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+      <Card className="flex flex-col items-center justify-center p-8 text-center h-full bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <Loader2 className="h-12 w-12 text-[hsl(var(--avivar-primary))] animate-spin mb-4" />
+        <p className="text-[hsl(var(--avivar-muted-foreground))]">
+          {initialLeadId ? 'Abrindo conversa do lead...' : 'Carregando conversas...'}
+        </p>
+      </Card>
+    );
+  }
+
+  // Estado vazio - sem conversas
+  if (conversations.length === 0 && !initialLeadId) {
+    return (
+      <Card className="flex flex-col items-center justify-center p-8 text-center h-full bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
         <div className="w-20 h-20 rounded-full bg-[hsl(var(--avivar-primary)/0.1)] flex items-center justify-center mb-6">
           <MessageCircle className="h-10 w-10 text-[hsl(var(--avivar-primary))]" />
         </div>
@@ -69,7 +115,7 @@ export function CrmInbox() {
   }
 
   return (
-    <div className="h-[calc(100vh-12rem)] flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
+    <div className="h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
       {/* Coluna 1: Lista de Conversas */}
       <div className={cn(
         "w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col",
