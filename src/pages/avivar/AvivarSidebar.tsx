@@ -8,7 +8,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
-  Kanban,
   MessageSquare,
   ListTodo,
   Users,
@@ -39,7 +38,6 @@ const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/avivar' },
   { id: 'comercial', label: 'Kanban Comercial', icon: Briefcase, href: '/avivar/comercial', isHighlight: true },
   { id: 'posvenda', label: 'Kanban Pós-Venda', icon: HeartPulse, href: '/avivar/posvenda', isHighlight: true },
-  { id: 'pipeline', label: 'Pipeline Legado', icon: Kanban, href: '/avivar/pipeline' },
   { id: 'divider0', label: '', icon: null, href: '', isDivider: true },
   { id: 'inbox', label: 'Chats', icon: MessageSquare, href: '/avivar/inbox', badge: '5' },
   { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: '3' },
