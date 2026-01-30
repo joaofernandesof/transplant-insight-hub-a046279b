@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -21,11 +21,9 @@ import {
   Sparkles,
   Settings,
   Loader2,
-  CheckCircle2,
-  AlertCircle,
   Database
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { KnowledgeUpload } from './components/KnowledgeUpload';
 
 interface Document {
   id: string;
@@ -46,6 +44,10 @@ export default function AvivarKnowledge() {
   ]);
 
   const estimatedChunks = text ? Math.ceil(text.length / (chunkSize - overlap)) : 0;
+
+  const handleFileProcessed = (content: string, filename: string, fileSize: number) => {
+    setText(content);
+  };
 
   const handleProcess = async () => {
     if (!text) return;
@@ -106,15 +108,10 @@ export default function AvivarKnowledge() {
         <TabsContent value="upload">
           <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
             <CardContent className="p-6">
-              <div className="border-2 border-dashed border-[hsl(var(--avivar-border))] rounded-xl p-12 text-center hover:border-[hsl(var(--avivar-primary))] transition-colors cursor-pointer">
-                <Upload className="h-12 w-12 mx-auto text-[hsl(var(--avivar-muted-foreground))] mb-4" />
-                <p className="text-[hsl(var(--avivar-foreground))] font-medium">
-                  Arraste arquivo ou clique para selecionar
-                </p>
-                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] mt-2">
-                  Formatos: .txt, .md, .pdf | Máximo: 10MB
-                </p>
-              </div>
+              <KnowledgeUpload 
+                onFileProcessed={handleFileProcessed}
+                isProcessing={isProcessing}
+              />
             </CardContent>
           </Card>
         </TabsContent>
