@@ -31,6 +31,7 @@ import LandingPage from "./pages/LandingPage";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ReferralLanding from "./pages/ReferralLanding";
+import NeoHubSalesPage from "./pages/NeoHubSalesPage";
 import ApiDocs from "./pages/ApiDocs";
 import AuditReportExport from "./pages/AuditReportExport";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -591,6 +592,7 @@ function AppRoutes() {
       <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/public/dashboard/:token" element={<Suspense fallback={<div className="p-6 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}><PublicDashboardPage /></Suspense>} />
+      <Route path="/neohub" element={<NeoHubSalesPage />} />
 
       {/* ====================================
           Rotas Protegidas - Seleção de Perfil
