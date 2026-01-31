@@ -179,10 +179,6 @@ export interface AgentConfig {
   // Horários
   schedule: WeekSchedule;
   
-  // Google Calendar
-  calendarEmail: string;
-  calendarConnected: boolean;
-  
   // Personalização
   welcomeMessage: string;
   transferMessage: string;
@@ -384,8 +380,6 @@ export const INITIAL_CONFIG: AgentConfig = {
   consultationType: { presencial: true, online: false, domicilio: false },
   beforeAfterImages: [],
   schedule: DEFAULT_WEEK_SCHEDULE,
-  calendarEmail: '',
-  calendarConnected: false,
   welcomeMessage: '',
   transferMessage: '',
   toneOfVoice: 'cordial',
@@ -408,7 +402,6 @@ export const WIZARD_STEPS = [
   { id: 'payment', title: 'Pagamento', description: 'Formas de pagamento' },
   { id: 'images', title: 'Imagens', description: 'Fotos e portfólio' },
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
-  { id: 'calendar', title: 'Calendário', description: 'Google Calendar' },
   { id: 'personalization', title: 'Mensagens', description: 'Personalize mensagens' },
   { id: 'review', title: 'Revisão', description: 'Confirme as configurações' }
 ];

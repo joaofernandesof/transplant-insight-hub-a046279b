@@ -161,16 +161,6 @@ export function StepReview({ config, onEdit, onComplete }: StepReviewProps) {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
-                {config.calendarConnected ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Calendar className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-                )}
-                <span className="text-sm text-[hsl(var(--avivar-foreground))]">
-                  {config.calendarConnected ? 'Calendar ✓' : 'Calendar ✗'}
-                </span>
-              </div>
 
               <div className="flex items-center gap-2">
                 {config.openaiApiKeyValid ? (
