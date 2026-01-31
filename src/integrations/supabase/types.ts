@@ -351,6 +351,87 @@ export type Database = {
           },
         ]
       }
+      avivar_appointments: {
+        Row: {
+          appointment_date: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          confirmed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          created_by: string
+          end_time: string
+          id: string
+          lead_id: string | null
+          notes: string | null
+          patient_email: string | null
+          patient_name: string
+          patient_phone: string
+          service_type: string | null
+          start_time: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          created_by?: string
+          end_time: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          patient_email?: string | null
+          patient_name: string
+          patient_phone: string
+          service_type?: string | null
+          start_time: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          created_by?: string
+          end_time?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          patient_email?: string | null
+          patient_name?: string
+          patient_phone?: string
+          service_type?: string | null
+          start_time?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_appointments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "crm_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_appointments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_cadence_executions: {
         Row: {
           completed_at: string | null
@@ -878,6 +959,121 @@ export type Database = {
           welcome_sent?: boolean | null
         }
         Relationships: []
+      }
+      avivar_schedule_blocks: {
+        Row: {
+          block_date: string
+          created_at: string
+          end_time: string | null
+          id: string
+          reason: string | null
+          schedule_config_id: string
+          start_time: string | null
+        }
+        Insert: {
+          block_date: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          reason?: string | null
+          schedule_config_id: string
+          start_time?: string | null
+        }
+        Update: {
+          block_date?: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          reason?: string | null
+          schedule_config_id?: string
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_schedule_blocks_schedule_config_id_fkey"
+            columns: ["schedule_config_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_schedule_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_schedule_config: {
+        Row: {
+          advance_booking_days: number
+          buffer_between: number
+          consultation_duration: number
+          created_at: string
+          id: string
+          min_advance_hours: number
+          professional_name: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          advance_booking_days?: number
+          buffer_between?: number
+          consultation_duration?: number
+          created_at?: string
+          id?: string
+          min_advance_hours?: number
+          professional_name: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          advance_booking_days?: number
+          buffer_between?: number
+          consultation_duration?: number
+          created_at?: string
+          id?: string
+          min_advance_hours?: number
+          professional_name?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      avivar_schedule_hours: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_enabled: boolean
+          schedule_config_id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_enabled?: boolean
+          schedule_config_id: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_enabled?: boolean
+          schedule_config_id?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_schedule_hours_schedule_config_id_fkey"
+            columns: ["schedule_config_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_schedule_config"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_stage_history: {
         Row: {
@@ -13360,6 +13556,14 @@ export type Database = {
       }
       delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
       get_all_enrolled_user_ids: { Args: never; Returns: string[] }
+      get_available_slots: {
+        Args: { p_date: string; p_duration_minutes?: number; p_user_id: string }
+        Returns: {
+          is_available: boolean
+          slot_end: string
+          slot_start: string
+        }[]
+      }
       get_exam_results_with_answers: {
         Args: { p_attempt_id: string }
         Returns: {
