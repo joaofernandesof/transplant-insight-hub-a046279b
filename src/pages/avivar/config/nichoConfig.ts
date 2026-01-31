@@ -1,0 +1,720 @@
+/**
+ * Configurações específicas por nicho/subnicho
+ * Define serviços, campos do profissional e templates de prompt
+ */
+
+import { Service, SubnichoType, NichoType } from './types';
+
+// ============= CONFIGURAÇÕES DE CAMPOS PROFISSIONAIS =============
+
+export interface ProfessionalFieldConfig {
+  nameLabel: string;
+  namePlaceholder: string;
+  nameHint: string;
+  registrationLabel: string;
+  registrationPlaceholder: string;
+  registrationHint: string;
+  showRegistration: boolean;
+}
+
+export const PROFESSIONAL_FIELDS: Record<NichoType, ProfessionalFieldConfig> = {
+  saude: {
+    nameLabel: 'Nome do Profissional',
+    namePlaceholder: 'Ex: Dr. João Silva',
+    nameHint: 'Use o nome como gostaria que os pacientes se refiram',
+    registrationLabel: 'CRM / Registro Profissional',
+    registrationPlaceholder: 'Ex: 12345 SP',
+    registrationHint: 'CRM, CRO, CREFITO ou outro registro',
+    showRegistration: true,
+  },
+  estetica: {
+    nameLabel: 'Nome do Profissional',
+    namePlaceholder: 'Ex: Dr. Mario',
+    nameHint: 'Use o nome como gostaria que os clientes se refiram',
+    registrationLabel: 'CRM / Registro',
+    registrationPlaceholder: 'Ex: 50036 RS',
+    registrationHint: 'Registro profissional (se aplicável)',
+    showRegistration: true,
+  },
+  vendas: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: Carlos Mendes',
+    nameHint: 'Nome do proprietário ou gerente',
+    registrationLabel: 'CNPJ (opcional)',
+    registrationPlaceholder: 'Ex: 12.345.678/0001-90',
+    registrationHint: 'CNPJ da empresa',
+    showRegistration: false,
+  },
+  imobiliario: {
+    nameLabel: 'Nome do Corretor',
+    namePlaceholder: 'Ex: Roberto Andrade',
+    nameHint: 'Nome completo do corretor',
+    registrationLabel: 'CRECI',
+    registrationPlaceholder: 'Ex: 12345-F',
+    registrationHint: 'Número do registro no CRECI',
+    showRegistration: true,
+  },
+  alimentacao: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: Chef Maria',
+    nameHint: 'Nome do proprietário ou chef',
+    registrationLabel: 'CNPJ',
+    registrationPlaceholder: 'Ex: 12.345.678/0001-90',
+    registrationHint: 'CNPJ do estabelecimento',
+    showRegistration: false,
+  },
+  servicos: {
+    nameLabel: 'Nome do Profissional',
+    namePlaceholder: 'Ex: Dr. Paulo Santos',
+    nameHint: 'Nome profissional de apresentação',
+    registrationLabel: 'Registro Profissional',
+    registrationPlaceholder: 'Ex: OAB 12345 SP',
+    registrationHint: 'OAB, CRC, CREA ou outro registro',
+    showRegistration: true,
+  },
+  outros: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: João Silva',
+    nameHint: 'Nome do responsável pelo negócio',
+    registrationLabel: 'Registro/CNPJ',
+    registrationPlaceholder: 'Ex: 12.345.678/0001-90',
+    registrationHint: 'Registro profissional ou CNPJ',
+    showRegistration: false,
+  },
+};
+
+// Configurações específicas por subnicho (override do nicho)
+export const SUBNICHO_PROFESSIONAL_OVERRIDES: Partial<Record<SubnichoType, Partial<ProfessionalFieldConfig>>> = {
+  dentista: {
+    registrationLabel: 'CRO',
+    registrationPlaceholder: 'Ex: 12345 SP',
+    registrationHint: 'Número do registro no CRO',
+  },
+  fisioterapia: {
+    registrationLabel: 'CREFITO',
+    registrationPlaceholder: 'Ex: 12345-F',
+    registrationHint: 'Número do registro no CREFITO',
+  },
+  psicologia: {
+    registrationLabel: 'CRP',
+    registrationPlaceholder: 'Ex: 06/12345',
+    registrationHint: 'Número do registro no CRP',
+  },
+  nutricao: {
+    registrationLabel: 'CRN',
+    registrationPlaceholder: 'Ex: CRN-3 12345',
+    registrationHint: 'Número do registro no CRN',
+  },
+  advocacia: {
+    registrationLabel: 'OAB',
+    registrationPlaceholder: 'Ex: OAB 123456 SP',
+    registrationHint: 'Número de inscrição na OAB',
+  },
+  contabilidade: {
+    registrationLabel: 'CRC',
+    registrationPlaceholder: 'Ex: CRC 1SP123456/O',
+    registrationHint: 'Número do registro no CRC',
+  },
+  agente_imobiliario: {
+    registrationLabel: 'CRECI',
+    registrationPlaceholder: 'Ex: CRECI 12345-F',
+    registrationHint: 'Número do registro no CRECI',
+  },
+  pet_shop_veterinario: {
+    registrationLabel: 'CRMV',
+    registrationPlaceholder: 'Ex: CRMV-SP 12345',
+    registrationHint: 'Registro no CRMV (se veterinário)',
+  },
+  academia_personal: {
+    registrationLabel: 'CREF',
+    registrationPlaceholder: 'Ex: CREF 012345-G/SP',
+    registrationHint: 'Registro no CREF',
+  },
+};
+
+// ============= SERVIÇOS POR SUBNICHO =============
+
+export const SERVICES_BY_SUBNICHO: Record<SubnichoType, Service[]> = {
+  // SAÚDE
+  clinica_medica: [
+    { id: 'consulta_geral', name: 'Consulta Médica', description: 'Consulta clínica geral', enabled: false },
+    { id: 'retorno', name: 'Retorno', description: 'Consulta de retorno', enabled: false },
+    { id: 'exames', name: 'Exames', description: 'Solicitação e análise de exames', enabled: false },
+    { id: 'atestado', name: 'Atestados', description: 'Emissão de atestados médicos', enabled: false },
+    { id: 'receita', name: 'Receitas', description: 'Prescrição de medicamentos', enabled: false },
+  ],
+  hospital: [
+    { id: 'emergencia', name: 'Emergência', description: 'Atendimento de urgência', enabled: false },
+    { id: 'internacao', name: 'Internação', description: 'Internação hospitalar', enabled: false },
+    { id: 'cirurgia', name: 'Cirurgias', description: 'Procedimentos cirúrgicos', enabled: false },
+    { id: 'exames', name: 'Exames', description: 'Exames laboratoriais e imagem', enabled: false },
+  ],
+  dentista: [
+    { id: 'limpeza', name: 'Limpeza Dental', description: 'Profilaxia e higienização', enabled: false },
+    { id: 'clareamento', name: 'Clareamento', description: 'Clareamento dental', enabled: false },
+    { id: 'implante', name: 'Implante Dentário', description: 'Implantes e próteses', enabled: false },
+    { id: 'canal', name: 'Tratamento de Canal', description: 'Endodontia', enabled: false },
+    { id: 'ortodontia', name: 'Ortodontia', description: 'Aparelhos e alinhadores', enabled: false },
+    { id: 'restauracao', name: 'Restauração', description: 'Restaurações e obturações', enabled: false },
+    { id: 'extracao', name: 'Extração', description: 'Extração dental', enabled: false },
+  ],
+  fisioterapia: [
+    { id: 'avaliacao', name: 'Avaliação Fisioterapêutica', description: 'Primeira consulta e avaliação', enabled: false },
+    { id: 'ortopedica', name: 'Fisioterapia Ortopédica', description: 'Tratamento muscular e articular', enabled: false },
+    { id: 'neurologica', name: 'Fisioterapia Neurológica', description: 'Reabilitação neurológica', enabled: false },
+    { id: 'respiratoria', name: 'Fisioterapia Respiratória', description: 'Tratamento pulmonar', enabled: false },
+    { id: 'pilates', name: 'Pilates', description: 'Aulas de pilates', enabled: false },
+  ],
+  psicologia: [
+    { id: 'terapia_individual', name: 'Terapia Individual', description: 'Atendimento psicológico individual', enabled: false },
+    { id: 'terapia_casal', name: 'Terapia de Casal', description: 'Atendimento para casais', enabled: false },
+    { id: 'terapia_familia', name: 'Terapia Familiar', description: 'Atendimento para famílias', enabled: false },
+    { id: 'avaliacao', name: 'Avaliação Psicológica', description: 'Testes e avaliações', enabled: false },
+  ],
+  nutricao: [
+    { id: 'consulta', name: 'Consulta Nutricional', description: 'Avaliação e orientação alimentar', enabled: false },
+    { id: 'plano_alimentar', name: 'Plano Alimentar', description: 'Dieta personalizada', enabled: false },
+    { id: 'retorno', name: 'Retorno', description: 'Acompanhamento mensal', enabled: false },
+    { id: 'esportiva', name: 'Nutrição Esportiva', description: 'Nutrição para atletas', enabled: false },
+  ],
+  laboratorio: [
+    { id: 'coleta', name: 'Coleta de Exames', description: 'Coleta de sangue e materiais', enabled: false },
+    { id: 'resultado', name: 'Resultados', description: 'Entrega de resultados', enabled: false },
+    { id: 'domicilio', name: 'Coleta Domiciliar', description: 'Coleta em casa', enabled: false },
+  ],
+  farmacia: [
+    { id: 'medicamentos', name: 'Medicamentos', description: 'Venda de medicamentos', enabled: false },
+    { id: 'manipulados', name: 'Manipulados', description: 'Medicamentos manipulados', enabled: false },
+    { id: 'dermocosmeticos', name: 'Dermocosméticos', description: 'Produtos de beleza', enabled: false },
+    { id: 'vacinas', name: 'Vacinas', description: 'Aplicação de vacinas', enabled: false },
+  ],
+  
+  // ESTÉTICA
+  transplante_capilar: [
+    { id: 'cabelo', name: 'Transplante Capilar (Cabelo)', description: 'Técnicas: FUE, FUT, DHI', enabled: false },
+    { id: 'barba', name: 'Transplante de Barba', description: 'Preenche falhas e aumenta densidade', enabled: false },
+    { id: 'sobrancelha', name: 'Transplante de Sobrancelha', description: 'Correção de falhas e redesenho', enabled: false },
+    { id: 'tratamento', name: 'Tratamento Capilar', description: 'PRP, Laser, Microagulhamento', enabled: false },
+  ],
+  clinica_estetica: [
+    { id: 'botox', name: 'Botox', description: 'Toxina botulínica', enabled: false },
+    { id: 'preenchimento', name: 'Preenchimento', description: 'Ácido hialurônico', enabled: false },
+    { id: 'bioestimuladores', name: 'Bioestimuladores', description: 'Sculptra, Radiesse', enabled: false },
+    { id: 'peeling', name: 'Peeling', description: 'Peeling químico e físico', enabled: false },
+    { id: 'laser', name: 'Tratamentos a Laser', description: 'Rejuvenescimento, manchas', enabled: false },
+    { id: 'criolipolise', name: 'Criolipólise', description: 'Redução de gordura localizada', enabled: false },
+  ],
+  salao_beleza: [
+    { id: 'corte', name: 'Corte de Cabelo', description: 'Corte feminino e masculino', enabled: false },
+    { id: 'coloracao', name: 'Coloração', description: 'Tintura e mechas', enabled: false },
+    { id: 'escova', name: 'Escova', description: 'Escova e penteados', enabled: false },
+    { id: 'manicure', name: 'Manicure/Pedicure', description: 'Unhas e esmaltação', enabled: false },
+    { id: 'maquiagem', name: 'Maquiagem', description: 'Maquiagem profissional', enabled: false },
+    { id: 'tratamentos', name: 'Tratamentos Capilares', description: 'Hidratação, reconstrução', enabled: false },
+  ],
+  barbearia: [
+    { id: 'corte', name: 'Corte Masculino', description: 'Corte de cabelo', enabled: false },
+    { id: 'barba', name: 'Barba', description: 'Aparar e desenhar barba', enabled: false },
+    { id: 'combo', name: 'Combo Completo', description: 'Cabelo + barba', enabled: false },
+    { id: 'sobrancelha', name: 'Sobrancelha', description: 'Design de sobrancelha', enabled: false },
+    { id: 'pigmentacao', name: 'Pigmentação', description: 'Pigmentação capilar', enabled: false },
+  ],
+  spa: [
+    { id: 'massagem', name: 'Massagem Relaxante', description: 'Massagem terapêutica', enabled: false },
+    { id: 'day_spa', name: 'Day Spa', description: 'Pacote completo de relaxamento', enabled: false },
+    { id: 'facial', name: 'Tratamento Facial', description: 'Limpeza de pele e hidratação', enabled: false },
+    { id: 'corporal', name: 'Tratamento Corporal', description: 'Esfoliação e hidratação', enabled: false },
+  ],
+  micropigmentacao: [
+    { id: 'sobrancelha', name: 'Micropigmentação de Sobrancelha', description: 'Fio a fio, shadow', enabled: false },
+    { id: 'labios', name: 'Micropigmentação Labial', description: 'Contorno e preenchimento', enabled: false },
+    { id: 'olhos', name: 'Micropigmentação de Olhos', description: 'Delineado permanente', enabled: false },
+    { id: 'capilar', name: 'Micropigmentação Capilar', description: 'Simulação de cabelo', enabled: false },
+  ],
+  depilacao: [
+    { id: 'laser', name: 'Depilação a Laser', description: 'Depilação definitiva', enabled: false },
+    { id: 'cera', name: 'Depilação com Cera', description: 'Cera quente e fria', enabled: false },
+    { id: 'pacote', name: 'Pacote Corpo Todo', description: 'Depilação completa', enabled: false },
+  ],
+  
+  // VENDAS
+  produtos_hospitalares: [
+    { id: 'equipamentos', name: 'Equipamentos Médicos', description: 'Venda e locação', enabled: false },
+    { id: 'insumos', name: 'Insumos', description: 'Materiais descartáveis', enabled: false },
+    { id: 'ortopedicos', name: 'Produtos Ortopédicos', description: 'Órteses e próteses', enabled: false },
+    { id: 'manutencao', name: 'Manutenção', description: 'Manutenção de equipamentos', enabled: false },
+  ],
+  celulares_eletronicos: [
+    { id: 'smartphones', name: 'Smartphones', description: 'iPhones e Android', enabled: false },
+    { id: 'acessorios', name: 'Acessórios', description: 'Capas, películas, carregadores', enabled: false },
+    { id: 'assistencia', name: 'Assistência Técnica', description: 'Reparo de dispositivos', enabled: false },
+    { id: 'usados', name: 'Seminovos', description: 'Produtos usados garantidos', enabled: false },
+  ],
+  roupas_moda: [
+    { id: 'feminino', name: 'Moda Feminina', description: 'Roupas e acessórios', enabled: false },
+    { id: 'masculino', name: 'Moda Masculina', description: 'Roupas e acessórios', enabled: false },
+    { id: 'infantil', name: 'Moda Infantil', description: 'Roupas para crianças', enabled: false },
+    { id: 'calcados', name: 'Calçados', description: 'Sapatos e tênis', enabled: false },
+  ],
+  joias_acessorios: [
+    { id: 'joias', name: 'Joias', description: 'Anéis, brincos, colares', enabled: false },
+    { id: 'relogios', name: 'Relógios', description: 'Relógios de pulso', enabled: false },
+    { id: 'semi_joias', name: 'Semi-joias', description: 'Peças folheadas', enabled: false },
+    { id: 'personalizados', name: 'Personalizados', description: 'Gravação e customização', enabled: false },
+  ],
+  cosmeticos: [
+    { id: 'skincare', name: 'Skincare', description: 'Cuidados com a pele', enabled: false },
+    { id: 'maquiagem', name: 'Maquiagem', description: 'Produtos de beleza', enabled: false },
+    { id: 'cabelos', name: 'Cabelos', description: 'Tratamentos capilares', enabled: false },
+    { id: 'perfumaria', name: 'Perfumaria', description: 'Perfumes e fragrâncias', enabled: false },
+  ],
+  suplementos: [
+    { id: 'whey', name: 'Whey Protein', description: 'Proteínas em pó', enabled: false },
+    { id: 'vitaminas', name: 'Vitaminas', description: 'Suplementação vitamínica', enabled: false },
+    { id: 'pre_treino', name: 'Pré-Treino', description: 'Energia e performance', enabled: false },
+    { id: 'emagrecimento', name: 'Emagrecimento', description: 'Termogênicos e fat burners', enabled: false },
+  ],
+  moveis_decoracao: [
+    { id: 'moveis', name: 'Móveis', description: 'Sofás, mesas, cadeiras', enabled: false },
+    { id: 'decoracao', name: 'Decoração', description: 'Itens decorativos', enabled: false },
+    { id: 'iluminacao', name: 'Iluminação', description: 'Luminárias e lustres', enabled: false },
+    { id: 'planejados', name: 'Móveis Planejados', description: 'Projetos sob medida', enabled: false },
+  ],
+  
+  // IMOBILIÁRIO
+  agente_imobiliario: [
+    { id: 'venda', name: 'Venda de Imóveis', description: 'Casas, apartamentos, terrenos', enabled: false },
+    { id: 'locacao', name: 'Locação', description: 'Aluguel residencial e comercial', enabled: false },
+    { id: 'avaliacao', name: 'Avaliação', description: 'Avaliação de imóveis', enabled: false },
+    { id: 'consultoria', name: 'Consultoria', description: 'Assessoria imobiliária', enabled: false },
+    { id: 'financiamento', name: 'Financiamento', description: 'Auxílio em financiamentos', enabled: false },
+  ],
+  imobiliaria: [
+    { id: 'venda', name: 'Venda', description: 'Compra e venda de imóveis', enabled: false },
+    { id: 'locacao', name: 'Locação', description: 'Aluguel e administração', enabled: false },
+    { id: 'lancamentos', name: 'Lançamentos', description: 'Imóveis na planta', enabled: false },
+    { id: 'comercial', name: 'Comercial', description: 'Imóveis comerciais', enabled: false },
+  ],
+  construtora: [
+    { id: 'residencial', name: 'Residencial', description: 'Casas e apartamentos', enabled: false },
+    { id: 'comercial', name: 'Comercial', description: 'Prédios comerciais', enabled: false },
+    { id: 'reforma', name: 'Reformas', description: 'Reformas e ampliações', enabled: false },
+    { id: 'projeto', name: 'Projetos', description: 'Elaboração de projetos', enabled: false },
+  ],
+  administradora: [
+    { id: 'condominio', name: 'Administração de Condomínio', description: 'Gestão condominial', enabled: false },
+    { id: 'locacao', name: 'Administração de Locação', description: 'Gestão de aluguéis', enabled: false },
+    { id: 'cobranca', name: 'Cobrança', description: 'Cobrança de inadimplentes', enabled: false },
+    { id: 'manutencao', name: 'Manutenção', description: 'Manutenção predial', enabled: false },
+  ],
+  
+  // ALIMENTAÇÃO
+  restaurante: [
+    { id: 'almoco', name: 'Almoço', description: 'Refeições no almoço', enabled: false },
+    { id: 'jantar', name: 'Jantar', description: 'Refeições à noite', enabled: false },
+    { id: 'reserva', name: 'Reservas', description: 'Reserva de mesas', enabled: false },
+    { id: 'eventos', name: 'Eventos', description: 'Eventos e confraternizações', enabled: false },
+  ],
+  delivery: [
+    { id: 'pedido', name: 'Fazer Pedido', description: 'Pedidos para entrega', enabled: false },
+    { id: 'cardapio', name: 'Cardápio', description: 'Ver opções disponíveis', enabled: false },
+    { id: 'rastreio', name: 'Rastrear Pedido', description: 'Acompanhar entrega', enabled: false },
+    { id: 'combo', name: 'Combos', description: 'Ofertas especiais', enabled: false },
+  ],
+  lanchonete: [
+    { id: 'lanches', name: 'Lanches', description: 'Hambúrgueres, hot dogs', enabled: false },
+    { id: 'porcoes', name: 'Porções', description: 'Batatas, nuggets', enabled: false },
+    { id: 'bebidas', name: 'Bebidas', description: 'Refrigerantes, sucos', enabled: false },
+    { id: 'delivery', name: 'Delivery', description: 'Entrega em casa', enabled: false },
+  ],
+  pizzaria: [
+    { id: 'cardapio', name: 'Cardápio', description: 'Pizzas e sabores', enabled: false },
+    { id: 'delivery', name: 'Delivery', description: 'Entrega de pizzas', enabled: false },
+    { id: 'rodizio', name: 'Rodízio', description: 'Rodízio de pizzas', enabled: false },
+    { id: 'reserva', name: 'Reserva', description: 'Reservar mesa', enabled: false },
+  ],
+  cafeteria: [
+    { id: 'cafe', name: 'Cafés', description: 'Espresso, cappuccino, latte', enabled: false },
+    { id: 'doces', name: 'Doces', description: 'Bolos e sobremesas', enabled: false },
+    { id: 'salgados', name: 'Salgados', description: 'Pães de queijo, croissants', enabled: false },
+    { id: 'especiais', name: 'Bebidas Especiais', description: 'Drinks e frappés', enabled: false },
+  ],
+  confeitaria: [
+    { id: 'bolos', name: 'Bolos', description: 'Bolos decorados', enabled: false },
+    { id: 'doces_festa', name: 'Doces para Festa', description: 'Brigadeiros, beijinhos', enabled: false },
+    { id: 'encomendas', name: 'Encomendas', description: 'Encomendas especiais', enabled: false },
+    { id: 'tortas', name: 'Tortas', description: 'Tortas doces e salgadas', enabled: false },
+  ],
+  food_truck: [
+    { id: 'cardapio', name: 'Cardápio do Dia', description: 'Ver opções disponíveis', enabled: false },
+    { id: 'localizacao', name: 'Localização', description: 'Onde estamos hoje', enabled: false },
+    { id: 'eventos', name: 'Eventos', description: 'Contratação para eventos', enabled: false },
+  ],
+  
+  // SERVIÇOS
+  advocacia: [
+    { id: 'consulta', name: 'Consulta Jurídica', description: 'Orientação inicial', enabled: false },
+    { id: 'trabalhista', name: 'Direito Trabalhista', description: 'Ações trabalhistas', enabled: false },
+    { id: 'civil', name: 'Direito Civil', description: 'Contratos, família, consumidor', enabled: false },
+    { id: 'criminal', name: 'Direito Criminal', description: 'Defesa criminal', enabled: false },
+    { id: 'empresarial', name: 'Direito Empresarial', description: 'Contratos e societário', enabled: false },
+  ],
+  contabilidade: [
+    { id: 'abertura', name: 'Abertura de Empresa', description: 'Constituição de CNPJ', enabled: false },
+    { id: 'mensal', name: 'Contabilidade Mensal', description: 'Escrituração e impostos', enabled: false },
+    { id: 'irpf', name: 'Imposto de Renda PF', description: 'Declaração anual', enabled: false },
+    { id: 'consultoria', name: 'Consultoria Fiscal', description: 'Planejamento tributário', enabled: false },
+  ],
+  consultoria: [
+    { id: 'diagnostico', name: 'Diagnóstico Empresarial', description: 'Análise da empresa', enabled: false },
+    { id: 'planejamento', name: 'Planejamento Estratégico', description: 'Definição de metas', enabled: false },
+    { id: 'processos', name: 'Melhoria de Processos', description: 'Otimização operacional', enabled: false },
+    { id: 'mentoria', name: 'Mentoria', description: 'Acompanhamento individual', enabled: false },
+  ],
+  academia_personal: [
+    { id: 'avaliacao', name: 'Avaliação Física', description: 'Avaliação inicial', enabled: false },
+    { id: 'treino', name: 'Treino Personalizado', description: 'Planilha de treino', enabled: false },
+    { id: 'mensal', name: 'Plano Mensal', description: 'Acesso à academia', enabled: false },
+    { id: 'personal', name: 'Personal Trainer', description: 'Acompanhamento individual', enabled: false },
+  ],
+  oficina_mecanica: [
+    { id: 'revisao', name: 'Revisão Geral', description: 'Check-up completo', enabled: false },
+    { id: 'oleo', name: 'Troca de Óleo', description: 'Óleo e filtros', enabled: false },
+    { id: 'freios', name: 'Freios', description: 'Pastilhas e discos', enabled: false },
+    { id: 'eletrica', name: 'Parte Elétrica', description: 'Bateria, alternador', enabled: false },
+    { id: 'ar', name: 'Ar Condicionado', description: 'Manutenção do A/C', enabled: false },
+  ],
+  pet_shop_veterinario: [
+    { id: 'consulta_vet', name: 'Consulta Veterinária', description: 'Atendimento clínico', enabled: false },
+    { id: 'vacinas', name: 'Vacinas', description: 'Vacinação e vermifugação', enabled: false },
+    { id: 'banho_tosa', name: 'Banho e Tosa', description: 'Higiene e estética', enabled: false },
+    { id: 'racao', name: 'Ração e Produtos', description: 'Alimentação e acessórios', enabled: false },
+    { id: 'hotel', name: 'Hotel Pet', description: 'Hospedagem', enabled: false },
+  ],
+  limpeza_manutencao: [
+    { id: 'limpeza_residencial', name: 'Limpeza Residencial', description: 'Faxina em casas', enabled: false },
+    { id: 'limpeza_comercial', name: 'Limpeza Comercial', description: 'Empresas e escritórios', enabled: false },
+    { id: 'manutencao', name: 'Manutenção Geral', description: 'Reparos e consertos', enabled: false },
+    { id: 'eletrica', name: 'Serviços Elétricos', description: 'Instalações elétricas', enabled: false },
+    { id: 'hidraulica', name: 'Serviços Hidráulicos', description: 'Encanamento', enabled: false },
+  ],
+  marketing_agencia: [
+    { id: 'social_media', name: 'Social Media', description: 'Gestão de redes sociais', enabled: false },
+    { id: 'trafego', name: 'Tráfego Pago', description: 'Google Ads, Facebook Ads', enabled: false },
+    { id: 'design', name: 'Design Gráfico', description: 'Artes e materiais', enabled: false },
+    { id: 'site', name: 'Criação de Sites', description: 'Desenvolvimento web', enabled: false },
+    { id: 'branding', name: 'Branding', description: 'Identidade visual', enabled: false },
+  ],
+  cursos_educacao: [
+    { id: 'matricula', name: 'Matrícula', description: 'Informações e inscrição', enabled: false },
+    { id: 'cursos', name: 'Cursos Disponíveis', description: 'Grade de cursos', enabled: false },
+    { id: 'horarios', name: 'Horários', description: 'Horários das turmas', enabled: false },
+    { id: 'valores', name: 'Valores', description: 'Mensalidades e pacotes', enabled: false },
+  ],
+  eventos: [
+    { id: 'orcamento', name: 'Orçamento', description: 'Solicitar orçamento', enabled: false },
+    { id: 'casamento', name: 'Casamentos', description: 'Organização de casamentos', enabled: false },
+    { id: 'corporativo', name: 'Eventos Corporativos', description: 'Empresas e convenções', enabled: false },
+    { id: 'festas', name: 'Festas', description: 'Aniversários e celebrações', enabled: false },
+  ],
+  fotografia: [
+    { id: 'ensaio', name: 'Ensaio Fotográfico', description: 'Books e retratos', enabled: false },
+    { id: 'casamento', name: 'Casamentos', description: 'Cobertura de casamentos', enabled: false },
+    { id: 'produto', name: 'Fotografia de Produto', description: 'E-commerce e catálogos', enabled: false },
+    { id: 'corporativo', name: 'Corporativo', description: 'Fotos profissionais', enabled: false },
+  ],
+  tecnologia_ti: [
+    { id: 'suporte', name: 'Suporte Técnico', description: 'Atendimento e manutenção', enabled: false },
+    { id: 'desenvolvimento', name: 'Desenvolvimento', description: 'Software e aplicativos', enabled: false },
+    { id: 'infraestrutura', name: 'Infraestrutura', description: 'Redes e servidores', enabled: false },
+    { id: 'consultoria', name: 'Consultoria TI', description: 'Análise e projetos', enabled: false },
+  ],
+  
+  // OUTROS
+  personalizado: [
+    { id: 'servico_1', name: 'Serviço 1', description: 'Descreva seu serviço', enabled: false },
+    { id: 'servico_2', name: 'Serviço 2', description: 'Descreva seu serviço', enabled: false },
+    { id: 'servico_3', name: 'Serviço 3', description: 'Descreva seu serviço', enabled: false },
+  ],
+};
+
+// ============= HELPER FUNCTIONS =============
+
+/**
+ * Retorna a configuração de campos do profissional baseado no nicho/subnicho
+ */
+export function getProfessionalFieldConfig(nicho: NichoType | null, subnicho: SubnichoType | null): ProfessionalFieldConfig {
+  const defaultConfig = PROFESSIONAL_FIELDS.outros;
+  
+  if (!nicho) return defaultConfig;
+  
+  const nichoConfig = PROFESSIONAL_FIELDS[nicho];
+  
+  // Aplicar override do subnicho se existir
+  if (subnicho && SUBNICHO_PROFESSIONAL_OVERRIDES[subnicho]) {
+    return {
+      ...nichoConfig,
+      ...SUBNICHO_PROFESSIONAL_OVERRIDES[subnicho],
+    };
+  }
+  
+  return nichoConfig;
+}
+
+/**
+ * Retorna a lista de serviços para um subnicho
+ */
+export function getServicesForSubnicho(subnicho: SubnichoType | null): Service[] {
+  if (!subnicho) return SERVICES_BY_SUBNICHO.personalizado;
+  return SERVICES_BY_SUBNICHO[subnicho] || SERVICES_BY_SUBNICHO.personalizado;
+}
+
+/**
+ * Retorna o nome amigável do nicho
+ */
+export function getNichoDisplayName(nicho: NichoType): string {
+  const names: Record<NichoType, string> = {
+    saude: 'Saúde',
+    estetica: 'Estética',
+    vendas: 'Vendas',
+    imobiliario: 'Imobiliário',
+    alimentacao: 'Alimentação',
+    servicos: 'Serviços',
+    outros: 'Outros',
+  };
+  return names[nicho] || nicho;
+}
+
+/**
+ * Retorna a terminologia correta para o nicho
+ */
+export function getNichoTerminology(nicho: NichoType | null): {
+  cliente: string;
+  empresa: string;
+  profissional: string;
+} {
+  switch (nicho) {
+    case 'saude':
+      return { cliente: 'paciente', empresa: 'clínica', profissional: 'profissional de saúde' };
+    case 'estetica':
+      return { cliente: 'cliente', empresa: 'clínica/salão', profissional: 'profissional' };
+    case 'vendas':
+      return { cliente: 'cliente', empresa: 'loja', profissional: 'vendedor' };
+    case 'imobiliario':
+      return { cliente: 'cliente', empresa: 'imobiliária', profissional: 'corretor' };
+    case 'alimentacao':
+      return { cliente: 'cliente', empresa: 'estabelecimento', profissional: 'atendente' };
+    case 'servicos':
+      return { cliente: 'cliente', empresa: 'empresa', profissional: 'profissional' };
+    default:
+      return { cliente: 'cliente', empresa: 'empresa', profissional: 'responsável' };
+  }
+}
+
+// ============= PROMPT TEMPLATES POR NICHO =============
+
+export interface PromptTemplate {
+  systemPromptIntro: string;
+  objectives: string[];
+  personality: string;
+  restrictions: string[];
+  exampleResponses: string[];
+}
+
+/**
+ * Templates de prompt base por nicho para a IA
+ */
+export const PROMPT_TEMPLATES: Record<NichoType, PromptTemplate> = {
+  saude: {
+    systemPromptIntro: 'Você é {attendantName}, assistente virtual da {companyName}, uma clínica de saúde.',
+    objectives: [
+      'Agendar consultas e exames',
+      'Informar sobre serviços e especialidades',
+      'Tirar dúvidas sobre procedimentos',
+      'Coletar informações do paciente para pré-atendimento',
+    ],
+    personality: 'Seja acolhedor, empático e transmita confiança. Use linguagem acessível para explicar termos médicos.',
+    restrictions: [
+      'NUNCA dê diagnósticos ou prescrições médicas',
+      'Sempre recomende consulta presencial para avaliação',
+      'Não prometa resultados de tratamentos',
+    ],
+    exampleResponses: [
+      'Olá! Sou a {attendantName}, assistente virtual da {companyName}. Como posso ajudar você hoje?',
+      'Entendo sua preocupação. O Dr. {professionalName} poderá avaliar isso na consulta. Gostaria de agendar um horário?',
+    ],
+  },
+  estetica: {
+    systemPromptIntro: 'Você é {attendantName}, assistente virtual da {companyName}, especializada em procedimentos estéticos.',
+    objectives: [
+      'Agendar avaliações e procedimentos',
+      'Apresentar os serviços e técnicas disponíveis',
+      'Quebrar objeções sobre preço e segurança',
+      'Qualificar o interesse do cliente',
+    ],
+    personality: 'Seja entusiasmado, profissional e inspirador. Destaque os benefícios e a autoestima.',
+    restrictions: [
+      'Não prometa resultados específicos antes da avaliação',
+      'Valores detalhados apenas após avaliação presencial',
+      'Sempre mencione a segurança dos procedimentos',
+    ],
+    exampleResponses: [
+      'Olá! Sou a {attendantName} da {companyName}! 💜 Vou te ajudar a tirar todas as dúvidas sobre nossos procedimentos.',
+      'Entendo sua preocupação! O procedimento é seguro e realizado pelo {professionalName}. Que tal agendar uma avaliação gratuita?',
+    ],
+  },
+  vendas: {
+    systemPromptIntro: 'Você é {attendantName}, assistente de vendas da {companyName}.',
+    objectives: [
+      'Apresentar produtos e catálogo',
+      'Informar preços e condições de pagamento',
+      'Ajudar na escolha do produto ideal',
+      'Finalizar vendas e pedidos',
+    ],
+    personality: 'Seja prestativo, conhecedor dos produtos e focado em ajudar o cliente a encontrar o que precisa.',
+    restrictions: [
+      'Verifique disponibilidade antes de confirmar',
+      'Seja transparente sobre prazos de entrega',
+      'Não pressione excessivamente para compra',
+    ],
+    exampleResponses: [
+      'Olá! 👋 Bem-vindo à {companyName}! Posso te ajudar a encontrar o produto perfeito!',
+      'Esse modelo está disponível! Aceito PIX, cartão em até 12x ou boleto. Qual prefere?',
+    ],
+  },
+  imobiliario: {
+    systemPromptIntro: 'Você é {attendantName}, assistente imobiliário da {companyName}.',
+    objectives: [
+      'Apresentar imóveis disponíveis',
+      'Agendar visitas',
+      'Coletar perfil do cliente (orçamento, localização, tipo)',
+      'Informar sobre financiamento e documentação',
+    ],
+    personality: 'Seja consultivo, paciente e demonstre conhecimento do mercado local.',
+    restrictions: [
+      'Valores de financiamento são estimativas - sempre referencie simulação oficial',
+      'Confirme disponibilidade do imóvel antes de agendar visita',
+      'Não pressione para decisões rápidas em compras de alto valor',
+    ],
+    exampleResponses: [
+      'Olá! 🏠 Sou {attendantName} da {companyName}. Vou te ajudar a encontrar o imóvel ideal!',
+      'Perfeito! Com esse perfil, tenho algumas opções interessantes. Posso agendar uma visita para você conhecer?',
+    ],
+  },
+  alimentacao: {
+    systemPromptIntro: 'Você é {attendantName}, assistente do {companyName}.',
+    objectives: [
+      'Receber pedidos de delivery',
+      'Informar cardápio e preços',
+      'Fazer reservas de mesa',
+      'Informar horário de funcionamento e localização',
+    ],
+    personality: 'Seja simpático, ágil e deixe o cliente com água na boca ao descrever os pratos!',
+    restrictions: [
+      'Confirme disponibilidade de itens do cardápio',
+      'Seja preciso com tempo de entrega estimado',
+      'Informe sobre alérgenos quando perguntado',
+    ],
+    exampleResponses: [
+      'Oi! 😋 Seja bem-vindo ao {companyName}! O que vai ser hoje?',
+      'Pedido anotado! Tempo estimado de entrega: 40 minutos. Obrigado pela preferência! 🍕',
+    ],
+  },
+  servicos: {
+    systemPromptIntro: 'Você é {attendantName}, assistente da {companyName}.',
+    objectives: [
+      'Informar sobre serviços oferecidos',
+      'Agendar consultas/reuniões',
+      'Coletar informações para orçamento',
+      'Tirar dúvidas sobre processos e prazos',
+    ],
+    personality: 'Seja profissional, claro e transmita confiança na expertise da empresa.',
+    restrictions: [
+      'Valores exatos só após análise do caso',
+      'Não faça promessas de resultados em casos jurídicos ou similares',
+      'Respeite sigilo profissional',
+    ],
+    exampleResponses: [
+      'Olá! Sou {attendantName} da {companyName}. Como posso ajudar você hoje?',
+      'Entendi sua situação. Vou agendar uma consulta para {professionalName} avaliar seu caso com mais detalhes.',
+    ],
+  },
+  outros: {
+    systemPromptIntro: 'Você é {attendantName}, assistente virtual da {companyName}.',
+    objectives: [
+      'Atender clientes com cordialidade',
+      'Informar sobre produtos/serviços',
+      'Agendar atendimentos',
+      'Direcionar para o responsável quando necessário',
+    ],
+    personality: 'Seja profissional, prestativo e adapte o tom conforme a conversa.',
+    restrictions: [
+      'Seja honesto quando não souber uma informação',
+      'Direcione para atendimento humano em casos complexos',
+    ],
+    exampleResponses: [
+      'Olá! Sou {attendantName} da {companyName}. Em que posso ajudar?',
+      'Vou verificar isso para você. Um momento, por favor.',
+    ],
+  },
+};
+
+/**
+ * Gera o prompt do sistema baseado na configuração do agente
+ */
+export function generateSystemPrompt(config: {
+  nicho: NichoType | null;
+  subnicho: SubnichoType | null;
+  attendantName: string;
+  companyName: string;
+  professionalName: string;
+  services: { name: string; enabled: boolean }[];
+  city?: string;
+  state?: string;
+  toneOfVoice?: string;
+}): string {
+  const nicho = config.nicho || 'outros';
+  const template = PROMPT_TEMPLATES[nicho];
+  const terminology = getNichoTerminology(nicho);
+  
+  const enabledServices = config.services
+    .filter(s => s.enabled)
+    .map(s => s.name)
+    .join(', ');
+
+  const replaceVars = (text: string) => text
+    .replace(/{attendantName}/g, config.attendantName || 'Ana')
+    .replace(/{companyName}/g, config.companyName || 'nossa empresa')
+    .replace(/{professionalName}/g, config.professionalName || 'o profissional');
+
+  const prompt = `
+${replaceVars(template.systemPromptIntro)}
+
+## SEUS OBJETIVOS:
+${template.objectives.map((o, i) => `${i + 1}. ${o}`).join('\n')}
+
+## SERVIÇOS QUE VOCÊ PODE OFERECER:
+${enabledServices || 'Todos os serviços da empresa'}
+
+## LOCALIZAÇÃO:
+${config.city && config.state ? `${config.city} - ${config.state}` : 'Consulte a empresa para endereço completo'}
+
+## SUA PERSONALIDADE:
+${template.personality}
+${config.toneOfVoice === 'formal' ? 'Use linguagem formal e respeitosa.' : ''}
+${config.toneOfVoice === 'casual' ? 'Use linguagem informal e descontraída, com emojis ocasionais.' : ''}
+${config.toneOfVoice === 'cordial' ? 'Mantenha um tom cordial e profissional, equilibrando formalidade com simpatia.' : ''}
+
+## RESTRIÇÕES IMPORTANTES:
+${template.restrictions.map(r => `- ${r}`).join('\n')}
+
+## TERMINOLOGIA:
+- Refira-se aos clientes como "${terminology.cliente}"
+- Refira-se à empresa como "${terminology.empresa}"
+
+Sempre responda de forma concisa e direcione para agendamento quando apropriado.
+`.trim();
+
+  return prompt;
+}
+
