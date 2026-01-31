@@ -37,12 +37,17 @@ interface ScheduleConfig {
   timezone: string;
 }
 
+interface TimePeriod {
+  id?: string;
+  start_time: string;
+  end_time: string;
+}
+
 interface DayHours {
   id?: string;
   day_of_week: number;
   is_enabled: boolean;
-  start_time: string;
-  end_time: string;
+  periods: TimePeriod[];
 }
 
 interface ScheduleBlock {
@@ -56,13 +61,13 @@ interface ScheduleBlock {
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
 const DEFAULT_HOURS: DayHours[] = [
-  { day_of_week: 0, is_enabled: false, start_time: '08:00', end_time: '18:00' },
-  { day_of_week: 1, is_enabled: true, start_time: '08:00', end_time: '18:00' },
-  { day_of_week: 2, is_enabled: true, start_time: '08:00', end_time: '18:00' },
-  { day_of_week: 3, is_enabled: true, start_time: '08:00', end_time: '18:00' },
-  { day_of_week: 4, is_enabled: true, start_time: '08:00', end_time: '18:00' },
-  { day_of_week: 5, is_enabled: true, start_time: '08:00', end_time: '18:00' },
-  { day_of_week: 6, is_enabled: false, start_time: '08:00', end_time: '12:00' },
+  { day_of_week: 0, is_enabled: false, periods: [{ start_time: '08:00', end_time: '18:00' }] },
+  { day_of_week: 1, is_enabled: true, periods: [{ start_time: '08:00', end_time: '12:00' }, { start_time: '14:00', end_time: '18:00' }] },
+  { day_of_week: 2, is_enabled: true, periods: [{ start_time: '08:00', end_time: '12:00' }, { start_time: '14:00', end_time: '18:00' }] },
+  { day_of_week: 3, is_enabled: true, periods: [{ start_time: '08:00', end_time: '12:00' }, { start_time: '14:00', end_time: '18:00' }] },
+  { day_of_week: 4, is_enabled: true, periods: [{ start_time: '08:00', end_time: '12:00' }, { start_time: '14:00', end_time: '18:00' }] },
+  { day_of_week: 5, is_enabled: true, periods: [{ start_time: '08:00', end_time: '12:00' }, { start_time: '14:00', end_time: '18:00' }] },
+  { day_of_week: 6, is_enabled: false, periods: [{ start_time: '08:00', end_time: '12:00' }] },
 ];
 
 export default function AvivarAgendaSettings() {
@@ -124,10 +129,39 @@ export default function AvivarAgendaSettings() {
         .from('avivar_schedule_hours')
         .select('*')
         .eq('schedule_config_id', existingConfig.id)
-        .order('day_of_week');
+        .order('day_of_week')
+        .order('start_time');
 
       if (error) throw error;
-      return data as DayHours[];
+      
+      // Group by day_of_week to support multiple periods per day
+      const grouped: Record<number, TimePeriod[]> = {};
+      for (const row of data) {
+        if (!grouped[row.day_of_week]) {
+          grouped[row.day_of_week] = [];
+        }
+        grouped[row.day_of_week].push({
+          id: row.id,
+          start_time: row.start_time,
+          end_time: row.end_time,
+        });
+      }
+      
+      // Convert to DayHours format
+      const result: DayHours[] = DEFAULT_HOURS.map(dh => {
+        const periods = grouped[dh.day_of_week];
+        const hasAnyEnabled = data.some(d => d.day_of_week === dh.day_of_week && d.is_enabled);
+        if (periods && periods.length > 0) {
+          return {
+            day_of_week: dh.day_of_week,
+            is_enabled: hasAnyEnabled,
+            periods,
+          };
+        }
+        return dh;
+      });
+      
+      return result;
     },
     enabled: !!existingConfig?.id,
   });
@@ -177,11 +211,7 @@ export default function AvivarAgendaSettings() {
 
   useEffect(() => {
     if (existingHours && existingHours.length > 0) {
-      const merged = DEFAULT_HOURS.map(dh => {
-        const existing = existingHours.find(eh => eh.day_of_week === dh.day_of_week);
-        return existing || dh;
-      });
-      setHours(merged);
+      setHours(existingHours);
     } else {
       setHours(DEFAULT_HOURS);
     }
@@ -228,24 +258,39 @@ export default function AvivarAgendaSettings() {
         configId = data.id;
       }
 
-      // Delete existing hours and insert new
+      // Delete existing hours and insert new (flattened for multiple periods)
       await supabase
         .from('avivar_schedule_hours')
         .delete()
         .eq('schedule_config_id', configId);
 
-      const hoursData = hours.map(h => ({
-        schedule_config_id: configId,
-        day_of_week: h.day_of_week,
-        is_enabled: h.is_enabled,
-        start_time: h.start_time,
-        end_time: h.end_time,
-      }));
+      // Flatten periods into individual rows
+      const hoursData: Array<{
+        schedule_config_id: string;
+        day_of_week: number;
+        is_enabled: boolean;
+        start_time: string;
+        end_time: string;
+      }> = [];
+      
+      for (const h of hours) {
+        for (const period of h.periods) {
+          hoursData.push({
+            schedule_config_id: configId!,
+            day_of_week: h.day_of_week,
+            is_enabled: h.is_enabled,
+            start_time: period.start_time,
+            end_time: period.end_time,
+          });
+        }
+      }
 
-      const { error: hoursError } = await supabase
-        .from('avivar_schedule_hours')
-        .insert(hoursData);
-      if (hoursError) throw hoursError;
+      if (hoursData.length > 0) {
+        const { error: hoursError } = await supabase
+          .from('avivar_schedule_hours')
+          .insert(hoursData);
+        if (hoursError) throw hoursError;
+      }
 
       return configId;
     },
@@ -332,6 +377,35 @@ export default function AvivarAgendaSettings() {
     ));
   };
 
+  const updatePeriod = (dayIndex: number, periodIndex: number, field: 'start_time' | 'end_time', value: string) => {
+    setHours(prev => prev.map((h, i) => {
+      if (i !== dayIndex) return h;
+      const newPeriods = [...h.periods];
+      newPeriods[periodIndex] = { ...newPeriods[periodIndex], [field]: value };
+      return { ...h, periods: newPeriods };
+    }));
+  };
+
+  const addPeriod = (dayIndex: number) => {
+    setHours(prev => prev.map((h, i) => {
+      if (i !== dayIndex) return h;
+      const lastPeriod = h.periods[h.periods.length - 1];
+      // Default new period starts 2 hours after last one ends
+      const newStart = lastPeriod ? lastPeriod.end_time : '14:00';
+      const newEnd = '18:00';
+      return { ...h, periods: [...h.periods, { start_time: newStart, end_time: newEnd }] };
+    }));
+  };
+
+  const removePeriod = (dayIndex: number, periodIndex: number) => {
+    setHours(prev => prev.map((h, i) => {
+      if (i !== dayIndex) return h;
+      if (h.periods.length <= 1) return h; // Keep at least one period
+      const newPeriods = h.periods.filter((_, pi) => pi !== periodIndex);
+      return { ...h, periods: newPeriods };
+    }));
+  };
+
   if (loadingConfig) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -411,44 +485,68 @@ export default function AvivarAgendaSettings() {
                 <div
                   key={dayHour.day_of_week}
                   className={cn(
-                    "flex items-center gap-4 p-4 rounded-lg border transition-colors",
+                    "flex gap-4 p-4 rounded-lg border transition-colors",
                     dayHour.is_enabled
                       ? "border-[hsl(var(--avivar-primary)/0.3)] bg-[hsl(var(--avivar-primary)/0.05)]"
                       : "border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-muted))]"
                   )}
                 >
-                  <Switch
-                    checked={dayHour.is_enabled}
-                    onCheckedChange={(checked) => updateHour(index, 'is_enabled', checked)}
-                    className="data-[state=checked]:bg-[hsl(var(--avivar-primary))]"
-                  />
-                  <span className={cn(
-                    "w-24 font-medium",
-                    dayHour.is_enabled 
-                      ? "text-[hsl(var(--avivar-foreground))]" 
-                      : "text-[hsl(var(--avivar-muted-foreground))]"
-                  )}>
-                    {DAY_NAMES[dayHour.day_of_week]}
-                  </span>
+                  <div className="flex items-center gap-4 pt-1">
+                    <Switch
+                      checked={dayHour.is_enabled}
+                      onCheckedChange={(checked) => updateHour(index, 'is_enabled', checked)}
+                      className="data-[state=checked]:bg-[hsl(var(--avivar-primary))]"
+                    />
+                    <span className={cn(
+                      "w-24 font-medium",
+                      dayHour.is_enabled 
+                        ? "text-[hsl(var(--avivar-foreground))]" 
+                        : "text-[hsl(var(--avivar-muted-foreground))]"
+                    )}>
+                      {DAY_NAMES[dayHour.day_of_week]}
+                    </span>
+                  </div>
 
                   {dayHour.is_enabled && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="time"
-                          value={dayHour.start_time}
-                          onChange={(e) => updateHour(index, 'start_time', e.target.value)}
-                          className="w-32 bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))]"
-                        />
-                        <span className="text-[hsl(var(--avivar-muted-foreground))]">até</span>
-                        <Input
-                          type="time"
-                          value={dayHour.end_time}
-                          onChange={(e) => updateHour(index, 'end_time', e.target.value)}
-                          className="w-32 bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))]"
-                        />
-                      </div>
-                    </>
+                    <div className="flex-1 space-y-2">
+                      {dayHour.periods.map((period, periodIndex) => (
+                        <div key={periodIndex} className="flex items-center gap-2">
+                          <Input
+                            type="time"
+                            value={period.start_time}
+                            onChange={(e) => updatePeriod(index, periodIndex, 'start_time', e.target.value)}
+                            className="w-28 bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))]"
+                          />
+                          <span className="text-[hsl(var(--avivar-muted-foreground))]">até</span>
+                          <Input
+                            type="time"
+                            value={period.end_time}
+                            onChange={(e) => updatePeriod(index, periodIndex, 'end_time', e.target.value)}
+                            className="w-28 bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))]"
+                          />
+                          {dayHour.periods.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removePeriod(index, periodIndex)}
+                              className="h-8 w-8 text-[hsl(var(--avivar-destructive))] hover:text-[hsl(var(--avivar-destructive))] hover:bg-[hsl(var(--avivar-destructive)/0.1)]"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {periodIndex === dayHour.periods.length - 1 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => addPeriod(index)}
+                              className="h-8 w-8 text-[hsl(var(--avivar-primary))] hover:text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
 
                   {!dayHour.is_enabled && (
