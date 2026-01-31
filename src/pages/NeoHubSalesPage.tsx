@@ -249,7 +249,7 @@ export default function NeoHubSalesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white overflow-x-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-slate-800/60 bg-slate-950/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={iconeNeofolic} alt="NeoHub" className="w-10 h-10 rounded-xl" />
@@ -258,15 +258,15 @@ export default function NeoHubSalesPage() {
             </span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#modulos" className="text-slate-300 hover:text-white transition-colors">Módulos</a>
-            <a href="#planos" className="text-slate-300 hover:text-white transition-colors">Planos</a>
-            <a href="#faq" className="text-slate-300 hover:text-white transition-colors">FAQ</a>
+            <a href="#modulos" className="text-slate-400 hover:text-blue-400 transition-colors">Módulos</a>
+            <a href="#planos" className="text-slate-400 hover:text-blue-400 transition-colors">Planos</a>
+            <a href="#faq" className="text-slate-400 hover:text-blue-400 transition-colors">FAQ</a>
           </nav>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild className="text-slate-300 hover:text-white">
+            <Button variant="ghost" asChild className="text-slate-400 hover:text-blue-400 hover:bg-blue-500/10">
               <Link to="/login">Entrar</Link>
             </Button>
-            <Button asChild className="bg-gradient-to-r from-[#D4AF61] to-[#C9A86C] text-slate-900 hover:opacity-90">
+            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
               <a href="#planos">Ver Planos</a>
             </Button>
           </div>
@@ -277,12 +277,12 @@ export default function NeoHubSalesPage() {
       <section className="relative py-20 md:py-32 px-4 sm:px-6 overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D4AF61]/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <Badge className="mb-6 bg-slate-800 text-[#D4AF61] border-[#D4AF61]/30 px-4 py-2">
+          <Badge className="mb-6 bg-blue-500/10 text-blue-400 border-blue-500/30 px-4 py-2">
             <Sparkles className="w-4 h-4 mr-2" />
             Plataforma #1 para Clínicas de Transplante Capilar
           </Badge>
@@ -290,24 +290,24 @@ export default function NeoHubSalesPage() {
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
             Gerencie sua clínica com
             <br />
-            <span className="bg-gradient-to-r from-[#D4AF61] via-[#C9A86C] to-[#8B7355] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent">
               inteligência e eficiência
             </span>
           </h1>
           
-          <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-10">
+          <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto mb-10">
             O NeoHub reúne 9 módulos poderosos em uma única plataforma: CRM, agendamento, 
             prontuário, pagamentos, IA diagnóstica, proteção jurídica e muito mais.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-[#D4AF61] to-[#C9A86C] text-slate-900 hover:opacity-90 text-lg px-8 py-6">
+            <Button size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
               <a href="#planos" className="flex items-center gap-2">
                 Começar Gratuitamente
                 <ArrowRight className="w-5 h-5" />
               </a>
             </Button>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-slate-600 text-white hover:bg-slate-800 text-lg px-8 py-6">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-lg px-8 py-6">
               Agendar Demonstração
             </Button>
           </div>
@@ -315,11 +315,11 @@ export default function NeoHubSalesPage() {
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
             {kpis.map((kpi) => (
-              <div key={kpi.label} className="text-center">
-                <p className="text-3xl md:text-4xl font-bold bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent">
+              <div key={kpi.label} className="text-center p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+                <p className="text-3xl md:text-4xl font-bold text-blue-400">
                   {kpi.value}
                 </p>
-                <p className="text-sm text-slate-400">{kpi.label}</p>
+                <p className="text-sm text-slate-500">{kpi.label}</p>
               </div>
             ))}
           </div>
@@ -327,24 +327,24 @@ export default function NeoHubSalesPage() {
       </section>
 
       {/* Screenshots Preview Section */}
-      <section className="py-20 px-4 sm:px-6">
+      <section className="py-20 px-4 sm:px-6 bg-slate-900/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-slate-800 text-blue-400 border-blue-500/30">
+            <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/30">
               Veja na Prática
             </Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">
               Uma prévia do que você terá
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               Interface moderna, intuitiva e pensada para otimizar cada minuto do seu dia.
             </p>
           </div>
 
           {/* Main Dashboard Screenshot */}
           <div className="relative mb-12">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF61]/20 to-blue-500/20 rounded-3xl blur-3xl opacity-50" />
-            <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl shadow-black/50">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-3xl opacity-50" />
+            <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl shadow-black/50">
               <img 
                 src={dashboardPreview} 
                 alt="Dashboard do NeoHub - Gestão completa de clínica" 
@@ -352,13 +352,13 @@ export default function NeoHubSalesPage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                <Badge className="mb-2 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                <Badge className="mb-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
                   Dashboard Principal
                 </Badge>
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
                   Visão 360° da sua clínica
                 </h3>
-                <p className="text-slate-300 text-sm md:text-base max-w-xl">
+                <p className="text-slate-400 text-sm md:text-base max-w-xl">
                   Pacientes, agendamentos, receita e métricas em tempo real. Tudo em um só lugar.
                 </p>
               </div>
@@ -369,19 +369,19 @@ export default function NeoHubSalesPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* CRM Pipeline */}
             <div className="relative group">
-              <div className="rounded-2xl overflow-hidden border border-slate-700 shadow-xl transition-transform group-hover:scale-[1.02]">
+              <div className="rounded-2xl overflow-hidden border border-slate-800 shadow-xl transition-transform group-hover:scale-[1.02]">
                 <img 
                   src={crmPipeline} 
                   alt="Pipeline de vendas do Avivar CRM" 
                   className="w-full h-64 object-cover object-top"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <Badge className="mb-2 bg-purple-500/20 text-purple-400 border-purple-500/30">
+                  <Badge className="mb-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
                     Avivar CRM
                   </Badge>
                   <h4 className="text-lg font-bold text-white mb-1">Pipeline de Vendas</h4>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-slate-500 text-sm">
                     Acompanhe cada lead do primeiro contato até a conversão.
                   </p>
                 </div>
@@ -389,19 +389,19 @@ export default function NeoHubSalesPage() {
             </div>
 
             {/* Mobile Scheduling */}
-            <div className="relative group flex items-center justify-center">
+            <div className="relative group flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 py-8">
               <div className="relative w-48 md:w-56 transition-transform group-hover:scale-105">
                 <img 
                   src={mobileScheduling} 
                   alt="Agendamento mobile do NeoCare" 
                   className="w-full h-auto rounded-3xl shadow-2xl shadow-black/50"
                 />
-                <div className="absolute -bottom-4 -right-4 md:-bottom-6 md:-right-6 bg-slate-800 rounded-xl p-3 md:p-4 border border-slate-700 shadow-xl">
-                  <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-xs">
+                <div className="absolute -bottom-4 -right-4 md:-bottom-6 md:-right-6 bg-slate-900 rounded-xl p-3 md:p-4 border border-slate-800 shadow-xl">
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
                     NeoCare Mobile
                   </Badge>
                   <p className="text-white font-semibold text-sm mt-1">Agendamento 24/7</p>
-                  <p className="text-slate-400 text-xs">Pacientes agendam pelo celular</p>
+                  <p className="text-slate-500 text-xs">Pacientes agendam pelo celular</p>
                 </div>
               </div>
             </div>
@@ -410,13 +410,13 @@ export default function NeoHubSalesPage() {
           {/* Features Highlight */}
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: Calendar, label: 'Agendamento Inteligente', color: 'text-blue-400' },
-              { icon: MessageSquare, label: 'WhatsApp Integrado', color: 'text-green-400' },
-              { icon: BarChart3, label: 'Relatórios em Tempo Real', color: 'text-amber-400' },
-              { icon: Bot, label: 'IA para Diagnóstico', color: 'text-purple-400' },
+              { icon: Calendar, label: 'Agendamento Inteligente' },
+              { icon: MessageSquare, label: 'WhatsApp Integrado' },
+              { icon: BarChart3, label: 'Relatórios em Tempo Real' },
+              { icon: Bot, label: 'IA para Diagnóstico' },
             ].map((feature) => (
-              <div key={feature.label} className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700">
-                <feature.icon className={`w-6 h-6 ${feature.color}`} />
+              <div key={feature.label} className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-blue-500/30 transition-colors">
+                <feature.icon className="w-6 h-6 text-blue-400" />
                 <span className="text-sm text-slate-300">{feature.label}</span>
               </div>
             ))}
@@ -425,16 +425,16 @@ export default function NeoHubSalesPage() {
       </section>
 
       {/* Modules Section */}
-      <section id="modulos" className="py-20 px-4 sm:px-6 bg-slate-900/50">
+      <section id="modulos" className="py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-slate-800 text-emerald-400 border-emerald-500/30">
+            <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/30">
               9 Módulos Integrados
             </Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">
               Tudo que sua clínica precisa
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               Uma plataforma completa que conecta pacientes, colaboradores, alunos e parceiros 
               em uma experiência unificada.
             </p>
@@ -444,7 +444,7 @@ export default function NeoHubSalesPage() {
             {modules.map((module) => {
               const Icon = module.icon;
               return (
-                <Card key={module.id} className="bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-all group">
+                <Card key={module.id} className="bg-slate-900/50 border-slate-800 hover:border-blue-500/30 transition-all group">
                   <CardHeader>
                     <div className="flex items-center gap-4">
                       <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${module.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
@@ -452,15 +452,15 @@ export default function NeoHubSalesPage() {
                       </div>
                       <div>
                         <CardTitle className="text-white">{module.name}</CardTitle>
-                        <CardDescription className="text-slate-400">{module.description}</CardDescription>
+                        <CardDescription className="text-slate-500">{module.description}</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
                       {module.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-sm text-slate-300">
-                          <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                        <li key={idx} className="flex items-center gap-2 text-sm text-slate-400">
+                          <Check className="w-4 h-4 text-blue-400 flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -474,14 +474,14 @@ export default function NeoHubSalesPage() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 sm:px-6">
+      <section className="py-20 px-4 sm:px-6 bg-slate-900/30">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <Badge className="mb-4 bg-slate-800 text-purple-400 border-purple-500/30">
+              <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/30">
                 Por que NeoHub?
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
                 A transformação digital que sua clínica merece
               </h2>
               <div className="space-y-6">
@@ -492,19 +492,19 @@ export default function NeoHubSalesPage() {
                   { icon: BarChart3, title: 'Decisões Inteligentes', description: 'Dashboards em tempo real com métricas que importam para seu negócio.' },
                 ].map((benefit) => (
                   <div key={benefit.title} className="flex gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
-                      <benefit.icon className="w-6 h-6 text-[#D4AF61]" />
+                    <div className="w-12 h-12 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center flex-shrink-0">
+                      <benefit.icon className="w-6 h-6 text-blue-400" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-white mb-1">{benefit.title}</h3>
-                      <p className="text-slate-400 text-sm">{benefit.description}</p>
+                      <p className="text-slate-500 text-sm">{benefit.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-square rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-8 flex items-center justify-center">
+              <div className="aspect-square rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-8 flex items-center justify-center">
                 <div className="grid grid-cols-3 gap-4">
                   {modules.slice(0, 9).map((module) => {
                     const Icon = module.icon;
@@ -525,26 +525,26 @@ export default function NeoHubSalesPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="planos" className="py-20 px-4 sm:px-6 bg-slate-900/50">
+      <section id="planos" className="py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-slate-800 text-[#D4AF61] border-[#D4AF61]/30">
+            <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/30">
               Planos e Preços
             </Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">
               Escolha o plano ideal para sua clínica
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-8">
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto mb-8">
               Comece com 14 dias grátis. Sem compromisso, sem cartão de crédito.
             </p>
 
             {/* Billing Toggle */}
-            <div className="inline-flex items-center gap-4 p-1 bg-slate-800 rounded-full">
+            <div className="inline-flex items-center gap-4 p-1 bg-slate-900 border border-slate-800 rounded-full">
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                   billingCycle === 'monthly' 
-                    ? 'bg-[#D4AF61] text-slate-900' 
+                    ? 'bg-blue-600 text-white' 
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -554,7 +554,7 @@ export default function NeoHubSalesPage() {
                 onClick={() => setBillingCycle('yearly')}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
                   billingCycle === 'yearly' 
-                    ? 'bg-[#D4AF61] text-slate-900' 
+                    ? 'bg-blue-600 text-white' 
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -568,24 +568,24 @@ export default function NeoHubSalesPage() {
             {plans.map((plan) => (
               <Card 
                 key={plan.id} 
-                className={`relative bg-slate-800/50 border-slate-700 ${
-                  plan.featured ? 'ring-2 ring-[#D4AF61] scale-105' : ''
+                className={`relative bg-slate-900/50 border-slate-800 ${
+                  plan.featured ? 'ring-2 ring-blue-500 scale-105' : ''
                 }`}
               >
                 {plan.featured && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#D4AF61] text-slate-900">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white">
                     <Star className="w-3 h-3 mr-1" />
                     Mais Popular
                   </Badge>
                 )}
                 <CardHeader className="text-center pb-4">
                   <CardTitle className="text-2xl text-white">{plan.name}</CardTitle>
-                  <CardDescription className="text-slate-400">{plan.description}</CardDescription>
+                  <CardDescription className="text-slate-500">{plan.description}</CardDescription>
                   <div className="pt-4">
                     <span className="text-5xl font-bold text-white">
                       R$ {billingCycle === 'monthly' ? plan.monthlyPrice.toLocaleString('pt-BR') : plan.yearlyPrice.toLocaleString('pt-BR')}
                     </span>
-                    <span className="text-slate-400">/mês</span>
+                    <span className="text-slate-500">/mês</span>
                     {billingCycle === 'yearly' && (
                       <p className="text-sm text-emerald-400 mt-1">
                         Economia de R$ {((plan.monthlyPrice - plan.yearlyPrice) * 12).toLocaleString('pt-BR')}/ano
@@ -595,10 +595,10 @@ export default function NeoHubSalesPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <p className="text-sm text-slate-400 mb-2">Módulos incluídos:</p>
+                    <p className="text-sm text-slate-500 mb-2">Módulos incluídos:</p>
                     <div className="flex flex-wrap gap-2">
                       {plan.modules.map((mod) => (
-                        <Badge key={mod} variant="secondary" className="bg-slate-700 text-slate-300">
+                        <Badge key={mod} variant="secondary" className="bg-slate-800 text-slate-400 border-slate-700">
                           {mod}
                         </Badge>
                       ))}
@@ -606,8 +606,8 @@ export default function NeoHubSalesPage() {
                   </div>
                   <ul className="space-y-3">
                     {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-300">
-                        <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-400">
+                        <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                         {feature}
                       </li>
                     ))}
@@ -615,8 +615,8 @@ export default function NeoHubSalesPage() {
                   <Button 
                     className={`w-full ${
                       plan.featured 
-                        ? 'bg-gradient-to-r from-[#D4AF61] to-[#C9A86C] text-slate-900 hover:opacity-90' 
-                        : 'bg-slate-700 text-white hover:bg-slate-600'
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                        : 'bg-slate-800 text-white hover:bg-slate-700 border border-slate-700'
                     }`}
                   >
                     {plan.cta}
@@ -627,20 +627,20 @@ export default function NeoHubSalesPage() {
             ))}
           </div>
 
-          <p className="text-center text-slate-500 mt-8 text-sm">
+          <p className="text-center text-slate-600 mt-8 text-sm">
             Todos os planos incluem suporte, atualizações e backup automático.
           </p>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20 px-4 sm:px-6">
+      <section id="faq" className="py-20 px-4 sm:px-6 bg-slate-900/30">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-slate-800 text-blue-400 border-blue-500/30">
+            <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/30">
               FAQ
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
               Perguntas Frequentes
             </h2>
           </div>
@@ -650,12 +650,12 @@ export default function NeoHubSalesPage() {
               <AccordionItem 
                 key={idx} 
                 value={`item-${idx}`}
-                className="bg-slate-800/50 border border-slate-700 rounded-lg px-6"
+                className="bg-slate-900/50 border border-slate-800 rounded-lg px-6"
               >
-                <AccordionTrigger className="text-white hover:text-[#D4AF61] text-left">
+                <AccordionTrigger className="text-white hover:text-blue-400 text-left">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-slate-400">
+                <AccordionContent className="text-slate-500">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -665,44 +665,44 @@ export default function NeoHubSalesPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-4 sm:px-6 bg-gradient-to-r from-[#D4AF61]/20 to-[#8B7355]/20">
+      <section className="py-20 px-4 sm:px-6 bg-gradient-to-r from-blue-600/10 to-blue-500/5 border-y border-slate-800">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">
             Pronto para transformar sua clínica?
           </h2>
-          <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-slate-400 text-lg mb-8 max-w-2xl mx-auto">
             Junte-se a mais de 500 clínicas que já utilizam o NeoHub para 
             crescer com inteligência e eficiência.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="bg-gradient-to-r from-[#D4AF61] to-[#C9A86C] text-slate-900 hover:opacity-90 text-lg px-8 py-6">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
               Começar Teste Grátis
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <Button size="lg" variant="outline" className="border-slate-600 text-white hover:bg-slate-800 text-lg px-8 py-6">
+            <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-lg px-8 py-6">
               <MessageSquare className="w-5 h-5 mr-2" />
               Falar com Consultor
             </Button>
           </div>
-          <p className="mt-6 text-sm text-slate-500">
+          <p className="mt-6 text-sm text-slate-600">
             14 dias grátis • Sem cartão de crédito • Cancele quando quiser
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 sm:px-6 border-t border-slate-800">
+      <footer className="py-12 px-4 sm:px-6 border-t border-slate-800/60">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <img src={iconeNeofolic} alt="NeoHub" className="w-8 h-8 rounded-lg" />
-              <span className="font-semibold">
-                Neo<span className="text-[#D4AF61]">Hub</span>
+              <span className="font-semibold text-white">
+                Neo<span className="text-blue-400">Hub</span>
               </span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-slate-500">
-              <Link to="/privacy" className="hover:text-white transition-colors">Privacidade</Link>
-              <Link to="/terms" className="hover:text-white transition-colors">Termos</Link>
+            <div className="flex items-center gap-6 text-sm text-slate-600">
+              <Link to="/privacy" className="hover:text-blue-400 transition-colors">Privacidade</Link>
+              <Link to="/terms" className="hover:text-blue-400 transition-colors">Termos</Link>
               <span>© {new Date().getFullYear()} NeoHub. Todos os direitos reservados.</span>
             </div>
           </div>
