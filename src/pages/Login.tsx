@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowLeft, Heart, Users, GraduationCap, Building2, Sparkles, Scale, Fingerprint } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PROFILE_ROUTES, NeoHubProfile } from '@/neohub/lib/permissions';
 import { VisionIcon } from '@/components/icons/VisionIcon';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -49,6 +50,8 @@ export default function Login() {
   
   const { login } = useUnifiedAuth();
   const navigate = useNavigate();
+  const biometric = useBiometricAuth();
+  const [showBiometricSetup, setShowBiometricSetup] = useState(false);
 
   // Load remembered email on mount
   React.useEffect(() => {
@@ -103,15 +106,18 @@ export default function Login() {
     setIsLoading(false);
   };
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent, biometricCredentials?: { email: string; password: string }) => {
+    e?.preventDefault?.();
     setError('');
     setFieldErrors({});
     setSuccessMessage('');
     setIsLoading(true);
 
+    const loginEmail = biometricCredentials?.email || email;
+    const loginPassword = biometricCredentials?.password || password;
+
     try {
-      const result = loginSchema.safeParse({ email, password });
+      const result = loginSchema.safeParse({ email: loginEmail, password: loginPassword });
       
       if (!result.success) {
         const errors: Record<string, string> = {};
@@ -125,11 +131,18 @@ export default function Login() {
         return;
       }
 
-      const { success, error: loginError } = await login(email, password);
+      const { success, error: loginError } = await login(loginEmail, loginPassword);
       
       if (success) {
+        // Se login com sucesso e biometria disponível mas sem credenciais, oferecer configurar
+        if (biometric.isAvailable && !biometric.hasCredentials && !biometricCredentials) {
+          setShowBiometricSetup(true);
+          // Salva temporariamente para configurar depois
+          sessionStorage.setItem('_biometric_pending', JSON.stringify({ email: loginEmail, password: loginPassword }));
+        }
+
         if (rememberMe) {
-          localStorage.setItem('rememberedEmail', email);
+          localStorage.setItem('rememberedEmail', loginEmail);
         } else {
           localStorage.removeItem('rememberedEmail');
         }
@@ -167,6 +180,47 @@ export default function Login() {
     }
     
     setIsLoading(false);
+  };
+
+  // Login com biometria (Face ID / Touch ID)
+  const handleBiometricLogin = async () => {
+    if (!biometric.isAvailable || !biometric.hasCredentials) return;
+    
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const credentials = await biometric.authenticate();
+      
+      if (credentials) {
+        // Simula um evento de form submit
+        await handleSubmit({ preventDefault: () => {} } as React.FormEvent, credentials);
+      } else {
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError('Falha na autenticação biométrica');
+      setIsLoading(false);
+    }
+  };
+
+  // Configura biometria após login bem-sucedido
+  const handleSetupBiometric = async (accept: boolean) => {
+    setShowBiometricSetup(false);
+    
+    if (accept) {
+      const pending = sessionStorage.getItem('_biometric_pending');
+      if (pending) {
+        try {
+          const { email: savedEmail, password: savedPassword } = JSON.parse(pending);
+          await biometric.saveCredentials(savedEmail, savedPassword);
+        } catch (e) {
+          console.error('Failed to save biometric credentials');
+        }
+      }
+    }
+    
+    sessionStorage.removeItem('_biometric_pending');
   };
 
   const resetForm = () => {
@@ -458,7 +512,53 @@ export default function Login() {
                   >
                     {isLoading ? 'Entrando...' : 'Entrar'}
                   </button>
+
+                  {/* Botão de login biométrico */}
+                  {biometric.isAvailable && biometric.hasCredentials && (
+                    <button
+                      type="button"
+                      onClick={handleBiometricLogin}
+                      disabled={isLoading}
+                      className="w-full py-3 mt-3 flex items-center justify-center gap-2 rounded-lg border border-border bg-card hover:bg-muted transition-colors text-foreground font-medium"
+                    >
+                      <Fingerprint className="w-5 h-5" />
+                      <span>Entrar com {biometric.biometryName}</span>
+                    </button>
+                  )}
                 </form>
+
+                {/* Modal de configuração biométrica */}
+                {showBiometricSetup && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="bg-card rounded-xl border border-border shadow-2xl p-6 max-w-sm w-full animate-in fade-in zoom-in-95">
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Fingerprint className="w-8 h-8 text-primary" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                          Ativar {biometric.biometryName}?
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-6">
+                          Use sua biometria para fazer login de forma rápida e segura nas próximas vezes.
+                        </p>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => handleSetupBiometric(false)}
+                            className="flex-1 py-2.5 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-medium"
+                          >
+                            Agora não
+                          </button>
+                          <button
+                            onClick={() => handleSetupBiometric(true)}
+                            className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+                          >
+                            Ativar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Aviso de acesso restrito */}
                 <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border text-center">
