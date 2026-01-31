@@ -44,7 +44,7 @@ interface Document {
 
 export default function AvivarKnowledge() {
   const navigate = useNavigate();
-  const { config, resetConfig, isEditMode, editingAgentId } = useAgentConfig();
+  const { config, resetConfig, isEditMode, editingAgentId, loading } = useAgentConfig();
   
   const [text, setText] = useState('');
   const [documentName, setDocumentName] = useState('');
@@ -57,8 +57,45 @@ export default function AvivarKnowledge() {
   
   // Agent name dialog
   const [showAgentDialog, setShowAgentDialog] = useState(false);
-  const [agentName, setAgentName] = useState(config.attendantName || 'Meu Agente');
+  const [agentName, setAgentName] = useState('');
   const [isSavingAgent, setIsSavingAgent] = useState(false);
+
+  // Atualiza o nome do agente quando os dados forem carregados (modo edição)
+  useEffect(() => {
+    if (config.attendantName && !agentName) {
+      setAgentName(config.attendantName);
+    }
+  }, [config.attendantName]);
+
+  // Carregar documentos existentes do agente (modo edição)
+  useEffect(() => {
+    async function loadExistingDocuments() {
+      if (!isEditMode || !editingAgentId) return;
+      
+      try {
+        const { data: docs, error } = await supabase
+          .from('avivar_knowledge_documents')
+          .select('id, name, content, chunks_count')
+          .eq('agent_id', editingAgentId);
+
+        if (error) throw error;
+
+        if (docs && docs.length > 0) {
+          setDocuments(docs.map(doc => ({
+            id: doc.id,
+            name: doc.name,
+            content: doc.content,
+            chunks: doc.chunks_count || 0,
+            createdAt: 'Salvo anteriormente'
+          })));
+        }
+      } catch (error) {
+        console.error('Error loading existing documents:', error);
+      }
+    }
+
+    loadExistingDocuments();
+  }, [isEditMode, editingAgentId]);
 
   const estimatedChunks = text ? Math.ceil(text.length / (chunkSize - overlap)) : 0;
 
@@ -149,6 +186,20 @@ export default function AvivarKnowledge() {
         professional_name: config.professionalName || null,
         services: config.services || [],
         schedule: config.schedule || {},
+        // Novos campos
+        nicho: config.nicho || null,
+        subnicho: config.subnicho || null,
+        crm: config.crm || null,
+        instagram: config.instagram || null,
+        address: config.address || null,
+        city: config.city || null,
+        state: config.state || null,
+        consultation_type: config.consultationType || { presencial: true, online: false, domicilio: false },
+        payment_methods: config.paymentMethods || [],
+        before_after_images: config.beforeAfterImages || [],
+        ai_identity: config.aiIdentity || null,
+        ai_objective: config.aiObjective || null,
+        consultation_duration: config.consultationDuration || 60,
         updated_at: new Date().toISOString()
       };
 
