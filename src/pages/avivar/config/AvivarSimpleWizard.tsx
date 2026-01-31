@@ -1,0 +1,344 @@
+/**
+ * AvivarSimpleWizard - Wizard Simplificado de 5 etapas
+ * Substitui o wizard de 15 etapas para facilitar para PMEs
+ */
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+import {
+  StepSelectBusiness,
+  StepBusinessInfo,
+  StepServicesSimple,
+  StepScheduleSimple,
+  StepReviewSimple,
+} from './components/steps/simple';
+
+import { autoGenerateConfig } from './utils/autoGenerateConfig';
+import { 
+  AgentConfig, 
+  INITIAL_CONFIG, 
+  PAYMENT_METHODS,
+  DEFAULT_WEEK_SCHEDULE,
+  NichoType,
+  SubnichoType,
+} from './types';
+
+const SIMPLE_STEPS = [
+  { id: 'business', title: 'Tipo de Negócio', description: 'Qual é seu segmento?' },
+  { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
+  { id: 'services', title: 'Serviços', description: 'O que você oferece?' },
+  { id: 'schedule', title: 'Horários', description: 'Quando você atende?' },
+  { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
+];
+
+export default function AvivarSimpleWizard() {
+  const navigate = useNavigate();
+  const { agentId } = useParams<{ agentId?: string }>();
+  const isEditMode = !!agentId;
+
+  const [loading, setLoading] = useState(isEditMode);
+  const [saving, setSaving] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [config, setConfig] = useState<AgentConfig>(() => ({
+    ...INITIAL_CONFIG,
+    paymentMethods: [...PAYMENT_METHODS],
+    schedule: DEFAULT_WEEK_SCHEDULE,
+    createdAt: new Date().toISOString(),
+  }));
+
+  // Carregar agente existente se em modo de edição
+  useEffect(() => {
+    if (!agentId) return;
+
+    async function loadAgent() {
+      setLoading(true);
+      try {
+        const { data: agent, error } = await supabase
+          .from('avivar_agents')
+          .select('*')
+          .eq('id', agentId)
+          .single();
+
+        if (error) throw error;
+
+        if (agent) {
+          setConfig(prev => ({
+            ...prev,
+            nicho: agent.nicho as NichoType || null,
+            subnicho: agent.subnicho as SubnichoType || null,
+            template: agent.subnicho as SubnichoType || null,
+            companyName: agent.company_name || '',
+            address: agent.address || '',
+            city: agent.city || '',
+            state: agent.state || '',
+            professionalName: agent.professional_name || '',
+            crm: agent.crm || '',
+            attendantName: agent.name || '',
+            services: (agent.services as unknown as AgentConfig['services']) || [],
+            paymentMethods: (agent.payment_methods as unknown as AgentConfig['paymentMethods']) || [...PAYMENT_METHODS],
+            schedule: (agent.schedule as unknown as AgentConfig['schedule']) || DEFAULT_WEEK_SCHEDULE,
+            toneOfVoice: (agent.tone_of_voice as 'formal' | 'cordial' | 'casual') || 'cordial',
+            aiIdentity: agent.ai_identity || '',
+            aiObjective: agent.ai_objective || '',
+            aiInstructions: agent.ai_instructions || '',
+            aiRestrictions: agent.ai_restrictions || '',
+            consultationType: (agent.consultation_type as unknown as AgentConfig['consultationType']) || { presencial: true, online: false, domicilio: false },
+            consultationDuration: agent.consultation_duration || 60,
+            beforeAfterImages: (agent.before_after_images as unknown as string[]) || [],
+            knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
+            fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading agent:', error);
+        toast.error('Erro ao carregar agente');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAgent();
+  }, [agentId]);
+
+  const updateConfig = (updates: Partial<AgentConfig>) => {
+    setConfig(prev => ({ ...prev, ...updates }));
+  };
+
+  const progress = ((currentStep + 1) / SIMPLE_STEPS.length) * 100;
+
+  const canProceed = (): boolean => {
+    switch (currentStep) {
+      case 0: // Tipo de negócio
+        return !!config.subnicho;
+      case 1: // Info da empresa
+        return !!config.companyName && !!config.city && !!config.state && !!config.professionalName && !!config.attendantName;
+      case 2: // Serviços
+        return config.services.some(s => s.enabled);
+      case 3: // Horários
+        return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
+      case 4: // Review
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const handleNext = () => {
+    if (currentStep < SIMPLE_STEPS.length - 1 && canProceed()) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const handleBusinessSelect = (nicho: NichoType, subnicho: SubnichoType) => {
+    updateConfig({ nicho, subnicho, template: subnicho });
+  };
+
+  const handleComplete = async (agentName: string) => {
+    setSaving(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Você precisa estar logado para criar um agente');
+        navigate('/login');
+        return;
+      }
+
+      // Auto-gerar configurações de IA
+      const autoConfig = autoGenerateConfig(
+        config.nicho,
+        config.subnicho,
+        config.attendantName,
+        config.companyName,
+        config.professionalName
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const agentPayload: any = {
+        user_id: user.id,
+        name: config.attendantName,
+        company_name: config.companyName,
+        professional_name: config.professionalName,
+        nicho: config.nicho,
+        subnicho: config.subnicho,
+        crm: config.crm || null,
+        address: config.address || null,
+        city: config.city,
+        state: config.state,
+        services: config.services,
+        payment_methods: config.paymentMethods,
+        schedule: config.schedule,
+        consultation_type: config.consultationType,
+        consultation_duration: config.consultationDuration,
+        tone_of_voice: autoConfig.toneOfVoice,
+        ai_identity: autoConfig.aiIdentity,
+        ai_objective: autoConfig.aiObjective,
+        ai_instructions: autoConfig.aiInstructions,
+        ai_restrictions: autoConfig.aiRestrictions,
+        fluxo_atendimento: autoConfig.fluxoAtendimento,
+        personality: autoConfig.aiIdentity,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (isEditMode && agentId) {
+        // Atualizar agente existente
+        const { error } = await supabase
+          .from('avivar_agents')
+          .update(agentPayload)
+          .eq('id', agentId);
+
+        if (error) throw error;
+        toast.success('Agente atualizado com sucesso!');
+      } else {
+        // Criar novo agente
+        const { error } = await supabase
+          .from('avivar_agents')
+          .insert(agentPayload);
+
+        if (error) throw error;
+        toast.success('Agente criado com sucesso! 🎉');
+      }
+
+      navigate('/avivar/agents');
+    } catch (error) {
+      console.error('Error saving agent:', error);
+      toast.error('Erro ao salvar agente. Tente novamente.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin h-8 w-8 border-4 border-[hsl(var(--avivar-primary))] border-t-transparent rounded-full mx-auto" />
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <StepSelectBusiness
+            selectedNicho={config.nicho}
+            selectedSubnicho={config.subnicho}
+            onSelect={handleBusinessSelect}
+          />
+        );
+      case 1:
+        return (
+          <StepBusinessInfo
+            companyName={config.companyName}
+            address={config.address}
+            city={config.city}
+            state={config.state}
+            professionalName={config.professionalName}
+            crm={config.crm}
+            attendantName={config.attendantName}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
+            onChange={(field, value) => updateConfig({ [field]: value })}
+          />
+        );
+      case 2:
+        return (
+          <StepServicesSimple
+            services={config.services}
+            paymentMethods={config.paymentMethods}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
+            onServicesChange={(services) => updateConfig({ services })}
+            onPaymentsChange={(paymentMethods) => updateConfig({ paymentMethods })}
+          />
+        );
+      case 3:
+        return (
+          <StepScheduleSimple
+            schedule={config.schedule}
+            onChange={(schedule) => updateConfig({ schedule })}
+          />
+        );
+      case 4:
+        return (
+          <StepReviewSimple
+            config={config}
+            onComplete={handleComplete}
+            onEdit={setCurrentStep}
+            isLoading={saving}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="p-6 space-y-6 max-w-4xl mx-auto">
+      {/* Progress */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm text-[hsl(var(--avivar-muted-foreground))]">
+          <span>Etapa {currentStep + 1} de {SIMPLE_STEPS.length}</span>
+          <span>{SIMPLE_STEPS[currentStep].title}</span>
+        </div>
+        <Progress value={progress} className="h-2" />
+      </div>
+
+      {/* Edit Mode Indicator */}
+      {isEditMode && (
+        <div className="flex items-center gap-2 text-sm text-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)] px-4 py-2 rounded-lg border border-[hsl(var(--avivar-primary)/0.3)]">
+          <span>✏️</span>
+          <span>Modo Edição - Alterando agente existente</span>
+        </div>
+      )}
+
+      {/* Step Content */}
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardContent className="p-6">
+          {renderStep()}
+        </CardContent>
+      </Card>
+
+      {/* Navigation (not shown on review step) */}
+      {currentStep < SIMPLE_STEPS.length - 1 && (
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={handlePrev}
+            disabled={currentStep === 0}
+            className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Voltar
+          </Button>
+
+          <Button
+            onClick={handleNext}
+            disabled={!canProceed()}
+            className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)]"
+          >
+            Próximo
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
