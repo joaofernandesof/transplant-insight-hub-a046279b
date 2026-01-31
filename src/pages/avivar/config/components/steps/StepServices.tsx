@@ -81,6 +81,11 @@ export function StepServices({
 }: StepServicesProps) {
   const terminology = getNichoTerminology(nicho);
   const selectedCount = services.filter(s => s.enabled).length;
+  
+  // Estado para novo serviço
+  const [newServiceName, setNewServiceName] = React.useState('');
+  const [newServiceDescription, setNewServiceDescription] = React.useState('');
+  const [showAddForm, setShowAddForm] = React.useState(false);
 
   // Atualizar serviços quando subnicho mudar (apenas se não tiver serviços selecionados)
   useEffect(() => {
@@ -112,14 +117,46 @@ export function StepServices({
     onChange(updated);
   };
 
+  const addCustomService = () => {
+    if (!newServiceName.trim()) return;
+    
+    const customId = `custom_${Date.now()}`;
+    const label = nicho === 'vendas' ? 'Produto' : 'Serviço';
+    const newService: Service = {
+      id: customId,
+      name: newServiceName.trim(),
+      description: newServiceDescription.trim() || `${label} personalizado`,
+      enabled: true,
+    };
+    
+    onChange([...services, newService]);
+    setNewServiceName('');
+    setNewServiceDescription('');
+    setShowAddForm(false);
+  };
+
+  const removeService = (serviceId: string) => {
+    // Só permite remover serviços customizados
+    if (serviceId.startsWith('custom_')) {
+      onChange(services.filter(s => s.id !== serviceId));
+    }
+  };
+
+  // Label dinâmico baseado no nicho
+  const getServiceLabel = () => {
+    if (nicho === 'vendas') return 'produto';
+    return 'serviço';
+  };
+  const serviceLabel = getServiceLabel();
+
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-          Quais serviços você oferece?
+          Quais {serviceLabel}s você oferece?
         </h2>
         <p className="text-[hsl(var(--avivar-muted-foreground))]">
-          A IA só oferecerá aos {terminology.cliente}s os serviços marcados aqui
+          A IA só oferecerá aos {terminology.cliente}s os {serviceLabel}s marcados aqui
         </p>
       </div>
 
@@ -173,19 +210,97 @@ export function StepServices({
                     <h4 className="font-medium text-[hsl(var(--avivar-foreground))]">
                       {service.name}
                     </h4>
+                    {service.id.startsWith('custom_') && (
+                      <Badge variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))]">
+                        Personalizado
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] mt-1 ml-6">
                     {service.description}
                   </p>
                 </div>
 
-                {service.enabled && (
-                  <CheckCircle2 className="h-5 w-5 text-[hsl(var(--avivar-primary))] flex-shrink-0" />
-                )}
+                <div className="flex items-center gap-2">
+                  {service.id.startsWith('custom_') && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeService(service.id);
+                      }}
+                      className="h-8 w-8 p-0 text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-50"
+                    >
+                      ✕
+                    </Button>
+                  )}
+                  {service.enabled && (
+                    <CheckCircle2 className="h-5 w-5 text-[hsl(var(--avivar-primary))] flex-shrink-0" />
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
+
+        {/* Add new service form */}
+        {showAddForm ? (
+          <Card className="border-2 border-dashed border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.02)]">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                <span className="font-medium text-[hsl(var(--avivar-foreground))]">
+                  Adicionar {serviceLabel} personalizado
+                </span>
+              </div>
+              <Input
+                placeholder={`Nome do ${serviceLabel}`}
+                value={newServiceName}
+                onChange={(e) => setNewServiceName(e.target.value)}
+                className="border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))]"
+              />
+              <Input
+                placeholder="Descrição (opcional)"
+                value={newServiceDescription}
+                onChange={(e) => setNewServiceDescription(e.target.value)}
+                className="border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))]"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={addCustomService}
+                  disabled={!newServiceName.trim()}
+                  className="bg-[hsl(var(--avivar-primary))] text-white hover:bg-[hsl(var(--avivar-primary)/0.9)]"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Adicionar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setNewServiceName('');
+                    setNewServiceDescription('');
+                  }}
+                  className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))]"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Button
+            variant="outline"
+            onClick={() => setShowAddForm(true)}
+            className="w-full border-2 border-dashed border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:border-[hsl(var(--avivar-primary))] hover:text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.05)]"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar {serviceLabel} personalizado
+          </Button>
+        )}
 
         {/* Counter */}
         <div className="flex items-center justify-center gap-2 py-2">
@@ -198,13 +313,13 @@ export function StepServices({
             )}
           >
             <CheckCircle2 className="h-3 w-3 mr-1" />
-            {selectedCount} serviço{selectedCount !== 1 ? 's' : ''} selecionado{selectedCount !== 1 ? 's' : ''}
+            {selectedCount} {serviceLabel}{selectedCount !== 1 ? 's' : ''} selecionado{selectedCount !== 1 ? 's' : ''}
           </Badge>
         </div>
 
         {selectedCount === 0 && (
           <p className="text-center text-sm text-yellow-600 dark:text-yellow-400">
-            ⚠️ Selecione pelo menos 1 serviço para continuar
+            ⚠️ Selecione pelo menos 1 {serviceLabel} para continuar
           </p>
         )}
       </div>
