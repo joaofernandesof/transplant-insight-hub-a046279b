@@ -84,6 +84,19 @@ export type SubnichoType =
 // Legado - manter compatibilidade
 export type TemplateType = SubnichoType;
 
+// Fluxo de Atendimento
+export interface FluxoStep {
+  id: string;
+  ordem: number;
+  titulo: string;
+  descricao: string;
+}
+
+export interface FluxoAtendimento {
+  passosCronologicos: FluxoStep[];
+  passosExtras: FluxoStep[];
+}
+
 export type TomVoz = 'formal' | 'cordial' | 'casual';
 
 export interface TimeInterval {
@@ -188,6 +201,9 @@ export interface AgentConfig {
   // Instruções e Restrições da IA
   aiInstructions: string;
   aiRestrictions: string;
+  
+  // Fluxo de Atendimento
+  fluxoAtendimento: FluxoAtendimento;
   
   // Mensagens (legado - mantido para compatibilidade)
   welcomeMessage: string;
@@ -394,6 +410,7 @@ export const INITIAL_CONFIG: AgentConfig = {
   consultationDuration: 60,
   aiInstructions: '',
   aiRestrictions: '',
+  fluxoAtendimento: { passosCronologicos: [], passosExtras: [] },
   welcomeMessage: '',
   transferMessage: '',
   createdAt: '',
@@ -416,6 +433,7 @@ export const WIZARD_STEPS = [
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
   { id: 'personalization', title: 'Personalidade', description: 'Identidade e objetivo da IA' },
   { id: 'instructions', title: 'Instruções', description: 'O que a IA pode e não pode fazer' },
+  { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
   { id: 'review', title: 'Revisão', description: 'Confirme as configurações' }
 ];
 

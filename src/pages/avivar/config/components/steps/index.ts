@@ -12,4 +12,5 @@ export { StepImages } from './StepImages';
 export { StepSchedule } from './StepSchedule';
 export { StepPersonalization } from './StepPersonalization';
 export { StepInstructions } from './StepInstructions';
+export { StepFluxoAtendimento } from './StepFluxoAtendimento';
 export { StepReview } from './StepReview';
