@@ -396,6 +396,8 @@ function NeoTeamRoutes() {
   const NeoTeamAnamnesis = lazy(() => import('@/neohub/pages/neoteam/NeoTeamAnamnesis'));
   const LegalDashboardPage = lazy(() => import('@/pages/neoteam/LegalDashboardPage'));
   const ContractsImportPage = lazy(() => import('@/clinic/pages/ContractsImportPage'));
+  const ProceduresPage = lazy(() => import('@/pages/neoteam/procedures/ProceduresPage'));
+  const InventoryPage = lazy(() => import('@/pages/neoteam/inventory/InventoryPage'));
   
   return (
     <ProfileGuard allowedProfiles={['colaborador', 'medico', 'administrador']}>
@@ -416,6 +418,8 @@ function NeoTeamRoutes() {
           <Route path="anamnesis" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><NeoTeamAnamnesis /></Suspense>} />
           <Route path="legal-dashboard" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><LegalDashboardPage /></Suspense>} />
           <Route path="contracts-import" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ContractsImportPage /></Suspense>} />
+          <Route path="procedures" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><ProceduresPage /></Suspense>} />
+          <Route path="inventory" element={<Suspense fallback={<div className="p-6">Carregando...</div>}><InventoryPage /></Suspense>} />
           <Route path="postvenda" element={<PostVendaHome />} />
           <Route path="postvenda/chamados" element={<ChamadoListPage />} />
           <Route path="postvenda/chamados/:id" element={<ChamadoDetailPage />} />
