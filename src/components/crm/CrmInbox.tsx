@@ -46,21 +46,38 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
   // Handle initialLeadId - find existing conversation or show lead panel
+  // The initialLeadId can be either a journey id (from avivar_patient_journeys) or a lead id
   useEffect(() => {
     if (!initialLeadId || isLoadingConversations || isLoadingJourneys) return;
 
-    // Find existing conversation for this lead (by lead_id matching journey id)
-    const existingConversation = conversations.find(c => c.lead_id === initialLeadId);
+    // First: Check if there's a conversation directly linked to this ID as lead_id
+    const existingConversationByLeadId = conversations.find(c => c.lead_id === initialLeadId);
     
-    if (existingConversation) {
-      setSelectedConversation(existingConversation.id);
+    if (existingConversationByLeadId) {
+      setSelectedConversation(existingConversationByLeadId.id);
       setShowLeadWithoutConversation(false);
-    } else {
-      // No conversation exists - show lead panel without conversation
-      setSelectedConversation(null);
-      setShowLeadWithoutConversation(true);
+      return;
     }
-  }, [initialLeadId, conversations, isLoadingConversations, isLoadingJourneys]);
+
+    // Second: If initialLeadId is a journey, find conversation by matching phone number
+    const journey = journeys.find(j => j.id === initialLeadId);
+    if (journey?.patient_phone) {
+      // Find conversation where the lead has the same phone as the journey
+      const conversationByPhone = conversations.find(c => 
+        c.lead?.phone === journey.patient_phone
+      );
+      
+      if (conversationByPhone) {
+        setSelectedConversation(conversationByPhone.id);
+        setShowLeadWithoutConversation(false);
+        return;
+      }
+    }
+
+    // No conversation exists - show lead panel without conversation
+    setSelectedConversation(null);
+    setShowLeadWithoutConversation(true);
+  }, [initialLeadId, conversations, isLoadingConversations, isLoadingJourneys, journeys]);
 
   const handleSendMessage = async (content: string) => {
     // If we're showing a lead without conversation, create one first
