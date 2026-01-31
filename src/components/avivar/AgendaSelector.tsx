@@ -24,6 +24,8 @@ import { AvivarAgenda, useAvivarAgendas, NewAgenda } from "@/hooks/useAvivarAgen
 interface AgendaSelectorProps {
   selectedAgenda: AvivarAgenda | null;
   onSelect: (agenda: AvivarAgenda | null) => void;
+  /** "default" shows full button, "compact" shows only a small dropdown trigger */
+  variant?: "default" | "compact";
 }
 
 const AGENDA_COLORS = [
@@ -37,7 +39,7 @@ const AGENDA_COLORS = [
   "#F97316", // orange
 ];
 
-export function AgendaSelector({ selectedAgenda, onSelect }: AgendaSelectorProps) {
+export function AgendaSelector({ selectedAgenda, onSelect, variant = "default" }: AgendaSelectorProps) {
   const { agendas, createAgenda, isLoading } = useAvivarAgendas();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAgenda, setNewAgenda] = useState<NewAgenda>({
@@ -94,6 +96,70 @@ export function AgendaSelector({ selectedAgenda, onSelect }: AgendaSelectorProps
     );
   }
 
+  // Compact variant - just a small dropdown trigger
+  if (variant === "compact") {
+    return (
+      <>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="h-8 gap-1 text-muted-foreground hover:text-foreground"
+            >
+              <ChevronDown className="h-4 w-4" />
+              <span className="sr-only">Trocar agenda</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-[250px]">
+            <DropdownMenuItem onClick={() => onSelect(null)}>
+              <span className="text-muted-foreground">Todas as agendas</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {agendas.map((agenda) => (
+              <DropdownMenuItem
+                key={agenda.id}
+                onClick={() => onSelect(agenda)}
+                className="flex items-center gap-2"
+              >
+                <div 
+                  className="w-3 h-3 rounded-full flex-shrink-0" 
+                  style={{ backgroundColor: agenda.color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="truncate font-medium">{agenda.professional_name || agenda.name}</p>
+                  {agenda.city && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {agenda.city}
+                    </p>
+                  )}
+                </div>
+                {selectedAgenda?.id === agenda.id && (
+                  <div className="w-2 h-2 rounded-full bg-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Agenda
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <CreateAgendaDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          newAgenda={newAgenda}
+          setNewAgenda={setNewAgenda}
+          onSubmit={handleCreate}
+          isLoading={createAgenda.isPending}
+        />
+      </>
+    );
+  }
+
+  // Default variant - full button with agenda name
   return (
     <>
       <DropdownMenu>
@@ -106,7 +172,7 @@ export function AgendaSelector({ selectedAgenda, onSelect }: AgendaSelectorProps
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: selectedAgenda.color }}
                   />
-                  <span className="truncate max-w-[150px]">{selectedAgenda.name}</span>
+                  <span className="truncate max-w-[150px]">{selectedAgenda.professional_name || selectedAgenda.name}</span>
                   {selectedAgenda.city && (
                     <Badge variant="secondary" className="text-xs">
                       {selectedAgenda.city}
@@ -136,10 +202,10 @@ export function AgendaSelector({ selectedAgenda, onSelect }: AgendaSelectorProps
                 style={{ backgroundColor: agenda.color }}
               />
               <div className="flex-1 min-w-0">
-                <p className="truncate font-medium">{agenda.name}</p>
-                {(agenda.city || agenda.professional_name) && (
+                <p className="truncate font-medium">{agenda.professional_name || agenda.name}</p>
+                {agenda.city && (
                   <p className="text-xs text-muted-foreground truncate">
-                    {agenda.city}{agenda.city && agenda.professional_name && " • "}{agenda.professional_name}
+                    {agenda.city}
                   </p>
                 )}
               </div>
