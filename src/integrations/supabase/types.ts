@@ -844,6 +844,7 @@ export type Database = {
       }
       avivar_knowledge_documents: {
         Row: {
+          agent_id: string | null
           chunk_size: number | null
           chunks_count: number | null
           content: string
@@ -857,6 +858,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agent_id?: string | null
           chunk_size?: number | null
           chunks_count?: number | null
           content: string
@@ -870,6 +872,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agent_id?: string | null
           chunk_size?: number | null
           chunks_count?: number | null
           content?: string
@@ -882,7 +885,15 @@ export type Database = {
           overlap?: number | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_knowledge_documents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_mensagens: {
         Row: {

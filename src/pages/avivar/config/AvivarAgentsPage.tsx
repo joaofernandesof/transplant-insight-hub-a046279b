@@ -40,6 +40,7 @@ interface Agent {
   created_at: string;
   knowledge_files?: any;
   company_name?: string | null;
+  document_count?: number; // Contagem real de documentos vinculados
 }
 
 const KANBAN_OPTIONS = [
@@ -81,7 +82,21 @@ export default function AvivarAgentsPage() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAgents(data || []);
+      
+      // Buscar contagem de documentos para cada agente
+      const agentsWithDocs = await Promise.all((data || []).map(async (agent) => {
+        const { count } = await supabase
+          .from('avivar_knowledge_documents')
+          .select('*', { count: 'exact', head: true })
+          .eq('agent_id', agent.id);
+        
+        return {
+          ...agent,
+          document_count: count || 0
+        };
+      }));
+      
+      setAgents(agentsWithDocs);
     } catch (error) {
       console.error('Error loading agents:', error);
       toast.error('Erro ao carregar agentes');
@@ -266,7 +281,7 @@ export default function AvivarAgentsPage() {
               <div className="flex items-center gap-2 text-sm text-[hsl(var(--avivar-muted-foreground))]">
                 <MessageSquare className="h-4 w-4" />
                 <span>
-                  {agent.knowledge_files?.length || 0} documento(s) na base
+                  {agent.document_count || 0} documento(s) na base
                 </span>
               </div>
 
