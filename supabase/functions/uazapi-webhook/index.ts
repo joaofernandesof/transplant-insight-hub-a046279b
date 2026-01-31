@@ -122,9 +122,28 @@ function extractPhone(jid: string): string {
   return phone.split(":")[0];
 }
 
+function normalizePhone(value: string): string {
+  if (!value) return "";
+  return value.replace(/\D/g, "");
+}
+
 // Check if JID is a group
 function isGroup(jid: string): boolean {
   return jid?.includes("@g.us") || false;
+}
+
+function mapAvivarTipoMensagem(mediaType: string | null): string {
+  // public.avivar_mensagens has a CHECK constraint allowing only these values
+  const allowed = new Set(["text", "image", "audio", "video", "document", "sticker", "location"]);
+  if (!mediaType) return "text";
+  return allowed.has(mediaType) ? mediaType : "text";
+}
+
+function mapCrmMediaType(mediaType: string | null): string | null {
+  // public.crm_messages has a CHECK constraint allowing only these values (or NULL)
+  const allowed = new Set(["image", "video", "audio", "document"]);
+  if (!mediaType) return null;
+  return allowed.has(mediaType) ? mediaType : null;
 }
 
 // Extract message content from UazAPI message format
@@ -289,7 +308,7 @@ serve(async (req) => {
             continue;
           }
 
-          const phone = extractPhone(msg.key.remoteJid);
+          const phone = normalizePhone(extractPhone(msg.key.remoteJid));
           const isGroupChat = isGroup(msg.key.remoteJid);
           const { content, mediaType, mediaUrl } = extractMessageContent(msg.message);
 
@@ -323,7 +342,7 @@ serve(async (req) => {
           // IMPORTANT: We must map inbound webhook events to the correct Avivar user.
           let sessionQuery = supabase
             .from("avivar_whatsapp_sessions")
-            .select("id, user_id, phone_number, instance_id, status")
+            .select("id, user_id, phone_number, phone_name, instance_id, status")
             .limit(1);
 
           if (instanceName) {
@@ -352,9 +371,15 @@ serve(async (req) => {
           // Use insert with a check to avoid duplicates since there's no unique constraint on message_id
           const { data: existingMsg } = await supabase
             .from("avivar_whatsapp_messages")
-            .select("id")
+            .select("id, synced_to_crm")
             .eq("message_id", msg.key.id)
             .maybeSingle();
+
+          // If we already processed/synced this message, skip to avoid duplicates in CRM tables
+          if (existingMsg?.synced_to_crm) {
+            console.log(`[UazAPI Webhook] Message already synced, skipping: ${msg.key.id}`);
+            continue;
+          }
 
           if (!existingMsg) {
             const { error: msgError } = await supabase
@@ -415,7 +440,8 @@ serve(async (req) => {
                 mensagem: content,
                 direcao: msg.key.fromMe ? "saida" : "entrada",
                 data_hora: timestamp,
-                tipo_mensagem: mediaType || "texto",
+                // Must match CHECK constraint on avivar_mensagens_tipo_mensagem_check
+                tipo_mensagem: mapAvivarTipoMensagem(mediaType),
                 url_arquivo: mediaUrl,
                 lida: msg.key.fromMe, // Outgoing messages are already "read"
                 metadata: {
@@ -430,14 +456,131 @@ serve(async (req) => {
               console.error("[UazAPI Webhook] Error storing CRM message:", mensagemError);
             } else {
               console.log(`[UazAPI Webhook] ✅ Message stored in CRM: ${msg.key.id}`);
-              // Mark WhatsApp message as synced
-              await supabase
-                .from("avivar_whatsapp_messages")
-                .update({ synced_to_crm: true })
-                .eq("message_id", msg.key.id);
             }
           } else {
             console.log(`[UazAPI Webhook] Message already exists in CRM: ${msg.key.id}`);
+          }
+
+          // 4b. Sync to Inbox tables (leads + crm_conversations + crm_messages)
+          // NOTE: The /avivar/inbox UI reads from crm_conversations + crm_messages.
+          let syncedToInbox = false;
+
+          if (!isGroupChat) {
+            const contactName = msg.pushName || `WhatsApp ${phone}`;
+
+            // Find or create lead by phone
+            let leadId: string | null = null;
+            const { data: existingLead, error: leadLookupError } = await supabase
+              .from("leads")
+              .select("id")
+              .eq("phone", phone)
+              .maybeSingle();
+
+            if (leadLookupError) {
+              console.error("[UazAPI Webhook] Error looking up lead:", leadLookupError);
+            }
+
+            if (existingLead?.id) {
+              leadId = existingLead.id;
+            } else {
+              const { data: createdLead, error: leadCreateError } = await supabase
+                .from("leads")
+                .insert({
+                  name: contactName,
+                  phone,
+                  source: "whatsapp",
+                })
+                .select("id")
+                .single();
+
+              if (leadCreateError) {
+                console.error("[UazAPI Webhook] Error creating lead (leads):", leadCreateError);
+              } else {
+                leadId = createdLead.id;
+                console.log(`[UazAPI Webhook] ✅ Lead created in leads: ${leadId} (${phone})`);
+              }
+            }
+
+            if (leadId) {
+              // Find or create conversation in CRM
+              let crmConversationId: string | null = null;
+              const { data: existingCrmConversation, error: crmConvLookupError } = await supabase
+                .from("crm_conversations")
+                .select("id, unread_count")
+                .eq("lead_id", leadId)
+                .eq("channel", "whatsapp")
+                .maybeSingle();
+
+              if (crmConvLookupError) {
+                console.error("[UazAPI Webhook] Error looking up crm_conversation:", crmConvLookupError);
+              }
+
+              if (existingCrmConversation?.id) {
+                crmConversationId = existingCrmConversation.id;
+
+                // Update last_message_at and unread count
+                const nextUnread = msg.key.fromMe
+                  ? existingCrmConversation.unread_count
+                  : (existingCrmConversation.unread_count ?? 0) + 1;
+
+                const { error: crmConvUpdateError } = await supabase
+                  .from("crm_conversations")
+                  .update({
+                    last_message_at: timestamp,
+                    unread_count: nextUnread,
+                    status: "pending",
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", crmConversationId);
+
+                if (crmConvUpdateError) {
+                  console.error("[UazAPI Webhook] Error updating crm_conversation:", crmConvUpdateError);
+                }
+              } else {
+                const { data: createdConversation, error: crmConvCreateError } = await supabase
+                  .from("crm_conversations")
+                  .insert({
+                    lead_id: leadId,
+                    channel: "whatsapp",
+                    status: "pending",
+                    last_message_at: timestamp,
+                    unread_count: msg.key.fromMe ? 0 : 1,
+                    assigned_to: userId,
+                  })
+                  .select("id")
+                  .single();
+
+                if (crmConvCreateError) {
+                  console.error("[UazAPI Webhook] Error creating crm_conversation:", crmConvCreateError);
+                } else {
+                  crmConversationId = createdConversation.id;
+                  console.log(`[UazAPI Webhook] ✅ Conversation created in crm_conversations: ${crmConversationId}`);
+                }
+              }
+
+              if (crmConversationId) {
+                const { error: crmMessageError } = await supabase
+                  .from("crm_messages")
+                  .insert({
+                    conversation_id: crmConversationId,
+                    direction: msg.key.fromMe ? "outbound" : "inbound",
+                    content,
+                    media_url: mediaUrl,
+                    media_type: mapCrmMediaType(mediaType),
+                    sent_at: timestamp,
+                    sender_name: msg.key.fromMe
+                      ? (session.phone_name || session.phone_number || "Operador")
+                      : (msg.pushName || null),
+                  });
+
+                if (crmMessageError) {
+                  console.error("[UazAPI Webhook] Error inserting crm_message:", crmMessageError);
+                } else {
+                  syncedToInbox = true;
+                  console.log(`[UazAPI Webhook] ✅ Message stored in crm_messages: ${msg.key.id}`);
+                }
+              }
+            }
           }
 
           // 5. Auto-create lead in avivar_patient_journeys if new contact (incoming message only)
@@ -459,9 +602,7 @@ serve(async (req) => {
                   user_id: userId,
                   patient_name: contactName,
                   patient_phone: phone,
-                  current_stage: "novo_lead",
-                  journey_type: "comercial",
-                  service_type: "consulta",
+                  // Leave enums omitted to use DB defaults (avoids invalid enum values)
                   lead_source: "whatsapp",
                   notes: `Lead criado automaticamente via WhatsApp em ${new Date().toLocaleDateString("pt-BR")}`,
                 });
@@ -472,6 +613,15 @@ serve(async (req) => {
                 console.log(`[UazAPI Webhook] ✅ Auto-created lead for: ${contactName} (${phone})`);
               }
             }
+          }
+
+          // Mark raw WhatsApp message as synced when it reached the Inbox tables
+          // (this prevents duplicate inserts if the webhook retries or receives the same payload again)
+          if (syncedToInbox) {
+            await supabase
+              .from("avivar_whatsapp_messages")
+              .update({ synced_to_crm: true })
+              .eq("message_id", msg.key.id);
           }
 
           // 6. Update contact in avivar_whatsapp_contacts
