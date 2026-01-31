@@ -334,38 +334,67 @@ serve(async (req) => {
 
           console.log(`[UazAPI Webhook] Message: ${msg.key.fromMe ? "OUT" : "IN"} | Phone: ${phone} | Content: ${content?.substring(0, 50)}...`);
 
-          // Find the user/clinic that owns this WhatsApp session
-          // For now, we'll use a default user_id - in production, you'd map this via the instance
-          // or phone number to the correct user/clinic
-
-          // Find the WhatsApp session mapping for this UazAPI instance.
-          // IMPORTANT: We must map inbound webhook events to the correct Avivar user.
-          let sessionQuery = supabase
-            .from("avivar_whatsapp_sessions")
-            .select("id, user_id, phone_number, phone_name, instance_id, status")
+          // Find the user/clinic that owns this WhatsApp instance
+          // Check both tables: avivar_uazapi_instances (new) and avivar_whatsapp_sessions (legacy)
+          
+          let userId: string | null = null;
+          let sessionId: string | null = null;
+          
+          // Try 1: Check avivar_uazapi_instances (new provisioning flow)
+          let uazapiQuery = supabase
+            .from("avivar_uazapi_instances")
+            .select("id, user_id, instance_id, instance_name, phone_number, status")
+            .eq("status", "connected")
             .limit(1);
 
           if (instanceName) {
-            sessionQuery = sessionQuery.eq("instance_id", instanceName);
+            uazapiQuery = uazapiQuery.or(`instance_name.eq.${instanceName},instance_id.eq.${instanceName}`);
           } else if (payload.owner) {
-            sessionQuery = sessionQuery.eq("phone_number", payload.owner);
+            uazapiQuery = uazapiQuery.eq("phone_number", payload.owner);
           }
 
-          const { data: session, error: sessionError } = await sessionQuery.maybeSingle();
+          const { data: uazapiInstance, error: uazapiError } = await uazapiQuery.maybeSingle();
 
-          if (sessionError) {
-            console.error("[UazAPI Webhook] Error fetching session mapping:", sessionError);
-            continue;
+          if (uazapiError) {
+            console.error("[UazAPI Webhook] Error fetching uazapi instance:", uazapiError);
           }
 
-          if (!session) {
+          if (uazapiInstance) {
+            userId = uazapiInstance.user_id;
+            sessionId = uazapiInstance.id;
+            console.log(`[UazAPI Webhook] Found UazAPI instance: ${uazapiInstance.instance_name} for user: ${userId}`);
+          } else {
+            // Try 2: Check avivar_whatsapp_sessions (legacy flow)
+            let sessionQuery = supabase
+              .from("avivar_whatsapp_sessions")
+              .select("id, user_id, phone_number, phone_name, instance_id, status")
+              .limit(1);
+
+            if (instanceName) {
+              sessionQuery = sessionQuery.eq("instance_id", instanceName);
+            } else if (payload.owner) {
+              sessionQuery = sessionQuery.eq("phone_number", payload.owner);
+            }
+
+            const { data: session, error: sessionError } = await sessionQuery.maybeSingle();
+
+            if (sessionError) {
+              console.error("[UazAPI Webhook] Error fetching session mapping:", sessionError);
+            }
+
+            if (session) {
+              userId = session.user_id;
+              sessionId = session.id;
+              console.log(`[UazAPI Webhook] Found legacy session: ${session.id} for user: ${userId}`);
+            }
+          }
+
+          if (!userId) {
             console.log(
-              `[UazAPI Webhook] No WhatsApp session mapping found for instance=${instanceName ?? "(none)"} owner=${payload.owner ?? "(none)"}. Skipping message.`
+              `[UazAPI Webhook] No WhatsApp instance/session found for instance=${instanceName ?? "(none)"} owner=${payload.owner ?? "(none)"}. Skipping message.`
             );
             continue;
           }
-
-          const userId = session.user_id;
 
           // 1. Store in avivar_whatsapp_messages (raw message storage)
           // Use insert with a check to avoid duplicates since there's no unique constraint on message_id
@@ -385,7 +414,7 @@ serve(async (req) => {
             const { error: msgError } = await supabase
               .from("avivar_whatsapp_messages")
               .insert({
-                session_id: session.id,
+                session_id: sessionId!,
                 user_id: userId,
                 message_id: msg.key.id,
                 remote_jid: msg.key.remoteJid,
@@ -569,7 +598,7 @@ serve(async (req) => {
                     media_type: mapCrmMediaType(mediaType),
                     sent_at: timestamp,
                     sender_name: msg.key.fromMe
-                      ? (session.phone_name || session.phone_number || "Operador")
+                      ? "Operador"
                       : (msg.pushName || null),
                   });
 
@@ -664,7 +693,7 @@ serve(async (req) => {
             const { data: existingContact } = await supabase
               .from("avivar_whatsapp_contacts")
               .select("id")
-              .eq("session_id", session.id)
+              .eq("session_id", sessionId!)
               .eq("jid", msg.key.remoteJid)
               .maybeSingle();
 
@@ -680,7 +709,7 @@ serve(async (req) => {
               await supabase
                 .from("avivar_whatsapp_contacts")
                 .insert({
-                  session_id: session.id,
+                  session_id: sessionId!,
                   user_id: userId,
                   jid: msg.key.remoteJid,
                   phone,

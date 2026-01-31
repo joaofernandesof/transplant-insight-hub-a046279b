@@ -61,6 +61,8 @@ Deno.serve(async (req) => {
         return await handleDisconnectInstance(req, supabase, userId);
       case "delete-instance":
         return await handleDeleteInstance(req, supabase, userId);
+      case "setup-webhook":
+        return await handleSetupWebhook(req, supabase, userId);
       default:
         return new Response(
           JSON.stringify({ error: "Unknown action" }),
@@ -92,7 +94,11 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
 
   console.log(`Creating UazAPI instance: ${instanceName} for user: ${userId}`);
 
-  // Call UazAPI to create instance
+  // Construct webhook URL
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+
+  // Call UazAPI to create instance with webhook configured
   const response = await fetch(`${UAZAPI_URL}/instance/init`, {
     method: "POST",
     headers: {
@@ -105,6 +111,11 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
       adminField01: userId,
       fingerprintProfile: "chrome",
       browser: "chrome",
+      // Webhook configuration
+      webhook: webhookUrl,
+      webhookMessage: true,
+      webhookConnection: true,
+      webhookQrcode: true,
     }),
   });
 
@@ -119,6 +130,48 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
 
   if (!data.instance?.id || !data.instance?.token) {
     throw new Error("Invalid response from UazAPI");
+  }
+
+  // Configure webhook for this instance (backup call in case init didn't set it)
+  console.log(`Configuring webhook: ${webhookUrl}`);
+  
+  // Try PUT method first (UazAPI standard), then POST as fallback
+  let webhookResponse = await fetch(`${UAZAPI_URL}/instance/setWebhook`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "token": data.instance.token,
+    },
+    body: JSON.stringify({
+      webhook: webhookUrl,
+      webhookMessage: true,
+      webhookConnection: true,
+      webhookQrcode: true,
+    }),
+  });
+
+  if (!webhookResponse.ok && webhookResponse.status === 405) {
+    // Try POST as fallback
+    webhookResponse = await fetch(`${UAZAPI_URL}/instance/setWebhook`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "token": data.instance.token,
+      },
+      body: JSON.stringify({
+        webhook: webhookUrl,
+        webhookMessage: true,
+        webhookConnection: true,
+        webhookQrcode: true,
+      }),
+    });
+  }
+
+  if (!webhookResponse.ok) {
+    console.error("Failed to set webhook:", await webhookResponse.text());
+    // Don't fail the whole operation, just log the error
+  } else {
+    console.log("Webhook configured successfully");
   }
 
   // Save instance to database
@@ -433,6 +486,77 @@ async function handleDeleteInstance(req: Request, supabase: any, userId: string)
     JSON.stringify({ 
       success: true,
       message: "Instance deleted"
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+/**
+ * Setup webhook for an existing instance
+ */
+async function handleSetupWebhook(req: Request, supabase: any, userId: string) {
+  // Get user's instance
+  const { data: instance, error: fetchError } = await supabase
+    .from("avivar_uazapi_instances")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (fetchError || !instance) {
+    throw new Error("Instance not found");
+  }
+
+  console.log(`Setting up webhook for instance: ${instance.instance_id}`);
+
+  // Configure webhook for this instance
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+  
+  // Try PUT method first (UazAPI standard), then POST as fallback
+  let webhookResponse = await fetch(`${UAZAPI_URL}/instance/setWebhook`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "token": instance.instance_token,
+    },
+    body: JSON.stringify({
+      webhook: webhookUrl,
+      webhookMessage: true,
+      webhookConnection: true,
+      webhookQrcode: true,
+    }),
+  });
+
+  if (!webhookResponse.ok && webhookResponse.status === 405) {
+    // Try POST as fallback
+    webhookResponse = await fetch(`${UAZAPI_URL}/instance/setWebhook`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "token": instance.instance_token,
+      },
+      body: JSON.stringify({
+        webhook: webhookUrl,
+        webhookMessage: true,
+        webhookConnection: true,
+        webhookQrcode: true,
+      }),
+    });
+  }
+
+  if (!webhookResponse.ok) {
+    const errorText = await webhookResponse.text();
+    console.error("Failed to set webhook:", errorText);
+    throw new Error(`Failed to configure webhook: ${webhookResponse.status}`);
+  }
+  
+  console.log("Webhook configured successfully");
+
+  return new Response(
+    JSON.stringify({ 
+      success: true,
+      webhookUrl: webhookUrl,
+      message: "Webhook configured successfully"
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
