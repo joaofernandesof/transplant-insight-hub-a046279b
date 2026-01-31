@@ -4470,12 +4470,39 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
   }
 };
 
+// Passo extra padrão de transferência para humano - aplicado a todos os subnichos
+const PASSO_TRANSFERENCIA_HUMANO: FluxoStep = {
+  id: 'transfer_humano',
+  ordem: 1,
+  titulo: 'Transferência para Humano',
+  descricao: 'Quando o lead solicitar falar com um humano, tiver dúvidas complexas que você não consegue resolver, ou quando a situação exigir atendimento personalizado, avise que vai transferir para um especialista.',
+  exemploMensagem: 'Entendo! Vou te transferir agora para um de nossos especialistas que poderá te ajudar melhor. Aguarde só um momentinho, por favor! 🙂'
+};
+
 /**
  * Retorna a configuração de fluxo de atendimento para um subnicho
+ * Inclui automaticamente o passo extra de transferência para humano em todos os subnichos
  */
 export function getFluxoAtendimentoConfig(subnicho: SubnichoType | null): FluxoAtendimento {
-  if (!subnicho) {
-    return FLUXO_ATENDIMENTO_DEFAULTS.personalizado;
+  const baseConfig = subnicho 
+    ? (FLUXO_ATENDIMENTO_DEFAULTS[subnicho] || FLUXO_ATENDIMENTO_DEFAULTS.personalizado)
+    : FLUXO_ATENDIMENTO_DEFAULTS.personalizado;
+  
+  // Verifica se já existe o passo de transferência
+  const hasTransferStep = baseConfig.passosExtras.some(p => p.id === 'transfer_humano');
+  
+  if (hasTransferStep) {
+    return baseConfig;
   }
-  return FLUXO_ATENDIMENTO_DEFAULTS[subnicho] || FLUXO_ATENDIMENTO_DEFAULTS.personalizado;
+  
+  // Adiciona o passo de transferência como primeiro passo extra
+  const passosExtrasComTransferencia = [
+    { ...PASSO_TRANSFERENCIA_HUMANO, ordem: 1 },
+    ...baseConfig.passosExtras.map((p, index) => ({ ...p, ordem: index + 2 }))
+  ];
+  
+  return {
+    ...baseConfig,
+    passosExtras: passosExtrasComTransferencia
+  };
 }
