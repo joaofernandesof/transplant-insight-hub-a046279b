@@ -36,6 +36,7 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
     sendMessage,
     updateConversationStatus,
     createConversation,
+    toggleAI,
   } = useCrmConversations(selectedConversation || undefined);
 
   // Fetch journeys from avivar_patient_journeys (Kanban table)
@@ -96,6 +97,11 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
       id: selectedConversation,
       status,
     });
+  };
+
+  const handleAIToggle = (enabled: boolean) => {
+    if (!selectedConversation) return;
+    toggleAI.mutate({ id: selectedConversation, enabled });
   };
 
   // Estado de loading inicial
@@ -219,6 +225,7 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
             <ChatHeader
               conversation={currentConversation}
               onStatusChange={handleStatusChange}
+              onAIToggle={handleAIToggle}
               onBack={() => setSelectedConversation(null)}
               showBackButton
             />
