@@ -19,6 +19,7 @@ import { AgendaSelector } from "@/components/avivar/AgendaSelector";
 import { AvivarAgenda as AgendaType, useAvivarAgendas } from "@/hooks/useAvivarAgendas";
 import { NewAppointmentDialog } from "@/components/avivar/NewAppointmentDialog";
 import { EditAppointmentDialog } from "@/components/avivar/EditAppointmentDialog";
+import { CreateAvivarAgendaDialog } from "@/components/avivar/CreateAvivarAgendaDialog";
 import { useAvivarScheduleConfig, generateTimeSlotsForDay, generateDefaultTimeSlots } from "@/hooks/useAvivarScheduleConfig";
 
 interface Appointment {
@@ -44,6 +45,7 @@ export default function AvivarAgenda() {
   const [selectedAgenda, setSelectedAgenda] = useState<AgendaType | null>(null);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showEditAppointment, setShowEditAppointment] = useState(false);
+  const [showCreateAgenda, setShowCreateAgenda] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | undefined>();
   const { user } = useUnifiedAuth();
@@ -172,7 +174,7 @@ export default function AvivarAgenda() {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            onClick={() => navigate('/avivar/agenda/settings')}
+            onClick={() => setShowCreateAgenda(true)}
             className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -485,6 +487,12 @@ export default function AvivarAgenda() {
         open={showEditAppointment}
         onOpenChange={setShowEditAppointment}
         appointment={selectedAppointment}
+      />
+
+      {/* Create Agenda Dialog */}
+      <CreateAvivarAgendaDialog
+        open={showCreateAgenda}
+        onOpenChange={setShowCreateAgenda}
       />
     </div>
   );
