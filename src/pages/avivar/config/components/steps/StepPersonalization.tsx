@@ -167,21 +167,23 @@ export function StepPersonalization({
                 onChange={(e) => onChange('aiIdentity', e.target.value)}
                 rows={4}
                 placeholder="Descreva quem é a assistente virtual, suas especialidades e como ela se comporta..."
-                className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none pr-10"
+                className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
               />
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                💡 Exemplo: "Sou especialista em transplante capilar, ajudo pessoas a recuperarem seus cabelos..."
+              </p>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => openExpandedEditor('identity')}
-                className="absolute bottom-2 right-2 h-7 w-7 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+                className="h-7 w-7 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))] flex-shrink-0"
                 title="Expandir editor"
               >
                 <Expand className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-2">
-              💡 Exemplo: "Sou especialista em transplante capilar, ajudo pessoas a recuperarem seus cabelos..."
-            </p>
           </CardContent>
         </Card>
 
@@ -221,21 +223,23 @@ export function StepPersonalization({
                 onChange={(e) => onChange('aiObjective', e.target.value)}
                 rows={4}
                 placeholder="Descreva o objetivo principal da assistente no atendimento..."
-                className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none pr-10"
+                className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
               />
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                💡 Exemplo: "Qualificar interessados, responder dúvidas e agendar avaliações."
+              </p>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => openExpandedEditor('objective')}
-                className="absolute bottom-2 right-2 h-7 w-7 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+                className="h-7 w-7 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))] flex-shrink-0"
                 title="Expandir editor"
               >
                 <Expand className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-2">
-              💡 Exemplo: "Qualificar interessados, responder dúvidas e agendar avaliações."
-            </p>
           </CardContent>
         </Card>
 
