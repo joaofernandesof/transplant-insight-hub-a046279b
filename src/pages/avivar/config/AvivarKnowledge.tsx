@@ -171,7 +171,7 @@ export default function AvivarKnowledge() {
       setProgress(60);
       setProgressMessage('Salvando base de conhecimento...');
 
-      // Step 2: Save documents to knowledge base
+      // Step 2: Save documents to knowledge base linked to this agent
       for (const doc of documents) {
         const chunks = splitIntoChunks(doc.content, chunkSize, overlap);
         
@@ -179,6 +179,7 @@ export default function AvivarKnowledge() {
           .from('avivar_knowledge_documents')
           .insert({
             user_id: user.id,
+            agent_id: agentData.id, // Link document to the agent
             name: doc.name,
             content: doc.content,
             chunks_count: chunks.length,

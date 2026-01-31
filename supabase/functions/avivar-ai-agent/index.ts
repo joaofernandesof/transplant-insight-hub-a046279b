@@ -184,32 +184,81 @@ async function listAgendas(
 async function searchKnowledgeBase(
   supabase: AnySupabaseClient,
   userId: string,
+  agentId: string | null,
   query: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: search_knowledge_base("${query.substring(0, 50)}...")`);
+  console.log(`[AI Agent] Tool: search_knowledge_base("${query.substring(0, 50)}...", agentId=${agentId})`);
 
-  const { data: documents } = await supabase
+  // Buscar documentos vinculados ao agente específico OU do usuário (fallback)
+  let documentsQuery = supabase
     .from("avivar_knowledge_documents")
-    .select("id")
+    .select("id, name")
     .eq("user_id", userId);
+  
+  // Se temos um agentId, priorizar documentos desse agente
+  if (agentId) {
+    documentsQuery = documentsQuery.eq("agent_id", agentId);
+  }
+
+  const { data: documents } = await documentsQuery;
 
   if (!documents?.length) {
+    // Fallback: buscar qualquer documento do usuário se não encontrou específicos do agente
+    if (agentId) {
+      const { data: anyDocs } = await supabase
+        .from("avivar_knowledge_documents")
+        .select("id, name")
+        .eq("user_id", userId)
+        .limit(5);
+      
+      if (anyDocs?.length) {
+        const docIds = anyDocs.map((d: { id: string }) => d.id);
+        const { data: chunks } = await supabase
+          .from("avivar_knowledge_chunks")
+          .select("content")
+          .in("document_id", docIds)
+          .limit(5);
+        
+        if (chunks?.length) {
+          console.log(`[AI Agent] Found ${chunks.length} chunks from fallback docs`);
+          return chunks.map((c: { content: string }) => c.content).join("\n\n---\n\n");
+        }
+      }
+    }
     return "Nenhuma informação encontrada na base de conhecimento.";
   }
 
+  console.log(`[AI Agent] Found ${documents.length} documents for agent`);
   const docIds = documents.map((d: { id: string }) => d.id);
 
-  const { data: chunks } = await supabase
+  // Buscar chunks relevantes - idealmente faria busca semântica, mas por enquanto busca simples
+  const queryTerms = query.toLowerCase().split(" ").filter(t => t.length > 3);
+  
+  // Buscar chunks que contenham algum dos termos
+  let chunksQuery = supabase
     .from("avivar_knowledge_chunks")
     .select("content")
     .in("document_id", docIds)
-    .limit(5);
+    .limit(8);
+
+  const { data: chunks } = await chunksQuery;
 
   if (!chunks?.length) {
     return "Nenhuma informação encontrada para esta consulta.";
   }
 
-  return chunks.map((c: { content: string }) => c.content).join("\n\n---\n\n");
+  // Ordenar chunks por relevância básica (contagem de termos)
+  const scoredChunks = chunks.map((c: { content: string }) => {
+    const contentLower = c.content.toLowerCase();
+    const score = queryTerms.reduce((acc, term) => acc + (contentLower.includes(term) ? 1 : 0), 0);
+    return { content: c.content, score };
+  }).sort((a, b) => b.score - a.score);
+
+  // Retornar top 5 mais relevantes
+  const topChunks = scoredChunks.slice(0, 5);
+  console.log(`[AI Agent] Returning ${topChunks.length} relevant chunks`);
+  
+  return topChunks.map((c: { content: string }) => c.content).join("\n\n---\n\n");
 }
 
 async function getAvailableSlots(
@@ -439,6 +488,7 @@ async function transferToHuman(
 async function processToolCall(
   supabase: AnySupabaseClient,
   userId: string,
+  agentId: string | null,
   leadId: string | null,
   conversationId: string,
   patientPhone: string,
@@ -450,7 +500,7 @@ async function processToolCall(
       return await listAgendas(supabase, userId);
     
     case "search_knowledge_base":
-      return await searchKnowledgeBase(supabase, userId, toolArgs.query as string);
+      return await searchKnowledgeBase(supabase, userId, agentId, toolArgs.query as string);
     
     case "get_available_slots":
       return await getAvailableSlots(
@@ -487,7 +537,40 @@ async function processToolCall(
 // MAIN AGENT LOGIC
 // ============================================
 
+interface ActiveAgent {
+  id: string;
+  name: string;
+  personality: string | null;
+  ai_instructions: string | null;
+  ai_restrictions: string | null;
+  tone_of_voice: string | null;
+  company_name: string | null;
+  professional_name: string | null;
+  fluxo_atendimento: Record<string, unknown> | null;
+  services: unknown[];
+}
+
+async function getActiveAgent(supabase: AnySupabaseClient, userId: string): Promise<ActiveAgent | null> {
+  // Primeiro, busca na nova tabela avivar_agents
+  const { data: agent } = await supabase
+    .from("avivar_agents")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (agent) {
+    console.log(`[AI Agent] Using new agent: ${agent.name} (${agent.id})`);
+    return agent as ActiveAgent;
+  }
+  
+  return null;
+}
+
 async function getAgentConfig(supabase: AnySupabaseClient, userId: string) {
+  // Fallback para config legada
   const { data: config } = await supabase
     .from("avivar_agent_configs")
     .select("*")
@@ -542,6 +625,49 @@ async function getLeadId(supabase: AnySupabaseClient, conversationId: string): P
     .single();
 
   return data?.lead_id || null;
+}
+
+function buildSystemPromptFromAgent(agent: ActiveAgent): string {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("pt-BR", { 
+    weekday: "long", 
+    day: "2-digit", 
+    month: "long", 
+    year: "numeric" 
+  });
+
+  const personality = agent.personality || `Você é ${agent.name}, assistente virtual da ${agent.company_name || "clínica"}.
+Você trabalha com o ${agent.professional_name || "Dr."}.`;
+
+  const instructions = agent.ai_instructions || `Seu objetivo é:
+1. Qualificar o lead e entender suas necessidades
+2. Responder dúvidas sobre procedimentos (use search_knowledge_base para consultar a base de conhecimento)
+3. Descobrir em qual unidade o paciente quer atender (use list_agendas se tiver dúvida)
+4. Agendar consultas de avaliação (use get_available_slots e create_appointment)
+5. Transferir para humano quando necessário (use transfer_to_human)`;
+
+  const restrictions = agent.ai_restrictions || "";
+
+  return `${personality}
+
+${instructions}
+
+<contexto_atual>
+Data de hoje: ${dateStr}
+</contexto_atual>
+
+<regras>
+- Seja breve e objetivo (máximo 3-4 frases por mensagem)
+- Use emojis com moderação
+- NUNCA invente preços ou informações médicas
+- SEMPRE use search_knowledge_base quando o paciente perguntar sobre procedimentos, preços, cuidados, ou qualquer informação técnica
+- IMPORTANTE: Se o paciente MENCIONAR o nome de uma cidade ou unidade (ex: "Juazeiro", "São Paulo"), chame IMEDIATAMENTE get_available_slots com agenda_name=NOME_MENCIONADO
+- Para agendar: 1) Descubra a unidade desejada 2) Pergunte o nome se não souber 3) Ofereça 2 opções de horários com get_available_slots
+- Só crie agendamento com create_appointment após confirmação completa (unidade, data, horário, nome)
+- Transfira para humano em negociações de preço ou dúvidas muito técnicas
+</regras>
+
+${restrictions ? `<restricoes>\n${restrictions}\n</restricoes>` : ""}`;
 }
 
 function buildSystemPrompt(config: Record<string, unknown>, customPrompt: string | null): string {
@@ -709,19 +835,31 @@ serve(async (req) => {
 
     console.log(`[AI Agent] Processing: "${messageContent.substring(0, 50)}..."`);
 
-    // 1. Get agent config
+    // 1. Try new avivar_agents first, then fallback to legacy config
+    const activeAgent = await getActiveAgent(supabase, userId);
     const agentConfig = await getAgentConfig(supabase, userId);
-    if (!agentConfig) {
-      console.log("[AI Agent] No approved config, skipping");
+    
+    if (!activeAgent && !agentConfig) {
+      console.log("[AI Agent] No agent or config found, skipping");
       return new Response(
         JSON.stringify({ success: false, error: "Agent not configured" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 2. Get custom prompt
-    const customPrompt = await getAgentPrompt(supabase, agentConfig.id);
-    const systemPrompt = buildSystemPrompt(agentConfig, customPrompt);
+    const agentId = activeAgent?.id || null;
+    console.log(`[AI Agent] Using agent ID: ${agentId}`);
+
+    // 2. Build system prompt from agent or config
+    let systemPrompt: string;
+    if (activeAgent) {
+      // Use new agent structure
+      systemPrompt = buildSystemPromptFromAgent(activeAgent);
+    } else {
+      // Fallback to legacy config
+      const customPrompt = await getAgentPrompt(supabase, agentConfig.id);
+      systemPrompt = buildSystemPrompt(agentConfig, customPrompt);
+    }
 
     // 3. Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);
@@ -744,6 +882,7 @@ serve(async (req) => {
         const result = await processToolCall(
           supabase,
           userId,
+          agentId,
           leadId,
           conversationId,
           leadPhone,
