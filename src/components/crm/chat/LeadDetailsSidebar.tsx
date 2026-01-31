@@ -34,26 +34,35 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { CrmConversation } from '@/hooks/useCrmConversations';
+import { LeadEditDialog } from './LeadEditDialog';
+import { Lead } from '@/hooks/useLeads';
 
 interface LeadDetailsSidebarProps {
   conversation: CrmConversation;
   onClose?: () => void;
+  onLeadUpdated?: () => void;
 }
 
 const statusColors = {
   novo: 'bg-blue-500',
+  new: 'bg-blue-500',
   qualificado: 'bg-green-500',
+  contacted: 'bg-amber-500',
   'em-negociacao': 'bg-amber-500',
+  scheduled: 'bg-purple-500',
   perdido: 'bg-red-500',
+  lost: 'bg-red-500',
   convertido: 'bg-emerald-500',
+  converted: 'bg-emerald-500',
 };
 
-export function LeadDetailsSidebar({ conversation, onClose }: LeadDetailsSidebarProps) {
+export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: LeadDetailsSidebarProps) {
   const [isContactOpen, setIsContactOpen] = useState(true);
   const [isFunnelOpen, setIsFunnelOpen] = useState(true);
   const [isNotesOpen, setIsNotesOpen] = useState(true);
   const [isFieldsOpen, setIsFieldsOpen] = useState(true);
   const [notes, setNotes] = useState('');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const lead = conversation.lead;
 
@@ -65,7 +74,34 @@ export function LeadDetailsSidebar({ conversation, onClose }: LeadDetailsSidebar
     );
   }
 
+  // Converter lead do CRM para tipo Lead completo
+  const leadForEdit: Lead = {
+    id: lead.id,
+    name: lead.name || '',
+    email: lead.email || null,
+    phone: lead.phone || '',
+    city: null,
+    state: null,
+    source: (lead as any).source || null,
+    interest_level: 'warm',
+    status: (lead.status as Lead['status']) || 'new',
+    notes: null,
+    utm_source: null,
+    utm_medium: null,
+    utm_campaign: null,
+    clinic_id: null,
+    created_at: conversation.created_at,
+    updated_at: conversation.updated_at,
+    claimed_by: null,
+    claimed_at: null,
+    available_at: null,
+    converted_value: null,
+    procedures_sold: null,
+    converted_at: null,
+  };
+
   return (
+    <>
     <div className="h-full flex flex-col bg-[hsl(var(--avivar-card))] border-l border-[hsl(var(--avivar-border))]">
       {/* Header */}
       <div className="p-4 border-b border-[hsl(var(--avivar-border))]">
@@ -88,7 +124,12 @@ export function LeadDetailsSidebar({ conversation, onClose }: LeadDetailsSidebar
             </Badge>
           </div>
           
-          <Button variant="ghost" size="icon" className="shrink-0">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="shrink-0"
+            onClick={() => setIsEditDialogOpen(true)}
+          >
             <Edit2 className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
           </Button>
         </div>
@@ -281,5 +322,14 @@ export function LeadDetailsSidebar({ conversation, onClose }: LeadDetailsSidebar
         </div>
       </ScrollArea>
     </div>
+
+      {/* Dialog de Edição */}
+      <LeadEditDialog
+        lead={leadForEdit}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSaved={onLeadUpdated}
+      />
+    </>
   );
 }
