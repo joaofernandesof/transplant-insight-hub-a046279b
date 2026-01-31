@@ -17,6 +17,7 @@ import {
   StepBusinessInfo,
   StepServicesSimple,
   StepScheduleSimple,
+  StepFAQGenerator,
   StepKnowledgeSimple,
   StepReviewSimple,
 } from './components/steps/simple';
@@ -31,11 +32,18 @@ import {
   SubnichoType,
 } from './types';
 
+interface FAQItem {
+  id: string;
+  pergunta: string;
+  resposta: string;
+}
+
 const SIMPLE_STEPS = [
   { id: 'business', title: 'Tipo de Negócio', description: 'Qual é seu segmento?' },
   { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
   { id: 'services', title: 'Serviços', description: 'O que você oferece?' },
   { id: 'schedule', title: 'Horários', description: 'Quando você atende?' },
+  { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
   { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
   { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
 ];
@@ -48,6 +56,7 @@ export default function AvivarSimpleWizard() {
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [generatedFAQ, setGeneratedFAQ] = useState<FAQItem[]>([]);
   const [config, setConfig] = useState<AgentConfig>(() => ({
     ...INITIAL_CONFIG,
     paymentMethods: [...PAYMENT_METHODS],
@@ -125,9 +134,11 @@ export default function AvivarSimpleWizard() {
         return config.services.some(s => s.enabled);
       case 3: // Horários
         return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
-      case 4: // Knowledge (opcional - sempre pode prosseguir)
+      case 4: // FAQ (opcional - sempre pode prosseguir)
         return true;
-      case 5: // Review
+      case 5: // Knowledge (opcional - sempre pode prosseguir)
+        return true;
+      case 6: // Review
         return true;
       default:
         return true;
@@ -237,6 +248,17 @@ export default function AvivarSimpleWizard() {
     );
   }
 
+  const handleCopyFAQToKnowledge = (content: string) => {
+    const faqFile = {
+      id: `faq_${Date.now()}`,
+      name: 'FAQ_Gerado_IA.md',
+      content,
+      size: content.length,
+      type: 'text/markdown',
+    };
+    updateConfig({ knowledgeFiles: [...(config.knowledgeFiles || []), faqFile] });
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 0:
@@ -282,13 +304,26 @@ export default function AvivarSimpleWizard() {
         );
       case 4:
         return (
+          <StepFAQGenerator
+            nicho={config.nicho}
+            subnicho={config.subnicho}
+            companyName={config.companyName}
+            services={config.services}
+            generatedFAQ={generatedFAQ}
+            onFAQChange={setGeneratedFAQ}
+            onCopyToKnowledge={handleCopyFAQToKnowledge}
+            onSkip={handleNext}
+          />
+        );
+      case 5:
+        return (
           <StepKnowledgeSimple
             knowledgeFiles={config.knowledgeFiles || []}
             onFilesChange={(files) => updateConfig({ knowledgeFiles: files })}
             onSkip={handleNext}
           />
         );
-      case 5:
+      case 6:
         return (
           <StepReviewSimple
             config={config}

@@ -6,5 +6,6 @@ export { StepSelectBusiness } from './StepSelectBusiness';
 export { StepBusinessInfo } from './StepBusinessInfo';
 export { StepServicesSimple } from './StepServicesSimple';
 export { StepScheduleSimple } from './StepScheduleSimple';
+export { StepFAQGenerator } from './StepFAQGenerator';
 export { StepKnowledgeSimple } from './StepKnowledgeSimple';
 export { StepReviewSimple } from './StepReviewSimple';
