@@ -17,6 +17,7 @@ import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { AgendaSelector } from "@/components/avivar/AgendaSelector";
 import { AvivarAgenda as AgendaType, useAvivarAgendas } from "@/hooks/useAvivarAgendas";
 import { NewAppointmentDialog } from "@/components/avivar/NewAppointmentDialog";
+import { EditAppointmentDialog } from "@/components/avivar/EditAppointmentDialog";
 
 interface Appointment {
   id: string;
@@ -38,6 +39,8 @@ export default function AvivarAgenda() {
   const [view, setView] = useState<"day" | "week">("day");
   const [selectedAgenda, setSelectedAgenda] = useState<AgendaType | null>(null);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [showEditAppointment, setShowEditAppointment] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | undefined>();
   const { user } = useUnifiedAuth();
   const { agendas } = useAvivarAgendas();
@@ -301,13 +304,16 @@ export default function AvivarAgenda() {
                   return (
                     <div
                       key={time}
-                      className={`flex items-center gap-4 p-3 rounded-lg border transition-colors ${
+                      className={`flex items-center gap-4 p-3 rounded-lg border transition-colors cursor-pointer ${
                         appointment
-                          ? "border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-primary)/0.05)]"
-                          : "border-dashed border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.02)] cursor-pointer"
+                          ? "border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-primary)/0.05)] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+                          : "border-dashed border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.02)]"
                       }`}
                       onClick={() => {
-                        if (!appointment) {
+                        if (appointment) {
+                          setSelectedAppointment(appointment);
+                          setShowEditAppointment(true);
+                        } else {
                           setSelectedTimeSlot(time);
                           setShowNewAppointment(true);
                         }
@@ -428,6 +434,13 @@ export default function AvivarAgenda() {
         selectedDate={selectedDate}
         selectedTime={selectedTimeSlot}
         selectedAgenda={selectedAgenda}
+      />
+
+      {/* Edit Appointment Dialog */}
+      <EditAppointmentDialog
+        open={showEditAppointment}
+        onOpenChange={setShowEditAppointment}
+        appointment={selectedAppointment}
       />
     </div>
   );
