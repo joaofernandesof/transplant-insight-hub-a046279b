@@ -66,3 +66,6 @@ verify_jwt = false
 
 [functions.avivar-uazapi]
 verify_jwt = false
+
+[functions.avivar-generate-faq]
+verify_jwt = false
