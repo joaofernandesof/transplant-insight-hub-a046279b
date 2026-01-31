@@ -222,65 +222,29 @@ export function NewAppointmentDialog({
             />
           </div>
 
-          {/* Time and Agenda Row */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Time */}
-            <div className="space-y-2">
-              <Label htmlFor="start_time" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Horário *
-              </Label>
-              <Select
-                value={formData.start_time}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, start_time: value })
-                }
-              >
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Agenda Selection */}
-            {agendas.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="agenda_id" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Agenda / Unidade
-                </Label>
-                <Select
-                  value={formData.agenda_id}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, agenda_id: value })
-                  }
-                >
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {agendas.map((agenda) => (
-                      <SelectItem key={agenda.id} value={agenda.id}>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: agenda.color }}
-                          />
-                          {agenda.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          {/* Time */}
+          <div className="space-y-2">
+            <Label htmlFor="start_time" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Horário *
+            </Label>
+            <Select
+              value={formData.start_time}
+              onValueChange={(value) =>
+                setFormData({ ...formData, start_time: value })
+              }
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeSlots.map((time) => (
+                  <SelectItem key={time} value={time}>
+                    {time}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Service Type */}
