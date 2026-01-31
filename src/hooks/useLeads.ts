@@ -145,15 +145,28 @@ export function useLeads() {
     }
 
     try {
-      const { error } = await supabase
-        .from('leads')
-        .delete()
-        .eq('id', id);
+      // Use cascade delete function to remove lead and all related data
+      const { data, error } = await supabase.rpc('delete_lead_cascade', {
+        p_lead_id: id
+      });
 
       if (error) throw error;
       
+      // Cast data to expected type
+      const result = data as { success: boolean; error?: string; lead_name?: string; deleted?: { messages: number; conversations: number; contacts: number; journeys: number } } | null;
+      
+      if (!result?.success) {
+        toast.error(result?.error || 'Erro ao excluir lead');
+        return false;
+      }
+      
       setLeads(prev => prev.filter(l => l.id !== id));
-      toast.success('Lead excluído com sucesso!');
+      
+      const deleted = result.deleted;
+      toast.success(
+        `Lead "${result.lead_name}" excluído! ` +
+        `(${deleted?.messages || 0} msgs, ${deleted?.conversations || 0} conversas, ${deleted?.journeys || 0} jornadas)`
+      );
       return true;
     } catch (error) {
       console.error('Error deleting lead:', error);
