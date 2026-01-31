@@ -7,13 +7,13 @@ const corsHeaders = {
 };
 
 /**
- * Avivar AI Agent v3
- * Agente com Tool-Calling para Multi-Agendas:
- * - Listar agendas/unidades disponíveis
- * - Consultar base de conhecimento (RAG)
- * - Consultar horários disponíveis por agenda
- * - Criar agendamentos na agenda correta
- * - Transferir para humano
+ * Avivar AI Agent v4 - Multi-Agent Hybrid Routing
+ * 
+ * Features:
+ * - Multiple specialized agents per account (Commercial, Pre-op, Post-op, etc.)
+ * - Hybrid routing: base by Kanban stage + full knowledge base access
+ * - Tool-calling for agendas, products, and appointments
+ * - Each agent has access to ALL knowledge, products, and agendas
  */
 
 interface AgentRequest {
@@ -24,6 +24,17 @@ interface AgentRequest {
   userId: string;
 }
 
+interface Product {
+  product_id: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  price: number | null;
+  promotional_price: number | null;
+  stock_quantity: number;
+  is_active: boolean;
+}
+
 interface Agenda {
   agenda_id: string;
   agenda_name: string;
@@ -32,11 +43,28 @@ interface Agenda {
   address: string;
 }
 
+interface RoutedAgent {
+  agent_id: string;
+  agent_name: string;
+  personality: string | null;
+  ai_identity: string | null;
+  ai_instructions: string | null;
+  ai_restrictions: string | null;
+  ai_objective: string | null;
+  tone_of_voice: string | null;
+  company_name: string | null;
+  professional_name: string | null;
+  fluxo_atendimento: Record<string, unknown> | null;
+  services: unknown[];
+  target_kanbans: string[] | null;
+  target_stages: string[] | null;
+}
+
 // deno-lint-ignore no-explicit-any
 type AnySupabaseClient = SupabaseClient<any, any, any>;
 
 // ============================================
-// TOOL DEFINITIONS
+// TOOL DEFINITIONS - Extended with products
 // ============================================
 
 const TOOLS = [
@@ -66,6 +94,23 @@ const TOOLS = [
           }
         },
         required: ["query"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_products",
+      description: "Lista produtos e serviços disponíveis na loja/catálogo. Use quando o paciente perguntar sobre produtos, preços de itens, ou o que está disponível para compra.",
+      parameters: {
+        type: "object",
+        properties: {
+          category: {
+            type: "string",
+            description: "Categoria opcional para filtrar: 'produto', 'servico', 'pacote'. Se não especificado, lista todos."
+          }
+        },
+        required: []
       }
     }
   },
@@ -161,7 +206,6 @@ async function listAgendas(
   });
 
   if (error || !agendas?.length) {
-    // Fallback: buscar agenda antiga sem multi-agenda
     const { data: configData } = await supabase
       .from("avivar_schedule_config")
       .select("id, professional_name")
@@ -181,80 +225,86 @@ async function listAgendas(
   return `Nossas unidades disponíveis:\n\n${formatted}\n\nEm qual unidade você gostaria de agendar?`;
 }
 
+async function listProducts(
+  supabase: AnySupabaseClient,
+  userId: string,
+  category?: string
+): Promise<string> {
+  console.log(`[AI Agent] Tool: list_products(category=${category || "all"})`);
+
+  const { data: products, error } = await supabase.rpc("get_avivar_products_for_ai", {
+    p_user_id: userId
+  });
+
+  if (error || !products?.length) {
+    return "Não há produtos cadastrados no momento.";
+  }
+
+  let filtered = products as Product[];
+  if (category) {
+    filtered = filtered.filter((p) => p.category?.toLowerCase() === category.toLowerCase());
+  }
+
+  if (filtered.length === 0) {
+    return `Não encontramos produtos na categoria "${category}".`;
+  }
+
+  const formatted = filtered.map((p) => {
+    const priceInfo = p.promotional_price 
+      ? `~~R$ ${p.price?.toFixed(2)}~~ **R$ ${p.promotional_price.toFixed(2)}** (promoção!)`
+      : p.price 
+        ? `R$ ${p.price.toFixed(2)}`
+        : "Consulte";
+    
+    const stockInfo = p.stock_quantity > 0 
+      ? `✅ ${p.stock_quantity} em estoque`
+      : "⚠️ Sob consulta";
+    
+    return `• **${p.name}**${p.description ? ` - ${p.description}` : ""}\n  💰 ${priceInfo} | ${stockInfo}`;
+  }).join("\n\n");
+
+  return `Nossos produtos disponíveis:\n\n${formatted}`;
+}
+
 async function searchKnowledgeBase(
   supabase: AnySupabaseClient,
   userId: string,
-  agentId: string | null,
+  _agentId: string | null, // Ignoramos agentId - acesso à base completa
   query: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: search_knowledge_base("${query.substring(0, 50)}...", agentId=${agentId})`);
+  console.log(`[AI Agent] Tool: search_knowledge_base("${query.substring(0, 50)}...") - FULL ACCESS`);
 
-  // Buscar documentos vinculados ao agente específico OU do usuário (fallback)
-  let documentsQuery = supabase
+  // Acesso à base de conhecimento COMPLETA do usuário (todos os agentes)
+  const { data: documents } = await supabase
     .from("avivar_knowledge_documents")
     .select("id, name")
     .eq("user_id", userId);
-  
-  // Se temos um agentId, priorizar documentos desse agente
-  if (agentId) {
-    documentsQuery = documentsQuery.eq("agent_id", agentId);
-  }
-
-  const { data: documents } = await documentsQuery;
 
   if (!documents?.length) {
-    // Fallback: buscar qualquer documento do usuário se não encontrou específicos do agente
-    if (agentId) {
-      const { data: anyDocs } = await supabase
-        .from("avivar_knowledge_documents")
-        .select("id, name")
-        .eq("user_id", userId)
-        .limit(5);
-      
-      if (anyDocs?.length) {
-        const docIds = anyDocs.map((d: { id: string }) => d.id);
-        const { data: chunks } = await supabase
-          .from("avivar_knowledge_chunks")
-          .select("content")
-          .in("document_id", docIds)
-          .limit(5);
-        
-        if (chunks?.length) {
-          console.log(`[AI Agent] Found ${chunks.length} chunks from fallback docs`);
-          return chunks.map((c: { content: string }) => c.content).join("\n\n---\n\n");
-        }
-      }
-    }
     return "Nenhuma informação encontrada na base de conhecimento.";
   }
 
-  console.log(`[AI Agent] Found ${documents.length} documents for agent`);
+  console.log(`[AI Agent] Searching across ${documents.length} documents (all agents)`);
   const docIds = documents.map((d: { id: string }) => d.id);
 
-  // Buscar chunks relevantes - idealmente faria busca semântica, mas por enquanto busca simples
   const queryTerms = query.toLowerCase().split(" ").filter(t => t.length > 3);
   
-  // Buscar chunks que contenham algum dos termos
-  let chunksQuery = supabase
+  const { data: chunks } = await supabase
     .from("avivar_knowledge_chunks")
     .select("content")
     .in("document_id", docIds)
-    .limit(8);
-
-  const { data: chunks } = await chunksQuery;
+    .limit(10);
 
   if (!chunks?.length) {
     return "Nenhuma informação encontrada para esta consulta.";
   }
 
-  // Ordenar chunks por relevância básica (contagem de termos)
   const scoredChunks = chunks.map((c: { content: string }) => {
     const contentLower = c.content.toLowerCase();
     const score = queryTerms.reduce((acc, term) => acc + (contentLower.includes(term) ? 1 : 0), 0);
     return { content: c.content, score };
   }).sort((a, b) => b.score - a.score);
 
-  // Retornar top 5 mais relevantes
   const topChunks = scoredChunks.slice(0, 5);
   console.log(`[AI Agent] Returning ${topChunks.length} relevant chunks`);
   
@@ -269,7 +319,6 @@ async function getAvailableSlots(
 ): Promise<string> {
   console.log(`[AI Agent] Tool: get_available_slots(agenda="${agendaName}", date=${dateStr || "próximos dias"})`);
 
-  // Find agenda by name (case-insensitive)
   const { data: agendas } = await supabase
     .from("avivar_agendas")
     .select("id, name, city, professional_name")
@@ -280,7 +329,6 @@ async function getAvailableSlots(
   let agendaInfo = agendas?.[0];
   let agendaId: string | null = agendaInfo?.id || null;
 
-  // If no match by name, try by city
   if (!agendaInfo) {
     const { data: byCity } = await supabase
       .from("avivar_agendas")
@@ -293,7 +341,6 @@ async function getAvailableSlots(
     agendaId = agendaInfo?.id || null;
   }
 
-  // Se não passou data, buscar para os próximos 3 dias úteis
   const dates: string[] = [];
   if (dateStr) {
     dates.push(dateStr);
@@ -304,7 +351,7 @@ async function getAvailableSlots(
     while (count < 3) {
       d.setDate(d.getDate() + 1);
       const dow = d.getDay();
-      if (dow !== 0) { // Não é domingo
+      if (dow !== 0) {
         dates.push(d.toISOString().split("T")[0]);
         count++;
       }
@@ -314,7 +361,6 @@ async function getAvailableSlots(
   const results: string[] = [];
   
   for (const date of dates) {
-    // Use the flexible function that falls back to user config
     const { data: slots, error } = await supabase.rpc("get_available_slots_flexible", {
       p_user_id: userId,
       p_agenda_id: agendaId,
@@ -334,7 +380,6 @@ async function getAvailableSlots(
       const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
       const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       
-      // Show only 2 options as requested by user
       const timesToShow = available.slice(0, 2).map((s: { slot_start: string }) => 
         s.slot_start.substring(0, 5)
       );
@@ -369,7 +414,6 @@ async function createAppointment(
 ): Promise<string> {
   console.log(`[AI Agent] Tool: create_appointment(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
 
-  // Find agenda by name (case-insensitive)
   const { data: agendas } = await supabase
     .from("avivar_agendas")
     .select("id, name, city, professional_name, address")
@@ -380,7 +424,6 @@ async function createAppointment(
   let agendaInfo = agendas?.[0];
   let agendaId: string | null = agendaInfo?.id || null;
 
-  // If no match by name, try by city
   if (!agendaInfo) {
     const { data: byCity } = await supabase
       .from("avivar_agendas")
@@ -393,13 +436,11 @@ async function createAppointment(
     agendaId = agendaInfo?.id || null;
   }
 
-  // Calcular horário de fim (30 min)
   const [hours, minutes] = time.split(":").map(Number);
   const endHours = Math.floor((hours * 60 + minutes + 30) / 60);
   const endMinutes = (hours * 60 + minutes + 30) % 60;
   const endTime = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
 
-  // Verificar se o slot ainda está disponível usando função flexível
   const { data: slots } = await supabase.rpc("get_available_slots_flexible", {
     p_user_id: userId,
     p_agenda_id: agendaId,
@@ -415,7 +456,6 @@ async function createAppointment(
     return `❌ Infelizmente o horário ${time} do dia ${date} não está mais disponível. Por favor, escolha outro horário.`;
   }
 
-  // Criar o agendamento com referência à agenda
   const { data: appointment, error } = await supabase
     .from("avivar_appointments")
     .insert({
@@ -443,7 +483,6 @@ async function createAppointment(
     return "❌ Ocorreu um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato conosco.";
   }
 
-  // Formatar data para exibição
   const dateObj = new Date(date + "T12:00:00");
   const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
   const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -469,7 +508,6 @@ async function transferToHuman(
 ): Promise<string> {
   console.log(`[AI Agent] Tool: transfer_to_human("${reason}")`);
 
-  // Atualizar a conversa para desativar IA
   await supabase
     .from("crm_conversations")
     .update({ 
@@ -488,7 +526,7 @@ async function transferToHuman(
 async function processToolCall(
   supabase: AnySupabaseClient,
   userId: string,
-  agentId: string | null,
+  _agentId: string | null,
   leadId: string | null,
   conversationId: string,
   patientPhone: string,
@@ -499,8 +537,11 @@ async function processToolCall(
     case "list_agendas":
       return await listAgendas(supabase, userId);
     
+    case "list_products":
+      return await listProducts(supabase, userId, toolArgs.category as string | undefined);
+    
     case "search_knowledge_base":
-      return await searchKnowledgeBase(supabase, userId, agentId, toolArgs.query as string);
+      return await searchKnowledgeBase(supabase, userId, null, toolArgs.query as string);
     
     case "get_available_slots":
       return await getAvailableSlots(
@@ -534,25 +575,34 @@ async function processToolCall(
 }
 
 // ============================================
-// MAIN AGENT LOGIC
+// AGENT ROUTING - HYBRID SYSTEM
 // ============================================
 
-interface ActiveAgent {
-  id: string;
-  name: string;
-  personality: string | null;
-  ai_instructions: string | null;
-  ai_restrictions: string | null;
-  tone_of_voice: string | null;
-  company_name: string | null;
-  professional_name: string | null;
-  fluxo_atendimento: Record<string, unknown> | null;
-  services: unknown[];
-}
+async function getRoutedAgent(
+  supabase: AnySupabaseClient,
+  userId: string,
+  leadStage: string
+): Promise<RoutedAgent | null> {
+  console.log(`[AI Agent] Routing for stage: ${leadStage}`);
 
-async function getActiveAgent(supabase: AnySupabaseClient, userId: string): Promise<ActiveAgent | null> {
-  // Primeiro, busca na nova tabela avivar_agents
-  const { data: agent } = await supabase
+  const { data: agents, error } = await supabase.rpc("get_agent_for_lead_stage", {
+    p_user_id: userId,
+    p_lead_stage: leadStage
+  });
+
+  if (error) {
+    console.error("[AI Agent] Routing error:", error);
+    return null;
+  }
+
+  if (agents && agents.length > 0) {
+    const agent = agents[0] as RoutedAgent;
+    console.log(`[AI Agent] Routed to: ${agent.agent_name} (${agent.agent_id})`);
+    return agent;
+  }
+
+  // Fallback: get any active agent
+  const { data: fallbackAgent } = await supabase
     .from("avivar_agents")
     .select("*")
     .eq("user_id", userId)
@@ -561,37 +611,47 @@ async function getActiveAgent(supabase: AnySupabaseClient, userId: string): Prom
     .limit(1)
     .maybeSingle();
 
-  if (agent) {
-    console.log(`[AI Agent] Using new agent: ${agent.name} (${agent.id})`);
-    return agent as ActiveAgent;
+  if (fallbackAgent) {
+    console.log(`[AI Agent] Fallback to: ${fallbackAgent.name}`);
+    return {
+      agent_id: fallbackAgent.id,
+      agent_name: fallbackAgent.name,
+      personality: fallbackAgent.personality,
+      ai_identity: fallbackAgent.ai_identity,
+      ai_instructions: fallbackAgent.ai_instructions,
+      ai_restrictions: fallbackAgent.ai_restrictions,
+      ai_objective: fallbackAgent.ai_objective,
+      tone_of_voice: fallbackAgent.tone_of_voice,
+      company_name: fallbackAgent.company_name,
+      professional_name: fallbackAgent.professional_name,
+      fluxo_atendimento: fallbackAgent.fluxo_atendimento,
+      services: fallbackAgent.services || [],
+      target_kanbans: fallbackAgent.target_kanbans,
+      target_stages: fallbackAgent.target_stages
+    };
   }
-  
+
   return null;
 }
 
-async function getAgentConfig(supabase: AnySupabaseClient, userId: string) {
-  // Fallback para config legada
-  const { data: config } = await supabase
-    .from("avivar_agent_configs")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("is_approved", true)
-    .maybeSingle();
+async function getLeadStage(supabase: AnySupabaseClient, conversationId: string): Promise<string> {
+  // Get lead from conversation
+  const { data: conv } = await supabase
+    .from("crm_conversations")
+    .select("lead_id")
+    .eq("id", conversationId)
+    .single();
 
-  return config;
-}
+  if (!conv?.lead_id) return "novo_lead";
 
-async function getAgentPrompt(supabase: AnySupabaseClient, configId: string): Promise<string | null> {
-  const { data: prompt } = await supabase
-    .from("avivar_agent_prompts")
-    .select("prompt_content")
-    .eq("agent_config_id", configId)
-    .eq("is_active", true)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // Get lead stage from leads table
+  const { data: lead } = await supabase
+    .from("leads")
+    .select("stage")
+    .eq("id", conv.lead_id)
+    .single();
 
-  return prompt?.prompt_content || null;
+  return lead?.stage || "novo_lead";
 }
 
 async function getConversationHistory(
@@ -627,7 +687,11 @@ async function getLeadId(supabase: AnySupabaseClient, conversationId: string): P
   return data?.lead_id || null;
 }
 
-function buildSystemPromptFromAgent(agent: ActiveAgent): string {
+// ============================================
+// BUILD SYSTEM PROMPT - HYBRID (stage-based agent + full access)
+// ============================================
+
+function buildHybridSystemPrompt(agent: RoutedAgent, leadStage: string): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
     weekday: "long", 
@@ -636,76 +700,95 @@ function buildSystemPromptFromAgent(agent: ActiveAgent): string {
     year: "numeric" 
   });
 
-  const personality = agent.personality || `Você é ${agent.name}, assistente virtual da ${agent.company_name || "clínica"}.
-Você trabalha com o ${agent.professional_name || "Dr."}.`;
+  // Agent identity
+  const identity = agent.ai_identity || agent.personality || 
+    `Você é ${agent.agent_name}, assistente virtual da ${agent.company_name || "clínica"}.`;
 
-  const instructions = agent.ai_instructions || `Seu objetivo é:
-1. Qualificar o lead e entender suas necessidades
-2. Responder dúvidas sobre procedimentos (use search_knowledge_base para consultar a base de conhecimento)
-3. Descobrir em qual unidade o paciente quer atender (use list_agendas se tiver dúvida)
-4. Agendar consultas de avaliação (use get_available_slots e create_appointment)
-5. Transferir para humano quando necessário (use transfer_to_human)`;
+  // Agent objective based on stage
+  const objective = agent.ai_objective || getDefaultObjectiveForStage(leadStage);
 
+  // Agent instructions
+  const instructions = agent.ai_instructions || getDefaultInstructions();
+
+  // Agent restrictions
   const restrictions = agent.ai_restrictions || "";
 
-  return `${personality}
+  // Tone of voice
+  const toneMap: Record<string, string> = {
+    "formal": "Use linguagem formal e profissional.",
+    "cordial": "Seja cordial e acolhedor, mas profissional.",
+    "casual": "Seja amigável e descontraído, usando linguagem informal."
+  };
+  const toneInstruction = toneMap[agent.tone_of_voice || "cordial"] || toneMap["cordial"];
 
+  return `${identity}
+
+<seu_objetivo>
+${objective}
+</seu_objetivo>
+
+<suas_instrucoes>
 ${instructions}
+</suas_instrucoes>
+
+<tom_de_voz>
+${toneInstruction}
+</tom_de_voz>
 
 <contexto_atual>
 Data de hoje: ${dateStr}
+Estágio atual do lead: ${leadStage}
 </contexto_atual>
 
-<regras>
+<ferramentas_disponiveis>
+Você tem acesso a:
+- list_agendas: Ver todas as unidades/agendas disponíveis
+- list_products: Ver catálogo de produtos e preços
+- search_knowledge_base: Consultar base de conhecimento COMPLETA (pré-op, pós-op, comercial, tudo!)
+- get_available_slots: Ver horários disponíveis em qualquer agenda
+- create_appointment: Agendar em qualquer agenda
+- transfer_to_human: Transferir para humano
+</ferramentas_disponiveis>
+
+<regras_importantes>
 - Seja breve e objetivo (máximo 3-4 frases por mensagem)
 - Use emojis com moderação
 - NUNCA invente preços ou informações médicas
-- SEMPRE use search_knowledge_base quando o paciente perguntar sobre procedimentos, preços, cuidados, ou qualquer informação técnica
-- IMPORTANTE: Se o paciente MENCIONAR o nome de uma cidade ou unidade (ex: "Juazeiro", "São Paulo"), chame IMEDIATAMENTE get_available_slots com agenda_name=NOME_MENCIONADO
-- Para agendar: 1) Descubra a unidade desejada 2) Pergunte o nome se não souber 3) Ofereça 2 opções de horários com get_available_slots
-- Só crie agendamento com create_appointment após confirmação completa (unidade, data, horário, nome)
-- Transfira para humano em negociações de preço ou dúvidas muito técnicas
-</regras>
+- SEMPRE use search_knowledge_base para dúvidas técnicas
+- SEMPRE use list_products quando perguntarem sobre produtos/preços de itens
+- Para agendar: 1) Descubra a unidade 2) Pergunte o nome 3) Ofereça 2 horários
+- Transfira para humano em negociações ou dúvidas muito técnicas
+- IMPORTANTE: Mesmo sendo especialista em ${leadStage}, você pode responder QUALQUER dúvida usando search_knowledge_base
+</regras_importantes>
 
 ${restrictions ? `<restricoes>\n${restrictions}\n</restricoes>` : ""}`;
 }
 
-function buildSystemPrompt(config: Record<string, unknown>, customPrompt: string | null): string {
-  const today = new Date();
-  const dateStr = today.toLocaleDateString("pt-BR", { 
-    weekday: "long", 
-    day: "2-digit", 
-    month: "long", 
-    year: "numeric" 
-  });
-
-  const basePrompt = customPrompt || `Você é ${config.attendant_name || "Ana"}, assistente virtual da ${config.company_name || "clínica"}.
-Você trabalha com o ${config.professional_name || "Dr."}.
-
-Seu objetivo é:
-1. Qualificar o lead e entender suas necessidades
-2. Responder dúvidas sobre procedimentos (use search_knowledge_base)
-3. Descobrir em qual unidade o paciente quer atender (use list_agendas se tiver dúvida)
-4. Agendar consultas de avaliação (use get_available_slots e create_appointment)
-5. Transferir para humano quando necessário (use transfer_to_human)`;
-
-  return `${basePrompt}
-
-<contexto_atual>
-Data de hoje: ${dateStr}
-</contexto_atual>
-
-<regras>
-- Seja breve e objetivo (máximo 3-4 frases por mensagem)
-- Use emojis com moderação
-- NUNCA invente preços ou informações médicas
-- Quando não souber algo, use search_knowledge_base
-- IMPORTANTE: Se o paciente MENCIONAR o nome de uma cidade ou unidade (ex: "Juazeiro", "São Paulo"), chame IMEDIATAMENTE get_available_slots com agenda_name=NOME_MENCIONADO
-- Para agendar: 1) Descubra a unidade desejada 2) Pergunte o nome se não souber 3) Ofereça 2 opções de horários com get_available_slots
-- Só crie agendamento com create_appointment após confirmação completa (unidade, data, horário, nome)
-- Transfira para humano em negociações de preço ou dúvidas muito técnicas
-</regras>`;
+function getDefaultObjectiveForStage(stage: string): string {
+  const objectives: Record<string, string> = {
+    "novo_lead": "Qualificar o lead, entender suas necessidades e agendar uma consulta de avaliação.",
+    "qualificacao": "Responder dúvidas, qualificar o interesse e agendar consulta.",
+    "agendado": "Confirmar agendamento, enviar orientações pré-consulta.",
+    "compareceu": "Acompanhar pós-consulta, responder dúvidas sobre proposta.",
+    "pos_procedimento": "Orientar sobre cuidados pós-procedimento, acompanhar recuperação.",
+    "acompanhamento": "Monitorar evolução, responder dúvidas de manutenção.",
+    "inativo": "Reengajar o lead, entender motivo do afastamento, oferecer condições especiais."
+  };
+  return objectives[stage] || objectives["novo_lead"];
 }
+
+function getDefaultInstructions(): string {
+  return `1. Qualifique o lead e entenda suas necessidades
+2. Use search_knowledge_base para consultar informações sobre procedimentos, preços, cuidados
+3. Use list_products para mostrar produtos disponíveis quando perguntarem
+4. Use list_agendas para descobrir em qual unidade o paciente quer atender
+5. Use get_available_slots e create_appointment para agendar consultas
+6. Use transfer_to_human quando necessário (negociação, dúvidas muito técnicas)`;
+}
+
+// ============================================
+// AI CALL WITH TOOLS
+// ============================================
 
 async function callAIWithTools(
   systemPrompt: string,
@@ -816,7 +899,7 @@ serve(async (req) => {
   }
 
   const startTime = Date.now();
-  console.log(`[AI Agent] Request received at ${new Date().toISOString()}`);
+  console.log(`[AI Agent v4] Request received at ${new Date().toISOString()}`);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -824,7 +907,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body: AgentRequest = await req.json();
-    const { conversationId, messageContent, leadPhone, leadName, userId } = body;
+    const { conversationId, messageContent, leadPhone, userId } = body;
 
     if (!conversationId || !messageContent || !userId) {
       return new Response(
@@ -835,54 +918,48 @@ serve(async (req) => {
 
     console.log(`[AI Agent] Processing: "${messageContent.substring(0, 50)}..."`);
 
-    // 1. Try new avivar_agents first, then fallback to legacy config
-    const activeAgent = await getActiveAgent(supabase, userId);
-    const agentConfig = await getAgentConfig(supabase, userId);
+    // 1. Get lead stage for hybrid routing
+    const leadStage = await getLeadStage(supabase, conversationId);
+    console.log(`[AI Agent] Lead stage: ${leadStage}`);
+
+    // 2. Get routed agent based on stage (HYBRID ROUTING)
+    const routedAgent = await getRoutedAgent(supabase, userId, leadStage);
     
-    if (!activeAgent && !agentConfig) {
-      console.log("[AI Agent] No agent or config found, skipping");
+    if (!routedAgent) {
+      console.log("[AI Agent] No agent configured, skipping");
       return new Response(
         JSON.stringify({ success: false, error: "Agent not configured" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const agentId = activeAgent?.id || null;
-    console.log(`[AI Agent] Using agent ID: ${agentId}`);
+    console.log(`[AI Agent] Using agent: ${routedAgent.agent_name} for stage ${leadStage}`);
 
-    // 2. Build system prompt from agent or config
-    let systemPrompt: string;
-    if (activeAgent) {
-      // Use new agent structure
-      systemPrompt = buildSystemPromptFromAgent(activeAgent);
-    } else {
-      // Fallback to legacy config
-      const customPrompt = await getAgentPrompt(supabase, agentConfig.id);
-      systemPrompt = buildSystemPrompt(agentConfig, customPrompt);
-    }
+    // 3. Build hybrid system prompt (agent personality + full access)
+    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage);
 
-    // 3. Get conversation history
+    // 4. Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);
 
-    // 4. Get lead ID for appointment linking
+    // 5. Get lead ID for appointment linking
     const leadId = await getLeadId(supabase, conversationId);
 
-    // 5. Call AI with tools
+    // 6. Call AI with tools
     let aiResult = await callAIWithTools(systemPrompt, conversationHistory, TOOLS);
 
-    // 6. Process tool calls if any
+    // 7. Process tool calls if any
     let finalResponse = aiResult.content || "";
 
     if (aiResult.toolCalls.length > 0) {
       console.log(`[AI Agent] Processing ${aiResult.toolCalls.length} tool call(s)`);
       
-      const toolResults: Array<{ role: string; tool_call_id?: string; name?: string; content: string }> = [];
+      const toolResults: Array<{ role: string; name?: string; content: string }> = [];
       
       for (const toolCall of aiResult.toolCalls) {
         const result = await processToolCall(
           supabase,
           userId,
-          agentId,
+          routedAgent.agent_id,
           leadId,
           conversationId,
           leadPhone,
@@ -899,7 +976,7 @@ serve(async (req) => {
         });
       }
 
-      // Call AI again with tool results to get natural response
+      // Call AI again with tool results
       const followUpMessages = [
         ...conversationHistory,
         { role: "assistant", content: aiResult.content || "" },
@@ -933,7 +1010,7 @@ serve(async (req) => {
       finalResponse = "Desculpe, não consegui processar sua mensagem. Pode repetir?";
     }
 
-    // 7. Send response via WhatsApp
+    // 8. Send response via WhatsApp
     const sent = await sendWhatsAppMessage(supabaseUrl, supabaseServiceKey, conversationId, finalResponse);
 
     const duration = Date.now() - startTime;
@@ -945,6 +1022,8 @@ serve(async (req) => {
         response: finalResponse,
         sent,
         duration,
+        agent: routedAgent.agent_name,
+        stage: leadStage,
         toolsUsed: aiResult.toolCalls.map(tc => tc.name)
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
