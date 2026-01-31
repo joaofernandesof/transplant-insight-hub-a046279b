@@ -1137,6 +1137,51 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_products: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          price: number | null
+          promotional_price: number | null
+          stock_quantity: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          price?: number | null
+          promotional_price?: number | null
+          stock_quantity?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          price?: number | null
+          promotional_price?: number | null
+          stock_quantity?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       avivar_schedule_blocks: {
         Row: {
           block_date: string
@@ -14471,6 +14516,25 @@ export type Database = {
         Returns: Json
       }
       delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
+      get_agent_for_lead_stage: {
+        Args: { p_lead_stage?: string; p_user_id: string }
+        Returns: {
+          agent_id: string
+          agent_name: string
+          ai_identity: string
+          ai_instructions: string
+          ai_objective: string
+          ai_restrictions: string
+          company_name: string
+          fluxo_atendimento: Json
+          personality: string
+          professional_name: string
+          services: Json
+          target_kanbans: string[]
+          target_stages: string[]
+          tone_of_voice: string
+        }[]
+      }
       get_all_enrolled_user_ids: { Args: never; Returns: string[] }
       get_available_slots: {
         Args: { p_date: string; p_duration_minutes?: number; p_user_id: string }
@@ -14513,6 +14577,19 @@ export type Database = {
           agenda_name: string
           city: string
           professional_name: string
+        }[]
+      }
+      get_avivar_products_for_ai: {
+        Args: { p_user_id: string }
+        Returns: {
+          category: string
+          description: string
+          is_active: boolean
+          name: string
+          price: number
+          product_id: string
+          promotional_price: number
+          stock_quantity: number
         }[]
       }
       get_exam_results_with_answers: {

@@ -258,10 +258,19 @@ export default function AvivarAgentsPage() {
                   variant="outline" 
                   size="sm"
                   onClick={() => navigate(`/avivar/config/edit/${agent.id}`)}
-                  className="flex-1 border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                  className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
                 >
                   <Settings2 className="h-4 w-4 mr-1" />
-                  Configurar
+                  Editar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate(`/avivar/agents/routing/${agent.id}`)}
+                  className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                >
+                  <Target className="h-4 w-4 mr-1" />
+                  Roteamento
                 </Button>
                 <Button 
                   variant="ghost" 
