@@ -339,6 +339,7 @@ serve(async (req) => {
           
           let userId: string | null = null;
           let sessionId: string | null = null;
+          let isLegacySession = false; // Track if this is a legacy session (avivar_whatsapp_sessions)
           
           // Try 1: Check avivar_uazapi_instances (new provisioning flow)
           let uazapiQuery = supabase
@@ -362,6 +363,7 @@ serve(async (req) => {
           if (uazapiInstance) {
             userId = uazapiInstance.user_id;
             sessionId = uazapiInstance.id;
+            isLegacySession = false;
             console.log(`[UazAPI Webhook] Found UazAPI instance: ${uazapiInstance.instance_name} for user: ${userId}`);
           } else {
             // Try 2: Check avivar_whatsapp_sessions (legacy flow)
@@ -385,6 +387,7 @@ serve(async (req) => {
             if (session) {
               userId = session.user_id;
               sessionId = session.id;
+              isLegacySession = true;
               console.log(`[UazAPI Webhook] Found legacy session: ${session.id} for user: ${userId}`);
             }
           }
@@ -397,7 +400,8 @@ serve(async (req) => {
           }
 
           // 1. Store in avivar_whatsapp_messages (raw message storage)
-          // Use insert with a check to avoid duplicates since there's no unique constraint on message_id
+          // IMPORTANT: Only insert if using legacy session (avivar_whatsapp_sessions)
+          // because the FK constraint references avivar_whatsapp_sessions, not avivar_uazapi_instances
           const { data: existingMsg } = await supabase
             .from("avivar_whatsapp_messages")
             .select("id, synced_to_crm")
@@ -410,11 +414,12 @@ serve(async (req) => {
             continue;
           }
 
-          if (!existingMsg) {
+          // Only insert to avivar_whatsapp_messages for legacy sessions (FK constraint issue)
+          if (!existingMsg && isLegacySession && sessionId) {
             const { error: msgError } = await supabase
               .from("avivar_whatsapp_messages")
               .insert({
-                session_id: sessionId!,
+                session_id: sessionId,
                 user_id: userId,
                 message_id: msg.key.id,
                 remote_jid: msg.key.remoteJid,
@@ -492,12 +497,22 @@ serve(async (req) => {
 
           // 4b. Sync to Inbox tables (leads + crm_conversations + crm_messages)
           // NOTE: The /avivar/inbox UI reads from crm_conversations + crm_messages.
+          // IMPORTANT: First check if a journey already exists with this phone to maintain consistency.
           let syncedToInbox = false;
 
           if (!isGroupChat) {
             const contactName = msg.pushName || `WhatsApp ${phone}`;
 
-            // Find or create lead by phone
+            // STEP 1: Check if a patient journey already exists with this phone (for this user)
+            // This ensures we link the conversation to the existing journey instead of creating a new lead
+            const { data: existingJourney } = await supabase
+              .from("avivar_patient_journeys")
+              .select("id, patient_name")
+              .eq("user_id", userId)
+              .eq("patient_phone", phone)
+              .maybeSingle();
+
+            // STEP 2: Find or create lead in "leads" table
             let leadId: string | null = null;
             const { data: existingLead, error: leadLookupError } = await supabase
               .from("leads")
@@ -512,10 +527,12 @@ serve(async (req) => {
             if (existingLead?.id) {
               leadId = existingLead.id;
             } else {
+              // Create lead with the same name as the journey if it exists
+              const leadName = existingJourney?.patient_name || contactName;
               const { data: createdLead, error: leadCreateError } = await supabase
                 .from("leads")
                 .insert({
-                  name: contactName,
+                  name: leadName,
                   phone,
                   source: "whatsapp",
                 })
