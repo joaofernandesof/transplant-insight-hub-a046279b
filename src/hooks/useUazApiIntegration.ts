@@ -53,8 +53,8 @@ export function useUazApiIntegration() {
   }, [user?.id]);
 
   // Create new instance
-  const createInstance = async (instanceName?: string) => {
-    if (!user?.id) return;
+  const createInstance = async (instanceName?: string): Promise<UazApiInstance | null> => {
+    if (!user?.id) return null;
 
     setIsCreating(true);
 
@@ -71,6 +71,7 @@ export function useUazApiIntegration() {
         toast.success('Instância criada com sucesso!', {
           description: 'Agora você pode conectar seu WhatsApp.'
         });
+        return data.instance;
       } else {
         throw new Error(data.error || 'Falha ao criar instância');
       }
@@ -79,6 +80,7 @@ export function useUazApiIntegration() {
       toast.error('Erro ao criar instância', {
         description: (error as Error).message
       });
+      return null;
     } finally {
       setIsCreating(false);
     }
@@ -86,8 +88,34 @@ export function useUazApiIntegration() {
 
   // Connect instance (get QR code or pair code)
   const connectInstance = async (phone?: string): Promise<{ qrCode?: string; pairCode?: string } | null> => {
-    if (!user?.id || !instance?.instance_token) {
-      toast.error('Nenhuma instância encontrada');
+    if (!user?.id) {
+      toast.error('Usuário não autenticado');
+      return null;
+    }
+
+    // First, ensure we have the latest instance data
+    let currentInstance = instance;
+    if (!currentInstance?.instance_token) {
+      // Try to refetch instance from database
+      const { data: fetchedInstance, error: fetchError } = await supabase
+        .from('avivar_uazapi_instances' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (fetchError || !fetchedInstance) {
+        toast.error('Nenhuma instância encontrada', {
+          description: 'Crie uma instância primeiro clicando em "Criar Instância"'
+        });
+        return null;
+      }
+      
+      currentInstance = fetchedInstance as unknown as UazApiInstance;
+      setInstance(currentInstance);
+    }
+
+    if (!currentInstance?.instance_token) {
+      toast.error('Instância inválida');
       return null;
     }
 
