@@ -141,6 +141,8 @@ export default function AvivarConfigWizard() {
             city={config.city}
             state={config.state}
             onChange={(field, value) => updateConfig({ [field]: value })}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
           />
         );
       

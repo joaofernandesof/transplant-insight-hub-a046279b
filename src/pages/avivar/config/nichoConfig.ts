@@ -5,6 +5,149 @@
 
 import { Service, SubnichoType, NichoType } from './types';
 
+// ============= CONFIGURAÇÕES DE CAMPOS DA EMPRESA/LOCAL =============
+
+export interface CompanyFieldConfig {
+  stepTitle: string;
+  stepSubtitle: string;
+  nameLabel: string;
+  namePlaceholder: string;
+  addressLabel: string;
+  addressPlaceholder: string;
+  addressHint: string;
+  icon: 'building' | 'store' | 'home' | 'utensils' | 'briefcase';
+}
+
+export const COMPANY_FIELDS: Record<NichoType, CompanyFieldConfig> = {
+  saude: {
+    stepTitle: 'Dados da Clínica',
+    stepSubtitle: 'Informações sobre o local de atendimento',
+    nameLabel: 'Nome da Clínica',
+    namePlaceholder: 'Ex: Clínica São Lucas',
+    addressLabel: 'Endereço Completo',
+    addressPlaceholder: 'Ex: Av. Paulista, 1000 - Sala 201\nSão Paulo/SP - CEP 01310-100',
+    addressHint: 'Inclua: Rua, Número, Complemento, CEP',
+    icon: 'building',
+  },
+  estetica: {
+    stepTitle: 'Dados da Clínica',
+    stepSubtitle: 'Informações sobre o estabelecimento',
+    nameLabel: 'Nome da Clínica/Estabelecimento',
+    namePlaceholder: 'Ex: Clínica Desiree Hickmann',
+    addressLabel: 'Endereço Completo',
+    addressPlaceholder: 'Ex: Av. Getúlio Vargas, 4841 - Conj. 705\nCanoas/RS - CEP 92020-333',
+    addressHint: 'Inclua: Rua, Número, Complemento, CEP',
+    icon: 'building',
+  },
+  vendas: {
+    stepTitle: 'Dados da Loja',
+    stepSubtitle: 'Informações sobre o ponto de venda',
+    nameLabel: 'Nome da Loja',
+    namePlaceholder: 'Ex: Tech Store Centro',
+    addressLabel: 'Endereço da Loja',
+    addressPlaceholder: 'Ex: Rua das Flores, 123 - Loja 5\nBelo Horizonte/MG - CEP 30130-000',
+    addressHint: 'Se loja online, coloque "Loja Virtual"',
+    icon: 'store',
+  },
+  imobiliario: {
+    stepTitle: 'Dados do Escritório',
+    stepSubtitle: 'Informações da imobiliária ou escritório',
+    nameLabel: 'Nome da Imobiliária/Escritório',
+    namePlaceholder: 'Ex: Imobiliária Premium',
+    addressLabel: 'Endereço do Escritório',
+    addressPlaceholder: 'Ex: Av. Brasil, 500 - Sala 1001\nRio de Janeiro/RJ - CEP 20040-020',
+    addressHint: 'Endereço principal de atendimento',
+    icon: 'home',
+  },
+  alimentacao: {
+    stepTitle: 'Dados do Estabelecimento',
+    stepSubtitle: 'Informações do restaurante ou lanchonete',
+    nameLabel: 'Nome do Estabelecimento',
+    namePlaceholder: 'Ex: Restaurante Sabor Caseiro',
+    addressLabel: 'Endereço',
+    addressPlaceholder: 'Ex: Rua da Gastronomia, 42\nCuritiba/PR - CEP 80020-000',
+    addressHint: 'Endereço para entrega ou retirada',
+    icon: 'utensils',
+  },
+  servicos: {
+    stepTitle: 'Dados do Escritório',
+    stepSubtitle: 'Informações do local de atendimento',
+    nameLabel: 'Nome do Escritório/Empresa',
+    namePlaceholder: 'Ex: Advocacia Silva & Associados',
+    addressLabel: 'Endereço do Escritório',
+    addressPlaceholder: 'Ex: Rua XV de Novembro, 200 - Sala 302\nPorto Alegre/RS - CEP 90020-000',
+    addressHint: 'Endereço principal de atendimento',
+    icon: 'briefcase',
+  },
+  outros: {
+    stepTitle: 'Dados da Empresa',
+    stepSubtitle: 'Informações do seu negócio',
+    nameLabel: 'Nome da Empresa',
+    namePlaceholder: 'Ex: Empresa XYZ',
+    addressLabel: 'Endereço',
+    addressPlaceholder: 'Ex: Rua Principal, 100\nSua Cidade/UF - CEP 00000-000',
+    addressHint: 'Endereço comercial',
+    icon: 'building',
+  },
+};
+
+// Configurações específicas por subnicho (override do nicho para empresa)
+export const SUBNICHO_COMPANY_OVERRIDES: Partial<Record<SubnichoType, Partial<CompanyFieldConfig>>> = {
+  // Saúde
+  hospital: { stepTitle: 'Dados do Hospital', nameLabel: 'Nome do Hospital', namePlaceholder: 'Ex: Hospital Santa Casa' },
+  laboratorio: { stepTitle: 'Dados do Laboratório', nameLabel: 'Nome do Laboratório', namePlaceholder: 'Ex: Laboratório Central' },
+  farmacia: { stepTitle: 'Dados da Farmácia', nameLabel: 'Nome da Farmácia', namePlaceholder: 'Ex: Farmácia Popular' },
+  
+  // Estética
+  salao_beleza: { stepTitle: 'Dados do Salão', nameLabel: 'Nome do Salão', namePlaceholder: 'Ex: Salão Glamour' },
+  barbearia: { stepTitle: 'Dados da Barbearia', nameLabel: 'Nome da Barbearia', namePlaceholder: 'Ex: Barbearia Vintage' },
+  spa: { stepTitle: 'Dados do SPA', nameLabel: 'Nome do SPA', namePlaceholder: 'Ex: SPA Relaxante' },
+  
+  // Vendas
+  celulares_eletronicos: { namePlaceholder: 'Ex: iStore Brasil' },
+  roupas_moda: { namePlaceholder: 'Ex: Boutique Fashion' },
+  joias_acessorios: { namePlaceholder: 'Ex: Joalheria Diamante' },
+  
+  // Imobiliário
+  agente_imobiliario: { stepTitle: 'Dados do Corretor', stepSubtitle: 'Informações do corretor autônomo' },
+  construtora: { stepTitle: 'Dados da Construtora', nameLabel: 'Nome da Construtora', namePlaceholder: 'Ex: Construtora Alfa' },
+  administradora: { stepTitle: 'Dados da Administradora', nameLabel: 'Nome da Administradora' },
+  
+  // Alimentação
+  restaurante: { nameLabel: 'Nome do Restaurante', namePlaceholder: 'Ex: Restaurante Sabor Caseiro' },
+  delivery: { stepTitle: 'Dados do Delivery', nameLabel: 'Nome do Delivery', addressHint: 'Endereço da cozinha ou ponto de retirada' },
+  pizzaria: { stepTitle: 'Dados da Pizzaria', nameLabel: 'Nome da Pizzaria', namePlaceholder: 'Ex: Pizzaria Bella Napoli' },
+  cafeteria: { stepTitle: 'Dados da Cafeteria', nameLabel: 'Nome da Cafeteria', namePlaceholder: 'Ex: Café Aroma' },
+  confeitaria: { stepTitle: 'Dados da Confeitaria', nameLabel: 'Nome da Confeitaria', namePlaceholder: 'Ex: Doces da Vovó' },
+  food_truck: { stepTitle: 'Dados do Food Truck', nameLabel: 'Nome do Food Truck', namePlaceholder: 'Ex: Burger on Wheels' },
+  lanchonete: { stepTitle: 'Dados da Lanchonete', nameLabel: 'Nome da Lanchonete', namePlaceholder: 'Ex: Lanchonete Central' },
+  
+  // Serviços
+  advocacia: { nameLabel: 'Nome do Escritório', namePlaceholder: 'Ex: Advocacia Silva & Associados' },
+  contabilidade: { nameLabel: 'Nome do Escritório', namePlaceholder: 'Ex: Contabilidade Express' },
+  consultoria: { stepTitle: 'Dados da Consultoria', nameLabel: 'Nome da Consultoria', namePlaceholder: 'Ex: Consultoria Estratégica' },
+  academia_personal: { stepTitle: 'Dados da Academia', nameLabel: 'Nome da Academia/Estúdio', namePlaceholder: 'Ex: Academia Power Fit' },
+  oficina_mecanica: { stepTitle: 'Dados da Oficina', nameLabel: 'Nome da Oficina', namePlaceholder: 'Ex: Auto Mecânica Silva' },
+  pet_shop_veterinario: { stepTitle: 'Dados do Pet Shop', nameLabel: 'Nome do Pet Shop', namePlaceholder: 'Ex: Pet Feliz' },
+  limpeza_manutencao: { stepTitle: 'Dados da Empresa', nameLabel: 'Nome da Empresa', namePlaceholder: 'Ex: Limpeza Total' },
+  marketing_agencia: { stepTitle: 'Dados da Agência', nameLabel: 'Nome da Agência', namePlaceholder: 'Ex: Agência Criativa' },
+  cursos_educacao: { stepTitle: 'Dados da Escola/Curso', nameLabel: 'Nome da Instituição', namePlaceholder: 'Ex: Escola de Idiomas Global' },
+  eventos: { stepTitle: 'Dados da Empresa', nameLabel: 'Nome da Empresa de Eventos', namePlaceholder: 'Ex: Eventos Prime' },
+  fotografia: { stepTitle: 'Dados do Estúdio', nameLabel: 'Nome do Estúdio/Fotógrafo', namePlaceholder: 'Ex: Studio Imagem' },
+  tecnologia_ti: { stepTitle: 'Dados da Empresa', nameLabel: 'Nome da Empresa de TI', namePlaceholder: 'Ex: Tech Solutions' },
+};
+
+// Função para obter configurações da empresa por nicho/subnicho
+export function getCompanyFieldConfig(nicho: NichoType | null, subnicho: SubnichoType | null): CompanyFieldConfig {
+  const baseConfig = COMPANY_FIELDS[nicho || 'outros'];
+  const override = subnicho ? SUBNICHO_COMPANY_OVERRIDES[subnicho] : undefined;
+  
+  return {
+    ...baseConfig,
+    ...override,
+  };
+}
+
 // ============= CONFIGURAÇÕES DE CAMPOS PROFISSIONAIS =============
 
 export interface ProfessionalFieldConfig {
