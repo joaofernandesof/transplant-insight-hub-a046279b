@@ -1,112 +1,161 @@
 /**
- * Etapa 12: Personalização de Mensagens
+ * Etapa 12: Identidade e Objetivo da IA
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TomVoz } from '../../types';
-import { RefreshCw, MessageSquare, UserX, Volume2 } from 'lucide-react';
+import { TomVoz, SubnichoType, NichoType } from '../../types';
+import { getAIPersonaConfig } from '../../nichoConfig';
+import { RefreshCw, Bot, Target, Volume2, Clock, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StepPersonalizationProps {
-  welcomeMessage: string;
-  transferMessage: string;
+  aiIdentity: string;
+  aiObjective: string;
   toneOfVoice: TomVoz;
   consultationDuration: number;
   attendantName: string;
   companyName: string;
+  nicho: NichoType | null;
+  subnicho: SubnichoType | null;
   onChange: (field: string, value: string | number) => void;
 }
 
-const DEFAULT_WELCOME = (name: string, company: string) => 
-  `Olá! Sou a ${name || 'assistente'}, assistente virtual da ${company || 'clínica'}. Como posso te ajudar hoje? 😊`;
-
-const DEFAULT_TRANSFER = 'Vou te transferir para um especialista. Aguarde um momento! 🙂';
-
 export function StepPersonalization({
-  welcomeMessage,
-  transferMessage,
+  aiIdentity,
+  aiObjective,
   toneOfVoice,
   consultationDuration,
   attendantName,
   companyName,
+  nicho,
+  subnicho,
   onChange
 }: StepPersonalizationProps) {
-  const resetWelcome = () => {
-    onChange('welcomeMessage', DEFAULT_WELCOME(attendantName, companyName));
+  // Preenche automaticamente se os campos estiverem vazios
+  useEffect(() => {
+    const personaConfig = getAIPersonaConfig(subnicho);
+    
+    if (!aiIdentity) {
+      onChange('aiIdentity', personaConfig.identity);
+    }
+    if (!aiObjective) {
+      onChange('aiObjective', personaConfig.objective);
+    }
+  }, [subnicho]);
+
+  const resetIdentity = () => {
+    const personaConfig = getAIPersonaConfig(subnicho);
+    onChange('aiIdentity', personaConfig.identity);
   };
 
-  const resetTransfer = () => {
-    onChange('transferMessage', DEFAULT_TRANSFER);
+  const resetObjective = () => {
+    const personaConfig = getAIPersonaConfig(subnicho);
+    onChange('aiObjective', personaConfig.objective);
   };
 
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-          Personalize as mensagens do seu agente
+          Configure a Personalidade da IA
         </h2>
         <p className="text-[hsl(var(--avivar-muted-foreground))]">
-          Configure como a IA vai se comunicar com seus pacientes
+          Defina quem é sua assistente virtual e como ela deve atuar
         </p>
       </div>
 
       <div className="max-w-xl mx-auto space-y-6">
-        {/* Welcome message */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="welcome" className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-              Mensagem de Boas-Vindas
-            </Label>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={resetWelcome}
-              className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
-            >
-              <RefreshCw className="h-3 w-3 mr-1" />
-              Restaurar Padrão
-            </Button>
+        {/* AI Identity */}
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 px-4 py-3 border-b border-[hsl(var(--avivar-border))]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">
+                    Identidade da IA
+                  </h3>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                    Quem é {attendantName || 'a assistente'}?
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetIdentity}
+                className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Restaurar
+              </Button>
+            </div>
           </div>
-          <Textarea
-            id="welcome"
-            value={welcomeMessage || DEFAULT_WELCOME(attendantName, companyName)}
-            onChange={(e) => onChange('welcomeMessage', e.target.value)}
-            rows={3}
-            className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
-          />
-        </div>
+          <CardContent className="p-4">
+            <Textarea
+              id="identity"
+              value={aiIdentity}
+              onChange={(e) => onChange('aiIdentity', e.target.value)}
+              rows={4}
+              placeholder="Descreva quem é a assistente virtual, suas especialidades e como ela se comporta..."
+              className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
+            />
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-2">
+              💡 Exemplo: "Sou especialista em transplante capilar, ajudo pessoas a recuperarem seus cabelos..."
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Transfer message */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="transfer" className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
-              <UserX className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-              Mensagem de Transferência para Humano
-            </Label>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={resetTransfer}
-              className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
-            >
-              <RefreshCw className="h-3 w-3 mr-1" />
-              Restaurar Padrão
-            </Button>
+        {/* AI Objective */}
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 px-4 py-3 border-b border-[hsl(var(--avivar-border))]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                  <Target className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">
+                    Objetivo Principal
+                  </h3>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                    O que {attendantName || 'ela'} deve fazer?
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetObjective}
+                className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Restaurar
+              </Button>
+            </div>
           </div>
-          <Textarea
-            id="transfer"
-            value={transferMessage || DEFAULT_TRANSFER}
-            onChange={(e) => onChange('transferMessage', e.target.value)}
-            rows={2}
-            className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
-          />
-        </div>
+          <CardContent className="p-4">
+            <Textarea
+              id="objective"
+              value={aiObjective}
+              onChange={(e) => onChange('aiObjective', e.target.value)}
+              rows={4}
+              placeholder="Descreva o objetivo principal da assistente no atendimento..."
+              className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
+            />
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-2">
+              💡 Exemplo: "Qualificar interessados, responder dúvidas e agendar avaliações."
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Tone of voice */}
         <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
@@ -118,58 +167,80 @@ export function StepPersonalization({
             <RadioGroup
               value={toneOfVoice}
               onValueChange={(value) => onChange('toneOfVoice', value)}
-              className="space-y-2"
+              className="grid grid-cols-1 gap-2"
             >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="formal" id="formal" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-primary))]" />
-                <Label htmlFor="formal" className="text-[hsl(var(--avivar-foreground))] cursor-pointer">
-                  Formal e profissional
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="cordial" id="cordial" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-primary))]" />
-                <Label htmlFor="cordial" className="text-[hsl(var(--avivar-foreground))] cursor-pointer flex items-center gap-2">
-                  Cordial e humanizado
-                  <span className="text-xs px-2 py-0.5 bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] rounded-full">
-                    Recomendado
-                  </span>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="casual" id="casual" className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-primary))]" />
-                <Label htmlFor="casual" className="text-[hsl(var(--avivar-foreground))] cursor-pointer">
-                  Casual e descontraído
-                </Label>
-              </div>
+              {[
+                { value: 'formal', label: 'Formal e profissional', desc: 'Linguagem respeitosa e técnica' },
+                { value: 'cordial', label: 'Cordial e humanizado', desc: 'Equilibrio entre profissionalismo e simpatia', recommended: true },
+                { value: 'casual', label: 'Casual e descontraído', desc: 'Linguagem informal com emojis' }
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                    toneOfVoice === option.value
+                      ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)]"
+                      : "border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.5)]"
+                  )}
+                >
+                  <RadioGroupItem 
+                    value={option.value} 
+                    id={option.value} 
+                    className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-primary))]" 
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[hsl(var(--avivar-foreground))] font-medium">
+                        {option.label}
+                      </span>
+                      {option.recommended && (
+                        <span className="text-[10px] px-2 py-0.5 bg-[hsl(var(--avivar-primary))] text-white rounded-full flex items-center gap-1">
+                          <Sparkles className="h-2.5 w-2.5" />
+                          Recomendado
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                      {option.desc}
+                    </span>
+                  </div>
+                </label>
+              ))}
             </RadioGroup>
           </CardContent>
         </Card>
 
         {/* Consultation duration */}
-        <div className="space-y-2">
-          <Label htmlFor="duration" className="text-[hsl(var(--avivar-foreground))]">
-            Duração Padrão das Consultas
-          </Label>
-          <Select 
-            value={consultationDuration.toString()} 
-            onValueChange={(value) => onChange('consultationDuration', parseInt(value))}
-          >
-            <SelectTrigger className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-              {[30, 45, 60, 90, 120].map((mins) => (
-                <SelectItem 
-                  key={mins} 
-                  value={mins.toString()}
-                  className="text-[hsl(var(--avivar-foreground))] focus:bg-[hsl(var(--avivar-muted))]"
-                >
-                  {mins} minutos
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+          <CardContent className="p-4 space-y-3">
+            <Label htmlFor="duration" className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+              <Clock className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+              Duração Padrão das Consultas
+            </Label>
+            <Select 
+              value={consultationDuration.toString()} 
+              onValueChange={(value) => onChange('consultationDuration', parseInt(value))}
+            >
+              <SelectTrigger className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+                {[20, 30, 45, 60, 90, 120].map((mins) => (
+                  <SelectItem 
+                    key={mins} 
+                    value={mins.toString()}
+                    className="text-[hsl(var(--avivar-foreground))] focus:bg-[hsl(var(--avivar-muted))]"
+                  >
+                    {mins} minutos
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+              A IA usará essa duração para calcular disponibilidade na agenda
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

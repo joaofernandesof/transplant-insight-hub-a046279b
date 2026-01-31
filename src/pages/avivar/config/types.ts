@@ -179,11 +179,15 @@ export interface AgentConfig {
   // Horários
   schedule: WeekSchedule;
   
-  // Personalização
-  welcomeMessage: string;
-  transferMessage: string;
+  // Identidade e Objetivo da IA
+  aiIdentity: string;
+  aiObjective: string;
   toneOfVoice: TomVoz;
   consultationDuration: number;
+  
+  // Mensagens (legado - mantido para compatibilidade)
+  welcomeMessage: string;
+  transferMessage: string;
   
   // Metadados
   createdAt: string;
@@ -380,10 +384,12 @@ export const INITIAL_CONFIG: AgentConfig = {
   consultationType: { presencial: true, online: false, domicilio: false },
   beforeAfterImages: [],
   schedule: DEFAULT_WEEK_SCHEDULE,
-  welcomeMessage: '',
-  transferMessage: '',
+  aiIdentity: '',
+  aiObjective: '',
   toneOfVoice: 'cordial',
   consultationDuration: 60,
+  welcomeMessage: '',
+  transferMessage: '',
   createdAt: '',
   updatedAt: '',
   currentStep: 0,
@@ -402,7 +408,7 @@ export const WIZARD_STEPS = [
   { id: 'payment', title: 'Pagamento', description: 'Formas de pagamento' },
   { id: 'images', title: 'Imagens', description: 'Fotos e portfólio' },
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
-  { id: 'personalization', title: 'Mensagens', description: 'Personalize mensagens' },
+  { id: 'personalization', title: 'Personalidade', description: 'Identidade e objetivo da IA' },
   { id: 'review', title: 'Revisão', description: 'Confirme as configurações' }
 ];
 

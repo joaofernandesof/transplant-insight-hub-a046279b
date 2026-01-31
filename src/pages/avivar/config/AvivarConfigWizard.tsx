@@ -235,12 +235,14 @@ export default function AvivarConfigWizard() {
       case 11:
         return (
           <StepPersonalization
-            welcomeMessage={config.welcomeMessage}
-            transferMessage={config.transferMessage}
+            aiIdentity={config.aiIdentity}
+            aiObjective={config.aiObjective}
             toneOfVoice={config.toneOfVoice}
             consultationDuration={config.consultationDuration}
             attendantName={config.attendantName}
             companyName={config.companyName}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
             onChange={(field, value) => updateConfig({ [field]: value })}
           />
         );
