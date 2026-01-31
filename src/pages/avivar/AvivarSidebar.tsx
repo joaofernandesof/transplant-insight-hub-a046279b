@@ -222,10 +222,6 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
         'flex-1 min-h-screen transition-all duration-300 bg-[hsl(var(--avivar-background))]',
         collapsed ? 'ml-16' : 'ml-64'
       )}>
-        {/* Top bar with theme toggle */}
-        <div className="sticky top-0 z-30 flex justify-end p-3 bg-[hsl(var(--avivar-background))]">
-          <ThemeToggle />
-        </div>
         {children}
       </main>
     </div>
