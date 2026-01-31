@@ -38,6 +38,10 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 const PublicDashboardPage = lazy(() => import("./pages/public/PublicDashboardPage"));
 
+// NOTE: Carregamento direto (sem lazy) para evitar falhas de import dinâmico no preview
+// quando a sessão expira e o servidor retorna HTML de login no lugar do módulo JS.
+import AvivarAgentsPage from "./pages/avivar/config/AvivarAgentsPage";
+
 // ====================================
 // Pages - Admin/Licenciado (Lazy Loaded)
 // ====================================
@@ -157,7 +161,6 @@ const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
 const AvivarConfigWizard = lazy(() => import("./pages/avivar/config/AvivarConfigWizard"));
 const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge"));
 const AvivarPromptPreview = lazy(() => import("./pages/avivar/config/AvivarPromptPreview"));
-const AvivarAgentsPage = lazy(() => import("./pages/avivar/config/AvivarAgentsPage"));
 const AvivarComercialPage = lazy(() => import("./pages/avivar/AvivarComercialPage"));
 const AvivarPosVendaPage = lazy(() => import("./pages/avivar/AvivarPosVendaPage"));
 const AvivarCadencesPage = lazy(() => import("./pages/avivar/AvivarCadencesPage"));
