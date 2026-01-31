@@ -13,6 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { VisionIcon } from '@/components/icons/VisionIcon';
+import dashboardPreview from '@/assets/screenshots/dashboard-preview.jpg';
+import mobileScheduling from '@/assets/screenshots/mobile-scheduling.jpg';
+import crmPipeline from '@/assets/screenshots/crm-pipeline.jpg';
 
 // Módulos do NeoHub
 const modules = [
@@ -317,6 +320,104 @@ export default function NeoHubSalesPage() {
                   {kpi.value}
                 </p>
                 <p className="text-sm text-slate-400">{kpi.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Screenshots Preview Section */}
+      <section className="py-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-slate-800 text-blue-400 border-blue-500/30">
+              Veja na Prática
+            </Badge>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              Uma prévia do que você terá
+            </h2>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+              Interface moderna, intuitiva e pensada para otimizar cada minuto do seu dia.
+            </p>
+          </div>
+
+          {/* Main Dashboard Screenshot */}
+          <div className="relative mb-12">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF61]/20 to-blue-500/20 rounded-3xl blur-3xl opacity-50" />
+            <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl shadow-black/50">
+              <img 
+                src={dashboardPreview} 
+                alt="Dashboard do NeoHub - Gestão completa de clínica" 
+                className="w-full h-auto"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                <Badge className="mb-2 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                  Dashboard Principal
+                </Badge>
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
+                  Visão 360° da sua clínica
+                </h3>
+                <p className="text-slate-300 text-sm md:text-base max-w-xl">
+                  Pacientes, agendamentos, receita e métricas em tempo real. Tudo em um só lugar.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Secondary Screenshots Grid */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* CRM Pipeline */}
+            <div className="relative group">
+              <div className="rounded-2xl overflow-hidden border border-slate-700 shadow-xl transition-transform group-hover:scale-[1.02]">
+                <img 
+                  src={crmPipeline} 
+                  alt="Pipeline de vendas do Avivar CRM" 
+                  className="w-full h-64 object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <Badge className="mb-2 bg-purple-500/20 text-purple-400 border-purple-500/30">
+                    Avivar CRM
+                  </Badge>
+                  <h4 className="text-lg font-bold text-white mb-1">Pipeline de Vendas</h4>
+                  <p className="text-slate-400 text-sm">
+                    Acompanhe cada lead do primeiro contato até a conversão.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Scheduling */}
+            <div className="relative group flex items-center justify-center">
+              <div className="relative w-48 md:w-56 transition-transform group-hover:scale-105">
+                <img 
+                  src={mobileScheduling} 
+                  alt="Agendamento mobile do NeoCare" 
+                  className="w-full h-auto rounded-3xl shadow-2xl shadow-black/50"
+                />
+                <div className="absolute -bottom-4 -right-4 md:-bottom-6 md:-right-6 bg-slate-800 rounded-xl p-3 md:p-4 border border-slate-700 shadow-xl">
+                  <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-xs">
+                    NeoCare Mobile
+                  </Badge>
+                  <p className="text-white font-semibold text-sm mt-1">Agendamento 24/7</p>
+                  <p className="text-slate-400 text-xs">Pacientes agendam pelo celular</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Features Highlight */}
+          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: Calendar, label: 'Agendamento Inteligente', color: 'text-blue-400' },
+              { icon: MessageSquare, label: 'WhatsApp Integrado', color: 'text-green-400' },
+              { icon: BarChart3, label: 'Relatórios em Tempo Real', color: 'text-amber-400' },
+              { icon: Bot, label: 'IA para Diagnóstico', color: 'text-purple-400' },
+            ].map((feature) => (
+              <div key={feature.label} className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+                <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                <span className="text-sm text-slate-300">{feature.label}</span>
               </div>
             ))}
           </div>
