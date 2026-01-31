@@ -52,6 +52,11 @@ export function StepFluxoAtendimento({
   const [tempTitulo, setTempTitulo] = useState('');
   const [tempDescricao, setTempDescricao] = useState('');
 
+  // Safe defaults for fluxoAtendimento
+  const safeFluxo = fluxoAtendimento ?? { passosCronologicos: [], passosExtras: [] };
+  const passosCronologicos = safeFluxo.passosCronologicos ?? [];
+  const passosExtras = safeFluxo.passosExtras ?? [];
+
   // Preenche automaticamente baseado no subnicho
   useEffect(() => {
     const fluxoConfig = getFluxoAtendimentoConfig(subnicho);
@@ -61,8 +66,7 @@ export function StepFluxoAtendimento({
       hasInitializedRef.current = true;
       
       // Se não tem conteúdo
-      const isEmpty = fluxoAtendimento.passosCronologicos.length === 0 && 
-                      fluxoAtendimento.passosExtras.length === 0;
+      const isEmpty = passosCronologicos.length === 0 && passosExtras.length === 0;
       
       if (isEmpty) {
         onChange(fluxoConfig);
@@ -77,7 +81,7 @@ export function StepFluxoAtendimento({
       onChange(fluxoConfig);
       lastSubnichoRef.current = subnicho;
     }
-  }, [subnicho, fluxoAtendimento, onChange]);
+  }, [subnicho, passosCronologicos.length, passosExtras.length, onChange]);
 
   const resetFluxo = () => {
     const fluxoConfig = getFluxoAtendimentoConfig(subnicho);
@@ -91,21 +95,21 @@ export function StepFluxoAtendimento({
     const newStep: FluxoStep = {
       id: generateId(),
       ordem: type === 'cronologico' 
-        ? fluxoAtendimento.passosCronologicos.length + 1
-        : fluxoAtendimento.passosExtras.length + 1,
-      titulo: type === 'cronologico' ? `Passo ${fluxoAtendimento.passosCronologicos.length + 1}` : 'Novo Passo Extra',
+        ? passosCronologicos.length + 1
+        : passosExtras.length + 1,
+      titulo: type === 'cronologico' ? `Passo ${passosCronologicos.length + 1}` : 'Novo Passo Extra',
       descricao: ''
     };
 
     if (type === 'cronologico') {
       onChange({
-        ...fluxoAtendimento,
-        passosCronologicos: [...fluxoAtendimento.passosCronologicos, newStep]
+        ...safeFluxo,
+        passosCronologicos: [...passosCronologicos, newStep]
       });
     } else {
       onChange({
-        ...fluxoAtendimento,
-        passosExtras: [...fluxoAtendimento.passosExtras, newStep]
+        ...safeFluxo,
+        passosExtras: [...passosExtras, newStep]
       });
     }
   };
@@ -113,18 +117,18 @@ export function StepFluxoAtendimento({
   // Remover passo
   const removeStep = (type: 'cronologico' | 'extra', index: number) => {
     if (type === 'cronologico') {
-      const newPassos = fluxoAtendimento.passosCronologicos.filter((_, i) => i !== index);
+      const newPassos = passosCronologicos.filter((_, i) => i !== index);
       // Reordena
       newPassos.forEach((p, i) => p.ordem = i + 1);
       onChange({
-        ...fluxoAtendimento,
+        ...safeFluxo,
         passosCronologicos: newPassos
       });
     } else {
-      const newPassos = fluxoAtendimento.passosExtras.filter((_, i) => i !== index);
+      const newPassos = passosExtras.filter((_, i) => i !== index);
       newPassos.forEach((p, i) => p.ordem = i + 1);
       onChange({
-        ...fluxoAtendimento,
+        ...safeFluxo,
         passosExtras: newPassos
       });
     }
@@ -135,44 +139,44 @@ export function StepFluxoAtendimento({
     if (index === 0) return;
     
     if (type === 'cronologico') {
-      const newPassos = [...fluxoAtendimento.passosCronologicos];
+      const newPassos = [...passosCronologicos];
       [newPassos[index - 1], newPassos[index]] = [newPassos[index], newPassos[index - 1]];
       newPassos.forEach((p, i) => p.ordem = i + 1);
-      onChange({ ...fluxoAtendimento, passosCronologicos: newPassos });
+      onChange({ ...safeFluxo, passosCronologicos: newPassos });
     } else {
-      const newPassos = [...fluxoAtendimento.passosExtras];
+      const newPassos = [...passosExtras];
       [newPassos[index - 1], newPassos[index]] = [newPassos[index], newPassos[index - 1]];
       newPassos.forEach((p, i) => p.ordem = i + 1);
-      onChange({ ...fluxoAtendimento, passosExtras: newPassos });
+      onChange({ ...safeFluxo, passosExtras: newPassos });
     }
   };
 
   // Mover passo para baixo
   const moveDown = (type: 'cronologico' | 'extra', index: number) => {
     const maxIndex = type === 'cronologico' 
-      ? fluxoAtendimento.passosCronologicos.length - 1
-      : fluxoAtendimento.passosExtras.length - 1;
+      ? passosCronologicos.length - 1
+      : passosExtras.length - 1;
     
     if (index === maxIndex) return;
     
     if (type === 'cronologico') {
-      const newPassos = [...fluxoAtendimento.passosCronologicos];
+      const newPassos = [...passosCronologicos];
       [newPassos[index], newPassos[index + 1]] = [newPassos[index + 1], newPassos[index]];
       newPassos.forEach((p, i) => p.ordem = i + 1);
-      onChange({ ...fluxoAtendimento, passosCronologicos: newPassos });
+      onChange({ ...safeFluxo, passosCronologicos: newPassos });
     } else {
-      const newPassos = [...fluxoAtendimento.passosExtras];
+      const newPassos = [...passosExtras];
       [newPassos[index], newPassos[index + 1]] = [newPassos[index + 1], newPassos[index]];
       newPassos.forEach((p, i) => p.ordem = i + 1);
-      onChange({ ...fluxoAtendimento, passosExtras: newPassos });
+      onChange({ ...safeFluxo, passosExtras: newPassos });
     }
   };
 
   // Abrir editor de passo
   const openEditor = (type: 'cronologico' | 'extra', index: number) => {
     const step = type === 'cronologico' 
-      ? fluxoAtendimento.passosCronologicos[index]
-      : fluxoAtendimento.passosExtras[index];
+      ? passosCronologicos[index]
+      : passosExtras[index];
     
     setEditingStep({ type, index, step });
     setTempTitulo(step.titulo);
@@ -190,13 +194,13 @@ export function StepFluxoAtendimento({
     };
 
     if (editingStep.type === 'cronologico') {
-      const newPassos = [...fluxoAtendimento.passosCronologicos];
+      const newPassos = [...passosCronologicos];
       newPassos[editingStep.index] = updatedStep;
-      onChange({ ...fluxoAtendimento, passosCronologicos: newPassos });
+      onChange({ ...safeFluxo, passosCronologicos: newPassos });
     } else {
-      const newPassos = [...fluxoAtendimento.passosExtras];
+      const newPassos = [...passosExtras];
       newPassos[editingStep.index] = updatedStep;
-      onChange({ ...fluxoAtendimento, passosExtras: newPassos });
+      onChange({ ...safeFluxo, passosExtras: newPassos });
     }
 
     setEditingStep(null);
@@ -207,8 +211,8 @@ export function StepFluxoAtendimento({
   const renderStepCard = (step: FluxoStep, index: number, type: 'cronologico' | 'extra') => {
     const isCronologico = type === 'cronologico';
     const maxIndex = isCronologico 
-      ? fluxoAtendimento.passosCronologicos.length - 1
-      : fluxoAtendimento.passosExtras.length - 1;
+      ? passosCronologicos.length - 1
+      : passosExtras.length - 1;
 
     return (
       <div
@@ -324,7 +328,7 @@ export function StepFluxoAtendimento({
             </div>
           </div>
           <CardContent className="p-4 space-y-3">
-            {fluxoAtendimento.passosCronologicos.map((step, index) => 
+            {passosCronologicos.map((step, index) => 
               renderStepCard(step, index, 'cronologico')
             )}
             
@@ -359,14 +363,14 @@ export function StepFluxoAtendimento({
             </div>
           </div>
           <CardContent className="p-4 space-y-3">
-            {fluxoAtendimento.passosExtras.length === 0 ? (
+            {passosExtras.length === 0 ? (
               <div className="text-center py-4 text-[hsl(var(--avivar-muted-foreground))]">
                 <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">Nenhum passo extra configurado</p>
                 <p className="text-xs mt-1">Adicione passos para situações fora do script</p>
               </div>
             ) : (
-              fluxoAtendimento.passosExtras.map((step, index) => 
+              passosExtras.map((step, index) => 
                 renderStepCard(step, index, 'extra')
               )
             )}
