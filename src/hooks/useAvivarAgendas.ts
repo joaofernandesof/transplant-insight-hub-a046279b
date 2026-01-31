@@ -32,32 +32,32 @@ export function useAvivarAgendas() {
   const queryClient = useQueryClient();
 
   const { data: agendas = [], isLoading, error } = useQuery({
-    queryKey: ['avivar-agendas', user?.id],
+    queryKey: ['avivar-agendas', user?.authUserId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.authUserId) return [];
       
       const { data, error } = await supabase
         .from('avivar_agendas')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.authUserId)
         .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
       return data as AvivarAgenda[];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.authUserId,
   });
 
   const createAgenda = useMutation({
     mutationFn: async (agenda: NewAgenda) => {
-      if (!user?.id) throw new Error('Usuário não autenticado');
+      if (!user?.authUserId) throw new Error('Usuário não autenticado');
 
       const { data, error } = await supabase
         .from('avivar_agendas')
         .insert({
           ...agenda,
-          user_id: user.id,
+          user_id: user.authUserId,
         })
         .select()
         .single();
