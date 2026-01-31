@@ -7,11 +7,12 @@ const corsHeaders = {
 };
 
 /**
- * Avivar AI Agent v2
- * Agente com Tool-Calling para:
+ * Avivar AI Agent v3
+ * Agente com Tool-Calling para Multi-Agendas:
+ * - Listar agendas/unidades disponíveis
  * - Consultar base de conhecimento (RAG)
- * - Consultar horários disponíveis
- * - Criar agendamentos
+ * - Consultar horários disponíveis por agenda
+ * - Criar agendamentos na agenda correta
  * - Transferir para humano
  */
 
@@ -23,6 +24,14 @@ interface AgentRequest {
   userId: string;
 }
 
+interface Agenda {
+  agenda_id: string;
+  agenda_name: string;
+  professional_name: string;
+  city: string;
+  address: string;
+}
+
 // deno-lint-ignore no-explicit-any
 type AnySupabaseClient = SupabaseClient<any, any, any>;
 
@@ -31,6 +40,18 @@ type AnySupabaseClient = SupabaseClient<any, any, any>;
 // ============================================
 
 const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "list_agendas",
+      description: "Lista todas as agendas/unidades disponíveis. Use quando o paciente perguntar onde atendemos, quais cidades, ou quando for agendar sem especificar unidade.",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: []
+      }
+    }
+  },
   {
     type: "function",
     function: {
@@ -52,16 +73,20 @@ const TOOLS = [
     type: "function",
     function: {
       name: "get_available_slots",
-      description: "Consulta horários disponíveis para agendamento. Use quando o paciente quiser saber os horários ou agendar uma consulta.",
+      description: "Consulta horários disponíveis para agendamento em uma agenda específica. Use após o paciente escolher a cidade/unidade.",
       parameters: {
         type: "object",
         properties: {
+          agenda_id: {
+            type: "string",
+            description: "ID da agenda (obtido de list_agendas). Se não tiver, liste as agendas primeiro."
+          },
           date: {
             type: "string",
             description: "Data no formato YYYY-MM-DD. Se não especificada, busca para os próximos dias úteis."
           }
         },
-        required: []
+        required: ["agenda_id"]
       }
     }
   },
@@ -69,10 +94,14 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_appointment",
-      description: "Cria um agendamento para o paciente. Use apenas após o paciente confirmar a data e horário.",
+      description: "Cria um agendamento na agenda específica. Use após confirmação de data, horário e unidade.",
       parameters: {
         type: "object",
         properties: {
+          agenda_id: {
+            type: "string",
+            description: "ID da agenda onde criar o agendamento"
+          },
           patient_name: {
             type: "string",
             description: "Nome completo do paciente"
@@ -94,7 +123,7 @@ const TOOLS = [
             description: "Observações adicionais (opcional)"
           }
         },
-        required: ["patient_name", "date", "time", "service_type"]
+        required: ["agenda_id", "patient_name", "date", "time", "service_type"]
       }
     }
   },
@@ -120,6 +149,37 @@ const TOOLS = [
 // ============================================
 // TOOL IMPLEMENTATIONS
 // ============================================
+
+async function listAgendas(
+  supabase: AnySupabaseClient,
+  userId: string
+): Promise<string> {
+  console.log(`[AI Agent] Tool: list_agendas()`);
+
+  const { data: agendas, error } = await supabase.rpc("get_avivar_agendas_for_ai", {
+    p_user_id: userId
+  });
+
+  if (error || !agendas?.length) {
+    // Fallback: buscar agenda antiga sem multi-agenda
+    const { data: configData } = await supabase
+      .from("avivar_schedule_config")
+      .select("id, professional_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+    
+    if (configData) {
+      return `Temos apenas uma unidade disponível: ${configData.professional_name || "Clínica Principal"}`;
+    }
+    return "Não há agendas configuradas no momento.";
+  }
+
+  const formatted = (agendas as Agenda[]).map((a, i) => 
+    `${i + 1}. ${a.agenda_name}${a.city ? ` - ${a.city}` : ""}${a.professional_name ? ` (${a.professional_name})` : ""}`
+  ).join("\n");
+
+  return `Nossas unidades disponíveis:\n\n${formatted}\n\nEm qual unidade você gostaria de agendar?`;
+}
 
 async function searchKnowledgeBase(
   supabase: AnySupabaseClient,
@@ -155,9 +215,17 @@ async function searchKnowledgeBase(
 async function getAvailableSlots(
   supabase: AnySupabaseClient,
   userId: string,
+  agendaId: string,
   dateStr?: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: get_available_slots(${dateStr || "próximos dias"})`);
+  console.log(`[AI Agent] Tool: get_available_slots(agenda=${agendaId}, date=${dateStr || "próximos dias"})`);
+
+  // Get agenda info
+  const { data: agendaInfo } = await supabase
+    .from("avivar_agendas")
+    .select("name, city, professional_name")
+    .eq("id", agendaId)
+    .single();
 
   // Se não passou data, buscar para os próximos 3 dias úteis
   const dates: string[] = [];
@@ -180,14 +248,33 @@ async function getAvailableSlots(
   const results: string[] = [];
   
   for (const date of dates) {
-    const { data: slots, error } = await supabase.rpc("get_available_slots", {
-      p_user_id: userId,
+    const { data: slots, error } = await supabase.rpc("get_available_slots_by_agenda", {
+      p_agenda_id: agendaId,
       p_date: date,
       p_duration_minutes: 30
     });
 
     if (error) {
       console.error("[AI Agent] Error getting slots:", error);
+      // Fallback para função antiga
+      const { data: oldSlots } = await supabase.rpc("get_available_slots", {
+        p_user_id: userId,
+        p_date: date,
+        p_duration_minutes: 30
+      });
+      
+      if (oldSlots) {
+        const available = oldSlots.filter((s: { is_available: boolean }) => s.is_available);
+        if (available.length > 0) {
+          const dateObj = new Date(date + "T12:00:00");
+          const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
+          const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+          const timesToShow = available.slice(0, 5).map((s: { slot_start: string }) => 
+            s.slot_start.substring(0, 5)
+          );
+          results.push(`📅 ${dayName} (${dateFormatted}): ${timesToShow.join(", ")}${available.length > 5 ? " e mais..." : ""}`);
+        }
+      }
       continue;
     }
 
@@ -198,7 +285,6 @@ async function getAvailableSlots(
       const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
       const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       
-      // Mostrar apenas alguns horários para não sobrecarregar
       const timesToShow = available.slice(0, 5).map((s: { slot_start: string }) => 
         s.slot_start.substring(0, 5)
       );
@@ -208,10 +294,14 @@ async function getAvailableSlots(
   }
 
   if (results.length === 0) {
-    return "Não há horários disponíveis para os próximos dias. Por favor, entre em contato para verificar outras opções.";
+    return "Não há horários disponíveis para os próximos dias nesta unidade. Por favor, entre em contato para verificar outras opções.";
   }
 
-  return "Horários disponíveis:\n\n" + results.join("\n");
+  const header = agendaInfo 
+    ? `Horários disponíveis em ${agendaInfo.name}${agendaInfo.city ? ` (${agendaInfo.city})` : ""}:`
+    : "Horários disponíveis:";
+
+  return `${header}\n\n${results.join("\n")}`;
 }
 
 async function createAppointment(
@@ -219,6 +309,7 @@ async function createAppointment(
   userId: string,
   leadId: string | null,
   conversationId: string,
+  agendaId: string,
   patientName: string,
   patientPhone: string,
   date: string,
@@ -226,7 +317,14 @@ async function createAppointment(
   serviceType: string,
   notes?: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: create_appointment(${patientName}, ${date} ${time})`);
+  console.log(`[AI Agent] Tool: create_appointment(agenda=${agendaId}, ${patientName}, ${date} ${time})`);
+
+  // Get agenda info
+  const { data: agendaInfo } = await supabase
+    .from("avivar_agendas")
+    .select("name, city, professional_name, address")
+    .eq("id", agendaId)
+    .single();
 
   // Calcular horário de fim (30 min)
   const [hours, minutes] = time.split(":").map(Number);
@@ -235,8 +333,8 @@ async function createAppointment(
   const endTime = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
 
   // Verificar se o slot ainda está disponível
-  const { data: slots } = await supabase.rpc("get_available_slots", {
-    p_user_id: userId,
+  const { data: slots } = await supabase.rpc("get_available_slots_by_agenda", {
+    p_agenda_id: agendaId,
     p_date: date,
     p_duration_minutes: 30
   });
@@ -249,11 +347,12 @@ async function createAppointment(
     return `❌ Infelizmente o horário ${time} do dia ${date} não está mais disponível. Por favor, escolha outro horário.`;
   }
 
-  // Criar o agendamento
+  // Criar o agendamento com referência à agenda
   const { data: appointment, error } = await supabase
     .from("avivar_appointments")
     .insert({
       user_id: userId,
+      agenda_id: agendaId,
       lead_id: leadId,
       conversation_id: conversationId,
       patient_name: patientName,
@@ -262,6 +361,8 @@ async function createAppointment(
       start_time: time + ":00",
       end_time: endTime + ":00",
       service_type: serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar",
+      location: agendaInfo?.city || null,
+      professional_name: agendaInfo?.professional_name || null,
       notes: notes || null,
       status: "scheduled",
       created_by: "ai"
@@ -279,12 +380,16 @@ async function createAppointment(
   const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
   const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
+  const locationInfo = agendaInfo?.city 
+    ? `\n📍 Local: ${agendaInfo.name}${agendaInfo.address ? ` - ${agendaInfo.address}` : ""}`
+    : "";
+
   return `✅ Agendamento confirmado!
 
 📅 Data: ${dayName}, ${dateFormatted}
 ⏰ Horário: ${time}
 👤 Paciente: ${patientName}
-📋 Tipo: ${serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar"}
+📋 Tipo: ${serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar"}${locationInfo}
 
 Você receberá uma confirmação por WhatsApp. Aguardamos você!`;
 }
@@ -322,11 +427,19 @@ async function processToolCall(
   toolArgs: Record<string, unknown>
 ): Promise<string> {
   switch (toolName) {
+    case "list_agendas":
+      return await listAgendas(supabase, userId);
+    
     case "search_knowledge_base":
       return await searchKnowledgeBase(supabase, userId, toolArgs.query as string);
     
     case "get_available_slots":
-      return await getAvailableSlots(supabase, userId, toolArgs.date as string | undefined);
+      return await getAvailableSlots(
+        supabase, 
+        userId, 
+        toolArgs.agenda_id as string,
+        toolArgs.date as string | undefined
+      );
     
     case "create_appointment":
       return await createAppointment(
@@ -334,6 +447,7 @@ async function processToolCall(
         userId,
         leadId,
         conversationId,
+        toolArgs.agenda_id as string,
         toolArgs.patient_name as string,
         patientPhone,
         toolArgs.date as string,
@@ -426,8 +540,9 @@ Você trabalha com o ${config.professional_name || "Dr."}.
 Seu objetivo é:
 1. Qualificar o lead e entender suas necessidades
 2. Responder dúvidas sobre procedimentos (use search_knowledge_base)
-3. Agendar consultas de avaliação (use get_available_slots e create_appointment)
-4. Transferir para humano quando necessário (use transfer_to_human)`;
+3. Descobrir em qual unidade o paciente quer atender (use list_agendas se tiver dúvida)
+4. Agendar consultas de avaliação (use get_available_slots e create_appointment)
+5. Transferir para humano quando necessário (use transfer_to_human)`;
 
   return `${basePrompt}
 
@@ -440,8 +555,9 @@ Data de hoje: ${dateStr}
 - Use emojis com moderação
 - NUNCA invente preços ou informações médicas
 - Quando não souber algo, use search_knowledge_base
-- Para agendar, primeiro pergunte o nome se não souber, depois ofereça horários com get_available_slots
-- Só crie agendamento com create_appointment após confirmação do paciente
+- Se tiver múltiplas unidades, pergunte onde o paciente prefere antes de mostrar horários
+- Para agendar: 1) Descubra a unidade desejada 2) Pergunte o nome se não souber 3) Ofereça horários com get_available_slots
+- Só crie agendamento com create_appointment após confirmação completa (unidade, data, horário, nome)
 - Transfira para humano em negociações de preço ou dúvidas muito técnicas
 </regras>`;
 }
