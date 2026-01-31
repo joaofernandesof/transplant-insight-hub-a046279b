@@ -128,16 +128,23 @@ serve(async (req) => {
       phone = "55" + phone;
     }
 
-    // Send message via UazAPI
-    const uazapiResponse = await fetch(`${uazapiUrl}/message/sendText`, {
+    // Format chatId for WhatsApp (UazAPI format)
+    const chatId = `${phone}@s.whatsapp.net`;
+
+    console.log("[Avivar Send Message] UazAPI URL:", uazapiUrl);
+    console.log("[Avivar Send Message] ChatId:", chatId);
+
+    // Send message via UazAPI - using the correct endpoint structure
+    // UazAPI uses /sendText with chatid format
+    const uazapiResponse = await fetch(`${uazapiUrl}/sendText`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${uazapiToken}`,
       },
       body: JSON.stringify({
-        number: phone,
-        message: content,
+        chatid: chatId,
+        text: content,
       }),
     });
 
