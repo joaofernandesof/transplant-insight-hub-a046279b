@@ -211,7 +211,7 @@ export default function AvivarKnowledge() {
 
       // Redirect to agents page
       setTimeout(() => {
-        navigate('/avivar/agents');
+        navigate('/avivar/config');
       }, 1500);
 
     } catch (error) {
