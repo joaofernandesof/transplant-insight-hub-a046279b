@@ -22,6 +22,7 @@ import {
   StepPersonalization,
   StepInstructions,
   StepFluxoAtendimento,
+  StepKnowledge,
   StepReview
 } from './components/steps';
 import { 
@@ -32,7 +33,8 @@ import {
   ConsultationType, 
   WeekSchedule, 
   TomVoz,
-  FluxoAtendimento
+  FluxoAtendimento,
+  KnowledgeFile
 } from './types';
 import { getProfessionalFieldConfig, shouldShowBeforeAfterStep } from './nichoConfig';
 import { useNavigate } from 'react-router-dom';
@@ -110,7 +112,8 @@ export default function AvivarConfigWizard() {
       case 11: return true; // Personalization (optional)
       case 12: return true; // Instructions (optional)
       case 13: return true; // Fluxo (optional)
-      case 14: return true; // Review
+      case 14: return true; // Knowledge (optional)
+      case 15: return true; // Review
       default: return true;
     }
   };
@@ -279,6 +282,14 @@ export default function AvivarConfigWizard() {
       
       case 14:
         return (
+          <StepKnowledge
+            knowledgeFiles={config.knowledgeFiles}
+            onChange={(files: KnowledgeFile[]) => updateConfig({ knowledgeFiles: files })}
+          />
+        );
+      
+      case 15:
+        return (
           <StepReview
             config={config}
             onEdit={setCurrentStep}
@@ -299,8 +310,8 @@ export default function AvivarConfigWizard() {
   const getShowSkip = (): boolean => {
     // Step 9 (Images) - only show skip if it's visible
     if (currentStep === 9 && showBeforeAfterStep) return true;
-    // Step 11 (Personalization), Step 12 (Instructions), Step 13 (Fluxo) are always optional
-    if (currentStep === 11 || currentStep === 12 || currentStep === 13) return true;
+    // Step 11 (Personalization), Step 12 (Instructions), Step 13 (Fluxo), Step 14 (Knowledge) are always optional
+    if (currentStep === 11 || currentStep === 12 || currentStep === 13 || currentStep === 14) return true;
     return false;
   };
   const showSkip = getShowSkip();
