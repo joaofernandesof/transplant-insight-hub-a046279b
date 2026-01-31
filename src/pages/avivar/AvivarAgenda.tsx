@@ -141,21 +141,43 @@ export default function AvivarAgenda() {
     return todayAppointments.find((apt) => apt.start_time === time || apt.start_time === time + ':00');
   };
 
+  // Get display name for header
+  const getHeaderTitle = () => {
+    if (selectedAgenda) {
+      return selectedAgenda.professional_name || selectedAgenda.name;
+    }
+    if (agendas.length === 1) {
+      return agendas[0].professional_name || agendas[0].name;
+    }
+    return 'Agenda';
+  };
+
   return (
     <div className="min-h-screen p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">Agenda</h1>
-          <p className="text-[hsl(var(--avivar-muted-foreground))]">
-            Gerencie seus agendamentos e disponibilidade
-          </p>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
+            {getHeaderTitle()}
+          </h1>
+          {/* Inline agenda selector when multiple agendas exist */}
+          {agendas.length > 1 && (
+            <AgendaSelector 
+              selectedAgenda={selectedAgenda} 
+              onSelect={setSelectedAgenda}
+              variant="compact"
+            />
+          )}
         </div>
         <div className="flex items-center gap-3">
-          <AgendaSelector 
-            selectedAgenda={selectedAgenda} 
-            onSelect={setSelectedAgenda} 
-          />
+          <Button
+            variant="outline"
+            onClick={() => navigate('/avivar/agenda/settings')}
+            className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Criar Agenda
+          </Button>
           <Button
             variant="outline"
             size="icon"
