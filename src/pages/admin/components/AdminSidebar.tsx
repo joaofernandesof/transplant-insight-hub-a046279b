@@ -136,98 +136,70 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-4">
-        <nav className="space-y-6">
-          {/* Principal */}
-          <div className="space-y-1">
-            {!collapsed && (
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
-                Principal
-              </p>
-            )}
-            {mainMenu.map((item) => (
-              <MenuItem key={item.id} item={item} />
-            ))}
-          </div>
+        <nav className="space-y-1">
+          {/* Menu principal */}
+          {mainMenu.map((item) => (
+            <MenuItem key={item.id} item={item} />
+          ))}
 
           {/* Portais - Collapsible */}
-          <div>
-            {!collapsed && (
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
-                Portais
-              </p>
-            )}
-            <Collapsible open={portalsOpen} onOpenChange={setPortalsOpen}>
-              <CollapsibleTrigger asChild>
-                <button
-                  className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
-                    'text-slate-400 hover:bg-slate-800/50 hover:text-white',
-                    portalsOpen && 'bg-slate-800/30 text-white'
-                  )}
-                >
-                  <Layers className="h-5 w-5 text-slate-500" />
-                  {!collapsed && (
-                    <>
-                      <span className="flex-1 text-sm font-medium text-left">Acessar Portal</span>
-                      <ChevronDown className={cn(
-                        'h-4 w-4 text-slate-500 transition-transform duration-200',
-                        portalsOpen && 'rotate-180'
-                      )} />
-                    </>
-                  )}
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-1 space-y-1 pl-2">
-                {portals.map((portal) => {
-                  const Icon = portal.icon;
-                  return (
-                    <button
-                      key={portal.id}
-                      onClick={() => handleNavigate(portal.href)}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:bg-slate-800/50 hover:text-white group"
-                    >
-                      <div className={cn(
-                        'p-1.5 rounded-md bg-gradient-to-br',
-                        portal.gradient
-                      )}>
-                        <Icon className="h-3.5 w-3.5 text-white" />
-                      </div>
-                      {!collapsed && (
-                        <>
-                          <span className="text-sm">{portal.label}</span>
-                          <ChevronRight className="h-3.5 w-3.5 ml-auto text-slate-600 group-hover:text-slate-400" />
-                        </>
-                      )}
-                    </button>
-                  );
-                })}
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
+          <Collapsible open={portalsOpen} onOpenChange={setPortalsOpen}>
+            <CollapsibleTrigger asChild>
+              <button
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+                  'text-slate-400 hover:bg-slate-800/50 hover:text-white',
+                  portalsOpen && 'bg-slate-800/30 text-white'
+                )}
+              >
+                <Layers className="h-5 w-5 text-slate-500" />
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 text-sm font-medium text-left">Acessar Portal</span>
+                    <ChevronDown className={cn(
+                      'h-4 w-4 text-slate-500 transition-transform duration-200',
+                      portalsOpen && 'rotate-180'
+                    )} />
+                  </>
+                )}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-1 space-y-1 pl-2">
+              {portals.map((portal) => {
+                const Icon = portal.icon;
+                return (
+                  <button
+                    key={portal.id}
+                    onClick={() => handleNavigate(portal.href)}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:bg-slate-800/50 hover:text-white group"
+                  >
+                    <div className={cn(
+                      'p-1.5 rounded-md bg-gradient-to-br',
+                      portal.gradient
+                    )}>
+                      <Icon className="h-3.5 w-3.5 text-white" />
+                    </div>
+                    {!collapsed && (
+                      <>
+                        <span className="text-sm">{portal.label}</span>
+                        <ChevronRight className="h-3.5 w-3.5 ml-auto text-slate-600 group-hover:text-slate-400" />
+                      </>
+                    )}
+                  </button>
+                );
+              })}
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Gestão */}
-          <div className="space-y-1">
-            {!collapsed && (
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
-                Gestão
-              </p>
-            )}
-            {managementMenu.map((item) => (
-              <MenuItem key={item.id} item={item} />
-            ))}
-          </div>
+          {managementMenu.map((item) => (
+            <MenuItem key={item.id} item={item} />
+          ))}
 
           {/* Sistema */}
-          <div className="space-y-1">
-            {!collapsed && (
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
-                Sistema
-              </p>
-            )}
-            {systemMenu.map((item) => (
-              <MenuItem key={item.id} item={item} />
-            ))}
-          </div>
+          {systemMenu.map((item) => (
+            <MenuItem key={item.id} item={item} />
+          ))}
         </nav>
       </ScrollArea>
 
