@@ -11,4 +11,5 @@ export { StepPayment } from './StepPayment';
 export { StepImages } from './StepImages';
 export { StepSchedule } from './StepSchedule';
 export { StepPersonalization } from './StepPersonalization';
+export { StepInstructions } from './StepInstructions';
 export { StepReview } from './StepReview';

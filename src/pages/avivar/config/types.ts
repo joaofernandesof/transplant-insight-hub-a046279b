@@ -185,6 +185,10 @@ export interface AgentConfig {
   toneOfVoice: TomVoz;
   consultationDuration: number;
   
+  // Instruções e Restrições da IA
+  aiInstructions: string;
+  aiRestrictions: string;
+  
   // Mensagens (legado - mantido para compatibilidade)
   welcomeMessage: string;
   transferMessage: string;
@@ -388,6 +392,8 @@ export const INITIAL_CONFIG: AgentConfig = {
   aiObjective: '',
   toneOfVoice: 'cordial',
   consultationDuration: 60,
+  aiInstructions: '',
+  aiRestrictions: '',
   welcomeMessage: '',
   transferMessage: '',
   createdAt: '',
@@ -409,6 +415,7 @@ export const WIZARD_STEPS = [
   { id: 'images', title: 'Imagens', description: 'Fotos e portfólio' },
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
   { id: 'personalization', title: 'Personalidade', description: 'Identidade e objetivo da IA' },
+  { id: 'instructions', title: 'Instruções', description: 'O que a IA pode e não pode fazer' },
   { id: 'review', title: 'Revisão', description: 'Confirme as configurações' }
 ];
 

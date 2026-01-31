@@ -20,6 +20,7 @@ import {
   StepImages,
   StepSchedule,
   StepPersonalization,
+  StepInstructions,
   StepReview
 } from './components/steps';
 import { 
@@ -249,6 +250,19 @@ export default function AvivarConfigWizard() {
       
       case 12:
         return (
+          <StepInstructions
+            aiInstructions={config.aiInstructions}
+            aiRestrictions={config.aiRestrictions}
+            attendantName={config.attendantName}
+            companyName={config.companyName}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
+            onChange={(field, value) => updateConfig({ [field]: value })}
+          />
+        );
+      
+      case 13:
+        return (
           <StepReview
             config={config}
             onEdit={setCurrentStep}
@@ -269,8 +283,8 @@ export default function AvivarConfigWizard() {
   const getShowSkip = (): boolean => {
     // Step 9 (Images) - only show skip if it's visible
     if (currentStep === 9 && showBeforeAfterStep) return true;
-    // Step 11 (Personalization) is always optional
-    if (currentStep === 11) return true;
+    // Step 11 (Personalization) and Step 12 (Instructions) are always optional
+    if (currentStep === 11 || currentStep === 12) return true;
     return false;
   };
   const showSkip = getShowSkip();
