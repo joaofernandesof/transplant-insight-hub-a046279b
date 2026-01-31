@@ -258,12 +258,31 @@ async function handleCheckStatus(req: Request, supabase: any, userId: string) {
   });
 
   if (!response.ok) {
-    // If 404, instance might have been deleted on UazAPI side
-    if (response.status === 404) {
+    // If 401 or 404, instance might have been deleted or token is invalid
+    if (response.status === 404 || response.status === 401) {
+      console.log(`Instance invalid (${response.status}), marking as disconnected`);
       await supabase
         .from("avivar_uazapi_instances")
-        .update({ status: "disconnected", error_message: "Instance not found" })
+        .update({ 
+          status: "disconnected", 
+          error_message: response.status === 401 
+            ? "Token inválido - recrie a instância" 
+            : "Instância não encontrada" 
+        })
         .eq("user_id", userId);
+      
+      // Return a structured response instead of throwing
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          instance: {
+            ...instance,
+            status: "disconnected",
+            error_message: "Instância precisa ser recriada"
+          }
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
     throw new Error(`Failed to check status: ${response.status}`);
   }
