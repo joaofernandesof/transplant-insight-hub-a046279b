@@ -2,7 +2,7 @@
  * NewAppointmentDialog - Modal para criar agendamento manual
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -61,6 +61,16 @@ export function NewAppointmentDialog({
     location: "",
   });
 
+  // Keep agenda_id aligned with the currently selected agenda when opening the dialog
+  useEffect(() => {
+    if (!open) return;
+    if (!selectedAgenda?.id) return;
+    setFormData((prev) => ({
+      ...prev,
+      agenda_id: prev.agenda_id || selectedAgenda.id,
+    }));
+  }, [open, selectedAgenda?.id]);
+
   // Reset form when dialog opens
   const handleOpenChange = (open: boolean) => {
     if (open) {
@@ -93,6 +103,8 @@ export function NewAppointmentDialog({
       const endMinutes = minutes >= 30 ? minutes - 30 : minutes + 30;
       const end_time = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
 
+      const agendaIdToSave = formData.agenda_id || selectedAgenda?.id || null;
+
       const { data, error } = await supabase
         .from("avivar_appointments")
         .insert({
@@ -105,7 +117,7 @@ export function NewAppointmentDialog({
           start_time: formData.start_time,
           end_time: end_time,
           notes: formData.notes || null,
-          agenda_id: formData.agenda_id || null,
+          agenda_id: agendaIdToSave,
           location: formData.location || null,
           status: "scheduled",
           created_by: "manual",
