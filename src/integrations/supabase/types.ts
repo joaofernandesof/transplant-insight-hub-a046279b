@@ -1966,6 +1966,48 @@ export type Database = {
           },
         ]
       }
+      clinic_stock: {
+        Row: {
+          clinic_id: string
+          id: string
+          on_hand_qty: number | null
+          reserved_qty: number | null
+          stock_item_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          clinic_id: string
+          id?: string
+          on_hand_qty?: number | null
+          reserved_qty?: number | null
+          stock_item_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          clinic_id?: string
+          id?: string
+          on_hand_qty?: number | null
+          reserved_qty?: number | null
+          stock_item_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_stock_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_stock_stock_item_id_fkey"
+            columns: ["stock_item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_surgeries: {
         Row: {
           booking_term_signed: boolean | null
@@ -2127,6 +2169,138 @@ export type Database = {
           sender_id?: string
         }
         Relationships: []
+      }
+      consumption_entries: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          divergence_approved_at: string | null
+          divergence_approved_by: string | null
+          divergence_notes: string | null
+          divergence_reason: string | null
+          divergence_status:
+            | Database["public"]["Enums"]["consumption_divergence_status"]
+            | null
+          execution_id: string
+          expiry_date: string | null
+          has_divergence: boolean | null
+          id: string
+          kit_item_id: string | null
+          lot_number: string | null
+          quantity_expected: number
+          quantity_used: number
+          stock_item_id: string
+          total_cost: number | null
+          unit_cost: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          divergence_approved_at?: string | null
+          divergence_approved_by?: string | null
+          divergence_notes?: string | null
+          divergence_reason?: string | null
+          divergence_status?:
+            | Database["public"]["Enums"]["consumption_divergence_status"]
+            | null
+          execution_id: string
+          expiry_date?: string | null
+          has_divergence?: boolean | null
+          id?: string
+          kit_item_id?: string | null
+          lot_number?: string | null
+          quantity_expected: number
+          quantity_used: number
+          stock_item_id: string
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          divergence_approved_at?: string | null
+          divergence_approved_by?: string | null
+          divergence_notes?: string | null
+          divergence_reason?: string | null
+          divergence_status?:
+            | Database["public"]["Enums"]["consumption_divergence_status"]
+            | null
+          execution_id?: string
+          expiry_date?: string | null
+          has_divergence?: boolean | null
+          id?: string
+          kit_item_id?: string | null
+          lot_number?: string | null
+          quantity_expected?: number
+          quantity_used?: number
+          stock_item_id?: string
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumption_entries_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "procedure_executions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumption_entries_kit_item_id_fkey"
+            columns: ["kit_item_id"]
+            isOneToOne: false
+            referencedRelation: "kit_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumption_entries_stock_item_id_fkey"
+            columns: ["stock_item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consumption_photos: {
+        Row: {
+          consumption_entry_id: string
+          id: string
+          is_legible: boolean | null
+          notes: string | null
+          photo_type: string | null
+          photo_url: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          consumption_entry_id: string
+          id?: string
+          is_legible?: boolean | null
+          notes?: string | null
+          photo_type?: string | null
+          photo_url: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          consumption_entry_id?: string
+          id?: string
+          is_legible?: boolean | null
+          notes?: string | null
+          photo_type?: string | null
+          photo_url?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumption_photos_consumption_entry_id_fkey"
+            columns: ["consumption_entry_id"]
+            isOneToOne: false
+            referencedRelation: "consumption_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_requests: {
         Row: {
@@ -5833,6 +6007,90 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      kit_item_substitutes: {
+        Row: {
+          id: string
+          kit_item_id: string
+          notes: string | null
+          substitute_item_id: string
+        }
+        Insert: {
+          id?: string
+          kit_item_id: string
+          notes?: string | null
+          substitute_item_id: string
+        }
+        Update: {
+          id?: string
+          kit_item_id?: string
+          notes?: string | null
+          substitute_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_item_substitutes_kit_item_id_fkey"
+            columns: ["kit_item_id"]
+            isOneToOne: false
+            referencedRelation: "kit_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kit_item_substitutes_substitute_item_id_fkey"
+            columns: ["substitute_item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_items: {
+        Row: {
+          allows_substitute: boolean | null
+          id: string
+          kit_id: string
+          notes: string | null
+          order_index: number | null
+          quantity_default: number
+          requires_photo: boolean | null
+          stock_item_id: string
+        }
+        Insert: {
+          allows_substitute?: boolean | null
+          id?: string
+          kit_id: string
+          notes?: string | null
+          order_index?: number | null
+          quantity_default?: number
+          requires_photo?: boolean | null
+          stock_item_id: string
+        }
+        Update: {
+          allows_substitute?: boolean | null
+          id?: string
+          kit_id?: string
+          notes?: string | null
+          order_index?: number | null
+          quantity_default?: number
+          requires_photo?: boolean | null
+          stock_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_items_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "procedure_kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kit_items_stock_item_id_fkey"
+            columns: ["stock_item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lead_tasks: {
         Row: {
@@ -11087,6 +11345,278 @@ export type Database = {
         }
         Relationships: []
       }
+      procedure_audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          new_values: Json | null
+          notes: string | null
+          old_values: Json | null
+          tenant_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          new_values?: Json | null
+          notes?: string | null
+          old_values?: Json | null
+          tenant_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          new_values?: Json | null
+          notes?: string | null
+          old_values?: Json | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedure_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procedure_executions: {
+        Row: {
+          approved_by: string | null
+          clinic_id: string
+          completed_at: string | null
+          created_at: string | null
+          executed_at: string | null
+          executed_by: string
+          id: string
+          kit_id: string | null
+          notes: string | null
+          patient_id: string | null
+          procedure_id: string
+          status:
+            | Database["public"]["Enums"]["procedure_execution_status"]
+            | null
+          tenant_id: string | null
+          total_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          clinic_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          executed_at?: string | null
+          executed_by: string
+          id?: string
+          kit_id?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          procedure_id: string
+          status?:
+            | Database["public"]["Enums"]["procedure_execution_status"]
+            | null
+          tenant_id?: string | null
+          total_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          clinic_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          executed_at?: string | null
+          executed_by?: string
+          id?: string
+          kit_id?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          procedure_id?: string
+          status?:
+            | Database["public"]["Enums"]["procedure_execution_status"]
+            | null
+          tenant_id?: string | null
+          total_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedure_executions_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procedure_executions_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "procedure_kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procedure_executions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procedure_executions_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procedure_executions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procedure_kits: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          procedure_id: string
+          version: number | null
+          version_notes: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          procedure_id: string
+          version?: number | null
+          version_notes?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          procedure_id?: string
+          version?: number | null
+          version_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedure_kits_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procedure_module_settings: {
+        Row: {
+          block_expired_items: boolean | null
+          created_at: string | null
+          id: string
+          max_divergence_percent: number | null
+          require_dual_approval_critical: boolean | null
+          require_lot_critical_items: boolean | null
+          require_photo_all_items: boolean | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          block_expired_items?: boolean | null
+          created_at?: string | null
+          id?: string
+          max_divergence_percent?: number | null
+          require_dual_approval_critical?: boolean | null
+          require_lot_critical_items?: boolean | null
+          require_photo_all_items?: boolean | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          block_expired_items?: boolean | null
+          created_at?: string | null
+          id?: string
+          max_divergence_percent?: number | null
+          require_dual_approval_critical?: boolean | null
+          require_lot_critical_items?: boolean | null
+          require_photo_all_items?: boolean | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedure_module_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procedures: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedures_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_definitions: {
         Row: {
           created_at: string | null
@@ -12254,6 +12784,131 @@ export type Database = {
             columns: ["role_id"]
             isOneToOne: false
             referencedRelation: "staff_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_items: {
+        Row: {
+          category: Database["public"]["Enums"]["kit_item_category"]
+          cost_unit: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_critical: boolean | null
+          min_quantity: number | null
+          name: string
+          reorder_point: number | null
+          requires_expiry: boolean | null
+          requires_lot: boolean | null
+          tenant_id: string | null
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["kit_item_category"]
+          cost_unit?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          min_quantity?: number | null
+          name: string
+          reorder_point?: number | null
+          requires_expiry?: boolean | null
+          requires_lot?: boolean | null
+          tenant_id?: string | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["kit_item_category"]
+          cost_unit?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_critical?: boolean | null
+          min_quantity?: number | null
+          name?: string
+          reorder_point?: number | null
+          requires_expiry?: boolean | null
+          requires_lot?: boolean | null
+          tenant_id?: string | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          clinic_id: string
+          created_at: string | null
+          created_by: string | null
+          expiry_date: string | null
+          id: string
+          lot_number: string | null
+          movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          notes: string | null
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          stock_item_id: string
+          unit_cost: number | null
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string | null
+          created_by?: string | null
+          expiry_date?: string | null
+          id?: string
+          lot_number?: string | null
+          movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          notes?: string | null
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          stock_item_id: string
+          unit_cost?: number | null
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          expiry_date?: string | null
+          id?: string
+          lot_number?: string | null
+          movement_type?: Database["public"]["Enums"]["stock_movement_type"]
+          notes?: string | null
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          stock_item_id?: string
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_stock_item_id_fkey"
+            columns: ["stock_item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
             referencedColumns: ["id"]
           },
         ]
@@ -13919,6 +14574,7 @@ export type Database = {
         | "comercial"
         | "operacao"
         | "recepcao"
+      consumption_divergence_status: "pendente" | "aprovado" | "rejeitado"
       contract_status: "ativo" | "pendente" | "quitado" | "cancelado"
       contract_status_type:
         | "draft"
@@ -13976,6 +14632,11 @@ export type Database = {
         | "em_andamento"
         | "finalizado"
         | "cancelado"
+      kit_item_category:
+        | "material_descartavel"
+        | "medicamento"
+        | "epi"
+        | "insumo"
       legal_case_status:
         | "active"
         | "pending"
@@ -14028,6 +14689,7 @@ export type Database = {
         | "financial"
         | "reception"
         | "inventory"
+      procedure_execution_status: "em_andamento" | "finalizado" | "cancelado"
       risk_level: "low" | "medium" | "high" | "critical"
       schedule_status:
         | "sem_data"
@@ -14045,6 +14707,7 @@ export type Database = {
         | "ti_dados"
         | "gestao"
         | "executivo"
+      stock_movement_type: "entrada" | "saida" | "ajuste" | "transferencia"
       subscription_plan: "free" | "starter" | "professional" | "unlimited"
     }
     CompositeTypes: {
@@ -14215,6 +14878,7 @@ export const Constants = {
         "operacao",
         "recepcao",
       ],
+      consumption_divergence_status: ["pendente", "aprovado", "rejeitado"],
       contract_status: ["ativo", "pendente", "quitado", "cancelado"],
       contract_status_type: [
         "draft",
@@ -14280,6 +14944,12 @@ export const Constants = {
         "finalizado",
         "cancelado",
       ],
+      kit_item_category: [
+        "material_descartavel",
+        "medicamento",
+        "epi",
+        "insumo",
+      ],
       legal_case_status: [
         "active",
         "pending",
@@ -14339,6 +15009,7 @@ export const Constants = {
         "reception",
         "inventory",
       ],
+      procedure_execution_status: ["em_andamento", "finalizado", "cancelado"],
       risk_level: ["low", "medium", "high", "critical"],
       schedule_status: [
         "sem_data",
@@ -14358,6 +15029,7 @@ export const Constants = {
         "gestao",
         "executivo",
       ],
+      stock_movement_type: ["entrada", "saida", "ajuste", "transferencia"],
       subscription_plan: ["free", "starter", "professional", "unlimited"],
     },
   },
