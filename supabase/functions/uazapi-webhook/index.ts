@@ -82,8 +82,33 @@ interface UazAPIPayload {
     id: string;
   };
   pushName?: string;
-  message?: UazAPIMessage["message"];
+  message?: UazAPIMessage["message"] | UazAPINativeMessage;
   messageTimestamp?: number | string;
+  // UazAPI native format fields
+  EventType?: string;
+  chat?: {
+    wa_name?: string;
+    name?: string;
+    phone?: string;
+    wa_chatid?: string;
+  };
+  owner?: string;
+}
+
+// UazAPI native message format
+interface UazAPINativeMessage {
+  chatid: string;
+  fromMe: boolean;
+  id: string;
+  messageid?: string;
+  text?: string;
+  content?: { text?: string };
+  senderName?: string;
+  messageTimestamp?: number;
+  messageType?: string;
+  mediaType?: string;
+  isGroup?: boolean;
+  groupName?: string;
 }
 
 // Extract phone number from JID
@@ -223,8 +248,25 @@ serve(async (req) => {
           messages = [{
             key: payload.key,
             pushName: payload.pushName,
-            message: payload.message,
+            message: payload.message as UazAPIMessage["message"],
             messageTimestamp: payload.messageTimestamp,
+          }];
+        }
+        // Format 5: UazAPI native format - single message in payload.message
+        else if (payload.message && "chatid" in payload.message) {
+          const msg = payload.message as UazAPINativeMessage;
+          
+          messages = [{
+            key: {
+              remoteJid: msg.chatid,
+              fromMe: msg.fromMe,
+              id: msg.messageid || msg.id,
+            },
+            pushName: msg.senderName || payload.chat?.wa_name || payload.chat?.name,
+            message: {
+              conversation: msg.text || msg.content?.text,
+            },
+            messageTimestamp: msg.messageTimestamp,
           }];
         }
 
