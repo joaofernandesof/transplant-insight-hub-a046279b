@@ -93,25 +93,41 @@ export default function AvivarConfigWizard() {
     }
   };
 
-  // Step validation
+  // Step validation - mais flexível no modo edição
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 0: return true; // Welcome
-      case 1: return config.subnicho !== null || config.template !== null; // Nicho/Subnicho
-      case 2: return config.openaiApiKeyValid; // API Key
+      case 1: 
+        // No modo edição, permitir prosseguir se já tem dados essenciais (nome do atendente)
+        if (isEditMode && config.attendantName) return true;
+        return config.subnicho !== null || config.template !== null;
+      case 2: 
+        // No modo edição, API key já foi validada antes
+        return isEditMode || config.openaiApiKeyValid;
       case 3: {
         // Professional - require CRM only if showRegistration is true
         const hasName = !!config.professionalName;
         const hasRegistration = !professionalFieldConfig.showRegistration || !!config.crm;
         return hasName && hasRegistration;
       }
-      case 4: return !!config.companyName && !!config.address && !!config.city && !!config.state; // Clinic
+      case 4: 
+        // No modo edição, ser mais flexível com localização
+        if (isEditMode && config.companyName) return true;
+        return !!config.companyName && !!config.address && !!config.city && !!config.state;
       case 5: return !!config.attendantName && config.attendantName.length >= 2; // Attendant
-      case 6: return config.services.some(s => s.enabled); // Services
-      case 7: return config.consultationType.presencial || config.consultationType.online || config.consultationType.domicilio; // Consultation
-      case 8: return config.paymentMethods.some(m => m.enabled); // Payment
-      case 9: return true; // Images (optional - only shown for relevant niches)
-      case 10: return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0); // Schedule
+      case 6: 
+        // No modo edição, permitir continuar se não tem serviços definidos
+        return isEditMode || config.services.some(s => s.enabled);
+      case 7: 
+        // No modo edição, assumir presencial se não definido
+        return isEditMode || config.consultationType.presencial || config.consultationType.online || config.consultationType.domicilio;
+      case 8: 
+        // No modo edição, pagamento é opcional
+        return isEditMode || config.paymentMethods.some(m => m.enabled);
+      case 9: return true; // Images (optional)
+      case 10: 
+        // No modo edição, schedule é opcional
+        return isEditMode || Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
       case 11: return true; // Personalization (optional)
       case 12: return true; // Instructions (optional)
       case 13: return true; // Fluxo (optional)

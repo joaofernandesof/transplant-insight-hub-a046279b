@@ -19,17 +19,48 @@ const STORAGE_KEY = 'avivar_agent_config';
 // Converte dados do banco para o formato do AgentConfig
 function mapAgentToConfig(agent: Record<string, unknown>): Partial<AgentConfig> {
   return {
+    // Identificação do agente
     attendantName: (agent.name as string) || '',
     companyName: (agent.company_name as string) || '',
     professionalName: (agent.professional_name as string) || '',
+    
+    // Nicho e subnicho
+    nicho: (agent.nicho as AgentConfig['nicho']) || null,
+    subnicho: (agent.subnicho as AgentConfig['subnicho']) || null,
+    template: (agent.subnicho as AgentConfig['template']) || null,
+    
+    // Dados do profissional
+    crm: (agent.crm as string) || '',
+    instagram: (agent.instagram as string) || '',
+    
+    // Localização
+    address: (agent.address as string) || '',
+    city: (agent.city as string) || '',
+    state: (agent.state as string) || '',
+    
+    // Identidade e personalidade
     toneOfVoice: (agent.tone_of_voice as 'formal' | 'cordial' | 'casual') || 'cordial',
+    aiIdentity: (agent.ai_identity as string) || (agent.personality as string) || '',
+    aiObjective: (agent.ai_objective as string) || '',
     aiInstructions: (agent.ai_instructions as string) || '',
     aiRestrictions: (agent.ai_restrictions as string) || '',
-    aiIdentity: (agent.personality as string) || '',
-    schedule: (agent.schedule as typeof DEFAULT_WEEK_SCHEDULE) || DEFAULT_WEEK_SCHEDULE,
+    
+    // Serviços e pagamentos
     services: (agent.services as AgentConfig['services']) || [],
-    fluxoAtendimento: (agent.fluxo_atendimento as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+    paymentMethods: (agent.payment_methods as AgentConfig['paymentMethods']) || [...PAYMENT_METHODS],
+    consultationType: (agent.consultation_type as AgentConfig['consultationType']) || { presencial: true, online: false, domicilio: false },
+    consultationDuration: (agent.consultation_duration as number) || 60,
+    
+    // Imagens e arquivos
+    beforeAfterImages: (agent.before_after_images as string[]) || [],
     knowledgeFiles: (agent.knowledge_files as AgentConfig['knowledgeFiles']) || [],
+    
+    // Horários e fluxo
+    schedule: (agent.schedule as typeof DEFAULT_WEEK_SCHEDULE) || DEFAULT_WEEK_SCHEDULE,
+    fluxoAtendimento: (agent.fluxo_atendimento as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+    
+    // API Key - assume validada se agente existe
+    openaiApiKeyValid: true,
   };
 }
 

@@ -395,21 +395,34 @@ export type Database = {
       }
       avivar_agents: {
         Row: {
+          address: string | null
+          ai_identity: string | null
           ai_instructions: string | null
+          ai_objective: string | null
           ai_restrictions: string | null
           avatar_url: string | null
+          before_after_images: Json | null
+          city: string | null
           company_name: string | null
+          consultation_duration: number | null
+          consultation_type: Json | null
           created_at: string
+          crm: string | null
           fluxo_atendimento: Json | null
           id: string
+          instagram: string | null
           is_active: boolean | null
           knowledge_files: Json | null
           name: string
+          nicho: string | null
           openai_api_key_hash: string | null
+          payment_methods: Json | null
           personality: string | null
           professional_name: string | null
           schedule: Json | null
           services: Json | null
+          state: string | null
+          subnicho: string | null
           target_kanbans: string[] | null
           target_stages: string[] | null
           tone_of_voice: string | null
@@ -417,21 +430,34 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string | null
+          ai_identity?: string | null
           ai_instructions?: string | null
+          ai_objective?: string | null
           ai_restrictions?: string | null
           avatar_url?: string | null
+          before_after_images?: Json | null
+          city?: string | null
           company_name?: string | null
+          consultation_duration?: number | null
+          consultation_type?: Json | null
           created_at?: string
+          crm?: string | null
           fluxo_atendimento?: Json | null
           id?: string
+          instagram?: string | null
           is_active?: boolean | null
           knowledge_files?: Json | null
           name: string
+          nicho?: string | null
           openai_api_key_hash?: string | null
+          payment_methods?: Json | null
           personality?: string | null
           professional_name?: string | null
           schedule?: Json | null
           services?: Json | null
+          state?: string | null
+          subnicho?: string | null
           target_kanbans?: string[] | null
           target_stages?: string[] | null
           tone_of_voice?: string | null
@@ -439,21 +465,34 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string | null
+          ai_identity?: string | null
           ai_instructions?: string | null
+          ai_objective?: string | null
           ai_restrictions?: string | null
           avatar_url?: string | null
+          before_after_images?: Json | null
+          city?: string | null
           company_name?: string | null
+          consultation_duration?: number | null
+          consultation_type?: Json | null
           created_at?: string
+          crm?: string | null
           fluxo_atendimento?: Json | null
           id?: string
+          instagram?: string | null
           is_active?: boolean | null
           knowledge_files?: Json | null
           name?: string
+          nicho?: string | null
           openai_api_key_hash?: string | null
+          payment_methods?: Json | null
           personality?: string | null
           professional_name?: string | null
           schedule?: Json | null
           services?: Json | null
+          state?: string | null
+          subnicho?: string | null
           target_kanbans?: string[] | null
           target_stages?: string[] | null
           tone_of_voice?: string | null
