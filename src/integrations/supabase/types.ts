@@ -223,6 +223,48 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_agendas: {
+        Row: {
+          address: string | null
+          city: string | null
+          color: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          professional_name: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          professional_name?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          professional_name?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       avivar_agent_configs: {
         Row: {
           address: string | null
@@ -353,6 +395,7 @@ export type Database = {
       }
       avivar_appointments: {
         Row: {
+          agenda_id: string | null
           appointment_date: string
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -363,10 +406,12 @@ export type Database = {
           end_time: string
           id: string
           lead_id: string | null
+          location: string | null
           notes: string | null
           patient_email: string | null
           patient_name: string
           patient_phone: string
+          professional_name: string | null
           service_type: string | null
           start_time: string
           status: string
@@ -374,6 +419,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agenda_id?: string | null
           appointment_date: string
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -384,10 +430,12 @@ export type Database = {
           end_time: string
           id?: string
           lead_id?: string | null
+          location?: string | null
           notes?: string | null
           patient_email?: string | null
           patient_name: string
           patient_phone: string
+          professional_name?: string | null
           service_type?: string | null
           start_time: string
           status?: string
@@ -395,6 +443,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agenda_id?: string | null
           appointment_date?: string
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -405,10 +454,12 @@ export type Database = {
           end_time?: string
           id?: string
           lead_id?: string | null
+          location?: string | null
           notes?: string | null
           patient_email?: string | null
           patient_name?: string
           patient_phone?: string
+          professional_name?: string | null
           service_type?: string | null
           start_time?: string
           status?: string
@@ -416,6 +467,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "avivar_appointments_agenda_id_fkey"
+            columns: ["agenda_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_agendas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "avivar_appointments_conversation_id_fkey"
             columns: ["conversation_id"]
@@ -1001,6 +1059,7 @@ export type Database = {
       avivar_schedule_config: {
         Row: {
           advance_booking_days: number
+          agenda_id: string | null
           buffer_between: number
           consultation_duration: number
           created_at: string
@@ -1013,6 +1072,7 @@ export type Database = {
         }
         Insert: {
           advance_booking_days?: number
+          agenda_id?: string | null
           buffer_between?: number
           consultation_duration?: number
           created_at?: string
@@ -1025,6 +1085,7 @@ export type Database = {
         }
         Update: {
           advance_booking_days?: number
+          agenda_id?: string | null
           buffer_between?: number
           consultation_duration?: number
           created_at?: string
@@ -1035,7 +1096,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_schedule_config_agenda_id_fkey"
+            columns: ["agenda_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_agendas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_schedule_hours: {
         Row: {
@@ -13562,6 +13631,28 @@ export type Database = {
           is_available: boolean
           slot_end: string
           slot_start: string
+        }[]
+      }
+      get_available_slots_by_agenda: {
+        Args: {
+          p_agenda_id: string
+          p_date: string
+          p_duration_minutes?: number
+        }
+        Returns: {
+          is_available: boolean
+          slot_end: string
+          slot_start: string
+        }[]
+      }
+      get_avivar_agendas_for_ai: {
+        Args: { p_user_id: string }
+        Returns: {
+          address: string
+          agenda_id: string
+          agenda_name: string
+          city: string
+          professional_name: string
         }[]
       }
       get_exam_results_with_answers: {
