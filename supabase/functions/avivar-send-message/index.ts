@@ -80,10 +80,10 @@ serve(async (req) => {
 
     console.log("[Avivar Send Message] Conversation:", conversationId, "Content:", content.substring(0, 50));
 
-    // Get conversation with lead info
+    // Get conversation with lead info and assigned_to (to find the user's instance)
     const { data: conversation, error: convError } = await adminClient
       .from("crm_conversations")
-      .select("id, lead_id, channel")
+      .select("id, lead_id, channel, assigned_to")
       .eq("id", conversationId)
       .single();
 
@@ -112,21 +112,36 @@ serve(async (req) => {
 
     console.log("[Avivar Send Message] Sending to:", lead.phone);
 
-    // Get user's WhatsApp session to find UazAPI credentials (optional for service calls)
-    let session = null;
-    if (userId) {
-      const { data: sessionData } = await adminClient
-        .from("avivar_whatsapp_sessions")
-        .select("id, instance_id, phone_number, user_id")
-        .eq("user_id", userId)
+    // Determine which user owns this conversation (for finding their instance)
+    const ownerUserId = userId || conversation.assigned_to;
+    
+    // Try to find the user's UazAPI instance first (new provisioning flow)
+    let uazapiUrl: string | undefined = undefined;
+    let uazapiToken: string | undefined = undefined;
+
+    if (ownerUserId) {
+      const { data: uazapiInstance } = await adminClient
+        .from("avivar_uazapi_instances")
+        .select("id, instance_token")
+        .eq("user_id", ownerUserId)
+        .eq("status", "connected")
         .limit(1)
-        .single();
-      session = sessionData;
+        .maybeSingle();
+
+      if (uazapiInstance?.instance_token) {
+        // User has their own instance - use its token
+        uazapiUrl = Deno.env.get("UAZAPI_URL"); // Base URL is shared
+        uazapiToken = uazapiInstance.instance_token;
+        console.log("[Avivar Send Message] Using user's UazAPI instance");
+      }
     }
 
-    // Get UazAPI credentials from env
-    const uazapiUrl = Deno.env.get("UAZAPI_URL");
-    const uazapiToken = Deno.env.get("UAZAPI_TOKEN");
+    // Fallback to global credentials (legacy or admin instances)
+    if (!uazapiUrl || !uazapiToken) {
+      uazapiUrl = Deno.env.get("UAZAPI_URL");
+      uazapiToken = Deno.env.get("UAZAPI_TOKEN");
+      console.log("[Avivar Send Message] Using global UazAPI credentials");
+    }
 
     if (!uazapiUrl || !uazapiToken) {
       console.error("[Avivar Send Message] UazAPI credentials not configured");
@@ -222,13 +237,13 @@ serve(async (req) => {
       .eq("id", conversationId);
 
     // Also save to avivar_mensagens for legacy support
-    if (session?.id) {
+    if (ownerUserId) {
       const { data: avivarConversa } = await adminClient
         .from("avivar_conversas")
         .select("id")
         .eq("numero", phone)
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (avivarConversa) {
         await adminClient.from("avivar_mensagens").insert({
