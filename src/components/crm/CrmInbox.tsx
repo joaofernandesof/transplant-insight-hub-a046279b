@@ -6,13 +6,15 @@
 
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { MessageCircle, Loader2 } from 'lucide-react';
+import { MessageCircle, Loader2, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useCrmConversations } from '@/hooks/useCrmConversations';
+import { useLeads } from '@/hooks/useLeads';
 
 // Componentes focados
 import { ConversationList } from './chat/ConversationList';
 import { LeadDetailsSidebar } from './chat/LeadDetailsSidebar';
+import { LeadDetailsSidebarStandalone } from './chat/LeadDetailsSidebarStandalone';
 import { MessageThread } from './chat/MessageThread';
 import { MessageInput } from './chat/MessageInput';
 import { ChatHeader } from './chat/ChatHeader';
@@ -23,7 +25,7 @@ interface CrmInboxProps {
 
 export function CrmInbox({ initialLeadId }: CrmInboxProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = useState(!!initialLeadId);
+  const [showLeadWithoutConversation, setShowLeadWithoutConversation] = useState(false);
 
   const {
     conversations,
@@ -35,9 +37,13 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
     createConversation,
   } = useCrmConversations(selectedConversation || undefined);
 
+  // Fetch lead data directly when we have an initialLeadId
+  const { leads, isLoading: isLoadingLeads } = useLeads();
+  const directLead = initialLeadId ? leads.find(l => l.id === initialLeadId) : null;
+
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
-  // Auto-select or create conversation when initialLeadId is provided
+  // Handle initialLeadId - find existing conversation or show lead panel
   useEffect(() => {
     if (!initialLeadId || isLoadingConversations) return;
 
@@ -46,25 +52,34 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
     
     if (existingConversation) {
       setSelectedConversation(existingConversation.id);
-      setIsInitializing(false);
-    } else if (isInitializing) {
-      // Create new conversation for this lead
+      setShowLeadWithoutConversation(false);
+    } else {
+      // No conversation exists - show lead panel without conversation
+      setSelectedConversation(null);
+      setShowLeadWithoutConversation(true);
+    }
+  }, [initialLeadId, conversations, isLoadingConversations]);
+
+  const handleSendMessage = async (content: string) => {
+    // If we're showing a lead without conversation, create one first
+    if (showLeadWithoutConversation && initialLeadId) {
       createConversation.mutate(
         { leadId: initialLeadId, channel: 'whatsapp' },
         {
           onSuccess: (data) => {
             setSelectedConversation(data.id);
-            setIsInitializing(false);
+            setShowLeadWithoutConversation(false);
+            // Now send the message
+            sendMessage.mutate({
+              conversationId: data.id,
+              content,
+            });
           },
-          onError: () => {
-            setIsInitializing(false);
-          }
         }
       );
+      return;
     }
-  }, [initialLeadId, conversations, isLoadingConversations, isInitializing, createConversation]);
 
-  const handleSendMessage = (content: string) => {
     if (!selectedConversation) return;
     
     sendMessage.mutate({
@@ -82,19 +97,19 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
     });
   };
 
-  // Estado de loading inicial (quando vem do Kanban)
-  if (isInitializing || isLoadingConversations) {
+  // Estado de loading inicial
+  if (isLoadingConversations || (initialLeadId && isLoadingLeads)) {
     return (
       <Card className="flex flex-col items-center justify-center p-8 text-center h-full bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
         <Loader2 className="h-12 w-12 text-[hsl(var(--avivar-primary))] animate-spin mb-4" />
         <p className="text-[hsl(var(--avivar-muted-foreground))]">
-          {initialLeadId ? 'Abrindo conversa do lead...' : 'Carregando conversas...'}
+          {initialLeadId ? 'Carregando lead...' : 'Carregando conversas...'}
         </p>
       </Card>
     );
   }
 
-  // Estado vazio - sem conversas
+  // Estado vazio - sem conversas e sem lead selecionado
   if (conversations.length === 0 && !initialLeadId) {
     return (
       <Card className="flex flex-col items-center justify-center p-8 text-center h-full bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
@@ -111,6 +126,67 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
           💡 Dica: Inicie uma conversa clicando em um lead no Pipeline
         </p>
       </Card>
+    );
+  }
+
+  // Lead novo sem conversa - mostrar layout com painel de edição e chat vazio
+  if (showLeadWithoutConversation && directLead) {
+    return (
+      <div className="h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
+        {/* Coluna 1: Lista de Conversas */}
+        <div className={cn(
+          "w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col"
+        )}>
+          <ConversationList
+            conversations={conversations}
+            selectedId={null}
+            onSelect={(id) => {
+              setSelectedConversation(id);
+              setShowLeadWithoutConversation(false);
+            }}
+            isLoading={isLoadingConversations}
+          />
+        </div>
+
+        {/* Coluna 2: Detalhes do Lead */}
+        <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col overflow-hidden">
+          <LeadDetailsSidebarStandalone lead={directLead} />
+        </div>
+
+        {/* Coluna 3: Chat vazio */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[hsl(var(--avivar-card))]">
+          {/* Header simples */}
+          <div className="p-4 border-b border-[hsl(var(--avivar-border))] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[hsl(var(--avivar-primary)/0.15)] flex items-center justify-center">
+              <User className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">{directLead.name}</h3>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Novo lead - Sem conversas anteriores</p>
+            </div>
+          </div>
+
+          {/* Área de chat vazia */}
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+            <div className="w-20 h-20 rounded-full bg-[hsl(var(--avivar-muted))] flex items-center justify-center mb-6">
+              <MessageCircle className="h-10 w-10 text-[hsl(var(--avivar-muted-foreground))] opacity-50" />
+            </div>
+            <h3 className="text-lg font-medium text-[hsl(var(--avivar-foreground))] mb-2">
+              Nenhuma conversa com este lead
+            </h3>
+            <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] max-w-md">
+              Este é um lead novo. Envie uma mensagem para iniciar a conversa ou edite os dados do lead na coluna ao lado.
+            </p>
+          </div>
+
+          {/* Input de mensagem */}
+          <MessageInput
+            onSend={handleSendMessage}
+            disabled={createConversation.isPending || sendMessage.isPending}
+            placeholder={`Iniciar conversa com ${directLead.name}...`}
+          />
+        </div>
+      </div>
     );
   }
 
