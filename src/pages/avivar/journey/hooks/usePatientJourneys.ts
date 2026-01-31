@@ -43,9 +43,12 @@ export function usePatientJourneys(journeyType?: JourneyType) {
         .insert({
           patient_name: journey.patient_name || 'Novo Lead',
           service_type: journey.service_type || 'capilar',
-          current_stage: 'lead_entrada',
-          journey_type: 'comercial',
-          ...journey
+          current_stage: journey.current_stage || 'lead_entrada',
+          journey_type: journey.journey_type || journeyType || 'comercial',
+          patient_phone: journey.patient_phone,
+          patient_email: journey.patient_email,
+          lead_source: journey.lead_source,
+          notes: journey.notes,
         })
         .select()
         .single();
