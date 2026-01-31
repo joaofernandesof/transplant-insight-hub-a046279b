@@ -2,6 +2,7 @@
  * CrmInbox - Interface principal de chat do Avivar
  * Layout 3 colunas: Lista de conversas | Detalhes do lead | Chat
  * Suporta initialLeadId para abrir conversa de um lead específico
+ * Agora busca leads de avivar_patient_journeys (Kanban Comercial/Pós-Venda)
  */
 
 import { useState, useEffect } from 'react';
@@ -9,12 +10,12 @@ import { cn } from '@/lib/utils';
 import { MessageCircle, Loader2, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useCrmConversations } from '@/hooks/useCrmConversations';
-import { useLeads } from '@/hooks/useLeads';
+import { usePatientJourneys } from '@/pages/avivar/journey/hooks/usePatientJourneys';
 
 // Componentes focados
 import { ConversationList } from './chat/ConversationList';
 import { LeadDetailsSidebar } from './chat/LeadDetailsSidebar';
-import { LeadDetailsSidebarStandalone } from './chat/LeadDetailsSidebarStandalone';
+import { PatientJourneyDetailsSidebar } from './chat/PatientJourneyDetailsSidebar';
 import { MessageThread } from './chat/MessageThread';
 import { MessageInput } from './chat/MessageInput';
 import { ChatHeader } from './chat/ChatHeader';
@@ -37,17 +38,17 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
     createConversation,
   } = useCrmConversations(selectedConversation || undefined);
 
-  // Fetch lead data directly when we have an initialLeadId
-  const { leads, isLoading: isLoadingLeads } = useLeads();
-  const directLead = initialLeadId ? leads.find(l => l.id === initialLeadId) : null;
+  // Fetch journeys from avivar_patient_journeys (Kanban table)
+  const { journeys, isLoading: isLoadingJourneys } = usePatientJourneys();
+  const directJourney = initialLeadId ? journeys.find(j => j.id === initialLeadId) : null;
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
 
   // Handle initialLeadId - find existing conversation or show lead panel
   useEffect(() => {
-    if (!initialLeadId || isLoadingConversations) return;
+    if (!initialLeadId || isLoadingConversations || isLoadingJourneys) return;
 
-    // Find existing conversation for this lead
+    // Find existing conversation for this lead (by lead_id matching journey id)
     const existingConversation = conversations.find(c => c.lead_id === initialLeadId);
     
     if (existingConversation) {
@@ -58,7 +59,7 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
       setSelectedConversation(null);
       setShowLeadWithoutConversation(true);
     }
-  }, [initialLeadId, conversations, isLoadingConversations]);
+  }, [initialLeadId, conversations, isLoadingConversations, isLoadingJourneys]);
 
   const handleSendMessage = async (content: string) => {
     // If we're showing a lead without conversation, create one first
@@ -98,7 +99,7 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
   };
 
   // Estado de loading inicial
-  if (isLoadingConversations || (initialLeadId && isLoadingLeads)) {
+  if (isLoadingConversations || (initialLeadId && isLoadingJourneys)) {
     return (
       <Card className="flex flex-col items-center justify-center p-8 text-center h-full bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
         <Loader2 className="h-12 w-12 text-[hsl(var(--avivar-primary))] animate-spin mb-4" />
@@ -130,7 +131,7 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
   }
 
   // Lead novo sem conversa - mostrar layout com painel de edição e chat vazio
-  if (showLeadWithoutConversation && directLead) {
+  if (showLeadWithoutConversation && directJourney) {
     return (
       <div className="h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
         {/* Coluna 1: Lista de Conversas */}
@@ -148,9 +149,9 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
           />
         </div>
 
-        {/* Coluna 2: Detalhes do Lead */}
+        {/* Coluna 2: Detalhes do Lead (Patient Journey) */}
         <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col overflow-hidden">
-          <LeadDetailsSidebarStandalone lead={directLead} />
+          <PatientJourneyDetailsSidebar journey={directJourney} />
         </div>
 
         {/* Coluna 3: Chat vazio */}
@@ -161,21 +162,21 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
               <User className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
             </div>
             <div>
-              <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">{directLead.name}</h3>
+              <h3 className="font-semibold text-[hsl(var(--avivar-foreground))]">{directJourney.patient_name}</h3>
               <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Novo lead - Sem conversas anteriores</p>
             </div>
           </div>
 
-          {/* Área de chat vazia */}
+          {/* Área de chat vazia com mensagem UX */}
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
             <div className="w-20 h-20 rounded-full bg-[hsl(var(--avivar-muted))] flex items-center justify-center mb-6">
               <MessageCircle className="h-10 w-10 text-[hsl(var(--avivar-muted-foreground))] opacity-50" />
             </div>
             <h3 className="text-lg font-medium text-[hsl(var(--avivar-foreground))] mb-2">
-              Nenhuma conversa com este lead
+              Este lead ainda não possui conversas registradas
             </h3>
             <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] max-w-md">
-              Este é um lead novo. Envie uma mensagem para iniciar a conversa ou edite os dados do lead na coluna ao lado.
+              Inicie o atendimento para começar o histórico. Você pode editar os dados do lead na coluna ao lado.
             </p>
           </div>
 
@@ -183,7 +184,7 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
           <MessageInput
             onSend={handleSendMessage}
             disabled={createConversation.isPending || sendMessage.isPending}
-            placeholder={`Iniciar conversa com ${directLead.name}...`}
+            placeholder={`Iniciar conversa com ${directJourney.patient_name}...`}
           />
         </div>
       </div>
