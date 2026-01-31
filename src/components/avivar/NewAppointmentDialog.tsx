@@ -80,7 +80,9 @@ export function NewAppointmentDialog({
 
   const createAppointment = useMutation({
     mutationFn: async () => {
-      if (!user?.id) throw new Error("Usuário não autenticado");
+      // Get the actual auth user ID from Supabase
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser?.id) throw new Error("Usuário não autenticado");
       if (!formData.patient_name || !formData.patient_phone) {
         throw new Error("Nome e telefone são obrigatórios");
       }
@@ -94,7 +96,7 @@ export function NewAppointmentDialog({
       const { data, error } = await supabase
         .from("avivar_appointments")
         .insert({
-          user_id: user.id,
+          user_id: authUser.id,
           patient_name: formData.patient_name,
           patient_phone: formData.patient_phone,
           patient_email: formData.patient_email || null,
