@@ -43,17 +43,19 @@ export default function AvivarAgenda() {
   const { agendas } = useAvivarAgendas();
 
   const { data: appointments = [], isLoading } = useQuery({
-    queryKey: ['avivar-appointments', user?.id, format(selectedDate, 'yyyy-MM-dd'), selectedAgenda?.id],
+    queryKey: ['avivar-appointments', format(selectedDate, 'yyyy-MM-dd'), selectedAgenda?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
+      // Get auth user to ensure we're authenticated
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser?.id) return [];
       
       const startOfWeekDate = startOfWeek(selectedDate, { weekStartsOn: 0 });
       const endOfWeekDate = addDays(startOfWeekDate, 6);
       
+      // RLS policy already filters by user_id = auth.uid()
       let query = supabase
         .from('avivar_appointments')
         .select('*')
-        .eq('user_id', user.id)
         .gte('appointment_date', format(startOfWeekDate, 'yyyy-MM-dd'))
         .lte('appointment_date', format(endOfWeekDate, 'yyyy-MM-dd'))
         .order('appointment_date', { ascending: true })
