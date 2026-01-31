@@ -118,7 +118,11 @@ export function NewAppointmentDialog({
     },
     onSuccess: () => {
       toast.success("Agendamento criado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["avivar-appointments"] });
+      // Invalidate all appointment queries to ensure the calendar refreshes
+      queryClient.invalidateQueries({ 
+        queryKey: ["avivar-appointments"],
+        refetchType: 'active'
+      });
       onOpenChange(false);
     },
     onError: (error: Error) => {
