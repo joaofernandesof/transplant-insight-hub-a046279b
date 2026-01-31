@@ -87,15 +87,21 @@ export function StepServices({
   const [newServiceDescription, setNewServiceDescription] = React.useState('');
   const [showAddForm, setShowAddForm] = React.useState(false);
 
-  // Atualizar serviços quando subnicho mudar (apenas se não tiver serviços selecionados)
+  // Atualizar serviços quando subnicho mudar
   useEffect(() => {
-    if (subnicho && services.every(s => !s.enabled)) {
+    if (subnicho) {
       const nichoServices = getServicesForSubnicho(subnicho);
-      // Verificar se os serviços atuais são diferentes dos do nicho
-      const currentIds = services.map(s => s.id).sort().join(',');
+      
+      // Preservar serviços customizados do usuário
+      const customServices = services.filter(s => s.id.startsWith('custom_'));
+      
+      // Verificar se os serviços base (não-customizados) são diferentes dos do nicho
+      const currentBaseIds = services.filter(s => !s.id.startsWith('custom_')).map(s => s.id).sort().join(',');
       const nichoIds = nichoServices.map(s => s.id).sort().join(',');
-      if (currentIds !== nichoIds) {
-        onChange(nichoServices);
+      
+      if (currentBaseIds !== nichoIds) {
+        // Combinar serviços do nicho com customizados existentes
+        onChange([...nichoServices, ...customServices]);
       }
     }
   }, [subnicho]);
