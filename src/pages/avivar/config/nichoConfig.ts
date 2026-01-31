@@ -3941,17 +3941,17 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
   // ==================== SAÚDE ====================
   clinica_medica: {
     passosCronologicos: [
-      { id: 'cm1', ordem: 1, titulo: 'Saudação e Identificação', descricao: 'Cumprimente o paciente de forma acolhedora, apresente-se como assistente da clínica e pergunte o nome dele.' },
-      { id: 'cm2', ordem: 2, titulo: 'Identificar Necessidade', descricao: 'Pergunte qual especialidade ou médico o paciente procura, ou se é primeira consulta ou retorno.' },
-      { id: 'cm3', ordem: 3, titulo: 'Verificar Convênio', descricao: 'Pergunte se possui convênio médico e qual, ou se será consulta particular.' },
-      { id: 'cm4', ordem: 4, titulo: 'Oferecer Horários', descricao: 'Apresente 2-3 opções de horários disponíveis que atendam à necessidade do paciente.' },
-      { id: 'cm5', ordem: 5, titulo: 'Confirmar Agendamento', descricao: 'Confirme data, horário, médico e peça telefone de contato para confirmação.' },
-      { id: 'cm6', ordem: 6, titulo: 'Orientações Finais', descricao: 'Informe endereço, documentos necessários e chegada com antecedência. Agradeça o contato.' }
+      { id: 'cm1', ordem: 1, titulo: 'Saudação e Identificação', descricao: 'Cumprimente o paciente de forma acolhedora, apresente-se como assistente da clínica e pergunte o nome dele.', exemploMensagem: 'Olá! 😊 Seja bem-vindo(a) à Clínica! Eu sou a Ana, assistente virtual. Como posso te ajudar hoje? Qual é o seu nome?' },
+      { id: 'cm2', ordem: 2, titulo: 'Identificar Necessidade', descricao: 'Pergunte qual especialidade ou médico o paciente procura, ou se é primeira consulta ou retorno.', exemploMensagem: 'Prazer, {nome}! Qual especialidade ou médico você gostaria de consultar? É sua primeira consulta conosco ou retorno?' },
+      { id: 'cm3', ordem: 3, titulo: 'Verificar Convênio', descricao: 'Pergunte se possui convênio médico e qual, ou se será consulta particular.', exemploMensagem: 'Perfeito! Você possui algum convênio médico? Se sim, qual? Também atendemos particular.' },
+      { id: 'cm4', ordem: 4, titulo: 'Oferecer Horários', descricao: 'Apresente 2-3 opções de horários disponíveis que atendam à necessidade do paciente.', exemploMensagem: 'Ótimo! Tenho esses horários disponíveis para você:\n\n📅 Segunda (10/02) às 14h\n📅 Terça (11/02) às 10h\n📅 Quarta (12/02) às 16h\n\nQual prefere?' },
+      { id: 'cm5', ordem: 5, titulo: 'Confirmar Agendamento', descricao: 'Confirme data, horário, médico e peça telefone de contato para confirmação.', exemploMensagem: 'Perfeito! Confirmando:\n\n✅ Dr. João Silva\n📅 Terça, 11/02 às 10h\n\nPosso confirmar neste número?' },
+      { id: 'cm6', ordem: 6, titulo: 'Orientações Finais', descricao: 'Informe endereço, documentos necessários e chegada com antecedência. Agradeça o contato.', exemploMensagem: 'Tudo certo! 🎉 Lembre-se de trazer documento com foto e carteirinha do convênio. Chegue 15 min antes. Nosso endereço é Av. Paulista, 1000 - Sala 201. Até lá!' }
     ],
     passosExtras: [
-      { id: 'cme1', ordem: 1, titulo: 'Valores e Pagamento', descricao: 'Quando perguntarem sobre valores, informe que depende do procedimento e convênio. Ofereça agendar para avaliação presencial.' },
-      { id: 'cme2', ordem: 2, titulo: 'Urgências', descricao: 'Em caso de urgência, oriente procurar pronto-socorro. A clínica atende apenas consultas agendadas.' },
-      { id: 'cme3', ordem: 3, titulo: 'Exames e Resultados', descricao: 'Para resultados de exames, oriente sobre o portal do paciente ou prazo de entrega.' }
+      { id: 'cme1', ordem: 1, titulo: 'Valores e Pagamento', descricao: 'Quando perguntarem sobre valores, informe que depende do procedimento e convênio. Ofereça agendar para avaliação presencial.', exemploMensagem: 'Os valores variam conforme o procedimento e convênio. Posso agendar uma consulta para você ter um orçamento personalizado?' },
+      { id: 'cme2', ordem: 2, titulo: 'Urgências', descricao: 'Em caso de urgência, oriente procurar pronto-socorro. A clínica atende apenas consultas agendadas.', exemploMensagem: 'Para urgências, recomendo procurar o pronto-socorro mais próximo. Atendemos apenas com consultas agendadas.' },
+      { id: 'cme3', ordem: 3, titulo: 'Exames e Resultados', descricao: 'Para resultados de exames, oriente sobre o portal do paciente ou prazo de entrega.', exemploMensagem: 'Os resultados ficam disponíveis no portal do paciente em até 3 dias úteis. Precisa de ajuda para acessar?' }
     ]
   },
   hospital: {

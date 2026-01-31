@@ -51,6 +51,7 @@ export function StepFluxoAtendimento({
   const [editingStep, setEditingStep] = useState<EditingStep | null>(null);
   const [tempTitulo, setTempTitulo] = useState('');
   const [tempDescricao, setTempDescricao] = useState('');
+  const [tempExemploMensagem, setTempExemploMensagem] = useState('');
 
   // Safe defaults for fluxoAtendimento
   const safeFluxo = fluxoAtendimento ?? { passosCronologicos: [], passosExtras: [] };
@@ -181,6 +182,7 @@ export function StepFluxoAtendimento({
     setEditingStep({ type, index, step });
     setTempTitulo(step.titulo);
     setTempDescricao(step.descricao);
+    setTempExemploMensagem(step.exemploMensagem || '');
   };
 
   // Salvar edição
@@ -190,7 +192,8 @@ export function StepFluxoAtendimento({
     const updatedStep = {
       ...editingStep.step,
       titulo: tempTitulo,
-      descricao: tempDescricao
+      descricao: tempDescricao,
+      exemploMensagem: tempExemploMensagem || undefined
     };
 
     if (editingStep.type === 'cronologico') {
@@ -206,6 +209,7 @@ export function StepFluxoAtendimento({
     setEditingStep(null);
     setTempTitulo('');
     setTempDescricao('');
+    setTempExemploMensagem('');
   };
 
   const renderStepCard = (step: FluxoStep, index: number, type: 'cronologico' | 'extra') => {
@@ -441,13 +445,34 @@ export function StepFluxoAtendimento({
               <Textarea
                 value={tempDescricao}
                 onChange={(e) => setTempDescricao(e.target.value)}
-                rows={6}
+                rows={4}
                 placeholder="Descreva o que a IA deve fazer neste passo..."
                 className="mt-1 bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
               />
             </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
+                  Exemplo de Mensagem (opcional)
+                </label>
+                <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                  Referência de tom
+                </span>
+              </div>
+              <Textarea
+                value={tempExemploMensagem}
+                onChange={(e) => setTempExemploMensagem(e.target.value)}
+                rows={3}
+                placeholder="Ex: Olá! 😊 Seja bem-vindo(a)! Meu nome é Ana, sou assistente virtual. Como posso te ajudar hoje?"
+                className="mt-1 bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
+              />
+              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1.5">
+                💡 A IA usará como referência de estilo, mas variará a mensagem para evitar spam
+              </p>
+            </div>
             
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-2">
               <Button
                 variant="outline"
                 onClick={() => setEditingStep(null)}
