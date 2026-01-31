@@ -32,6 +32,7 @@ import {
   WeekSchedule, 
   TomVoz 
 } from './types';
+import { getProfessionalFieldConfig } from './nichoConfig';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -49,13 +50,21 @@ export default function AvivarConfigWizard() {
     completeWizard
   } = useAgentConfig();
 
+  // Get field config to check if registration is required
+  const professionalFieldConfig = getProfessionalFieldConfig(config.nicho, config.subnicho);
+
   // Step validation
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 0: return true; // Welcome
       case 1: return config.subnicho !== null || config.template !== null; // Nicho/Subnicho
       case 2: return config.openaiApiKeyValid; // API Key
-      case 3: return !!config.professionalName && !!config.crm; // Professional
+      case 3: {
+        // Professional - require CRM only if showRegistration is true
+        const hasName = !!config.professionalName;
+        const hasRegistration = !professionalFieldConfig.showRegistration || !!config.crm;
+        return hasName && hasRegistration;
+      }
       case 4: return !!config.companyName && !!config.address && !!config.city && !!config.state; // Clinic
       case 5: return !!config.attendantName && config.attendantName.length >= 2; // Attendant
       case 6: return config.services.some(s => s.enabled); // Services
@@ -119,6 +128,8 @@ export default function AvivarConfigWizard() {
             crm={config.crm}
             instagram={config.instagram}
             onChange={(field, value) => updateConfig({ [field]: value })}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
           />
         );
       
@@ -147,6 +158,8 @@ export default function AvivarConfigWizard() {
           <StepServices
             services={config.services}
             onChange={(services: Service[]) => updateConfig({ services })}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
           />
         );
       

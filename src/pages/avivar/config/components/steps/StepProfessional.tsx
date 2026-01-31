@@ -1,23 +1,38 @@
 /**
  * Etapa 3: Informações do Profissional
+ * Campos dinâmicos baseados no nicho selecionado
  */
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, CreditCard, Instagram } from 'lucide-react';
+import { NichoType, SubnichoType } from '../../types';
+import { getProfessionalFieldConfig, getNichoTerminology } from '../../nichoConfig';
 
 interface StepProfessionalProps {
   professionalName: string;
   crm: string;
   instagram: string;
   onChange: (field: string, value: string) => void;
+  nicho?: NichoType | null;
+  subnicho?: SubnichoType | null;
 }
 
-export function StepProfessional({ professionalName, crm, instagram, onChange }: StepProfessionalProps) {
-  const formatCRM = (value: string) => {
-    // Remove tudo que não é número ou letra
-    const cleaned = value.replace(/[^0-9a-zA-Z\s]/g, '').toUpperCase();
+export function StepProfessional({ 
+  professionalName, 
+  crm, 
+  instagram, 
+  onChange,
+  nicho = null,
+  subnicho = null
+}: StepProfessionalProps) {
+  const fieldConfig = getProfessionalFieldConfig(nicho, subnicho);
+  const terminology = getNichoTerminology(nicho);
+
+  const formatRegistration = (value: string) => {
+    // Remove caracteres especiais exceto letras, números, hifens e barras
+    const cleaned = value.replace(/[^0-9a-zA-Z\s\-\/]/g, '').toUpperCase();
     return cleaned;
   };
 
@@ -30,49 +45,51 @@ export function StepProfessional({ professionalName, crm, instagram, onChange }:
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-          Dados do Profissional
+          Dados do {terminology.profissional.charAt(0).toUpperCase() + terminology.profissional.slice(1)}
         </h2>
         <p className="text-[hsl(var(--avivar-muted-foreground))]">
-          Informações do médico responsável pela clínica
+          Informações do {terminology.profissional} responsável
         </p>
       </div>
 
       <div className="max-w-xl mx-auto space-y-6">
-        {/* Nome do Médico */}
+        {/* Nome do Profissional */}
         <div className="space-y-2">
           <Label htmlFor="professionalName" className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             <User className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-            Nome do Médico *
+            {fieldConfig.nameLabel} *
           </Label>
           <Input
             id="professionalName"
             value={professionalName}
             onChange={(e) => onChange('professionalName', e.target.value)}
-            placeholder="Ex: Dr. Mario"
+            placeholder={fieldConfig.namePlaceholder}
             className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
           />
           <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-            Use o nome como gostaria que os pacientes se refiram
+            {fieldConfig.nameHint}
           </p>
         </div>
 
-        {/* CRM */}
-        <div className="space-y-2">
-          <Label htmlFor="crm" className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
-            <CreditCard className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-            CRM *
-          </Label>
-          <Input
-            id="crm"
-            value={crm}
-            onChange={(e) => onChange('crm', formatCRM(e.target.value))}
-            placeholder="Ex: 50036 RS"
-            className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
-          />
-          <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-            Formato: Número + UF (ex: 12345 SP)
-          </p>
-        </div>
+        {/* Registro Profissional - Condicional */}
+        {fieldConfig.showRegistration && (
+          <div className="space-y-2">
+            <Label htmlFor="crm" className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+              {fieldConfig.registrationLabel} *
+            </Label>
+            <Input
+              id="crm"
+              value={crm}
+              onChange={(e) => onChange('crm', formatRegistration(e.target.value))}
+              placeholder={fieldConfig.registrationPlaceholder}
+              className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+            />
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+              {fieldConfig.registrationHint}
+            </p>
+          </div>
+        )}
 
         {/* Instagram */}
         <div className="space-y-2">
@@ -88,7 +105,7 @@ export function StepProfessional({ professionalName, crm, instagram, onChange }:
               id="instagram"
               value={instagram}
               onChange={(e) => onChange('instagram', formatInstagram(e.target.value))}
-              placeholder="drmario"
+              placeholder="seu_perfil"
               className="pl-8 bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
             />
           </div>
