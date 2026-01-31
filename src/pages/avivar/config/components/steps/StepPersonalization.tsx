@@ -2,7 +2,7 @@
  * Etapa 12: Identidade e Objetivo da IA
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -37,17 +37,39 @@ export function StepPersonalization({
   subnicho,
   onChange
 }: StepPersonalizationProps) {
-  // Preenche automaticamente se os campos estiverem vazios
+  const lastSubnichoRef = useRef<SubnichoType | null>(null);
+  const hasInitializedRef = useRef(false);
+
+  // Preenche automaticamente baseado no subnicho
   useEffect(() => {
     const personaConfig = getAIPersonaConfig(subnicho);
     
-    if (!aiIdentity) {
+    // Primeira vez que o componente monta
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      
+      // Se não tem conteúdo OU se o conteúdo é genérico (não específico do subnicho)
+      const isGenericIdentity = !aiIdentity || aiIdentity.includes('Sou assistente virtual inteligente');
+      const isGenericObjective = !aiObjective || aiObjective.includes('entender as necessidades de cada cliente');
+      
+      if (isGenericIdentity) {
+        onChange('aiIdentity', personaConfig.identity);
+      }
+      if (isGenericObjective) {
+        onChange('aiObjective', personaConfig.objective);
+      }
+      
+      lastSubnichoRef.current = subnicho;
+      return;
+    }
+    
+    // Se o subnicho mudou, atualiza os campos
+    if (subnicho !== lastSubnichoRef.current) {
       onChange('aiIdentity', personaConfig.identity);
-    }
-    if (!aiObjective) {
       onChange('aiObjective', personaConfig.objective);
+      lastSubnichoRef.current = subnicho;
     }
-  }, [subnicho]);
+  }, [subnicho, aiIdentity, aiObjective, onChange]);
 
   const resetIdentity = () => {
     const personaConfig = getAIPersonaConfig(subnicho);
