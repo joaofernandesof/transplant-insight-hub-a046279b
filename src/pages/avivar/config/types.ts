@@ -90,6 +90,7 @@ export interface FluxoStep {
   ordem: number;
   titulo: string;
   descricao: string;
+  exemploMensagem?: string; // Exemplo opcional de mensagem para referência de tom
 }
 
 export interface FluxoAtendimento {
