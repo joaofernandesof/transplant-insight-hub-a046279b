@@ -3,14 +3,14 @@
  * Gerenciamento de agendamentos com suporte a múltiplas agendas
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, MapPin, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
-import { format, addDays, startOfWeek, isSameDay } from "date-fns";
+import { format, addDays, startOfWeek, isSameDay, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ import { AgendaSelector } from "@/components/avivar/AgendaSelector";
 import { AvivarAgenda as AgendaType, useAvivarAgendas } from "@/hooks/useAvivarAgendas";
 import { NewAppointmentDialog } from "@/components/avivar/NewAppointmentDialog";
 import { EditAppointmentDialog } from "@/components/avivar/EditAppointmentDialog";
+import { useAvivarScheduleConfig, generateTimeSlotsForDay, generateDefaultTimeSlots } from "@/hooks/useAvivarScheduleConfig";
 
 interface Appointment {
   id: string;
@@ -47,6 +48,7 @@ export default function AvivarAgenda() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | undefined>();
   const { user } = useUnifiedAuth();
   const { agendas } = useAvivarAgendas();
+  const { scheduleConfig, scheduleHours, isLoading: loadingSchedule } = useAvivarScheduleConfig(selectedAgenda?.id || null);
 
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ['avivar-appointments', format(selectedDate, 'yyyy-MM-dd'), selectedAgenda?.id],
@@ -120,12 +122,20 @@ export default function AvivarAgenda() {
     return agenda?.name || null;
   };
 
-  // Generate time slots for the day view
-  const timeSlots = [];
-  for (let hour = 8; hour <= 18; hour++) {
-    timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
-    timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
-  }
+  // Generate time slots for the day view based on schedule configuration
+  const timeSlots = useMemo(() => {
+    const dayOfWeek = getDay(selectedDate);
+    const consultationDuration = scheduleConfig?.consultation_duration || 30;
+    
+    if (scheduleHours.length > 0) {
+      const slots = generateTimeSlotsForDay(dayOfWeek, scheduleHours, consultationDuration);
+      // If no slots for this day (day not enabled), return empty array
+      return slots;
+    }
+    
+    // Fallback to default if no configuration exists
+    return generateDefaultTimeSlots(consultationDuration);
+  }, [selectedDate, scheduleHours, scheduleConfig?.consultation_duration]);
 
   const getAppointmentForSlot = (time: string) => {
     return todayAppointments.find((apt) => apt.start_time === time || apt.start_time === time + ':00');
