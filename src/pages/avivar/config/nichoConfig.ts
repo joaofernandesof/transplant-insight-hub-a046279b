@@ -3927,3 +3927,555 @@ export function getAIInstructionsConfig(subnicho: SubnichoType | null): AIInstru
   }
   return AI_INSTRUCTIONS_DEFAULTS[subnicho] || AI_INSTRUCTIONS_DEFAULTS.personalizado;
 }
+
+// ============= FLUXO DE ATENDIMENTO POR SUBNICHO =============
+
+import { FluxoAtendimento, FluxoStep } from './types';
+
+interface FluxoAtendimentoConfig {
+  passosCronologicos: FluxoStep[];
+  passosExtras: FluxoStep[];
+}
+
+const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> = {
+  // ==================== SAÚDE ====================
+  clinica_medica: {
+    passosCronologicos: [
+      { id: 'cm1', ordem: 1, titulo: 'Saudação e Identificação', descricao: 'Cumprimente o paciente de forma acolhedora, apresente-se como assistente da clínica e pergunte o nome dele.' },
+      { id: 'cm2', ordem: 2, titulo: 'Identificar Necessidade', descricao: 'Pergunte qual especialidade ou médico o paciente procura, ou se é primeira consulta ou retorno.' },
+      { id: 'cm3', ordem: 3, titulo: 'Verificar Convênio', descricao: 'Pergunte se possui convênio médico e qual, ou se será consulta particular.' },
+      { id: 'cm4', ordem: 4, titulo: 'Oferecer Horários', descricao: 'Apresente 2-3 opções de horários disponíveis que atendam à necessidade do paciente.' },
+      { id: 'cm5', ordem: 5, titulo: 'Confirmar Agendamento', descricao: 'Confirme data, horário, médico e peça telefone de contato para confirmação.' },
+      { id: 'cm6', ordem: 6, titulo: 'Orientações Finais', descricao: 'Informe endereço, documentos necessários e chegada com antecedência. Agradeça o contato.' }
+    ],
+    passosExtras: [
+      { id: 'cme1', ordem: 1, titulo: 'Valores e Pagamento', descricao: 'Quando perguntarem sobre valores, informe que depende do procedimento e convênio. Ofereça agendar para avaliação presencial.' },
+      { id: 'cme2', ordem: 2, titulo: 'Urgências', descricao: 'Em caso de urgência, oriente procurar pronto-socorro. A clínica atende apenas consultas agendadas.' },
+      { id: 'cme3', ordem: 3, titulo: 'Exames e Resultados', descricao: 'Para resultados de exames, oriente sobre o portal do paciente ou prazo de entrega.' }
+    ]
+  },
+  hospital: {
+    passosCronologicos: [
+      { id: 'h1', ordem: 1, titulo: 'Identificação', descricao: 'Cumprimente e identifique se é paciente, familiar ou visitante. Pergunte o nome.' },
+      { id: 'h2', ordem: 2, titulo: 'Necessidade', descricao: 'Identifique o que a pessoa precisa: informações sobre internação, visita, agendamento ou serviços.' },
+      { id: 'h3', ordem: 3, titulo: 'Direcionamento', descricao: 'Direcione para o setor correto ou forneça informações solicitadas.' },
+      { id: 'h4', ordem: 4, titulo: 'Agendamento (se aplicável)', descricao: 'Se for agendamento, colete dados e ofereça horários disponíveis.' },
+      { id: 'h5', ordem: 5, titulo: 'Finalização', descricao: 'Confirme as informações e agradeça o contato.' }
+    ],
+    passosExtras: [
+      { id: 'he1', ordem: 1, titulo: 'Emergências', descricao: 'Em emergências, oriente ligar 192 (SAMU) ou dirigir-se ao pronto-socorro mais próximo.' },
+      { id: 'he2', ordem: 2, titulo: 'Informações de Internado', descricao: 'Informe que dados de pacientes só podem ser passados para familiares autorizados, presencialmente.' }
+    ]
+  },
+  dentista: {
+    passosCronologicos: [
+      { id: 'd1', ordem: 1, titulo: 'Saudação Inicial', descricao: 'Cumprimente com simpatia, apresente-se e pergunte o nome do paciente.' },
+      { id: 'd2', ordem: 2, titulo: 'Identificar Tratamento', descricao: 'Pergunte qual o motivo do contato: dor, limpeza, estética, aparelho ou avaliação geral.' },
+      { id: 'd3', ordem: 3, titulo: 'Histórico', descricao: 'Pergunte se já é paciente ou se é a primeira consulta.' },
+      { id: 'd4', ordem: 4, titulo: 'Agendar Consulta', descricao: 'Ofereça horários disponíveis para avaliação. Confirme data, horário e dentista.' },
+      { id: 'd5', ordem: 5, titulo: 'Orientações', descricao: 'Informe endereço e oriente chegar 10 minutos antes. Agradeça e confirme por mensagem.' }
+    ],
+    passosExtras: [
+      { id: 'de1', ordem: 1, titulo: 'Dor de Dente', descricao: 'Em caso de dor aguda, priorize agendamento de emergência. Oriente evitar alimentos muito quentes/frios.' },
+      { id: 'de2', ordem: 2, titulo: 'Valores de Tratamentos', descricao: 'Informe que valores dependem de avaliação presencial. Cada caso é único.' }
+    ]
+  },
+  fisioterapia: {
+    passosCronologicos: [
+      { id: 'f1', ordem: 1, titulo: 'Acolhimento', descricao: 'Cumprimente de forma acolhedora, apresente-se e pergunte o nome do paciente.' },
+      { id: 'f2', ordem: 2, titulo: 'Identificar Queixa', descricao: 'Pergunte qual região do corpo está com problema ou se foi encaminhado por médico.' },
+      { id: 'f3', ordem: 3, titulo: 'Especialidade', descricao: 'Identifique o tipo de fisioterapia necessária: ortopédica, neurológica, respiratória, etc.' },
+      { id: 'f4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários para avaliação inicial. Confirme dados do paciente.' },
+      { id: 'f5', ordem: 5, titulo: 'Orientações', descricao: 'Peça para trazer exames ou encaminhamento médico, se houver. Informe endereço.' }
+    ],
+    passosExtras: [
+      { id: 'fe1', ordem: 1, titulo: 'Quantidade de Sessões', descricao: 'Número de sessões é definido após avaliação. Cada caso é diferente.' },
+      { id: 'fe2', ordem: 2, titulo: 'Convênio', descricao: 'Informe os convênios aceitos ou valores particulares para avaliação.' }
+    ]
+  },
+  psicologia: {
+    passosCronologicos: [
+      { id: 'p1', ordem: 1, titulo: 'Acolhimento Empático', descricao: 'Cumprimente com empatia e acolhimento. Pergunte o nome da pessoa.' },
+      { id: 'p2', ordem: 2, titulo: 'Entender Demanda', descricao: 'Pergunte brevemente o que a levou a buscar acompanhamento (ansiedade, relacionamento, trabalho, etc.).' },
+      { id: 'p3', ordem: 3, titulo: 'Modalidade', descricao: 'Ofereça atendimento presencial ou online. Pergunte a preferência.' },
+      { id: 'p4', ordem: 4, titulo: 'Agendar Sessão', descricao: 'Ofereça horários disponíveis para primeira sessão. Confirme dados.' },
+      { id: 'p5', ordem: 5, titulo: 'Informações', descricao: 'Informe duração da sessão (50 min), valor e forma de pagamento. Agradeça a confiança.' }
+    ],
+    passosExtras: [
+      { id: 'pe1', ordem: 1, titulo: 'Crise/Urgência', descricao: 'Em caso de crise, oriente ligar CVV 188 (24h) ou procurar UBS mais próxima. Ofereça encaixe prioritário.' },
+      { id: 'pe2', ordem: 2, titulo: 'Abordagem Terapêutica', descricao: 'Explique brevemente a abordagem do profissional e que na primeira sessão será feita avaliação.' }
+    ]
+  },
+  nutricao: {
+    passosCronologicos: [
+      { id: 'n1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma motivadora e pergunte o nome.' },
+      { id: 'n2', ordem: 2, titulo: 'Objetivo', descricao: 'Pergunte qual o objetivo: emagrecimento, ganho de massa, saúde, tratamento específico.' },
+      { id: 'n3', ordem: 3, titulo: 'Histórico', descricao: 'Pergunte se já fez acompanhamento nutricional antes.' },
+      { id: 'n4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários para consulta inicial. Confirme dados.' },
+      { id: 'n5', ordem: 5, titulo: 'Preparação', descricao: 'Oriente trazer exames recentes, se tiver. Informe valor e duração da consulta.' }
+    ],
+    passosExtras: [
+      { id: 'ne1', ordem: 1, titulo: 'Dietas Específicas', descricao: 'Explique que dietas são personalizadas e definidas na consulta, não por mensagem.' },
+      { id: 'ne2', ordem: 2, titulo: 'Bioimpedância', descricao: 'Informe se a clínica oferece bioimpedância e orientações de preparo.' }
+    ]
+  },
+  laboratorio: {
+    passosCronologicos: [
+      { id: 'l1', ordem: 1, titulo: 'Identificação', descricao: 'Cumprimente e pergunte o nome do cliente.' },
+      { id: 'l2', ordem: 2, titulo: 'Tipo de Exame', descricao: 'Pergunte quais exames precisa fazer (mostrar pedido médico se tiver).' },
+      { id: 'l3', ordem: 3, titulo: 'Preparo', descricao: 'Informe o preparo necessário: jejum, suspensão de medicamentos, etc.' },
+      { id: 'l4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários disponíveis. Alguns exames não precisam agendar.' },
+      { id: 'l5', ordem: 5, titulo: 'Informações', descricao: 'Informe endereço, documentos necessários e prazo de resultados.' }
+    ],
+    passosExtras: [
+      { id: 'le1', ordem: 1, titulo: 'Resultados', descricao: 'Informe como acessar resultados: portal, app ou retirada presencial.' },
+      { id: 'le2', ordem: 2, titulo: 'Coleta Domiciliar', descricao: 'Informe se há opção de coleta em casa e condições.' }
+    ]
+  },
+  farmacia: {
+    passosCronologicos: [
+      { id: 'fa1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte como pode ajudar.' },
+      { id: 'fa2', ordem: 2, titulo: 'Identificar Produto', descricao: 'Pergunte qual medicamento ou produto procura.' },
+      { id: 'fa3', ordem: 3, titulo: 'Disponibilidade', descricao: 'Verifique se tem em estoque e informe preço.' },
+      { id: 'fa4', ordem: 4, titulo: 'Reserva/Entrega', descricao: 'Ofereça reservar ou entregar (se houver delivery).' },
+      { id: 'fa5', ordem: 5, titulo: 'Finalização', descricao: 'Confirme pedido e forma de pagamento/retirada.' }
+    ],
+    passosExtras: [
+      { id: 'fae1', ordem: 1, titulo: 'Medicamentos Controlados', descricao: 'Informe que controlados exigem receita e venda presencial.' },
+      { id: 'fae2', ordem: 2, titulo: 'Orientação de Uso', descricao: 'Para dúvidas sobre uso, oriente conversar com o farmacêutico presencialmente.' }
+    ]
+  },
+
+  // ==================== ESTÉTICA ====================
+  transplante_capilar: {
+    passosCronologicos: [
+      { id: 'tc1', ordem: 1, titulo: 'Saudação Profissional', descricao: 'Cumprimente de forma profissional e acolhedora. Pergunte o nome do interessado.' },
+      { id: 'tc2', ordem: 2, titulo: 'Identificar Interesse', descricao: 'Pergunte qual área tem interesse: cabelo, barba ou sobrancelha. Entenda a expectativa.' },
+      { id: 'tc3', ordem: 3, titulo: 'Qualificação', descricao: 'Pergunte há quanto tempo nota a queda, se já fez tratamentos e se tem fotos para análise inicial.' },
+      { id: 'tc4', ordem: 4, titulo: 'Apresentar Solução', descricao: 'Explique brevemente o procedimento e resultados esperados. Reforce naturalidade.' },
+      { id: 'tc5', ordem: 5, titulo: 'Agendar Avaliação', descricao: 'Ofereça datas para avaliação presencial gratuita (ou valor, se aplicável). Confirme dados.' },
+      { id: 'tc6', ordem: 6, titulo: 'Confirmação', descricao: 'Confirme agendamento, endereço e que a avaliação é sem compromisso. Agradeça.' }
+    ],
+    passosExtras: [
+      { id: 'tce1', ordem: 1, titulo: 'Valores e Financiamento', descricao: 'Informe que o valor depende da análise presencial e quantidade de fios. Há opções de parcelamento.' },
+      { id: 'tce2', ordem: 2, titulo: 'Resultados e Fotos', descricao: 'Ofereça enviar fotos de antes/depois de casos reais. Reforce que cada caso é único.' },
+      { id: 'tce3', ordem: 3, titulo: 'Dúvidas sobre Procedimento', descricao: 'Esclareça dúvidas técnicas de forma simples. Para detalhes, agende com o médico.' }
+    ]
+  },
+  clinica_estetica: {
+    passosCronologicos: [
+      { id: 'ce1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma elegante e pergunte o nome.' },
+      { id: 'ce2', ordem: 2, titulo: 'Interesse', descricao: 'Pergunte qual procedimento ou área tem interesse em tratar.' },
+      { id: 'ce3', ordem: 3, titulo: 'Qualificação', descricao: 'Entenda as expectativas e se já fez procedimentos estéticos antes.' },
+      { id: 'ce4', ordem: 4, titulo: 'Apresentação', descricao: 'Explique brevemente o procedimento indicado e benefícios.' },
+      { id: 'ce5', ordem: 5, titulo: 'Agendamento', descricao: 'Ofereça avaliação presencial. Confirme dados e preferência de horário.' }
+    ],
+    passosExtras: [
+      { id: 'cee1', ordem: 1, titulo: 'Contraindicações', descricao: 'Oriente que contraindicações são avaliadas presencialmente pelo profissional.' },
+      { id: 'cee2', ordem: 2, titulo: 'Valores', descricao: 'Valores dependem da avaliação e área a ser tratada.' }
+    ]
+  },
+  salao_beleza: {
+    passosCronologicos: [
+      { id: 'sb1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma simpática e pergunte o nome.' },
+      { id: 'sb2', ordem: 2, titulo: 'Serviço', descricao: 'Pergunte qual serviço deseja: corte, coloração, tratamento, etc.' },
+      { id: 'sb3', ordem: 3, titulo: 'Profissional', descricao: 'Pergunte se tem preferência por algum profissional.' },
+      { id: 'sb4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários disponíveis e confirme.' },
+      { id: 'sb5', ordem: 5, titulo: 'Confirmação', descricao: 'Confirme data, horário, serviço e profissional.' }
+    ],
+    passosExtras: [
+      { id: 'sbe1', ordem: 1, titulo: 'Preços', descricao: 'Informe valores dos serviços ou tabela de preços.' }
+    ]
+  },
+  barbearia: {
+    passosCronologicos: [
+      { id: 'ba1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma descontraída e pergunte o nome.' },
+      { id: 'ba2', ordem: 2, titulo: 'Serviço', descricao: 'Pergunte o que precisa: corte, barba, combo ou tratamento.' },
+      { id: 'ba3', ordem: 3, titulo: 'Barbeiro', descricao: 'Pergunte se tem barbeiro de preferência.' },
+      { id: 'ba4', ordem: 4, titulo: 'Horário', descricao: 'Ofereça horários disponíveis. Confirme agendamento.' },
+      { id: 'ba5', ordem: 5, titulo: 'Confirmação', descricao: 'Confirme data, horário e serviço. Informe endereço.' }
+    ],
+    passosExtras: [
+      { id: 'bae1', ordem: 1, titulo: 'Encaixe', descricao: 'Verifique possibilidade de encaixe se cliente tiver urgência.' }
+    ]
+  },
+  spa: {
+    passosCronologicos: [
+      { id: 'sp1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma serena e acolhedora.' },
+      { id: 'sp2', ordem: 2, titulo: 'Interesse', descricao: 'Pergunte que tipo de experiência busca: relaxamento, tratamento, day spa.' },
+      { id: 'sp3', ordem: 3, titulo: 'Opções', descricao: 'Apresente pacotes e tratamentos disponíveis.' },
+      { id: 'sp4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça datas e horários. Confirme dados.' },
+      { id: 'sp5', ordem: 5, titulo: 'Preparação', descricao: 'Oriente sobre o que levar e como se preparar.' }
+    ],
+    passosExtras: [
+      { id: 'spe1', ordem: 1, titulo: 'Pacotes Especiais', descricao: 'Informe sobre pacotes para casais, aniversário ou grupos.' }
+    ]
+  },
+  micropigmentacao: {
+    passosCronologicos: [
+      { id: 'mp1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'mp2', ordem: 2, titulo: 'Procedimento', descricao: 'Pergunte qual procedimento tem interesse: sobrancelha, lábios, olhos.' },
+      { id: 'mp3', ordem: 3, titulo: 'Expectativa', descricao: 'Entenda o que espera do resultado.' },
+      { id: 'mp4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça datas para avaliação ou procedimento.' },
+      { id: 'mp5', ordem: 5, titulo: 'Orientações', descricao: 'Informe cuidados pré e pós procedimento.' }
+    ],
+    passosExtras: [
+      { id: 'mpe1', ordem: 1, titulo: 'Durabilidade', descricao: 'Explique sobre duração e necessidade de retoque.' }
+    ]
+  },
+  depilacao: {
+    passosCronologicos: [
+      { id: 'dp1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma simpática e pergunte o nome.' },
+      { id: 'dp2', ordem: 2, titulo: 'Área', descricao: 'Pergunte qual área deseja depilar.' },
+      { id: 'dp3', ordem: 3, titulo: 'Método', descricao: 'Informe o método utilizado (laser, cera, luz pulsada).' },
+      { id: 'dp4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários e confirme.' },
+      { id: 'dp5', ordem: 5, titulo: 'Preparação', descricao: 'Oriente sobre cuidados antes da sessão.' }
+    ],
+    passosExtras: [
+      { id: 'dpe1', ordem: 1, titulo: 'Quantidade de Sessões', descricao: 'Informe média de sessões necessárias.' }
+    ]
+  },
+
+  // ==================== VENDAS ====================
+  produtos_hospitalares: {
+    passosCronologicos: [
+      { id: 'ph1', ordem: 1, titulo: 'Identificação', descricao: 'Cumprimente e identifique se é hospital, clínica ou profissional.' },
+      { id: 'ph2', ordem: 2, titulo: 'Necessidade', descricao: 'Pergunte quais produtos precisa.' },
+      { id: 'ph3', ordem: 3, titulo: 'Quantidade', descricao: 'Identifique quantidade e frequência de compra.' },
+      { id: 'ph4', ordem: 4, titulo: 'Cotação', descricao: 'Passe cotação e condições de pagamento.' },
+      { id: 'ph5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme pedido e prazo de entrega.' }
+    ],
+    passosExtras: [
+      { id: 'phe1', ordem: 1, titulo: 'Documentação', descricao: 'Informe documentos necessários para venda.' }
+    ]
+  },
+  celulares_eletronicos: {
+    passosCronologicos: [
+      { id: 'cel1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma amigável e pergunte o nome.' },
+      { id: 'cel2', ordem: 2, titulo: 'Produto', descricao: 'Pergunte qual produto procura.' },
+      { id: 'cel3', ordem: 3, titulo: 'Uso', descricao: 'Entenda para que vai usar (trabalho, games, fotos, etc.).' },
+      { id: 'cel4', ordem: 4, titulo: 'Opções', descricao: 'Apresente opções que atendam a necessidade.' },
+      { id: 'cel5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme produto, preço e forma de pagamento/entrega.' }
+    ],
+    passosExtras: [
+      { id: 'cele1', ordem: 1, titulo: 'Garantia', descricao: 'Explique a garantia e assistência técnica.' },
+      { id: 'cele2', ordem: 2, titulo: 'Comparativo', descricao: 'Compare modelos quando solicitado.' }
+    ]
+  },
+  roupas_moda: {
+    passosCronologicos: [
+      { id: 'rm1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma simpática e pergunte o nome.' },
+      { id: 'rm2', ordem: 2, titulo: 'Interesse', descricao: 'Pergunte o que procura: peça específica, ocasião, estilo.' },
+      { id: 'rm3', ordem: 3, titulo: 'Tamanho', descricao: 'Identifique tamanho/numeração.' },
+      { id: 'rm4', ordem: 4, titulo: 'Sugestões', descricao: 'Envie fotos de peças e sugira looks.' },
+      { id: 'rm5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme itens, tamanhos e forma de pagamento/entrega.' }
+    ],
+    passosExtras: [
+      { id: 'rme1', ordem: 1, titulo: 'Troca', descricao: 'Explique a política de troca.' }
+    ]
+  },
+  joias_acessorios: {
+    passosCronologicos: [
+      { id: 'ja1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma elegante e pergunte o nome.' },
+      { id: 'ja2', ordem: 2, titulo: 'Ocasião', descricao: 'Pergunte se é para presente ou uso próprio.' },
+      { id: 'ja3', ordem: 3, titulo: 'Estilo', descricao: 'Identifique preferência de estilo e orçamento.' },
+      { id: 'ja4', ordem: 4, titulo: 'Apresentação', descricao: 'Envie fotos das peças adequadas ao perfil.' },
+      { id: 'ja5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme peça, gravação (se houver) e embalagem.' }
+    ],
+    passosExtras: [
+      { id: 'jae1', ordem: 1, titulo: 'Certificado', descricao: 'Explique sobre certificado de autenticidade.' }
+    ]
+  },
+  cosmeticos: {
+    passosCronologicos: [
+      { id: 'cos1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma simpática e pergunte o nome.' },
+      { id: 'cos2', ordem: 2, titulo: 'Tipo de Pele', descricao: 'Pergunte tipo de pele e principais necessidades.' },
+      { id: 'cos3', ordem: 3, titulo: 'Rotina', descricao: 'Entenda rotina atual de cuidados.' },
+      { id: 'cos4', ordem: 4, titulo: 'Recomendações', descricao: 'Sugira produtos adequados ao perfil.' },
+      { id: 'cos5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme produtos e forma de entrega.' }
+    ],
+    passosExtras: [
+      { id: 'cose1', ordem: 1, titulo: 'Alergias', descricao: 'Oriente teste de sensibilidade para peles sensíveis.' }
+    ]
+  },
+  suplementos: {
+    passosCronologicos: [
+      { id: 'sup1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma motivadora e pergunte o nome.' },
+      { id: 'sup2', ordem: 2, titulo: 'Objetivo', descricao: 'Pergunte o objetivo: hipertrofia, emagrecimento, energia, saúde.' },
+      { id: 'sup3', ordem: 3, titulo: 'Rotina', descricao: 'Entenda rotina de treino e alimentação.' },
+      { id: 'sup4', ordem: 4, titulo: 'Sugestões', descricao: 'Sugira suplementos adequados ao objetivo.' },
+      { id: 'sup5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme produtos e forma de entrega.' }
+    ],
+    passosExtras: [
+      { id: 'supe1', ordem: 1, titulo: 'Modo de Uso', descricao: 'Explique modo de uso básico.' }
+    ]
+  },
+  moveis_decoracao: {
+    passosCronologicos: [
+      { id: 'md1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'md2', ordem: 2, titulo: 'Ambiente', descricao: 'Pergunte qual ambiente está decorando.' },
+      { id: 'md3', ordem: 3, titulo: 'Estilo', descricao: 'Identifique estilo e preferências de cores.' },
+      { id: 'md4', ordem: 4, titulo: 'Medidas', descricao: 'Pergunte medidas do espaço.' },
+      { id: 'md5', ordem: 5, titulo: 'Sugestões', descricao: 'Envie opções que atendam ao perfil.' },
+      { id: 'md6', ordem: 6, titulo: 'Fechamento', descricao: 'Confirme itens, prazo e forma de entrega.' }
+    ],
+    passosExtras: [
+      { id: 'mde1', ordem: 1, titulo: 'Montagem', descricao: 'Informe sobre serviço de montagem.' }
+    ]
+  },
+
+  // ==================== IMOBILIÁRIO ====================
+  agente_imobiliario: {
+    passosCronologicos: [
+      { id: 'ai1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente profissionalmente e pergunte o nome.' },
+      { id: 'ai2', ordem: 2, titulo: 'Objetivo', descricao: 'Pergunte se quer comprar, vender ou alugar.' },
+      { id: 'ai3', ordem: 3, titulo: 'Perfil', descricao: 'Identifique localização, tipo de imóvel e faixa de preço.' },
+      { id: 'ai4', ordem: 4, titulo: 'Apresentação', descricao: 'Apresente imóveis que atendam ao perfil.' },
+      { id: 'ai5', ordem: 5, titulo: 'Visita', descricao: 'Agende visita ao imóvel de interesse.' },
+      { id: 'ai6', ordem: 6, titulo: 'Acompanhamento', descricao: 'Faça follow-up após a visita.' }
+    ],
+    passosExtras: [
+      { id: 'aie1', ordem: 1, titulo: 'Financiamento', descricao: 'Oriente sobre simulação de financiamento.' },
+      { id: 'aie2', ordem: 2, titulo: 'Documentação', descricao: 'Explique documentos necessários.' }
+    ]
+  },
+  imobiliaria: {
+    passosCronologicos: [
+      { id: 'im1', ordem: 1, titulo: 'Identificação', descricao: 'Cumprimente e identifique a necessidade do cliente.' },
+      { id: 'im2', ordem: 2, titulo: 'Qualificação', descricao: 'Colete informações do perfil desejado.' },
+      { id: 'im3', ordem: 3, titulo: 'Opções', descricao: 'Apresente opções disponíveis.' },
+      { id: 'im4', ordem: 4, titulo: 'Encaminhamento', descricao: 'Direcione para corretor especializado.' }
+    ],
+    passosExtras: []
+  },
+  construtora: {
+    passosCronologicos: [
+      { id: 'con1', ordem: 1, titulo: 'Identificação', descricao: 'Cumprimente e identifique interesse em qual empreendimento.' },
+      { id: 'con2', ordem: 2, titulo: 'Apresentação', descricao: 'Apresente o empreendimento e diferenciais.' },
+      { id: 'con3', ordem: 3, titulo: 'Qualificação', descricao: 'Identifique perfil e forma de pagamento.' },
+      { id: 'con4', ordem: 4, titulo: 'Agendamento', descricao: 'Agende visita ao decorado ou stand.' }
+    ],
+    passosExtras: []
+  },
+  administradora: {
+    passosCronologicos: [
+      { id: 'adm1', ordem: 1, titulo: 'Identificação', descricao: 'Cumprimente e identifique se é síndico, morador ou interessado.' },
+      { id: 'adm2', ordem: 2, titulo: 'Demanda', descricao: 'Entenda a necessidade.' },
+      { id: 'adm3', ordem: 3, titulo: 'Serviços', descricao: 'Explique os serviços de administração.' },
+      { id: 'adm4', ordem: 4, titulo: 'Orçamento', descricao: 'Colete informações para proposta.' }
+    ],
+    passosExtras: []
+  },
+
+  // ==================== ALIMENTAÇÃO ====================
+  restaurante: {
+    passosCronologicos: [
+      { id: 'res1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma simpática e pergunte o nome.' },
+      { id: 'res2', ordem: 2, titulo: 'Necessidade', descricao: 'Identifique: reserva, delivery ou informações.' },
+      { id: 'res3', ordem: 3, titulo: 'Reserva/Pedido', descricao: 'Colete dados necessários (data, pessoas ou pedido).' },
+      { id: 'res4', ordem: 4, titulo: 'Confirmação', descricao: 'Confirme todos os detalhes e agradeça.' }
+    ],
+    passosExtras: [
+      { id: 'rese1', ordem: 1, titulo: 'Cardápio', descricao: 'Envie cardápio ou link.' },
+      { id: 'rese2', ordem: 2, titulo: 'Restrições Alimentares', descricao: 'Informe que avisem na reserva.' }
+    ]
+  },
+  delivery: {
+    passosCronologicos: [
+      { id: 'del1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o que deseja pedir.' },
+      { id: 'del2', ordem: 2, titulo: 'Pedido', descricao: 'Anote itens e observações.' },
+      { id: 'del3', ordem: 3, titulo: 'Endereço', descricao: 'Confirme endereço completo.' },
+      { id: 'del4', ordem: 4, titulo: 'Pagamento', descricao: 'Confirme forma de pagamento.' },
+      { id: 'del5', ordem: 5, titulo: 'Confirmação', descricao: 'Confirme pedido e tempo estimado.' }
+    ],
+    passosExtras: []
+  },
+  lanchonete: {
+    passosCronologicos: [
+      { id: 'lan1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma descontraída.' },
+      { id: 'lan2', ordem: 2, titulo: 'Pedido', descricao: 'Pergunte o que deseja e sugira combos.' },
+      { id: 'lan3', ordem: 3, titulo: 'Confirmação', descricao: 'Confirme itens e forma de retirada/entrega.' },
+      { id: 'lan4', ordem: 4, titulo: 'Pagamento', descricao: 'Confirme forma de pagamento e valor.' }
+    ],
+    passosExtras: []
+  },
+  pizzaria: {
+    passosCronologicos: [
+      { id: 'piz1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma simpática.' },
+      { id: 'piz2', ordem: 2, titulo: 'Pedido', descricao: 'Pergunte tamanho e sabores.' },
+      { id: 'piz3', ordem: 3, titulo: 'Adicionais', descricao: 'Ofereça bordas, bebidas e acompanhamentos.' },
+      { id: 'piz4', ordem: 4, titulo: 'Entrega', descricao: 'Confirme endereço e tempo estimado.' },
+      { id: 'piz5', ordem: 5, titulo: 'Pagamento', descricao: 'Confirme forma de pagamento.' }
+    ],
+    passosExtras: []
+  },
+  cafeteria: {
+    passosCronologicos: [
+      { id: 'caf1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma acolhedora.' },
+      { id: 'caf2', ordem: 2, titulo: 'Pedido', descricao: 'Pergunte o que deseja e sugira especiais do dia.' },
+      { id: 'caf3', ordem: 3, titulo: 'Customização', descricao: 'Confirme tipo de leite, tamanho, etc.' },
+      { id: 'caf4', ordem: 4, titulo: 'Retirada', descricao: 'Informe tempo de preparo.' }
+    ],
+    passosExtras: []
+  },
+  confeitaria: {
+    passosCronologicos: [
+      { id: 'cnf1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma doce e simpática.' },
+      { id: 'cnf2', ordem: 2, titulo: 'Encomenda', descricao: 'Pergunte tipo de doce/bolo e data.' },
+      { id: 'cnf3', ordem: 3, titulo: 'Detalhes', descricao: 'Colete sabor, decoração e quantidade de pessoas.' },
+      { id: 'cnf4', ordem: 4, titulo: 'Confirmação', descricao: 'Confirme detalhes, valor e sinal.' }
+    ],
+    passosExtras: []
+  },
+  food_truck: {
+    passosCronologicos: [
+      { id: 'ft1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma descolada.' },
+      { id: 'ft2', ordem: 2, titulo: 'Localização', descricao: 'Informe onde está estacionado hoje.' },
+      { id: 'ft3', ordem: 3, titulo: 'Cardápio', descricao: 'Apresente opções disponíveis.' },
+      { id: 'ft4', ordem: 4, titulo: 'Reserva', descricao: 'Se eventos, colete informações.' }
+    ],
+    passosExtras: []
+  },
+
+  // ==================== SERVIÇOS ====================
+  advocacia: {
+    passosCronologicos: [
+      { id: 'adv1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma profissional e pergunte o nome.' },
+      { id: 'adv2', ordem: 2, titulo: 'Área', descricao: 'Identifique a área do direito: trabalhista, família, empresarial, etc.' },
+      { id: 'adv3', ordem: 3, titulo: 'Situação', descricao: 'Entenda brevemente a situação sem dar orientação.' },
+      { id: 'adv4', ordem: 4, titulo: 'Consulta', descricao: 'Ofereça agendamento de consulta para análise do caso.' },
+      { id: 'adv5', ordem: 5, titulo: 'Confirmação', descricao: 'Confirme data, horário e modalidade (presencial/online).' }
+    ],
+    passosExtras: [
+      { id: 'adve1', ordem: 1, titulo: 'Urgências', descricao: 'Em casos urgentes (prisão, etc), colete dados e passe para advogado imediatamente.' }
+    ]
+  },
+  contabilidade: {
+    passosCronologicos: [
+      { id: 'cnt1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'cnt2', ordem: 2, titulo: 'Tipo', descricao: 'Identifique: abertura de empresa, MEI, contabilidade mensal, IR.' },
+      { id: 'cnt3', ordem: 3, titulo: 'Porte', descricao: 'Entenda porte da empresa e faturamento.' },
+      { id: 'cnt4', ordem: 4, titulo: 'Proposta', descricao: 'Ofereça reunião para apresentar proposta.' }
+    ],
+    passosExtras: []
+  },
+  consultoria: {
+    passosCronologicos: [
+      { id: 'cst1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'cst2', ordem: 2, titulo: 'Demanda', descricao: 'Identifique área de consultoria e desafio atual.' },
+      { id: 'cst3', ordem: 3, titulo: 'Empresa', descricao: 'Entenda porte e segmento da empresa.' },
+      { id: 'cst4', ordem: 4, titulo: 'Diagnóstico', descricao: 'Ofereça reunião de diagnóstico.' }
+    ],
+    passosExtras: []
+  },
+  academia_personal: {
+    passosCronologicos: [
+      { id: 'acp1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma motivadora e pergunte o nome.' },
+      { id: 'acp2', ordem: 2, titulo: 'Objetivo', descricao: 'Pergunte o objetivo: emagrecimento, hipertrofia, saúde.' },
+      { id: 'acp3', ordem: 3, titulo: 'Experiência', descricao: 'Entenda nível de experiência com treino.' },
+      { id: 'acp4', ordem: 4, titulo: 'Aula Experimental', descricao: 'Ofereça aula experimental.' },
+      { id: 'acp5', ordem: 5, titulo: 'Confirmação', descricao: 'Confirme data, horário e o que levar.' }
+    ],
+    passosExtras: []
+  },
+  oficina_mecanica: {
+    passosCronologicos: [
+      { id: 'ofc1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'ofc2', ordem: 2, titulo: 'Problema', descricao: 'Pergunte qual o problema ou serviço necessário.' },
+      { id: 'ofc3', ordem: 3, titulo: 'Veículo', descricao: 'Identifique marca, modelo e ano do veículo.' },
+      { id: 'ofc4', ordem: 4, titulo: 'Orçamento', descricao: 'Ofereça agendamento para orçamento presencial.' }
+    ],
+    passosExtras: []
+  },
+  pet_shop_veterinario: {
+    passosCronologicos: [
+      { id: 'pet1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente de forma carinhosa e pergunte o nome do tutor.' },
+      { id: 'pet2', ordem: 2, titulo: 'Pet', descricao: 'Pergunte nome e tipo do pet (cão, gato, etc.).' },
+      { id: 'pet3', ordem: 3, titulo: 'Serviço', descricao: 'Identifique: consulta, vacina, banho/tosa, cirurgia, emergência.' },
+      { id: 'pet4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários disponíveis.' },
+      { id: 'pet5', ordem: 5, titulo: 'Confirmação', descricao: 'Confirme serviço, data e orientações.' }
+    ],
+    passosExtras: [
+      { id: 'pete1', ordem: 1, titulo: 'Emergência', descricao: 'Em emergências, oriente trazer imediatamente ou ligar.' }
+    ]
+  },
+  limpeza_manutencao: {
+    passosCronologicos: [
+      { id: 'lmp1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'lmp2', ordem: 2, titulo: 'Serviço', descricao: 'Identifique o serviço necessário.' },
+      { id: 'lmp3', ordem: 3, titulo: 'Local', descricao: 'Pergunte endereço e tamanho do local.' },
+      { id: 'lmp4', ordem: 4, titulo: 'Orçamento', descricao: 'Agende visita para orçamento ou passe estimativa.' }
+    ],
+    passosExtras: []
+  },
+  marketing_agencia: {
+    passosCronologicos: [
+      { id: 'mkt1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome e empresa.' },
+      { id: 'mkt2', ordem: 2, titulo: 'Necessidade', descricao: 'Identifique o que precisa: site, redes, tráfego, branding.' },
+      { id: 'mkt3', ordem: 3, titulo: 'Situação Atual', descricao: 'Entenda o que já fazem de marketing.' },
+      { id: 'mkt4', ordem: 4, titulo: 'Reunião', descricao: 'Agende reunião de briefing.' }
+    ],
+    passosExtras: []
+  },
+  cursos_educacao: {
+    passosCronologicos: [
+      { id: 'crs1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'crs2', ordem: 2, titulo: 'Curso', descricao: 'Identifique o curso de interesse.' },
+      { id: 'crs3', ordem: 3, titulo: 'Informações', descricao: 'Passe grade, duração, investimento.' },
+      { id: 'crs4', ordem: 4, titulo: 'Matrícula', descricao: 'Oriente sobre processo de matrícula.' }
+    ],
+    passosExtras: []
+  },
+  eventos: {
+    passosCronologicos: [
+      { id: 'evt1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'evt2', ordem: 2, titulo: 'Evento', descricao: 'Identifique tipo de evento: casamento, corporativo, aniversário.' },
+      { id: 'evt3', ordem: 3, titulo: 'Detalhes', descricao: 'Colete data, local, número de convidados.' },
+      { id: 'evt4', ordem: 4, titulo: 'Reunião', descricao: 'Agende reunião para apresentar proposta.' }
+    ],
+    passosExtras: []
+  },
+  fotografia: {
+    passosCronologicos: [
+      { id: 'fot1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome.' },
+      { id: 'fot2', ordem: 2, titulo: 'Ensaio', descricao: 'Identifique tipo de ensaio: casamento, família, corporativo, produto.' },
+      { id: 'fot3', ordem: 3, titulo: 'Data e Local', descricao: 'Colete data desejada e local.' },
+      { id: 'fot4', ordem: 4, titulo: 'Proposta', descricao: 'Apresente pacotes e agende reunião se necessário.' }
+    ],
+    passosExtras: []
+  },
+  tecnologia_ti: {
+    passosCronologicos: [
+      { id: 'ti1', ordem: 1, titulo: 'Saudação', descricao: 'Cumprimente e pergunte o nome e empresa.' },
+      { id: 'ti2', ordem: 2, titulo: 'Demanda', descricao: 'Identifique a necessidade: suporte, desenvolvimento, consultoria.' },
+      { id: 'ti3', ordem: 3, titulo: 'Detalhes', descricao: 'Entenda escopo e urgência.' },
+      { id: 'ti4', ordem: 4, titulo: 'Reunião', descricao: 'Agende reunião técnica para entender o projeto.' }
+    ],
+    passosExtras: []
+  },
+
+  // ==================== OUTROS ====================
+  personalizado: {
+    passosCronologicos: [
+      { id: 'per1', ordem: 1, titulo: 'Saudação Inicial', descricao: 'Cumprimente o cliente de forma simpática, apresente-se e pergunte o nome dele.' },
+      { id: 'per2', ordem: 2, titulo: 'Identificar Interesse', descricao: 'Pergunte no que pode ajudar e qual serviço/produto tem interesse.' },
+      { id: 'per3', ordem: 3, titulo: 'Qualificação', descricao: 'Faça perguntas para entender melhor a necessidade do cliente.' },
+      { id: 'per4', ordem: 4, titulo: 'Apresentação', descricao: 'Apresente a solução adequada à necessidade identificada.' },
+      { id: 'per5', ordem: 5, titulo: 'Fechamento', descricao: 'Conclua o atendimento: agende, venda ou encaminhe conforme necessário.' }
+    ],
+    passosExtras: [
+      { id: 'pere1', ordem: 1, titulo: 'Dúvidas Gerais', descricao: 'Quando o cliente fugir do script, use sua base de conhecimento para responder e retorne ao fluxo principal.' },
+      { id: 'pere2', ordem: 2, titulo: 'Transferência', descricao: 'Se necessário, informe que vai transferir para um humano e agradeça.' }
+    ]
+  }
+};
+
+/**
+ * Retorna a configuração de fluxo de atendimento para um subnicho
+ */
+export function getFluxoAtendimentoConfig(subnicho: SubnichoType | null): FluxoAtendimento {
+  if (!subnicho) {
+    return FLUXO_ATENDIMENTO_DEFAULTS.personalizado;
+  }
+  return FLUXO_ATENDIMENTO_DEFAULTS[subnicho] || FLUXO_ATENDIMENTO_DEFAULTS.personalizado;
+}
