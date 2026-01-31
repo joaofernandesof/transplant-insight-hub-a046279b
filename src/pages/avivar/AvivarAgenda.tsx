@@ -4,7 +4,8 @@
  */
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, MapPin, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ interface Appointment {
 }
 
 export default function AvivarAgenda() {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [view, setView] = useState<"day" | "week">("day");
   const [selectedAgenda, setSelectedAgenda] = useState<AgendaType | null>(null);
@@ -144,6 +146,15 @@ export default function AvivarAgenda() {
             selectedAgenda={selectedAgenda} 
             onSelect={setSelectedAgenda} 
           />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate('/avivar/agenda/settings')}
+            className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+            title="Configurações da Agenda"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
           <Button
             className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
             onClick={() => {
