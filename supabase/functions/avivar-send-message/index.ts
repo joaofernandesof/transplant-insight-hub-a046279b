@@ -11,6 +11,7 @@ interface SendMessagePayload {
   content: string;
   mediaUrl?: string;
   mediaType?: string;
+  isAIGenerated?: boolean;
 }
 
 serve(async (req) => {
@@ -35,31 +36,40 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // User client for auth validation
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    // Validate user
+    // Check if this is an internal service call (using service role key)
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
-      console.error("[Avivar Send Message] Auth error:", claimsError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const isServiceCall = token === serviceRoleKey;
+    
+    let userId: string | null = null;
+    
+    if (isServiceCall) {
+      console.log("[Avivar Send Message] Internal service call detected");
+    } else {
+      // User client for auth validation
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
 
-    const userId = claimsData.claims.sub;
-    console.log("[Avivar Send Message] User ID:", userId);
+      // Validate user
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims?.sub) {
+        console.error("[Avivar Send Message] Auth error:", claimsError);
+        return new Response(
+          JSON.stringify({ success: false, error: "Invalid token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      userId = claimsData.claims.sub;
+      console.log("[Avivar Send Message] User ID:", userId);
+    }
 
     // Admin client for DB operations
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Parse payload
     const payload: SendMessagePayload = await req.json();
-    const { conversationId, content, mediaUrl, mediaType } = payload;
+    const { conversationId, content, mediaUrl, mediaType, isAIGenerated } = payload;
 
     if (!conversationId || !content) {
       return new Response(
@@ -102,13 +112,17 @@ serve(async (req) => {
 
     console.log("[Avivar Send Message] Sending to:", lead.phone);
 
-    // Get user's WhatsApp session to find UazAPI credentials
-    const { data: session, error: sessionError } = await adminClient
-      .from("avivar_whatsapp_sessions")
-      .select("id, instance_id, phone_number")
-      .eq("user_id", userId)
-      .limit(1)
-      .single();
+    // Get user's WhatsApp session to find UazAPI credentials (optional for service calls)
+    let session = null;
+    if (userId) {
+      const { data: sessionData } = await adminClient
+        .from("avivar_whatsapp_sessions")
+        .select("id, instance_id, phone_number, user_id")
+        .eq("user_id", userId)
+        .limit(1)
+        .single();
+      session = sessionData;
+    }
 
     // Get UazAPI credentials from env
     const uazapiUrl = Deno.env.get("UAZAPI_URL");
@@ -166,14 +180,16 @@ serve(async (req) => {
       // Ignore parse errors
     }
 
-    // Get user profile for sender name
-    const { data: profile } = await adminClient
-      .from("profiles")
-      .select("name")
-      .eq("user_id", userId)
-      .single();
-
-    const senderName = profile?.name || "Operador";
+    // Get sender name
+    let senderName = "Assistente IA";
+    if (!isAIGenerated && userId) {
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("name")
+        .eq("user_id", userId)
+        .single();
+      senderName = profile?.name || "Operador";
+    }
 
     // Save message to crm_messages
     const { data: savedMessage, error: saveError } = await adminClient
@@ -186,6 +202,7 @@ serve(async (req) => {
         media_type: mediaType || null,
         sender_name: senderName,
         sent_at: new Date().toISOString(),
+        is_ai_generated: isAIGenerated || false,
       })
       .select()
       .single();
