@@ -271,20 +271,32 @@ async function handleCheckStatus(req: Request, supabase: any, userId: string) {
   const data = await response.json();
   console.log("UazAPI status response:", JSON.stringify(data, null, 2));
 
-  // Update instance
-  const status = data.connected ? "connected" : "disconnected";
+  // Check connection status - UazAPI returns status.connected or instance.status
+  const isConnected = data.status?.connected === true || 
+                      data.connected === true || 
+                      data.instance?.status === "connected";
+  
+  const status = isConnected ? "connected" : "disconnected";
   const updates: any = {
     status,
     error_message: null,
   };
 
-  if (data.connected && data.instance) {
+  // Extract phone number from owner or jid
+  if (isConnected && data.instance) {
+    const phoneNumber = data.instance.owner || 
+                        data.status?.jid?.replace("@s.whatsapp.net", "").split(":")[0] || 
+                        null;
+    
+    updates.phone_number = phoneNumber;
     updates.profile_name = data.instance.profileName || null;
     updates.profile_picture_url = data.instance.profilePicUrl || null;
     updates.is_business = data.instance.isBusiness || false;
     updates.platform = data.instance.plataform || null;
     updates.last_sync_at = new Date().toISOString();
   }
+
+  console.log("Updating instance with:", JSON.stringify(updates, null, 2));
 
   const { data: updatedInstance, error: updateError } = await supabase
     .from("avivar_uazapi_instances")
@@ -295,6 +307,8 @@ async function handleCheckStatus(req: Request, supabase: any, userId: string) {
 
   if (updateError) {
     console.error("Database update error:", updateError);
+  } else {
+    console.log("Instance updated successfully:", updatedInstance?.status);
   }
 
   return new Response(
