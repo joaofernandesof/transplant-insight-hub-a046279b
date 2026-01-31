@@ -27,6 +27,7 @@ import {
   Briefcase,
   HeartPulse,
   CalendarDays,
+  Link2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -57,6 +58,7 @@ const menuItems = [
   { id: 'mentorship', label: 'Mentoria', icon: GraduationCap, href: '/avivar/mentorship' },
   { id: 'agenda', label: 'Agenda', icon: CalendarDays, href: '/avivar/agenda', isHighlight: true },
   { id: 'divider3', label: '', icon: null, href: '', isDivider: true },
+  { id: 'integrations', label: 'Integrações', icon: Link2, href: '/avivar/integrations', isHighlight: true },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/avivar/settings' },
 ];
 

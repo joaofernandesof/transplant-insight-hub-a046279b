@@ -63,3 +63,6 @@ verify_jwt = false
 
 [functions.avivar-ai-agent]
 verify_jwt = false
+
+[functions.avivar-uazapi]
+verify_jwt = false

@@ -1220,6 +1220,66 @@ export type Database = {
           },
         ]
       }
+      avivar_uazapi_instances: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          instance_id: string
+          instance_name: string
+          instance_token: string
+          is_business: boolean | null
+          last_sync_at: string | null
+          pair_code: string | null
+          phone_number: string | null
+          platform: string | null
+          profile_name: string | null
+          profile_picture_url: string | null
+          qr_code: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          instance_id: string
+          instance_name: string
+          instance_token: string
+          is_business?: boolean | null
+          last_sync_at?: string | null
+          pair_code?: string | null
+          phone_number?: string | null
+          platform?: string | null
+          profile_name?: string | null
+          profile_picture_url?: string | null
+          qr_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          instance_id?: string
+          instance_name?: string
+          instance_token?: string
+          is_business?: boolean | null
+          last_sync_at?: string | null
+          pair_code?: string | null
+          phone_number?: string | null
+          platform?: string | null
+          profile_name?: string | null
+          profile_picture_url?: string | null
+          qr_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       avivar_whatsapp_contacts: {
         Row: {
           created_at: string
