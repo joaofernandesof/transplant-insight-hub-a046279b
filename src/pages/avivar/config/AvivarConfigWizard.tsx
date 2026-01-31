@@ -253,6 +253,7 @@ export default function AvivarConfigWizard() {
             config={config}
             onEdit={setCurrentStep}
             onComplete={handleComplete}
+            onPrev={prevStep}
           />
         );
       

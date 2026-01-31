@@ -20,7 +20,8 @@ import {
   Key,
   Edit,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  ChevronLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,9 +29,10 @@ interface StepReviewProps {
   config: AgentConfig;
   onEdit: (step: number) => void;
   onComplete: () => void;
+  onPrev: () => void;
 }
 
-export function StepReview({ config, onEdit, onComplete }: StepReviewProps) {
+export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewProps) {
   const enabledServices = config.services.filter(s => s.enabled);
   const enabledPayments = config.paymentMethods.filter(m => m.enabled);
   const activeDays = (Object.keys(config.schedule) as Array<keyof WeekSchedule>)
@@ -204,15 +206,26 @@ export function StepReview({ config, onEdit, onComplete }: StepReviewProps) {
           </CardContent>
         </Card>
 
-        {/* CTA */}
-        <Button
-          size="lg"
-          onClick={onComplete}
-          className="w-full bg-gradient-to-r from-[hsl(270_75%_45%)] to-[hsl(280_80%_50%)] hover:from-[hsl(270_75%_50%)] hover:to-[hsl(280_80%_55%)] text-white shadow-lg"
-        >
-          💾 Salvar e Finalizar
-          <ArrowRight className="h-5 w-5 ml-2" />
-        </Button>
+        {/* Navigation */}
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={onPrev}
+            className="flex-1 border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+          >
+            <ChevronLeft className="h-5 w-5 mr-2" />
+            Voltar
+          </Button>
+          <Button
+            size="lg"
+            onClick={onComplete}
+            className="flex-[2] bg-gradient-to-r from-[hsl(270_75%_45%)] to-[hsl(280_80%_50%)] hover:from-[hsl(270_75%_50%)] hover:to-[hsl(280_80%_55%)] text-white shadow-lg"
+          >
+            💾 Salvar e Finalizar
+            <ArrowRight className="h-5 w-5 ml-2" />
+          </Button>
+        </div>
       </div>
     </div>
   );
