@@ -2,7 +2,88 @@
  * Tipos para o Sistema de Configuração de Agente de IA
  */
 
-export type TemplateType = 'transplante_capilar' | 'imobiliaria' | 'estetica';
+// Grande Nicho
+export type NichoType = 
+  | 'saude' 
+  | 'estetica' 
+  | 'vendas' 
+  | 'imobiliario' 
+  | 'alimentacao' 
+  | 'servicos'
+  | 'outros';
+
+// Subnichos por categoria
+export type SubnichoSaude = 
+  | 'clinica_medica' 
+  | 'hospital' 
+  | 'dentista' 
+  | 'fisioterapia' 
+  | 'psicologia' 
+  | 'nutricao'
+  | 'laboratorio'
+  | 'farmacia';
+
+export type SubnichoEstetica = 
+  | 'transplante_capilar' 
+  | 'clinica_estetica' 
+  | 'salao_beleza' 
+  | 'barbearia'
+  | 'spa'
+  | 'micropigmentacao'
+  | 'depilacao';
+
+export type SubnichoVendas = 
+  | 'produtos_hospitalares' 
+  | 'celulares_eletronicos' 
+  | 'roupas_moda' 
+  | 'joias_acessorios'
+  | 'cosmeticos'
+  | 'suplementos'
+  | 'moveis_decoracao';
+
+export type SubnichoImobiliario = 
+  | 'agente_imobiliario' 
+  | 'construtora' 
+  | 'imobiliaria'
+  | 'administradora';
+
+export type SubnichoAlimentacao = 
+  | 'restaurante' 
+  | 'delivery' 
+  | 'lanchonete'
+  | 'pizzaria'
+  | 'cafeteria'
+  | 'confeitaria'
+  | 'food_truck';
+
+export type SubnichoServicos = 
+  | 'advocacia' 
+  | 'contabilidade' 
+  | 'consultoria'
+  | 'academia_personal'
+  | 'oficina_mecanica'
+  | 'pet_shop_veterinario'
+  | 'limpeza_manutencao'
+  | 'marketing_agencia'
+  | 'cursos_educacao'
+  | 'eventos'
+  | 'fotografia'
+  | 'tecnologia_ti';
+
+export type SubnichoOutros = 'personalizado';
+
+export type SubnichoType = 
+  | SubnichoSaude 
+  | SubnichoEstetica 
+  | SubnichoVendas 
+  | SubnichoImobiliario 
+  | SubnichoAlimentacao 
+  | SubnichoServicos
+  | SubnichoOutros;
+
+// Legado - manter compatibilidade
+export type TemplateType = SubnichoType;
+
 export type TomVoz = 'formal' | 'cordial' | 'casual';
 
 export interface TimeInterval {
@@ -44,8 +125,28 @@ export interface ConsultationType {
   online: boolean;
 }
 
+export interface SubnichoOption {
+  id: SubnichoType;
+  name: string;
+  description: string;
+  icon?: string;
+}
+
+export interface NichoCategory {
+  id: NichoType;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  subnichos: SubnichoOption[];
+}
+
 export interface AgentConfig {
-  // Template
+  // Nicho e Subnicho
+  nicho: NichoType | null;
+  subnicho: SubnichoType | null;
+  
+  // Template (legado - mantido para compatibilidade)
   template: TemplateType | null;
   
   // API Key
@@ -57,7 +158,7 @@ export interface AgentConfig {
   crm: string;
   instagram: string;
   
-  // Clínica
+  // Clínica/Empresa
   companyName: string;
   address: string;
   city: string;
@@ -99,6 +200,122 @@ export const BRAZILIAN_STATES = [
   'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
   'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
 ];
+
+// ============= NICHOS E SUBNICHOS =============
+
+export const NICHOS_CATEGORIES: NichoCategory[] = [
+  {
+    id: 'saude',
+    name: 'Saúde',
+    description: 'Clínicas, hospitais e serviços médicos',
+    icon: 'Stethoscope',
+    color: 'from-red-500 to-rose-600',
+    subnichos: [
+      { id: 'clinica_medica', name: 'Clínica Médica', description: 'Consultórios e clínicas de especialidades' },
+      { id: 'hospital', name: 'Hospital', description: 'Hospitais e prontos-socorros' },
+      { id: 'dentista', name: 'Dentista', description: 'Consultórios odontológicos' },
+      { id: 'fisioterapia', name: 'Fisioterapia', description: 'Clínicas de fisioterapia e reabilitação' },
+      { id: 'psicologia', name: 'Psicologia', description: 'Psicólogos e terapeutas' },
+      { id: 'nutricao', name: 'Nutrição', description: 'Nutricionistas e dietistas' },
+      { id: 'laboratorio', name: 'Laboratório', description: 'Laboratórios de análises clínicas' },
+      { id: 'farmacia', name: 'Farmácia', description: 'Farmácias e drogarias' },
+    ]
+  },
+  {
+    id: 'estetica',
+    name: 'Estética',
+    description: 'Clínicas de beleza e cuidados pessoais',
+    icon: 'Sparkles',
+    color: 'from-pink-500 to-purple-600',
+    subnichos: [
+      { id: 'transplante_capilar', name: 'Transplante Capilar', description: 'Clínicas especializadas em transplante capilar, barba e sobrancelha' },
+      { id: 'clinica_estetica', name: 'Clínica de Estética', description: 'Tratamentos estéticos faciais e corporais' },
+      { id: 'salao_beleza', name: 'Salão de Beleza', description: 'Salões de cabeleireiro e beleza' },
+      { id: 'barbearia', name: 'Barbearia', description: 'Barbearias e cuidados masculinos' },
+      { id: 'spa', name: 'Spa', description: 'Spas e centros de bem-estar' },
+      { id: 'micropigmentacao', name: 'Micropigmentação', description: 'Micropigmentação e design de sobrancelhas' },
+      { id: 'depilacao', name: 'Depilação', description: 'Clínicas de depilação a laser' },
+    ]
+  },
+  {
+    id: 'vendas',
+    name: 'Venda de Produtos',
+    description: 'Lojas e e-commerce',
+    icon: 'ShoppingBag',
+    color: 'from-blue-500 to-cyan-600',
+    subnichos: [
+      { id: 'produtos_hospitalares', name: 'Produtos Hospitalares', description: 'Equipamentos e insumos médicos' },
+      { id: 'celulares_eletronicos', name: 'Celulares e Eletrônicos', description: 'Smartphones, acessórios e eletrônicos' },
+      { id: 'roupas_moda', name: 'Roupas e Moda', description: 'Vestuário e acessórios de moda' },
+      { id: 'joias_acessorios', name: 'Joias e Acessórios', description: 'Joalherias e bijuterias' },
+      { id: 'cosmeticos', name: 'Cosméticos', description: 'Produtos de beleza e skincare' },
+      { id: 'suplementos', name: 'Suplementos', description: 'Suplementos alimentares e fitness' },
+      { id: 'moveis_decoracao', name: 'Móveis e Decoração', description: 'Móveis e itens para casa' },
+    ]
+  },
+  {
+    id: 'imobiliario',
+    name: 'Imobiliário',
+    description: 'Imóveis e corretagem',
+    icon: 'Building2',
+    color: 'from-emerald-500 to-teal-600',
+    subnichos: [
+      { id: 'agente_imobiliario', name: 'Agente Imobiliário', description: 'Corretor de imóveis completo - venda, locação e avaliação' },
+      { id: 'imobiliaria', name: 'Imobiliária', description: 'Imobiliária com múltiplos corretores' },
+      { id: 'construtora', name: 'Construtora', description: 'Construtoras e incorporadoras' },
+      { id: 'administradora', name: 'Administradora', description: 'Administração de condomínios' },
+    ]
+  },
+  {
+    id: 'alimentacao',
+    name: 'Alimentação',
+    description: 'Restaurantes e delivery',
+    icon: 'UtensilsCrossed',
+    color: 'from-orange-500 to-amber-600',
+    subnichos: [
+      { id: 'restaurante', name: 'Restaurante', description: 'Restaurantes e bistrôs' },
+      { id: 'delivery', name: 'Delivery', description: 'Serviços de entrega de comida' },
+      { id: 'lanchonete', name: 'Lanchonete', description: 'Lanchonetes e fast food' },
+      { id: 'pizzaria', name: 'Pizzaria', description: 'Pizzarias e rodízios' },
+      { id: 'cafeteria', name: 'Cafeteria', description: 'Cafeterias e coffee shops' },
+      { id: 'confeitaria', name: 'Confeitaria', description: 'Confeitarias e docerias' },
+      { id: 'food_truck', name: 'Food Truck', description: 'Food trucks e eventos' },
+    ]
+  },
+  {
+    id: 'servicos',
+    name: 'Serviços',
+    description: 'Prestação de serviços diversos',
+    icon: 'Briefcase',
+    color: 'from-violet-500 to-indigo-600',
+    subnichos: [
+      { id: 'advocacia', name: 'Advocacia', description: 'Escritórios de advocacia e advogados' },
+      { id: 'contabilidade', name: 'Contabilidade', description: 'Escritórios contábeis' },
+      { id: 'consultoria', name: 'Consultoria', description: 'Consultorias empresariais' },
+      { id: 'academia_personal', name: 'Academia / Personal', description: 'Academias e personal trainers' },
+      { id: 'oficina_mecanica', name: 'Oficina Mecânica', description: 'Oficinas e auto centers' },
+      { id: 'pet_shop_veterinario', name: 'Pet Shop / Veterinário', description: 'Pet shops, clínicas veterinárias e banho e tosa' },
+      { id: 'limpeza_manutencao', name: 'Limpeza e Manutenção', description: 'Serviços de limpeza e reparos' },
+      { id: 'marketing_agencia', name: 'Marketing / Agência', description: 'Agências de marketing e publicidade' },
+      { id: 'cursos_educacao', name: 'Cursos / Educação', description: 'Escolas, cursos e treinamentos' },
+      { id: 'eventos', name: 'Eventos', description: 'Organização de eventos e festas' },
+      { id: 'fotografia', name: 'Fotografia', description: 'Fotógrafos e estúdios' },
+      { id: 'tecnologia_ti', name: 'Tecnologia / TI', description: 'Empresas de tecnologia e suporte' },
+    ]
+  },
+  {
+    id: 'outros',
+    name: 'Outros',
+    description: 'Segmentos personalizados',
+    icon: 'MoreHorizontal',
+    color: 'from-gray-500 to-slate-600',
+    subnichos: [
+      { id: 'personalizado', name: 'Personalizado', description: 'Configure um nicho personalizado para seu negócio' },
+    ]
+  }
+];
+
+// ============= SERVIÇOS POR SUBNICHO =============
 
 export const TRANSPLANTE_SERVICES: Service[] = [
   { 
@@ -148,6 +365,8 @@ export const DEFAULT_WEEK_SCHEDULE: WeekSchedule = {
 };
 
 export const INITIAL_CONFIG: AgentConfig = {
+  nicho: null,
+  subnicho: null,
   template: null,
   openaiApiKey: '',
   openaiApiKeyValid: false,
@@ -180,13 +399,13 @@ export const WIZARD_STEPS = [
   { id: 'welcome', title: 'Bem-vindo', description: 'Introdução ao configurador' },
   { id: 'template', title: 'Nicho', description: 'Selecione seu segmento' },
   { id: 'apikey', title: 'API Key', description: 'Configure a OpenAI' },
-  { id: 'professional', title: 'Profissional', description: 'Dados do médico' },
-  { id: 'clinic', title: 'Clínica', description: 'Informações da clínica' },
+  { id: 'professional', title: 'Profissional', description: 'Dados do profissional' },
+  { id: 'clinic', title: 'Empresa', description: 'Informações da empresa' },
   { id: 'attendant', title: 'Atendente', description: 'Nome do assistente virtual' },
-  { id: 'services', title: 'Serviços', description: 'Procedimentos oferecidos' },
-  { id: 'consultation', title: 'Consultas', description: 'Tipos de atendimento' },
+  { id: 'services', title: 'Serviços', description: 'Serviços oferecidos' },
+  { id: 'consultation', title: 'Atendimento', description: 'Tipos de atendimento' },
   { id: 'payment', title: 'Pagamento', description: 'Formas de pagamento' },
-  { id: 'images', title: 'Imagens', description: 'Fotos antes/depois' },
+  { id: 'images', title: 'Imagens', description: 'Fotos e portfólio' },
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },
   { id: 'calendar', title: 'Calendário', description: 'Google Calendar' },
   { id: 'personalization', title: 'Mensagens', description: 'Personalize mensagens' },

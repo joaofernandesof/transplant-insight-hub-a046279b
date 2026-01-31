@@ -23,7 +23,15 @@ import {
   StepPersonalization,
   StepReview
 } from './components/steps';
-import { TemplateType, Service, PaymentMethod, ConsultationType, WeekSchedule, TomVoz } from './types';
+import { 
+  SubnichoType, 
+  NichoType,
+  Service, 
+  PaymentMethod, 
+  ConsultationType, 
+  WeekSchedule, 
+  TomVoz 
+} from './types';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -45,7 +53,7 @@ export default function AvivarConfigWizard() {
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 0: return true; // Welcome
-      case 1: return config.template !== null; // Template
+      case 1: return config.subnicho !== null || config.template !== null; // Nicho/Subnicho
       case 2: return config.openaiApiKeyValid; // API Key
       case 3: return !!config.professionalName && !!config.crm; // Professional
       case 4: return !!config.companyName && !!config.address && !!config.city && !!config.state; // Clinic
@@ -68,6 +76,18 @@ export default function AvivarConfigWizard() {
     navigate('/avivar/config/knowledge');
   };
 
+  // Handler para seleção de subnicho (atualiza nicho e template também)
+  const handleSubnichoSelect = (subnicho: SubnichoType) => {
+    updateConfig({ 
+      subnicho, 
+      template: subnicho // Mantém compatibilidade com o campo template
+    });
+  };
+
+  const handleNichoSelect = (nicho: NichoType) => {
+    updateConfig({ nicho });
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 0:
@@ -76,8 +96,10 @@ export default function AvivarConfigWizard() {
       case 1:
         return (
           <StepTemplate
-            selected={config.template}
-            onSelect={(template: TemplateType) => updateConfig({ template })}
+            selected={config.subnicho || config.template}
+            onSelect={handleSubnichoSelect}
+            onNichoSelect={handleNichoSelect}
+            selectedNicho={config.nicho}
           />
         );
       
