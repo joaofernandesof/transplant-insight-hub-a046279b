@@ -1,14 +1,51 @@
 /**
  * Hook para gerenciar o estado da configuração do agente
+ * Suporta criação de novos agentes e edição de agentes existentes
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { AgentConfig, INITIAL_CONFIG, WIZARD_STEPS } from '../types';
+import { useParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { 
+  AgentConfig, 
+  INITIAL_CONFIG, 
+  WIZARD_STEPS,
+  DEFAULT_WEEK_SCHEDULE,
+  PAYMENT_METHODS
+} from '../types';
 
 const STORAGE_KEY = 'avivar_agent_config';
 
+// Converte dados do banco para o formato do AgentConfig
+function mapAgentToConfig(agent: Record<string, unknown>): Partial<AgentConfig> {
+  return {
+    attendantName: (agent.name as string) || '',
+    companyName: (agent.company_name as string) || '',
+    professionalName: (agent.professional_name as string) || '',
+    toneOfVoice: (agent.tone_of_voice as 'formal' | 'cordial' | 'casual') || 'cordial',
+    aiInstructions: (agent.ai_instructions as string) || '',
+    aiRestrictions: (agent.ai_restrictions as string) || '',
+    aiIdentity: (agent.personality as string) || '',
+    schedule: (agent.schedule as typeof DEFAULT_WEEK_SCHEDULE) || DEFAULT_WEEK_SCHEDULE,
+    services: (agent.services as AgentConfig['services']) || [],
+    fluxoAtendimento: (agent.fluxo_atendimento as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
+    knowledgeFiles: (agent.knowledge_files as AgentConfig['knowledgeFiles']) || [],
+  };
+}
+
 export function useAgentConfig() {
+  const { agentId } = useParams<{ agentId?: string }>();
+  const isEditMode = !!agentId;
+  
+  const [loading, setLoading] = useState(isEditMode);
+  const [editingAgentId, setEditingAgentId] = useState<string | null>(agentId || null);
+  
   const [config, setConfig] = useState<AgentConfig>(() => {
+    // Se estiver no modo edição, não carrega do localStorage
+    if (agentId) {
+      return { ...INITIAL_CONFIG };
+    }
+    
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -20,13 +57,49 @@ export function useAgentConfig() {
     return INITIAL_CONFIG;
   });
 
-  const [currentStep, setCurrentStep] = useState(config.currentStep);
+  const [currentStep, setCurrentStep] = useState(isEditMode ? 1 : config.currentStep);
 
-  // Auto-save to localStorage
+  // Carregar dados do agente se estiver em modo de edição
   useEffect(() => {
-    const updatedConfig = { ...config, currentStep, updatedAt: new Date().toISOString() };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedConfig));
-  }, [config, currentStep]);
+    async function loadAgent() {
+      if (!agentId) return;
+      
+      setLoading(true);
+      try {
+        const { data: agent, error } = await supabase
+          .from('avivar_agents')
+          .select('*')
+          .eq('id', agentId)
+          .single();
+
+        if (error) throw error;
+
+        if (agent) {
+          const mappedConfig = mapAgentToConfig(agent);
+          setConfig(prev => ({
+            ...prev,
+            ...mappedConfig,
+            openaiApiKeyValid: true, // Assume que já foi validada na criação
+          }));
+          setEditingAgentId(agent.id);
+        }
+      } catch (error) {
+        console.error('Error loading agent:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAgent();
+  }, [agentId]);
+
+  // Auto-save to localStorage (só para novos agentes)
+  useEffect(() => {
+    if (!isEditMode) {
+      const updatedConfig = { ...config, currentStep, updatedAt: new Date().toISOString() };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedConfig));
+    }
+  }, [config, currentStep, isEditMode]);
 
   const updateConfig = useCallback((updates: Partial<AgentConfig>) => {
     setConfig(prev => ({ ...prev, ...updates }));
@@ -73,6 +146,10 @@ export function useAgentConfig() {
     completeWizard,
     progress,
     totalSteps: WIZARD_STEPS.length,
-    currentStepInfo: WIZARD_STEPS[currentStep]
+    currentStepInfo: WIZARD_STEPS[currentStep],
+    // Novos campos para modo de edição
+    isEditMode,
+    editingAgentId,
+    loading,
   };
 }

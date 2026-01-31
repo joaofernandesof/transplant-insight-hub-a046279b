@@ -564,6 +564,7 @@ function AvivarRoutes() {
             <Route path="voip" element={<AvivarVoip />} />
             <Route path="config" element={<AvivarAgentsPage />} />
             <Route path="config/new" element={<AvivarConfigWizard />} />
+            <Route path="config/edit/:agentId" element={<AvivarConfigWizard />} />
             <Route path="config/knowledge" element={<AvivarKnowledge />} />
             <Route path="config/preview" element={<AvivarPromptPreview />} />
             <Route path="agents" element={<AvivarAgentsPage />} />

@@ -44,7 +44,7 @@ interface Document {
 
 export default function AvivarKnowledge() {
   const navigate = useNavigate();
-  const { config, resetConfig } = useAgentConfig();
+  const { config, resetConfig, isEditMode, editingAgentId } = useAgentConfig();
   
   const [text, setText] = useState('');
   const [documentName, setDocumentName] = useState('');
@@ -128,10 +128,8 @@ export default function AvivarKnowledge() {
     setProgressMessage('Salvando agente...');
 
     try {
-      // Step 1: Create agent
       setProgress(20);
-      setProgressMessage('Criando agente...');
-
+      
       const knowledgeFiles = documents.map(doc => ({
         name: doc.name,
         content: doc.content,
@@ -139,12 +137,9 @@ export default function AvivarKnowledge() {
       }));
 
       const agentPayload = {
-        user_id: user.id,
         name: agentName.trim(),
         personality: config.aiIdentity || null,
         knowledge_files: knowledgeFiles,
-        target_kanbans: ['comercial'],
-        target_stages: ['novo_lead', 'qualificacao'],
         openai_api_key_hash: config.openaiApiKey ? 'configured' : null,
         tone_of_voice: config.toneOfVoice || 'cordial',
         ai_instructions: config.aiInstructions || null,
@@ -154,18 +149,48 @@ export default function AvivarKnowledge() {
         professional_name: config.professionalName || null,
         services: config.services || [],
         schedule: config.schedule || {},
-        is_active: true
+        updated_at: new Date().toISOString()
       };
 
-      const { data: agentData, error: agentError } = await supabase
-        .from('avivar_agents')
-        .insert(agentPayload as any)
-        .select()
-        .single();
+      let agentData: { id: string };
 
-      if (agentError) {
-        console.error('Agent save error:', agentError);
-        throw new Error('Erro ao criar agente');
+      if (isEditMode && editingAgentId) {
+        // UPDATE existing agent
+        setProgressMessage('Atualizando agente...');
+        
+        const { data, error: agentError } = await supabase
+          .from('avivar_agents')
+          .update(agentPayload as any)
+          .eq('id', editingAgentId)
+          .select()
+          .single();
+
+        if (agentError) {
+          console.error('Agent update error:', agentError);
+          throw new Error('Erro ao atualizar agente');
+        }
+        agentData = data;
+      } else {
+        // INSERT new agent
+        setProgressMessage('Criando agente...');
+        
+        const { data, error: agentError } = await supabase
+          .from('avivar_agents')
+          .insert({
+            ...agentPayload,
+            user_id: user.id,
+            target_kanbans: ['comercial'],
+            target_stages: ['novo_lead', 'qualificacao'],
+            is_active: true
+          } as any)
+          .select()
+          .single();
+
+        if (agentError) {
+          console.error('Agent save error:', agentError);
+          throw new Error('Erro ao criar agente');
+        }
+        agentData = data;
       }
 
       setProgress(60);
@@ -201,13 +226,16 @@ export default function AvivarKnowledge() {
       }
 
       setProgress(100);
-      setProgressMessage('Agente criado com sucesso!');
+      const actionText = isEditMode ? 'atualizado' : 'criado';
+      setProgressMessage(`Agente ${actionText} com sucesso!`);
 
-      // Clean up wizard state
-      resetConfig();
+      // Clean up wizard state (only for new agents)
+      if (!isEditMode) {
+        resetConfig();
+      }
 
-      toast.success(`🎉 Agente "${agentName}" criado com sucesso!`, {
-        description: 'Configure os kanbans de atuação na página de agentes'
+      toast.success(`🎉 Agente "${agentName}" ${actionText} com sucesso!`, {
+        description: isEditMode ? 'As alterações foram salvas' : 'Configure os kanbans de atuação na página de agentes'
       });
 
       // Redirect to agents page
