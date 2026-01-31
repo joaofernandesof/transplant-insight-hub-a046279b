@@ -11,12 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addDays, startOfWeek, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { AgendaSelector } from "@/components/avivar/AgendaSelector";
 import { AvivarAgenda as AgendaType, useAvivarAgendas } from "@/hooks/useAvivarAgendas";
+import { NewAppointmentDialog } from "@/components/avivar/NewAppointmentDialog";
 
 interface Appointment {
   id: string;
@@ -37,6 +37,8 @@ export default function AvivarAgenda() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [view, setView] = useState<"day" | "week">("day");
   const [selectedAgenda, setSelectedAgenda] = useState<AgendaType | null>(null);
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | undefined>();
   const { user } = useUnifiedAuth();
   const { agendas } = useAvivarAgendas();
 
@@ -138,7 +140,10 @@ export default function AvivarAgenda() {
           />
           <Button
             className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
-            onClick={() => toast.info("Novo agendamento em desenvolvimento")}
+            onClick={() => {
+              setSelectedTimeSlot(undefined);
+              setShowNewAppointment(true);
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Novo Agendamento</span>
@@ -299,10 +304,12 @@ export default function AvivarAgenda() {
                           ? "border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-primary)/0.05)]"
                           : "border-dashed border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.02)] cursor-pointer"
                       }`}
-                      onClick={() =>
-                        !appointment &&
-                        toast.info(`Agendar horário ${time}`)
-                      }
+                      onClick={() => {
+                        if (!appointment) {
+                          setSelectedTimeSlot(time);
+                          setShowNewAppointment(true);
+                        }
+                      }}
                     >
                       <div className="flex items-center gap-2 w-16 text-sm font-medium text-[hsl(var(--avivar-muted-foreground))]">
                         <Clock className="h-4 w-4" />
@@ -411,6 +418,15 @@ export default function AvivarAgenda() {
           </CardContent>
         </Card>
       </div>
+
+      {/* New Appointment Dialog */}
+      <NewAppointmentDialog
+        open={showNewAppointment}
+        onOpenChange={setShowNewAppointment}
+        selectedDate={selectedDate}
+        selectedTime={selectedTimeSlot}
+        selectedAgenda={selectedAgenda}
+      />
     </div>
   );
 }
