@@ -125,7 +125,9 @@ export function generateTimeSlotsForDay(
     const endMinutes = endHour * 60 + endMin;
     
     // Generate slots within this period
-    for (let currentMin = startMinutes; currentMin < endMinutes; currentMin += consultationDuration) {
+    // NOTE: end_time is treated as the last allowed *start* time (inclusive).
+    // Example: 08:00–12:00 with 30min duration includes 12:00 (12:00–12:30).
+    for (let currentMin = startMinutes; currentMin <= endMinutes; currentMin += consultationDuration) {
       const hour = Math.floor(currentMin / 60);
       const min = currentMin % 60;
       const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
