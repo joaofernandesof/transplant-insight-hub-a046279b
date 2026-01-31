@@ -13645,6 +13645,19 @@ export type Database = {
           slot_start: string
         }[]
       }
+      get_available_slots_flexible: {
+        Args: {
+          p_agenda_id?: string
+          p_date?: string
+          p_duration_minutes?: number
+          p_user_id: string
+        }
+        Returns: {
+          is_available: boolean
+          slot_end: string
+          slot_start: string
+        }[]
+      }
       get_avivar_agendas_for_ai: {
         Args: { p_user_id: string }
         Returns: {

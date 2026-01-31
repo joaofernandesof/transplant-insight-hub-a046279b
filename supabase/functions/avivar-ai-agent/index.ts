@@ -73,20 +73,20 @@ const TOOLS = [
     type: "function",
     function: {
       name: "get_available_slots",
-      description: "Consulta horários disponíveis para agendamento em uma agenda específica. Use após o paciente escolher a cidade/unidade.",
+      description: "Consulta horários disponíveis para agendamento em uma agenda/unidade específica. Use após o paciente escolher a cidade/unidade.",
       parameters: {
         type: "object",
         properties: {
-          agenda_id: {
+          agenda_name: {
             type: "string",
-            description: "ID da agenda (obtido de list_agendas). Se não tiver, liste as agendas primeiro."
+            description: "Nome da unidade/agenda (ex: 'Juazeiro', 'São Paulo'). Case-insensitive."
           },
           date: {
             type: "string",
             description: "Data no formato YYYY-MM-DD. Se não especificada, busca para os próximos dias úteis."
           }
         },
-        required: ["agenda_id"]
+        required: ["agenda_name"]
       }
     }
   },
@@ -94,13 +94,13 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_appointment",
-      description: "Cria um agendamento na agenda específica. Use após confirmação de data, horário e unidade.",
+      description: "Cria um agendamento na agenda/unidade específica. Use após confirmação de data, horário e unidade.",
       parameters: {
         type: "object",
         properties: {
-          agenda_id: {
+          agenda_name: {
             type: "string",
-            description: "ID da agenda onde criar o agendamento"
+            description: "Nome da unidade/agenda onde criar o agendamento (ex: 'Juazeiro')"
           },
           patient_name: {
             type: "string",
@@ -123,7 +123,7 @@ const TOOLS = [
             description: "Observações adicionais (opcional)"
           }
         },
-        required: ["agenda_id", "patient_name", "date", "time", "service_type"]
+        required: ["agenda_name", "patient_name", "date", "time", "service_type"]
       }
     }
   },
@@ -215,17 +215,34 @@ async function searchKnowledgeBase(
 async function getAvailableSlots(
   supabase: AnySupabaseClient,
   userId: string,
-  agendaId: string,
+  agendaName: string,
   dateStr?: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: get_available_slots(agenda=${agendaId}, date=${dateStr || "próximos dias"})`);
+  console.log(`[AI Agent] Tool: get_available_slots(agenda="${agendaName}", date=${dateStr || "próximos dias"})`);
 
-  // Get agenda info
-  const { data: agendaInfo } = await supabase
+  // Find agenda by name (case-insensitive)
+  const { data: agendas } = await supabase
     .from("avivar_agendas")
-    .select("name, city, professional_name")
-    .eq("id", agendaId)
-    .single();
+    .select("id, name, city, professional_name")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .ilike("name", `%${agendaName}%`);
+
+  let agendaInfo = agendas?.[0];
+  let agendaId: string | null = agendaInfo?.id || null;
+
+  // If no match by name, try by city
+  if (!agendaInfo) {
+    const { data: byCity } = await supabase
+      .from("avivar_agendas")
+      .select("id, name, city, professional_name")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .ilike("city", `%${agendaName}%`);
+    
+    agendaInfo = byCity?.[0];
+    agendaId = agendaInfo?.id || null;
+  }
 
   // Se não passou data, buscar para os próximos 3 dias úteis
   const dates: string[] = [];
@@ -248,7 +265,9 @@ async function getAvailableSlots(
   const results: string[] = [];
   
   for (const date of dates) {
-    const { data: slots, error } = await supabase.rpc("get_available_slots_by_agenda", {
+    // Use the flexible function that falls back to user config
+    const { data: slots, error } = await supabase.rpc("get_available_slots_flexible", {
+      p_user_id: userId,
       p_agenda_id: agendaId,
       p_date: date,
       p_duration_minutes: 30
@@ -256,25 +275,6 @@ async function getAvailableSlots(
 
     if (error) {
       console.error("[AI Agent] Error getting slots:", error);
-      // Fallback para função antiga
-      const { data: oldSlots } = await supabase.rpc("get_available_slots", {
-        p_user_id: userId,
-        p_date: date,
-        p_duration_minutes: 30
-      });
-      
-      if (oldSlots) {
-        const available = oldSlots.filter((s: { is_available: boolean }) => s.is_available);
-        if (available.length > 0) {
-          const dateObj = new Date(date + "T12:00:00");
-          const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
-          const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-          const timesToShow = available.slice(0, 5).map((s: { slot_start: string }) => 
-            s.slot_start.substring(0, 5)
-          );
-          results.push(`📅 ${dayName} (${dateFormatted}): ${timesToShow.join(", ")}${available.length > 5 ? " e mais..." : ""}`);
-        }
-      }
       continue;
     }
 
@@ -285,23 +285,24 @@ async function getAvailableSlots(
       const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
       const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       
-      const timesToShow = available.slice(0, 5).map((s: { slot_start: string }) => 
+      // Show only 2 options as requested by user
+      const timesToShow = available.slice(0, 2).map((s: { slot_start: string }) => 
         s.slot_start.substring(0, 5)
       );
       
-      results.push(`📅 ${dayName} (${dateFormatted}): ${timesToShow.join(", ")}${available.length > 5 ? " e mais..." : ""}`);
+      results.push(`📅 ${dayName} (${dateFormatted}): ${timesToShow.join(" ou ")}`);
     }
   }
 
   if (results.length === 0) {
-    return "Não há horários disponíveis para os próximos dias nesta unidade. Por favor, entre em contato para verificar outras opções.";
+    return `Não há horários disponíveis para os próximos dias${agendaInfo ? ` em ${agendaInfo.name}` : ""}. Por favor, entre em contato para verificar outras opções.`;
   }
 
   const header = agendaInfo 
-    ? `Horários disponíveis em ${agendaInfo.name}${agendaInfo.city ? ` (${agendaInfo.city})` : ""}:`
+    ? `Horários disponíveis em **${agendaInfo.name}**${agendaInfo.city ? ` (${agendaInfo.city})` : ""}:`
     : "Horários disponíveis:";
 
-  return `${header}\n\n${results.join("\n")}`;
+  return `${header}\n\n${results.join("\n")}\n\nQual horário você prefere?`;
 }
 
 async function createAppointment(
@@ -309,7 +310,7 @@ async function createAppointment(
   userId: string,
   leadId: string | null,
   conversationId: string,
-  agendaId: string,
+  agendaName: string,
   patientName: string,
   patientPhone: string,
   date: string,
@@ -317,14 +318,31 @@ async function createAppointment(
   serviceType: string,
   notes?: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: create_appointment(agenda=${agendaId}, ${patientName}, ${date} ${time})`);
+  console.log(`[AI Agent] Tool: create_appointment(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
 
-  // Get agenda info
-  const { data: agendaInfo } = await supabase
+  // Find agenda by name (case-insensitive)
+  const { data: agendas } = await supabase
     .from("avivar_agendas")
-    .select("name, city, professional_name, address")
-    .eq("id", agendaId)
-    .single();
+    .select("id, name, city, professional_name, address")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .ilike("name", `%${agendaName}%`);
+
+  let agendaInfo = agendas?.[0];
+  let agendaId: string | null = agendaInfo?.id || null;
+
+  // If no match by name, try by city
+  if (!agendaInfo) {
+    const { data: byCity } = await supabase
+      .from("avivar_agendas")
+      .select("id, name, city, professional_name, address")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .ilike("city", `%${agendaName}%`);
+    
+    agendaInfo = byCity?.[0];
+    agendaId = agendaInfo?.id || null;
+  }
 
   // Calcular horário de fim (30 min)
   const [hours, minutes] = time.split(":").map(Number);
@@ -332,8 +350,9 @@ async function createAppointment(
   const endMinutes = (hours * 60 + minutes + 30) % 60;
   const endTime = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
 
-  // Verificar se o slot ainda está disponível
-  const { data: slots } = await supabase.rpc("get_available_slots_by_agenda", {
+  // Verificar se o slot ainda está disponível usando função flexível
+  const { data: slots } = await supabase.rpc("get_available_slots_flexible", {
+    p_user_id: userId,
     p_agenda_id: agendaId,
     p_date: date,
     p_duration_minutes: 30
@@ -437,7 +456,7 @@ async function processToolCall(
       return await getAvailableSlots(
         supabase, 
         userId, 
-        toolArgs.agenda_id as string,
+        toolArgs.agenda_name as string,
         toolArgs.date as string | undefined
       );
     
@@ -447,7 +466,7 @@ async function processToolCall(
         userId,
         leadId,
         conversationId,
-        toolArgs.agenda_id as string,
+        toolArgs.agenda_name as string,
         toolArgs.patient_name as string,
         patientPhone,
         toolArgs.date as string,
@@ -555,8 +574,8 @@ Data de hoje: ${dateStr}
 - Use emojis com moderação
 - NUNCA invente preços ou informações médicas
 - Quando não souber algo, use search_knowledge_base
-- Se tiver múltiplas unidades, pergunte onde o paciente prefere antes de mostrar horários
-- Para agendar: 1) Descubra a unidade desejada 2) Pergunte o nome se não souber 3) Ofereça horários com get_available_slots
+- IMPORTANTE: Se o paciente MENCIONAR o nome de uma cidade ou unidade (ex: "Juazeiro", "São Paulo"), chame IMEDIATAMENTE get_available_slots com agenda_name=NOME_MENCIONADO
+- Para agendar: 1) Descubra a unidade desejada 2) Pergunte o nome se não souber 3) Ofereça 2 opções de horários com get_available_slots
 - Só crie agendamento com create_appointment após confirmação completa (unidade, data, horário, nome)
 - Transfira para humano em negociações de preço ou dúvidas muito técnicas
 </regras>`;
