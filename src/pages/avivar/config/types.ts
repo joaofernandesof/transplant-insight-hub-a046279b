@@ -206,6 +206,9 @@ export interface AgentConfig {
   // Fluxo de Atendimento
   fluxoAtendimento: FluxoAtendimento;
   
+  // Base de Conhecimento
+  knowledgeFiles: KnowledgeFile[];
+  
   // Mensagens (legado - mantido para compatibilidade)
   welcomeMessage: string;
   transferMessage: string;
@@ -215,6 +218,14 @@ export interface AgentConfig {
   updatedAt: string;
   currentStep: number;
   isComplete: boolean;
+}
+
+// Arquivo de Base de Conhecimento
+export interface KnowledgeFile {
+  name: string;
+  size: number;
+  content: string;
+  type: string;
 }
 
 export const BRAZILIAN_STATES = [
@@ -412,6 +423,7 @@ export const INITIAL_CONFIG: AgentConfig = {
   aiInstructions: '',
   aiRestrictions: '',
   fluxoAtendimento: { passosCronologicos: [], passosExtras: [] },
+  knowledgeFiles: [],
   welcomeMessage: '',
   transferMessage: '',
   createdAt: '',
@@ -435,6 +447,7 @@ export const WIZARD_STEPS = [
   { id: 'personalization', title: 'Personalidade', description: 'Identidade e objetivo da IA' },
   { id: 'instructions', title: 'Instruções', description: 'O que a IA pode e não pode fazer' },
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
+  { id: 'knowledge', title: 'Conhecimento', description: 'Base de conhecimento da IA' },
   { id: 'review', title: 'Revisão', description: 'Confirme as configurações' }
 ];
 
