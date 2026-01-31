@@ -3949,9 +3949,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'cm6', ordem: 6, titulo: 'Orientações Finais', descricao: 'Informe endereço, documentos necessários e chegada com antecedência. Agradeça o contato.', exemploMensagem: 'Tudo certo! 🎉 Lembre-se de trazer documento com foto e carteirinha do convênio. Chegue 15 min antes. Nosso endereço é Av. Paulista, 1000 - Sala 201. Até lá!' }
     ],
     passosExtras: [
-      { id: 'cme1', ordem: 1, titulo: 'Valores e Pagamento', descricao: 'Quando perguntarem sobre valores, informe que depende do procedimento e convênio. Ofereça agendar para avaliação presencial.', exemploMensagem: 'Os valores variam conforme o procedimento e convênio. Posso agendar uma consulta para você ter um orçamento personalizado?' },
-      { id: 'cme2', ordem: 2, titulo: 'Urgências', descricao: 'Em caso de urgência, oriente procurar pronto-socorro. A clínica atende apenas consultas agendadas.', exemploMensagem: 'Para urgências, recomendo procurar o pronto-socorro mais próximo. Atendemos apenas com consultas agendadas.' },
-      { id: 'cme3', ordem: 3, titulo: 'Exames e Resultados', descricao: 'Para resultados de exames, oriente sobre o portal do paciente ou prazo de entrega.', exemploMensagem: 'Os resultados ficam disponíveis no portal do paciente em até 3 dias úteis. Precisa de ajuda para acessar?' }
+      { id: 'cme1', ordem: 1, titulo: 'Urgências', descricao: 'Em caso de urgência, oriente procurar pronto-socorro. A clínica atende apenas consultas agendadas.', exemploMensagem: 'Para urgências, recomendo procurar o pronto-socorro mais próximo. Atendemos apenas com consultas agendadas.' }
     ]
   },
   hospital: {
@@ -3963,8 +3961,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'h5', ordem: 5, titulo: 'Finalização', descricao: 'Confirme as informações e agradeça o contato.' }
     ],
     passosExtras: [
-      { id: 'he1', ordem: 1, titulo: 'Emergências', descricao: 'Em emergências, oriente ligar 192 (SAMU) ou dirigir-se ao pronto-socorro mais próximo.' },
-      { id: 'he2', ordem: 2, titulo: 'Informações de Internado', descricao: 'Informe que dados de pacientes só podem ser passados para familiares autorizados, presencialmente.' }
+      { id: 'he1', ordem: 1, titulo: 'Emergências', descricao: 'Em emergências, oriente ligar 192 (SAMU) ou dirigir-se ao pronto-socorro mais próximo.' }
     ]
   },
   dentista: {
@@ -3976,8 +3973,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'd5', ordem: 5, titulo: 'Orientações', descricao: 'Informe endereço e oriente chegar 10 minutos antes. Agradeça e confirme por mensagem.' }
     ],
     passosExtras: [
-      { id: 'de1', ordem: 1, titulo: 'Dor de Dente', descricao: 'Em caso de dor aguda, priorize agendamento de emergência. Oriente evitar alimentos muito quentes/frios.' },
-      { id: 'de2', ordem: 2, titulo: 'Valores de Tratamentos', descricao: 'Informe que valores dependem de avaliação presencial. Cada caso é único.' }
+      { id: 'de1', ordem: 1, titulo: 'Emergência - Dor de Dente', descricao: 'Em caso de dor aguda, priorize agendamento de emergência. Oriente evitar alimentos muito quentes/frios.' }
     ]
   },
   fisioterapia: {
@@ -3988,10 +3984,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'f4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários para avaliação inicial. Confirme dados do paciente.' },
       { id: 'f5', ordem: 5, titulo: 'Orientações', descricao: 'Peça para trazer exames ou encaminhamento médico, se houver. Informe endereço.' }
     ],
-    passosExtras: [
-      { id: 'fe1', ordem: 1, titulo: 'Quantidade de Sessões', descricao: 'Número de sessões é definido após avaliação. Cada caso é diferente.' },
-      { id: 'fe2', ordem: 2, titulo: 'Convênio', descricao: 'Informe os convênios aceitos ou valores particulares para avaliação.' }
-    ]
+    passosExtras: []
   },
   psicologia: {
     passosCronologicos: [
@@ -4002,8 +3995,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'p5', ordem: 5, titulo: 'Informações', descricao: 'Informe duração da sessão (50 min), valor e forma de pagamento. Agradeça a confiança.' }
     ],
     passosExtras: [
-      { id: 'pe1', ordem: 1, titulo: 'Crise/Urgência', descricao: 'Em caso de crise, oriente ligar CVV 188 (24h) ou procurar UBS mais próxima. Ofereça encaixe prioritário.' },
-      { id: 'pe2', ordem: 2, titulo: 'Abordagem Terapêutica', descricao: 'Explique brevemente a abordagem do profissional e que na primeira sessão será feita avaliação.' }
+      { id: 'pe1', ordem: 1, titulo: 'Crise/Urgência', descricao: 'Em caso de crise emocional, oriente ligar CVV 188 (24h) ou procurar UBS mais próxima. Ofereça encaixe prioritário.', exemploMensagem: 'Entendo que você está passando por um momento difícil. Se estiver em crise, ligue para o CVV: 188 (24h, gratuito). Posso tentar um encaixe prioritário com o profissional.' }
     ]
   },
   nutricao: {
@@ -4014,10 +4006,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'n4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários para consulta inicial. Confirme dados.' },
       { id: 'n5', ordem: 5, titulo: 'Preparação', descricao: 'Oriente trazer exames recentes, se tiver. Informe valor e duração da consulta.' }
     ],
-    passosExtras: [
-      { id: 'ne1', ordem: 1, titulo: 'Dietas Específicas', descricao: 'Explique que dietas são personalizadas e definidas na consulta, não por mensagem.' },
-      { id: 'ne2', ordem: 2, titulo: 'Bioimpedância', descricao: 'Informe se a clínica oferece bioimpedância e orientações de preparo.' }
-    ]
+    passosExtras: []
   },
   laboratorio: {
     passosCronologicos: [
@@ -4027,10 +4016,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'l4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários disponíveis. Alguns exames não precisam agendar.' },
       { id: 'l5', ordem: 5, titulo: 'Informações', descricao: 'Informe endereço, documentos necessários e prazo de resultados.' }
     ],
-    passosExtras: [
-      { id: 'le1', ordem: 1, titulo: 'Resultados', descricao: 'Informe como acessar resultados: portal, app ou retirada presencial.' },
-      { id: 'le2', ordem: 2, titulo: 'Coleta Domiciliar', descricao: 'Informe se há opção de coleta em casa e condições.' }
-    ]
+    passosExtras: []
   },
   farmacia: {
     passosCronologicos: [
@@ -4040,10 +4026,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'fa4', ordem: 4, titulo: 'Reserva/Entrega', descricao: 'Ofereça reservar ou entregar (se houver delivery).' },
       { id: 'fa5', ordem: 5, titulo: 'Finalização', descricao: 'Confirme pedido e forma de pagamento/retirada.' }
     ],
-    passosExtras: [
-      { id: 'fae1', ordem: 1, titulo: 'Medicamentos Controlados', descricao: 'Informe que controlados exigem receita e venda presencial.' },
-      { id: 'fae2', ordem: 2, titulo: 'Orientação de Uso', descricao: 'Para dúvidas sobre uso, oriente conversar com o farmacêutico presencialmente.' }
-    ]
+    passosExtras: []
   },
 
   // ==================== ESTÉTICA ====================
@@ -4056,11 +4039,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'tc5', ordem: 5, titulo: 'Agendar Avaliação', descricao: 'Ofereça datas para avaliação presencial gratuita (ou valor, se aplicável). Confirme dados.' },
       { id: 'tc6', ordem: 6, titulo: 'Confirmação', descricao: 'Confirme agendamento, endereço e que a avaliação é sem compromisso. Agradeça.' }
     ],
-    passosExtras: [
-      { id: 'tce1', ordem: 1, titulo: 'Valores e Financiamento', descricao: 'Informe que o valor depende da análise presencial e quantidade de fios. Há opções de parcelamento.' },
-      { id: 'tce2', ordem: 2, titulo: 'Resultados e Fotos', descricao: 'Ofereça enviar fotos de antes/depois de casos reais. Reforce que cada caso é único.' },
-      { id: 'tce3', ordem: 3, titulo: 'Dúvidas sobre Procedimento', descricao: 'Esclareça dúvidas técnicas de forma simples. Para detalhes, agende com o médico.' }
-    ]
+    passosExtras: []
   },
   clinica_estetica: {
     passosCronologicos: [
@@ -4070,10 +4049,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'ce4', ordem: 4, titulo: 'Apresentação', descricao: 'Explique brevemente o procedimento indicado e benefícios.' },
       { id: 'ce5', ordem: 5, titulo: 'Agendamento', descricao: 'Ofereça avaliação presencial. Confirme dados e preferência de horário.' }
     ],
-    passosExtras: [
-      { id: 'cee1', ordem: 1, titulo: 'Contraindicações', descricao: 'Oriente que contraindicações são avaliadas presencialmente pelo profissional.' },
-      { id: 'cee2', ordem: 2, titulo: 'Valores', descricao: 'Valores dependem da avaliação e área a ser tratada.' }
-    ]
+    passosExtras: []
   },
   salao_beleza: {
     passosCronologicos: [
@@ -4083,9 +4059,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'sb4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários disponíveis e confirme.' },
       { id: 'sb5', ordem: 5, titulo: 'Confirmação', descricao: 'Confirme data, horário, serviço e profissional.' }
     ],
-    passosExtras: [
-      { id: 'sbe1', ordem: 1, titulo: 'Preços', descricao: 'Informe valores dos serviços ou tabela de preços.' }
-    ]
+    passosExtras: []
   },
   barbearia: {
     passosCronologicos: [
@@ -4095,9 +4069,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'ba4', ordem: 4, titulo: 'Horário', descricao: 'Ofereça horários disponíveis. Confirme agendamento.' },
       { id: 'ba5', ordem: 5, titulo: 'Confirmação', descricao: 'Confirme data, horário e serviço. Informe endereço.' }
     ],
-    passosExtras: [
-      { id: 'bae1', ordem: 1, titulo: 'Encaixe', descricao: 'Verifique possibilidade de encaixe se cliente tiver urgência.' }
-    ]
+    passosExtras: []
   },
   spa: {
     passosCronologicos: [
@@ -4107,9 +4079,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'sp4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça datas e horários. Confirme dados.' },
       { id: 'sp5', ordem: 5, titulo: 'Preparação', descricao: 'Oriente sobre o que levar e como se preparar.' }
     ],
-    passosExtras: [
-      { id: 'spe1', ordem: 1, titulo: 'Pacotes Especiais', descricao: 'Informe sobre pacotes para casais, aniversário ou grupos.' }
-    ]
+    passosExtras: []
   },
   micropigmentacao: {
     passosCronologicos: [
@@ -4119,9 +4089,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'mp4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça datas para avaliação ou procedimento.' },
       { id: 'mp5', ordem: 5, titulo: 'Orientações', descricao: 'Informe cuidados pré e pós procedimento.' }
     ],
-    passosExtras: [
-      { id: 'mpe1', ordem: 1, titulo: 'Durabilidade', descricao: 'Explique sobre duração e necessidade de retoque.' }
-    ]
+    passosExtras: []
   },
   depilacao: {
     passosCronologicos: [
@@ -4131,9 +4099,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'dp4', ordem: 4, titulo: 'Agendamento', descricao: 'Ofereça horários e confirme.' },
       { id: 'dp5', ordem: 5, titulo: 'Preparação', descricao: 'Oriente sobre cuidados antes da sessão.' }
     ],
-    passosExtras: [
-      { id: 'dpe1', ordem: 1, titulo: 'Quantidade de Sessões', descricao: 'Informe média de sessões necessárias.' }
-    ]
+    passosExtras: []
   },
 
   // ==================== VENDAS ====================
@@ -4145,9 +4111,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'ph4', ordem: 4, titulo: 'Cotação', descricao: 'Passe cotação e condições de pagamento.' },
       { id: 'ph5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme pedido e prazo de entrega.' }
     ],
-    passosExtras: [
-      { id: 'phe1', ordem: 1, titulo: 'Documentação', descricao: 'Informe documentos necessários para venda.' }
-    ]
+    passosExtras: []
   },
   celulares_eletronicos: {
     passosCronologicos: [
@@ -4157,10 +4121,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'cel4', ordem: 4, titulo: 'Opções', descricao: 'Apresente opções que atendam a necessidade.' },
       { id: 'cel5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme produto, preço e forma de pagamento/entrega.' }
     ],
-    passosExtras: [
-      { id: 'cele1', ordem: 1, titulo: 'Garantia', descricao: 'Explique a garantia e assistência técnica.' },
-      { id: 'cele2', ordem: 2, titulo: 'Comparativo', descricao: 'Compare modelos quando solicitado.' }
-    ]
+    passosExtras: []
   },
   roupas_moda: {
     passosCronologicos: [
@@ -4170,9 +4131,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'rm4', ordem: 4, titulo: 'Sugestões', descricao: 'Envie fotos de peças e sugira looks.' },
       { id: 'rm5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme itens, tamanhos e forma de pagamento/entrega.' }
     ],
-    passosExtras: [
-      { id: 'rme1', ordem: 1, titulo: 'Troca', descricao: 'Explique a política de troca.' }
-    ]
+    passosExtras: []
   },
   joias_acessorios: {
     passosCronologicos: [
@@ -4182,9 +4141,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'ja4', ordem: 4, titulo: 'Apresentação', descricao: 'Envie fotos das peças adequadas ao perfil.' },
       { id: 'ja5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme peça, gravação (se houver) e embalagem.' }
     ],
-    passosExtras: [
-      { id: 'jae1', ordem: 1, titulo: 'Certificado', descricao: 'Explique sobre certificado de autenticidade.' }
-    ]
+    passosExtras: []
   },
   cosmeticos: {
     passosCronologicos: [
@@ -4194,9 +4151,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'cos4', ordem: 4, titulo: 'Recomendações', descricao: 'Sugira produtos adequados ao perfil.' },
       { id: 'cos5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme produtos e forma de entrega.' }
     ],
-    passosExtras: [
-      { id: 'cose1', ordem: 1, titulo: 'Alergias', descricao: 'Oriente teste de sensibilidade para peles sensíveis.' }
-    ]
+    passosExtras: []
   },
   suplementos: {
     passosCronologicos: [
@@ -4206,9 +4161,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'sup4', ordem: 4, titulo: 'Sugestões', descricao: 'Sugira suplementos adequados ao objetivo.' },
       { id: 'sup5', ordem: 5, titulo: 'Fechamento', descricao: 'Confirme produtos e forma de entrega.' }
     ],
-    passosExtras: [
-      { id: 'supe1', ordem: 1, titulo: 'Modo de Uso', descricao: 'Explique modo de uso básico.' }
-    ]
+    passosExtras: []
   },
   moveis_decoracao: {
     passosCronologicos: [
@@ -4219,9 +4172,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'md5', ordem: 5, titulo: 'Sugestões', descricao: 'Envie opções que atendam ao perfil.' },
       { id: 'md6', ordem: 6, titulo: 'Fechamento', descricao: 'Confirme itens, prazo e forma de entrega.' }
     ],
-    passosExtras: [
-      { id: 'mde1', ordem: 1, titulo: 'Montagem', descricao: 'Informe sobre serviço de montagem.' }
-    ]
+    passosExtras: []
   },
 
   // ==================== IMOBILIÁRIO ====================
@@ -4234,10 +4185,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'ai5', ordem: 5, titulo: 'Visita', descricao: 'Agende visita ao imóvel de interesse.' },
       { id: 'ai6', ordem: 6, titulo: 'Acompanhamento', descricao: 'Faça follow-up após a visita.' }
     ],
-    passosExtras: [
-      { id: 'aie1', ordem: 1, titulo: 'Financiamento', descricao: 'Oriente sobre simulação de financiamento.' },
-      { id: 'aie2', ordem: 2, titulo: 'Documentação', descricao: 'Explique documentos necessários.' }
-    ]
+    passosExtras: []
   },
   imobiliaria: {
     passosCronologicos: [
@@ -4275,10 +4223,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'res3', ordem: 3, titulo: 'Reserva/Pedido', descricao: 'Colete dados necessários (data, pessoas ou pedido).' },
       { id: 'res4', ordem: 4, titulo: 'Confirmação', descricao: 'Confirme todos os detalhes e agradeça.' }
     ],
-    passosExtras: [
-      { id: 'rese1', ordem: 1, titulo: 'Cardápio', descricao: 'Envie cardápio ou link.' },
-      { id: 'rese2', ordem: 2, titulo: 'Restrições Alimentares', descricao: 'Informe que avisem na reserva.' }
-    ]
+    passosExtras: []
   },
   delivery: {
     passosCronologicos: [
@@ -4463,10 +4408,7 @@ const FLUXO_ATENDIMENTO_DEFAULTS: Record<SubnichoType, FluxoAtendimentoConfig> =
       { id: 'per4', ordem: 4, titulo: 'Apresentação', descricao: 'Apresente a solução adequada à necessidade identificada.' },
       { id: 'per5', ordem: 5, titulo: 'Fechamento', descricao: 'Conclua o atendimento: agende, venda ou encaminhe conforme necessário.' }
     ],
-    passosExtras: [
-      { id: 'pere1', ordem: 1, titulo: 'Dúvidas Gerais', descricao: 'Quando o cliente fugir do script, use sua base de conhecimento para responder e retorne ao fluxo principal.' },
-      { id: 'pere2', ordem: 2, titulo: 'Transferência', descricao: 'Se necessário, informe que vai transferir para um humano e agradeça.' }
-    ]
+    passosExtras: []
   }
 };
 
