@@ -10,6 +10,5 @@ export { StepConsultation } from './StepConsultation';
 export { StepPayment } from './StepPayment';
 export { StepImages } from './StepImages';
 export { StepSchedule } from './StepSchedule';
-export { StepCalendar } from './StepCalendar';
 export { StepPersonalization } from './StepPersonalization';
 export { StepReview } from './StepReview';

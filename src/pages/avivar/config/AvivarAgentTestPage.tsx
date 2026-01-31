@@ -224,8 +224,6 @@ export default function AvivarAgentTestPage() {
         address: config.address || null,
         city: config.city || null,
         state: config.state || null,
-        calendar_email: config.calendarEmail || null,
-        calendar_connected: config.calendarConnected,
         services: JSON.parse(JSON.stringify(config.services)),
         payment_methods: JSON.parse(JSON.stringify(config.paymentMethods)),
         consultation_type: JSON.parse(JSON.stringify(config.consultationType)),

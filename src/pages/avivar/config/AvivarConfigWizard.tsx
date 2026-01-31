@@ -19,7 +19,6 @@ import {
   StepPayment,
   StepImages,
   StepSchedule,
-  StepCalendar,
   StepPersonalization,
   StepReview
 } from './components/steps';
@@ -105,9 +104,8 @@ export default function AvivarConfigWizard() {
       case 8: return config.paymentMethods.some(m => m.enabled); // Payment
       case 9: return true; // Images (optional - only shown for relevant niches)
       case 10: return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0); // Schedule
-      case 11: return true; // Calendar (optional)
-      case 12: return true; // Personalization (optional)
-      case 13: return true; // Review
+      case 11: return true; // Personalization (optional)
+      case 12: return true; // Review
       default: return true;
     }
   };
@@ -236,15 +234,6 @@ export default function AvivarConfigWizard() {
       
       case 11:
         return (
-          <StepCalendar
-            calendarEmail={config.calendarEmail}
-            calendarConnected={config.calendarConnected}
-            onChange={(email, connected) => updateConfig({ calendarEmail: email, calendarConnected: connected })}
-          />
-        );
-      
-      case 12:
-        return (
           <StepPersonalization
             welcomeMessage={config.welcomeMessage}
             transferMessage={config.transferMessage}
@@ -256,7 +245,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 13:
+      case 12:
         return (
           <StepReview
             config={config}
@@ -277,8 +266,8 @@ export default function AvivarConfigWizard() {
   const getShowSkip = (): boolean => {
     // Step 9 (Images) - only show skip if it's visible
     if (currentStep === 9 && showBeforeAfterStep) return true;
-    // Steps 11 (Calendar) and 12 (Personalization) are always optional
-    if ([11, 12].includes(currentStep)) return true;
+    // Step 11 (Personalization) is always optional
+    if (currentStep === 11) return true;
     return false;
   };
   const showSkip = getShowSkip();
