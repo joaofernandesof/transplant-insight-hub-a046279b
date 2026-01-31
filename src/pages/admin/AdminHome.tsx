@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import { subDays } from 'date-fns';
-import { SystemAlertsWidget } from '@/components/admin/SystemAlertsWidget';
 import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
 
 interface SystemStats {
@@ -248,9 +247,6 @@ export default function AdminHome() {
           </div>
         </div>
       </div>
-
-      {/* Alertas do Sistema */}
-      <SystemAlertsWidget />
 
       {/* Gráficos de Tendência */}
       <AdminTrendCharts />
