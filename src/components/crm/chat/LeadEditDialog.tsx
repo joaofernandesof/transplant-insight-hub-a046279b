@@ -25,11 +25,11 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '@/hooks/useLeads';
 
-// Schema de validação
+// Schema de validação - DDI (2) + DDD (2) + Número (8) = 12 dígitos
 const leadEditSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100),
   phone: z.string()
-    .regex(/^\+?\d{10,15}$/, 'Telefone deve ter entre 10 e 15 dígitos (com DDI)')
+    .regex(/^\d{12}$/, 'Telefone deve ter exatamente 12 dígitos (DDI 2 + DDD 2 + Número 8)')
     .optional()
     .or(z.literal('')),
   email: z.string().email('Email inválido').max(255).optional().or(z.literal('')),
@@ -52,28 +52,34 @@ interface LeadEditDialogProps {
   onSaved?: () => void;
 }
 
-// Formatar telefone para exibição (DDI+DDD+Número)
+// Formatar telefone para exibição (DDI 2 + DDD 2 + Número 8)
 function formatPhoneDisplay(phone: string): string {
   const cleaned = phone.replace(/\D/g, '');
   
-  // Brasil: +55 (XX) XXXXX-XXXX
-  if (cleaned.startsWith('55') && cleaned.length >= 12) {
+  // Formato: +XX (XX) XXXX-XXXX (12 dígitos)
+  if (cleaned.length === 12) {
+    const ddi = cleaned.slice(0, 2);
     const ddd = cleaned.slice(2, 4);
-    const rest = cleaned.slice(4);
-    if (rest.length === 9) {
-      return `+55 (${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
-    }
-    if (rest.length === 8) {
-      return `+55 (${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
-    }
+    const num = cleaned.slice(4);
+    return `+${ddi} (${ddd}) ${num.slice(0, 4)}-${num.slice(4)}`;
   }
   
-  // Outros: +XX XXXXXXXXXX
-  if (cleaned.length >= 10) {
-    return `+${cleaned}`;
+  // Formato parcial durante digitação
+  if (cleaned.length >= 4) {
+    const ddi = cleaned.slice(0, 2);
+    const ddd = cleaned.slice(2, 4);
+    const num = cleaned.slice(4);
+    if (num.length > 0) {
+      return `+${ddi} (${ddd}) ${num}`;
+    }
+    return `+${ddi} (${ddd})`;
   }
   
-  return phone;
+  if (cleaned.length >= 2) {
+    return `+${cleaned.slice(0, 2)} ${cleaned.slice(2)}`;
+  }
+  
+  return cleaned ? `+${cleaned}` : '';
 }
 
 export function LeadEditDialog({ lead, open, onOpenChange, onSaved }: LeadEditDialogProps) {
@@ -154,9 +160,9 @@ export function LeadEditDialog({ lead, open, onOpenChange, onSaved }: LeadEditDi
     });
   };
 
-  // Handler para permitir apenas números no telefone (DDI+DDD+Número)
+  // Handler para permitir apenas números no telefone (DDI 2 + DDD 2 + Número 8 = 12 dígitos)
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 15);
+    const value = e.target.value.replace(/\D/g, '').slice(0, 12);
     form.setValue('phone', value);
   };
 
@@ -189,20 +195,20 @@ export function LeadEditDialog({ lead, open, onOpenChange, onSaved }: LeadEditDi
                 )}
               </div>
 
-              {/* Telefone Único (DDI+DDD+Número) */}
+              {/* Telefone (DDI 2 + DDD 2 + Número 8 = 12 dígitos) */}
               <div className="space-y-2">
                 <Label className="text-[hsl(var(--avivar-foreground))]">
-                  Telefone (DDI + DDD + Número)
+                  Telefone (12 dígitos: DDI + DDD + Número)
                 </Label>
                 <Input
                   value={phoneValue}
                   onChange={handlePhoneChange}
-                  placeholder="5511999998888"
-                  maxLength={15}
+                  placeholder="558599157299"
+                  maxLength={12}
                   className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] font-mono"
                 />
                 <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                  {phoneValue ? formatPhoneDisplay(phoneValue) : 'Ex: 5511999998888 (Brasil)'}
+                  {phoneValue ? formatPhoneDisplay(phoneValue) : 'Formato: 55 (DDI) + 85 (DDD) + 99157299 (8 dígitos)'}
                 </p>
                 {form.formState.errors.phone && (
                   <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>
