@@ -123,6 +123,7 @@ export interface PaymentMethod {
 export interface ConsultationType {
   presencial: boolean;
   online: boolean;
+  domicilio: boolean;
 }
 
 export interface SubnichoOption {
@@ -380,7 +381,7 @@ export const INITIAL_CONFIG: AgentConfig = {
   attendantName: '',
   services: [...TRANSPLANTE_SERVICES],
   paymentMethods: [...PAYMENT_METHODS],
-  consultationType: { presencial: true, online: false },
+  consultationType: { presencial: true, online: false, domicilio: false },
   beforeAfterImages: [],
   schedule: DEFAULT_WEEK_SCHEDULE,
   calendarEmail: '',

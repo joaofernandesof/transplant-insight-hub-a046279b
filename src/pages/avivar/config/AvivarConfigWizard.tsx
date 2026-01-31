@@ -68,7 +68,7 @@ export default function AvivarConfigWizard() {
       case 4: return !!config.companyName && !!config.address && !!config.city && !!config.state; // Clinic
       case 5: return !!config.attendantName && config.attendantName.length >= 2; // Attendant
       case 6: return config.services.some(s => s.enabled); // Services
-      case 7: return config.consultationType.presencial || config.consultationType.online; // Consultation
+      case 7: return config.consultationType.presencial || config.consultationType.online || config.consultationType.domicilio; // Consultation
       case 8: return config.paymentMethods.some(m => m.enabled); // Payment
       case 9: return true; // Images (optional)
       case 10: return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0); // Schedule
@@ -172,6 +172,8 @@ export default function AvivarConfigWizard() {
             city={config.city}
             state={config.state}
             onChange={(type: ConsultationType) => updateConfig({ consultationType: type })}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
           />
         );
       

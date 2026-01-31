@@ -882,6 +882,159 @@ export function getNichoTerminology(nicho: NichoType | null): {
   }
 }
 
+// ============= CONFIGURAÇÕES DE TIPO DE ATENDIMENTO =============
+
+export interface ConsultationFieldConfig {
+  stepTitle: string;
+  stepSubtitle: string;
+  presencialLabel: string;
+  presencialDescription: string;
+  onlineLabel: string;
+  onlineDescription: string;
+  domicilioLabel: string;
+  domicilioDescription: string;
+  showDomicilio: boolean;
+  showOnline: boolean;
+  locationLabel: string;
+}
+
+export const CONSULTATION_FIELDS: Record<NichoType, ConsultationFieldConfig> = {
+  saude: {
+    stepTitle: 'Como você atende seus pacientes?',
+    stepSubtitle: 'Você pode oferecer várias modalidades',
+    presencialLabel: 'Consulta Presencial',
+    presencialDescription: 'Pacientes vão até sua clínica',
+    onlineLabel: 'Teleconsulta',
+    onlineDescription: 'Atenda pacientes de qualquer lugar',
+    domicilioLabel: 'Atendimento Domiciliar',
+    domicilioDescription: 'Você vai até a casa do paciente',
+    showDomicilio: true,
+    showOnline: true,
+    locationLabel: 'Local',
+  },
+  estetica: {
+    stepTitle: 'Como você atende seus clientes?',
+    stepSubtitle: 'Você pode oferecer várias modalidades',
+    presencialLabel: 'Atendimento Presencial',
+    presencialDescription: 'Clientes vão até seu estabelecimento',
+    onlineLabel: 'Consultoria Online',
+    onlineDescription: 'Orientações e avaliações virtuais',
+    domicilioLabel: 'Atendimento a Domicílio',
+    domicilioDescription: 'Você vai até a casa do cliente',
+    showDomicilio: true,
+    showOnline: true,
+    locationLabel: 'Local',
+  },
+  vendas: {
+    stepTitle: 'Como você atende seus clientes?',
+    stepSubtitle: 'Selecione os canais de atendimento',
+    presencialLabel: 'Loja Física',
+    presencialDescription: 'Clientes visitam sua loja',
+    onlineLabel: 'Vendas Online',
+    onlineDescription: 'Atendimento por chat, WhatsApp ou e-commerce',
+    domicilioLabel: 'Entrega/Visita',
+    domicilioDescription: 'Você leva os produtos até o cliente',
+    showDomicilio: true,
+    showOnline: true,
+    locationLabel: 'Endereço',
+  },
+  imobiliario: {
+    stepTitle: 'Como você atende seus clientes?',
+    stepSubtitle: 'Selecione as modalidades de atendimento',
+    presencialLabel: 'Atendimento no Escritório',
+    presencialDescription: 'Clientes vão até sua imobiliária',
+    onlineLabel: 'Atendimento Online',
+    onlineDescription: 'Reuniões virtuais e tour 360°',
+    domicilioLabel: 'Visita ao Imóvel',
+    domicilioDescription: 'Você acompanha o cliente na visita',
+    showDomicilio: true,
+    showOnline: true,
+    locationLabel: 'Escritório',
+  },
+  alimentacao: {
+    stepTitle: 'Como você atende seus clientes?',
+    stepSubtitle: 'Selecione as modalidades de atendimento',
+    presencialLabel: 'Atendimento no Local',
+    presencialDescription: 'Clientes consomem no estabelecimento',
+    onlineLabel: 'Pedidos Online',
+    onlineDescription: 'Pedidos por app, WhatsApp ou site',
+    domicilioLabel: 'Delivery',
+    domicilioDescription: 'Entrega na casa do cliente',
+    showDomicilio: true,
+    showOnline: true,
+    locationLabel: 'Endereço',
+  },
+  servicos: {
+    stepTitle: 'Como você atende seus clientes?',
+    stepSubtitle: 'Selecione as modalidades de atendimento',
+    presencialLabel: 'Atendimento Presencial',
+    presencialDescription: 'Clientes vão até seu escritório',
+    onlineLabel: 'Atendimento Online',
+    onlineDescription: 'Reuniões virtuais e chamadas de vídeo',
+    domicilioLabel: 'Atendimento Externo',
+    domicilioDescription: 'Você vai até o cliente',
+    showDomicilio: true,
+    showOnline: true,
+    locationLabel: 'Escritório',
+  },
+  outros: {
+    stepTitle: 'Como você atende seus clientes?',
+    stepSubtitle: 'Selecione as modalidades de atendimento',
+    presencialLabel: 'Atendimento Presencial',
+    presencialDescription: 'Clientes vão até você',
+    onlineLabel: 'Atendimento Online',
+    onlineDescription: 'Atendimento remoto',
+    domicilioLabel: 'Atendimento a Domicílio',
+    domicilioDescription: 'Você vai até o cliente',
+    showDomicilio: true,
+    showOnline: true,
+    locationLabel: 'Local',
+  },
+};
+
+// Configurações específicas por subnicho (override do nicho para atendimento)
+export const SUBNICHO_CONSULTATION_OVERRIDES: Partial<Record<SubnichoType, Partial<ConsultationFieldConfig>>> = {
+  // Saúde
+  laboratorio: { showDomicilio: true, domicilioLabel: 'Coleta Domiciliar', domicilioDescription: 'Coleta de exames em casa' },
+  farmacia: { showDomicilio: true, domicilioLabel: 'Entrega em Domicílio', domicilioDescription: 'Entrega de medicamentos' },
+  fisioterapia: { domicilioLabel: 'Fisioterapia Domiciliar', domicilioDescription: 'Sessões na casa do paciente' },
+  
+  // Estética
+  salao_beleza: { showOnline: false, domicilioLabel: 'Atendimento a Domicílio', domicilioDescription: 'Serviços na casa da cliente' },
+  barbearia: { showOnline: false, domicilioLabel: 'Atendimento a Domicílio', domicilioDescription: 'Corte na casa do cliente' },
+  micropigmentacao: { showOnline: false },
+  depilacao: { showOnline: false },
+  
+  // Vendas
+  celulares_eletronicos: { showDomicilio: false },
+  roupas_moda: { showDomicilio: false },
+  joias_acessorios: { showDomicilio: false },
+  
+  // Alimentação
+  restaurante: { domicilioLabel: 'Delivery', domicilioDescription: 'Entrega de refeições' },
+  pizzaria: { domicilioLabel: 'Delivery', domicilioDescription: 'Entrega de pizzas' },
+  lanchonete: { domicilioLabel: 'Delivery', domicilioDescription: 'Entrega de lanches' },
+  cafeteria: { showDomicilio: false },
+  food_truck: { showDomicilio: false, presencialLabel: 'Atendimento no Truck', presencialDescription: 'Clientes vão até o food truck' },
+  confeitaria: { domicilioLabel: 'Entrega de Encomendas', domicilioDescription: 'Entrega de bolos e doces' },
+  
+  // Serviços
+  advocacia: { domicilioLabel: 'Atendimento Externo', domicilioDescription: 'Reuniões no local do cliente' },
+  contabilidade: { domicilioLabel: 'Visita ao Cliente', domicilioDescription: 'Reuniões no escritório do cliente' },
+  academia_personal: { showDomicilio: true, domicilioLabel: 'Treino a Domicílio', domicilioDescription: 'Treino na casa do aluno', presencialLabel: 'Treino na Academia' },
+  pet_shop_veterinario: { domicilioLabel: 'Atendimento Domiciliar', domicilioDescription: 'Consulta veterinária em casa ou busca do pet' },
+  fotografia: { domicilioLabel: 'Ensaio Externo', domicilioDescription: 'Fotos no local escolhido pelo cliente' },
+};
+
+/**
+ * Retorna a configuração de campos de atendimento para um nicho/subnicho
+ */
+export function getConsultationFieldConfig(nicho: NichoType | null, subnicho: SubnichoType | null): ConsultationFieldConfig {
+  const baseConfig = CONSULTATION_FIELDS[nicho || 'outros'];
+  const override = subnicho ? SUBNICHO_CONSULTATION_OVERRIDES[subnicho] : undefined;
+  return { ...baseConfig, ...override };
+}
+
 // ============= PROMPT TEMPLATES POR NICHO =============
 
 export interface PromptTemplate {
