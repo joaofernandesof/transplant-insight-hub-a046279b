@@ -27,6 +27,7 @@ export interface CrmConversation {
   last_message_at: string | null;
   unread_count: number;
   assigned_to: string | null;
+  ai_enabled: boolean;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -227,6 +228,24 @@ export function useCrmConversations(conversationId?: string) {
     },
   });
 
+  // Toggle AI for a conversation
+  const toggleAI = useMutation({
+    mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
+      const { error } = await supabase
+        .from('crm_conversations')
+        .update({ ai_enabled: enabled })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['crm-conversations'] });
+    },
+    onError: () => {
+      toast.error('Erro ao alterar configuração de IA');
+    },
+  });
+
   // Stats
   const openConversations = conversations.filter(c => c.status === 'open');
   const pendingConversations = conversations.filter(c => c.status === 'pending');
@@ -243,5 +262,6 @@ export function useCrmConversations(conversationId?: string) {
     createConversation,
     sendMessage,
     updateConversationStatus,
+    toggleAI,
   };
 }

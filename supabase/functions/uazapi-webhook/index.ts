@@ -573,11 +573,45 @@ serve(async (req) => {
                       : (msg.pushName || null),
                   });
 
-                if (crmMessageError) {
+              if (crmMessageError) {
                   console.error("[UazAPI Webhook] Error inserting crm_message:", crmMessageError);
                 } else {
                   syncedToInbox = true;
                   console.log(`[UazAPI Webhook] ✅ Message stored in crm_messages: ${msg.key.id}`);
+
+                  // 🤖 Trigger AI Agent for inbound messages
+                  if (!msg.key.fromMe && content) {
+                    try {
+                      console.log(`[UazAPI Webhook] Triggering AI Agent for conversation ${crmConversationId}`);
+                      
+                      // Call AI agent asynchronously (fire and forget)
+                      fetch(`${supabaseUrl}/functions/v1/avivar-ai-agent`, {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${supabaseServiceKey}`,
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          conversationId: crmConversationId,
+                          messageContent: content,
+                          leadPhone: phone,
+                          leadName: msg.pushName || null,
+                          userId,
+                        }),
+                      }).then(async (aiResponse) => {
+                        const aiResult = await aiResponse.json();
+                        if (aiResult.success) {
+                          console.log(`[UazAPI Webhook] 🤖 AI Agent responded successfully`);
+                        } else {
+                          console.log(`[UazAPI Webhook] AI Agent skipped: ${aiResult.error}`);
+                        }
+                      }).catch((aiError) => {
+                        console.error("[UazAPI Webhook] AI Agent error:", aiError);
+                      });
+                    } catch (aiTriggerError) {
+                      console.error("[UazAPI Webhook] Error triggering AI Agent:", aiTriggerError);
+                    }
+                  }
                 }
               }
             }

@@ -2101,6 +2101,7 @@ export type Database = {
       }
       crm_conversations: {
         Row: {
+          ai_enabled: boolean
           assigned_to: string | null
           channel: string
           created_at: string
@@ -2112,6 +2113,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_enabled?: boolean
           assigned_to?: string | null
           channel?: string
           created_at?: string
@@ -2123,6 +2125,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_enabled?: boolean
           assigned_to?: string | null
           channel?: string
           created_at?: string
@@ -2151,6 +2154,7 @@ export type Database = {
           delivered_at: string | null
           direction: string
           id: string
+          is_ai_generated: boolean
           media_type: string | null
           media_url: string | null
           read_at: string | null
@@ -2164,6 +2168,7 @@ export type Database = {
           delivered_at?: string | null
           direction: string
           id?: string
+          is_ai_generated?: boolean
           media_type?: string | null
           media_url?: string | null
           read_at?: string | null
@@ -2177,6 +2182,7 @@ export type Database = {
           delivered_at?: string | null
           direction?: string
           id?: string
+          is_ai_generated?: boolean
           media_type?: string | null
           media_url?: string | null
           read_at?: string | null

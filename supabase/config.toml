@@ -60,3 +60,6 @@ verify_jwt = false
 
 [functions.avivar-send-message]
 verify_jwt = false
+
+[functions.avivar-ai-agent]
+verify_jwt = false
