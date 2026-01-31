@@ -2,16 +2,17 @@
  * Etapa 12: Identidade e Objetivo da IA
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TomVoz, SubnichoType, NichoType } from '../../types';
 import { getAIPersonaConfig } from '../../nichoConfig';
-import { RefreshCw, Bot, Target, Volume2, Clock, Sparkles } from 'lucide-react';
+import { RefreshCw, Bot, Target, Volume2, Clock, Sparkles, Expand } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StepPersonalizationProps {
@@ -26,6 +27,8 @@ interface StepPersonalizationProps {
   onChange: (field: string, value: string | number) => void;
 }
 
+type ExpandedField = 'identity' | 'objective' | null;
+
 export function StepPersonalization({
   aiIdentity,
   aiObjective,
@@ -39,6 +42,8 @@ export function StepPersonalization({
 }: StepPersonalizationProps) {
   const lastSubnichoRef = useRef<SubnichoType | null>(null);
   const hasInitializedRef = useRef(false);
+  const [expandedField, setExpandedField] = useState<ExpandedField>(null);
+  const [tempValue, setTempValue] = useState('');
 
   // Preenche automaticamente baseado no subnicho
   useEffect(() => {
@@ -79,6 +84,39 @@ export function StepPersonalization({
   const resetObjective = () => {
     const personaConfig = getAIPersonaConfig(subnicho);
     onChange('aiObjective', personaConfig.objective);
+  };
+
+  const openExpandedEditor = (field: ExpandedField) => {
+    if (field === 'identity') {
+      setTempValue(aiIdentity);
+    } else if (field === 'objective') {
+      setTempValue(aiObjective);
+    }
+    setExpandedField(field);
+  };
+
+  const saveAndClose = () => {
+    if (expandedField === 'identity') {
+      onChange('aiIdentity', tempValue);
+    } else if (expandedField === 'objective') {
+      onChange('aiObjective', tempValue);
+    }
+    setExpandedField(null);
+    setTempValue('');
+  };
+
+  const getDialogTitle = () => {
+    if (expandedField === 'identity') {
+      return 'Identidade da IA';
+    }
+    return 'Objetivo Principal';
+  };
+
+  const getDialogDescription = () => {
+    if (expandedField === 'identity') {
+      return `Descreva quem é ${attendantName || 'a assistente'} e como ela se comporta`;
+    }
+    return `Defina o que ${attendantName || 'ela'} deve fazer no atendimento`;
   };
 
   return (
@@ -122,14 +160,25 @@ export function StepPersonalization({
             </div>
           </div>
           <CardContent className="p-4">
-            <Textarea
-              id="identity"
-              value={aiIdentity}
-              onChange={(e) => onChange('aiIdentity', e.target.value)}
-              rows={4}
-              placeholder="Descreva quem é a assistente virtual, suas especialidades e como ela se comporta..."
-              className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
-            />
+            <div className="relative">
+              <Textarea
+                id="identity"
+                value={aiIdentity}
+                onChange={(e) => onChange('aiIdentity', e.target.value)}
+                rows={4}
+                placeholder="Descreva quem é a assistente virtual, suas especialidades e como ela se comporta..."
+                className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none pr-10"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openExpandedEditor('identity')}
+                className="absolute bottom-2 right-2 h-7 w-7 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+                title="Expandir editor"
+              >
+                <Expand className="h-4 w-4" />
+              </Button>
+            </div>
             <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-2">
               💡 Exemplo: "Sou especialista em transplante capilar, ajudo pessoas a recuperarem seus cabelos..."
             </p>
@@ -165,14 +214,25 @@ export function StepPersonalization({
             </div>
           </div>
           <CardContent className="p-4">
-            <Textarea
-              id="objective"
-              value={aiObjective}
-              onChange={(e) => onChange('aiObjective', e.target.value)}
-              rows={4}
-              placeholder="Descreva o objetivo principal da assistente no atendimento..."
-              className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
-            />
+            <div className="relative">
+              <Textarea
+                id="objective"
+                value={aiObjective}
+                onChange={(e) => onChange('aiObjective', e.target.value)}
+                rows={4}
+                placeholder="Descreva o objetivo principal da assistente no atendimento..."
+                className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none pr-10"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openExpandedEditor('objective')}
+                className="absolute bottom-2 right-2 h-7 w-7 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+                title="Expandir editor"
+              >
+                <Expand className="h-4 w-4" />
+              </Button>
+            </div>
             <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-2">
               💡 Exemplo: "Qualificar interessados, responder dúvidas e agendar avaliações."
             </p>
@@ -264,6 +324,55 @@ export function StepPersonalization({
           </CardContent>
         </Card>
       </div>
+
+      {/* Expanded Editor Dialog */}
+      <Dialog open={expandedField !== null} onOpenChange={(open) => !open && setExpandedField(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[hsl(var(--avivar-foreground))]">
+              {expandedField === 'identity' ? (
+                <Bot className="h-5 w-5 text-purple-500" />
+              ) : (
+                <Target className="h-5 w-5 text-blue-500" />
+              )}
+              {getDialogTitle()}
+            </DialogTitle>
+            <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+              {getDialogDescription()}
+            </p>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <Textarea
+              value={tempValue}
+              onChange={(e) => setTempValue(e.target.value)}
+              rows={12}
+              placeholder={
+                expandedField === 'identity' 
+                  ? "Descreva quem é a assistente virtual, suas especialidades e como ela se comporta..."
+                  : "Descreva o objetivo principal da assistente no atendimento..."
+              }
+              className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))] resize-none"
+            />
+            
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setExpandedField(null)}
+                className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={saveAndClose}
+                className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+              >
+                Salvar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
