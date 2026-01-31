@@ -8,5 +8,5 @@ export { default as AvivarSettings } from './AvivarSettings';
 export { default as AvivarFollowUp } from './AvivarFollowUp';
 export { default as AvivarCatalog } from './AvivarCatalog';
 export { default as AvivarProductivity } from './AvivarProductivity';
-export { default as AvivarIntegrations } from './AvivarIntegrations';
+export { default as AvivarAgenda } from './AvivarAgenda';
 export { AvivarSidebar } from './AvivarSidebar';
