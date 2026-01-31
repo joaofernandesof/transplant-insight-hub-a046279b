@@ -32,7 +32,7 @@ import {
   WeekSchedule, 
   TomVoz 
 } from './types';
-import { getProfessionalFieldConfig } from './nichoConfig';
+import { getProfessionalFieldConfig, shouldShowBeforeAfterStep } from './nichoConfig';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -42,8 +42,8 @@ export default function AvivarConfigWizard() {
     config,
     updateConfig,
     currentStep,
-    nextStep,
-    prevStep,
+    nextStep: baseNextStep,
+    prevStep: basePrevStep,
     setCurrentStep,
     progress,
     totalSteps,
@@ -52,6 +52,39 @@ export default function AvivarConfigWizard() {
 
   // Get field config to check if registration is required
   const professionalFieldConfig = getProfessionalFieldConfig(config.nicho, config.subnicho);
+  
+  // Check if before/after step should be shown
+  const showBeforeAfterStep = shouldShowBeforeAfterStep(config.nicho, config.subnicho);
+  
+  // Lista de etapas que devem ser puladas
+  const isStepSkipped = (step: number): boolean => {
+    // Etapa 9 (índice 9) é a de fotos antes/depois
+    if (step === 9 && !showBeforeAfterStep) {
+      return true;
+    }
+    return false;
+  };
+
+  // Navegação inteligente que pula etapas não aplicáveis
+  const nextStep = () => {
+    let next = currentStep + 1;
+    while (next < totalSteps && isStepSkipped(next)) {
+      next++;
+    }
+    if (next < totalSteps) {
+      setCurrentStep(next);
+    }
+  };
+
+  const prevStep = () => {
+    let prev = currentStep - 1;
+    while (prev >= 0 && isStepSkipped(prev)) {
+      prev--;
+    }
+    if (prev >= 0) {
+      setCurrentStep(prev);
+    }
+  };
 
   // Step validation
   const canProceed = (): boolean => {
@@ -70,7 +103,7 @@ export default function AvivarConfigWizard() {
       case 6: return config.services.some(s => s.enabled); // Services
       case 7: return config.consultationType.presencial || config.consultationType.online || config.consultationType.domicilio; // Consultation
       case 8: return config.paymentMethods.some(m => m.enabled); // Payment
-      case 9: return true; // Images (optional)
+      case 9: return true; // Images (optional - only shown for relevant niches)
       case 10: return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0); // Schedule
       case 11: return true; // Calendar (optional)
       case 12: return true; // Personalization (optional)
@@ -239,7 +272,16 @@ export default function AvivarConfigWizard() {
 
   const isWelcomeStep = currentStep === 0;
   const isReviewStep = currentStep === totalSteps - 1;
-  const showSkip = [9, 11, 12].includes(currentStep); // Optional steps
+  
+  // Optional steps that can be skipped (adjusting for hidden steps)
+  const getShowSkip = (): boolean => {
+    // Step 9 (Images) - only show skip if it's visible
+    if (currentStep === 9 && showBeforeAfterStep) return true;
+    // Steps 11 (Calendar) and 12 (Personalization) are always optional
+    if ([11, 12].includes(currentStep)) return true;
+    return false;
+  };
+  const showSkip = getShowSkip();
 
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">

@@ -1035,6 +1035,51 @@ export function getConsultationFieldConfig(nicho: NichoType | null, subnicho: Su
   return { ...baseConfig, ...override };
 }
 
+// ============= CONFIGURAÇÃO DE ETAPAS POR NICHO =============
+
+/**
+ * Define quais nichos/subnichos devem mostrar a etapa de fotos antes/depois
+ * Por padrão, apenas saúde e estética fazem sentido para esse tipo de conteúdo
+ */
+export const NICHOS_WITH_BEFORE_AFTER: NichoType[] = ['saude', 'estetica'];
+
+/**
+ * Subnichos específicos que NÃO devem mostrar antes/depois mesmo sendo de saúde/estética
+ */
+export const SUBNICHOS_WITHOUT_BEFORE_AFTER: SubnichoType[] = [
+  'farmacia',
+  'laboratorio',
+];
+
+/**
+ * Subnichos de outros nichos que DEVEM mostrar antes/depois (exceções)
+ */
+export const SUBNICHOS_WITH_BEFORE_AFTER: SubnichoType[] = [
+  'academia_personal', // Personal trainers podem mostrar transformações de clientes
+];
+
+/**
+ * Verifica se o nicho/subnicho deve exibir a etapa de fotos antes/depois
+ */
+export function shouldShowBeforeAfterStep(nicho: NichoType | null, subnicho: SubnichoType | null): boolean {
+  // Se tem um subnicho específico que deve mostrar, retorna true
+  if (subnicho && SUBNICHOS_WITH_BEFORE_AFTER.includes(subnicho)) {
+    return true;
+  }
+  
+  // Se tem um subnicho específico que não deve mostrar, retorna false
+  if (subnicho && SUBNICHOS_WITHOUT_BEFORE_AFTER.includes(subnicho)) {
+    return false;
+  }
+  
+  // Caso contrário, verifica se o nicho está na lista de nichos que mostram
+  if (nicho && NICHOS_WITH_BEFORE_AFTER.includes(nicho)) {
+    return true;
+  }
+  
+  return false;
+}
+
 // ============= PROMPT TEMPLATES POR NICHO =============
 
 export interface PromptTemplate {
