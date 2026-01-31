@@ -168,32 +168,51 @@ export function useUazApiIntegration() {
     }
   };
 
-  // Check instance status
-  const checkStatus = async () => {
-    if (!user?.id || !instance) return;
-
-    setIsLoading(true);
+  // Check instance status - returns true if connected
+  const checkStatus = useCallback(async (): Promise<boolean> => {
+    if (!user?.id) return false;
+    
+    // If no instance in state, try to fetch from DB first
+    let currentInstance = instance;
+    if (!currentInstance?.instance_token) {
+      const { data: fetchedInstance } = await supabase
+        .from('avivar_uazapi_instances' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (fetchedInstance) {
+        currentInstance = fetchedInstance as unknown as UazApiInstance;
+        setInstance(currentInstance);
+      }
+    }
+    
+    if (!currentInstance) return false;
 
     try {
+      console.log('Checking UazAPI status...');
       const { data, error } = await supabase.functions.invoke('avivar-uazapi/check-status', {
         method: 'POST'
       });
 
       if (error) throw error;
 
-      if (data.success) {
+      console.log('Status check response:', data);
+
+      if (data.success && data.instance) {
         setInstance(data.instance);
         
         if (data.instance?.status === 'connected') {
-          toast.success('WhatsApp conectado!');
+          console.log('WhatsApp connected successfully!');
+          return true;
         }
       }
+      return false;
     } catch (error) {
       console.error('Error checking UazAPI status:', error);
-    } finally {
-      setIsLoading(false);
+      return false;
     }
-  };
+  }, [user?.id, instance]);
 
   // Disconnect instance
   const disconnectInstance = async () => {
