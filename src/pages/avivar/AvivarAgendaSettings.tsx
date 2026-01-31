@@ -497,6 +497,7 @@ export default function AvivarAgendaSettings() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="15">15 minutos</SelectItem>
+                      <SelectItem value="20">20 minutos</SelectItem>
                       <SelectItem value="30">30 minutos</SelectItem>
                       <SelectItem value="45">45 minutos</SelectItem>
                       <SelectItem value="60">1 hora</SelectItem>
