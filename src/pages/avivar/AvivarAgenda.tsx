@@ -160,8 +160,8 @@ export default function AvivarAgenda() {
           <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
             {getHeaderTitle()}
           </h1>
-          {/* Inline agenda selector when multiple agendas exist */}
-          {agendas.length > 1 && (
+          {/* Inline agenda selector - always visible when agendas exist */}
+          {agendas.length > 0 && (
             <AgendaSelector 
               selectedAgenda={selectedAgenda} 
               onSelect={setSelectedAgenda}
