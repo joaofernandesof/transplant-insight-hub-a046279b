@@ -18,13 +18,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
@@ -32,26 +25,11 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '@/hooks/useLeads';
 
-// Países com DDI
-const countryCodes = [
-  { code: '+55', country: 'Brasil', flag: '🇧🇷' },
-  { code: '+1', country: 'EUA/Canadá', flag: '🇺🇸' },
-  { code: '+351', country: 'Portugal', flag: '🇵🇹' },
-  { code: '+34', country: 'Espanha', flag: '🇪🇸' },
-  { code: '+44', country: 'Reino Unido', flag: '🇬🇧' },
-  { code: '+49', country: 'Alemanha', flag: '🇩🇪' },
-  { code: '+33', country: 'França', flag: '🇫🇷' },
-  { code: '+39', country: 'Itália', flag: '🇮🇹' },
-  { code: '+81', country: 'Japão', flag: '🇯🇵' },
-  { code: '+86', country: 'China', flag: '🇨🇳' },
-];
-
 // Schema de validação
 const leadEditSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100),
-  countryCode: z.string().min(1, 'Selecione o DDI'),
   phone: z.string()
-    .regex(/^\d{8,11}$/, 'Telefone deve ter entre 8 e 11 dígitos numéricos')
+    .regex(/^\+?\d{10,15}$/, 'Telefone deve ter entre 10 e 15 dígitos (com DDI)')
     .optional()
     .or(z.literal('')),
   email: z.string().email('Email inválido').max(255).optional().or(z.literal('')),
@@ -74,49 +52,37 @@ interface LeadEditDialogProps {
   onSaved?: () => void;
 }
 
-// Extrair DDI do telefone
-function extractPhoneParts(phone: string | null | undefined): { countryCode: string; number: string } {
-  if (!phone) return { countryCode: '+55', number: '' };
-  
+// Formatar telefone para exibição (DDI+DDD+Número)
+function formatPhoneDisplay(phone: string): string {
   const cleaned = phone.replace(/\D/g, '');
   
-  // Tentar identificar DDI
-  for (const cc of countryCodes) {
-    const codeDigits = cc.code.replace('+', '');
-    if (cleaned.startsWith(codeDigits)) {
-      return {
-        countryCode: cc.code,
-        number: cleaned.slice(codeDigits.length),
-      };
+  // Brasil: +55 (XX) XXXXX-XXXX
+  if (cleaned.startsWith('55') && cleaned.length >= 12) {
+    const ddd = cleaned.slice(2, 4);
+    const rest = cleaned.slice(4);
+    if (rest.length === 9) {
+      return `+55 (${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
+    }
+    if (rest.length === 8) {
+      return `+55 (${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
     }
   }
   
-  // Default Brasil
-  return { countryCode: '+55', number: cleaned };
-}
-
-// Formatar telefone para exibição
-function formatPhoneNumber(phone: string): string {
-  const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.length === 11) {
-    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+  // Outros: +XX XXXXXXXXXX
+  if (cleaned.length >= 10) {
+    return `+${cleaned}`;
   }
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
-  }
-  return cleaned;
+  
+  return phone;
 }
 
 export function LeadEditDialog({ lead, open, onOpenChange, onSaved }: LeadEditDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
   
-  const phoneParts = extractPhoneParts(lead?.phone);
-  
   const form = useForm<LeadEditFormData>({
     resolver: zodResolver(leadEditSchema),
     defaultValues: {
       name: '',
-      countryCode: '+55',
       phone: '',
       email: '',
       source: '',
@@ -133,11 +99,11 @@ export function LeadEditDialog({ lead, open, onOpenChange, onSaved }: LeadEditDi
   // Carregar dados do lead quando abre
   useEffect(() => {
     if (lead && open) {
-      const parts = extractPhoneParts(lead.phone);
+      // Limpar telefone e garantir que tenha formato correto
+      const cleanPhone = lead.phone?.replace(/\D/g, '') || '';
       form.reset({
         name: lead.name || '',
-        countryCode: parts.countryCode,
-        phone: parts.number,
+        phone: cleanPhone,
         email: lead.email || '',
         source: lead.source || '',
         notes: lead.notes || '',
@@ -151,10 +117,8 @@ export function LeadEditDialog({ lead, open, onOpenChange, onSaved }: LeadEditDi
     
     setIsSaving(true);
     try {
-      // Montar telefone completo com DDI
-      const fullPhone = data.phone 
-        ? `${data.countryCode}${data.phone.replace(/\D/g, '')}` 
-        : lead.phone;
+      // Telefone já vem completo (DDI+DDD+Número)
+      const fullPhone = data.phone?.replace(/\D/g, '') || lead.phone;
 
       const { error } = await supabase
         .from('leads')
@@ -190,11 +154,13 @@ export function LeadEditDialog({ lead, open, onOpenChange, onSaved }: LeadEditDi
     });
   };
 
-  // Handler para permitir apenas números no telefone
+  // Handler para permitir apenas números no telefone (DDI+DDD+Número)
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 11);
+    const value = e.target.value.replace(/\D/g, '').slice(0, 15);
     form.setValue('phone', value);
   };
+
+  const phoneValue = form.watch('phone') || '';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -219,44 +185,27 @@ export function LeadEditDialog({ lead, open, onOpenChange, onSaved }: LeadEditDi
                   className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
                 />
                 {form.formState.errors.name && (
-                  <p className="text-xs text-red-400">{form.formState.errors.name.message}</p>
+                  <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
                 )}
               </div>
 
-              {/* Telefone com DDI */}
+              {/* Telefone Único (DDI+DDD+Número) */}
               <div className="space-y-2">
                 <Label className="text-[hsl(var(--avivar-foreground))]">
-                  Telefone (com DDI)
+                  Telefone (DDI + DDD + Número)
                 </Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={form.watch('countryCode')}
-                    onValueChange={(v) => form.setValue('countryCode', v)}
-                  >
-                    <SelectTrigger className="w-[130px] bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countryCodes.map((cc) => (
-                        <SelectItem key={cc.code} value={cc.code}>
-                          {cc.flag} {cc.code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    value={form.watch('phone')}
-                    onChange={handlePhoneChange}
-                    placeholder="11999998888"
-                    maxLength={11}
-                    className="flex-1 bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-                  />
-                </div>
+                <Input
+                  value={phoneValue}
+                  onChange={handlePhoneChange}
+                  placeholder="5511999998888"
+                  maxLength={15}
+                  className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] font-mono"
+                />
                 <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                  {form.watch('phone') && formatPhoneNumber(form.watch('phone'))}
+                  {phoneValue ? formatPhoneDisplay(phoneValue) : 'Ex: 5511999998888 (Brasil)'}
                 </p>
                 {form.formState.errors.phone && (
-                  <p className="text-xs text-red-400">{form.formState.errors.phone.message}</p>
+                  <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>
                 )}
               </div>
 
