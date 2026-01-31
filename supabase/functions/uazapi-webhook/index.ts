@@ -55,6 +55,7 @@ interface UazAPIMessage {
 interface UazAPIPayload {
   event: string;
   instance?: string;
+  instanceName?: string;
   data?: {
     key?: {
       remoteJid: string;
@@ -93,6 +94,7 @@ interface UazAPIPayload {
     wa_chatid?: string;
   };
   owner?: string;
+  token?: string;
 }
 
 // UazAPI native message format
@@ -215,7 +217,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Determine event type
-    const event = payload.event || "messages.upsert";
+    const event = payload.event || payload.EventType || "messages.upsert";
+
+    // Instance identifier (UazAPI uses instanceName)
+    const instanceName = payload.instanceName || payload.instance || null;
 
     // Handle different event types
     switch (event) {
@@ -307,24 +312,30 @@ serve(async (req) => {
           // For now, we'll use a default user_id - in production, you'd map this via the instance
           // or phone number to the correct user/clinic
 
-          // Get the WhatsApp session that matches this instance/phone
-          const { data: sessions, error: sessionError } = await supabase
+          // Find the WhatsApp session mapping for this UazAPI instance.
+          // IMPORTANT: We must map inbound webhook events to the correct Avivar user.
+          let sessionQuery = supabase
             .from("avivar_whatsapp_sessions")
-            .select("id, user_id, phone_number")
-            .eq("status", "connected")
-            .limit(10);
+            .select("id, user_id, phone_number, instance_id, status")
+            .limit(1);
+
+          if (instanceName) {
+            sessionQuery = sessionQuery.eq("instance_id", instanceName);
+          } else if (payload.owner) {
+            sessionQuery = sessionQuery.eq("phone_number", payload.owner);
+          }
+
+          const { data: session, error: sessionError } = await sessionQuery.maybeSingle();
 
           if (sessionError) {
-            console.error("[UazAPI Webhook] Error fetching sessions:", sessionError);
+            console.error("[UazAPI Webhook] Error fetching session mapping:", sessionError);
             continue;
           }
 
-          // Find matching session by phone number (if connected)
-          // Or use first available session for now
-          const session = sessions?.find(s => s.phone_number?.includes(phone)) || sessions?.[0];
-
           if (!session) {
-            console.log("[UazAPI Webhook] No active WhatsApp session found, skipping message");
+            console.log(
+              `[UazAPI Webhook] No WhatsApp session mapping found for instance=${instanceName ?? "(none)"} owner=${payload.owner ?? "(none)"}. Skipping message.`
+            );
             continue;
           }
 
@@ -430,7 +441,7 @@ serve(async (req) => {
 
         if (state === "open" || state === "connected") {
           // Find and update session status
-          const instance = payload.instance;
+          const instance = payload.instanceName || payload.instance;
           if (instance) {
             await supabase
               .from("avivar_whatsapp_sessions")
@@ -442,7 +453,7 @@ serve(async (req) => {
               .eq("instance_id", instance);
           }
         } else if (state === "close" || state === "disconnected") {
-          const instance = payload.instance;
+          const instance = payload.instanceName || payload.instance;
           if (instance) {
             await supabase
               .from("avivar_whatsapp_sessions")
