@@ -16,6 +16,7 @@ import {
   Bot, 
   Package, 
   Clock,
+  FileText,
   ChevronDown,
   ChevronUp,
   Sparkles,
@@ -235,6 +236,31 @@ export function StepReviewSimple({
                 variant="ghost" 
                 size="sm" 
                 onClick={() => onEdit(3)}
+                className="text-[hsl(var(--avivar-primary))]"
+              >
+                Editar
+              </Button>
+            </div>
+
+            <div className="border-t border-[hsl(var(--avivar-border))]" />
+
+            {/* Documentos */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
+                <div>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                    Base de Conhecimento
+                  </p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                    {config.knowledgeFiles?.length || 0} documento(s) adicionado(s)
+                  </p>
+                </div>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onEdit(4)}
                 className="text-[hsl(var(--avivar-primary))]"
               >
                 Editar
