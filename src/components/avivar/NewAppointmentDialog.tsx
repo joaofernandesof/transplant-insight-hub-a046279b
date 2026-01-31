@@ -97,6 +97,18 @@ export function NewAppointmentDialog({
         throw new Error("Nome e telefone são obrigatórios");
       }
 
+      // Normalize phone number for comparison (remove non-digits)
+      const normalizedPhone = formData.patient_phone.replace(/\D/g, "");
+
+      // Check if this phone already has an active appointment
+      const { data: existingAppointment } = await supabase
+        .from("avivar_appointments")
+        .select("id")
+        .eq("user_id", authUser.id)
+        .eq("status", "scheduled")
+        .or(`patient_phone.eq.${formData.patient_phone},patient_phone.eq.${normalizedPhone}`)
+        .maybeSingle();
+
       // Calculate end time (30 min duration by default)
       const [hours, minutes] = formData.start_time.split(":").map(Number);
       const endHours = minutes >= 30 ? hours + 1 : hours;
@@ -105,32 +117,60 @@ export function NewAppointmentDialog({
 
       const agendaIdToSave = formData.agenda_id || selectedAgenda?.id || null;
 
-      const { data, error } = await supabase
-        .from("avivar_appointments")
-        .insert({
-          user_id: authUser.id,
-          patient_name: formData.patient_name,
-          patient_phone: formData.patient_phone,
-          patient_email: formData.patient_email || null,
-          service_type: formData.service_type || null,
-          appointment_date: format(selectedDate, "yyyy-MM-dd"),
-          start_time: formData.start_time,
-          end_time: end_time,
-          notes: formData.notes || null,
-          agenda_id: agendaIdToSave,
-          location: formData.location || null,
-          status: "scheduled",
-          created_by: "manual",
-        })
-        .select()
-        .single();
+      if (existingAppointment) {
+        // Reschedule existing appointment instead of creating new one
+        const { data, error } = await supabase
+          .from("avivar_appointments")
+          .update({
+            patient_name: formData.patient_name,
+            patient_email: formData.patient_email || null,
+            service_type: formData.service_type || null,
+            appointment_date: format(selectedDate, "yyyy-MM-dd"),
+            start_time: formData.start_time,
+            end_time: end_time,
+            notes: formData.notes || null,
+            agenda_id: agendaIdToSave,
+            location: formData.location || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingAppointment.id)
+          .select()
+          .single();
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        return { data, rescheduled: true };
+      } else {
+        // Create new appointment
+        const { data, error } = await supabase
+          .from("avivar_appointments")
+          .insert({
+            user_id: authUser.id,
+            patient_name: formData.patient_name,
+            patient_phone: formData.patient_phone,
+            patient_email: formData.patient_email || null,
+            service_type: formData.service_type || null,
+            appointment_date: format(selectedDate, "yyyy-MM-dd"),
+            start_time: formData.start_time,
+            end_time: end_time,
+            notes: formData.notes || null,
+            agenda_id: agendaIdToSave,
+            location: formData.location || null,
+            status: "scheduled",
+            created_by: "manual",
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return { data, rescheduled: false };
+      }
     },
-    onSuccess: () => {
-      toast.success("Agendamento criado com sucesso!");
-      // Invalidate all appointment queries to ensure the calendar refreshes
+    onSuccess: (result) => {
+      if (result.rescheduled) {
+        toast.success("Agendamento reagendado com sucesso!");
+      } else {
+        toast.success("Agendamento criado com sucesso!");
+      }
       queryClient.invalidateQueries({ 
         queryKey: ["avivar-appointments"],
         refetchType: 'active'
