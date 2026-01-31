@@ -38,6 +38,11 @@ const config: CapacitorConfig = {
     App: {
       // Universal Links (iOS) e App Links (Android)
       // Configurar no Info.plist e AndroidManifest.xml
+    },
+    // Configuração de Biometria (Face ID / Touch ID)
+    NativeBiometric: {
+      // Permite fallback para senha do dispositivo
+      useFallback: true,
     }
   },
   
