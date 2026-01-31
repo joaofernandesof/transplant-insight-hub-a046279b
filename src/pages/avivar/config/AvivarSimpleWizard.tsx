@@ -17,6 +17,7 @@ import {
   StepBusinessInfo,
   StepServicesSimple,
   StepScheduleSimple,
+  StepKnowledgeSimple,
   StepReviewSimple,
 } from './components/steps/simple';
 
@@ -35,6 +36,7 @@ const SIMPLE_STEPS = [
   { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
   { id: 'services', title: 'Serviços', description: 'O que você oferece?' },
   { id: 'schedule', title: 'Horários', description: 'Quando você atende?' },
+  { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
   { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
 ];
 
@@ -123,7 +125,9 @@ export default function AvivarSimpleWizard() {
         return config.services.some(s => s.enabled);
       case 3: // Horários
         return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
-      case 4: // Review
+      case 4: // Knowledge (opcional - sempre pode prosseguir)
+        return true;
+      case 5: // Review
         return true;
       default:
         return true;
@@ -277,6 +281,14 @@ export default function AvivarSimpleWizard() {
           />
         );
       case 4:
+        return (
+          <StepKnowledgeSimple
+            knowledgeFiles={config.knowledgeFiles || []}
+            onFilesChange={(files) => updateConfig({ knowledgeFiles: files })}
+            onSkip={handleNext}
+          />
+        );
+      case 5:
         return (
           <StepReviewSimple
             config={config}

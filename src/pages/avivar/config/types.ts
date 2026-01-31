@@ -222,6 +222,7 @@ export interface AgentConfig {
 
 // Arquivo de Base de Conhecimento
 export interface KnowledgeFile {
+  id?: string;
   name: string;
   size: number;
   content: string;
