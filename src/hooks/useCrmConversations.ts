@@ -169,7 +169,7 @@ export function useCrmConversations(conversationId?: string) {
     },
   });
 
-  // Send a message
+  // Send a message via WhatsApp (UazAPI)
   const sendMessage = useMutation({
     mutationFn: async ({
       conversationId,
@@ -182,38 +182,28 @@ export function useCrmConversations(conversationId?: string) {
       mediaUrl?: string;
       mediaType?: CrmMessage['media_type'];
     }) => {
-      const { data, error } = await supabase
-        .from('crm_messages')
-        .insert({
-          conversation_id: conversationId,
-          direction: 'outbound',
+      // Call edge function to send via UazAPI
+      const { data, error } = await supabase.functions.invoke('avivar-send-message', {
+        body: {
+          conversationId,
           content,
-          media_url: mediaUrl,
-          media_type: mediaType,
-          sender_name: user?.email?.split('@')[0] || 'Operador',
-        })
-        .select()
-        .single();
+          mediaUrl,
+          mediaType,
+        },
+      });
 
       if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Falha ao enviar mensagem');
 
-      // Update conversation last_message_at
-      await supabase
-        .from('crm_conversations')
-        .update({ 
-          last_message_at: new Date().toISOString(),
-          status: 'pending',
-        })
-        .eq('id', conversationId);
-
-      return data;
+      return data.message;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['crm-messages'] });
       queryClient.invalidateQueries({ queryKey: ['crm-conversations'] });
-      toast.success('Mensagem enviada');
+      toast.success('Mensagem enviada via WhatsApp');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error sending message:', error);
       toast.error('Erro ao enviar mensagem');
     },
   });

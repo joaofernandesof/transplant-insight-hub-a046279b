@@ -57,3 +57,6 @@ verify_jwt = false
 
 [functions.uazapi-webhook]
 verify_jwt = false
+
+[functions.avivar-send-message]
+verify_jwt = false
