@@ -23,6 +23,7 @@ interface Appointment {
   id: string;
   patient_name: string;
   patient_phone: string;
+  patient_email?: string | null;
   appointment_date: string;
   start_time: string;
   end_time: string;
