@@ -175,7 +175,7 @@ export default function AvivarAgentsPage() {
           </p>
         </div>
         <Button 
-          onClick={() => navigate('/avivar/config')}
+          onClick={() => navigate('/avivar/config/new')}
           className="bg-gradient-to-r from-[hsl(270_75%_45%)] to-[hsl(280_80%_50%)] text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -197,7 +197,7 @@ export default function AvivarAgentsPage() {
               Crie seu primeiro agente de IA para automatizar o atendimento no WhatsApp
             </p>
             <Button 
-              onClick={() => navigate('/avivar/config')}
+              onClick={() => navigate('/avivar/config/new')}
               className="bg-gradient-to-r from-[hsl(270_75%_45%)] to-[hsl(280_80%_50%)] text-white"
             >
               <Sparkles className="h-4 w-4 mr-2" />
