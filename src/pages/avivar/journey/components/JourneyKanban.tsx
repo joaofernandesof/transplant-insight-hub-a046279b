@@ -34,6 +34,7 @@ import {
 } from '../hooks/usePatientJourneys';
 import { CompactJourneyCard } from './CompactJourneyCard';
 import { DroppableColumn } from './DroppableColumn';
+import { NewLeadDialog, NewLeadData } from './NewLeadDialog';
 import { Button } from '@/components/ui/button';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,7 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
   const navigate = useNavigate();
   const [activeJourney, setActiveJourney] = useState<PatientJourney | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const [showNewLeadDialog, setShowNewLeadDialog] = useState(false);
   const { journeys, isLoading, createJourney, updateJourney } = usePatientJourneys(journeyType);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -127,10 +129,20 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
     }
   };
 
-  const handleCreateLead = () => {
+  const handleCreateLead = (data: NewLeadData) => {
     createJourney.mutate({
-      patient_name: 'Novo Lead',
-      service_type: 'capilar'
+      patient_name: data.patient_name,
+      patient_phone: data.patient_phone,
+      patient_email: data.patient_email,
+      service_type: data.service_type,
+      current_stage: data.current_stage,
+      journey_type: journeyType,
+      lead_source: data.lead_source,
+      notes: data.notes,
+    }, {
+      onSuccess: () => {
+        setShowNewLeadDialog(false);
+      }
     });
   };
 
@@ -251,19 +263,26 @@ export function JourneyKanban({ journeyType, searchTerm = '', stageFilter = 'all
         })}
       </div>
 
-      {/* Add Lead Button (only for commercial) */}
-      {journeyType === 'comercial' && (
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleCreateLead} 
-            size="sm"
-            className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Novo Lead
-          </Button>
-        </div>
-      )}
+      {/* Add Lead Button */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={() => setShowNewLeadDialog(true)} 
+          size="sm"
+          className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Novo Lead
+        </Button>
+      </div>
+
+      {/* New Lead Dialog */}
+      <NewLeadDialog
+        open={showNewLeadDialog}
+        onOpenChange={setShowNewLeadDialog}
+        journeyType={journeyType}
+        onSubmit={handleCreateLead}
+        isLoading={createJourney.isPending}
+      />
 
       {/* Kanban Container with Scroll Controls */}
       <div className="relative group">

@@ -11,3 +11,4 @@ export * from './JourneyExpandedView';
 export * from './BPMNFlow';
 export * from './DraggableJourneyCard';
 export * from './DroppableColumn';
+export * from './NewLeadDialog';
