@@ -10,7 +10,6 @@ import {
   User,
   Phone,
   Mail,
-  MapPin,
   Calendar,
   Tag,
   MessageSquare,
@@ -19,6 +18,8 @@ import {
   Edit2,
   Bookmark,
   Target,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -33,9 +34,22 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { CrmConversation } from '@/hooks/useCrmConversations';
 import { LeadEditDialog } from './LeadEditDialog';
-import { Lead } from '@/hooks/useLeads';
+import { Lead, useLeads } from '@/hooks/useLeads';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface LeadDetailsSidebarProps {
   conversation: CrmConversation;
@@ -63,8 +77,26 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
   const [isFieldsOpen, setIsFieldsOpen] = useState(true);
   const [notes, setNotes] = useState('');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const { deleteLead } = useLeads();
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   const lead = conversation.lead;
+
+  const handleDeleteLead = async () => {
+    if (!lead) return;
+    
+    setIsDeleting(true);
+    const success = await deleteLead(lead.id);
+    setIsDeleting(false);
+    
+    if (success) {
+      // Navigate back to inbox after deletion
+      navigate('/avivar/inbox');
+    }
+  };
 
   if (!lead) {
     return (
@@ -124,14 +156,60 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             </Badge>
           </div>
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="shrink-0"
-            onClick={() => setIsEditDialogOpen(true)}
-          >
-            <Edit2 className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-          </Button>
+          <div className="flex gap-1 shrink-0">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setIsEditDialogOpen(true)}
+            >
+              <Edit2 className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+            </Button>
+            
+            {isAdmin && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-[hsl(var(--avivar-muted-foreground))]" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir Lead</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir <strong>{lead.name}</strong>?
+                      <br /><br />
+                      Esta ação irá excluir permanentemente:
+                      <ul className="list-disc list-inside mt-2 text-sm">
+                        <li>Todas as conversas</li>
+                        <li>Todas as mensagens</li>
+                        <li>Histórico da jornada</li>
+                        <li>Contatos vinculados</li>
+                      </ul>
+                      <br />
+                      <strong className="text-destructive">Esta ação não pode ser desfeita.</strong>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteLead}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Excluir Lead
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
       </div>
 

@@ -13352,6 +13352,7 @@ export type Database = {
         Args: { _action: string; _user_id: string }
         Returns: Json
       }
+      delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
       get_all_enrolled_user_ids: { Args: never; Returns: string[] }
       get_exam_results_with_answers: {
         Args: { p_attempt_id: string }
