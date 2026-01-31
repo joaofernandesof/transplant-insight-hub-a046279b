@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import {
   DollarSign,
   TrendingUp,
@@ -8,9 +9,13 @@ import {
   Calendar,
   Stethoscope,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Package,
+  ArrowRight
 } from "lucide-react";
 import { ModuleLayout } from "@/components/ModuleLayout";
+import { useNavigate } from "react-router-dom";
+import { useProcedureFinancialSummary, useProcedureCostSummary } from "./neoteam/procedures/hooks/useProcedureCosts";
 
 const monthlyGoals = [
   { id: 'revenue', label: 'Faturamento', current: 85000, target: 100000, unit: 'R$' },
@@ -32,8 +37,12 @@ const formatCurrency = (value: number) => {
 };
 
 export default function Financial() {
+  const navigate = useNavigate();
+  const { data: procedureSummary } = useProcedureFinancialSummary();
+  const { data: procedureCosts } = useProcedureCostSummary();
+
   const totalRevenue = 85000;
-  const totalExpenses = 32000;
+  const totalExpenses = 32000 + (procedureSummary?.month_cost || 0);
   const profit = totalRevenue - totalExpenses;
   const profitMargin = ((profit / totalRevenue) * 100).toFixed(0);
 
@@ -69,7 +78,7 @@ export default function Financial() {
                 <ArrowDownRight className="h-4 w-4 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-red-900">{formatCurrency(totalExpenses)}</p>
-              <p className="text-xs text-red-600">-5% vs mês anterior</p>
+              <p className="text-xs text-red-600">Inclui custos de procedimentos</p>
             </CardContent>
           </Card>
           
@@ -95,6 +104,65 @@ export default function Financial() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Procedure Costs Card */}
+        <Card className="mb-6 border-primary/20">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Package className="h-4 w-4 text-primary" />
+                Custos de Procedimentos
+              </CardTitle>
+              <CardDescription>Consumo de materiais e medicamentos</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate('/neoteam/procedures?tab=costs')}>
+              Ver detalhes
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-xs text-muted-foreground">Custo Mês</p>
+                <p className="text-lg font-bold text-primary">
+                  {formatCurrency(procedureSummary?.month_cost || 0)}
+                </p>
+              </div>
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-xs text-muted-foreground">Custo Médio</p>
+                <p className="text-lg font-bold">
+                  {formatCurrency(procedureSummary?.avg_cost_per_execution || 0)}
+                </p>
+              </div>
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-xs text-muted-foreground">Aplicações</p>
+                <p className="text-lg font-bold">{procedureSummary?.month_executions || 0}</p>
+              </div>
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-xs text-muted-foreground">Total Geral</p>
+                <p className="text-lg font-bold">{formatCurrency(procedureSummary?.total_cost || 0)}</p>
+              </div>
+            </div>
+
+            {/* Top Procedures */}
+            {procedureCosts && procedureCosts.length > 0 && (
+              <div className="space-y-2">
+                {procedureCosts.slice(0, 3).map((proc, i) => (
+                  <div key={proc.procedure_id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{i + 1}</Badge>
+                      <span className="text-sm font-medium">{proc.procedure_name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-primary">{formatCurrency(proc.total_cost)}</span>
+                      <span className="text-xs text-muted-foreground ml-2">({proc.total_executions}x)</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Monthly Goals */}

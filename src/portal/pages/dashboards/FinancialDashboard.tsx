@@ -3,14 +3,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { 
   DollarSign, TrendingUp, TrendingDown, Wallet, 
-  Receipt, ArrowRight, CreditCard, AlertTriangle
+  Receipt, ArrowRight, CreditCard, AlertTriangle, Package
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../../contexts/PortalAuthContext';
+import { useProcedureFinancialSummary, useProcedureCostSummary } from '@/pages/neoteam/procedures/hooks/useProcedureCosts';
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', { 
+    style: 'currency', 
+    currency: 'BRL',
+    minimumFractionDigits: 2
+  }).format(value);
+};
 
 export default function FinancialDashboard() {
   const { user } = usePortalAuth();
   const navigate = useNavigate();
+  
+  // Get procedure costs data
+  const { data: procedureSummary } = useProcedureFinancialSummary();
+  const { data: procedureCosts } = useProcedureCostSummary();
 
   const stats = [
     { label: 'Receitas (Mês)', value: 'R$ 0,00', icon: TrendingUp, color: 'text-green-500', bg: 'bg-green-500/10' },
@@ -55,6 +68,70 @@ export default function FinancialDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Procedure Costs Section */}
+      <Card className="border-primary/20">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
+              Custos de Procedimentos
+            </CardTitle>
+            <CardDescription>Consumo de materiais por aplicação</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/neoteam/procedures?tab=costs')}>
+            Ver detalhes
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Custo Mês</p>
+              <p className="text-lg font-bold text-primary">
+                {formatCurrency(procedureSummary?.month_cost || 0)}
+              </p>
+            </div>
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Custo Hoje</p>
+              <p className="text-lg font-bold">
+                {formatCurrency(procedureSummary?.today_cost || 0)}
+              </p>
+            </div>
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Custo Médio</p>
+              <p className="text-lg font-bold">
+                {formatCurrency(procedureSummary?.avg_cost_per_execution || 0)}
+              </p>
+            </div>
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Aplicações</p>
+              <p className="text-lg font-bold">{procedureSummary?.month_executions || 0}</p>
+            </div>
+          </div>
+
+          {/* Top 3 Procedures by Cost */}
+          {procedureCosts && procedureCosts.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground">Top Procedimentos</p>
+              {procedureCosts.slice(0, 3).map((proc, i) => (
+                <div key={proc.procedure_id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                      {i + 1}
+                    </span>
+                    <span className="font-medium">{proc.procedure_name}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-primary">{formatCurrency(proc.total_cost)}</p>
+                    <p className="text-xs text-muted-foreground">{proc.total_executions} aplicações</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

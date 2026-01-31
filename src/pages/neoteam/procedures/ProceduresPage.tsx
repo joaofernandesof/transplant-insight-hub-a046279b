@@ -3,7 +3,6 @@
  */
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabFromUrl } from '@/hooks/useTabFromUrl';
 import { 
@@ -11,7 +10,8 @@ import {
   PlayCircle, 
   Search, 
   BarChart3, 
-  Settings 
+  Settings,
+  DollarSign
 } from 'lucide-react';
 
 // Tab components
@@ -20,10 +20,12 @@ import { ExecutionsTab } from './tabs/ExecutionsTab';
 import { AuditTab } from './tabs/AuditTab';
 import { ReportsTab } from './tabs/ReportsTab';
 import { SettingsTab } from './tabs/SettingsTab';
+import { CostsTab } from './tabs/CostsTab';
 
 const TABS = [
   { id: 'kits', label: 'Procedimentos e Kits', icon: ListOrdered },
   { id: 'executions', label: 'Aplicações', icon: PlayCircle },
+  { id: 'costs', label: 'Custos', icon: DollarSign },
   { id: 'audit', label: 'Auditoria', icon: Search },
   { id: 'reports', label: 'Relatórios', icon: BarChart3 },
   { id: 'settings', label: 'Configurações', icon: Settings },
@@ -46,7 +48,7 @@ export default function ProceduresPage() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
           {TABS.map(({ id, label, icon: Icon }) => (
             <TabsTrigger 
               key={id} 
@@ -65,6 +67,10 @@ export default function ProceduresPage() {
 
         <TabsContent value="executions" className="space-y-6">
           <ExecutionsTab />
+        </TabsContent>
+
+        <TabsContent value="costs" className="space-y-6">
+          <CostsTab />
         </TabsContent>
 
         <TabsContent value="audit" className="space-y-6">
