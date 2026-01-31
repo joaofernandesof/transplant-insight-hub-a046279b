@@ -228,6 +228,7 @@ export const PROFESSIONAL_FIELDS: Record<NichoType, ProfessionalFieldConfig> = {
 
 // Configurações específicas por subnicho (override do nicho)
 export const SUBNICHO_PROFESSIONAL_OVERRIDES: Partial<Record<SubnichoType, Partial<ProfessionalFieldConfig>>> = {
+  // SAÚDE - todos precisam de registro
   dentista: {
     registrationLabel: 'CRO',
     registrationPlaceholder: 'Ex: 12345 SP',
@@ -248,30 +249,257 @@ export const SUBNICHO_PROFESSIONAL_OVERRIDES: Partial<Record<SubnichoType, Parti
     registrationPlaceholder: 'Ex: CRN-3 12345',
     registrationHint: 'Número do registro no CRN',
   },
-  advocacia: {
-    registrationLabel: 'OAB',
-    registrationPlaceholder: 'Ex: OAB 123456 SP',
-    registrationHint: 'Número de inscrição na OAB',
+  
+  // ESTÉTICA - alguns precisam, outros não
+  transplante_capilar: {
+    nameLabel: 'Nome do Médico',
+    namePlaceholder: 'Ex: Dr. Mario Farinazzo',
+    nameHint: 'Nome do médico responsável pelo procedimento',
+    registrationLabel: 'CRM',
+    registrationPlaceholder: 'Ex: 50036 RS',
+    registrationHint: 'Número do CRM do médico',
+    showRegistration: true,
   },
-  contabilidade: {
-    registrationLabel: 'CRC',
-    registrationPlaceholder: 'Ex: CRC 1SP123456/O',
-    registrationHint: 'Número do registro no CRC',
+  clinica_estetica: {
+    nameLabel: 'Nome do Profissional',
+    namePlaceholder: 'Ex: Dra. Ana Paula',
+    nameHint: 'Biomédico, dermatologista ou esteticista responsável',
+    registrationLabel: 'Registro Profissional',
+    registrationPlaceholder: 'Ex: CRM ou CRBM',
+    registrationHint: 'CRM, CRBM ou registro do profissional',
+    showRegistration: true,
   },
+  salao_beleza: {
+    nameLabel: 'Nome do Proprietário(a)',
+    namePlaceholder: 'Ex: Maria das Graças',
+    nameHint: 'Nome do proprietário ou gerente do salão',
+    showRegistration: false,
+  },
+  barbearia: {
+    nameLabel: 'Nome do Proprietário(a)',
+    namePlaceholder: 'Ex: Carlos Barbeiro',
+    nameHint: 'Nome do proprietário ou barbeiro principal',
+    showRegistration: false,
+  },
+  spa: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: Fernanda Wellness',
+    nameHint: 'Nome do gerente ou proprietário',
+    showRegistration: false,
+  },
+  micropigmentacao: {
+    nameLabel: 'Nome do Profissional',
+    namePlaceholder: 'Ex: Juliana Soares',
+    nameHint: 'Nome do micropigmentador(a)',
+    showRegistration: false,
+  },
+  depilacao: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: Paula Lima',
+    nameHint: 'Nome do profissional ou proprietário',
+    showRegistration: false,
+  },
+  
+  // IMOBILIÁRIO
   agente_imobiliario: {
     registrationLabel: 'CRECI',
     registrationPlaceholder: 'Ex: CRECI 12345-F',
     registrationHint: 'Número do registro no CRECI',
+    showRegistration: true,
+  },
+  imobiliaria: {
+    nameLabel: 'Nome da Imobiliária',
+    namePlaceholder: 'Ex: Imobiliária Premium',
+    nameHint: 'Nome fantasia da empresa',
+    registrationLabel: 'CRECI-J',
+    registrationPlaceholder: 'Ex: CRECI-J 12345',
+    registrationHint: 'Registro da pessoa jurídica no CRECI',
+    showRegistration: true,
+  },
+  construtora: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: Eng. Roberto Silva',
+    nameHint: 'Engenheiro ou diretor responsável',
+    registrationLabel: 'CREA',
+    registrationPlaceholder: 'Ex: CREA 123456',
+    registrationHint: 'Registro no CREA (opcional)',
+    showRegistration: false,
+  },
+  administradora: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: João Administrador',
+    nameHint: 'Diretor ou gerente responsável',
+    showRegistration: false,
+  },
+  
+  // SERVIÇOS - varia conforme profissão
+  advocacia: {
+    nameLabel: 'Nome do Advogado',
+    namePlaceholder: 'Ex: Dr. Paulo Santos',
+    registrationLabel: 'OAB',
+    registrationPlaceholder: 'Ex: OAB 123456 SP',
+    registrationHint: 'Número de inscrição na OAB',
+    showRegistration: true,
+  },
+  contabilidade: {
+    nameLabel: 'Nome do Contador',
+    namePlaceholder: 'Ex: Marcos Contador',
+    registrationLabel: 'CRC',
+    registrationPlaceholder: 'Ex: CRC 1SP123456/O',
+    registrationHint: 'Número do registro no CRC',
+    showRegistration: true,
+  },
+  consultoria: {
+    nameLabel: 'Nome do Consultor',
+    namePlaceholder: 'Ex: Ricardo Estratégia',
+    nameHint: 'Nome do consultor principal',
+    showRegistration: false,
   },
   pet_shop_veterinario: {
+    nameLabel: 'Nome do Veterinário',
+    namePlaceholder: 'Ex: Dr. Caio Pets',
     registrationLabel: 'CRMV',
     registrationPlaceholder: 'Ex: CRMV-SP 12345',
-    registrationHint: 'Registro no CRMV (se veterinário)',
+    registrationHint: 'Registro no CRMV (obrigatório para veterinários)',
+    showRegistration: true,
   },
   academia_personal: {
+    nameLabel: 'Nome do Personal/Proprietário',
+    namePlaceholder: 'Ex: Prof. Lucas Fitness',
     registrationLabel: 'CREF',
     registrationPlaceholder: 'Ex: CREF 012345-G/SP',
     registrationHint: 'Registro no CREF',
+    showRegistration: true,
+  },
+  oficina_mecanica: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Seu João Mecânico',
+    nameHint: 'Nome do mecânico ou proprietário',
+    showRegistration: false,
+  },
+  limpeza_manutencao: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: Empresa Limpa Tudo',
+    nameHint: 'Nome do gerente ou proprietário',
+    showRegistration: false,
+  },
+  marketing_agencia: {
+    nameLabel: 'Nome do Diretor',
+    namePlaceholder: 'Ex: Carla Marketing',
+    nameHint: 'Diretor de atendimento ou CEO',
+    showRegistration: false,
+  },
+  cursos_educacao: {
+    nameLabel: 'Nome do Coordenador',
+    namePlaceholder: 'Ex: Prof. Ana Educadora',
+    nameHint: 'Coordenador ou diretor pedagógico',
+    showRegistration: false,
+  },
+  eventos: {
+    nameLabel: 'Nome do Produtor',
+    namePlaceholder: 'Ex: Marcos Eventos',
+    nameHint: 'Produtor ou diretor de eventos',
+    showRegistration: false,
+  },
+  fotografia: {
+    nameLabel: 'Nome do Fotógrafo',
+    namePlaceholder: 'Ex: Pedro Fotógrafo',
+    nameHint: 'Fotógrafo principal ou estúdio',
+    showRegistration: false,
+  },
+  tecnologia_ti: {
+    nameLabel: 'Nome do Responsável',
+    namePlaceholder: 'Ex: Rafael Tech',
+    nameHint: 'CTO, desenvolvedor ou gerente de TI',
+    showRegistration: false,
+  },
+  
+  // ALIMENTAÇÃO - nenhum precisa de registro profissional
+  restaurante: {
+    nameLabel: 'Nome do Proprietário/Chef',
+    namePlaceholder: 'Ex: Chef Antonio',
+    nameHint: 'Nome do chef ou proprietário',
+    showRegistration: false,
+  },
+  delivery: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Carlos Delivery',
+    nameHint: 'Dono do negócio',
+    showRegistration: false,
+  },
+  pizzaria: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Giovanni Pizza',
+    nameHint: 'Dono ou pizzaiolo principal',
+    showRegistration: false,
+  },
+  lanchonete: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Seu Zé Lanches',
+    nameHint: 'Dono do estabelecimento',
+    showRegistration: false,
+  },
+  cafeteria: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Barista João',
+    nameHint: 'Dono ou barista principal',
+    showRegistration: false,
+  },
+  confeitaria: {
+    nameLabel: 'Nome do Confeiteiro(a)',
+    namePlaceholder: 'Ex: Dona Maria Doces',
+    nameHint: 'Confeiteiro(a) ou proprietário(a)',
+    showRegistration: false,
+  },
+  food_truck: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Chefe do Truck',
+    nameHint: 'Dono do food truck',
+    showRegistration: false,
+  },
+  
+  // VENDAS - nenhum precisa de registro profissional
+  produtos_hospitalares: {
+    nameLabel: 'Nome do Vendedor/Gerente',
+    namePlaceholder: 'Ex: Carlos Vendas',
+    nameHint: 'Responsável pelas vendas',
+    showRegistration: false,
+  },
+  celulares_eletronicos: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Tech Carlos',
+    nameHint: 'Dono ou gerente da loja',
+    showRegistration: false,
+  },
+  roupas_moda: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Ana Fashion',
+    nameHint: 'Dono(a) da loja',
+    showRegistration: false,
+  },
+  joias_acessorios: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Maria Joias',
+    nameHint: 'Dono(a) da joalheria',
+    showRegistration: false,
+  },
+  cosmeticos: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Beleza Total',
+    nameHint: 'Dono(a) ou consultor(a) de beleza',
+    showRegistration: false,
+  },
+  suplementos: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Fitness Store',
+    nameHint: 'Dono ou vendedor especializado',
+    showRegistration: false,
+  },
+  moveis_decoracao: {
+    nameLabel: 'Nome do Proprietário',
+    namePlaceholder: 'Ex: Casa & Design',
+    nameHint: 'Dono ou designer responsável',
+    showRegistration: false,
   },
 };
 
