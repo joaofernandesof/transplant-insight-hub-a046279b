@@ -98,16 +98,19 @@ export function NewAppointmentDialog({
       }
 
       // Normalize phone number for comparison (remove non-digits)
-      const normalizedPhone = formData.patient_phone.replace(/\D/g, "");
+      const normalizedInputPhone = formData.patient_phone.replace(/\D/g, "");
 
-      // Check if this phone already has an active appointment
-      const { data: existingAppointment } = await supabase
+      // Check if this phone already has an active appointment (fetch all and compare normalized)
+      const { data: existingAppointments } = await supabase
         .from("avivar_appointments")
-        .select("id")
+        .select("id, patient_phone")
         .eq("user_id", authUser.id)
-        .eq("status", "scheduled")
-        .or(`patient_phone.eq.${formData.patient_phone},patient_phone.eq.${normalizedPhone}`)
-        .maybeSingle();
+        .eq("status", "scheduled");
+
+      // Find existing appointment with same phone (comparing normalized versions)
+      const existingAppointment = existingAppointments?.find(
+        (apt) => apt.patient_phone.replace(/\D/g, "") === normalizedInputPhone
+      );
 
       // Calculate end time (30 min duration by default)
       const [hours, minutes] = formData.start_time.split(":").map(Number);
