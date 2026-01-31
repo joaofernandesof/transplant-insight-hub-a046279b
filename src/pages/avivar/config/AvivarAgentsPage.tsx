@@ -7,12 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Bot, 
   Plus, 
@@ -63,7 +58,6 @@ export default function AvivarAgentsPage() {
   const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -144,29 +138,6 @@ export default function AvivarAgentsPage() {
     }
   };
 
-  const saveAgentConfig = async (agent: Agent) => {
-    try {
-      const { error } = await supabase
-        .from('avivar_agents')
-        .update({
-          name: agent.name,
-          personality: agent.personality,
-          target_kanbans: agent.target_kanbans,
-          target_stages: agent.target_stages
-        })
-        .eq('id', agent.id);
-
-      if (error) throw error;
-      
-      setAgents(prev => prev.map(a => a.id === agent.id ? agent : a));
-      setIsDialogOpen(false);
-      setEditingAgent(null);
-      toast.success('Configurações salvas');
-    } catch (error) {
-      console.error('Error saving agent:', error);
-      toast.error('Erro ao salvar agente');
-    }
-  };
 
   if (loading) {
     return (
@@ -287,39 +258,15 @@ export default function AvivarAgentsPage() {
 
               {/* Actions */}
               <div className="flex gap-2 pt-2">
-                <Dialog open={isDialogOpen && editingAgent?.id === agent.id} onOpenChange={(open) => {
-                  setIsDialogOpen(open);
-                  if (!open) setEditingAgent(null);
-                }}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setEditingAgent(agent)}
-                      className="flex-1 border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-                    >
-                      <Settings2 className="h-4 w-4 mr-1" />
-                      Configurar
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle className="text-[hsl(var(--avivar-foreground))]">
-                        Configurar Agente: {editingAgent?.name}
-                      </DialogTitle>
-                    </DialogHeader>
-                    {editingAgent && (
-                      <AgentConfigForm 
-                        agent={editingAgent}
-                        onSave={saveAgentConfig}
-                        onCancel={() => {
-                          setIsDialogOpen(false);
-                          setEditingAgent(null);
-                        }}
-                      />
-                    )}
-                  </DialogContent>
-                </Dialog>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate(`/avivar/config/edit/${agent.id}`)}
+                  className="flex-1 border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                >
+                  <Settings2 className="h-4 w-4 mr-1" />
+                  Configurar
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -347,114 +294,6 @@ export default function AvivarAgentsPage() {
           </CardContent>
         </Card>
       )}
-    </div>
-  );
-}
-
-// Form Component for Agent Configuration
-function AgentConfigForm({ 
-  agent, 
-  onSave, 
-  onCancel 
-}: { 
-  agent: Agent;
-  onSave: (agent: Agent) => void;
-  onCancel: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    name: agent.name,
-    personality: agent.personality || '',
-    target_kanbans: agent.target_kanbans || [],
-    target_stages: agent.target_stages || []
-  });
-  const [saving, setSaving] = useState(false);
-
-  const handleKanbanToggle = (kanbanId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      target_kanbans: prev.target_kanbans.includes(kanbanId)
-        ? prev.target_kanbans.filter(k => k !== kanbanId)
-        : [...prev.target_kanbans, kanbanId]
-    }));
-  };
-
-  const handleStageToggle = (stageId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      target_stages: prev.target_stages.includes(stageId)
-        ? prev.target_stages.filter(s => s !== stageId)
-        : [...prev.target_stages, stageId]
-    }));
-  };
-
-  const handleSubmit = async () => {
-    setSaving(true);
-    await onSave({ ...agent, ...formData });
-    setSaving(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label className="text-[hsl(var(--avivar-foreground))]">Nome do Agente</Label>
-        <Input
-          value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-[hsl(var(--avivar-foreground))]">Personalidade (Prompt Base)</Label>
-        <Textarea
-          value={formData.personality}
-          onChange={(e) => setFormData(prev => ({ ...prev, personality: e.target.value }))}
-          placeholder="Descreva a personalidade e comportamento do agente..."
-          rows={3}
-          className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-[hsl(var(--avivar-foreground))]">Kanbans de Atuação</Label>
-        <div className="grid gap-2">
-          {KANBAN_OPTIONS.map(kanban => (
-            <div 
-              key={kanban.id}
-              className="flex items-center space-x-3 p-3 rounded-lg bg-[hsl(var(--avivar-muted))] border border-[hsl(var(--avivar-border))]"
-            >
-              <Checkbox
-                id={kanban.id}
-                checked={formData.target_kanbans.includes(kanban.id)}
-                onCheckedChange={() => handleKanbanToggle(kanban.id)}
-              />
-              <div>
-                <label htmlFor={kanban.id} className="text-sm font-medium text-[hsl(var(--avivar-foreground))] cursor-pointer">
-                  {kanban.label}
-                </label>
-                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{kanban.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex gap-2 pt-4">
-        <Button
-          variant="outline"
-          onClick={onCancel}
-          className="flex-1 border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-        >
-          Cancelar
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={saving || !formData.name}
-          className="flex-1 bg-gradient-to-r from-[hsl(270_75%_45%)] to-[hsl(280_80%_50%)] text-white"
-        >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar'}
-        </Button>
-      </div>
     </div>
   );
 }
