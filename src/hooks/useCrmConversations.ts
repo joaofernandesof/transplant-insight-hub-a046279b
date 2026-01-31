@@ -45,6 +45,28 @@ export function useCrmConversations(conversationId?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Realtime subscription for conversations list (new chats / last_message_at updates)
+  useEffect(() => {
+    const channel = supabase
+      .channel('crm-conversations-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'crm_conversations',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.conversations });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   // Fetch all conversations with MEDIUM cache
   const { data: conversations = [], isLoading: isLoadingConversations } = useQuery({
     queryKey: QUERY_KEYS.conversations,
