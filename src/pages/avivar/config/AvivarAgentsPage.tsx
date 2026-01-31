@@ -11,15 +11,12 @@ import { Switch } from '@/components/ui/switch';
 import { 
   Bot, 
   Plus, 
-  Edit2, 
   Trash2, 
   Settings2,
   Sparkles,
   MessageSquare,
   Target,
-  Loader2,
-  CheckCircle2,
-  XCircle
+  Loader2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -58,7 +55,6 @@ export default function AvivarAgentsPage() {
   const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     loadAgents();
