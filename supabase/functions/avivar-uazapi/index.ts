@@ -98,7 +98,7 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
 
-  // Call UazAPI to create instance with webhook configured
+  // Call UazAPI to create instance
   const response = await fetch(`${UAZAPI_URL}/instance/init`, {
     method: "POST",
     headers: {
@@ -111,11 +111,6 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
       adminField01: userId,
       fingerprintProfile: "chrome",
       browser: "chrome",
-      // Webhook configuration
-      webhook: webhookUrl,
-      webhookMessage: true,
-      webhookConnection: true,
-      webhookQrcode: true,
     }),
   });
 
@@ -132,43 +127,34 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
     throw new Error("Invalid response from UazAPI");
   }
 
-  // Configure webhook for this instance (backup call in case init didn't set it)
+  // Configure webhook using the correct POST /webhook endpoint
   console.log(`Configuring webhook: ${webhookUrl}`);
   
-  // Try PUT method first (UazAPI standard), then POST as fallback
-  let webhookResponse = await fetch(`${UAZAPI_URL}/instance/setWebhook`, {
-    method: "PUT",
+  const webhookPayload = {
+    enabled: true,
+    url: webhookUrl,
+    events: ["messages", "connection", "messages_update"],
+    excludeMessages: ["wasSentByApi", "isGroupYes"], // Avoid loops and ignore groups
+    addUrlEvents: false,
+    addUrlTypesMessages: false,
+  };
+  
+  console.log("Webhook payload:", JSON.stringify(webhookPayload, null, 2));
+  
+  const webhookResponse = await fetch(`${UAZAPI_URL}/webhook`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       "token": data.instance.token,
     },
-    body: JSON.stringify({
-      webhook: webhookUrl,
-      webhookMessage: true,
-      webhookConnection: true,
-      webhookQrcode: true,
-    }),
+    body: JSON.stringify(webhookPayload),
   });
 
-  if (!webhookResponse.ok && webhookResponse.status === 405) {
-    // Try POST as fallback
-    webhookResponse = await fetch(`${UAZAPI_URL}/instance/setWebhook`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "token": data.instance.token,
-      },
-      body: JSON.stringify({
-        webhook: webhookUrl,
-        webhookMessage: true,
-        webhookConnection: true,
-        webhookQrcode: true,
-      }),
-    });
-  }
+  const webhookResult = await webhookResponse.text();
+  console.log(`Webhook response: ${webhookResponse.status} - ${webhookResult}`);
 
   if (!webhookResponse.ok) {
-    console.error("Failed to set webhook:", await webhookResponse.text());
+    console.error("Failed to set webhook:", webhookResult);
     // Don't fail the whole operation, just log the error
   } else {
     console.log("Webhook configured successfully");
@@ -366,6 +352,48 @@ async function handleCheckStatus(req: Request, supabase: any, userId: string) {
     updates.is_business = data.instance.isBusiness || false;
     updates.platform = data.instance.plataform || null;
     updates.last_sync_at = new Date().toISOString();
+    
+    // Auto-configure webhook when first connected
+    // Check if webhook needs to be configured (only do this once)
+    const wasDisconnected = instance.status !== "connected";
+    if (wasDisconnected) {
+      console.log("Instance just connected, configuring webhook automatically...");
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+        
+        const webhookPayload = {
+          enabled: true,
+          url: webhookUrl,
+          events: ["messages", "connection", "messages_update"],
+          excludeMessages: ["wasSentByApi", "isGroupYes"],
+          addUrlEvents: false,
+          addUrlTypesMessages: false,
+        };
+        
+        console.log("Auto-configuring webhook:", JSON.stringify(webhookPayload, null, 2));
+        
+        const webhookResponse = await fetch(`${UAZAPI_URL}/webhook`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": instance.instance_token,
+          },
+          body: JSON.stringify(webhookPayload),
+        });
+        
+        const webhookResult = await webhookResponse.text();
+        console.log(`Webhook auto-config response: ${webhookResponse.status} - ${webhookResult}`);
+        
+        if (webhookResponse.ok) {
+          console.log("Webhook configured automatically on connection!");
+        } else {
+          console.error("Failed to auto-configure webhook:", webhookResult);
+        }
+      } catch (webhookError) {
+        console.error("Error auto-configuring webhook:", webhookError);
+      }
+    }
   }
 
   console.log("Updating instance with:", JSON.stringify(updates, null, 2));
@@ -508,46 +536,36 @@ async function handleSetupWebhook(req: Request, supabase: any, userId: string) {
 
   console.log(`Setting up webhook for instance: ${instance.instance_id}`);
 
-  // Configure webhook for this instance
+  // Configure webhook for this instance using POST /webhook endpoint
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
   
-  // Try PUT method first (UazAPI standard), then POST as fallback
-  let webhookResponse = await fetch(`${UAZAPI_URL}/instance/setWebhook`, {
-    method: "PUT",
+  const webhookPayload = {
+    enabled: true,
+    url: webhookUrl,
+    events: ["messages", "connection", "messages_update"],
+    excludeMessages: ["wasSentByApi", "isGroupYes"], // Avoid loops and ignore groups
+    addUrlEvents: false,
+    addUrlTypesMessages: false,
+  };
+  
+  console.log("Webhook payload:", JSON.stringify(webhookPayload, null, 2));
+  
+  const webhookResponse = await fetch(`${UAZAPI_URL}/webhook`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       "token": instance.instance_token,
     },
-    body: JSON.stringify({
-      webhook: webhookUrl,
-      webhookMessage: true,
-      webhookConnection: true,
-      webhookQrcode: true,
-    }),
+    body: JSON.stringify(webhookPayload),
   });
 
-  if (!webhookResponse.ok && webhookResponse.status === 405) {
-    // Try POST as fallback
-    webhookResponse = await fetch(`${UAZAPI_URL}/instance/setWebhook`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "token": instance.instance_token,
-      },
-      body: JSON.stringify({
-        webhook: webhookUrl,
-        webhookMessage: true,
-        webhookConnection: true,
-        webhookQrcode: true,
-      }),
-    });
-  }
+  const webhookResult = await webhookResponse.text();
+  console.log(`Webhook response: ${webhookResponse.status} - ${webhookResult}`);
 
   if (!webhookResponse.ok) {
-    const errorText = await webhookResponse.text();
-    console.error("Failed to set webhook:", errorText);
-    throw new Error(`Failed to configure webhook: ${webhookResponse.status}`);
+    console.error("Failed to set webhook:", webhookResult);
+    throw new Error(`Failed to configure webhook: ${webhookResponse.status} - ${webhookResult}`);
   }
   
   console.log("Webhook configured successfully");
@@ -556,7 +574,7 @@ async function handleSetupWebhook(req: Request, supabase: any, userId: string) {
     JSON.stringify({ 
       success: true,
       webhookUrl: webhookUrl,
-      message: "Webhook configured successfully"
+      message: "Webhook configurado com sucesso"
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
