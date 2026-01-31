@@ -105,7 +105,15 @@ export function UazApiConnectionDialog({
     if (!isPolling) return;
 
     const pollInterval = setInterval(async () => {
-      await checkStatus();
+      console.log('Polling for connection status...');
+      const isConnected = await checkStatus();
+      if (isConnected) {
+        console.log('Connection detected! Stopping poll and showing success.');
+        setIsPolling(false);
+        toast.success('WhatsApp conectado com sucesso!');
+        onSuccess?.();
+        onOpenChange(false);
+      }
     }, 3000);
 
     // Auto-stop after timeout
@@ -117,15 +125,9 @@ export function UazApiConnectionDialog({
       clearInterval(pollInterval);
       clearTimeout(timeout);
     };
-  }, [isPolling, activeTab, checkStatus]);
+  }, [isPolling, activeTab, checkStatus, onSuccess, onOpenChange]);
 
-  // Watch for successful connection
-  useEffect(() => {
-    if (instance?.status === 'connected') {
-      setIsPolling(false);
-      onSuccess?.();
-    }
-  }, [instance?.status, onSuccess]);
+  // Note: Connection success is now handled directly in the polling effect above
 
   // Reset state when dialog closes
   useEffect(() => {
