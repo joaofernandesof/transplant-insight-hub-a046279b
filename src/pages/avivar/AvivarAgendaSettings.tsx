@@ -95,16 +95,16 @@ export default function AvivarAgendaSettings() {
   });
   const [blockDateOpen, setBlockDateOpen] = useState(false);
 
-  // Fetch existing config
+  // Fetch existing config - usar authUserId para compatibilidade com RLS
   const { data: existingConfig, isLoading: loadingConfig } = useQuery({
-    queryKey: ['avivar-schedule-config', selectedAgenda?.id, user?.id],
+    queryKey: ['avivar-schedule-config', selectedAgenda?.id, user?.authUserId],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!user?.authUserId) return null;
 
       let query = supabase
         .from('avivar_schedule_config')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.authUserId);
 
       if (selectedAgenda) {
         query = query.eq('agenda_id', selectedAgenda.id);
@@ -226,11 +226,11 @@ export default function AvivarAgendaSettings() {
   // Save config mutation
   const saveConfigMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id) throw new Error('Usuário não autenticado');
+      if (!user?.authUserId) throw new Error('Usuário não autenticado');
 
-      // Upsert config
+      // Upsert config - usar authUserId para compatibilidade com RLS
       const configData = {
-        user_id: user.id,
+        user_id: user.authUserId,
         professional_name: config.professional_name || 'Profissional',
         consultation_duration: config.consultation_duration,
         buffer_between: config.buffer_between,
