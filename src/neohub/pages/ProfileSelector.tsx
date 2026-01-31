@@ -13,7 +13,8 @@ import {
   Heart,
   Users,
   TrendingUp,
-  Lock
+  Lock,
+  CreditCard
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import logoNeofolic from '@/assets/logo-byneofolic.png';
@@ -77,6 +78,15 @@ const SYSTEM_MODULES: SystemModule[] = [
     route: '/home',
     color: 'bg-amber-500',
     requiredProfiles: ['licenciado', 'administrador'],
+  },
+  {
+    key: 'neopay',
+    name: 'NeoPay',
+    description: 'Gateway de pagamentos',
+    icon: CreditCard,
+    route: '/neopay',
+    color: 'bg-emerald-600',
+    requiredProfiles: ['administrador'],
   },
   {
     key: 'avivar',
