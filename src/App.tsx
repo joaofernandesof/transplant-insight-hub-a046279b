@@ -156,9 +156,8 @@ const AvivarProductivity = lazy(() => import("./pages/avivar/AvivarProductivity"
 const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
 const AvivarConfigWizard = lazy(() => import("./pages/avivar/config/AvivarConfigWizard"));
 const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge"));
-const AvivarTestChat = lazy(() => import("./pages/avivar/config/AvivarTestChat"));
 const AvivarPromptPreview = lazy(() => import("./pages/avivar/config/AvivarPromptPreview"));
-const AvivarAgentTestPage = lazy(() => import("./pages/avivar/config/AvivarAgentTestPage"));
+const AvivarAgentsPage = lazy(() => import("./pages/avivar/config/AvivarAgentsPage"));
 const AvivarComercialPage = lazy(() => import("./pages/avivar/AvivarComercialPage"));
 const AvivarPosVendaPage = lazy(() => import("./pages/avivar/AvivarPosVendaPage"));
 const AvivarCadencesPage = lazy(() => import("./pages/avivar/AvivarCadencesPage"));
@@ -565,9 +564,8 @@ function AvivarRoutes() {
             <Route path="voip" element={<AvivarVoip />} />
             <Route path="config" element={<AvivarConfigWizard />} />
             <Route path="config/knowledge" element={<AvivarKnowledge />} />
-            <Route path="config/test" element={<AvivarTestChat />} />
-            <Route path="config/agent-test" element={<AvivarAgentTestPage />} />
             <Route path="config/preview" element={<AvivarPromptPreview />} />
+            <Route path="agents" element={<AvivarAgentsPage />} />
             <Route path="settings" element={<AvivarSettings />} />
             <Route path="profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/avivar" replace />} />

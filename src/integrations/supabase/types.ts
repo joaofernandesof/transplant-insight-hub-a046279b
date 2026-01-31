@@ -393,6 +393,75 @@ export type Database = {
           },
         ]
       }
+      avivar_agents: {
+        Row: {
+          ai_instructions: string | null
+          ai_restrictions: string | null
+          avatar_url: string | null
+          company_name: string | null
+          created_at: string
+          fluxo_atendimento: Json | null
+          id: string
+          is_active: boolean | null
+          knowledge_files: Json | null
+          name: string
+          openai_api_key_hash: string | null
+          personality: string | null
+          professional_name: string | null
+          schedule: Json | null
+          services: Json | null
+          target_kanbans: string[] | null
+          target_stages: string[] | null
+          tone_of_voice: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_instructions?: string | null
+          ai_restrictions?: string | null
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          fluxo_atendimento?: Json | null
+          id?: string
+          is_active?: boolean | null
+          knowledge_files?: Json | null
+          name: string
+          openai_api_key_hash?: string | null
+          personality?: string | null
+          professional_name?: string | null
+          schedule?: Json | null
+          services?: Json | null
+          target_kanbans?: string[] | null
+          target_stages?: string[] | null
+          tone_of_voice?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_instructions?: string | null
+          ai_restrictions?: string | null
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          fluxo_atendimento?: Json | null
+          id?: string
+          is_active?: boolean | null
+          knowledge_files?: Json | null
+          name?: string
+          openai_api_key_hash?: string | null
+          personality?: string | null
+          professional_name?: string | null
+          schedule?: Json | null
+          services?: Json | null
+          target_kanbans?: string[] | null
+          target_stages?: string[] | null
+          tone_of_voice?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       avivar_appointments: {
         Row: {
           agenda_id: string | null
@@ -2600,7 +2669,9 @@ export type Database = {
       }
       crm_conversations: {
         Row: {
+          agent_mode: string | null
           ai_enabled: boolean
+          assigned_agent_id: string | null
           assigned_to: string | null
           channel: string
           created_at: string
@@ -2612,7 +2683,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agent_mode?: string | null
           ai_enabled?: boolean
+          assigned_agent_id?: string | null
           assigned_to?: string | null
           channel?: string
           created_at?: string
@@ -2624,7 +2697,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agent_mode?: string | null
           ai_enabled?: boolean
+          assigned_agent_id?: string | null
           assigned_to?: string | null
           channel?: string
           created_at?: string
@@ -2636,6 +2711,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "crm_conversations_assigned_agent_id_fkey"
+            columns: ["assigned_agent_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crm_conversations_lead_id_fkey"
             columns: ["lead_id"]
