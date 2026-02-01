@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AgentConfig, DAY_NAMES, WeekSchedule } from '../../types';
 import { usePromptGenerator } from '../../hooks/usePromptGenerator';
 import { 
@@ -30,8 +30,8 @@ import {
   Copy,
   Download,
   AlertTriangle,
-  Eye,
-  FileText
+  Maximize2,
+  Settings2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -45,8 +45,8 @@ interface StepReviewProps {
 
 export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewProps) {
   const { prompt: generatedPrompt } = usePromptGenerator(config);
-  const [isPromptOpen, setIsPromptOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editedPrompt, setEditedPrompt] = useState(generatedPrompt);
   const [hasEdited, setHasEdited] = useState(false);
 
@@ -64,13 +64,12 @@ export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewPro
   }, [generatedPrompt, hasEdited]);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(isEditing ? editedPrompt : generatedPrompt);
+    await navigator.clipboard.writeText(editedPrompt);
     toast.success('Prompt copiado para a área de transferência!');
   };
 
   const handleDownload = () => {
-    const content = isEditing ? editedPrompt : generatedPrompt;
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([editedPrompt], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -92,10 +91,14 @@ export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewPro
     onComplete(hasEdited ? editedPrompt : undefined);
   };
 
+  const handlePromptChange = (value: string) => {
+    setEditedPrompt(value);
+    setHasEdited(true);
+  };
+
   // Count lines and characters
-  const currentPrompt = isEditing ? editedPrompt : generatedPrompt;
-  const lineCount = currentPrompt.split('\n').length;
-  const charCount = currentPrompt.length;
+  const lineCount = editedPrompt.split('\n').length;
+  const charCount = editedPrompt.length;
 
   return (
     <div className="space-y-6">
@@ -238,39 +241,57 @@ export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewPro
           </CardContent>
         </Card>
 
-        {/* Prompt Review Collapsible */}
-        <Collapsible open={isPromptOpen} onOpenChange={setIsPromptOpen}>
+        {/* Advanced Settings Collapsible with Prompt Editor */}
+        <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
           <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer hover:bg-[hsl(var(--avivar-muted)/0.3)] transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-                    <CardTitle className="text-lg text-[hsl(var(--avivar-foreground))]">
-                      Prompt Final do Agente
+                    <Settings2 className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+                    <CardTitle className="text-base text-[hsl(var(--avivar-foreground))]">
+                      Configurações Avançadas
                     </CardTitle>
+                    <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">(opcional)</span>
                     {hasEdited && (
-                      <Badge variant="outline" className="border-blue-500 text-blue-500 text-xs">
+                      <Badge variant="outline" className="border-blue-500 text-blue-500 text-xs ml-2">
                         Editado
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                      {lineCount} linhas • {charCount.toLocaleString()} chars
-                    </span>
-                    {isPromptOpen ? (
-                      <ChevronUp className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))]" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))]" />
-                    )}
-                  </div>
+                  {isAdvancedOpen ? (
+                    <ChevronUp className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))]" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))]" />
+                  )}
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
             
             <CollapsibleContent>
               <CardContent className="pt-0 space-y-3">
+                {/* Description */}
+                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                  A personalidade, instruções e fluxo de atendimento foram configurados automaticamente com base no seu tipo de negócio.
+                  Você pode ajustá-los abaixo se necessário.
+                </p>
+
+                {/* Status Badges */}
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] border-0">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Personalidade configurada
+                  </Badge>
+                  <Badge className="bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] border-0">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Instruções definidas
+                  </Badge>
+                  <Badge className="bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] border-0">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Fluxo de atendimento pronto
+                  </Badge>
+                </div>
+
                 {/* Warning */}
                 <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
                   <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
@@ -280,81 +301,65 @@ export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewPro
                   </p>
                 </div>
 
+                {/* Prompt Editor */}
+                <div className="relative">
+                  <Textarea
+                    value={editedPrompt}
+                    onChange={(e) => handlePromptChange(e.target.value)}
+                    className="min-h-[200px] font-mono text-xs border-[hsl(var(--avivar-border))] rounded-lg resize-none bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] focus-visible:ring-[hsl(var(--avivar-primary))] pr-12"
+                    placeholder="Prompt do agente..."
+                  />
+                  {/* Expand Button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsModalOpen(true)}
+                    className="absolute bottom-2 right-2 h-8 w-8 bg-[hsl(var(--avivar-muted))] hover:bg-[hsl(var(--avivar-muted)/0.8)] text-[hsl(var(--avivar-foreground))]"
+                    title="Expandir editor"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                </div>
+
                 {/* Toolbar */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    {!isEditing ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsEditing(true)}
-                        className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsEditing(false)}
-                        className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Visualizar
-                      </Button>
-                    )}
-                    
+                    <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                      {lineCount} linhas • {charCount.toLocaleString()} caracteres
+                    </span>
                     {hasEdited && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={handleResetToGenerated}
-                        className="text-amber-600 hover:text-amber-700 hover:bg-amber-100/50"
+                        className="text-amber-600 hover:text-amber-700 hover:bg-amber-100/50 h-7 text-xs"
                       >
-                        Restaurar
+                        Restaurar original
                       </Button>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleCopy}
-                      className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
+                      className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] h-7"
                     >
-                      <Copy className="h-4 w-4" />
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copiar
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleDownload}
-                      className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
+                      className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] h-7"
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className="h-3 w-3 mr-1" />
+                      Baixar
                     </Button>
                   </div>
                 </div>
-
-                {/* Prompt Content */}
-                {isEditing ? (
-                  <Textarea
-                    value={editedPrompt}
-                    onChange={(e) => {
-                      setEditedPrompt(e.target.value);
-                      setHasEdited(true);
-                    }}
-                    className="min-h-[300px] font-mono text-xs border-[hsl(var(--avivar-border))] rounded-lg resize-none bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] focus-visible:ring-[hsl(var(--avivar-primary))]"
-                    placeholder="Digite o prompt do agente..."
-                  />
-                ) : (
-                  <ScrollArea className="h-[300px] border border-[hsl(var(--avivar-border))] rounded-lg">
-                    <pre className="p-4 text-xs font-mono text-[hsl(var(--avivar-foreground))] whitespace-pre-wrap leading-relaxed">
-                      {generatedPrompt}
-                    </pre>
-                  </ScrollArea>
-                )}
               </CardContent>
             </CollapsibleContent>
           </Card>
@@ -382,6 +387,67 @@ export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewPro
           </Button>
         </div>
       </div>
+
+      {/* Fullscreen Modal for Prompt Editing */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-[95vw] w-full h-[90vh] flex flex-col bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="flex items-center justify-between text-[hsl(var(--avivar-foreground))]">
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+                Prompt do Agente
+                {hasEdited && (
+                  <Badge variant="outline" className="border-blue-500 text-blue-500 text-xs">
+                    Editado
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[hsl(var(--avivar-muted-foreground))] font-normal">
+                  {lineCount} linhas • {charCount.toLocaleString()} caracteres
+                </span>
+                {hasEdited && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResetToGenerated}
+                    className="text-amber-600 hover:text-amber-700 hover:bg-amber-100/50 h-7 text-xs"
+                  >
+                    Restaurar original
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCopy}
+                  className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] h-7"
+                >
+                  <Copy className="h-3 w-3 mr-1" />
+                  Copiar
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDownload}
+                  className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] h-7"
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Baixar
+                </Button>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex-1 min-h-0">
+            <Textarea
+              value={editedPrompt}
+              onChange={(e) => handlePromptChange(e.target.value)}
+              className="h-full w-full font-mono text-sm border-[hsl(var(--avivar-border))] rounded-lg resize-none bg-[hsl(var(--avivar-card))] text-[hsl(var(--avivar-foreground))] focus-visible:ring-[hsl(var(--avivar-primary))]"
+              placeholder="Prompt do agente..."
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
