@@ -4277,6 +4277,464 @@ export type Database = {
         }
         Relationships: []
       }
+      flow_project_members: {
+        Row: {
+          joined_at: string | null
+          project_id: string
+          role: Database["public"]["Enums"]["flow_project_role"]
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string | null
+          project_id: string
+          role?: Database["public"]["Enums"]["flow_project_role"]
+          user_id: string
+        }
+        Update: {
+          joined_at?: string | null
+          project_id?: string
+          role?: Database["public"]["Enums"]["flow_project_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "flow_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_project_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_project_statuses: {
+        Row: {
+          color: string
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_done_status: boolean | null
+          name: string
+          position: number
+          project_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_done_status?: boolean | null
+          name: string
+          position?: number
+          project_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_done_status?: boolean | null
+          name?: string
+          position?: number
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_project_statuses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "flow_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_projects: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          creator_id: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_archived: boolean | null
+          name: string
+          settings: Json | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          creator_id: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_archived?: boolean | null
+          name: string
+          settings?: Json | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          creator_id?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_archived?: boolean | null
+          name?: string
+          settings?: Json | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_projects_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_projects_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_task_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string | null
+          id: string
+          mentions: string[] | null
+          task_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          mentions?: string[] | null
+          task_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          mentions?: string[] | null
+          task_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_task_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "flow_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_task_tag_links: {
+        Row: {
+          tag_id: string
+          task_id: string
+        }
+        Insert: {
+          tag_id: string
+          task_id: string
+        }
+        Update: {
+          tag_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_task_tag_links_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "flow_task_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_task_tag_links_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "flow_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_task_tags: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_task_tags_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_tasks: {
+        Row: {
+          actual_hours: number | null
+          assignee_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          creator_id: string
+          description: string | null
+          due_date: string | null
+          estimated_hours: number | null
+          id: string
+          parent_task_id: string | null
+          position: number
+          priority: Database["public"]["Enums"]["flow_task_priority"] | null
+          project_id: string
+          start_date: string | null
+          status_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_hours?: number | null
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          creator_id: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          parent_task_id?: string | null
+          position?: number
+          priority?: Database["public"]["Enums"]["flow_task_priority"] | null
+          project_id: string
+          start_date?: string | null
+          status_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_hours?: number | null
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          creator_id?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          parent_task_id?: string | null
+          position?: number
+          priority?: Database["public"]["Enums"]["flow_task_priority"] | null
+          project_id?: string
+          start_date?: string | null
+          status_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_tasks_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "flow_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "flow_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_tasks_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "flow_project_statuses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_workflow_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          execution_log: Json | null
+          id: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["flow_run_status"] | null
+          trigger_data: Json | null
+          triggered_by: string | null
+          workflow_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_log?: Json | null
+          id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["flow_run_status"] | null
+          trigger_data?: Json | null
+          triggered_by?: string | null
+          workflow_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_log?: Json | null
+          id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["flow_run_status"] | null
+          trigger_data?: Json | null
+          triggered_by?: string | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_workflow_runs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_workflow_runs_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "flow_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_workflows: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          flow_definition: Json
+          id: string
+          is_active: boolean | null
+          name: string
+          project_id: string | null
+          tenant_id: string
+          trigger_conditions: Json | null
+          trigger_type: Database["public"]["Enums"]["flow_workflow_trigger"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          flow_definition?: Json
+          id?: string
+          is_active?: boolean | null
+          name: string
+          project_id?: string | null
+          tenant_id: string
+          trigger_conditions?: Json | null
+          trigger_type: Database["public"]["Enums"]["flow_workflow_trigger"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          flow_definition?: Json
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          project_id?: string | null
+          tenant_id?: string
+          trigger_conditions?: Json | null
+          trigger_type?: Database["public"]["Enums"]["flow_workflow_trigger"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_workflows_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "flow_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_workflows_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_photo_analytics: {
         Row: {
           action_type: string
@@ -14890,11 +15348,19 @@ export type Database = {
         Returns: undefined
       }
       user_has_any_enrollment: { Args: { _user_id: string }; Returns: boolean }
+      user_has_flow_tenant_access: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       user_has_permission: {
         Args: { _permission_key: string }
         Returns: boolean
       }
       user_has_profile: { Args: { _profile_key: string }; Returns: boolean }
+      user_is_flow_project_member: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
       validate_exam_answer: {
         Args: {
           p_attempt_id: string
@@ -15005,6 +15471,23 @@ export type Database = {
         | "em_andamento"
         | "finalizado"
         | "cancelado"
+      flow_project_role: "owner" | "admin" | "editor" | "viewer"
+      flow_run_status:
+        | "pending"
+        | "running"
+        | "completed"
+        | "failed"
+        | "cancelled"
+      flow_task_priority: "low" | "medium" | "high" | "urgent"
+      flow_workflow_trigger:
+        | "task_created"
+        | "task_updated"
+        | "task_completed"
+        | "task_overdue"
+        | "status_changed"
+        | "assignee_changed"
+        | "comment_added"
+        | "manual"
       kit_item_category:
         | "material_descartavel"
         | "medicamento"
@@ -15316,6 +15799,25 @@ export const Constants = {
         "em_andamento",
         "finalizado",
         "cancelado",
+      ],
+      flow_project_role: ["owner", "admin", "editor", "viewer"],
+      flow_run_status: [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+      ],
+      flow_task_priority: ["low", "medium", "high", "urgent"],
+      flow_workflow_trigger: [
+        "task_created",
+        "task_updated",
+        "task_completed",
+        "task_overdue",
+        "status_changed",
+        "assignee_changed",
+        "comment_added",
+        "manual",
       ],
       kit_item_category: [
         "material_descartavel",
