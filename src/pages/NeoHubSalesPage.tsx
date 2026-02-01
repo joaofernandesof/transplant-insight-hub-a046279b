@@ -4,18 +4,15 @@ import {
   Heart, Users, GraduationCap, Building2, Zap, Scale, 
   CreditCard, Leaf, ArrowRight, Check, Star, Shield,
   MessageSquare, BarChart3, Calendar, FileText, Bot,
-  Sparkles, Clock, Lock, ChevronDown
+  Sparkles, Clock, Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { VisionIcon } from '@/components/icons/VisionIcon';
-import dashboardPreview from '@/assets/screenshots/dashboard-preview.jpg';
-import mobileScheduling from '@/assets/screenshots/mobile-scheduling.jpg';
-import crmPipeline from '@/assets/screenshots/crm-pipeline.jpg';
+import { FeatureCarousel } from '@/components/landing/FeatureCarousel';
 
 // Módulos do NeoHub
 const modules = [
@@ -243,6 +240,82 @@ const faqs = [
   },
 ];
 
+// Carrosséis de funcionalidades
+const dashboardCarouselSlides = [
+  {
+    title: 'Dashboard Geral',
+    description: 'Visão completa de KPIs, agendamentos, receita e métricas em tempo real.',
+    imagePlaceholder: 'Dashboard com métricas',
+    features: ['KPIs em tempo real', 'Gráficos interativos', 'Filtros por período', 'Comparativo mensal']
+  },
+  {
+    title: 'Calendário de Agendamentos',
+    description: 'Visualize e gerencie todos os agendamentos em um calendário intuitivo.',
+    imagePlaceholder: 'Calendário de consultas',
+    features: ['Visão diária/semanal/mensal', 'Drag and drop', 'Cores por status', 'Conflitos automáticos']
+  },
+  {
+    title: 'Gestão de Pacientes',
+    description: 'Prontuário digital completo com histórico de tratamentos.',
+    imagePlaceholder: 'Ficha do paciente',
+    features: ['Prontuário eletrônico', 'Fotos evolutivas', 'Histórico completo', 'Documentos anexos']
+  },
+  {
+    title: 'Relatórios Financeiros',
+    description: 'Acompanhe faturamento, recebimentos e projeções financeiras.',
+    imagePlaceholder: 'Gráficos financeiros',
+    features: ['Faturamento mensal', 'Ticket médio', 'Previsão de receita', 'Análise por serviço']
+  },
+];
+
+const crmCarouselSlides = [
+  {
+    title: 'Pipeline de Vendas',
+    description: 'Visualize todos os leads organizados por etapa do funil.',
+    imagePlaceholder: 'Kanban de leads',
+    features: ['Drag and drop', 'Cores por temperatura', 'Valor estimado', 'Tempo em cada etapa']
+  },
+  {
+    title: 'WhatsApp Integrado',
+    description: 'Converse com leads diretamente pelo WhatsApp sem sair do sistema.',
+    imagePlaceholder: 'Chat WhatsApp',
+    features: ['Mensagens automáticas', 'Templates prontos', 'Anexos de mídia', 'Histórico completo']
+  },
+  {
+    title: 'Automações',
+    description: 'Crie fluxos automáticos de follow-up e nutrição de leads.',
+    imagePlaceholder: 'Editor de automação',
+    features: ['Gatilhos personalizados', 'Sequências de email', 'WhatsApp automático', 'Condicionais']
+  },
+  {
+    title: 'Detetive de Leads',
+    description: 'IA que pesquisa e enriquece dados dos seus leads automaticamente.',
+    imagePlaceholder: 'Relatório de lead',
+    features: ['Pesquisa automática', 'LinkedIn/Instagram', 'Score de qualificação', 'Insights de abordagem']
+  },
+];
+
+const mobileCarouselSlides = [
+  {
+    title: 'Agendamento Online',
+    description: 'Pacientes agendam consultas 24/7 direto pelo celular.',
+    imagePlaceholder: 'Tela de agendamento',
+    features: ['Horários disponíveis', 'Confirmação automática', 'Lembretes por SMS', 'Cancelamento fácil']
+  },
+  {
+    title: 'Prontuário Mobile',
+    description: 'Acesse e atualize prontuários de qualquer lugar.',
+    imagePlaceholder: 'Prontuário no celular',
+    features: ['Visualização completa', 'Edição rápida', 'Fotos na hora', 'Assinatura digital']
+  },
+  {
+    title: 'Notificações',
+    description: 'Receba alertas de agendamentos, leads e tarefas importantes.',
+    imagePlaceholder: 'Push notifications',
+    features: ['Push em tempo real', 'Alertas customizados', 'Lembretes de follow-up', 'Resumo diário']
+  },
+];
+
 export default function NeoHubSalesPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
 
@@ -258,6 +331,7 @@ export default function NeoHubSalesPage() {
             </span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
+            <a href="#funcionalidades" className="text-slate-400 hover:text-blue-400 transition-colors">Funcionalidades</a>
             <a href="#modulos" className="text-slate-400 hover:text-blue-400 transition-colors">Módulos</a>
             <a href="#planos" className="text-slate-400 hover:text-blue-400 transition-colors">Planos</a>
             <a href="#faq" className="text-slate-400 hover:text-blue-400 transition-colors">FAQ</a>
@@ -326,85 +400,55 @@ export default function NeoHubSalesPage() {
         </div>
       </section>
 
-      {/* Screenshots Preview Section */}
-      <section className="py-20 px-4 sm:px-6 bg-slate-900/30">
+      {/* Feature Carousels Section */}
+      <section id="funcionalidades" className="py-20 px-4 sm:px-6 bg-slate-900/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/30">
               Veja na Prática
             </Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">
-              Uma prévia do que você terá
+              Conheça cada funcionalidade em detalhes
             </h2>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               Interface moderna, intuitiva e pensada para otimizar cada minuto do seu dia.
             </p>
           </div>
 
-          {/* Main Dashboard Screenshot */}
-          <div className="relative mb-12">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-3xl blur-3xl opacity-50" />
-            <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl shadow-black/50">
-              <img 
-                src={dashboardPreview} 
-                alt="Dashboard do NeoHub - Gestão completa de clínica" 
-                className="w-full h-auto"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                <Badge className="mb-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
-                  Dashboard Principal
-                </Badge>
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
-                  Visão 360° da sua clínica
-                </h3>
-                <p className="text-slate-400 text-sm md:text-base max-w-xl">
-                  Pacientes, agendamentos, receita e métricas em tempo real. Tudo em um só lugar.
-                </p>
-              </div>
-            </div>
+          {/* Dashboard Carousel */}
+          <div className="mb-20">
+            <FeatureCarousel
+              title="Dashboard Principal"
+              subtitle="Visão 360° da sua clínica com métricas em tempo real, agendamentos e faturamento."
+              badge="NeoTeam"
+              badgeColor="bg-blue-500"
+              slides={dashboardCarouselSlides}
+              imagePosition="left"
+            />
           </div>
 
-          {/* Secondary Screenshots Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* CRM Pipeline */}
-            <div className="relative group">
-              <div className="rounded-2xl overflow-hidden border border-slate-800 shadow-xl transition-transform group-hover:scale-[1.02]">
-                <img 
-                  src={crmPipeline} 
-                  alt="Pipeline de vendas do Avivar CRM" 
-                  className="w-full h-64 object-cover object-top"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <Badge className="mb-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
-                    Avivar CRM
-                  </Badge>
-                  <h4 className="text-lg font-bold text-white mb-1">Pipeline de Vendas</h4>
-                  <p className="text-slate-500 text-sm">
-                    Acompanhe cada lead do primeiro contato até a conversão.
-                  </p>
-                </div>
-              </div>
-            </div>
+          {/* CRM Carousel */}
+          <div className="mb-20">
+            <FeatureCarousel
+              title="CRM Completo + IA"
+              subtitle="Acompanhe cada lead do primeiro contato até a conversão com inteligência artificial."
+              badge="Avivar CRM"
+              badgeColor="bg-purple-500"
+              slides={crmCarouselSlides}
+              imagePosition="right"
+            />
+          </div>
 
-            {/* Mobile Scheduling */}
-            <div className="relative group flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 py-8">
-              <div className="relative w-48 md:w-56 transition-transform group-hover:scale-105">
-                <img 
-                  src={mobileScheduling} 
-                  alt="Agendamento mobile do NeoCare" 
-                  className="w-full h-auto rounded-3xl shadow-2xl shadow-black/50"
-                />
-                <div className="absolute -bottom-4 -right-4 md:-bottom-6 md:-right-6 bg-slate-900 rounded-xl p-3 md:p-4 border border-slate-800 shadow-xl">
-                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
-                    NeoCare Mobile
-                  </Badge>
-                  <p className="text-white font-semibold text-sm mt-1">Agendamento 24/7</p>
-                  <p className="text-slate-500 text-xs">Pacientes agendam pelo celular</p>
-                </div>
-              </div>
-            </div>
+          {/* Mobile Carousel */}
+          <div>
+            <FeatureCarousel
+              title="Experiência Mobile"
+              subtitle="Pacientes agendam pelo celular, colaboradores acessam de qualquer lugar."
+              badge="NeoCare Mobile"
+              badgeColor="bg-rose-500"
+              slides={mobileCarouselSlides}
+              imagePosition="left"
+            />
           </div>
 
           {/* Features Highlight */}
