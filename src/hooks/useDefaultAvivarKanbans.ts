@@ -7,12 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
 export function useDefaultAvivarKanbans() {
-  const { user } = useUnifiedAuth();
+  const { session } = useUnifiedAuth();
+  const authUserId = session?.user?.id; // auth.uid() for RLS
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     const initializeKanbans = async () => {
-      if (!user?.id) {
+      if (!authUserId) {
         setIsInitializing(false);
         return;
       }
@@ -38,7 +39,7 @@ export function useDefaultAvivarKanbans() {
 
         // Chamar função do banco para criar kanbans padrão
         const { error: rpcError } = await supabase.rpc('create_default_avivar_kanbans', {
-          p_user_id: user.id
+          p_user_id: authUserId
         });
 
         if (rpcError) {
@@ -52,7 +53,7 @@ export function useDefaultAvivarKanbans() {
     };
 
     initializeKanbans();
-  }, [user?.id]);
+  }, [authUserId]);
 
   return { isInitializing };
 }

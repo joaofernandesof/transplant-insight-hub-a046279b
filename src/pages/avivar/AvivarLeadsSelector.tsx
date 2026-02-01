@@ -75,7 +75,8 @@ interface KanbanData {
 
 export function AvivarLeadsSelector() {
   const navigate = useNavigate();
-  const { user } = useUnifiedAuth();
+  const { user, session } = useUnifiedAuth();
+  const authUserId = session?.user?.id; // auth.uid() for RLS
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -89,7 +90,7 @@ export function AvivarLeadsSelector() {
   // Initialize default kanbans for new users
   useEffect(() => {
     const initializeKanbans = async () => {
-      if (!user?.id) {
+      if (!authUserId) {
         setIsInitializing(false);
         return;
       }
@@ -110,7 +111,7 @@ export function AvivarLeadsSelector() {
         // If user has no kanbans, create defaults
         if (!existingKanbans || existingKanbans.length === 0) {
           const { error: rpcError } = await supabase.rpc('create_default_avivar_kanbans', {
-            p_user_id: user.id
+            p_user_id: authUserId
           });
 
           if (rpcError) {
@@ -128,11 +129,11 @@ export function AvivarLeadsSelector() {
     };
 
     initializeKanbans();
-  }, [user?.id, queryClient]);
+  }, [authUserId, queryClient]);
 
   // Fetch kanbans from database
   const { data: kanbans, isLoading: isLoadingKanbans } = useQuery({
-    queryKey: ['avivar-kanbans', user?.id],
+    queryKey: ['avivar-kanbans', authUserId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('avivar_kanbans')
@@ -142,7 +143,7 @@ export function AvivarLeadsSelector() {
       if (error) throw error;
       return data as KanbanData[];
     },
-    enabled: !!user?.id && !isInitializing,
+    enabled: !!authUserId && !isInitializing,
   });
 
   const isLoading = isInitializing || isLoadingKanbans;
@@ -150,10 +151,12 @@ export function AvivarLeadsSelector() {
   // Create kanban mutation
   const createKanban = useMutation({
     mutationFn: async (kanbanData: typeof newKanban) => {
+      if (!authUserId) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('avivar_kanbans')
         .insert({
-          user_id: user?.id,
+          user_id: authUserId,
           name: kanbanData.name,
           description: kanbanData.description || null,
           icon: kanbanData.icon,
