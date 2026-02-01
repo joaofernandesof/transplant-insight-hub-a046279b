@@ -852,14 +852,31 @@ async function callAIWithTools(
   };
 }
 
-async function sendWhatsAppMessage(
+/**
+ * Split message by double line breaks and send as separate messages
+ * This creates a more natural WhatsApp conversation flow
+ */
+function splitMessageIntoParts(content: string): string[] {
+  // Split by double line breaks (paragraph breaks)
+  const parts = content
+    .split(/\n\n+/)
+    .map(part => part.trim())
+    .filter(part => part.length > 0);
+  
+  // If no splits found, return original content
+  if (parts.length === 0) {
+    return [content.trim()];
+  }
+  
+  return parts;
+}
+
+async function sendSingleMessage(
   supabaseUrl: string,
   supabaseKey: string,
   conversationId: string,
   content: string
 ): Promise<boolean> {
-  console.log(`[AI Agent] Sending message: "${content.substring(0, 50)}..."`);
-
   try {
     const response = await fetch(`${supabaseUrl}/functions/v1/avivar-send-message`, {
       method: "POST",
@@ -881,12 +898,44 @@ async function sendWhatsAppMessage(
       return false;
     }
 
-    console.log("[AI Agent] ✅ Message sent");
     return true;
   } catch (error) {
     console.error("[AI Agent] Send error:", error);
     return false;
   }
+}
+
+async function sendWhatsAppMessage(
+  supabaseUrl: string,
+  supabaseKey: string,
+  conversationId: string,
+  content: string
+): Promise<boolean> {
+  // Split message into parts by double line breaks
+  const messageParts = splitMessageIntoParts(content);
+  
+  console.log(`[AI Agent] Sending ${messageParts.length} message(s): "${content.substring(0, 50)}..."`);
+
+  let allSent = true;
+  
+  for (let i = 0; i < messageParts.length; i++) {
+    const part = messageParts[i];
+    console.log(`[AI Agent] Sending part ${i + 1}/${messageParts.length}: "${part.substring(0, 40)}..."`);
+    
+    const sent = await sendSingleMessage(supabaseUrl, supabaseKey, conversationId, part);
+    
+    if (!sent) {
+      allSent = false;
+    }
+    
+    // Small delay between messages to maintain order and feel natural
+    if (i < messageParts.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
+  }
+
+  console.log(`[AI Agent] ✅ ${messageParts.length} message(s) sent`);
+  return allSent;
 }
 
 // ============================================
