@@ -809,6 +809,13 @@ Você tem acesso a:
 - IMPORTANTE: Mesmo sendo especialista em ${leadStage}, você pode responder QUALQUER dúvida usando search_knowledge_base
 </regras_importantes>
 
+<formatacao_obrigatoria>
+PROIBIDO: Nunca use asteriscos (*) para formatar texto. Não use **negrito** nem *itálico*.
+CORRETO: Escreva em texto simples sem formatação especial.
+Exemplo errado: "período da **manhã** ou da **tarde**"
+Exemplo correto: "período da manhã ou da tarde"
+</formatacao_obrigatoria>
+
 ${restrictions ? `<restricoes>\n${restrictions}\n</restricoes>` : ""}`;
 }
 
@@ -1107,7 +1114,10 @@ serve(async (req) => {
       finalResponse = "Desculpe, não consegui processar sua mensagem. Pode repetir?";
     }
 
-    // 8. Send response via WhatsApp
+    // 8. Clean up any markdown formatting (asterisks) before sending
+    finalResponse = finalResponse.replace(/\*+/g, "");
+
+    // 9. Send response via WhatsApp
     const sent = await sendWhatsAppMessage(supabaseUrl, supabaseServiceKey, conversationId, finalResponse);
 
     const duration = Date.now() - startTime;
