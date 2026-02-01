@@ -140,6 +140,16 @@ export interface ConsultationType {
   domicilio: boolean;
 }
 
+// Unidade/Filial do negócio
+export interface BusinessUnit {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  address: string;
+  phone?: string;
+}
+
 export interface SubnichoOption {
   id: SubnichoType;
   name: string;
@@ -178,6 +188,9 @@ export interface AgentConfig {
   address: string;
   city: string;
   state: string;
+  
+  // Múltiplas Unidades/Filiais
+  businessUnits: BusinessUnit[];
   
   // Atendente
   attendantName: string;
@@ -411,6 +424,7 @@ export const INITIAL_CONFIG: AgentConfig = {
   address: '',
   city: '',
   state: '',
+  businessUnits: [],
   attendantName: '',
   services: [...TRANSPLANTE_SERVICES],
   paymentMethods: [...PAYMENT_METHODS],

@@ -89,6 +89,7 @@ export default function AvivarSimpleWizard() {
             address: agent.address || '',
             city: agent.city || '',
             state: agent.state || '',
+            businessUnits: (agent.business_units as unknown as AgentConfig['businessUnits']) || [],
             professionalName: agent.professional_name || '',
             crm: agent.crm || '',
             attendantName: agent.name || '',
@@ -193,6 +194,7 @@ export default function AvivarSimpleWizard() {
         address: config.address || null,
         city: config.city,
         state: config.state,
+        business_units: config.businessUnits || [],
         services: config.services,
         payment_methods: config.paymentMethods,
         schedule: config.schedule,
@@ -282,6 +284,7 @@ export default function AvivarSimpleWizard() {
             attendantName={config.attendantName}
             nicho={config.nicho}
             subnicho={config.subnicho}
+            businessUnits={config.businessUnits || []}
             onChange={(field, value) => updateConfig({ [field]: value })}
           />
         );
