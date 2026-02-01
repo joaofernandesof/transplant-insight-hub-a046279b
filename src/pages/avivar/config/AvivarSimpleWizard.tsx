@@ -205,6 +205,7 @@ export default function AvivarSimpleWizard() {
         ai_restrictions: autoConfig.aiRestrictions,
         fluxo_atendimento: autoConfig.fluxoAtendimento,
         personality: autoConfig.aiIdentity,
+        knowledge_files: config.knowledgeFiles || [],
         is_active: true,
         updated_at: new Date().toISOString(),
       };
