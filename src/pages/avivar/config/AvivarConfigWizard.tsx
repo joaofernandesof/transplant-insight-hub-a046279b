@@ -336,8 +336,8 @@ export default function AvivarConfigWizard() {
 
   // In edit mode, skip welcome step
   const isWelcomeStep = currentStep === 0 && !isEditMode;
-  const isPromptReviewStep = currentStep === totalSteps - 1; // Last step is prompt review
-  const isReviewStep = currentStep === totalSteps - 2; // Second to last is summary review
+  const isReviewStep = currentStep === 15; // Step 15 is summary review
+  const isPromptReviewStep = currentStep === 16; // Step 16 is prompt review (final)
   
   // Optional steps that can be skipped (adjusting for hidden steps)
   const getShowSkip = (): boolean => {
