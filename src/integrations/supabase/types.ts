@@ -402,6 +402,7 @@ export type Database = {
           ai_restrictions: string | null
           avatar_url: string | null
           before_after_images: Json | null
+          business_units: Json | null
           city: string | null
           company_name: string | null
           consultation_duration: number | null
@@ -437,6 +438,7 @@ export type Database = {
           ai_restrictions?: string | null
           avatar_url?: string | null
           before_after_images?: Json | null
+          business_units?: Json | null
           city?: string | null
           company_name?: string | null
           consultation_duration?: number | null
@@ -472,6 +474,7 @@ export type Database = {
           ai_restrictions?: string | null
           avatar_url?: string | null
           before_after_images?: Json | null
+          business_units?: Json | null
           city?: string | null
           company_name?: string | null
           consultation_duration?: number | null
