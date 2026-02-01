@@ -16,6 +16,8 @@ import {
   StepSelectBusiness,
   StepBusinessInfo,
   StepServicesSimple,
+  StepConsultationSimple,
+  StepObjectivesSimple,
   StepScheduleSimple,
   StepFAQGenerator,
   StepKnowledgeSimple,
@@ -42,6 +44,8 @@ const SIMPLE_STEPS = [
   { id: 'business', title: 'Tipo de Negócio', description: 'Qual é seu segmento?' },
   { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
   { id: 'services', title: 'Serviços', description: 'O que você oferece?' },
+  { id: 'consultation', title: 'Atendimento', description: 'Como você atende?' },
+  { id: 'objectives', title: 'Objetivos', description: 'Foco do agente' },
   { id: 'schedule', title: 'Horários', description: 'Quando você atende?' },
   { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
   { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
@@ -103,6 +107,7 @@ export default function AvivarSimpleWizard() {
             aiRestrictions: agent.ai_restrictions || '',
             consultationType: (agent.consultation_type as unknown as AgentConfig['consultationType']) || { presencial: true, online: false, domicilio: false },
             consultationDuration: agent.consultation_duration || 60,
+            // agentObjectives não existe na tabela, será preenchido na próxima etapa
             beforeAfterImages: (agent.before_after_images as unknown as string[]) || [],
             knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
             fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
@@ -133,13 +138,17 @@ export default function AvivarSimpleWizard() {
         return !!config.companyName && !!config.city && !!config.state && !!config.professionalName && !!config.attendantName;
       case 2: // Serviços
         return config.services.some(s => s.enabled);
-      case 3: // Horários
+      case 3: // Tipo de atendimento
+        return config.consultationType.presencial || config.consultationType.online || config.consultationType.domicilio;
+      case 4: // Objetivos
+        return !!config.agentObjectives?.primary;
+      case 5: // Horários
         return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
-      case 4: // FAQ (opcional - sempre pode prosseguir)
+      case 6: // FAQ (opcional - sempre pode prosseguir)
         return true;
-      case 5: // Knowledge (opcional - sempre pode prosseguir)
+      case 7: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 6: // Review
+      case 8: // Review
         return true;
       default:
         return true;
@@ -301,12 +310,32 @@ export default function AvivarSimpleWizard() {
         );
       case 3:
         return (
+          <StepConsultationSimple
+            consultationType={config.consultationType}
+            city={config.city}
+            state={config.state}
+            onChange={(consultationType) => updateConfig({ consultationType })}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
+          />
+        );
+      case 4:
+        return (
+          <StepObjectivesSimple
+            objectives={config.agentObjectives}
+            onChange={(agentObjectives) => updateConfig({ agentObjectives })}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
+          />
+        );
+      case 5:
+        return (
           <StepScheduleSimple
             schedule={config.schedule}
             onChange={(schedule) => updateConfig({ schedule })}
           />
         );
-      case 4:
+      case 6:
         return (
           <StepFAQGenerator
             nicho={config.nicho}
@@ -319,7 +348,7 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 5:
+      case 7:
         return (
           <StepKnowledgeSimple
             knowledgeFiles={config.knowledgeFiles || []}
@@ -327,7 +356,7 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 6:
+      case 8:
         return (
           <StepReviewSimple
             config={config}
