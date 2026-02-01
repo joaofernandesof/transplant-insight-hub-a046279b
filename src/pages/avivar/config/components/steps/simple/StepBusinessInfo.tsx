@@ -165,6 +165,43 @@ export function StepBusinessInfo({
                 className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] resize-none"
               />
             </div>
+
+            {/* Profissional Responsável da Matriz */}
+            {requiresProfessional && (
+              <div className="pt-3 border-t border-[hsl(var(--avivar-border))]">
+                <div className="flex items-center gap-2 mb-3 text-[hsl(var(--avivar-primary))]">
+                  <User className="h-4 w-4" />
+                  <span className="text-sm font-medium">Profissional Responsável (Matriz)</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="professionalName" className="text-[hsl(var(--avivar-foreground))]">
+                      {professionalConfig.nameLabel} *
+                    </Label>
+                    <Input
+                      id="professionalName"
+                      value={professionalName}
+                      onChange={(e) => onChange('professionalName', e.target.value)}
+                      placeholder={professionalConfig.namePlaceholder}
+                      className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="crm" className="text-[hsl(var(--avivar-foreground))]">
+                      {professionalConfig.registrationLabel}
+                      <span className="text-[hsl(var(--avivar-muted-foreground))] text-xs ml-1">(opcional)</span>
+                    </Label>
+                    <Input
+                      id="crm"
+                      value={crm}
+                      onChange={(e) => onChange('crm', e.target.value)}
+                      placeholder={professionalConfig.registrationPlaceholder}
+                      className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -354,46 +391,6 @@ export function StepBusinessInfo({
           </CardContent>
         </Card>
 
-        {/* Profissional Responsável */}
-        <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-          <CardContent className="p-4 space-y-4">
-            <div className="flex items-center gap-2 text-[hsl(var(--avivar-primary))]">
-              <User className="h-5 w-5" />
-              <span className="font-medium">Profissional Responsável</span>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="professionalName" className="text-[hsl(var(--avivar-foreground))]">
-                  {professionalConfig.nameLabel} *
-                </Label>
-                <Input
-                  id="professionalName"
-                  value={professionalName}
-                  onChange={(e) => onChange('professionalName', e.target.value)}
-                  placeholder={professionalConfig.namePlaceholder}
-                  className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-                />
-              </div>
-              
-              {professionalConfig.showRegistration && (
-                <div className="space-y-2">
-                  <Label htmlFor="crm" className="text-[hsl(var(--avivar-foreground))]">
-                    {professionalConfig.registrationLabel}
-                    <span className="text-[hsl(var(--avivar-muted-foreground))] text-xs ml-1">(opcional)</span>
-                  </Label>
-                  <Input
-                    id="crm"
-                    value={crm}
-                    onChange={(e) => onChange('crm', e.target.value)}
-                    placeholder={professionalConfig.registrationPlaceholder}
-                    className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-                  />
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Nome do Atendente Virtual */}
         <Card className="bg-gradient-to-br from-[hsl(var(--avivar-primary)/0.1)] to-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-primary)/0.3)]">
