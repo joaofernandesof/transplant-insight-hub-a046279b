@@ -39,12 +39,10 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/avivar' },
-  { id: 'comercial', label: 'Kanban Comercial', icon: Briefcase, href: '/avivar/comercial', isHighlight: true },
-  { id: 'posvenda', label: 'Kanban Pós-Venda', icon: HeartPulse, href: '/avivar/posvenda', isHighlight: true },
-  { id: 'divider0', label: '', icon: null, href: '', isDivider: true },
+  { id: 'leads', label: 'Leads', icon: Users, href: '/avivar/leads', isHighlight: true },
   { id: 'inbox', label: 'Chats', icon: MessageSquare, href: '/avivar/inbox', badge: '5' },
+  { id: 'divider0', label: '', icon: null, href: '', isDivider: true },
   { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: '3' },
-  { id: 'leads', label: 'Leads', icon: Users, href: '/avivar/leads' },
   { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup', badge: '12' },
   { id: 'cadences', label: 'Cadências', icon: Zap, href: '/avivar/cadences', isHighlight: true },
   { id: 'catalog', label: 'Catálogo', icon: Package, href: '/avivar/catalog' },

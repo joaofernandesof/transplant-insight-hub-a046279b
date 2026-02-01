@@ -161,7 +161,7 @@ const AvivarDashboard = lazy(() => import("./pages/avivar/AvivarDashboard"));
 
 const AvivarInbox = lazy(() => import("./pages/avivar/AvivarInbox"));
 const AvivarTasks = lazy(() => import("./pages/avivar/AvivarTasks"));
-const AvivarLeads = lazy(() => import("./pages/avivar/AvivarLeads"));
+const AvivarLeadsSelector = lazy(() => import("./pages/avivar/AvivarLeadsSelector"));
 const AvivarAnalytics = lazy(() => import("./pages/avivar/AvivarAnalytics"));
 const AvivarSettings = lazy(() => import("./pages/avivar/AvivarSettings"));
 const AvivarFollowUp = lazy(() => import("./pages/avivar/AvivarFollowUp"));
@@ -562,7 +562,7 @@ function AvivarRoutes() {
             
             <Route path="inbox" element={<AvivarInbox />} />
             <Route path="tasks" element={<AvivarTasks />} />
-            <Route path="leads" element={<AvivarLeads />} />
+            <Route path="leads" element={<AvivarLeadsSelector />} />
             <Route path="analytics" element={<AvivarAnalytics />} />
             <Route path="followup" element={<AvivarFollowUp />} />
             <Route path="cadences" element={<AvivarCadencesPage />} />
