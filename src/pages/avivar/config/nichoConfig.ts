@@ -562,7 +562,7 @@ export const SERVICES_BY_SUBNICHO: Record<SubnichoType, Service[]> = {
   
   // ESTÉTICA
   transplante_capilar: [
-    { id: 'cabelo', name: 'Transplante Capilar (Cabelo)', description: 'Técnicas: FUE, FUT, DHI', enabled: false },
+    { id: 'cabelo', name: 'Transplante Capilar (Cabelo)', description: 'Técnicas: FUE | Resultado natural e permanente', enabled: false },
     { id: 'barba', name: 'Transplante de Barba', description: 'Preenche falhas e aumenta densidade', enabled: false },
     { id: 'sobrancelha', name: 'Transplante de Sobrancelha', description: 'Correção de falhas e redesenho', enabled: false },
     { id: 'tratamento', name: 'Tratamento Capilar', description: 'PRP, Laser, Microagulhamento', enabled: false },

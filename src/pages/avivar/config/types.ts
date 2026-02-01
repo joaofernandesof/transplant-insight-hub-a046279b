@@ -387,7 +387,7 @@ export const TRANSPLANTE_SERVICES: Service[] = [
   { 
     id: 'cabelo', 
     name: 'Transplante Capilar (Cabelo)', 
-    description: 'Técnicas: FUE, FUT, DHI | Resultado natural e permanente',
+    description: 'Técnicas: FUE | Resultado natural e permanente',
     enabled: false 
   },
   { 
