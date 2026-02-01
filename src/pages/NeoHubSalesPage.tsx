@@ -14,6 +14,16 @@ import iconeNeofolic from '@/assets/icone-neofolic.png';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import { FeatureCarousel } from '@/components/landing/FeatureCarousel';
 
+// Import carousel images
+import dashboardKpis from '@/assets/carousel/dashboard-kpis.jpg';
+import dashboardCalendar from '@/assets/carousel/dashboard-calendar.jpg';
+import dashboardPatient from '@/assets/carousel/dashboard-patient.jpg';
+import crmPipeline from '@/assets/carousel/crm-pipeline.jpg';
+import crmWhatsapp from '@/assets/carousel/crm-whatsapp.jpg';
+import crmDetective from '@/assets/carousel/crm-detective.jpg';
+import mobileScheduling from '@/assets/carousel/mobile-scheduling.jpg';
+import mobileJourney from '@/assets/carousel/mobile-journey.jpg';
+
 // Módulos do NeoHub
 const modules = [
   { 
@@ -246,25 +256,22 @@ const dashboardCarouselSlides = [
     title: 'Dashboard Geral',
     description: 'Visão completa de KPIs, agendamentos, receita e métricas em tempo real.',
     imagePlaceholder: 'Dashboard com métricas',
+    imageUrl: dashboardKpis,
     features: ['KPIs em tempo real', 'Gráficos interativos', 'Filtros por período', 'Comparativo mensal']
   },
   {
     title: 'Calendário de Agendamentos',
     description: 'Visualize e gerencie todos os agendamentos em um calendário intuitivo.',
     imagePlaceholder: 'Calendário de consultas',
+    imageUrl: dashboardCalendar,
     features: ['Visão diária/semanal/mensal', 'Drag and drop', 'Cores por status', 'Conflitos automáticos']
   },
   {
     title: 'Gestão de Pacientes',
     description: 'Prontuário digital completo com histórico de tratamentos.',
     imagePlaceholder: 'Ficha do paciente',
+    imageUrl: dashboardPatient,
     features: ['Prontuário eletrônico', 'Fotos evolutivas', 'Histórico completo', 'Documentos anexos']
-  },
-  {
-    title: 'Relatórios Financeiros',
-    description: 'Acompanhe faturamento, recebimentos e projeções financeiras.',
-    imagePlaceholder: 'Gráficos financeiros',
-    features: ['Faturamento mensal', 'Ticket médio', 'Previsão de receita', 'Análise por serviço']
   },
 ];
 
@@ -273,24 +280,21 @@ const crmCarouselSlides = [
     title: 'Pipeline de Vendas',
     description: 'Visualize todos os leads organizados por etapa do funil.',
     imagePlaceholder: 'Kanban de leads',
+    imageUrl: crmPipeline,
     features: ['Drag and drop', 'Cores por temperatura', 'Valor estimado', 'Tempo em cada etapa']
   },
   {
     title: 'WhatsApp Integrado',
     description: 'Converse com leads diretamente pelo WhatsApp sem sair do sistema.',
     imagePlaceholder: 'Chat WhatsApp',
+    imageUrl: crmWhatsapp,
     features: ['Mensagens automáticas', 'Templates prontos', 'Anexos de mídia', 'Histórico completo']
-  },
-  {
-    title: 'Automações',
-    description: 'Crie fluxos automáticos de follow-up e nutrição de leads.',
-    imagePlaceholder: 'Editor de automação',
-    features: ['Gatilhos personalizados', 'Sequências de email', 'WhatsApp automático', 'Condicionais']
   },
   {
     title: 'Detetive de Leads',
     description: 'IA que pesquisa e enriquece dados dos seus leads automaticamente.',
     imagePlaceholder: 'Relatório de lead',
+    imageUrl: crmDetective,
     features: ['Pesquisa automática', 'LinkedIn/Instagram', 'Score de qualificação', 'Insights de abordagem']
   },
 ];
@@ -300,19 +304,15 @@ const mobileCarouselSlides = [
     title: 'Agendamento Online',
     description: 'Pacientes agendam consultas 24/7 direto pelo celular.',
     imagePlaceholder: 'Tela de agendamento',
+    imageUrl: mobileScheduling,
     features: ['Horários disponíveis', 'Confirmação automática', 'Lembretes por SMS', 'Cancelamento fácil']
   },
   {
-    title: 'Prontuário Mobile',
-    description: 'Acesse e atualize prontuários de qualquer lugar.',
-    imagePlaceholder: 'Prontuário no celular',
-    features: ['Visualização completa', 'Edição rápida', 'Fotos na hora', 'Assinatura digital']
-  },
-  {
-    title: 'Notificações',
-    description: 'Receba alertas de agendamentos, leads e tarefas importantes.',
-    imagePlaceholder: 'Push notifications',
-    features: ['Push em tempo real', 'Alertas customizados', 'Lembretes de follow-up', 'Resumo diário']
+    title: 'Jornada do Paciente',
+    description: 'Acompanhe cada etapa do tratamento com orientações automáticas.',
+    imagePlaceholder: 'Timeline do paciente',
+    imageUrl: mobileJourney,
+    features: ['Orientações pós-cirurgia', 'Lembretes de medicação', 'Progresso de recuperação', 'Suporte integrado']
   },
 ];
 

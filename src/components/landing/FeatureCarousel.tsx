@@ -9,6 +9,7 @@ interface CarouselSlide {
   title: string;
   description: string;
   imagePlaceholder: string;
+  imageUrl?: string;
   features?: string[];
 }
 
@@ -92,38 +93,29 @@ export function FeatureCarousel({
                 key={index}
                 className="flex-[0_0_100%] min-w-0"
               >
-                {/* Placeholder mockup - pode ser substituído por imagens reais */}
-                <div className="aspect-[16/10] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center p-8">
-                  <div className="w-full h-full rounded-lg bg-slate-950/50 border border-slate-700/50 p-4 flex flex-col">
-                    {/* Mock header */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                      <div className="w-3 h-3 rounded-full bg-green-500/50" />
-                      <div className="flex-1 h-6 bg-slate-800 rounded ml-4" />
-                    </div>
-                    {/* Mock content */}
-                    <div className="flex-1 grid grid-cols-4 gap-3">
-                      <div className="col-span-1 space-y-2">
-                        <div className="h-8 bg-slate-800/50 rounded" />
-                        <div className="h-6 bg-slate-800/30 rounded" />
-                        <div className="h-6 bg-slate-800/30 rounded" />
-                        <div className="h-6 bg-slate-800/30 rounded" />
-                        <div className="h-6 bg-slate-800/30 rounded" />
+                {/* Real image or placeholder */}
+                <div className="aspect-[16/10] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
+                  {slide.imageUrl ? (
+                    <img 
+                      src={slide.imageUrl} 
+                      alt={slide.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full p-4 flex flex-col">
+                      {/* Mock header */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-3 h-3 rounded-full bg-red-500/50" />
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
+                        <div className="w-3 h-3 rounded-full bg-green-500/50" />
+                        <div className="flex-1 h-6 bg-slate-800 rounded ml-4" />
                       </div>
-                      <div className="col-span-3 space-y-3">
-                        <div className="h-24 bg-slate-800/40 rounded-lg flex items-center justify-center">
-                          <span className="text-slate-500 text-sm">{slide.imagePlaceholder}</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="h-16 bg-slate-800/30 rounded" />
-                          <div className="h-16 bg-slate-800/30 rounded" />
-                          <div className="h-16 bg-slate-800/30 rounded" />
-                        </div>
-                        <div className="h-20 bg-slate-800/20 rounded" />
+                      {/* Mock content */}
+                      <div className="flex-1 flex items-center justify-center">
+                        <span className="text-slate-500 text-sm">{slide.imagePlaceholder}</span>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
