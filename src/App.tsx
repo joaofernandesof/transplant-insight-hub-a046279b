@@ -38,6 +38,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 const PublicDashboardPage = lazy(() => import("./pages/public/PublicDashboardPage"));
 const ArchitectureDocDownload = lazy(() => import("./pages/docs/ArchitectureDocDownload"));
+const FlowDoArchitecturePlan = lazy(() => import("./pages/docs/FlowDoArchitecturePlan"));
 
 // NOTE: Carregamento direto (sem lazy) para evitar falhas de import dinâmico no preview
 // quando a sessão expira e o servidor retorna HTML de login no lugar do módulo JS.
@@ -618,6 +619,7 @@ function AppRoutes() {
       <Route path="/public/dashboard/:token" element={<Suspense fallback={<div className="p-6 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}><PublicDashboardPage /></Suspense>} />
       <Route path="/neohub" element={<NeoHubSalesPage />} />
       <Route path="/docs/architecture" element={<LazyRoute><ArchitectureDocDownload /></LazyRoute>} />
+      <Route path="/docs/flow-do" element={<LazyRoute><FlowDoArchitecturePlan /></LazyRoute>} />
 
       {/* ====================================
           Rotas Protegidas - Seleção de Perfil
