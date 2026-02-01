@@ -42,6 +42,8 @@ import { ColumnDialog } from './components/ColumnDialog';
 import { KanbanColumn } from './components/KanbanColumn';
 import { ViewModeToggle, ViewMode } from './components/ViewModeToggle';
 import { LeadsListView } from './components/LeadsListView';
+import { ImportLeadsDialog } from './components/ImportLeadsDialog';
+import { ExportLeadsDialog } from './components/ExportLeadsDialog';
 
 export interface KanbanColumnData {
   id: string;
@@ -77,6 +79,8 @@ export default function AvivarKanbanPage() {
   const [editingColumn, setEditingColumn] = useState<KanbanColumnData | null>(null);
   const [activeColumn, setActiveColumn] = useState<KanbanColumnData | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -315,14 +319,14 @@ export default function AvivarKanbanPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem 
-                onClick={() => toast.info('Funcionalidade de importação em breve!')}
+                onClick={() => setIsImportDialogOpen(true)}
                 className="cursor-pointer"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Importar Leads
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => toast.info('Funcionalidade de exportação em breve!')}
+                onClick={() => setIsExportDialogOpen(true)}
                 className="cursor-pointer"
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -427,6 +431,27 @@ export default function AvivarKanbanPage() {
         onSave={handleSaveColumn}
         isLoading={createColumn.isPending || updateColumn.isPending}
       />
+
+      {/* Import Leads Dialog */}
+      {kanbanId && (
+        <ImportLeadsDialog
+          open={isImportDialogOpen}
+          onOpenChange={setIsImportDialogOpen}
+          kanbanId={kanbanId}
+          columns={columns}
+        />
+      )}
+
+      {/* Export Leads Dialog */}
+      {kanbanId && kanban && (
+        <ExportLeadsDialog
+          open={isExportDialogOpen}
+          onOpenChange={setIsExportDialogOpen}
+          kanbanId={kanbanId}
+          kanbanName={kanban.name}
+          columns={columns}
+        />
+      )}
     </div>
   );
 }
