@@ -290,21 +290,29 @@ export default function AvivarKanbanPage() {
       </div>
 
       {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto p-4 scrollbar-thin scrollbar-thumb-[hsl(var(--avivar-primary)/0.3)] scrollbar-track-transparent hover:scrollbar-thumb-[hsl(var(--avivar-primary)/0.5)]">
+      <div className="flex-1 overflow-x-scroll p-4 custom-kanban-scrollbar">
         <style>{`
-          .scrollbar-thin::-webkit-scrollbar {
-            height: 8px;
+          .custom-kanban-scrollbar::-webkit-scrollbar {
+            height: 10px;
           }
-          .scrollbar-thin::-webkit-scrollbar-track {
-            background: transparent;
+          .custom-kanban-scrollbar::-webkit-scrollbar-track {
+            background: hsl(var(--avivar-primary) / 0.1);
             border-radius: 10px;
+            margin: 0 16px;
           }
-          .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: hsl(var(--avivar-primary) / 0.3);
+          .custom-kanban-scrollbar::-webkit-scrollbar-thumb {
+            background: hsl(var(--avivar-primary) / 0.4);
             border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
           }
-          .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-            background: hsl(var(--avivar-primary) / 0.5);
+          .custom-kanban-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--avivar-primary) / 0.6);
+            background-clip: padding-box;
+          }
+          .custom-kanban-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: hsl(var(--avivar-primary) / 0.4) hsl(var(--avivar-primary) / 0.1);
           }
         `}</style>
         <DndContext
