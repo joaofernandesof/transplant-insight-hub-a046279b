@@ -25,7 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import {
   Plus, ArrowLeft, Settings, Loader2, GripVertical,
-  Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid
+  Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid as LayoutGridIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +33,8 @@ import { toast } from 'sonner';
 import { SortableColumn } from './components/SortableColumn';
 import { ColumnDialog } from './components/ColumnDialog';
 import { KanbanColumn } from './components/KanbanColumn';
+import { ViewModeToggle, ViewMode } from './components/ViewModeToggle';
+import { LeadsListView } from './components/LeadsListView';
 
 export interface KanbanColumnData {
   id: string;
@@ -55,7 +57,7 @@ const getIconComponent = (iconName: string) => {
     case 'heart-pulse': return HeartPulse;
     case 'trending-up': return TrendingUp;
     case 'users': return Users;
-    case 'layout-grid': return LayoutGrid;
+    case 'layout-grid': return LayoutGridIcon;
     default: return Briefcase;
   }
 };
@@ -67,6 +69,7 @@ export default function AvivarKanbanPage() {
   const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
   const [editingColumn, setEditingColumn] = useState<KanbanColumnData | null>(null);
   const [activeColumn, setActiveColumn] = useState<KanbanColumnData | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -277,99 +280,109 @@ export default function AvivarKanbanPage() {
           </div>
         </div>
 
-        <Button
-          onClick={() => {
-            setEditingColumn(null);
-            setIsColumnDialogOpen(true);
-          }}
-          className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Coluna
-        </Button>
-      </div>
-
-      {/* Kanban Board */}
-      <div className="flex-1 overflow-hidden relative">
-        <style>{`
-          .kanban-scroll-container::-webkit-scrollbar {
-            height: 12px;
-            width: 8px;
-          }
-          .kanban-scroll-container::-webkit-scrollbar-track {
-            background: rgba(139, 92, 246, 0.15);
-            border-radius: 6px;
-          }
-          .kanban-scroll-container::-webkit-scrollbar-thumb {
-            background: rgba(139, 92, 246, 0.5);
-            border-radius: 6px;
-          }
-          .kanban-scroll-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 92, 246, 0.7);
-          }
-          .kanban-scroll-container::-webkit-scrollbar-corner {
-            background: transparent;
-          }
-        `}</style>
-        <div 
-          className="kanban-scroll-container absolute inset-0 overflow-x-auto overflow-y-auto p-4 pb-6"
-          style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(139, 92, 246, 0.5) rgba(139, 92, 246, 0.15)',
-          }}
-        >
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={columns.map(c => c.id)}
-              strategy={horizontalListSortingStrategy}
+        <div className="flex items-center gap-3">
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          
+          {viewMode === 'kanban' && (
+            <Button
+              onClick={() => {
+                setEditingColumn(null);
+                setIsColumnDialogOpen(true);
+              }}
+              className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
             >
-              <div className="flex gap-4 min-h-[500px] w-max">
-                {columns.map((column) => (
-                  <SortableColumn
-                    key={column.id}
-                    column={column}
-                    onEdit={() => {
-                      setEditingColumn(column);
-                      setIsColumnDialogOpen(true);
-                    }}
-                    onDelete={() => deleteColumn.mutate(column.id)}
-                  />
-                ))}
-
-                {columns.length === 0 && (
-                  <div className="flex-1 min-w-[300px] flex items-center justify-center border-2 border-dashed border-[hsl(var(--avivar-border))] rounded-xl">
-                    <div className="text-center p-8">
-                      <p className="text-[hsl(var(--avivar-muted-foreground))] mb-4">
-                        Este kanban ainda não tem colunas
-                      </p>
-                      <Button
-                        onClick={() => setIsColumnDialogOpen(true)}
-                        className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Criar Primeira Coluna
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </SortableContext>
-
-            <DragOverlay>
-              {activeColumn && (
-                <div className="opacity-80">
-                  <KanbanColumn column={activeColumn} isDragging />
-                </div>
-              )}
-            </DragOverlay>
-          </DndContext>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Coluna
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Content Area */}
+      {viewMode === 'kanban' ? (
+        <div className="flex-1 overflow-hidden relative">
+          <style>{`
+            .kanban-scroll-container::-webkit-scrollbar {
+              height: 12px;
+              width: 8px;
+            }
+            .kanban-scroll-container::-webkit-scrollbar-track {
+              background: rgba(139, 92, 246, 0.15);
+              border-radius: 6px;
+            }
+            .kanban-scroll-container::-webkit-scrollbar-thumb {
+              background: rgba(139, 92, 246, 0.5);
+              border-radius: 6px;
+            }
+            .kanban-scroll-container::-webkit-scrollbar-thumb:hover {
+              background: rgba(139, 92, 246, 0.7);
+            }
+            .kanban-scroll-container::-webkit-scrollbar-corner {
+              background: transparent;
+            }
+          `}</style>
+          <div 
+            className="kanban-scroll-container absolute inset-0 overflow-x-auto overflow-y-auto p-4 pb-6"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(139, 92, 246, 0.5) rgba(139, 92, 246, 0.15)',
+            }}
+          >
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={columns.map(c => c.id)}
+                strategy={horizontalListSortingStrategy}
+              >
+                <div className="flex gap-4 min-h-[500px] w-max">
+                  {columns.map((column) => (
+                    <SortableColumn
+                      key={column.id}
+                      column={column}
+                      onEdit={() => {
+                        setEditingColumn(column);
+                        setIsColumnDialogOpen(true);
+                      }}
+                      onDelete={() => deleteColumn.mutate(column.id)}
+                    />
+                  ))}
+
+                  {columns.length === 0 && (
+                    <div className="flex-1 min-w-[300px] flex items-center justify-center border-2 border-dashed border-[hsl(var(--avivar-border))] rounded-xl">
+                      <div className="text-center p-8">
+                        <p className="text-[hsl(var(--avivar-muted-foreground))] mb-4">
+                          Este kanban ainda não tem colunas
+                        </p>
+                        <Button
+                          onClick={() => setIsColumnDialogOpen(true)}
+                          className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Criar Primeira Coluna
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </SortableContext>
+
+              <DragOverlay>
+                {activeColumn && (
+                  <div className="opacity-80">
+                    <KanbanColumn column={activeColumn} isDragging />
+                  </div>
+                )}
+              </DragOverlay>
+            </DndContext>
+          </div>
+        </div>
+      ) : (
+        <LeadsListView columns={columns} />
+      )}
 
       {/* Column Dialog */}
       <ColumnDialog
