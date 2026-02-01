@@ -50,6 +50,7 @@ function mapAgentToConfig(agent: Record<string, unknown>): Partial<AgentConfig> 
     paymentMethods: (agent.payment_methods as AgentConfig['paymentMethods']) || [...PAYMENT_METHODS],
     consultationType: (agent.consultation_type as AgentConfig['consultationType']) || { presencial: true, online: false, domicilio: false },
     consultationDuration: (agent.consultation_duration as number) || 60,
+    agentObjectives: (agent.agent_objectives as AgentConfig['agentObjectives']) || { primary: null, secondary: [] },
     
     // Imagens e arquivos
     beforeAfterImages: (agent.before_after_images as string[]) || [],
