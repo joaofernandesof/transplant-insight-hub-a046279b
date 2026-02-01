@@ -601,6 +601,41 @@ export type Database = {
           },
         ]
       }
+      avivar_briefing_interactions: {
+        Row: {
+          action: string
+          briefing_id: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          briefing_id: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          briefing_id?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_briefing_interactions_briefing_id_fkey"
+            columns: ["briefing_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_lead_briefings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_cadence_executions: {
         Row: {
           completed_at: string | null
@@ -849,6 +884,60 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_detetive_settings: {
+        Row: {
+          apify_enabled: boolean | null
+          created_at: string | null
+          custom_prompt: string | null
+          default_language: string | null
+          elevenlabs_enabled: boolean | null
+          firecrawl_enabled: boolean | null
+          id: string
+          include_audio: boolean | null
+          include_instagram: boolean | null
+          include_linkedin: boolean | null
+          perplexity_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+          voice_id: string | null
+          voice_speed: number | null
+        }
+        Insert: {
+          apify_enabled?: boolean | null
+          created_at?: string | null
+          custom_prompt?: string | null
+          default_language?: string | null
+          elevenlabs_enabled?: boolean | null
+          firecrawl_enabled?: boolean | null
+          id?: string
+          include_audio?: boolean | null
+          include_instagram?: boolean | null
+          include_linkedin?: boolean | null
+          perplexity_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          voice_id?: string | null
+          voice_speed?: number | null
+        }
+        Update: {
+          apify_enabled?: boolean | null
+          created_at?: string | null
+          custom_prompt?: string | null
+          default_language?: string | null
+          elevenlabs_enabled?: boolean | null
+          firecrawl_enabled?: boolean | null
+          id?: string
+          include_audio?: boolean | null
+          include_instagram?: boolean | null
+          include_linkedin?: boolean | null
+          perplexity_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          voice_id?: string | null
+          voice_speed?: number | null
+        }
+        Relationships: []
+      }
       avivar_knowledge_chunks: {
         Row: {
           chunk_index: number
@@ -936,6 +1025,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      avivar_lead_briefings: {
+        Row: {
+          ai_model_used: string | null
+          audio_duration_seconds: number | null
+          audio_url: string | null
+          briefing_data: Json | null
+          company_name: string | null
+          company_url: string
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          generation_time_ms: number | null
+          id: string
+          instagram_data: Json | null
+          instagram_username: string | null
+          linkedin_data: Json | null
+          linkedin_url: string | null
+          news_data: Json | null
+          processing_step: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          website_data: Json | null
+        }
+        Insert: {
+          ai_model_used?: string | null
+          audio_duration_seconds?: number | null
+          audio_url?: string | null
+          briefing_data?: Json | null
+          company_name?: string | null
+          company_url: string
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          generation_time_ms?: number | null
+          id?: string
+          instagram_data?: Json | null
+          instagram_username?: string | null
+          linkedin_data?: Json | null
+          linkedin_url?: string | null
+          news_data?: Json | null
+          processing_step?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          website_data?: Json | null
+        }
+        Update: {
+          ai_model_used?: string | null
+          audio_duration_seconds?: number | null
+          audio_url?: string | null
+          briefing_data?: Json | null
+          company_name?: string | null
+          company_url?: string
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          generation_time_ms?: number | null
+          id?: string
+          instagram_data?: Json | null
+          instagram_username?: string | null
+          linkedin_data?: Json | null
+          linkedin_url?: string | null
+          news_data?: Json | null
+          processing_step?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          website_data?: Json | null
+        }
+        Relationships: []
       }
       avivar_mensagens: {
         Row: {
