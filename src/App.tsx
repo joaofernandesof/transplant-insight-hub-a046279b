@@ -40,6 +40,14 @@ const PublicDashboardPage = lazy(() => import("./pages/public/PublicDashboardPag
 const ArchitectureDocDownload = lazy(() => import("./pages/docs/ArchitectureDocDownload"));
 const FlowDoArchitecturePlan = lazy(() => import("./pages/docs/FlowDoArchitecturePlan"));
 
+// ====================================
+// Pages - Flow.do (Gestão Operacional)
+// ====================================
+const FlowPortal = lazy(() => import("./pages/flow/FlowPortal"));
+const FlowDashboard = lazy(() => import("./pages/flow/FlowDashboard"));
+const FlowProjects = lazy(() => import("./pages/flow/FlowProjects"));
+const FlowProjectDetail = lazy(() => import("./pages/flow/FlowProjectDetail"));
+
 // NOTE: Carregamento direto (sem lazy) para evitar falhas de import dinâmico no preview
 // quando a sessão expira e o servidor retorna HTML de login no lugar do módulo JS.
 import AvivarAgentsPage from "./pages/avivar/config/AvivarAgentsPage";
@@ -784,6 +792,19 @@ function AppRoutes() {
       <Route path="/neohair/profissional" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairProfessionalDashboard /></NeoHairSidebar></Suspense></ProtectedRoute>} />
       <Route path="/neohair/admin" element={<AdminRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairAdminDashboard /></NeoHairSidebar></Suspense></AdminRoute>} />
       <Route path="/neohair/*" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoHairSidebar><NeoHairHome /></NeoHairSidebar></Suspense></ProtectedRoute>} />
+
+      {/* ====================================
+          Flow.do - Gestão Operacional (Work OS)
+          ==================================== */}
+      <Route path="/flow" element={<ProtectedRoute><LazyRoute><FlowPortal /></LazyRoute></ProtectedRoute>}>
+        <Route index element={<FlowDashboard />} />
+        <Route path="projects" element={<FlowProjects />} />
+        <Route path="projects/:projectId" element={<FlowProjectDetail />} />
+        <Route path="my-tasks" element={<PlaceholderPage title="Minhas Tarefas" />} />
+        <Route path="calendar" element={<PlaceholderPage title="Calendário" />} />
+        <Route path="workflows" element={<PlaceholderPage title="Automações" />} />
+        <Route path="settings" element={<PlaceholderPage title="Configurações" />} />
+      </Route>
 
       {/* ====================================
           NeoCRM - CRM de Vendas
