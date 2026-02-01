@@ -290,7 +290,23 @@ export default function AvivarKanbanPage() {
       </div>
 
       {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto p-4">
+      <div className="flex-1 overflow-x-auto p-4 scrollbar-thin scrollbar-thumb-[hsl(var(--avivar-primary)/0.3)] scrollbar-track-transparent hover:scrollbar-thumb-[hsl(var(--avivar-primary)/0.5)]">
+        <style>{`
+          .scrollbar-thin::-webkit-scrollbar {
+            height: 8px;
+          }
+          .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 10px;
+          }
+          .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: hsl(var(--avivar-primary) / 0.3);
+            border-radius: 10px;
+          }
+          .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--avivar-primary) / 0.5);
+          }
+        `}</style>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
