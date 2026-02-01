@@ -134,9 +134,15 @@ export function autoGenerateConfig(
 - Quando o cliente demonstrar interesse, direcione para o agendamento ou próximo passo
 `.trim();
 
-  // Restrições geradas automaticamente
+  // Restrições geradas automaticamente (inclui proteção anti-alucinação)
   const aiRestrictions = `
-- NUNCA invente informações sobre preços, disponibilidade ou procedimentos
+## REGRA CRÍTICA ANTI-ALUCINAÇÃO
+- NUNCA invente endereços, preços, horários ou qualquer informação de negócio
+- Use APENAS os dados retornados pelas ferramentas (list_agendas, search_knowledge_base, etc.)
+- Se não encontrar uma informação nas ferramentas, diga: "Vou confirmar essa informação e te retorno em instantes."
+- NUNCA preencha lacunas com suposições ou dados fictícios
+
+## RESTRIÇÕES GERAIS
 - NUNCA faça promessas que a empresa não possa cumprir
 - NUNCA compartilhe dados de outros clientes
 - NUNCA discuta política, religião ou temas polêmicos
