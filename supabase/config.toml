@@ -69,3 +69,6 @@ verify_jwt = false
 
 [functions.avivar-generate-faq]
 verify_jwt = false
+
+[functions.avivar-debounce-processor]
+verify_jwt = false
