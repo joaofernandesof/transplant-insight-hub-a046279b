@@ -82,9 +82,12 @@ serve(async (req: Request): Promise<Response> => {
       const lastSeen = user.last_seen_at
         ? new Date(user.last_seen_at).toLocaleDateString("pt-BR")
         : "Nunca acessou";
-      const daysInactive = user.last_seen_at
-        ? Math.floor((Date.now() - new Date(user.last_seen_at).getTime()) / (1000 * 60 * 60 * 24))
-        : "N/A";
+      
+      // Calculate days inactive - use last_seen_at if available, otherwise use created_at
+      const referenceDate = user.last_seen_at 
+        ? new Date(user.last_seen_at) 
+        : new Date(user.created_at);
+      const daysInactive = Math.floor((Date.now() - referenceDate.getTime()) / (1000 * 60 * 60 * 24));
       
       return `
         <tr>
