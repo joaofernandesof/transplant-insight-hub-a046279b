@@ -3,96 +3,345 @@
  * Lista todos os kanbans disponíveis para o usuário escolher
  */
 
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, HeartPulse, TrendingUp, Users, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  Briefcase, HeartPulse, TrendingUp, Users, ArrowRight, Plus, 
+  Loader2, Palette, LayoutGrid 
+} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { toast } from 'sonner';
 
-const kanbans = [
-  {
-    id: 'comercial',
-    title: 'Kanban Comercial',
-    description: 'Gerencie leads desde o primeiro contato até o fechamento',
-    icon: Briefcase,
-    href: '/avivar/comercial',
-    color: 'from-blue-500 to-blue-600',
-    stats: { leads: 47, novos: 12 },
-  },
-  {
-    id: 'posvenda',
-    title: 'Kanban Pós-Venda',
-    description: 'Acompanhe pacientes após o procedimento',
-    icon: HeartPulse,
-    href: '/avivar/posvenda',
-    color: 'from-emerald-500 to-emerald-600',
-    stats: { leads: 23, novos: 5 },
-  },
+const iconOptions = [
+  { value: 'briefcase', label: 'Pasta', icon: Briefcase },
+  { value: 'heart-pulse', label: 'Saúde', icon: HeartPulse },
+  { value: 'trending-up', label: 'Crescimento', icon: TrendingUp },
+  { value: 'users', label: 'Pessoas', icon: Users },
+  { value: 'layout-grid', label: 'Grade', icon: LayoutGrid },
 ];
+
+const colorOptions = [
+  { value: 'from-blue-500 to-blue-600', label: 'Azul', preview: 'bg-blue-500' },
+  { value: 'from-emerald-500 to-emerald-600', label: 'Verde', preview: 'bg-emerald-500' },
+  { value: 'from-purple-500 to-purple-600', label: 'Roxo', preview: 'bg-purple-500' },
+  { value: 'from-amber-500 to-amber-600', label: 'Laranja', preview: 'bg-amber-500' },
+  { value: 'from-pink-500 to-pink-600', label: 'Rosa', preview: 'bg-pink-500' },
+  { value: 'from-cyan-500 to-cyan-600', label: 'Ciano', preview: 'bg-cyan-500' },
+];
+
+const getIconComponent = (iconName: string) => {
+  switch (iconName) {
+    case 'heart-pulse': return HeartPulse;
+    case 'trending-up': return TrendingUp;
+    case 'users': return Users;
+    case 'layout-grid': return LayoutGrid;
+    default: return Briefcase;
+  }
+};
+
+interface KanbanData {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  color: string;
+  is_active: boolean;
+  order_index: number;
+}
 
 export function AvivarLeadsSelector() {
   const navigate = useNavigate();
+  const { user } = useUnifiedAuth();
+  const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newKanban, setNewKanban] = useState({
+    name: '',
+    description: '',
+    icon: 'briefcase',
+    color: 'from-blue-500 to-blue-600',
+  });
+
+  // Fetch kanbans from database
+  const { data: kanbans, isLoading } = useQuery({
+    queryKey: ['avivar-kanbans', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('avivar_kanbans')
+        .select('*')
+        .order('order_index', { ascending: true });
+      
+      if (error) throw error;
+      return data as KanbanData[];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Create kanban mutation
+  const createKanban = useMutation({
+    mutationFn: async (kanbanData: typeof newKanban) => {
+      const { data, error } = await supabase
+        .from('avivar_kanbans')
+        .insert({
+          user_id: user?.id,
+          name: kanbanData.name,
+          description: kanbanData.description || null,
+          icon: kanbanData.icon,
+          color: kanbanData.color,
+          order_index: (kanbans?.length || 0) + 1,
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['avivar-kanbans'] });
+      setIsDialogOpen(false);
+      setNewKanban({ name: '', description: '', icon: 'briefcase', color: 'from-blue-500 to-blue-600' });
+      toast.success('Kanban criado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Error creating kanban:', error);
+      toast.error('Erro ao criar kanban');
+    },
+  });
+
+  const handleCreateKanban = () => {
+    if (!newKanban.name.trim()) {
+      toast.error('Digite um nome para o kanban');
+      return;
+    }
+    createKanban.mutate(newKanban);
+  };
+
+  const handleNavigateToKanban = (kanbanId: string) => {
+    // Navigate to the specific kanban page
+    navigate(`/avivar/kanban/${kanbanId}`);
+  };
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mb-2">
-          Leads
-        </h1>
-        <p className="text-[hsl(var(--avivar-muted-foreground))]">
-          Selecione o kanban que deseja visualizar
-        </p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))] mb-2">
+            Leads
+          </h1>
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">
+            Selecione o kanban que deseja visualizar
+          </p>
+        </div>
+
+        {/* Add Kanban Button */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Kanban
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+            <DialogHeader>
+              <DialogTitle className="text-[hsl(var(--avivar-foreground))]">
+                Criar Novo Kanban
+              </DialogTitle>
+              <DialogDescription className="text-[hsl(var(--avivar-muted-foreground))]">
+                Configure seu novo kanban de leads personalizado
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-[hsl(var(--avivar-foreground))]">
+                  Nome do Kanban
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="Ex: Leads Instagram"
+                  value={newKanban.name}
+                  onChange={(e) => setNewKanban({ ...newKanban, name: e.target.value })}
+                  className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-[hsl(var(--avivar-foreground))]">
+                  Descrição (opcional)
+                </Label>
+                <Textarea
+                  id="description"
+                  placeholder="Descreva o propósito deste kanban..."
+                  value={newKanban.description}
+                  onChange={(e) => setNewKanban({ ...newKanban, description: e.target.value })}
+                  className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]"
+                  rows={2}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[hsl(var(--avivar-foreground))]">Ícone</Label>
+                  <Select
+                    value={newKanban.icon}
+                    onValueChange={(value) => setNewKanban({ ...newKanban, icon: value })}
+                  >
+                    <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {iconOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <div className="flex items-center gap-2">
+                            <opt.icon className="h-4 w-4" />
+                            {opt.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[hsl(var(--avivar-foreground))]">Cor</Label>
+                  <Select
+                    value={newKanban.color}
+                    onValueChange={(value) => setNewKanban({ ...newKanban, color: value })}
+                  >
+                    <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {colorOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-4 h-4 rounded ${opt.preview}`} />
+                            {opt.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="border-[hsl(var(--avivar-border))]"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreateKanban}
+                disabled={createKanban.isPending}
+                className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+              >
+                {createKanban.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                Criar Kanban
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Kanban List */}
       <div className="space-y-4">
-        {kanbans.map((kanban) => {
-          const Icon = kanban.icon;
-          return (
-            <Card
-              key={kanban.id}
-              className="group cursor-pointer border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] hover:bg-[hsl(var(--avivar-primary)/0.05)] hover:border-[hsl(var(--avivar-primary)/0.3)] transition-all duration-300"
-              onClick={() => navigate(kanban.href)}
-            >
-              <CardContent className="p-5">
-                <div className="flex items-center gap-4">
-                  {/* Icon */}
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${kanban.color} flex items-center justify-center shadow-lg`}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--avivar-primary))]" />
+          </div>
+        ) : kanbans && kanbans.length > 0 ? (
+          kanbans.map((kanban) => {
+            const Icon = getIconComponent(kanban.icon);
+            return (
+              <Card
+                key={kanban.id}
+                className="group cursor-pointer border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] hover:bg-[hsl(var(--avivar-primary)/0.05)] hover:border-[hsl(var(--avivar-primary)/0.3)] transition-all duration-300"
+                onClick={() => handleNavigateToKanban(kanban.id)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-4">
+                    {/* Icon */}
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${kanban.color} flex items-center justify-center shadow-lg`}>
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-[hsl(var(--avivar-foreground))] text-lg">
-                        {kanban.title}
-                      </h3>
-                      {kanban.stats.novos > 0 && (
-                        <Badge className="bg-[hsl(var(--avivar-primary))] text-white text-xs">
-                          +{kanban.stats.novos} novos
-                        </Badge>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-[hsl(var(--avivar-foreground))] text-lg">
+                          {kanban.name}
+                        </h3>
+                      </div>
+                      {kanban.description && (
+                        <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                          {kanban.description}
+                        </p>
                       )}
                     </div>
-                    <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                      {kanban.description}
-                    </p>
-                  </div>
 
-                  {/* Stats & Arrow */}
-                  <div className="flex items-center gap-4">
-                    <div className="text-right hidden sm:block">
-                      <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-                        {kanban.stats.leads}
-                      </p>
-                      <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">leads ativos</p>
-                    </div>
+                    {/* Arrow */}
                     <ArrowRight className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))] group-hover:text-[hsl(var(--avivar-primary))] group-hover:translate-x-1 transition-all" />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })
+        ) : (
+          <Card className="border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] border-dashed">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-[hsl(var(--avivar-primary)/0.1)] flex items-center justify-center mx-auto mb-4">
+                <LayoutGrid className="h-8 w-8 text-[hsl(var(--avivar-primary))]" />
+              </div>
+              <h3 className="font-semibold text-[hsl(var(--avivar-foreground))] mb-2">
+                Nenhum kanban criado
+              </h3>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] mb-4">
+                Crie seu primeiro kanban para organizar seus leads
+              </p>
+              <Button
+                onClick={() => setIsDialogOpen(true)}
+                className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Primeiro Kanban
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
