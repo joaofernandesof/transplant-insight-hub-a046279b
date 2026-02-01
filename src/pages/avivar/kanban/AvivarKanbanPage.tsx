@@ -24,9 +24,16 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import {
-  Plus, ArrowLeft, Settings, Loader2, GripVertical,
-  Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid as LayoutGridIcon
+  Plus, ArrowLeft, Loader2,
+  Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid as LayoutGridIcon,
+  MoreHorizontal, Upload, Download
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -295,6 +302,34 @@ export default function AvivarKanbanPage() {
               Nova Coluna
             </Button>
           )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+              >
+                <MoreHorizontal className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem 
+                onClick={() => toast.info('Funcionalidade de importação em breve!')}
+                className="cursor-pointer"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Importar Leads
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => toast.info('Funcionalidade de exportação em breve!')}
+                className="cursor-pointer"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar Leads
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
