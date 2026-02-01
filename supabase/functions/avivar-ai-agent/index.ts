@@ -274,41 +274,89 @@ async function searchKnowledgeBase(
 ): Promise<string> {
   console.log(`[AI Agent] Tool: search_knowledge_base("${query.substring(0, 50)}...") - FULL ACCESS`);
 
-  // Acesso à base de conhecimento COMPLETA do usuário (todos os agentes)
+  const queryTerms = query.toLowerCase().split(" ").filter(t => t.length > 2);
+  const allKnowledge: Array<{ content: string; source: string }> = [];
+
+  // SOURCE 1: avivar_knowledge_documents + chunks (tabela de documentos)
   const { data: documents } = await supabase
     .from("avivar_knowledge_documents")
     .select("id, name")
     .eq("user_id", userId);
 
-  if (!documents?.length) {
+  if (documents?.length) {
+    console.log(`[AI Agent] Found ${documents.length} documents in avivar_knowledge_documents`);
+    const docIds = documents.map((d: { id: string }) => d.id);
+
+    const { data: chunks } = await supabase
+      .from("avivar_knowledge_chunks")
+      .select("content")
+      .in("document_id", docIds)
+      .limit(20);
+
+    if (chunks?.length) {
+      chunks.forEach((c: { content: string }) => {
+        allKnowledge.push({ content: c.content, source: "documents" });
+      });
+    }
+  }
+
+  // SOURCE 2: knowledge_files JSONB field in avivar_agents (inline files from wizard)
+  const { data: agents } = await supabase
+    .from("avivar_agents")
+    .select("id, name, knowledge_files")
+    .eq("user_id", userId)
+    .eq("is_active", true);
+
+  if (agents?.length) {
+    for (const agent of agents) {
+      if (agent.knowledge_files && Array.isArray(agent.knowledge_files)) {
+        console.log(`[AI Agent] Found ${agent.knowledge_files.length} inline files in agent "${agent.name}"`);
+        for (const file of agent.knowledge_files) {
+          if (file.content && typeof file.content === "string") {
+            // Split large content into chunks of ~500 chars for better relevance scoring
+            const content = file.content;
+            const chunkSize = 500;
+            for (let i = 0; i < content.length; i += chunkSize) {
+              allKnowledge.push({ 
+                content: content.substring(i, i + chunkSize), 
+                source: `agent:${agent.name}` 
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (allKnowledge.length === 0) {
+    console.log("[AI Agent] No knowledge found in any source");
     return "Nenhuma informação encontrada na base de conhecimento.";
   }
 
-  console.log(`[AI Agent] Searching across ${documents.length} documents (all agents)`);
-  const docIds = documents.map((d: { id: string }) => d.id);
+  console.log(`[AI Agent] Total knowledge chunks to search: ${allKnowledge.length}`);
 
-  const queryTerms = query.toLowerCase().split(" ").filter(t => t.length > 3);
-  
-  const { data: chunks } = await supabase
-    .from("avivar_knowledge_chunks")
-    .select("content")
-    .in("document_id", docIds)
-    .limit(10);
+  // Score and rank all knowledge by relevance
+  const scoredKnowledge = allKnowledge.map((k) => {
+    const contentLower = k.content.toLowerCase();
+    // More granular scoring - count occurrences, not just presence
+    let score = 0;
+    for (const term of queryTerms) {
+      const matches = (contentLower.match(new RegExp(term, "gi")) || []).length;
+      score += matches * (term.length > 5 ? 2 : 1); // Longer terms get more weight
+    }
+    return { ...k, score };
+  }).filter(k => k.score > 0) // Only include chunks with at least one match
+    .sort((a, b) => b.score - a.score);
 
-  if (!chunks?.length) {
-    return "Nenhuma informação encontrada para esta consulta.";
+  if (scoredKnowledge.length === 0) {
+    console.log(`[AI Agent] No relevant knowledge found for query terms: ${queryTerms.join(", ")}`);
+    return "Nenhuma informação específica encontrada para esta consulta.";
   }
 
-  const scoredChunks = chunks.map((c: { content: string }) => {
-    const contentLower = c.content.toLowerCase();
-    const score = queryTerms.reduce((acc, term) => acc + (contentLower.includes(term) ? 1 : 0), 0);
-    return { content: c.content, score };
-  }).sort((a, b) => b.score - a.score);
-
-  const topChunks = scoredChunks.slice(0, 5);
-  console.log(`[AI Agent] Returning ${topChunks.length} relevant chunks`);
+  const topChunks = scoredKnowledge.slice(0, 5);
+  console.log(`[AI Agent] Returning ${topChunks.length} relevant chunks (top score: ${topChunks[0]?.score})`);
   
-  return topChunks.map((c: { content: string }) => c.content).join("\n\n---\n\n");
+  return topChunks.map((c) => c.content).join("\n\n---\n\n");
 }
 
 async function getAvailableSlots(
