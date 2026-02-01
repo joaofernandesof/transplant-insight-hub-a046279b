@@ -315,17 +315,8 @@ export default function AvivarConfigWizard() {
           <StepReview
             config={config}
             onEdit={setCurrentStep}
-            onNext={nextStep}
-            onPrev={prevStep}
-          />
-        );
-      
-      case 16:
-        return (
-          <StepPromptReview
-            config={config}
-            onPrev={prevStep}
             onComplete={handleComplete}
+            onPrev={prevStep}
           />
         );
       
@@ -336,8 +327,7 @@ export default function AvivarConfigWizard() {
 
   // In edit mode, skip welcome step
   const isWelcomeStep = currentStep === 0 && !isEditMode;
-  const isReviewStep = currentStep === 15; // Step 15 is summary review
-  const isPromptReviewStep = currentStep === 16; // Step 16 is prompt review (final)
+  const isReviewStep = currentStep === 15; // Step 15 is the final review step
   
   // Optional steps that can be skipped (adjusting for hidden steps)
   const getShowSkip = (): boolean => {
@@ -383,8 +373,8 @@ export default function AvivarConfigWizard() {
         </CardContent>
       </Card>
 
-      {/* Navigation - Hide on welcome, review, and prompt review steps */}
-      {(!isWelcomeStep || isEditMode) && !isReviewStep && !isPromptReviewStep && (
+      {/* Navigation - Hide on welcome and review steps */}
+      {(!isWelcomeStep || isEditMode) && !isReviewStep && (
         <WizardNavigation
           currentStep={currentStep}
           totalSteps={totalSteps}
