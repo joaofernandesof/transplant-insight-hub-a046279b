@@ -16,6 +16,7 @@ import {
   StepAttendant,
   StepServices,
   StepConsultation,
+  StepObjectives,
   StepPayment,
   StepImages,
   StepSchedule,
@@ -31,7 +32,8 @@ import {
   NichoType,
   Service, 
   PaymentMethod, 
-  ConsultationType, 
+  ConsultationType,
+  AgentObjectives,
   WeekSchedule, 
   TomVoz,
   FluxoAtendimento,
@@ -66,8 +68,8 @@ export default function AvivarConfigWizard() {
   
   // Lista de etapas que devem ser puladas
   const isStepSkipped = (step: number): boolean => {
-    // Etapa 9 (índice 9) é a de fotos antes/depois
-    if (step === 9 && !showBeforeAfterStep) {
+    // Etapa 10 (índice 10) é a de fotos antes/depois (após adicionar objectives no índice 8)
+    if (step === 10 && !showBeforeAfterStep) {
       return true;
     }
     return false;
@@ -122,19 +124,22 @@ export default function AvivarConfigWizard() {
       case 7: 
         // No modo edição, assumir presencial se não definido
         return isEditMode || config.consultationType.presencial || config.consultationType.online || config.consultationType.domicilio;
-      case 8: 
+      case 8:
+        // Objectives - precisa ter objetivo principal definido
+        return isEditMode || !!config.agentObjectives.primary;
+      case 9: 
         // No modo edição, pagamento é opcional
         return isEditMode || config.paymentMethods.some(m => m.enabled);
-      case 9: return true; // Images (optional)
-      case 10: 
+      case 10: return true; // Images (optional)
+      case 11: 
         // No modo edição, schedule é opcional
         return isEditMode || Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
-      case 11: return true; // Personalization (optional)
-      case 12: return true; // Instructions (optional)
-      case 13: return true; // Fluxo (optional)
-      case 14: return true; // Knowledge (optional)
-      case 15: return true; // Review
-      case 16: return true; // Prompt Review
+      case 12: return true; // Personalization (optional)
+      case 13: return true; // Instructions (optional)
+      case 14: return true; // Fluxo (optional)
+      case 15: return true; // Knowledge (optional)
+      case 16: return true; // Review
+      case 17: return true; // Prompt Review
       default: return true;
     }
   };
@@ -240,13 +245,23 @@ export default function AvivarConfigWizard() {
       
       case 8:
         return (
+          <StepObjectives
+            objectives={config.agentObjectives}
+            onChange={(objectives: AgentObjectives) => updateConfig({ agentObjectives: objectives })}
+            nicho={config.nicho}
+            subnicho={config.subnicho}
+          />
+        );
+      
+      case 9:
+        return (
           <StepPayment
             paymentMethods={config.paymentMethods}
             onChange={(methods: PaymentMethod[]) => updateConfig({ paymentMethods: methods })}
           />
         );
       
-      case 9:
+      case 10:
         return (
           <StepImages
             images={config.beforeAfterImages}
@@ -254,7 +269,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 10:
+      case 11:
         return (
           <StepSchedule
             schedule={config.schedule}
@@ -262,7 +277,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 11:
+      case 12:
         return (
           <StepPersonalization
             aiIdentity={config.aiIdentity}
@@ -277,7 +292,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 12:
+      case 13:
         return (
           <StepInstructions
             aiInstructions={config.aiInstructions}
@@ -290,7 +305,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 13:
+      case 14:
         return (
           <StepFluxoAtendimento
             fluxoAtendimento={config.fluxoAtendimento}
@@ -302,7 +317,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 14:
+      case 15:
         return (
           <StepKnowledge
             knowledgeFiles={config.knowledgeFiles}
@@ -310,7 +325,7 @@ export default function AvivarConfigWizard() {
           />
         );
       
-      case 15:
+      case 16:
         return (
           <StepReview
             config={config}
@@ -327,14 +342,14 @@ export default function AvivarConfigWizard() {
 
   // In edit mode, skip welcome step
   const isWelcomeStep = currentStep === 0 && !isEditMode;
-  const isReviewStep = currentStep === 15; // Step 15 is the final review step
+  const isReviewStep = currentStep === 16; // Step 16 is the final review step (after adding objectives)
   
   // Optional steps that can be skipped (adjusting for hidden steps)
   const getShowSkip = (): boolean => {
-    // Step 9 (Images) - only show skip if it's visible
-    if (currentStep === 9 && showBeforeAfterStep) return true;
-    // Step 11 (Personalization), Step 12 (Instructions), Step 13 (Fluxo), Step 14 (Knowledge) are always optional
-    if (currentStep === 11 || currentStep === 12 || currentStep === 13 || currentStep === 14) return true;
+    // Step 10 (Images) - only show skip if it's visible
+    if (currentStep === 10 && showBeforeAfterStep) return true;
+    // Step 12 (Personalization), Step 13 (Instructions), Step 14 (Fluxo), Step 15 (Knowledge) are always optional
+    if (currentStep === 12 || currentStep === 13 || currentStep === 14 || currentStep === 15) return true;
     return false;
   };
   const showSkip = getShowSkip();

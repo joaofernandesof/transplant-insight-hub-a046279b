@@ -140,6 +140,20 @@ export interface ConsultationType {
   domicilio: boolean;
 }
 
+// Objetivos do Agente
+export type AgentObjective = 
+  | 'agendar_presencial'
+  | 'agendar_online'
+  | 'agendar_domicilio'
+  | 'vender_produto'
+  | 'delivery'
+  | 'capturar_lead';
+
+export interface AgentObjectives {
+  primary: AgentObjective | null;
+  secondary: AgentObjective[];
+}
+
 // Unidade/Filial do negócio
 export interface BusinessUnit {
   id: string;
@@ -201,6 +215,9 @@ export interface AgentConfig {
   services: Service[];
   paymentMethods: PaymentMethod[];
   consultationType: ConsultationType;
+  
+  // Objetivos do Agente
+  agentObjectives: AgentObjectives;
   
   // Imagens
   beforeAfterImages: string[];
@@ -431,6 +448,7 @@ export const INITIAL_CONFIG: AgentConfig = {
   services: [...TRANSPLANTE_SERVICES],
   paymentMethods: [...PAYMENT_METHODS],
   consultationType: { presencial: true, online: false, domicilio: false },
+  agentObjectives: { primary: null, secondary: [] },
   beforeAfterImages: [],
   schedule: DEFAULT_WEEK_SCHEDULE,
   aiIdentity: '',
@@ -458,6 +476,7 @@ export const WIZARD_STEPS = [
   { id: 'attendant', title: 'Atendente', description: 'Nome do assistente virtual' },
   { id: 'services', title: 'Serviços', description: 'Serviços oferecidos' },
   { id: 'consultation', title: 'Atendimento', description: 'Tipos de atendimento' },
+  { id: 'objectives', title: 'Objetivos', description: 'Objetivo principal da IA' },
   { id: 'payment', title: 'Pagamento', description: 'Formas de pagamento' },
   { id: 'images', title: 'Imagens', description: 'Fotos e portfólio' },
   { id: 'schedule', title: 'Horários', description: 'Horários de atendimento' },

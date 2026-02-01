@@ -7,6 +7,7 @@ export { StepClinic } from './StepClinic';
 export { StepAttendant } from './StepAttendant';
 export { StepServices } from './StepServices';
 export { StepConsultation } from './StepConsultation';
+export { StepObjectives } from './StepObjectives';
 export { StepPayment } from './StepPayment';
 export { StepImages } from './StepImages';
 export { StepSchedule } from './StepSchedule';
