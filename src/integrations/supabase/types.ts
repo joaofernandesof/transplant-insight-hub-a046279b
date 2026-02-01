@@ -2937,6 +2937,8 @@ export type Database = {
           id: string
           last_message_at: string | null
           lead_id: string
+          pending_batch_id: string | null
+          pending_until: string | null
           status: string
           unread_count: number
           updated_at: string
@@ -2951,6 +2953,8 @@ export type Database = {
           id?: string
           last_message_at?: string | null
           lead_id: string
+          pending_batch_id?: string | null
+          pending_until?: string | null
           status?: string
           unread_count?: number
           updated_at?: string
@@ -2965,6 +2969,8 @@ export type Database = {
           id?: string
           last_message_at?: string | null
           lead_id?: string
+          pending_batch_id?: string | null
+          pending_until?: string | null
           status?: string
           unread_count?: number
           updated_at?: string
