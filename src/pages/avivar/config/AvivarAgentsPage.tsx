@@ -73,16 +73,23 @@ export default function AvivarAgentsPage() {
 
       if (error) throw error;
       
-      // Buscar contagem de documentos para cada agente
+      // Calcular contagem de documentos baseado no campo knowledge_files do agente
+      // E também buscar documentos da tabela avivar_knowledge_documents
       const agentsWithDocs = await Promise.all((data || []).map(async (agent) => {
-        const { count } = await supabase
+        // Contagem de documentos na tabela separada
+        const { count: dbDocCount } = await supabase
           .from('avivar_knowledge_documents')
           .select('*', { count: 'exact', head: true })
           .eq('agent_id', agent.id);
         
+        // Contagem de arquivos no campo knowledge_files do agente
+        const knowledgeFilesCount = Array.isArray(agent.knowledge_files) 
+          ? agent.knowledge_files.length 
+          : 0;
+        
         return {
           ...agent,
-          document_count: count || 0
+          document_count: (dbDocCount || 0) + knowledgeFilesCount
         };
       }));
       
