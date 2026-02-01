@@ -976,6 +976,72 @@ export type Database = {
           },
         ]
       }
+      avivar_kanban_leads: {
+        Row: {
+          column_id: string
+          created_at: string
+          custom_fields: Json | null
+          email: string | null
+          id: string
+          kanban_id: string
+          name: string
+          notes: string | null
+          order_index: number | null
+          phone: string | null
+          source: string | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          column_id: string
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          id?: string
+          kanban_id: string
+          name: string
+          notes?: string | null
+          order_index?: number | null
+          phone?: string | null
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          column_id?: string
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          id?: string
+          kanban_id?: string
+          name?: string
+          notes?: string | null
+          order_index?: number | null
+          phone?: string | null
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_kanban_leads_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanban_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_kanban_leads_kanban_id_fkey"
+            columns: ["kanban_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanbans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_kanbans: {
         Row: {
           color: string | null
