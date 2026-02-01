@@ -23,7 +23,8 @@ import {
   StepInstructions,
   StepFluxoAtendimento,
   StepKnowledge,
-  StepReview
+  StepReview,
+  StepPromptReview
 } from './components/steps';
 import { 
   SubnichoType, 
@@ -133,14 +134,16 @@ export default function AvivarConfigWizard() {
       case 13: return true; // Fluxo (optional)
       case 14: return true; // Knowledge (optional)
       case 15: return true; // Review
+      case 16: return true; // Prompt Review
       default: return true;
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = (editedPrompt?: string) => {
+    // TODO: Save editedPrompt if provided
     completeWizard();
-    toast.success('Configuração salva com sucesso!');
-    navigate('/avivar/config/knowledge');
+    toast.success('Agente configurado com sucesso!');
+    navigate('/avivar/agents');
   };
 
   // Handler para seleção de subnicho (atualiza nicho e template também)
@@ -312,8 +315,17 @@ export default function AvivarConfigWizard() {
           <StepReview
             config={config}
             onEdit={setCurrentStep}
-            onComplete={handleComplete}
+            onNext={nextStep}
             onPrev={prevStep}
+          />
+        );
+      
+      case 16:
+        return (
+          <StepPromptReview
+            config={config}
+            onPrev={prevStep}
+            onComplete={handleComplete}
           />
         );
       
@@ -324,7 +336,8 @@ export default function AvivarConfigWizard() {
 
   // In edit mode, skip welcome step
   const isWelcomeStep = currentStep === 0 && !isEditMode;
-  const isReviewStep = currentStep === totalSteps - 1;
+  const isPromptReviewStep = currentStep === totalSteps - 1; // Last step is prompt review
+  const isReviewStep = currentStep === totalSteps - 2; // Second to last is summary review
   
   // Optional steps that can be skipped (adjusting for hidden steps)
   const getShowSkip = (): boolean => {
@@ -370,8 +383,8 @@ export default function AvivarConfigWizard() {
         </CardContent>
       </Card>
 
-      {/* Navigation */}
-      {(!isWelcomeStep || isEditMode) && !isReviewStep && (
+      {/* Navigation - Hide on welcome, review, and prompt review steps */}
+      {(!isWelcomeStep || isEditMode) && !isReviewStep && !isPromptReviewStep && (
         <WizardNavigation
           currentStep={currentStep}
           totalSteps={totalSteps}

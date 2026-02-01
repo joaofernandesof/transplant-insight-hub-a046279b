@@ -15,3 +15,4 @@ export { StepInstructions } from './StepInstructions';
 export { StepFluxoAtendimento } from './StepFluxoAtendimento';
 export { StepKnowledge } from './StepKnowledge';
 export { StepReview } from './StepReview';
+export { StepPromptReview } from './StepPromptReview';

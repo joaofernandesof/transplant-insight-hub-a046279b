@@ -28,11 +28,11 @@ import { cn } from '@/lib/utils';
 interface StepReviewProps {
   config: AgentConfig;
   onEdit: (step: number) => void;
-  onComplete: () => void;
+  onNext: () => void;
   onPrev: () => void;
 }
 
-export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewProps) {
+export function StepReview({ config, onEdit, onNext, onPrev }: StepReviewProps) {
   const enabledServices = config.services.filter(s => s.enabled);
   const enabledPayments = config.paymentMethods.filter(m => m.enabled);
   const activeDays = (Object.keys(config.schedule) as Array<keyof WeekSchedule>)
@@ -178,31 +178,16 @@ export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewPro
           </CardContent>
         </Card>
 
-        {/* Next Steps */}
+        {/* Next Steps Info */}
         <Card className="bg-[hsl(var(--avivar-primary)/0.05)] border-[hsl(var(--avivar-primary)/0.3)]">
           <CardContent className="p-4">
-            <h4 className="font-medium text-[hsl(var(--avivar-foreground))] mb-3 flex items-center gap-2">
+            <h4 className="font-medium text-[hsl(var(--avivar-foreground))] mb-2 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-              Próximos Passos:
+              Próximo Passo:
             </h4>
-            <ol className="space-y-2 text-sm text-[hsl(var(--avivar-muted-foreground))]">
-              <li className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-[hsl(var(--avivar-primary))] text-white text-xs flex items-center justify-center">1</span>
-                Adicionar base de conhecimento
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-[hsl(var(--avivar-primary))] text-white text-xs flex items-center justify-center">2</span>
-                Testar agente no chat
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-[hsl(var(--avivar-primary))] text-white text-xs flex items-center justify-center">3</span>
-                Ajustar conforme necessário
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-[hsl(var(--avivar-primary))] text-white text-xs flex items-center justify-center">4</span>
-                Integrar ao WhatsApp
-              </li>
-            </ol>
+            <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+              No próximo passo você poderá visualizar e editar o prompt completo do seu agente antes de salvar.
+            </p>
           </CardContent>
         </Card>
 
@@ -219,10 +204,10 @@ export function StepReview({ config, onEdit, onComplete, onPrev }: StepReviewPro
           </Button>
           <Button
             size="lg"
-            onClick={onComplete}
+            onClick={onNext}
             className="flex-[2] bg-gradient-to-r from-[hsl(270_75%_45%)] to-[hsl(280_80%_50%)] hover:from-[hsl(270_75%_50%)] hover:to-[hsl(280_80%_55%)] text-white shadow-lg"
           >
-            💾 Salvar e Finalizar
+            Revisar Prompt Final
             <ArrowRight className="h-5 w-5 ml-2" />
           </Button>
         </div>
