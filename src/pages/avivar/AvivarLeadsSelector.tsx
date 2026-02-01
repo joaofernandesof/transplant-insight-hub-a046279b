@@ -1,17 +1,17 @@
 /**
  * AvivarLeadsSelector - Página de seleção de Kanbans
  * Lista todos os kanbans disponíveis para o usuário escolher
+ * Cria kanbans padrão automaticamente para novos usuários
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Briefcase, HeartPulse, TrendingUp, Users, ArrowRight, Plus, 
-  Loader2, Palette, LayoutGrid 
+  Loader2, LayoutGrid 
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -78,6 +78,7 @@ export function AvivarLeadsSelector() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [newKanban, setNewKanban] = useState({
     name: '',
     description: '',
@@ -85,8 +86,52 @@ export function AvivarLeadsSelector() {
     color: 'from-blue-500 to-blue-600',
   });
 
+  // Initialize default kanbans for new users
+  useEffect(() => {
+    const initializeKanbans = async () => {
+      if (!user?.id) {
+        setIsInitializing(false);
+        return;
+      }
+
+      try {
+        // Check if user already has kanbans
+        const { data: existingKanbans, error: checkError } = await supabase
+          .from('avivar_kanbans')
+          .select('id')
+          .limit(1);
+
+        if (checkError) {
+          console.error('Error checking kanbans:', checkError);
+          setIsInitializing(false);
+          return;
+        }
+
+        // If user has no kanbans, create defaults
+        if (!existingKanbans || existingKanbans.length === 0) {
+          const { error: rpcError } = await supabase.rpc('create_default_avivar_kanbans', {
+            p_user_id: user.id
+          });
+
+          if (rpcError) {
+            console.error('Error creating default kanbans:', rpcError);
+          } else {
+            // Invalidate query to refetch
+            queryClient.invalidateQueries({ queryKey: ['avivar-kanbans'] });
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing kanbans:', error);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeKanbans();
+  }, [user?.id, queryClient]);
+
   // Fetch kanbans from database
-  const { data: kanbans, isLoading } = useQuery({
+  const { data: kanbans, isLoading: isLoadingKanbans } = useQuery({
     queryKey: ['avivar-kanbans', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -97,8 +142,10 @@ export function AvivarLeadsSelector() {
       if (error) throw error;
       return data as KanbanData[];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !isInitializing,
   });
+
+  const isLoading = isInitializing || isLoadingKanbans;
 
   // Create kanban mutation
   const createKanban = useMutation({

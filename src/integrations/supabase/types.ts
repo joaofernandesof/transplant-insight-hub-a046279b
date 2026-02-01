@@ -938,6 +938,44 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_kanban_columns: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          kanban_id: string
+          name: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          kanban_id: string
+          name: string
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          kanban_id?: string
+          name?: string
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_kanban_columns_kanban_id_fkey"
+            columns: ["kanban_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanbans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_kanbans: {
         Row: {
           color: string | null
@@ -15181,6 +15219,10 @@ export type Database = {
       consume_scan_credit: {
         Args: { _action: string; _user_id: string }
         Returns: Json
+      }
+      create_default_avivar_kanbans: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
       get_agent_for_lead_stage: {
