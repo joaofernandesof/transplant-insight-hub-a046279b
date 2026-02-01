@@ -4,12 +4,16 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { CarouselPlaceholder } from './CarouselPlaceholder';
 
 interface CarouselSlide {
   title: string;
   description: string;
   imagePlaceholder: string;
   imageUrl?: string;
+  placeholderType?: 'dashboard-kpis' | 'dashboard-calendar' | 'dashboard-patient' | 
+        'crm-pipeline' | 'crm-whatsapp' | 'crm-detective' |
+        'mobile-scheduling' | 'mobile-journey';
   features?: string[];
 }
 
@@ -93,9 +97,11 @@ export function FeatureCarousel({
                 key={index}
                 className="flex-[0_0_100%] min-w-0"
               >
-                {/* Real image or placeholder */}
+                {/* Visual placeholder or image */}
                 <div className="aspect-[16/10] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
-                  {slide.imageUrl ? (
+                  {slide.placeholderType ? (
+                    <CarouselPlaceholder type={slide.placeholderType} className="w-full h-full" />
+                  ) : slide.imageUrl ? (
                     <img 
                       src={slide.imageUrl} 
                       alt={slide.title}
