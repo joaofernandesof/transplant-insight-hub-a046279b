@@ -465,7 +465,8 @@ export const WIZARD_STEPS = [
   { id: 'instructions', title: 'Instruções', description: 'O que a IA pode e não pode fazer' },
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
   { id: 'knowledge', title: 'Conhecimento', description: 'Base de conhecimento da IA' },
-  { id: 'review', title: 'Revisão', description: 'Confirme as configurações' }
+  { id: 'review', title: 'Revisão', description: 'Confirme as configurações' },
+  { id: 'prompt', title: 'Prompt Final', description: 'Revise e edite o prompt' }
 ];
 
 export const DAY_NAMES: Record<keyof WeekSchedule, string> = {
