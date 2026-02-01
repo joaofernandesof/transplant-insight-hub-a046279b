@@ -50,6 +50,9 @@ export function StepBusinessInfo({
   // Gerar ID único para nova unidade
   const generateUnitId = () => `unit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+  // Verificar se o subnicho exige profissional responsável
+  const requiresProfessional = professionalConfig.showRegistration;
+
   // Adicionar nova unidade
   const handleAddUnit = () => {
     const newUnit: BusinessUnit = {
@@ -59,6 +62,8 @@ export function StepBusinessInfo({
       state: '',
       address: '',
       phone: '',
+      professionalName: '',
+      professionalRegistration: '',
     };
     onChange('businessUnits', [...businessUnits, newUnit]);
     setExpandedUnit(newUnit.id);
@@ -302,6 +307,44 @@ export function StepBusinessInfo({
                             className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
                           />
                         </div>
+
+                        {/* Profissional Responsável da Unidade */}
+                        {requiresProfessional && (
+                          <div className="pt-3 border-t border-[hsl(var(--avivar-border))]">
+                            <div className="flex items-center gap-2 mb-3 text-[hsl(var(--avivar-primary))]">
+                              <User className="h-4 w-4" />
+                              <span className="text-sm font-medium">Profissional Responsável</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-[hsl(var(--avivar-foreground))]">
+                                  {professionalConfig.nameLabel}
+                                </Label>
+                                <Input
+                                  value={unit.professionalName || ''}
+                                  onChange={(e) => handleUnitChange(unit.id, 'professionalName', e.target.value)}
+                                  placeholder={professionalConfig.namePlaceholder}
+                                  className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-[hsl(var(--avivar-foreground))]">
+                                  {professionalConfig.registrationLabel}
+                                  <span className="text-[hsl(var(--avivar-muted-foreground))] text-xs ml-1">(opcional)</span>
+                                </Label>
+                                <Input
+                                  value={unit.professionalRegistration || ''}
+                                  onChange={(e) => handleUnitChange(unit.id, 'professionalRegistration', e.target.value)}
+                                  placeholder={professionalConfig.registrationPlaceholder}
+                                  className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                                />
+                              </div>
+                            </div>
+                            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-2">
+                              {professionalConfig.registrationHint}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

@@ -148,6 +148,8 @@ export interface BusinessUnit {
   state: string;
   address: string;
   phone?: string;
+  professionalName?: string;      // Nome do profissional responsável da unidade
+  professionalRegistration?: string; // Registro profissional (CRM, OAB, CRECI, etc.)
 }
 
 export interface SubnichoOption {
