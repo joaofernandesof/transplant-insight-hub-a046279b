@@ -10,7 +10,6 @@ import { useMobileEnvironment, isRouteBlockedOnMobile } from '@/hooks/useMobileE
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Loader2, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { OfflineIndicator } from '@/components/OfflineIndicator';
 
 interface MobileAppWrapperProps {
   children: React.ReactNode;
@@ -133,13 +132,8 @@ export function MobileAppWrapper({ children }: MobileAppWrapperProps) {
     }
   }
 
-  // Renderizar normalmente com guardrails e indicador de conectividade
-  return (
-    <>
-      <OfflineIndicator />
-      {children}
-    </>
-  );
+  // Renderizar normalmente com guardrails
+  return <>{children}</>;
 }
 
 /**

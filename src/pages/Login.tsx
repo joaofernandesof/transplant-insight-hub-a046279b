@@ -23,9 +23,6 @@ const resetPasswordSchema = z.object({
 // NOTA: Cadastro desabilitado - apenas login e recuperação de senha
 type ViewMode = 'login' | 'forgot-password';
 
-const timeoutAfter = <T,>(ms: number, value: T) =>
-  new Promise<T>((resolve) => setTimeout(() => resolve(value), ms));
-
 const modules = [
   { id: 'neocare', name: 'NeoCare', icon: Heart, gradient: 'from-rose-500 to-pink-500', description: 'Pacientes' },
   { id: 'neoteam', name: 'NeoTeam', icon: Users, gradient: 'from-blue-500 to-cyan-500', description: 'Colaboradores' },
@@ -134,18 +131,7 @@ export default function Login() {
         return;
       }
 
-      // Evitar travar indefinidamente em "Entrando..." quando o backend não responde
-      const loginPromise = login(loginEmail, loginPassword);
-      // Prevenir unhandled rejection caso o timeout "vença" a corrida
-      loginPromise.catch(() => {});
-
-      const { success, error: loginError } = await Promise.race([
-        loginPromise,
-        timeoutAfter(15000, {
-          success: false,
-          error: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
-        }),
-      ]);
+      const { success, error: loginError } = await login(loginEmail, loginPassword);
       
       if (success) {
         // Se login com sucesso e biometria disponível mas sem credenciais, oferecer configurar
@@ -164,44 +150,36 @@ export default function Login() {
         // Nova arquitetura de redirecionamento:
         // - Admin → direto para /admin-dashboard
         // - Outros → /portal-selector para escolher o portal
-        // Se o backend estiver instável, não travar aqui: timeouts + fallback seguro
-        const getUserPromise = supabase.auth.getUser();
-        getUserPromise.catch(() => {});
-        const userResp = await Promise.race([
-          getUserPromise,
-          timeoutAfter(10000, null as any),
-        ]);
-
-        const authUser = userResp?.data?.user;
-        if (!authUser) {
-          navigate('/portal-selector');
-          return;
-        }
-
-        const rolePromise = Promise.resolve(
-          supabase
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          // Check if user is admin via user_roles table
+          const { data: roleData } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', authUser.id)
             .eq('role', 'admin')
-            .maybeSingle() as any
-        );
-        rolePromise.catch(() => {});
-        const roleResp = await Promise.race([
-          rolePromise,
-          timeoutAfter(10000, null as any),
-        ]);
-
-        const isAdmin = !!roleResp?.data;
-        navigate(isAdmin ? '/admin-dashboard' : '/portal-selector');
+            .single();
+          
+          const isAdmin = !!roleData;
+          
+          if (isAdmin) {
+            // Admin vai direto para o Dashboard Administrativo
+            navigate('/admin-dashboard');
+          } else {
+            // Todos os outros perfis vão para o seletor de portal
+            navigate('/portal-selector');
+          }
+        } else {
+          navigate('/portal-selector');
+        }
       } else {
         setError(loginError || 'Email ou senha incorretos');
       }
     } catch (err) {
       setError('Ocorreu um erro. Tente novamente.');
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   };
 
   // Login com biometria (Face ID / Touch ID)

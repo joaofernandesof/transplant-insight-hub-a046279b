@@ -1,7 +1,7 @@
 # 📱 NeoHub Mobile - Compliance para Lojas
 
-**Versão:** 1.1.0  
-**Data:** 2026-02-02  
+**Versão:** 1.0.0  
+**Data:** 2026-01-28  
 **App:** NeoHub (Capacitor)
 
 ---
@@ -121,7 +121,6 @@ Os módulos que lidam com dados de saúde estão **BLOQUEADOS** e não são aces
 | Política de Privacidade | https://transplant-insight-hub.lovable.app/privacy-policy |
 | Termos de Uso | https://transplant-insight-hub.lovable.app/terms |
 | Suporte | contato@neofolic.com.br |
-| DPO (Exclusão de Dados) | privacidade@neofolic.com.br |
 
 ---
 

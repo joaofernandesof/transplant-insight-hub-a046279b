@@ -34,21 +34,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  Palette,
-  Trash2,
-  AlertTriangle
+  Palette
 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import logoByNeofolic from '@/assets/logo-byneofolic.png';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
@@ -928,84 +915,6 @@ export default function Profile() {
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </Button>
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone - Account Deletion */}
-        <Card className="mb-6 border-destructive/50">
-          <CardHeader>
-            <CardTitle className="text-destructive flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Zona de Perigo
-            </CardTitle>
-            <CardDescription>
-              Ações irreversíveis para sua conta
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-between border-destructive/50 text-destructive hover:bg-destructive/10"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-destructive/10">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium">Excluir minha conta</p>
-                      <p className="text-xs text-muted-foreground">Solicitar exclusão permanente dos seus dados</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-destructive" />
-                    Excluir Conta
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="space-y-3">
-                    <p>
-                      Ao solicitar a exclusão da sua conta, todos os seus dados pessoais serão 
-                      permanentemente removidos dos nossos sistemas em até 30 dias, conforme a LGPD.
-                    </p>
-                    <p className="font-medium text-foreground">
-                      Esta ação é irreversível e inclui:
-                    </p>
-                    <ul className="list-disc pl-5 text-sm space-y-1">
-                      <li>Dados de perfil e preferências</li>
-                      <li>Histórico de atividades</li>
-                      <li>Certificados e progresso em cursos</li>
-                      <li>Acesso a todos os portais</li>
-                    </ul>
-                    <p className="text-sm">
-                      Para prosseguir, envie um email para{' '}
-                      <a 
-                        href="mailto:privacidade@neofolic.com.br?subject=Solicitação de Exclusão de Conta&body=Solicito a exclusão permanente da minha conta e todos os dados associados.%0A%0AEmail da conta: "
-                        className="text-primary underline font-medium"
-                      >
-                        privacidade@neofolic.com.br
-                      </a>
-                      {' '}com o assunto "Solicitação de Exclusão de Conta".
-                    </p>
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    onClick={() => {
-                      window.location.href = 'mailto:privacidade@neofolic.com.br?subject=Solicitação de Exclusão de Conta&body=Solicito a exclusão permanente da minha conta e todos os dados associados.%0A%0AEmail da conta: ' + encodeURIComponent(profile.email);
-                    }}
-                  >
-                    Enviar Solicitação
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </CardContent>
         </Card>
 

@@ -222,9 +222,9 @@ export default function TermsOfService() {
               Para dúvidas sobre estes Termos:
             </p>
             <div className="bg-muted p-4 rounded-lg">
-              <p className="font-medium">NeoFolic Tecnologia em Saúde Ltda.</p>
-              <p className="text-muted-foreground">E-mail: contato@neofolic.com.br</p>
-              <p className="text-muted-foreground">Telefone: (11) 4858-9060</p>
+              <p className="font-medium">NeoHub Tecnologia em Saúde Ltda.</p>
+              <p className="text-muted-foreground">E-mail: contato@neohub.com.br</p>
+              <p className="text-muted-foreground">Telefone: (11) 0000-0000</p>
             </div>
           </section>
 
