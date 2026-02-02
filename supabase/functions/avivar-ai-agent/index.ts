@@ -436,6 +436,7 @@ async function getAvailableSlots(
   }
 
   const results: string[] = [];
+  const internalSlots: { date: string; allTimes: string[] }[] = []; // Para validação interna
   
   for (const date of dates) {
     const { data: slots, error } = await supabase.rpc("get_available_slots_flexible", {
@@ -457,21 +458,29 @@ async function getAvailableSlots(
       const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
       const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       
-      // Show ALL available times instead of just 2 - prevents offering slots that aren't listed
+      // TÉCNICA "OU/OU": Mostrar apenas 2 horários para facilitar decisão do lead
+      // Internamente guardamos todos os slots disponíveis para validação posterior
       const allTimes = available.map((s: { slot_start: string }) => 
         s.slot_start.substring(0, 5)
       );
       
-      // Format nicely: if many slots, group them
-      let timesText: string;
-      if (allTimes.length <= 4) {
-        timesText = allTimes.join(", ");
+      // Escolher 2 horários estratégicos: um pela manhã e um à tarde se possível
+      const morningSlots = allTimes.filter((t: string) => parseInt(t.split(":")[0]) < 12);
+      const afternoonSlots = allTimes.filter((t: string) => parseInt(t.split(":")[0]) >= 12);
+      
+      let selectedTimes: string[] = [];
+      if (morningSlots.length > 0 && afternoonSlots.length > 0) {
+        // Um slot de manhã e um à tarde
+        selectedTimes = [morningSlots[0], afternoonSlots[0]];
       } else {
-        // Show range: "08:00 às 12:00 (intervalos de 30min)"
-        timesText = `${allTimes[0]} às ${allTimes[allTimes.length - 1]} (${allTimes.length} horários disponíveis)`;
+        // Apenas 2 primeiros slots disponíveis
+        selectedTimes = allTimes.slice(0, 2);
       }
       
-      results.push(`📅 ${dayName} (${dateFormatted}): ${timesText}`);
+      results.push(`📅 ${dayName} (${dateFormatted}): ${selectedTimes.join(" ou ")}`);
+      
+      // Guardar info interna para validação - não mostrar ao lead
+      internalSlots.push({ date, allTimes });
     }
   }
 
@@ -483,7 +492,10 @@ async function getAvailableSlots(
     ? `Horários disponíveis em **${agendaInfo.name}**${agendaInfo.city ? ` (${agendaInfo.city})` : ""}:`
     : "Horários disponíveis:";
 
-  return `${header}\n\n${results.join("\n")}\n\nQual horário você prefere?`;
+  // Limitar a 2 datas para técnica "ou/ou"
+  const limitedResults = results.slice(0, 2);
+
+  return `${header}\n\n${limitedResults.join("\n")}\n\nQual desses horários fica melhor para você?`;
 }
 
 async function createAppointment(
@@ -1176,12 +1188,34 @@ Você tem acesso a:
 - Seja breve e objetivo (máximo 3-4 frases por mensagem)
 - Use emojis com moderação
 - NUNCA invente preços ou informações médicas
+- NUNCA diga "temos vários horários disponíveis" ou "diversos horários"
 - SEMPRE use search_knowledge_base para dúvidas técnicas
 - SEMPRE use list_products quando perguntarem sobre produtos/preços de itens
-- Para agendar: 1) Descubra a unidade 2) Pergunte o nome (SE ainda não souber) 3) Ofereça 2 horários
 - Transfira para humano em negociações ou dúvidas muito técnicas
 - IMPORTANTE: Mesmo sendo especialista em ${leadStage}, você pode responder QUALQUER dúvida usando search_knowledge_base
 </regras_importantes>
+
+<fluxo_agendamento>
+## TÉCNICA "OU/OU" - REGRA OBRIGATÓRIA
+
+### OFERTA INICIAL:
+- SEMPRE ofereça exatamente 2 datas e 2 horários (técnica "ou/ou" para facilitar decisão)
+- NUNCA diga "temos vários horários" ou "diversos horários disponíveis" - isso passa impressão de agenda vazia
+- Formato: "Tenho disponível [dia1] às [hora1] ou [hora2], e [dia2] às [hora1] ou [hora2]. Qual fica melhor para você?"
+
+### SE O LEAD NÃO PUDER NESSAS DATAS:
+- Se o lead disser que não pode em nenhuma das datas oferecidas, DEVOLVA a pergunta:
+- "Entendi! E qual data e horário ficaria melhor pra você? Assim consigo verificar na agenda."
+
+### SE O LEAD PERGUNTAR POR OUTRA DATA ESPECÍFICA:
+- Use get_available_slots com a data específica que ele pediu
+- Se houver horário disponível: "Ótimo! Temos sim vaga para [data] às [horários disponíveis]. Posso confirmar?"
+- Se NÃO houver horário: "Infelizmente essa data está ocupada. Mas tenho disponibilidade para [sugerir nova data próxima com 2 horários]. O que acha?"
+
+### CONFIRMAÇÃO FINAL:
+- Só use create_appointment após o lead CONFIRMAR explicitamente a data e horário
+- Confirme: "Perfeito! Vou agendar sua avaliação para [data] às [horário] em [unidade]. Confirma?"
+</fluxo_agendamento>
 
 <movimentacao_funil>
 ${dynamicMovementInstructions}
