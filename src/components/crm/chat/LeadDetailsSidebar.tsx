@@ -214,7 +214,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
       </div>
 
       {/* Content with visible scrollbar */}
-      <div className="flex-1 overflow-y-auto scrollbar-visible">
+      <div className="flex-1 overflow-y-scroll scrollbar-avivar">
         <div className="p-4 space-y-4">
           {/* Contato */}
           <Collapsible open={isContactOpen} onOpenChange={setIsContactOpen}>

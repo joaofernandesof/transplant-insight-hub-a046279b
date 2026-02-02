@@ -370,6 +370,33 @@ html {
     background: hsl(var(--muted-foreground) / 0.6);
   }
 
+  /* Avivar scrollbar (use alongside overflow-y-scroll on the container) */
+  .scrollbar-avivar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--avivar-primary) / 0.55) hsl(var(--avivar-muted) / 0.6);
+    scrollbar-gutter: stable;
+  }
+
+  .scrollbar-avivar::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+
+  .scrollbar-avivar::-webkit-scrollbar-track {
+    background: hsl(var(--avivar-muted) / 0.6);
+    border-radius: 5px;
+  }
+
+  .scrollbar-avivar::-webkit-scrollbar-thumb {
+    background: hsl(var(--avivar-primary) / 0.55);
+    border-radius: 5px;
+    border: 2px solid hsl(var(--avivar-muted) / 0.6);
+  }
+
+  .scrollbar-avivar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--avivar-primary) / 0.75);
+  }
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -487,62 +514,4 @@ html {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-}
-
-/* =================================
-   Custom Scrollbar Styles - Visible
-   ================================= */
-
-/* Always visible scrollbar - IMPORTANT: uses overflow-y: scroll to always show */
-.scrollbar-visible {
-  overflow-y: scroll !important;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(155, 89, 182, 0.6) rgba(60, 40, 80, 0.4);
-}
-
-.scrollbar-visible::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.scrollbar-visible::-webkit-scrollbar-track {
-  background: rgba(60, 40, 80, 0.4);
-  border-radius: 4px;
-  margin: 4px 0;
-}
-
-.scrollbar-visible::-webkit-scrollbar-thumb {
-  background: rgba(155, 89, 182, 0.6);
-  border-radius: 4px;
-  min-height: 40px;
-}
-
-.scrollbar-visible::-webkit-scrollbar-thumb:hover {
-  background: rgba(155, 89, 182, 0.85);
-}
-
-/* Dark theme scrollbar for Avivar */
-.scrollbar-avivar {
-  overflow-y: scroll !important;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(155, 89, 182, 0.5) rgba(40, 30, 60, 0.3);
-}
-
-.scrollbar-avivar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.scrollbar-avivar::-webkit-scrollbar-track {
-  background: rgba(40, 30, 60, 0.3);
-  border-radius: 3px;
-}
-
-.scrollbar-avivar::-webkit-scrollbar-thumb {
-  background: rgba(155, 89, 182, 0.5);
-  border-radius: 3px;
-}
-
-.scrollbar-avivar::-webkit-scrollbar-thumb:hover {
-  background: rgba(155, 89, 182, 0.7);
 }

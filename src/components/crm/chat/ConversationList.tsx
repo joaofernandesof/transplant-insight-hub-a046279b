@@ -111,7 +111,7 @@ export function ConversationList({
       </div>
 
       {/* Conversation list with visible scrollbar */}
-      <div className="flex-1 overflow-y-auto scrollbar-visible">
+      <div className="flex-1 overflow-y-scroll scrollbar-avivar">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <MessageCircle className="h-12 w-12 text-[hsl(var(--avivar-muted-foreground))] mb-4 opacity-50" />
