@@ -1462,66 +1462,121 @@ function getDefaultInstructions(): string {
 // AI CALL WITH TOOLS
 // ============================================
 
+// Detect patterns that indicate lead is dropping out
+const DESISTENCIA_PATTERNS = [
+  /n[aã]o\s*(quero|vou|posso|tenho|preciso)\s*(mais)?/i,
+  /desist[io]/i,
+  /cancel[ao]/i,
+  /esquece/i,
+  /deixa\s*(pra\s*l[aá]|quieto)/i,
+  /n[aã]o\s*tenho\s*interesse/i,
+  /mudei\s*de\s*id[eé]ia/i,
+  /n[aã]o\s*quero\s*mais/i,
+  /j[aá]\s*desisti/i,
+];
+
+function detectDesistencia(message: string): boolean {
+  const normalized = message.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return DESISTENCIA_PATTERNS.some(pattern => pattern.test(normalized));
+}
+
 async function callAIWithTools(
   systemPrompt: string,
   messages: Array<{ role: string; content: string }>,
-  tools: typeof TOOLS
+  tools: typeof TOOLS,
+  maxRetries: number = 2
 ): Promise<{ content: string | null; toolCalls: Array<{ name: string; arguments: Record<string, unknown> }> }> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     throw new Error("LOVABLE_API_KEY não configurada");
   }
 
-  console.log("[AI Agent] Calling Lovable AI with tools...");
+  let lastError: Error | null = null;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages,
-      ],
-      tools,
-      tool_choice: "auto",
-      max_tokens: 500,
-      temperature: 0.7,
-    }),
-  });
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    if (attempt > 0) {
+      console.log(`[AI Agent] Retry attempt ${attempt + 1}/${maxRetries}...`);
+      // Small delay between retries
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("[AI Agent] AI error:", response.status, errorText);
-    
-    if (response.status === 429) {
-      throw new Error("Rate limit exceeded");
+    console.log("[AI Agent] Calling Lovable AI with tools...");
+
+    try {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...messages,
+          ],
+          tools,
+          tool_choice: "auto",
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[AI Agent] AI error:", response.status, errorText);
+        
+        if (response.status === 429) {
+          lastError = new Error("Rate limit exceeded");
+          continue; // Retry on rate limit
+        }
+        if (response.status === 402) {
+          throw new Error("Créditos de IA esgotados");
+        }
+        lastError = new Error(`Erro na API de IA: ${response.status}`);
+        continue;
+      }
+
+      const data = await response.json();
+      const choice = data.choices?.[0];
+
+      // Check if we got a valid response
+      if (!choice?.message) {
+        console.warn(`[AI Agent] Empty response from AI (attempt ${attempt + 1})`);
+        lastError = new Error("Resposta vazia da IA");
+        continue; // Retry on empty response
+      }
+
+      const toolCalls = choice.message?.tool_calls?.map((tc: { function: { name: string; arguments: string } }) => {
+        try {
+          return {
+            name: tc.function.name,
+            arguments: JSON.parse(tc.function.arguments)
+          };
+        } catch (e) {
+          console.error("[AI Agent] Failed to parse tool args:", e);
+          return null;
+        }
+      }).filter(Boolean) || [];
+
+      const content = choice.message?.content || null;
+
+      // If we have neither content nor tool calls, retry
+      if (!content && toolCalls.length === 0) {
+        console.warn(`[AI Agent] AI returned no content and no tool calls (attempt ${attempt + 1})`);
+        lastError = new Error("Resposta vazia da IA");
+        continue;
+      }
+
+      return { content, toolCalls };
+    } catch (e) {
+      console.error(`[AI Agent] Call failed (attempt ${attempt + 1}):`, e);
+      lastError = e as Error;
     }
-    if (response.status === 402) {
-      throw new Error("Créditos de IA esgotados");
-    }
-    throw new Error(`Erro na API de IA: ${response.status}`);
   }
 
-  const data = await response.json();
-  const choice = data.choices?.[0];
-
-  if (!choice) {
-    throw new Error("Resposta vazia da IA");
-  }
-
-  const toolCalls = choice.message?.tool_calls?.map((tc: { function: { name: string; arguments: string } }) => ({
-    name: tc.function.name,
-    arguments: JSON.parse(tc.function.arguments)
-  })) || [];
-
-  return {
-    content: choice.message?.content || null,
-    toolCalls
-  };
+  // All retries failed
+  throw lastError || new Error("Falha após múltiplas tentativas");
 }
 
 /**
@@ -1669,8 +1724,56 @@ serve(async (req) => {
     // 5. Get lead ID for appointment linking
     const leadId = await getLeadId(supabase, conversationId);
 
+    // 5.5 CRITICAL: Detect desistência patterns BEFORE calling AI
+    // This ensures we move to desqualificado even if AI fails
+    const isDesistencia = detectDesistencia(messageContent);
+    let desistenciaHandled = false;
+
+    if (isDesistencia) {
+      console.log(`[AI Agent] Detected DESISTÊNCIA in message: "${messageContent.substring(0, 50)}..."`);
+
+      // Move lead to desqualificado immediately (don't wait for AI)
+      const moveResult = await moverLeadParaEtapa(
+        supabase,
+        leadPhone,
+        "desqualificado",
+        "Lead desistiu durante atendimento"
+      );
+      console.log(`[AI Agent] Auto-move to desqualificado: ${moveResult}`);
+      desistenciaHandled = true;
+    }
+
     // 6. Call AI with tools
-    let aiResult = await callAIWithTools(systemPrompt, conversationHistory, TOOLS);
+    let aiResult: { content: string | null; toolCalls: Array<{ name: string; arguments: Record<string, unknown> }> };
+    
+    try {
+      aiResult = await callAIWithTools(systemPrompt, conversationHistory, TOOLS);
+    } catch (aiError) {
+      console.error("[AI Agent] AI call failed:", aiError);
+      
+      // If desistência was detected, provide a fallback response
+      if (desistenciaHandled) {
+        const fallbackResponse = "Entendo, sem problemas. Se mudar de ideia, estou à disposição. Obrigado pelo contato!";
+        await sendWhatsAppMessage(supabaseUrl, supabaseServiceKey, conversationId, fallbackResponse);
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            response: fallbackResponse,
+            sent: true,
+            duration: Date.now() - startTime,
+            agent: routedAgent.agent_name,
+            stage: leadStage,
+            toolsUsed: [],
+            desistenciaHandled: true
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      // Re-throw if not desistência (let normal error handling take over)
+      throw aiError;
+    }
 
     // 7. Process tool calls if any
     let finalResponse = aiResult.content || "";
