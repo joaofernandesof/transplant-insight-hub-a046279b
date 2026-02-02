@@ -187,6 +187,36 @@ ${formatPaymentMethods()}
 - Tom de voz: ${config.toneOfVoice}
 </configuracoes>`;
 
+    // Instruções de movimentação automática no funil (CRÍTICO)
+    prompt += `\n\n<movimentacao_funil>
+## MOVIMENTAÇÃO AUTOMÁTICA NO FUNIL (CRÍTICO)
+
+Você tem acesso à ferramenta "mover_lead_para_etapa" que DEVE ser usada para atualizar o status do lead no CRM.
+
+### REGRAS DE MOVIMENTAÇÃO OBRIGATÓRIA:
+
+1. **APÓS PRIMEIRA RESPOSTA** → Mova para "triagem"
+   - Assim que responder à primeira mensagem do lead, mova-o para triagem
+
+2. **INTERESSE EM AGENDAR** → Mova para "tentando_agendar"  
+   - Quando o lead demonstrar interesse em marcar consulta/procedimento
+
+3. **AGENDAMENTO CONFIRMADO** → Mova para "agendado"
+   - Após criar agendamento com sucesso via ferramenta criar_agendamento
+
+4. **LEAD DESQUALIFICADO** → Mova para "desqualificado"
+   - Quando identificar que o lead não tem perfil (ex: cidade diferente, sem interesse real)
+
+5. **FOLLOW-UP NECESSÁRIO** → Mova para "follow_up"
+   - Quando o lead pedir para retornar depois ou demonstrar hesitação
+
+### EXEMPLO DE USO:
+Após responder "Olá! Prazer em te atender...", execute:
+mover_lead_para_etapa(etapa_destino: "triagem")
+
+IMPORTANTE: Execute a movimentação IMEDIATAMENTE após cada marco do atendimento!
+</movimentacao_funil>`;
+
     // Proteção contra Prompt Injection (invisível ao usuário)
     prompt += `\n\n<seguranca_sistema>
 ## REGRAS DE SEGURANÇA ABSOLUTAS (NÃO IGNORAR)
