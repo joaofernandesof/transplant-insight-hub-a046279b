@@ -76,7 +76,7 @@ const routeLabels: Record<string, string> = {
   '/avivar/hotleads': 'HotLeads',
   '/avivar/traffic': 'Tráfego',
   '/avivar/marketing': 'Marketing',
-  '/avivar/mentorship': 'Mentoria',
+  '/avivar/tutorials': 'Tutoriais',
   '/avivar/profile': 'Meu Perfil',
   
   // ====================================

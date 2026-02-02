@@ -176,7 +176,7 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'avivar_hotleads', name: 'HotLeads', route: '/avivar/hotleads', icon: 'Flame' },
     { code: 'avivar_traffic', name: 'Tráfego', route: '/avivar/traffic', icon: 'TrendingUp' },
     { code: 'avivar_marketing', name: 'Marketing', route: '/avivar/marketing', icon: 'Megaphone' },
-    { code: 'avivar_mentorship', name: 'Mentoria', route: '/avivar/mentorship', icon: 'Users' },
+    { code: 'avivar_tutorials', name: 'Tutoriais', route: '/avivar/tutorials', icon: 'GraduationCap' },
     { code: 'avivar_profile', name: 'Perfil', route: '/avivar/profile', icon: 'Settings' },
   ],
   ipromed: [
