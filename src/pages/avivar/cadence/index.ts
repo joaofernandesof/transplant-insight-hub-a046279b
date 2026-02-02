@@ -6,3 +6,5 @@ export * from './hooks/useCadences';
 export * from './components/CadenceList';
 export * from './components/CadenceEditor';
 export * from './components/CadenceExecutions';
+export * from './components/CadenceOnboarding';
+export * from './components/VariablesPalette';
