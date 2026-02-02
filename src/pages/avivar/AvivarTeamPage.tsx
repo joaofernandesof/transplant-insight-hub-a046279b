@@ -3,7 +3,7 @@
  * Permite que o Admin Cliente gerencie seus colaboradores
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -19,7 +19,9 @@ import {
   Edit,
   CheckCircle,
   Clock,
-  Search
+  Search,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,11 +104,16 @@ const ROLE_INFO: Record<TeamRole, { label: string; color: string; description: s
 export default function AvivarTeamPage() {
   const { user } = useUnifiedAuth();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -115,6 +122,54 @@ export default function AvivarTeamPage() {
     phone: '',
     role: 'atendente' as TeamRole,
   });
+
+  // Upload avatar function
+  const uploadAvatar = async (file: File, memberId: string): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.authUserId}/${memberId}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('team-avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('team-avatars')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      return null;
+    }
+  };
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 5MB');
+      return;
+    }
+
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setAvatarPreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Fetch team members
   const { data: teamMembers = [], isLoading } = useQuery({
@@ -136,12 +191,17 @@ export default function AvivarTeamPage() {
 
   // Add team member mutation
   const addMemberMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: typeof formData & { avatarFile?: File | null }) => {
       if (!user?.authUserId) throw new Error('Usuário não autenticado');
 
-      // Por enquanto, criar um placeholder para member_user_id
-      // Em produção, isso seria feito via convite por email + edge function
+      setIsUploading(true);
       const tempMemberId = crypto.randomUUID();
+
+      // Upload avatar if provided
+      let avatarUrl: string | null = null;
+      if (data.avatarFile) {
+        avatarUrl = await uploadAvatar(data.avatarFile, tempMemberId);
+      }
 
       const { error } = await supabase
         .from('avivar_team_members')
@@ -152,6 +212,7 @@ export default function AvivarTeamPage() {
           email: data.email,
           phone: data.phone || null,
           role: data.role,
+          avatar_url: avatarUrl,
         });
 
       if (error) throw error;
@@ -161,8 +222,10 @@ export default function AvivarTeamPage() {
       toast.success('Colaborador adicionado com sucesso!');
       setIsAddDialogOpen(false);
       resetForm();
+      setIsUploading(false);
     },
     onError: (error: Error) => {
+      setIsUploading(false);
       if (error.message.includes('duplicate')) {
         toast.error('Este email já está cadastrado na equipe');
       } else {
@@ -238,6 +301,8 @@ export default function AvivarTeamPage() {
 
   const resetForm = () => {
     setFormData({ name: '', email: '', phone: '', role: 'atendente' });
+    setAvatarPreview(null);
+    setAvatarFile(null);
   };
 
   const handleEdit = (member: TeamMember) => {
@@ -302,6 +367,35 @@ export default function AvivarTeamPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* Avatar Upload */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={avatarPreview || undefined} />
+                    <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.1)] text-[hsl(var(--avivar-primary))] text-xl">
+                      {formData.name ? getInitials(formData.name) : <Camera className="h-6 w-6" />}
+                    </AvatarFallback>
+                  </Avatar>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-[hsl(var(--avivar-primary))] text-white shadow-lg hover:bg-[hsl(var(--avivar-accent))] transition-colors"
+                  >
+                    <Upload className="h-3 w-3" />
+                  </button>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileSelect(e)}
+                  className="hidden"
+                />
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                  Clique para adicionar foto
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="name">Nome completo</Label>
                 <Input
@@ -357,11 +451,11 @@ export default function AvivarTeamPage() {
                 Cancelar
               </Button>
               <Button
-                onClick={() => addMemberMutation.mutate(formData)}
-                disabled={!formData.name || !formData.email || addMemberMutation.isPending}
+                onClick={() => addMemberMutation.mutate({ ...formData, avatarFile })}
+                disabled={!formData.name || !formData.email || addMemberMutation.isPending || isUploading}
                 className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]"
               >
-                {addMemberMutation.isPending ? 'Adicionando...' : 'Adicionar'}
+                {isUploading ? 'Enviando foto...' : addMemberMutation.isPending ? 'Adicionando...' : 'Adicionar'}
               </Button>
             </DialogFooter>
           </DialogContent>
