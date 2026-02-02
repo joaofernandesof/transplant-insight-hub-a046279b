@@ -168,6 +168,7 @@ export default function AvivarKanbanPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-kanban-columns', kanbanId] });
       setEditingColumn(null);
+      setIsColumnDialogOpen(false);
       toast.success('Coluna atualizada!');
     },
     onError: (error) => {
