@@ -171,24 +171,52 @@ const TOOLS = [
         required: ["agenda_name", "patient_name", "date", "time", "service_type"]
       }
     }
-  },
-  {
-    type: "function",
-    function: {
-      name: "transfer_to_human",
-      description: "Transfere a conversa para um atendente humano. Use quando: 1) Paciente pedir explicitamente, 2) Questão muito complexa, 3) Negociação de preço",
-      parameters: {
-        type: "object",
-        properties: {
-          reason: {
-            type: "string",
-            description: "Motivo da transferência"
+      },
+      {
+        type: "function",
+        function: {
+          name: "transfer_to_human",
+          description: "Transfere a conversa para um atendente humano. Use quando: 1) Paciente pedir explicitamente, 2) Questão muito complexa, 3) Negociação de preço",
+          parameters: {
+            type: "object",
+            properties: {
+              reason: {
+                type: "string",
+                description: "Motivo da transferência"
+              }
+            },
+            required: ["reason"]
           }
-        },
-        required: ["reason"]
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "mover_lead_para_etapa",
+          description: `Move o lead para uma nova etapa do funil de vendas. Use SEMPRE que o status do lead mudar durante a conversa:
+- 'triagem': Lead respondeu e demonstrou algum interesse inicial (qualquer resposta após o primeiro contato)
+- 'tentando_agendar': Lead está interessado e vocês estão buscando um horário para agendar
+- 'agendado': Lead confirmou um agendamento (após usar create_appointment)
+- 'follow_up': Lead precisa pensar, pediu mais tempo, ou você precisa fazer follow up
+- 'cliente': Lead finalizou procedimento ou se tornou cliente
+- 'desqualificado': Lead não tem interesse real, não é o público alvo, ou pediu para não ser mais contatado`,
+          parameters: {
+            type: "object",
+            properties: {
+              nova_etapa: {
+                type: "string",
+                enum: ["triagem", "tentando_agendar", "agendado", "reagendamento", "follow_up", "cliente", "desqualificado"],
+                description: "Nome da nova etapa para mover o lead"
+              },
+              motivo: {
+                type: "string",
+                description: "Breve motivo da movimentação (ex: 'Lead quer agendar avaliação')"
+              }
+            },
+            required: ["nova_etapa", "motivo"]
+          }
+        }
       }
-    }
-  }
 ];
 
 // ============================================
@@ -567,6 +595,77 @@ async function transferToHuman(
   return `Vou transferir você para um de nossos especialistas. Motivo: ${reason}. Aguarde um momento, por favor! 🙂`;
 }
 
+// Map stage names to column names for Kanban movement
+const STAGE_TO_COLUMN_MAP: Record<string, string> = {
+  "triagem": "Triagem",
+  "tentando_agendar": "Tentando Agendar",
+  "agendado": "Agendado",
+  "reagendamento": "Reagendamento",
+  "follow_up": "Follow Up",
+  "cliente": "Cliente",
+  "desqualificado": "Desqualificados"
+};
+
+async function moverLeadParaEtapa(
+  supabase: AnySupabaseClient,
+  leadPhone: string,
+  novaEtapa: string,
+  motivo: string
+): Promise<string> {
+  console.log(`[AI Agent] Tool: mover_lead_para_etapa(etapa="${novaEtapa}", motivo="${motivo}")`);
+
+  // Get the column name from the stage
+  const columnName = STAGE_TO_COLUMN_MAP[novaEtapa];
+  if (!columnName) {
+    console.error(`[AI Agent] Unknown stage: ${novaEtapa}`);
+    return "Etapa não reconhecida.";
+  }
+
+  // Find the lead by phone
+  const { data: lead, error: leadError } = await supabase
+    .from("avivar_kanban_leads")
+    .select("id, kanban_id, column_id, name")
+    .eq("phone", leadPhone)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (leadError || !lead) {
+    console.error("[AI Agent] Lead not found:", leadError);
+    return "Lead não encontrado no Kanban.";
+  }
+
+  // Find the target column in the same Kanban
+  const { data: targetColumn, error: columnError } = await supabase
+    .from("avivar_kanban_columns")
+    .select("id, name")
+    .eq("kanban_id", lead.kanban_id)
+    .ilike("name", `%${columnName}%`)
+    .maybeSingle();
+
+  if (columnError || !targetColumn) {
+    console.error(`[AI Agent] Column "${columnName}" not found:`, columnError);
+    return `Coluna "${columnName}" não encontrada no funil.`;
+  }
+
+  // Move the lead to the new column
+  const { error: updateError } = await supabase
+    .from("avivar_kanban_leads")
+    .update({ 
+      column_id: targetColumn.id,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", lead.id);
+
+  if (updateError) {
+    console.error("[AI Agent] Error moving lead:", updateError);
+    return "Erro ao mover lead.";
+  }
+
+  console.log(`[AI Agent] ✅ Lead "${lead.name}" moved to "${targetColumn.name}" - Reason: ${motivo}`);
+  return `Lead movido para "${targetColumn.name}".`;
+}
+
 // ============================================
 // PROCESS TOOL CALLS
 // ============================================
@@ -616,6 +715,14 @@ async function processToolCall(
     
     case "transfer_to_human":
       return await transferToHuman(supabase, conversationId, toolArgs.reason as string);
+    
+    case "mover_lead_para_etapa":
+      return await moverLeadParaEtapa(
+        supabase,
+        patientPhone,
+        toolArgs.nova_etapa as string,
+        toolArgs.motivo as string
+      );
     
     default:
       return "Ferramenta não reconhecida.";
@@ -839,6 +946,7 @@ Você tem acesso a:
 - get_available_slots: Ver horários disponíveis em qualquer agenda
 - create_appointment: Agendar em qualquer agenda
 - transfer_to_human: Transferir para humano
+- mover_lead_para_etapa: Mover o lead no funil de vendas conforme o progresso da conversa
 </ferramentas_disponiveis>
 
 <regras_importantes>
@@ -852,6 +960,15 @@ Você tem acesso a:
 - Para agendar: 1) Descubra a unidade 2) Pergunte o nome (SE ainda não souber) 3) Ofereça 2 horários
 - Transfira para humano em negociações ou dúvidas muito técnicas
 - IMPORTANTE: Mesmo sendo especialista em ${leadStage}, você pode responder QUALQUER dúvida usando search_knowledge_base
+
+MOVIMENTAÇÃO NO FUNIL (CRÍTICO):
+- SEMPRE use mover_lead_para_etapa para atualizar o status do lead conforme a conversa evolui:
+  * Quando lead responder qualquer coisa → mova para "triagem"
+  * Quando lead demonstrar interesse em agendar → mova para "tentando_agendar"
+  * IMEDIATAMENTE após criar agendamento com create_appointment → mova para "agendado"
+  * Quando lead pedir mais tempo para pensar → mova para "follow_up"
+  * Quando lead se tornar cliente → mova para "cliente"
+  * Quando lead não tiver interesse → mova para "desqualificado"
 </regras_importantes>
 
 <formatacao_obrigatoria>
@@ -884,7 +1001,8 @@ function getDefaultInstructions(): string {
 3. Use list_products para mostrar produtos disponíveis quando perguntarem
 4. Use list_agendas para descobrir em qual unidade o paciente quer atender
 5. Use get_available_slots e create_appointment para agendar consultas
-6. Use transfer_to_human quando necessário (negociação, dúvidas muito técnicas)`;
+6. Use transfer_to_human quando necessário (negociação, dúvidas muito técnicas)
+7. SEMPRE use mover_lead_para_etapa após cada interação significativa para manter o funil atualizado`;
 }
 
 // ============================================
