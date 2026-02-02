@@ -2957,6 +2957,285 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_review_attachments: {
+        Row: {
+          created_at: string | null
+          id: string
+          mime_type: string | null
+          nome_arquivo: string
+          request_id: string
+          tamanho_bytes: number | null
+          tipo: string
+          uploaded_by: string | null
+          url_arquivo: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mime_type?: string | null
+          nome_arquivo: string
+          request_id: string
+          tamanho_bytes?: number | null
+          tipo: string
+          uploaded_by?: string | null
+          url_arquivo: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mime_type?: string | null
+          nome_arquivo?: string
+          request_id?: string
+          tamanho_bytes?: number | null
+          tipo?: string
+          uploaded_by?: string | null
+          url_arquivo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_review_attachments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "contract_review_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_review_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_review_history: {
+        Row: {
+          action: string
+          comment: string | null
+          created_at: string | null
+          created_by: string | null
+          from_status:
+            | Database["public"]["Enums"]["contract_review_status"]
+            | null
+          id: string
+          request_id: string
+          to_status:
+            | Database["public"]["Enums"]["contract_review_status"]
+            | null
+        }
+        Insert: {
+          action: string
+          comment?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          from_status?:
+            | Database["public"]["Enums"]["contract_review_status"]
+            | null
+          id?: string
+          request_id: string
+          to_status?:
+            | Database["public"]["Enums"]["contract_review_status"]
+            | null
+        }
+        Update: {
+          action?: string
+          comment?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          from_status?:
+            | Database["public"]["Enums"]["contract_review_status"]
+            | null
+          id?: string
+          request_id?: string
+          to_status?:
+            | Database["public"]["Enums"]["contract_review_status"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_review_history_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_review_history_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "contract_review_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_review_requests: {
+        Row: {
+          acordos_informais: string | null
+          ajustes_necessarios: string | null
+          ajustes_realizados: string | null
+          area_empresa: string
+          assigned_to: string | null
+          beneficio_esperado: string
+          classificacao: Database["public"]["Enums"]["contract_classification"]
+          completed_at: string | null
+          condicoes_credito: string | null
+          created_at: string | null
+          created_by: string
+          data_assinatura_prevista: string
+          data_inicio_vigencia: string
+          datas_pagamento: string | null
+          descricao_acordo_fora_contrato: string | null
+          descricao_dependencia_externa: string | null
+          existe_acordo_fora_contrato: boolean | null
+          foco_atencao_juridico: string
+          forma_pagamento: string
+          houve_negociacao: boolean
+          id: string
+          impacto_atraso: string
+          multas_previstas: string | null
+          nivel_risco: string | null
+          nome_outra_parte: string
+          objetivo_pratico: string
+          origem_negociacao: string
+          parecer_juridico: string | null
+          pedido_inicial: string | null
+          penalidades_cancelamento: string | null
+          possui_dependencia_externa: boolean | null
+          prazo_maximo_retorno: string
+          prazo_total_contrato: string
+          recomendacoes: string | null
+          request_number: string | null
+          risco_clausula_especifica: boolean | null
+          risco_financeiro: boolean | null
+          risco_imagem: boolean | null
+          risco_juridico: boolean | null
+          risco_operacional: boolean | null
+          sla_deadline: string | null
+          sla_horas: number | null
+          status: Database["public"]["Enums"]["contract_review_status"] | null
+          submitted_at: string | null
+          tipo_contrato: Database["public"]["Enums"]["contract_review_type"]
+          tipo_contrato_outro: string | null
+          updated_at: string | null
+          valor_total: number | null
+        }
+        Insert: {
+          acordos_informais?: string | null
+          ajustes_necessarios?: string | null
+          ajustes_realizados?: string | null
+          area_empresa: string
+          assigned_to?: string | null
+          beneficio_esperado: string
+          classificacao: Database["public"]["Enums"]["contract_classification"]
+          completed_at?: string | null
+          condicoes_credito?: string | null
+          created_at?: string | null
+          created_by: string
+          data_assinatura_prevista: string
+          data_inicio_vigencia: string
+          datas_pagamento?: string | null
+          descricao_acordo_fora_contrato?: string | null
+          descricao_dependencia_externa?: string | null
+          existe_acordo_fora_contrato?: boolean | null
+          foco_atencao_juridico: string
+          forma_pagamento: string
+          houve_negociacao?: boolean
+          id?: string
+          impacto_atraso: string
+          multas_previstas?: string | null
+          nivel_risco?: string | null
+          nome_outra_parte: string
+          objetivo_pratico: string
+          origem_negociacao: string
+          parecer_juridico?: string | null
+          pedido_inicial?: string | null
+          penalidades_cancelamento?: string | null
+          possui_dependencia_externa?: boolean | null
+          prazo_maximo_retorno: string
+          prazo_total_contrato: string
+          recomendacoes?: string | null
+          request_number?: string | null
+          risco_clausula_especifica?: boolean | null
+          risco_financeiro?: boolean | null
+          risco_imagem?: boolean | null
+          risco_juridico?: boolean | null
+          risco_operacional?: boolean | null
+          sla_deadline?: string | null
+          sla_horas?: number | null
+          status?: Database["public"]["Enums"]["contract_review_status"] | null
+          submitted_at?: string | null
+          tipo_contrato: Database["public"]["Enums"]["contract_review_type"]
+          tipo_contrato_outro?: string | null
+          updated_at?: string | null
+          valor_total?: number | null
+        }
+        Update: {
+          acordos_informais?: string | null
+          ajustes_necessarios?: string | null
+          ajustes_realizados?: string | null
+          area_empresa?: string
+          assigned_to?: string | null
+          beneficio_esperado?: string
+          classificacao?: Database["public"]["Enums"]["contract_classification"]
+          completed_at?: string | null
+          condicoes_credito?: string | null
+          created_at?: string | null
+          created_by?: string
+          data_assinatura_prevista?: string
+          data_inicio_vigencia?: string
+          datas_pagamento?: string | null
+          descricao_acordo_fora_contrato?: string | null
+          descricao_dependencia_externa?: string | null
+          existe_acordo_fora_contrato?: boolean | null
+          foco_atencao_juridico?: string
+          forma_pagamento?: string
+          houve_negociacao?: boolean
+          id?: string
+          impacto_atraso?: string
+          multas_previstas?: string | null
+          nivel_risco?: string | null
+          nome_outra_parte?: string
+          objetivo_pratico?: string
+          origem_negociacao?: string
+          parecer_juridico?: string | null
+          pedido_inicial?: string | null
+          penalidades_cancelamento?: string | null
+          possui_dependencia_externa?: boolean | null
+          prazo_maximo_retorno?: string
+          prazo_total_contrato?: string
+          recomendacoes?: string | null
+          request_number?: string | null
+          risco_clausula_especifica?: boolean | null
+          risco_financeiro?: boolean | null
+          risco_imagem?: boolean | null
+          risco_juridico?: boolean | null
+          risco_operacional?: boolean | null
+          sla_deadline?: string | null
+          sla_horas?: number | null
+          status?: Database["public"]["Enums"]["contract_review_status"] | null
+          submitted_at?: string | null
+          tipo_contrato?: Database["public"]["Enums"]["contract_review_type"]
+          tipo_contrato_outro?: string | null
+          updated_at?: string | null
+          valor_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_review_requests_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_review_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "neohub_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_classes: {
         Row: {
           code: string
@@ -15750,6 +16029,21 @@ export type Database = {
         | "operacao"
         | "recepcao"
       consumption_divergence_status: "pendente" | "aprovado" | "rejeitado"
+      contract_classification: "estrategico" | "operacional"
+      contract_review_status:
+        | "rascunho"
+        | "aguardando_validacao"
+        | "em_analise"
+        | "aguardando_ajustes"
+        | "aprovado"
+        | "reprovado"
+        | "cancelado"
+      contract_review_type:
+        | "locacao"
+        | "prestacao_servicos"
+        | "parceria"
+        | "cessao_espaco"
+        | "outro"
       contract_status: "ativo" | "pendente" | "quitado" | "cancelado"
       contract_status_type:
         | "draft"
@@ -16072,6 +16366,23 @@ export const Constants = {
         "recepcao",
       ],
       consumption_divergence_status: ["pendente", "aprovado", "rejeitado"],
+      contract_classification: ["estrategico", "operacional"],
+      contract_review_status: [
+        "rascunho",
+        "aguardando_validacao",
+        "em_analise",
+        "aguardando_ajustes",
+        "aprovado",
+        "reprovado",
+        "cancelado",
+      ],
+      contract_review_type: [
+        "locacao",
+        "prestacao_servicos",
+        "parceria",
+        "cessao_espaco",
+        "outro",
+      ],
       contract_status: ["ativo", "pendente", "quitado", "cancelado"],
       contract_status_type: [
         "draft",
