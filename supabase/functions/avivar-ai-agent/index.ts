@@ -60,6 +60,14 @@ interface RoutedAgent {
   target_stages: string[] | null;
 }
 
+interface KanbanColumnInfo {
+  kanban_name: string;
+  column_name: string;
+  column_key: string; // slug-like key for the tool
+  ai_instruction: string | null;
+  order_index: number;
+}
+
 // deno-lint-ignore no-explicit-any
 type AnySupabaseClient = SupabaseClient<any, any, any>;
 
@@ -193,20 +201,13 @@ const TOOLS = [
         type: "function",
         function: {
           name: "mover_lead_para_etapa",
-          description: `Move o lead para uma nova etapa do funil de vendas. Use SEMPRE que o status do lead mudar durante a conversa:
-- 'triagem': Lead respondeu e demonstrou algum interesse inicial (qualquer resposta após o primeiro contato)
-- 'tentando_agendar': Lead está interessado e vocês estão buscando um horário para agendar
-- 'agendado': Lead confirmou um agendamento (após usar create_appointment)
-- 'follow_up': Lead precisa pensar, pediu mais tempo, ou você precisa fazer follow up
-- 'cliente': Lead finalizou procedimento ou se tornou cliente
-- 'desqualificado': Lead não tem interesse real, não é o público alvo, ou pediu para não ser mais contatado`,
+          description: `Move o lead para uma nova etapa/coluna do funil de vendas. Os nomes das etapas são DINÂMICOS e definidos pelo usuário nas configurações do CRM. Exemplos comuns: triagem, tentando_agendar, agendado, follow_up, cliente, desqualificado. Use o nome exato da coluna conforme descrito no contexto do sistema.`,
           parameters: {
             type: "object",
             properties: {
               nova_etapa: {
                 type: "string",
-                enum: ["triagem", "tentando_agendar", "agendado", "reagendamento", "follow_up", "cliente", "desqualificado"],
-                description: "Nome da nova etapa para mover o lead"
+                description: "Nome da coluna/etapa destino (use o formato slug: ex: 'triagem', 'tentando_agendar', 'lead_de_entrada'). Os nomes disponíveis estão listados nas instruções do sistema."
               },
               motivo: {
                 type: "string",
@@ -595,7 +596,7 @@ async function transferToHuman(
   return `Vou transferir você para um de nossos especialistas. Motivo: ${reason}. Aguarde um momento, por favor! 🙂`;
 }
 
-// Map stage names to column names for Kanban movement
+// Legacy fallback map - used only if dynamic column search fails
 const STAGE_TO_COLUMN_MAP: Record<string, string> = {
   "triagem": "Triagem",
   "tentando_agendar": "Tentando Agendar",
@@ -603,7 +604,11 @@ const STAGE_TO_COLUMN_MAP: Record<string, string> = {
   "reagendamento": "Reagendamento",
   "follow_up": "Follow Up",
   "cliente": "Cliente",
-  "desqualificado": "Desqualificados"
+  "desqualificado": "Desqualificados",
+  // Added more variants for flexibility
+  "lead_de_entrada": "Lead de Entrada",
+  "onboarding": "Onboarding",
+  "contrato_assinado": "Contrato Assinado"
 };
 
 async function moverLeadParaEtapa(
@@ -613,13 +618,6 @@ async function moverLeadParaEtapa(
   motivo: string
 ): Promise<string> {
   console.log(`[AI Agent] Tool: mover_lead_para_etapa(etapa="${novaEtapa}", motivo="${motivo}")`);
-
-  // Get the column name from the stage
-  const columnName = STAGE_TO_COLUMN_MAP[novaEtapa];
-  if (!columnName) {
-    console.error(`[AI Agent] Unknown stage: ${novaEtapa}`);
-    return "Etapa não reconhecida.";
-  }
 
   // Find the lead by phone
   const { data: lead, error: leadError } = await supabase
@@ -635,17 +633,78 @@ async function moverLeadParaEtapa(
     return "Lead não encontrado no Kanban.";
   }
 
-  // Find the target column in the same Kanban
-  const { data: targetColumn, error: columnError } = await supabase
+  // Try to find the target column by dynamic name/slug matching
+  // First: try exact match with the slug (column_key format: "lead_de_entrada")
+  let { data: targetColumn, error: columnError } = await supabase
     .from("avivar_kanban_columns")
     .select("id, name")
     .eq("kanban_id", lead.kanban_id)
-    .ilike("name", `%${columnName}%`)
+    .ilike("name", novaEtapa.replace(/_/g, " ")) // Convert slug back to name
     .maybeSingle();
 
+  // Second: try partial match with the original column name
+  if (!targetColumn) {
+    const fallbackName = STAGE_TO_COLUMN_MAP[novaEtapa];
+    if (fallbackName) {
+      const { data: fallbackColumn } = await supabase
+        .from("avivar_kanban_columns")
+        .select("id, name")
+        .eq("kanban_id", lead.kanban_id)
+        .ilike("name", `%${fallbackName}%`)
+        .maybeSingle();
+      targetColumn = fallbackColumn;
+    }
+  }
+
+  // Third: try searching in ALL kanbans of this user for the column name
+  if (!targetColumn) {
+    console.log(`[AI Agent] Column not found in current kanban, searching all kanbans...`);
+    
+    // Get user_id from lead
+    const { data: leadData } = await supabase
+      .from("avivar_kanban_leads")
+      .select("user_id")
+      .eq("id", lead.id)
+      .single();
+
+    if (leadData?.user_id) {
+      // Get all kanbans for this user
+      const { data: allKanbans } = await supabase
+        .from("avivar_kanbans")
+        .select("id")
+        .eq("user_id", leadData.user_id)
+        .eq("is_active", true);
+
+      if (allKanbans?.length) {
+        const kanbanIds = allKanbans.map(k => k.id);
+        
+        // Search for column across all kanbans
+        const { data: crossColumn } = await supabase
+          .from("avivar_kanban_columns")
+          .select("id, name, kanban_id")
+          .in("kanban_id", kanbanIds)
+          .ilike("name", `%${novaEtapa.replace(/_/g, " ")}%`)
+          .limit(1)
+          .maybeSingle();
+
+        if (crossColumn) {
+          targetColumn = crossColumn;
+          // Update lead's kanban_id if moving to different kanban
+          if (crossColumn.kanban_id !== lead.kanban_id) {
+            console.log(`[AI Agent] Moving lead to different Kanban: ${crossColumn.kanban_id}`);
+            await supabase
+              .from("avivar_kanban_leads")
+              .update({ kanban_id: crossColumn.kanban_id })
+              .eq("id", lead.id);
+          }
+        }
+      }
+    }
+  }
+
   if (columnError || !targetColumn) {
-    console.error(`[AI Agent] Column "${columnName}" not found:`, columnError);
-    return `Coluna "${columnName}" não encontrada no funil.`;
+    console.error(`[AI Agent] Column "${novaEtapa}" not found anywhere`);
+    return `Coluna "${novaEtapa}" não encontrada no funil. Verifique o nome exato da coluna.`;
   }
 
   // Move the lead to the new column
@@ -886,10 +945,137 @@ async function getLeadId(supabase: AnySupabaseClient, conversationId: string): P
 }
 
 // ============================================
+// DYNAMIC KANBAN COLUMNS LOADER
+// ============================================
+
+async function getKanbanColumnsForUser(
+  supabase: AnySupabaseClient,
+  userId: string
+): Promise<KanbanColumnInfo[]> {
+  console.log(`[AI Agent] Loading Kanban columns for user: ${userId}`);
+
+  const { data: kanbans, error } = await supabase
+    .from("avivar_kanbans")
+    .select(`
+      id,
+      name,
+      order_index,
+      columns:avivar_kanban_columns(
+        id,
+        name,
+        ai_instruction,
+        order_index
+      )
+    `)
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("order_index", { ascending: true });
+
+  if (error || !kanbans?.length) {
+    console.log(`[AI Agent] No kanbans found for user`);
+    return [];
+  }
+
+  const allColumns: KanbanColumnInfo[] = [];
+
+  for (const kanban of kanbans) {
+    const columns = (kanban.columns || []) as Array<{
+      id: string;
+      name: string;
+      ai_instruction: string | null;
+      order_index: number;
+    }>;
+
+    // Sort columns by order_index
+    columns.sort((a, b) => a.order_index - b.order_index);
+
+    for (const col of columns) {
+      // Generate a slug-like key from column name
+      const columnKey = col.name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remove accents
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_]/g, "");
+
+      allColumns.push({
+        kanban_name: kanban.name,
+        column_name: col.name,
+        column_key: columnKey,
+        ai_instruction: col.ai_instruction,
+        order_index: col.order_index
+      });
+    }
+  }
+
+  console.log(`[AI Agent] Loaded ${allColumns.length} columns from ${kanbans.length} kanbans`);
+  return allColumns;
+}
+
+function buildDynamicMovementInstructions(columns: KanbanColumnInfo[]): string {
+  if (columns.length === 0) {
+    return `MOVIMENTAÇÃO NO FUNIL:
+Use mover_lead_para_etapa para mover leads entre as etapas padrão:
+- triagem: Lead respondeu e demonstrou interesse inicial
+- tentando_agendar: Lead quer agendar
+- agendado: Agendamento confirmado
+- follow_up: Lead precisa de mais tempo
+- desqualificado: Sem interesse`;
+  }
+
+  let instructions = `## MOVIMENTAÇÃO AUTOMÁTICA NO FUNIL (CRÍTICO)
+
+Você tem acesso à ferramenta "mover_lead_para_etapa". Use SEMPRE para atualizar o status do lead.
+
+### ESTRUTURA DO CRM DESTE CLIENTE:
+
+`;
+
+  // Group columns by kanban
+  const kanbanGroups = new Map<string, KanbanColumnInfo[]>();
+  for (const col of columns) {
+    const group = kanbanGroups.get(col.kanban_name) || [];
+    group.push(col);
+    kanbanGroups.set(col.kanban_name, group);
+  }
+
+  // Build instruction text for each kanban
+  for (const [kanbanName, cols] of kanbanGroups) {
+    instructions += `**Funil: ${kanbanName}**\n`;
+    
+    for (const col of cols) {
+      instructions += `- "${col.column_key}" (${col.column_name})`;
+      if (col.ai_instruction) {
+        instructions += `: ${col.ai_instruction}`;
+      }
+      instructions += `\n`;
+    }
+    instructions += `\n`;
+  }
+
+  instructions += `### COMO USAR:
+1. Identifique em qual momento da conversa o lead está
+2. Compare com as instruções acima para determinar a etapa correta
+3. Execute: mover_lead_para_etapa(nova_etapa: "nome_da_coluna", motivo: "razão da movimentação")
+
+### REGRAS:
+- Após QUALQUER resposta do lead → mova para a etapa apropriada
+- Após criar agendamento com create_appointment → mova para "agendado" ou equivalente
+- Quando lead não tiver interesse → mova para "desqualificado" ou última coluna do funil
+- Execute a movimentação IMEDIATAMENTE após cada marco do atendimento!`;
+
+  return instructions;
+}
+
+// ============================================
 // BUILD SYSTEM PROMPT - HYBRID (stage-based agent + full access)
 // ============================================
 
-function buildHybridSystemPrompt(agent: RoutedAgent, leadStage: string): string {
+function buildHybridSystemPrompt(
+  agent: RoutedAgent, 
+  leadStage: string,
+  dynamicMovementInstructions: string
+): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
     weekday: "long", 
@@ -960,16 +1146,11 @@ Você tem acesso a:
 - Para agendar: 1) Descubra a unidade 2) Pergunte o nome (SE ainda não souber) 3) Ofereça 2 horários
 - Transfira para humano em negociações ou dúvidas muito técnicas
 - IMPORTANTE: Mesmo sendo especialista em ${leadStage}, você pode responder QUALQUER dúvida usando search_knowledge_base
-
-MOVIMENTAÇÃO NO FUNIL (CRÍTICO):
-- SEMPRE use mover_lead_para_etapa para atualizar o status do lead conforme a conversa evolui:
-  * Quando lead responder qualquer coisa → mova para "triagem"
-  * Quando lead demonstrar interesse em agendar → mova para "tentando_agendar"
-  * IMEDIATAMENTE após criar agendamento com create_appointment → mova para "agendado"
-  * Quando lead pedir mais tempo para pensar → mova para "follow_up"
-  * Quando lead se tornar cliente → mova para "cliente"
-  * Quando lead não tiver interesse → mova para "desqualificado"
 </regras_importantes>
+
+<movimentacao_funil>
+${dynamicMovementInstructions}
+</movimentacao_funil>
 
 <formatacao_obrigatoria>
 PROIBIDO: Nunca use asteriscos (*) para formatar texto. Não use **negrito** nem *itálico*.
@@ -1203,8 +1384,12 @@ serve(async (req) => {
 
     console.log(`[AI Agent] Using agent: ${routedAgent.agent_name} for stage ${leadStage}`);
 
-    // 3. Build hybrid system prompt (agent personality + full access)
-    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage);
+    // 3. Load dynamic Kanban columns for this user
+    const kanbanColumns = await getKanbanColumnsForUser(supabase, userId);
+    const dynamicMovementInstructions = buildDynamicMovementInstructions(kanbanColumns);
+
+    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure)
+    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions);
 
     // 4. Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);

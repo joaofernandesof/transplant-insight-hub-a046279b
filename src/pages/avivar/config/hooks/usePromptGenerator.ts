@@ -187,32 +187,19 @@ ${formatPaymentMethods()}
 - Tom de voz: ${config.toneOfVoice}
 </configuracoes>`;
 
-    // Instruções de movimentação automática no funil (CRÍTICO)
+    // Nota: As instruções de movimentação dinâmica são carregadas na edge function
+    // com base nas colunas do Kanban configuradas pelo usuário
     prompt += `\n\n<movimentacao_funil>
-## MOVIMENTAÇÃO AUTOMÁTICA NO FUNIL (CRÍTICO)
+## MOVIMENTAÇÃO AUTOMÁTICA NO FUNIL
 
-Você tem acesso à ferramenta "mover_lead_para_etapa" que DEVE ser usada para atualizar o status do lead no CRM.
+Você tem acesso à ferramenta "mover_lead_para_etapa" para atualizar o status do lead no CRM.
+As etapas disponíveis são definidas dinamicamente nas configurações do Kanban.
 
-### REGRAS DE MOVIMENTAÇÃO OBRIGATÓRIA:
-
-1. **APÓS PRIMEIRA RESPOSTA** → Mova para "triagem"
-   - Assim que responder à primeira mensagem do lead, mova-o para triagem
-
-2. **INTERESSE EM AGENDAR** → Mova para "tentando_agendar"  
-   - Quando o lead demonstrar interesse em marcar consulta/procedimento
-
-3. **AGENDAMENTO CONFIRMADO** → Mova para "agendado"
-   - Após criar agendamento com sucesso via ferramenta criar_agendamento
-
-4. **LEAD DESQUALIFICADO** → Mova para "desqualificado"
-   - Quando identificar que o lead não tem perfil (ex: cidade diferente, sem interesse real)
-
-5. **FOLLOW-UP NECESSÁRIO** → Mova para "follow_up"
-   - Quando o lead pedir para retornar depois ou demonstrar hesitação
-
-### EXEMPLO DE USO:
-Após responder "Olá! Prazer em te atender...", execute:
-mover_lead_para_etapa(etapa_destino: "triagem")
+### QUANDO MOVER:
+- Após responder à primeira mensagem → mova para a etapa de triagem/qualificação
+- Quando lead demonstrar interesse em agendar → mova para etapa de agendamento
+- Após criar agendamento → mova para etapa de "agendado"
+- Quando lead não tiver perfil → mova para etapa de desqualificados
 
 IMPORTANTE: Execute a movimentação IMEDIATAMENTE após cada marco do atendimento!
 </movimentacao_funil>`;
