@@ -38,6 +38,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
     updateConversationStatus,
     createConversation,
     toggleAI,
+    deleteLeadFromChat,
   } = useCrmConversations(selectedConversation || undefined);
 
   // Fetch journeys from avivar_patient_journeys (Kanban table)
@@ -139,6 +140,18 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   const handleAIToggle = (enabled: boolean) => {
     if (!selectedConversation) return;
     toggleAI.mutate({ id: selectedConversation, enabled });
+  };
+
+  const handleDeleteLead = () => {
+    if (!selectedConversation) return;
+    
+    if (confirm('Tem certeza que deseja excluir este lead? Todas as mensagens e conversas serão apagadas. O contato será preservado.')) {
+      deleteLeadFromChat.mutate(selectedConversation, {
+        onSuccess: () => {
+          setSelectedConversation(null);
+        }
+      });
+    }
   };
 
   // Estado de loading inicial
@@ -264,6 +277,8 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
                 conversation={currentConversation}
                 onStatusChange={handleStatusChange}
                 onAIToggle={handleAIToggle}
+                onDeleteLead={handleDeleteLead}
+                isDeletingLead={deleteLeadFromChat.isPending}
                 onBack={() => setSelectedConversation(null)}
                 showBackButton
               />

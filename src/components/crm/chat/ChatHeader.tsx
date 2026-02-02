@@ -13,6 +13,8 @@ import {
   ChevronLeft,
   Bot,
   BotOff,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -38,6 +40,8 @@ interface ChatHeaderProps {
   conversation: CrmConversation;
   onStatusChange: (status: 'resolved' | 'archived') => void;
   onAIToggle?: (enabled: boolean) => void;
+  onDeleteLead?: () => void;
+  isDeletingLead?: boolean;
   onBack?: () => void;
   showBackButton?: boolean;
 }
@@ -60,6 +64,8 @@ export function ChatHeader({
   conversation, 
   onStatusChange, 
   onAIToggle,
+  onDeleteLead,
+  isDeletingLead,
   onBack,
   showBackButton 
 }: ChatHeaderProps) {
@@ -179,6 +185,23 @@ export function ChatHeader({
               <Archive className="h-4 w-4" />
               Arquivar Conversa
             </DropdownMenuItem>
+            {onDeleteLead && (
+              <>
+                <DropdownMenuSeparator className="bg-[hsl(var(--avivar-border))]" />
+                <DropdownMenuItem 
+                  onClick={onDeleteLead}
+                  disabled={isDeletingLead}
+                  className="gap-2 text-red-500 focus:text-red-500"
+                >
+                  {isDeletingLead ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  Excluir Lead
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -273,6 +273,59 @@ export function useCrmConversations(conversationId?: string) {
     },
   });
 
+  // Delete lead with cascade (from chat context)
+  const deleteLeadFromChat = useMutation({
+    mutationFn: async (conversationId: string) => {
+      // First get the lead's phone from the conversation
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (!conversation?.lead?.phone) {
+        throw new Error('Lead não encontrado');
+      }
+
+      // Find kanban lead by phone
+      const { data: kanbanLeads, error: findError } = await supabase
+        .from('avivar_kanban_leads')
+        .select('id, name')
+        .eq('phone', conversation.lead.phone)
+        .limit(1);
+
+      if (findError) throw findError;
+      
+      if (!kanbanLeads || kanbanLeads.length === 0) {
+        // No kanban lead found, just delete conversation and messages
+        await supabase.from('crm_messages').delete().eq('conversation_id', conversationId);
+        await supabase.from('crm_conversations').delete().eq('id', conversationId);
+        await supabase.from('leads').delete().eq('id', conversation.lead_id);
+        return { success: true, lead_name: conversation.lead.name };
+      }
+
+      // Use the cascade function
+      const { data, error } = await supabase.rpc('delete_avivar_kanban_lead_cascade', {
+        p_lead_id: kanbanLeads[0].id
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; lead_name?: string } | null;
+      if (!result?.success) {
+        throw new Error(result?.error || 'Erro ao excluir lead');
+      }
+
+      return result;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['crm-conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['crm-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['avivar-contacts'] });
+      toast.success(`Lead "${result?.lead_name}" excluído com sucesso!`);
+    },
+    onError: (error) => {
+      console.error('Error deleting lead from chat:', error);
+      toast.error('Erro ao excluir lead');
+    },
+  });
+
   // Stats
   const openConversations = conversations.filter(c => c.status === 'open');
   const pendingConversations = conversations.filter(c => c.status === 'pending');
@@ -290,5 +343,6 @@ export function useCrmConversations(conversationId?: string) {
     sendMessage,
     updateConversationStatus,
     toggleAI,
+    deleteLeadFromChat,
   };
 }
