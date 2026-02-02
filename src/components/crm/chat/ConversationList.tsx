@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Search, Filter, MessageCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConversationListItem } from './ConversationListItem';
 import { CrmConversation } from '@/hooks/useCrmConversations';
@@ -110,8 +110,8 @@ export function ConversationList({
         </Tabs>
       </div>
 
-      {/* Conversation list */}
-      <ScrollArea className="flex-1">
+      {/* Conversation list with visible scrollbar */}
+      <div className="flex-1 overflow-y-auto scrollbar-visible">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <MessageCircle className="h-12 w-12 text-[hsl(var(--avivar-muted-foreground))] mb-4 opacity-50" />
@@ -131,7 +131,7 @@ export function ConversationList({
             ))}
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 }

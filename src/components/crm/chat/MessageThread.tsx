@@ -111,11 +111,11 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 relative">
-      {/* Scrollable messages area */}
+      {/* Scrollable messages area with visible scrollbar */}
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 scrollbar-thin scrollbar-thumb-[hsl(var(--avivar-border))] scrollbar-track-transparent"
+        className="flex-1 overflow-y-auto px-4 scrollbar-visible"
       >
         <div className="space-y-4 py-4">
           {/* Load more button */}
