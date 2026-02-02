@@ -8,6 +8,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,6 +46,12 @@ interface FAQItem {
   resposta: string;
 }
 
+// Tracks if FAQ was added to knowledge base
+const useFAQAddedToKnowledge = () => {
+  const [faqAddedToKnowledge, setFaqAddedToKnowledge] = useState(false);
+  return { faqAddedToKnowledge, setFaqAddedToKnowledge };
+};
+
 const SIMPLE_STEPS = [
   { id: 'business', title: 'Tipo de Negócio', description: 'Qual é seu segmento?' },
   { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
@@ -61,6 +73,7 @@ export default function AvivarSimpleWizard() {
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedFAQ, setGeneratedFAQ] = useState<FAQItem[]>([]);
+  const [faqAddedToKnowledge, setFaqAddedToKnowledge] = useState(false);
   const [config, setConfig] = useState<AgentConfig>(() => ({
     ...INITIAL_CONFIG,
     paymentMethods: [...PAYMENT_METHODS],
@@ -144,7 +157,10 @@ export default function AvivarSimpleWizard() {
         return !!config.agentObjectives?.primary;
       case 5: // Horários
         return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
-      case 6: // FAQ (opcional - sempre pode prosseguir)
+      case 6: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
+        if (generatedFAQ.length > 0 && !faqAddedToKnowledge) {
+          return false;
+        }
         return true;
       case 7: // Knowledge (opcional - sempre pode prosseguir)
         return true;
@@ -269,6 +285,16 @@ export default function AvivarSimpleWizard() {
       type: 'text/markdown',
     };
     updateConfig({ knowledgeFiles: [...(config.knowledgeFiles || []), faqFile] });
+    setFaqAddedToKnowledge(true); // Mark as added
+  };
+
+  // Reset faqAddedToKnowledge when FAQ is regenerated
+  const handleFAQChange = (faq: FAQItem[]) => {
+    setGeneratedFAQ(faq);
+    // If FAQ changes after being added, require adding again
+    if (faqAddedToKnowledge && faq.length > 0) {
+      setFaqAddedToKnowledge(false);
+    }
   };
 
   const renderStep = () => {
@@ -344,7 +370,7 @@ export default function AvivarSimpleWizard() {
             services={config.services}
             objectives={config.agentObjectives}
             generatedFAQ={generatedFAQ}
-            onFAQChange={setGeneratedFAQ}
+            onFAQChange={handleFAQChange}
             onCopyToKnowledge={handleCopyFAQToKnowledge}
             onSkip={handleNext}
           />
@@ -410,14 +436,36 @@ export default function AvivarSimpleWizard() {
             Voltar
           </Button>
 
-          <Button
-            onClick={handleNext}
-            disabled={!canProceed()}
-            className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)]"
-          >
-            Próximo
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+          {/* Show tooltip when FAQ needs to be added */}
+          {currentStep === 6 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      disabled
+                      className="bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))] cursor-not-allowed opacity-50"
+                    >
+                      Próximo
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
+                  <p>Clique em "Adicionar à Base de Conhecimento"</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <Button
+              onClick={handleNext}
+              disabled={!canProceed()}
+              className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)]"
+            >
+              Próximo
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          )}
         </div>
       )}
     </div>
