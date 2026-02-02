@@ -839,6 +839,57 @@ export type Database = {
           },
         ]
       }
+      avivar_contacts: {
+        Row: {
+          avatar_url: string | null
+          company_name: string | null
+          created_at: string
+          email: string | null
+          first_contact_at: string | null
+          id: string
+          last_contact_at: string | null
+          name: string | null
+          notes: string | null
+          phone: string
+          source: string | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          first_contact_at?: string | null
+          id?: string
+          last_contact_at?: string | null
+          name?: string | null
+          notes?: string | null
+          phone: string
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          first_contact_at?: string | null
+          id?: string
+          last_contact_at?: string | null
+          name?: string | null
+          notes?: string | null
+          phone?: string
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       avivar_conversas: {
         Row: {
           conversa_id: string | null
@@ -979,6 +1030,7 @@ export type Database = {
       avivar_kanban_leads: {
         Row: {
           column_id: string
+          contact_id: string | null
           created_at: string
           custom_fields: Json | null
           email: string | null
@@ -995,6 +1047,7 @@ export type Database = {
         }
         Insert: {
           column_id: string
+          contact_id?: string | null
           created_at?: string
           custom_fields?: Json | null
           email?: string | null
@@ -1011,6 +1064,7 @@ export type Database = {
         }
         Update: {
           column_id?: string
+          contact_id?: string | null
           created_at?: string
           custom_fields?: Json | null
           email?: string | null
@@ -1031,6 +1085,13 @@ export type Database = {
             columns: ["column_id"]
             isOneToOne: false
             referencedRelation: "avivar_kanban_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_kanban_leads_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_contacts"
             referencedColumns: ["id"]
           },
           {
@@ -15290,6 +15351,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      create_lead_from_contact: {
+        Args: { p_column_id: string; p_contact_id: string; p_kanban_id: string }
+        Returns: string
+      }
       delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
       get_agent_for_lead_stage: {
         Args: { p_lead_stage?: string; p_user_id: string }
@@ -15385,6 +15450,10 @@ export type Database = {
         Returns: {
           profile: Database["public"]["Enums"]["neohub_profile"]
         }[]
+      }
+      get_or_create_avivar_contact: {
+        Args: { p_name?: string; p_phone: string; p_user_id: string }
+        Returns: string
       }
       get_or_create_avivar_conversa: {
         Args: {

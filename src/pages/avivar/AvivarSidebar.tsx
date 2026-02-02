@@ -43,6 +43,7 @@ const menuItems = [
   { id: 'inbox', label: 'Chats', icon: MessageSquare, href: '/avivar/inbox', badge: '5' },
   { id: 'divider0', label: '', icon: null, href: '', isDivider: true },
   { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: '3' },
+  { id: 'contacts', label: 'Listas', icon: Briefcase, href: '/avivar/contacts', isHighlight: true },
   { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup', badge: '12' },
   { id: 'cadences', label: 'Cadências', icon: Zap, href: '/avivar/cadences', isHighlight: true },
   { id: 'catalog', label: 'Catálogo', icon: Package, href: '/avivar/catalog' },
