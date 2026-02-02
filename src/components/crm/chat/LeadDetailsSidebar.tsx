@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -213,7 +213,8 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      {/* Content with visible scrollbar */}
+      <div className="flex-1 overflow-y-auto scrollbar-visible">
         <div className="p-4 space-y-4">
           {/* Contato */}
           <Collapsible open={isContactOpen} onOpenChange={setIsContactOpen}>
@@ -398,7 +399,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             </CollapsibleContent>
           </Collapsible>
         </div>
-      </ScrollArea>
+      </div>
     </div>
 
       {/* Dialog de Edição */}
