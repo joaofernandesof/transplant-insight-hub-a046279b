@@ -493,55 +493,56 @@ html {
    Custom Scrollbar Styles - Visible
    ================================= */
 
-/* Dark theme scrollbar for Avivar */
-.scrollbar-avivar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.scrollbar-avivar::-webkit-scrollbar-track {
-  background: hsl(var(--avivar-muted) / 0.5);
-  border-radius: 3px;
-}
-
-.scrollbar-avivar::-webkit-scrollbar-thumb {
-  background: hsl(var(--avivar-primary) / 0.4);
-  border-radius: 3px;
-  transition: background 0.2s;
-}
-
-.scrollbar-avivar::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--avivar-primary) / 0.6);
-}
-
-/* Firefox scrollbar */
-.scrollbar-avivar {
+/* Always visible scrollbar - IMPORTANT: uses overflow-y: scroll to always show */
+.scrollbar-visible {
+  overflow-y: scroll !important;
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--avivar-primary) / 0.4) hsl(var(--avivar-muted) / 0.5);
+  scrollbar-color: rgba(155, 89, 182, 0.6) rgba(60, 40, 80, 0.4);
 }
 
-/* Always visible scrollbar */
 .scrollbar-visible::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 .scrollbar-visible::-webkit-scrollbar-track {
-  background: hsl(260 30% 20% / 0.3);
+  background: rgba(60, 40, 80, 0.4);
   border-radius: 4px;
+  margin: 4px 0;
 }
 
 .scrollbar-visible::-webkit-scrollbar-thumb {
-  background: hsl(270 60% 50% / 0.5);
+  background: rgba(155, 89, 182, 0.6);
   border-radius: 4px;
-  border: 1px solid hsl(260 30% 25% / 0.3);
+  min-height: 40px;
 }
 
 .scrollbar-visible::-webkit-scrollbar-thumb:hover {
-  background: hsl(270 60% 50% / 0.7);
+  background: rgba(155, 89, 182, 0.85);
 }
 
-.scrollbar-visible {
+/* Dark theme scrollbar for Avivar */
+.scrollbar-avivar {
+  overflow-y: scroll !important;
   scrollbar-width: thin;
-  scrollbar-color: hsl(270 60% 50% / 0.5) hsl(260 30% 20% / 0.3);
+  scrollbar-color: rgba(155, 89, 182, 0.5) rgba(40, 30, 60, 0.3);
+}
+
+.scrollbar-avivar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-avivar::-webkit-scrollbar-track {
+  background: rgba(40, 30, 60, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-avivar::-webkit-scrollbar-thumb {
+  background: rgba(155, 89, 182, 0.5);
+  border-radius: 3px;
+}
+
+.scrollbar-avivar::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 89, 182, 0.7);
 }
