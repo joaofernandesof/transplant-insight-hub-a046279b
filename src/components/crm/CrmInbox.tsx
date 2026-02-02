@@ -177,10 +177,8 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   if (showLeadWithoutConversation && directJourney) {
     return (
       <div className="h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
-        {/* Coluna 1: Lista de Conversas */}
-        <div className={cn(
-          "w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col"
-        )}>
+        {/* Coluna 1: Lista de Conversas - scroll independente */}
+        <div className="w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col min-h-0 overflow-hidden">
           <ConversationList
             conversations={conversations}
             selectedId={null}
@@ -192,15 +190,15 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
           />
         </div>
 
-        {/* Coluna 2: Detalhes do Lead (Patient Journey) */}
-        <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col overflow-hidden">
+        {/* Coluna 2: Detalhes do Lead (Patient Journey) - scroll independente */}
+        <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col min-h-0 overflow-hidden">
           <PatientJourneyDetailsSidebar journey={directJourney} />
         </div>
 
-        {/* Coluna 3: Chat vazio */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[hsl(var(--avivar-card))]">
-          {/* Header simples */}
-          <div className="p-4 border-b border-[hsl(var(--avivar-border))] flex items-center gap-3">
+        {/* Coluna 3: Chat vazio - scroll independente */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-[hsl(var(--avivar-card))]">
+          {/* Header simples - fixo */}
+          <div className="p-4 border-b border-[hsl(var(--avivar-border))] flex items-center gap-3 shrink-0">
             <div className="w-10 h-10 rounded-full bg-[hsl(var(--avivar-primary)/0.15)] flex items-center justify-center">
               <User className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
             </div>
@@ -210,8 +208,8 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
             </div>
           </div>
 
-          {/* Área de chat vazia com mensagem UX */}
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+          {/* Área de chat vazia com mensagem UX - flex-1 para ocupar espaço disponível */}
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 min-h-0 overflow-hidden">
             <div className="w-20 h-20 rounded-full bg-[hsl(var(--avivar-muted))] flex items-center justify-center mb-6">
               <MessageCircle className="h-10 w-10 text-[hsl(var(--avivar-muted-foreground))] opacity-50" />
             </div>
@@ -223,12 +221,14 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
             </p>
           </div>
 
-          {/* Input de mensagem */}
-          <MessageInput
-            onSend={handleSendMessage}
-            disabled={createConversation.isPending || sendMessage.isPending}
-            placeholder={`Iniciar conversa com ${directJourney.patient_name}...`}
-          />
+          {/* Input de mensagem - fixo no bottom */}
+          <div className="shrink-0">
+            <MessageInput
+              onSend={handleSendMessage}
+              disabled={createConversation.isPending || sendMessage.isPending}
+              placeholder={`Iniciar conversa com ${directJourney.patient_name}...`}
+            />
+          </div>
         </div>
       </div>
     );
@@ -236,9 +236,9 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
 
   return (
     <div className="h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
-      {/* Coluna 1: Lista de Conversas */}
+      {/* Coluna 1: Lista de Conversas - scroll independente */}
       <div className={cn(
-        "w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col",
+        "w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col min-h-0 overflow-hidden",
         selectedConversation && "hidden md:flex"
       )}>
         <ConversationList
@@ -251,34 +251,38 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
 
       {selectedConversation && currentConversation ? (
         <>
-          {/* Coluna 2: Detalhes do Lead */}
-          <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col overflow-hidden">
+          {/* Coluna 2: Detalhes do Lead - scroll independente */}
+          <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col min-h-0 overflow-hidden">
             <LeadDetailsSidebar conversation={currentConversation} />
           </div>
 
-          {/* Coluna 3: Chat */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Header do chat */}
-            <ChatHeader
-              conversation={currentConversation}
-              onStatusChange={handleStatusChange}
-              onAIToggle={handleAIToggle}
-              onBack={() => setSelectedConversation(null)}
-              showBackButton
-            />
+          {/* Coluna 3: Chat - scroll independente */}
+          <div className="flex-1 flex flex-col min-w-0 min-h-0">
+            {/* Header do chat - fixo */}
+            <div className="shrink-0">
+              <ChatHeader
+                conversation={currentConversation}
+                onStatusChange={handleStatusChange}
+                onAIToggle={handleAIToggle}
+                onBack={() => setSelectedConversation(null)}
+                showBackButton
+              />
+            </div>
 
-            {/* Área de mensagens */}
+            {/* Área de mensagens - scroll independente */}
             <MessageThread
               messages={messages}
               isLoading={isLoadingMessages}
             />
 
-            {/* Input de mensagem */}
-            <MessageInput
-              onSend={handleSendMessage}
-              disabled={sendMessage.isPending}
-              placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
-            />
+            {/* Input de mensagem - fixo no bottom */}
+            <div className="shrink-0">
+              <MessageInput
+                onSend={handleSendMessage}
+                disabled={sendMessage.isPending}
+                placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
+              />
+            </div>
           </div>
         </>
       ) : (
