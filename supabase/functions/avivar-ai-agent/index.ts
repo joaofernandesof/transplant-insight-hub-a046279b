@@ -748,7 +748,7 @@ async function getLeadStage(
 async function getConversationHistory(
   supabase: AnySupabaseClient,
   conversationId: string,
-  limit = 10
+  limit = 25
 ): Promise<Array<{ role: string; content: string }>> {
   const { data: messages } = await supabase
     .from("crm_messages")
@@ -842,12 +842,14 @@ Você tem acesso a:
 </ferramentas_disponiveis>
 
 <regras_importantes>
+- LEIA O HISTÓRICO: Antes de perguntar qualquer coisa, verifique se a informação já foi dada na conversa. Se o paciente já disse o nome, NÃO pergunte novamente - use o nome que ele já informou.
+- CONTINUIDADE: Trate a conversa como contínua, mesmo que outro agente tenha iniciado. As informações já fornecidas são suas também.
 - Seja breve e objetivo (máximo 3-4 frases por mensagem)
 - Use emojis com moderação
 - NUNCA invente preços ou informações médicas
 - SEMPRE use search_knowledge_base para dúvidas técnicas
 - SEMPRE use list_products quando perguntarem sobre produtos/preços de itens
-- Para agendar: 1) Descubra a unidade 2) Pergunte o nome 3) Ofereça 2 horários
+- Para agendar: 1) Descubra a unidade 2) Pergunte o nome (SE ainda não souber) 3) Ofereça 2 horários
 - Transfira para humano em negociações ou dúvidas muito técnicas
 - IMPORTANTE: Mesmo sendo especialista em ${leadStage}, você pode responder QUALQUER dúvida usando search_knowledge_base
 </regras_importantes>
