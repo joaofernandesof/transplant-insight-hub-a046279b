@@ -72,9 +72,15 @@ serve(async (req) => {
   }
 
   try {
-    const { nicho, subnicho, companyName, services } = await req.json();
+    const { nicho, subnicho, companyName, services, objectives } = await req.json();
 
-    console.log('Generating FAQ for:', { nicho, subnicho, companyName, servicesCount: services?.length });
+    console.log('Generating FAQ for:', { 
+      nicho, 
+      subnicho, 
+      companyName, 
+      servicesCount: services?.length,
+      hasObjectives: !!objectives
+    });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -87,18 +93,72 @@ serve(async (req) => {
       ? `Os serviços oferecidos são: ${services.join(', ')}.`
       : '';
 
+    // Formatar objetivos para o prompt
+    let objectivesText = '';
+    if (objectives) {
+      const { primary, secondary, customObjectives } = objectives;
+      
+      // Objetivo principal
+      if (primary) {
+        if (primary === 'custom' && objectives.primaryCustomId) {
+          const customPrimary = customObjectives?.find((c: any) => c.id === objectives.primaryCustomId);
+          if (customPrimary) {
+            objectivesText += `\nOBJETIVO PRINCIPAL DO NEGÓCIO: ${customPrimary.name}\nContexto: ${customPrimary.context || customPrimary.description}\n`;
+          }
+        } else {
+          const objectiveNames: Record<string, string> = {
+            'agendar_presencial': 'Agendar consultas/atendimentos presenciais',
+            'agendar_online': 'Agendar reuniões ou consultas online',
+            'agendar_domicilio': 'Agendar visitas no domicílio do cliente',
+            'vender_produto': 'Vender produtos do catálogo',
+            'delivery': 'Receber e processar pedidos para entrega',
+            'capturar_lead': 'Capturar leads e informações de contato',
+          };
+          objectivesText += `\nOBJETIVO PRINCIPAL DO NEGÓCIO: ${objectiveNames[primary] || primary}\n`;
+        }
+      }
+      
+      // Objetivos secundários
+      const allSecondary: string[] = [];
+      if (secondary?.length > 0) {
+        const secondaryNames: Record<string, string> = {
+          'agendar_presencial': 'Agendamento presencial',
+          'agendar_online': 'Agendamento online',
+          'agendar_domicilio': 'Atendimento domiciliar',
+          'vender_produto': 'Venda de produtos',
+          'delivery': 'Delivery',
+          'capturar_lead': 'Captação de leads',
+        };
+        secondary.forEach((s: string) => allSecondary.push(secondaryNames[s] || s));
+      }
+      if (objectives.secondaryCustomIds?.length > 0) {
+        objectives.secondaryCustomIds.forEach((id: string) => {
+          const custom = customObjectives?.find((c: any) => c.id === id);
+          if (custom) allSecondary.push(custom.name);
+        });
+      }
+      if (allSecondary.length > 0) {
+        objectivesText += `OBJETIVOS SECUNDÁRIOS: ${allSecondary.join(', ')}\n`;
+      }
+    }
+
     const systemPrompt = `Você é um especialista em atendimento ao cliente e criação de FAQs para empresas brasileiras.
 Sua tarefa é gerar perguntas e respostas frequentes (FAQ) realistas e úteis para um negócio.
 As respostas devem ser naturais, informativas e adequadas para um chatbot de WhatsApp responder.
+IMPORTANTE: As perguntas devem estar alinhadas com os OBJETIVOS do negócio - ajudando a guiar o cliente em direção a esses objetivos.
 Responda SEMPRE em português brasileiro.`;
 
     const userPrompt = `Gere exatamente 12 perguntas e respostas frequentes para um(a) ${subnichoName} no setor de ${nichoName}.
 ${companyName ? `O nome da empresa é: ${companyName}.` : ''}
 ${servicesText}
+${objectivesText}
 
-As perguntas devem cobrir os temas mais comuns que clientes perguntam, como:
+IMPORTANTE: Priorize perguntas que ajudem o cliente a avançar em direção aos objetivos do negócio listados acima.
+
+As perguntas devem cobrir temas como:
+- Dúvidas relacionadas ao objetivo principal (como agendar, como comprar, como funciona)
 - Horário de funcionamento
-- Formas de agendamento
+- Formas de agendamento/pedido
 - Preços e formas de pagamento
 - Localização e estacionamento
 - Cancelamento e reagendamento
