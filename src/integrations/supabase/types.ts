@@ -991,6 +991,7 @@ export type Database = {
       }
       avivar_kanban_columns: {
         Row: {
+          ai_instruction: string | null
           color: string | null
           created_at: string
           id: string
@@ -1000,6 +1001,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_instruction?: string | null
           color?: string | null
           created_at?: string
           id?: string
@@ -1009,6 +1011,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_instruction?: string | null
           color?: string | null
           created_at?: string
           id?: string

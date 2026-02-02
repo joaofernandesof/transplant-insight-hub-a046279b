@@ -54,6 +54,7 @@ export interface KanbanColumnData {
   name: string;
   color: string;
   order_index: number;
+  ai_instruction?: string | null;
 }
 
 interface KanbanData {

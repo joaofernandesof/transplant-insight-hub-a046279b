@@ -3,10 +3,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Loader2, Plus, Save } from 'lucide-react';
+import { Loader2, Plus, Save, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -44,7 +45,7 @@ interface ColumnDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingColumn: KanbanColumnData | null;
-  onSave: (data: { name: string; color: string }) => void;
+  onSave: (data: { name: string; color: string; ai_instruction?: string }) => void;
   isLoading: boolean;
 }
 
@@ -57,14 +58,17 @@ export function ColumnDialog({
 }: ColumnDialogProps) {
   const [name, setName] = useState('');
   const [color, setColor] = useState('from-blue-500 to-blue-600');
+  const [aiInstruction, setAiInstruction] = useState('');
 
   useEffect(() => {
     if (editingColumn) {
       setName(editingColumn.name);
       setColor(editingColumn.color);
+      setAiInstruction(editingColumn.ai_instruction || '');
     } else {
       setName('');
       setColor('from-blue-500 to-blue-600');
+      setAiInstruction('');
     }
   }, [editingColumn, open]);
 
@@ -73,7 +77,7 @@ export function ColumnDialog({
       toast.error('Digite um nome para a coluna');
       return;
     }
-    onSave({ name: name.trim(), color });
+    onSave({ name: name.trim(), color, ai_instruction: aiInstruction.trim() || undefined });
   };
 
   return (
@@ -121,6 +125,23 @@ export function ColumnDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* AI Instruction */}
+          <div className="space-y-2">
+            <Label className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+              <Bot className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+              Instrução para IA
+            </Label>
+            <Textarea
+              placeholder="Ex: Mova o lead para esta coluna quando ele cancelar ou remarcar o agendamento..."
+              value={aiInstruction}
+              onChange={(e) => setAiInstruction(e.target.value)}
+              className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] min-h-[80px] text-sm"
+            />
+            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+              A IA usará esta instrução para decidir automaticamente quando mover leads para esta coluna.
+            </p>
           </div>
 
           {/* Preview */}
