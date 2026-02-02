@@ -147,11 +147,23 @@ export type AgentObjective =
   | 'agendar_domicilio'
   | 'vender_produto'
   | 'delivery'
-  | 'capturar_lead';
+  | 'capturar_lead'
+  | 'custom'; // Para objetivos personalizados
+
+// Objetivo personalizado criado pelo usuário
+export interface CustomObjective {
+  id: string;
+  name: string;
+  description: string;
+  context: string; // Contexto detalhado para a IA entender o objetivo
+}
 
 export interface AgentObjectives {
   primary: AgentObjective | null;
+  primaryCustomId?: string; // ID do objetivo customizado se primary === 'custom'
   secondary: AgentObjective[];
+  secondaryCustomIds?: string[]; // IDs dos objetivos customizados secundários
+  customObjectives: CustomObjective[]; // Lista de objetivos personalizados
 }
 
 // Unidade/Filial do negócio
@@ -448,7 +460,7 @@ export const INITIAL_CONFIG: AgentConfig = {
   services: [...TRANSPLANTE_SERVICES],
   paymentMethods: [...PAYMENT_METHODS],
   consultationType: { presencial: true, online: false, domicilio: false },
-  agentObjectives: { primary: null, secondary: [] },
+  agentObjectives: { primary: null, secondary: [], customObjectives: [] },
   beforeAfterImages: [],
   schedule: DEFAULT_WEEK_SCHEDULE,
   aiIdentity: '',
