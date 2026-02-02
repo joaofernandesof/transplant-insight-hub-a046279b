@@ -24,7 +24,6 @@ import {
   StepServicesSimple,
   StepConsultationSimple,
   StepObjectivesSimple,
-  StepScheduleSimple,
   StepFAQGenerator,
   StepKnowledgeSimple,
   StepReviewSimple,
@@ -58,7 +57,6 @@ const SIMPLE_STEPS = [
   { id: 'services', title: 'Serviços', description: 'O que você oferece?' },
   { id: 'consultation', title: 'Atendimento', description: 'Como você atende?' },
   { id: 'objectives', title: 'Objetivos', description: 'Foco do agente' },
-  { id: 'schedule', title: 'Horários', description: 'Quando você atende?' },
   { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
   { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
   { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
@@ -155,16 +153,14 @@ export default function AvivarSimpleWizard() {
         return config.consultationType.presencial || config.consultationType.online || config.consultationType.domicilio;
       case 4: // Objetivos
         return !!config.agentObjectives?.primary;
-      case 5: // Horários
-        return Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
-      case 6: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
+      case 5: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
         if (generatedFAQ.length > 0 && !faqAddedToKnowledge) {
           return false;
         }
         return true;
-      case 7: // Knowledge (opcional - sempre pode prosseguir)
+      case 6: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 8: // Review
+      case 7: // Review
         return true;
       default:
         return true;
@@ -356,13 +352,6 @@ export default function AvivarSimpleWizard() {
         );
       case 5:
         return (
-          <StepScheduleSimple
-            schedule={config.schedule}
-            onChange={(schedule) => updateConfig({ schedule })}
-          />
-        );
-      case 6:
-        return (
           <StepFAQGenerator
             nicho={config.nicho}
             subnicho={config.subnicho}
@@ -375,7 +364,7 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 7:
+      case 6:
         return (
           <StepKnowledgeSimple
             knowledgeFiles={config.knowledgeFiles || []}
@@ -383,7 +372,7 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 8:
+      case 7:
         return (
           <StepReviewSimple
             config={config}
@@ -437,7 +426,7 @@ export default function AvivarSimpleWizard() {
           </Button>
 
           {/* Show tooltip when FAQ needs to be added */}
-          {currentStep === 6 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
+          {currentStep === 5 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
