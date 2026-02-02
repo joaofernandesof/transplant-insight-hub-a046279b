@@ -31,7 +31,7 @@ export function StepServicesSimple({
   onServicesChange,
   onPaymentsChange,
 }: StepServicesSimpleProps) {
-  const [showPayments, setShowPayments] = useState(false);
+  const [showPayments, setShowPayments] = useState(true);
   const [newServiceName, setNewServiceName] = useState('');
 
   // Inicializar serviços do template se vazio
