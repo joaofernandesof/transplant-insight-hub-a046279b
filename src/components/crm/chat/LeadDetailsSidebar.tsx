@@ -49,6 +49,7 @@ import { CrmConversation } from '@/hooks/useCrmConversations';
 import { LeadEditDialog } from './LeadEditDialog';
 import { Lead, useLeads } from '@/hooks/useLeads';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLeadKanbanInfo } from '@/hooks/useLeadKanbanInfo';
 import { useNavigate } from 'react-router-dom';
 
 interface LeadDetailsSidebarProps {
@@ -84,6 +85,9 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
   const navigate = useNavigate();
 
   const lead = conversation.lead;
+  
+  // Buscar informações do Kanban/Coluna
+  const { data: kanbanInfo } = useLeadKanbanInfo(lead?.phone);
 
   const handleDeleteLead = async () => {
     if (!lead) return;
@@ -271,12 +275,31 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 pt-2">
+              {/* Kanban Info */}
+              {kanbanInfo?.kanbanName && (
+                <div className="space-y-1">
+                  <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Funil</label>
+                  <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
+                    {kanbanInfo.kanbanName}
+                  </p>
+                </div>
+              )}
+              
+              {kanbanInfo?.columnName && (
+                <div className="space-y-1">
+                  <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Estágio</label>
+                  <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
+                    {kanbanInfo.columnName}
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Status atual</label>
                 <Badge 
                   className={cn(
                     "text-white",
-                    statusColors[lead.status as keyof typeof statusColors] || 'bg-gray-500'
+                    statusColors[lead.status as keyof typeof statusColors] || 'bg-[hsl(var(--avivar-muted))]'
                   )}
                 >
                   {lead.status || 'Novo'}
