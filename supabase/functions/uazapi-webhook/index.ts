@@ -751,11 +751,15 @@ serve(async (req) => {
             } else if (contactId) {
               console.log(`[UazAPI Webhook] ✅ Contact ensured: ${contactId} (${phone})`);
 
-              // Step 6b: Check if this contact already has a lead in any kanban
+              // Step 6b: Check if this phone already has a lead in ANY kanban (not just by contact_id)
+              // This prevents duplicate leads when the same phone exists in multiple kanbans
               const { data: existingKanbanLead } = await supabase
                 .from("avivar_kanban_leads")
-                .select("id")
-                .eq("contact_id", contactId)
+                .select("id, kanban_id, column_id")
+                .eq("user_id", userId)
+                .eq("phone", phone)
+                .order("updated_at", { ascending: false })
+                .limit(1)
                 .maybeSingle();
 
               if (!existingKanbanLead) {
