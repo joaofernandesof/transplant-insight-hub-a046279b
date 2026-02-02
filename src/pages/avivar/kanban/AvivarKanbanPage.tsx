@@ -420,11 +420,13 @@ export default function AvivarKanbanPage() {
                     <SortableColumn
                       key={column.id}
                       column={column}
+                       leads={leadsByColumn[column.id] ?? []}
                       onEdit={() => {
                         setEditingColumn(column);
                         setIsColumnDialogOpen(true);
                       }}
                       onDelete={() => deleteColumn.mutate(column.id)}
+                       onDeleteLead={deleteLead}
                     />
                   ))}
 
