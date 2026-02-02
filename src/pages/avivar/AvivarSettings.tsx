@@ -289,16 +289,16 @@ export default function AvivarSettings() {
               <CardDescription>Personalize a interface do sistema</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Tema */}
+              {/* Tema - segue tema do sistema */}
               <div className="flex items-center justify-between p-4 rounded-xl border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
                 <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">Tema Escuro</p>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">Tema do Sistema</p>
                   <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    O portal Avivar utiliza tema escuro por padrão
+                    O portal Avivar segue o tema definido nas preferências do sistema
                   </p>
                 </div>
                 <Badge className="bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] border-[hsl(var(--avivar-primary)/0.3)]">
-                  Ativo
+                  Automático
                 </Badge>
               </div>
 
