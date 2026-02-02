@@ -19,7 +19,7 @@ interface ConversationListProps {
   isLoading: boolean;
 }
 
-type FilterStatus = 'all' | 'open' | 'pending' | 'resolved';
+type FilterStatus = 'all' | 'open' | 'pending' | 'resolved' | 'unread' | 'assigned';
 
 export function ConversationList({
   conversations,
@@ -33,7 +33,13 @@ export function ConversationList({
   // Filtrar conversas
   const filteredConversations = conversations.filter(conv => {
     // Filtro por status
-    if (filterStatus !== 'all' && conv.status !== filterStatus) {
+    if (filterStatus === 'unread' && conv.unread_count === 0) {
+      return false;
+    }
+    if (filterStatus === 'assigned' && !conv.assigned_to) {
+      return false;
+    }
+    if (filterStatus !== 'all' && filterStatus !== 'unread' && filterStatus !== 'assigned' && conv.status !== filterStatus) {
       return false;
     }
     
@@ -53,9 +59,9 @@ export function ConversationList({
   // Contadores
   const counts = {
     all: conversations.length,
+    unread: conversations.filter(c => c.unread_count > 0).length,
     open: conversations.filter(c => c.status === 'open').length,
-    pending: conversations.filter(c => c.status === 'pending').length,
-    resolved: conversations.filter(c => c.status === 'resolved').length,
+    assigned: conversations.filter(c => c.assigned_to).length,
   };
 
   if (isLoading) {
@@ -91,20 +97,17 @@ export function ConversationList({
           />
         </div>
 
-        {/* Filter tabs */}
+        {/* Filter tabs - Todas | Não lidas | Responsável */}
         <Tabs value={filterStatus} onValueChange={(v) => setFilterStatus(v as FilterStatus)}>
-          <TabsList className="w-full grid grid-cols-4 bg-[hsl(var(--avivar-muted))]">
+          <TabsList className="w-full grid grid-cols-3 bg-[hsl(var(--avivar-muted))]">
             <TabsTrigger value="all" className="text-xs data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
               Todas ({counts.all})
             </TabsTrigger>
-            <TabsTrigger value="open" className="text-xs data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
-              Abertas ({counts.open})
+            <TabsTrigger value="unread" className="text-xs data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
+              Não lidas ({counts.unread})
             </TabsTrigger>
-            <TabsTrigger value="pending" className="text-xs data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
-              Pendentes ({counts.pending})
-            </TabsTrigger>
-            <TabsTrigger value="resolved" className="text-xs data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
-              Resolvidas ({counts.resolved})
+            <TabsTrigger value="assigned" className="text-xs data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
+              Responsável ({counts.assigned})
             </TabsTrigger>
           </TabsList>
         </Tabs>

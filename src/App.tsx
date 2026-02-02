@@ -169,6 +169,7 @@ const AvivarFollowUp = lazy(() => import("./pages/avivar/AvivarFollowUp"));
 const AvivarCatalog = lazy(() => import("./pages/avivar/AvivarCatalog"));
 const AvivarProductivity = lazy(() => import("./pages/avivar/AvivarProductivity"));
 const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
+const OnboardingBlocker = lazy(() => import("./pages/avivar/onboarding").then(m => ({ default: m.OnboardingBlocker })));
 const AvivarSimpleWizard = lazy(() => import("./pages/avivar/config/AvivarSimpleWizard"));
 const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge"));
 const AvivarPromptPreview = lazy(() => import("./pages/avivar/config/AvivarPromptPreview"));
@@ -559,44 +560,46 @@ function AvivarRoutes() {
   return (
     <ProfileGuard allowedProfiles={['cliente_avivar', 'administrador']}>
       <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0612]"><Loader2 className="h-8 w-8 animate-spin text-purple-400" /></div>}>
-        <AvivarSidebar>
-          <Routes>
-            <Route index element={<AvivarDashboard />} />
-            <Route path="dashboard" element={<AvivarDashboard />} />
-            <Route path="comercial" element={<AvivarComercialPage />} />
-            <Route path="posvenda" element={<AvivarPosVendaPage />} />
-            
-            <Route path="inbox" element={<AvivarInbox />} />
-            <Route path="tasks" element={<AvivarTasks />} />
-            <Route path="contacts" element={<AvivarContacts />} />
-            <Route path="leads" element={<AvivarLeadsSelector />} />
-            <Route path="kanban/:kanbanId" element={<AvivarKanbanPage />} />
-            <Route path="analytics" element={<AvivarAnalytics />} />
-            <Route path="followup" element={<AvivarFollowUp />} />
-            <Route path="cadences" element={<AvivarCadencesPage />} />
-            <Route path="catalog" element={<AvivarCatalog />} />
-            <Route path="productivity" element={<AvivarProductivity />} />
-            <Route path="hotleads" element={<HotLeads />} />
-            <Route path="traffic" element={<PlaceholderPage title="Indicadores de Tráfego" />} />
-            <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
-            <Route path="tutorials" element={<AvivarTutorialsPage />} />
-            <Route path="agenda" element={<AvivarAgenda />} />
-            <Route path="agenda/settings" element={<AvivarAgendaSettings />} />
-            <Route path="integrations" element={<AvivarIntegrations />} />
-            <Route path="voip" element={<AvivarVoip />} />
-            <Route path="config" element={<AvivarAgentsPage />} />
-            <Route path="config/new" element={<AvivarSimpleWizard />} />
-            <Route path="config/edit/:agentId" element={<AvivarSimpleWizard />} />
-            <Route path="config/knowledge" element={<AvivarKnowledge />} />
-            <Route path="config/preview" element={<AvivarPromptPreview />} />
-            <Route path="agents" element={<AvivarAgentsPage />} />
-            <Route path="agents/routing/:agentId" element={<AvivarAgentRoutingConfig />} />
-            <Route path="team" element={<AvivarTeamPage />} />
-            <Route path="settings" element={<AvivarSettings />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="*" element={<Navigate to="/avivar" replace />} />
-          </Routes>
-        </AvivarSidebar>
+        <OnboardingBlocker>
+          <AvivarSidebar>
+            <Routes>
+              <Route index element={<AvivarDashboard />} />
+              <Route path="dashboard" element={<AvivarDashboard />} />
+              <Route path="comercial" element={<AvivarComercialPage />} />
+              <Route path="posvenda" element={<AvivarPosVendaPage />} />
+              
+              <Route path="inbox" element={<AvivarInbox />} />
+              <Route path="tasks" element={<AvivarTasks />} />
+              <Route path="contacts" element={<AvivarContacts />} />
+              <Route path="leads" element={<AvivarLeadsSelector />} />
+              <Route path="kanban/:kanbanId" element={<AvivarKanbanPage />} />
+              <Route path="analytics" element={<AvivarAnalytics />} />
+              <Route path="followup" element={<AvivarFollowUp />} />
+              <Route path="cadences" element={<AvivarCadencesPage />} />
+              <Route path="catalog" element={<AvivarCatalog />} />
+              <Route path="productivity" element={<AvivarProductivity />} />
+              <Route path="hotleads" element={<HotLeads />} />
+              <Route path="traffic" element={<PlaceholderPage title="Indicadores de Tráfego" />} />
+              <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
+              <Route path="tutorials" element={<AvivarTutorialsPage />} />
+              <Route path="agenda" element={<AvivarAgenda />} />
+              <Route path="agenda/settings" element={<AvivarAgendaSettings />} />
+              <Route path="integrations" element={<AvivarIntegrations />} />
+              <Route path="voip" element={<AvivarVoip />} />
+              <Route path="config" element={<AvivarAgentsPage />} />
+              <Route path="config/new" element={<AvivarSimpleWizard />} />
+              <Route path="config/edit/:agentId" element={<AvivarSimpleWizard />} />
+              <Route path="config/knowledge" element={<AvivarKnowledge />} />
+              <Route path="config/preview" element={<AvivarPromptPreview />} />
+              <Route path="agents" element={<AvivarAgentsPage />} />
+              <Route path="agents/routing/:agentId" element={<AvivarAgentRoutingConfig />} />
+              <Route path="team" element={<AvivarTeamPage />} />
+              <Route path="settings" element={<AvivarSettings />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="*" element={<Navigate to="/avivar" replace />} />
+            </Routes>
+          </AvivarSidebar>
+        </OnboardingBlocker>
       </Suspense>
     </ProfileGuard>
   );

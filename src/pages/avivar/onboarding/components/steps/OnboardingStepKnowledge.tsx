@@ -137,18 +137,13 @@ export function OnboardingStepKnowledge({ onComplete }: Props) {
         </Card>
       )}
 
-      {/* Ação para pular (temporário durante desenvolvimento) */}
+      {/* Aviso se não tem conhecimento - NÃO permite pular */}
       {!hasKnowledge && (
-        <Button
-          variant="ghost"
-          onClick={() => {
-            updateStep({ stepId: 'knowledge_base_setup', completed: true });
-            onComplete();
-          }}
-          className="text-muted-foreground"
-        >
-          Pular por enquanto
-        </Button>
+        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+          <p className="text-sm text-amber-600">
+            ⚠️ A base de conhecimento é <strong>obrigatória</strong>. Adicione pelo menos um documento para continuar.
+          </p>
+        </div>
       )}
 
       {/* Ações */}
