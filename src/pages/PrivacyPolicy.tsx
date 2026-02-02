@@ -169,8 +169,8 @@ export default function PrivacyPolicy() {
             </p>
             <div className="bg-muted p-4 rounded-lg">
               <p className="font-medium">Encarregado de Proteção de Dados (DPO)</p>
-              <p className="text-muted-foreground">E-mail: privacidade@neohub.com.br</p>
-              <p className="text-muted-foreground">Telefone: (11) 0000-0000</p>
+              <p className="text-muted-foreground">E-mail: privacidade@neofolic.com.br</p>
+              <p className="text-muted-foreground">Telefone: (11) 4858-9060</p>
             </div>
           </section>
 
