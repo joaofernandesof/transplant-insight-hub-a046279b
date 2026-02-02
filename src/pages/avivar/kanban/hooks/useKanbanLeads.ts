@@ -63,19 +63,33 @@ export function useKanbanLeads(kanbanId: string | undefined) {
     },
   });
 
-  // Delete lead
+  // Delete lead with cascade (messages, conversations, journeys - but keeps contact)
   const deleteLeadMutation = useMutation({
     mutationFn: async (leadId: string) => {
-      const { error } = await supabase
-        .from('avivar_kanban_leads')
-        .delete()
-        .eq('id', leadId);
+      const { data, error } = await supabase.rpc('delete_avivar_kanban_lead_cascade', {
+        p_lead_id: leadId
+      });
       
       if (error) throw error;
+      
+      const result = data as { success: boolean; error?: string; lead_name?: string; deleted?: { messages: number; conversations: number; journeys: number } } | null;
+      
+      if (!result?.success) {
+        throw new Error(result?.error || 'Erro ao excluir lead');
+      }
+      
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
-      toast.success('Lead excluído!');
+      queryClient.invalidateQueries({ queryKey: ['crm-conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['avivar-contacts'] });
+      
+      const deleted = result?.deleted;
+      toast.success(
+        `Lead "${result?.lead_name}" excluído! ` +
+        `(${deleted?.messages || 0} msgs, ${deleted?.conversations || 0} conversas)`
+      );
     },
     onError: (error) => {
       console.error('Error deleting lead:', error);

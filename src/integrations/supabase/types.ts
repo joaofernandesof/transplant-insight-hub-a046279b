@@ -15451,6 +15451,10 @@ export type Database = {
         Args: { p_column_id: string; p_contact_id: string; p_kanban_id: string }
         Returns: string
       }
+      delete_avivar_kanban_lead_cascade: {
+        Args: { p_lead_id: string }
+        Returns: Json
+      }
       delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
       get_agent_for_lead_stage: {
         Args: { p_lead_stage?: string; p_user_id: string }
