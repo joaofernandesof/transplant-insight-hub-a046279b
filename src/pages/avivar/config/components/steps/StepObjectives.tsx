@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AgentObjective, AgentObjectives, NichoType, SubnichoType } from '../../types';
 import { cn } from '@/lib/utils';
-import { Target, Calendar, Video, Home, ShoppingCart, Truck, UserPlus, Star, CheckCircle2 } from 'lucide-react';
+import { Target, Calendar, Video, Home, ShoppingCart, Truck, UserPlus, Star, CheckCircle2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface StepObjectivesProps {
   objectives: AgentObjectives;
@@ -269,11 +270,26 @@ export function StepObjectives({
         {/* Objetivos Secundários */}
         {objectives.primary && (
           <div className="space-y-3 pt-4 border-t border-[hsl(var(--avivar-border))]">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-              <Label className="text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
-                Objetivos Secundários (opcional)
-              </Label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                <Label className="text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
+                  Objetivos Secundários (opcional)
+                </Label>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-[hsl(var(--avivar-primary))] text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+                onClick={() => {
+                  // Trigger custom objective creation for secondary
+                  // This will be handled by parent component
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Criar Objetivo
+              </Button>
             </div>
             <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
               Se o cliente pedir, a IA também pode realizar essas ações
