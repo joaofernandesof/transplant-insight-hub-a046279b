@@ -32,29 +32,70 @@ interface Agent {
   created_at: string;
   knowledge_files?: any;
   company_name?: string | null;
-  document_count?: number; // Contagem real de documentos vinculados
+  document_count?: number;
 }
 
-const KANBAN_OPTIONS = [
-  { id: 'comercial', label: 'Comercial', description: 'Leads novos e prospecção' },
-  { id: 'pos_venda', label: 'Pós-Venda', description: 'Clientes após procedimento' },
-  { id: 'reativacao', label: 'Reativação', description: 'Leads inativos' },
-];
-
-const STAGE_OPTIONS = [
-  { id: 'novo_lead', label: 'Novo Lead', kanban: 'comercial' },
-  { id: 'qualificacao', label: 'Qualificação', kanban: 'comercial' },
-  { id: 'agendado', label: 'Agendado', kanban: 'comercial' },
-  { id: 'compareceu', label: 'Compareceu', kanban: 'comercial' },
-  { id: 'pos_procedimento', label: 'Pós-Procedimento', kanban: 'pos_venda' },
-  { id: 'acompanhamento', label: 'Acompanhamento', kanban: 'pos_venda' },
-  { id: 'inativo', label: 'Inativo', kanban: 'reativacao' },
-];
+interface KanbanOption {
+  id: string;
+  name: string;
+}
 
 export default function AvivarAgentsPage() {
   const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [kanbans, setKanbans] = useState<KanbanOption[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Carregar kanbans do usuário
+      const { data: kanbanData } = await supabase
+        .from('avivar_kanbans')
+        .select('id, name')
+        .eq('user_id', user.id);
+      
+      setKanbans(kanbanData || []);
+
+      // Carregar agentes
+      const { data, error } = await supabase
+        .from('avivar_agents')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const agentsWithDocs = await Promise.all((data || []).map(async (agent) => {
+        const { count: dbDocCount } = await supabase
+          .from('avivar_knowledge_documents')
+          .select('*', { count: 'exact', head: true })
+          .eq('agent_id', agent.id);
+        
+        const knowledgeFilesCount = Array.isArray(agent.knowledge_files) 
+          ? agent.knowledge_files.length 
+          : 0;
+        
+        return {
+          ...agent,
+          document_count: (dbDocCount || 0) + knowledgeFilesCount
+        };
+      }));
+      
+      setAgents(agentsWithDocs);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Erro ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadAgents();
@@ -240,11 +281,14 @@ export default function AvivarAgentsPage() {
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {agent.target_kanbans?.length > 0 ? (
-                    agent.target_kanbans.map(kanban => (
-                      <Badge key={kanban} variant="outline" className="text-xs border-[hsl(var(--avivar-primary)/0.5)] text-[hsl(var(--avivar-primary))]">
-                        {KANBAN_OPTIONS.find(k => k.id === kanban)?.label || kanban}
-                      </Badge>
-                    ))
+                    agent.target_kanbans.map(kanbanId => {
+                      const kanbanName = kanbans.find(k => k.id === kanbanId)?.name;
+                      return kanbanName ? (
+                        <Badge key={kanbanId} variant="outline" className="text-xs border-[hsl(var(--avivar-primary)/0.5)] text-[hsl(var(--avivar-primary))]">
+                          {kanbanName}
+                        </Badge>
+                      ) : null;
+                    })
                   ) : (
                     <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Nenhum definido</span>
                   )}
