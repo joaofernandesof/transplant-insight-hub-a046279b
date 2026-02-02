@@ -176,6 +176,7 @@ const AvivarComercialPage = lazy(() => import("./pages/avivar/AvivarComercialPag
 const AvivarPosVendaPage = lazy(() => import("./pages/avivar/AvivarPosVendaPage"));
 const AvivarCadencesPage = lazy(() => import("./pages/avivar/AvivarCadencesPage"));
 const AvivarAgenda = lazy(() => import("./pages/avivar/AvivarAgenda"));
+const AvivarAgendaControl = lazy(() => import("./pages/avivar/AvivarAgendaControl"));
 const AvivarAgendaSettings = lazy(() => import("./pages/avivar/AvivarAgendaSettings"));
 const AvivarIntegrations = lazy(() => import("./pages/avivar/AvivarIntegrations"));
 const AvivarVoip = lazy(() => import("./pages/avivar/voip/VoipPage"));
@@ -581,6 +582,7 @@ function AvivarRoutes() {
             <Route path="marketing" element={<PlaceholderPage title="Central de Marketing" />} />
             <Route path="tutorials" element={<AvivarTutorialsPage />} />
             <Route path="agenda" element={<AvivarAgenda />} />
+            <Route path="agenda/control" element={<AvivarAgendaControl />} />
             <Route path="agenda/settings" element={<AvivarAgendaSettings />} />
             <Route path="integrations" element={<AvivarIntegrations />} />
             <Route path="voip" element={<AvivarVoip />} />
