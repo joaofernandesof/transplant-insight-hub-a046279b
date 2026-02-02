@@ -17,7 +17,6 @@ import {
   ChevronUp,
   Edit2,
   Bookmark,
-  Target,
   Trash2,
   Loader2,
 } from 'lucide-react';
@@ -50,6 +49,7 @@ import { LeadEditDialog } from './LeadEditDialog';
 import { Lead, useLeads } from '@/hooks/useLeads';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLeadKanbanInfo } from '@/hooks/useLeadKanbanInfo';
+import { FunnelColumnSelector } from './FunnelColumnSelector';
 import { useNavigate } from 'react-router-dom';
 
 interface LeadDetailsSidebarProps {
@@ -73,7 +73,6 @@ const statusColors = {
 
 export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: LeadDetailsSidebarProps) {
   const [isContactOpen, setIsContactOpen] = useState(true);
-  const [isFunnelOpen, setIsFunnelOpen] = useState(true);
   const [isNotesOpen, setIsNotesOpen] = useState(true);
   const [isFieldsOpen, setIsFieldsOpen] = useState(true);
   const [notes, setNotes] = useState('');
@@ -259,77 +258,51 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
 
           <Separator className="bg-[hsl(var(--avivar-border))]" />
 
-          {/* Funil e Estágio */}
-          <Collapsible open={isFunnelOpen} onOpenChange={setIsFunnelOpen}>
-            <CollapsibleTrigger asChild>
-              <button className="flex items-center justify-between w-full py-2 text-left">
-                <span className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
-                  <Target className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-                  Funil & Estágio
-                </span>
-                {isFunnelOpen ? (
-                  <ChevronUp className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+          {/* Seletor de Funil e Coluna */}
+          <FunnelColumnSelector
+            phone={lead.phone}
+            currentKanbanName={kanbanInfo?.kanbanName}
+            currentColumnName={kanbanInfo?.columnName}
+            onTransferred={onLeadUpdated}
+          />
+
+          {/* Status e Responsável */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Status</label>
+              <Badge 
+                className={cn(
+                  "text-white",
+                  statusColors[lead.status as keyof typeof statusColors] || 'bg-[hsl(var(--avivar-muted))]'
                 )}
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-3 pt-2">
-              {/* Kanban Info */}
-              {kanbanInfo?.kanbanName && (
-                <div className="space-y-1">
-                  <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Funil</label>
-                  <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
-                    {kanbanInfo.kanbanName}
-                  </p>
-                </div>
-              )}
-              
-              {kanbanInfo?.columnName && (
-                <div className="space-y-1">
-                  <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Estágio</label>
-                  <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
-                    {kanbanInfo.columnName}
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Status atual</label>
-                <Badge 
-                  className={cn(
-                    "text-white",
-                    statusColors[lead.status as keyof typeof statusColors] || 'bg-[hsl(var(--avivar-muted))]'
-                  )}
-                >
-                  {lead.status || 'Novo'}
-                </Badge>
+              >
+                {lead.status || 'Novo'}
+              </Badge>
+            </div>
+            
+            {lead.procedure_interest && (
+              <div className="flex items-center justify-between">
+                <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Interesse</label>
+                <span className="text-sm text-[hsl(var(--avivar-foreground))]">
+                  {lead.procedure_interest}
+                </span>
               </div>
-              
-              {lead.procedure_interest && (
-                <div className="space-y-2">
-                  <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Interesse</label>
-                  <p className="text-sm text-[hsl(var(--avivar-foreground))]">
-                    {lead.procedure_interest}
-                  </p>
-                </div>
-              )}
+            )}
 
-              <div className="space-y-2">
-                <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Responsável</label>
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="text-xs bg-[hsl(var(--avivar-muted))]">
-                      OP
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm text-[hsl(var(--avivar-foreground))]">
-                    {conversation.assigned_to ? 'Operador' : 'Não atribuído'}
-                  </span>
-                </div>
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Responsável</label>
+              <div className="flex items-center gap-2">
+                <Avatar className="h-5 w-5">
+                  <AvatarFallback className="text-[10px] bg-[hsl(var(--avivar-muted))]">
+                    OP
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs text-[hsl(var(--avivar-foreground))]">
+                  {conversation.assigned_to ? 'Operador' : 'Não atribuído'}
+                </span>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
+            </div>
+          </div>
 
           <Separator className="bg-[hsl(var(--avivar-border))]" />
 
