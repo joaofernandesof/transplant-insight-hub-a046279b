@@ -10,6 +10,5 @@ export { default as AvivarCatalog } from './AvivarCatalog';
 export { default as AvivarProductivity } from './AvivarProductivity';
 export { default as AvivarAgenda } from './AvivarAgenda';
 export { default as AvivarAgendaSettings } from './AvivarAgendaSettings';
-export { default as AvivarAgendaControl } from './AvivarAgendaControl';
 export { default as AvivarContacts } from './AvivarContacts';
 export { AvivarSidebar } from './AvivarSidebar';
