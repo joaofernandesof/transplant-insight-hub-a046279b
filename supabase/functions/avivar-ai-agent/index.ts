@@ -457,11 +457,21 @@ async function getAvailableSlots(
       const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
       const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       
-      const timesToShow = available.slice(0, 2).map((s: { slot_start: string }) => 
+      // Show ALL available times instead of just 2 - prevents offering slots that aren't listed
+      const allTimes = available.map((s: { slot_start: string }) => 
         s.slot_start.substring(0, 5)
       );
       
-      results.push(`📅 ${dayName} (${dateFormatted}): ${timesToShow.join(" ou ")}`);
+      // Format nicely: if many slots, group them
+      let timesText: string;
+      if (allTimes.length <= 4) {
+        timesText = allTimes.join(", ");
+      } else {
+        // Show range: "08:00 às 12:00 (intervalos de 30min)"
+        timesText = `${allTimes[0]} às ${allTimes[allTimes.length - 1]} (${allTimes.length} horários disponíveis)`;
+      }
+      
+      results.push(`📅 ${dayName} (${dateFormatted}): ${timesText}`);
     }
   }
 
