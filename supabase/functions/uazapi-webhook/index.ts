@@ -733,6 +733,78 @@ serve(async (req) => {
             }
           }
 
+          // 6. AUTO-CREATE CONTACT AND KANBAN LEAD (avivar_contacts + avivar_kanban_leads)
+          // This populates the "Listas" (Contacts) and "Leads > Kanban" views
+          if (!msg.key.fromMe && !isGroupChat) {
+            const contactName = msg.pushName || null;
+
+            // Step 6a: Get or create contact using RPC
+            const { data: contactId, error: contactError } = await supabase
+              .rpc("get_or_create_avivar_contact", {
+                p_user_id: userId,
+                p_phone: phone,
+                p_name: contactName,
+              });
+
+            if (contactError) {
+              console.error("[UazAPI Webhook] Error creating avivar_contact:", contactError);
+            } else if (contactId) {
+              console.log(`[UazAPI Webhook] ✅ Contact ensured: ${contactId} (${phone})`);
+
+              // Step 6b: Check if this contact already has a lead in any kanban
+              const { data: existingKanbanLead } = await supabase
+                .from("avivar_kanban_leads")
+                .select("id")
+                .eq("contact_id", contactId)
+                .maybeSingle();
+
+              if (!existingKanbanLead) {
+                // Step 6c: Find the user's first kanban (Comercial) and its first column (Lead de Entrada)
+                const { data: firstKanban } = await supabase
+                  .from("avivar_kanbans")
+                  .select("id")
+                  .eq("user_id", userId)
+                  .eq("is_active", true)
+                  .order("order_index", { ascending: true })
+                  .limit(1)
+                  .maybeSingle();
+
+                if (firstKanban) {
+                  const { data: firstColumn } = await supabase
+                    .from("avivar_kanban_columns")
+                    .select("id")
+                    .eq("kanban_id", firstKanban.id)
+                    .order("order_index", { ascending: true })
+                    .limit(1)
+                    .maybeSingle();
+
+                  if (firstColumn) {
+                    // Step 6d: Create the kanban lead
+                    const { error: kanbanLeadError } = await supabase
+                      .from("avivar_kanban_leads")
+                      .insert({
+                        user_id: userId,
+                        kanban_id: firstKanban.id,
+                        column_id: firstColumn.id,
+                        contact_id: contactId,
+                        name: contactName || `WhatsApp ${phone}`,
+                        phone,
+                        source: "whatsapp_auto",
+                      });
+
+                    if (kanbanLeadError) {
+                      console.error("[UazAPI Webhook] Error creating kanban lead:", kanbanLeadError);
+                    } else {
+                      console.log(`[UazAPI Webhook] ✅ Kanban lead created for contact: ${contactId}`);
+                    }
+                  }
+                }
+              } else {
+                console.log(`[UazAPI Webhook] Contact already has kanban lead: ${existingKanbanLead.id}`);
+              }
+            }
+          }
+
           // Mark raw WhatsApp message as synced when it reached the Inbox tables
           // (this prevents duplicate inserts if the webhook retries or receives the same payload again)
           if (syncedToInbox) {
@@ -742,7 +814,7 @@ serve(async (req) => {
               .eq("message_id", msg.key.id);
           }
 
-          // 6. Update contact in avivar_whatsapp_contacts
+          // 7. Update contact in avivar_whatsapp_contacts
           if (!msg.key.fromMe) {
             // Check if contact exists first
             const { data: existingContact } = await supabase
