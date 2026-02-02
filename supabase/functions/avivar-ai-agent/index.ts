@@ -610,9 +610,15 @@ async function checkSlot(
     return "Não consegui verificar a agenda agora. Qual outra data e horário você prefere?";
   }
 
+  const allTimes = (slots || [])
+    .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+    .filter(Boolean)
+    .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+
   const availableTimes = (slots || [])
     .filter((s: { is_available: boolean }) => s.is_available)
     .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+    .filter(Boolean)
     .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
 
   const dateObj = new Date(normalizedDate + "T12:00:00");
@@ -638,7 +644,63 @@ async function checkSlot(
     ? suggestions[0]
     : `${suggestions[0]} ou ${suggestions[1]}`;
 
-  return `Esse horário não está disponível. Para ${dayName} (${dateFormatted}) tenho ${suggestionText}. Qual fica melhor para você?`;
+  // Diferenciar: (1) horário existe na grade mas está ocupado/bloqueado vs (2) horário fora do expediente/turno
+  const existsInGrid = allTimes.includes(normalizedTime);
+  if (!existsInGrid) {
+    // Tentar explicar que é fora do horário configurado, sem afirmar que está "ocupado"
+    try {
+      const dow = new Date(normalizedDate + "T12:00:00").getDay();
+      // Buscar o schedule_config da agenda (fallback para o mais recente do user)
+      let configId: string | null = null;
+      if (agendaId) {
+        const { data: byAgenda } = await supabase
+          .from("avivar_schedule_config")
+          .select("id")
+          .eq("agenda_id", agendaId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        configId = byAgenda?.id || null;
+      }
+      if (!configId) {
+        const { data: byUser } = await supabase
+          .from("avivar_schedule_config")
+          .select("id")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        configId = byUser?.id || null;
+      }
+
+      let periodsText: string | null = null;
+      if (configId) {
+        const { data: periods } = await supabase
+          .from("avivar_schedule_hours")
+          .select("start_time, end_time")
+          .eq("schedule_config_id", configId)
+          .eq("day_of_week", dow)
+          .eq("is_enabled", true)
+          .order("start_time");
+
+        if (periods?.length) {
+          periodsText = periods
+            .map((p: { start_time: string; end_time: string }) => `${p.start_time.substring(0, 5)}–${p.end_time.substring(0, 5)}`)
+            .join(" e ");
+        }
+      }
+
+      if (periodsText) {
+        return `Nesse dia a agenda não atende às ${normalizedTime} (atendimento: ${periodsText}). Tenho ${suggestionText}. Qual fica melhor para você?`;
+      }
+    } catch (e) {
+      console.error("[AI Agent] Error building periods text:", e);
+    }
+
+    return `Nesse dia a agenda não atende às ${normalizedTime}. Tenho ${suggestionText}. Qual fica melhor para você?`;
+  }
+
+  return `Esse horário já está reservado. Para ${dayName} (${dateFormatted}) tenho ${suggestionText}. Qual fica melhor para você?`;
 }
 
 async function createAppointment(
