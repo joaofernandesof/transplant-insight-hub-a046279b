@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { NichoType, SubnichoType, Service } from '../../../types';
+import { NichoType, SubnichoType, Service, AgentObjectives } from '../../../types';
 
 interface FAQItem {
   id: string;
@@ -39,6 +39,7 @@ interface StepFAQGeneratorProps {
   subnicho: SubnichoType | null;
   companyName: string;
   services: Service[];
+  objectives: AgentObjectives;
   generatedFAQ: FAQItem[];
   onFAQChange: (faq: FAQItem[]) => void;
   onCopyToKnowledge: (content: string) => void;
@@ -50,6 +51,7 @@ export function StepFAQGenerator({
   subnicho,
   companyName,
   services,
+  objectives,
   generatedFAQ,
   onFAQChange,
   onCopyToKnowledge,
@@ -77,6 +79,7 @@ export function StepFAQGenerator({
           subnicho,
           companyName,
           services: enabledServices,
+          objectives, // Passar objetivos como fonte principal
         }
       });
 
@@ -190,9 +193,9 @@ export function StepFAQGenerator({
                 {generatedFAQ.length > 0 ? 'Regenerar perguntas?' : 'Pronto para gerar?'}
               </h3>
               <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                A IA vai criar perguntas e respostas baseadas no seu tipo de negócio
-                {companyName && ` (${companyName})`}
-                {enabledServices.length > 0 && ` e seus ${enabledServices.length} serviços`}
+                A IA vai criar perguntas e respostas baseadas nos seus <strong>objetivos</strong>
+                {companyName && `, tipo de negócio (${companyName})`}
+                {enabledServices.length > 0 && ` e ${enabledServices.length} serviços`}
               </p>
             </div>
 

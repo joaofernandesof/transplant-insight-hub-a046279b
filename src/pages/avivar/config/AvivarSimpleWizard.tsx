@@ -342,6 +342,7 @@ export default function AvivarSimpleWizard() {
             subnicho={config.subnicho}
             companyName={config.companyName}
             services={config.services}
+            objectives={config.agentObjectives}
             generatedFAQ={generatedFAQ}
             onFAQChange={setGeneratedFAQ}
             onCopyToKnowledge={handleCopyFAQToKnowledge}
