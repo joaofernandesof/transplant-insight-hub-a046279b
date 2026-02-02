@@ -115,7 +115,7 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 scrollbar-visible"
+        className="flex-1 overflow-y-scroll px-4 scrollbar-avivar"
       >
         <div className="space-y-4 py-4">
           {/* Load more button */}
