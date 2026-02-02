@@ -59,6 +59,7 @@ const menuItems = [
   { id: 'agenda', label: 'Agenda', icon: CalendarDays, href: '/avivar/agenda', isHighlight: true },
   { id: 'voip', label: 'Telefonia', icon: PhoneCall, href: '/avivar/voip', isHighlight: true },
   { id: 'divider3', label: '', icon: null, href: '', isDivider: true },
+  { id: 'team', label: 'Equipe', icon: Users, href: '/avivar/team', isHighlight: true },
   { id: 'integrations', label: 'Integrações', icon: Link2, href: '/avivar/integrations', isHighlight: true },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/avivar/settings' },
 ];

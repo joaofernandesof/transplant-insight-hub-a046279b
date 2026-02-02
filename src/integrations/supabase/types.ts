@@ -1714,6 +1714,54 @@ export type Database = {
           },
         ]
       }
+      avivar_team_members: {
+        Row: {
+          accepted_at: string | null
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_at: string
+          is_active: boolean
+          member_user_id: string
+          name: string
+          owner_user_id: string
+          phone: string | null
+          role: Database["public"]["Enums"]["avivar_team_role"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_at?: string
+          is_active?: boolean
+          member_user_id: string
+          name: string
+          owner_user_id: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["avivar_team_role"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_at?: string
+          is_active?: boolean
+          member_user_id?: string
+          name?: string
+          owner_user_id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["avivar_team_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       avivar_test_conversations: {
         Row: {
           agent_config_id: string
@@ -15474,6 +15522,14 @@ export type Database = {
           stock_quantity: number
         }[]
       }
+      get_avivar_team_owner: {
+        Args: { _member_user_id: string }
+        Returns: string
+      }
+      get_avivar_team_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["avivar_team_role"]
+      }
       get_exam_results_with_answers: {
         Args: { p_attempt_id: string }
         Returns: {
@@ -15557,6 +15613,10 @@ export type Database = {
           role_name: string
         }[]
       }
+      has_avivar_access: {
+        Args: { _owner_user_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_completed_satisfaction_survey: {
         Args: { _class_id?: string; _user_id: string }
         Returns: boolean
@@ -15597,6 +15657,7 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
+      is_avivar_team_owner: { Args: { _user_id: string }; Returns: boolean }
       is_feature_enabled: {
         Args: { _environment?: string; _feature_key: string }
         Returns: boolean
@@ -15655,6 +15716,7 @@ export type Database = {
         | "procedimento"
         | "pos_operatorio"
         | "relacionamento"
+      avivar_team_role: "admin" | "gestor" | "sdr" | "atendente"
       chamado_etapa:
         | "triagem"
         | "atendimento"
@@ -15973,6 +16035,7 @@ export const Constants = {
         "pos_operatorio",
         "relacionamento",
       ],
+      avivar_team_role: ["admin", "gestor", "sdr", "atendente"],
       chamado_etapa: [
         "triagem",
         "atendimento",
