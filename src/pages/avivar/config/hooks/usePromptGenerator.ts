@@ -3,7 +3,17 @@
  */
 
 import { useMemo } from 'react';
-import { AgentConfig, DAY_NAMES, WeekSchedule } from '../types';
+import { AgentConfig, DAY_NAMES, WeekSchedule, CustomObjective } from '../types';
+
+// Mapeamento de objetivos para descrições detalhadas para o prompt
+const OBJECTIVE_DESCRIPTIONS: Record<string, string> = {
+  'agendar_presencial': 'Agendar consultas/atendimentos presenciais na unidade física',
+  'agendar_online': 'Agendar reuniões ou consultas online por videoconferência',
+  'agendar_domicilio': 'Agendar visitas ou atendimentos no domicílio do cliente',
+  'vender_produto': 'Apresentar catálogo de produtos e realizar vendas',
+  'delivery': 'Receber e processar pedidos para entrega/delivery',
+  'capturar_lead': 'Coletar informações de contato para follow-up posterior',
+};
 
 export function usePromptGenerator(config: AgentConfig) {
   const generateServiceQuestion = () => {
@@ -38,6 +48,63 @@ export function usePromptGenerator(config: AgentConfig) {
       : '• Consulte formas de pagamento';
   };
 
+  // Formata os objetivos do agente para o prompt
+  const formatObjectives = () => {
+    const objectives = config.agentObjectives;
+    const customObjectives = objectives.customObjectives || [];
+    
+    let result = '';
+    
+    // Objetivo principal
+    if (objectives.primary) {
+      if (objectives.primary === 'custom' && objectives.primaryCustomId) {
+        const customPrimary = customObjectives.find(c => c.id === objectives.primaryCustomId);
+        if (customPrimary) {
+          result += `## OBJETIVO PRINCIPAL (PRIORIDADE MÁXIMA)
+**${customPrimary.name}**
+${customPrimary.context}
+
+`;
+        }
+      } else {
+        const desc = OBJECTIVE_DESCRIPTIONS[objectives.primary] || objectives.primary;
+        result += `## OBJETIVO PRINCIPAL (PRIORIDADE MÁXIMA)
+**${desc}**
+Conduza todas as conversas com foco em alcançar este objetivo. Faça perguntas relevantes e guie o cliente até a conclusão.
+
+`;
+      }
+    }
+    
+    // Objetivos secundários
+    const secondaryStandard = objectives.secondary || [];
+    const secondaryCustomIds = objectives.secondaryCustomIds || [];
+    
+    if (secondaryStandard.length > 0 || secondaryCustomIds.length > 0) {
+      result += `## OBJETIVOS SECUNDÁRIOS
+Quando o cliente demonstrar interesse, você também pode:
+`;
+      
+      // Objetivos padrão secundários
+      secondaryStandard.forEach(objId => {
+        const desc = OBJECTIVE_DESCRIPTIONS[objId] || objId;
+        result += `• ${desc}\n`;
+      });
+      
+      // Objetivos customizados secundários
+      secondaryCustomIds.forEach(customId => {
+        const custom = customObjectives.find(c => c.id === customId);
+        if (custom) {
+          result += `• ${custom.name}: ${custom.description || custom.context}\n`;
+        }
+      });
+      
+      result += '\n';
+    }
+    
+    return result;
+  };
+
   const generatePrompt = useMemo(() => {
     const attendantName = config.attendantName || 'Assistente';
     const companyName = config.companyName || 'Clínica';
@@ -56,7 +123,7 @@ O ${professionalName} atende${config.crm ? ` com CRM ${config.crm}` : ''}.`;
     prompt += `\n</identidade>
 
 <objetivo>
-Seu objetivo principal é qualificar o lead, entender suas necessidades e agendar uma consulta.
+${formatObjectives()}
 Siga todos os passos do fluxo sem pular etapas.
 Transfira para um humano quando apropriado.
 </objetivo>
@@ -154,6 +221,7 @@ Responda APENAS: "Desculpe, não posso ajudar com isso. Posso te ajudar com info
     prompt: generatePrompt,
     generateServiceQuestion,
     formatSchedule,
-    formatPaymentMethods
+    formatPaymentMethods,
+    formatObjectives
   };
 }

@@ -161,6 +161,7 @@ export function StepObjectives({
     // Remove o objetivo do secondary se estiver lá
     const newSecondary = objectives.secondary.filter(s => s !== value);
     onChange({
+      ...objectives,
       primary: value,
       secondary: newSecondary,
     });
