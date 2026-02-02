@@ -5,7 +5,7 @@
 
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, MapPin, Settings } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, MapPin, Settings, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +84,28 @@ export default function AvivarAgenda() {
     enabled: !!user?.id,
   });
 
+  // Fetch schedule blocks for the selected agenda
+  const { data: scheduleBlocks = [] } = useQuery({
+    queryKey: ['avivar-schedule-blocks', scheduleConfig?.id, format(selectedDate, 'yyyy-MM-dd')],
+    queryFn: async () => {
+      if (!scheduleConfig?.id) return [];
+      
+      const startOfWeekDate = startOfWeek(selectedDate, { weekStartsOn: 0 });
+      const endOfWeekDate = addDays(startOfWeekDate, 6);
+      
+      const { data, error } = await supabase
+        .from('avivar_schedule_blocks')
+        .select('*')
+        .eq('schedule_config_id', scheduleConfig.id)
+        .gte('block_date', format(startOfWeekDate, 'yyyy-MM-dd'))
+        .lte('block_date', format(endOfWeekDate, 'yyyy-MM-dd'));
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!scheduleConfig?.id,
+  });
+
   const weekDays = Array.from({ length: 7 }).map((_, i) =>
     addDays(startOfWeek(selectedDate, { weekStartsOn: 0 }), i)
   );
@@ -141,6 +163,50 @@ export default function AvivarAgenda() {
 
   const getAppointmentForSlot = (time: string) => {
     return todayAppointments.find((apt) => apt.start_time === time || apt.start_time === time + ':00');
+  };
+
+  // Check if a time slot is blocked
+  const isSlotBlocked = (date: Date, time: string): { blocked: boolean; reason?: string } => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const timeWithSeconds = time.length === 5 ? time + ':00' : time;
+    
+    for (const block of scheduleBlocks) {
+      if (block.block_date !== dateStr) continue;
+      
+      // If no start/end time, entire day is blocked
+      if (!block.start_time || !block.end_time) {
+        return { blocked: true, reason: block.reason || 'Bloqueado' };
+      }
+      
+      // Check if time falls within block range
+      const blockStart = block.start_time;
+      const blockEnd = block.end_time;
+      
+      if (timeWithSeconds >= blockStart && timeWithSeconds < blockEnd) {
+        return { blocked: true, reason: block.reason || 'Bloqueado' };
+      }
+    }
+    
+    return { blocked: false };
+  };
+
+  // Check if an entire day has any blocks
+  const isDayBlocked = (date: Date): { blocked: boolean; reason?: string } => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    
+    for (const block of scheduleBlocks) {
+      if (block.block_date === dateStr) {
+        // Full day block (no times or 00:00-23:00)
+        if (!block.start_time || !block.end_time || 
+            (block.start_time === '00:00:00' && block.end_time === '23:00:00')) {
+          return { blocked: true, reason: block.reason || 'Bloqueado' };
+        }
+        // Partial block - return as partially blocked
+        return { blocked: true, reason: block.reason || 'Parcialmente bloqueado' };
+      }
+    }
+    
+    return { blocked: false };
   };
 
   // Get display name for header
@@ -346,6 +412,25 @@ export default function AvivarAgenda() {
                 {timeSlots.map((time) => {
                   const appointment = getAppointmentForSlot(time);
                   const agendaColor = appointment ? getAgendaColor(appointment.agenda_id) : null;
+                  const blockStatus = isSlotBlocked(selectedDate, time);
+                  
+                  // If slot is blocked and no appointment, show blocked state
+                  if (blockStatus.blocked && !appointment) {
+                    return (
+                      <div
+                        key={time}
+                        className="flex items-center gap-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 cursor-not-allowed opacity-60"
+                      >
+                        <div className="flex items-center gap-2 w-16 text-sm font-medium text-red-400">
+                          <Lock className="h-4 w-4" />
+                          {time}
+                        </div>
+                        <div className="flex-1 text-sm text-red-400">
+                          {blockStatus.reason || 'Bloqueado'}
+                        </div>
+                      </div>
+                    );
+                  }
                   
                   return (
                     <div
@@ -425,12 +510,15 @@ export default function AvivarAgenda() {
                   const dayAppointments = appointments.filter(
                     (apt) => apt.appointment_date === format(day, 'yyyy-MM-dd')
                   );
+                  const dayBlockStatus = isDayBlocked(day);
                   
                   return (
                     <div
                       key={index}
                       className={`p-3 rounded-lg border text-center cursor-pointer transition-colors ${
-                        isSameDay(day, selectedDate)
+                        dayBlockStatus.blocked
+                          ? "border-red-500/30 bg-red-500/10 opacity-60"
+                          : isSameDay(day, selectedDate)
                           ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)]"
                           : "border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.5)]"
                       }`}
@@ -442,10 +530,18 @@ export default function AvivarAgenda() {
                       <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
                         {format(day, "EEE", { locale: ptBR })}
                       </p>
-                      <p className="text-lg font-semibold text-[hsl(var(--avivar-foreground))]">
+                      <p className={`text-lg font-semibold ${dayBlockStatus.blocked ? 'text-red-400' : 'text-[hsl(var(--avivar-foreground))]'}`}>
                         {format(day, "dd")}
                       </p>
-                      {dayAppointments.length > 0 && (
+                      {dayBlockStatus.blocked && (
+                        <div className="mt-1">
+                          <Badge className="text-xs bg-red-500/20 text-red-400 border-red-500/30">
+                            <Lock className="h-3 w-3 mr-1" />
+                            Bloqueado
+                          </Badge>
+                        </div>
+                      )}
+                      {!dayBlockStatus.blocked && dayAppointments.length > 0 && (
                         <div className="mt-1 space-y-1">
                           <Badge variant="secondary" className="text-xs">
                             {dayAppointments.length} ag.
