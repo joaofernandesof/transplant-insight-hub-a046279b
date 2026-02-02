@@ -12,3 +12,6 @@ export { default as AvivarAgenda } from './AvivarAgenda';
 export { default as AvivarAgendaSettings } from './AvivarAgendaSettings';
 export { default as AvivarContacts } from './AvivarContacts';
 export { AvivarSidebar } from './AvivarSidebar';
+
+// Onboarding
+export { OnboardingBlocker, useAvivarOnboarding } from './onboarding';

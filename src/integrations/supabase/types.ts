@@ -839,6 +839,50 @@ export type Database = {
           },
         ]
       }
+      avivar_column_checklists: {
+        Row: {
+          column_id: string
+          created_at: string
+          field_key: string
+          field_label: string
+          field_type: string
+          id: string
+          is_required: boolean | null
+          options: Json | null
+          order_index: number | null
+        }
+        Insert: {
+          column_id: string
+          created_at?: string
+          field_key: string
+          field_label: string
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          options?: Json | null
+          order_index?: number | null
+        }
+        Update: {
+          column_id?: string
+          created_at?: string
+          field_key?: string
+          field_label?: string
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          options?: Json | null
+          order_index?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_column_checklists_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanban_columns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avivar_contacts: {
         Row: {
           avatar_url: string | null
@@ -1360,6 +1404,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      avivar_onboarding_progress: {
+        Row: {
+          ai_agent_created: boolean | null
+          ai_routing_configured: boolean | null
+          column_checklists_setup: boolean | null
+          columns_setup: boolean | null
+          completed_at: string | null
+          created_at: string
+          crm_activated: boolean | null
+          current_step: number | null
+          funnels_setup: boolean | null
+          id: string
+          knowledge_base_setup: boolean | null
+          last_step_completed_at: string | null
+          started_at: string | null
+          updated_at: string
+          user_id: string
+          whatsapp_connected: boolean | null
+        }
+        Insert: {
+          ai_agent_created?: boolean | null
+          ai_routing_configured?: boolean | null
+          column_checklists_setup?: boolean | null
+          columns_setup?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          crm_activated?: boolean | null
+          current_step?: number | null
+          funnels_setup?: boolean | null
+          id?: string
+          knowledge_base_setup?: boolean | null
+          last_step_completed_at?: string | null
+          started_at?: string | null
+          updated_at?: string
+          user_id: string
+          whatsapp_connected?: boolean | null
+        }
+        Update: {
+          ai_agent_created?: boolean | null
+          ai_routing_configured?: boolean | null
+          column_checklists_setup?: boolean | null
+          columns_setup?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          crm_activated?: boolean | null
+          current_step?: number | null
+          funnels_setup?: boolean | null
+          id?: string
+          knowledge_base_setup?: boolean | null
+          last_step_completed_at?: string | null
+          started_at?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_connected?: boolean | null
+        }
+        Relationships: []
       }
       avivar_patient_journeys: {
         Row: {
@@ -15694,6 +15795,10 @@ export type Database = {
         Args: { _action?: string; _module_code: string; _user_id: string }
         Returns: boolean
       }
+      can_move_lead_to_column: {
+        Args: { _lead_id: string; _target_column_id: string }
+        Returns: Json
+      }
       check_and_reset_daily_credits: {
         Args: { _user_id: string }
         Returns: {
@@ -15797,6 +15902,10 @@ export type Database = {
           city: string
           professional_name: string
         }[]
+      }
+      get_avivar_onboarding_status: {
+        Args: { _user_id: string }
+        Returns: Json
       }
       get_avivar_products_for_ai: {
         Args: { p_user_id: string }
@@ -15945,6 +16054,10 @@ export type Database = {
       increment_dashboard_view: {
         Args: { p_token: string }
         Returns: undefined
+      }
+      is_avivar_onboarding_complete: {
+        Args: { _user_id: string }
+        Returns: boolean
       }
       is_avivar_team_owner: { Args: { _user_id: string }; Returns: boolean }
       is_feature_enabled: {
