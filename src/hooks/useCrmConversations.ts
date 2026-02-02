@@ -16,7 +16,14 @@ export interface CrmMessage {
   delivered_at: string | null;
   read_at: string | null;
   sender_name: string | null;
+  sender_user_id: string | null;
+  is_ai_generated: boolean;
   created_at: string;
+  // Joined data for sender avatar
+  sender?: {
+    avatar_url: string | null;
+    name: string;
+  } | null;
 }
 
 export interface CrmConversation {
@@ -101,7 +108,27 @@ export function useCrmConversations(conversationId?: string) {
         .order('sent_at', { ascending: true });
 
       if (error) throw error;
-      return data as CrmMessage[];
+      
+      // Fetch sender info for outbound messages sent by humans
+      const messagesWithSenders = await Promise.all(
+        (data as CrmMessage[]).map(async (msg) => {
+          if (msg.direction === 'outbound' && msg.sender_user_id && !msg.is_ai_generated) {
+            // Try to get sender from team members first
+            const { data: teamMember } = await supabase
+              .from('avivar_team_members')
+              .select('name, avatar_url')
+              .eq('member_user_id', msg.sender_user_id)
+              .single();
+            
+            if (teamMember) {
+              return { ...msg, sender: teamMember };
+            }
+          }
+          return msg;
+        })
+      );
+      
+      return messagesWithSenders;
     },
     enabled: !!conversationId,
     // Use SHORT cache for messages - they change often in active conversations

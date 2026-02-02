@@ -195,15 +195,28 @@ serve(async (req) => {
       // Ignore parse errors
     }
 
-    // Get sender name
+    // Get sender name from team members or profile
     let senderName = "Assistente IA";
     if (!isAIGenerated && userId) {
-      const { data: profile } = await adminClient
-        .from("profiles")
+      // First try team members
+      const { data: teamMember } = await adminClient
+        .from("avivar_team_members")
         .select("name")
-        .eq("user_id", userId)
-        .single();
-      senderName = profile?.name || "Operador";
+        .eq("member_user_id", userId)
+        .limit(1)
+        .maybeSingle();
+      
+      if (teamMember?.name) {
+        senderName = teamMember.name;
+      } else {
+        // Fallback to profiles
+        const { data: profile } = await adminClient
+          .from("profiles")
+          .select("name")
+          .eq("user_id", userId)
+          .single();
+        senderName = profile?.name || "Operador";
+      }
     }
 
     // Save message to crm_messages
@@ -216,6 +229,7 @@ serve(async (req) => {
         media_url: mediaUrl || null,
         media_type: mediaType || null,
         sender_name: senderName,
+        sender_user_id: isAIGenerated ? null : (userId || null),
         sent_at: new Date().toISOString(),
         is_ai_generated: isAIGenerated || false,
       })

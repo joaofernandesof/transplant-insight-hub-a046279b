@@ -1,12 +1,14 @@
 /**
  * MessageBubble - Balão de mensagem individual
  * Suporta texto, imagens, áudio e documentos
+ * Diferencia mensagens de IA (robô) vs humano (avatar)
  */
 
 import { format } from 'date-fns';
-import { Check, CheckCheck, Clock, Image, FileText, Mic } from 'lucide-react';
+import { Check, CheckCheck, Bot, Image, FileText, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CrmMessage } from '@/hooks/useCrmConversations';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface MessageBubbleProps {
   message: CrmMessage;
@@ -24,32 +26,57 @@ function getStatusIcon(message: CrmMessage) {
   return <Check className="h-3.5 w-3.5" />;
 }
 
-function getMediaIcon(mediaType: CrmMessage['media_type']) {
-  switch (mediaType) {
-    case 'image':
-      return <Image className="h-4 w-4" />;
-    case 'audio':
-      return <Mic className="h-4 w-4" />;
-    case 'document':
-      return <FileText className="h-4 w-4" />;
-    default:
-      return null;
+function getSenderInitials(name: string | null): string {
+  if (!name) return '?';
+  const parts = name.split(' ').filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
+  return parts[0]?.substring(0, 2).toUpperCase() || '?';
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isOutbound = message.direction === 'outbound';
+  const isAI = message.is_ai_generated;
+  
+  // Get sender display name for outbound messages
+  const senderDisplayName = isOutbound 
+    ? (isAI ? 'IA' : (message.sender?.name || message.sender_name || null))
+    : null;
   
   return (
     <div
       className={cn(
-        "flex w-full",
+        "flex w-full gap-2",
         isOutbound ? "justify-end" : "justify-start"
       )}
     >
+      {/* Avatar for outbound messages - shown on the right */}
+      {isOutbound && (
+        <div className="flex flex-col items-end order-2">
+          {isAI ? (
+            // AI Robot Avatar
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[hsl(var(--avivar-primary))] to-[hsl(var(--avivar-primary)/0.7)] flex items-center justify-center shadow-sm">
+              <Bot className="h-4 w-4 text-white" />
+            </div>
+          ) : (
+            // Human Avatar
+            <Avatar className="h-8 w-8">
+              <AvatarImage 
+                src={message.sender?.avatar_url || undefined} 
+                alt={senderDisplayName || 'Remetente'} 
+              />
+              <AvatarFallback className="bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))] text-xs font-medium">
+                {getSenderInitials(senderDisplayName)}
+              </AvatarFallback>
+            </Avatar>
+          )}
+        </div>
+      )}
+
       <div
         className={cn(
-          "max-w-[75%] rounded-2xl px-4 py-3 shadow-sm",
+          "max-w-[70%] rounded-2xl px-4 py-3 shadow-sm order-1",
           isOutbound
             ? "bg-[hsl(var(--avivar-primary))] text-white rounded-br-md"
             : "bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))] rounded-bl-md"
@@ -99,16 +126,24 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           </p>
         )}
 
-        {/* Footer: timestamp + status */}
+        {/* Footer: timestamp + sender name (for outbound) + status */}
         <div
           className={cn(
-            "flex items-center justify-end gap-1.5 mt-2",
+            "flex items-center justify-end gap-1.5 mt-2 flex-wrap",
             isOutbound ? "text-white/70" : "text-[hsl(var(--avivar-muted-foreground))]"
           )}
         >
           <span className="text-xs">
             {format(new Date(message.sent_at), "HH:mm")}
           </span>
+          {isOutbound && senderDisplayName && (
+            <>
+              <span className="text-xs">•</span>
+              <span className="text-xs font-medium">
+                {senderDisplayName}
+              </span>
+            </>
+          )}
           {getStatusIcon(message)}
         </div>
       </div>

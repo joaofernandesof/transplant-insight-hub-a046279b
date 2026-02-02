@@ -3299,6 +3299,7 @@ export type Database = {
           media_url: string | null
           read_at: string | null
           sender_name: string | null
+          sender_user_id: string | null
           sent_at: string
         }
         Insert: {
@@ -3313,6 +3314,7 @@ export type Database = {
           media_url?: string | null
           read_at?: string | null
           sender_name?: string | null
+          sender_user_id?: string | null
           sent_at?: string
         }
         Update: {
@@ -3327,6 +3329,7 @@ export type Database = {
           media_url?: string | null
           read_at?: string | null
           sender_name?: string | null
+          sender_user_id?: string | null
           sent_at?: string
         }
         Relationships: [
