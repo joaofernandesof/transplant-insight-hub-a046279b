@@ -303,7 +303,7 @@ export const AVIVAR_MENU_ITEMS: MenuItem[] = [
   { id: 'avivar_hotleads', code: 'avivar_hotleads', title: 'HotLeads', icon: Flame, route: '/avivar/hotleads' },
   { id: 'avivar_traffic', code: 'avivar_traffic', title: 'Tráfego', icon: TrendingUp, route: '/avivar/traffic' },
   { id: 'avivar_marketing', code: 'avivar_marketing', title: 'Marketing', icon: Megaphone, route: '/avivar/marketing' },
-  { id: 'avivar_mentorship', code: 'avivar_mentorship', title: 'Mentoria', icon: Users, route: '/avivar/mentorship' },
+  { id: 'avivar_tutorials', code: 'avivar_tutorials', title: 'Tutoriais', icon: Users, route: '/avivar/tutorials' },
   { id: 'avivar_settings', code: 'avivar_settings', title: 'Configurações', icon: Settings, route: '/avivar/settings' },
 ];
 

@@ -55,7 +55,7 @@ const menuItems = [
   { id: 'divider2', label: '', icon: null, href: '', isDivider: true },
   { id: 'traffic', label: 'Tráfego', icon: TrendingUp, href: '/avivar/traffic' },
   { id: 'marketing', label: 'Marketing', icon: Megaphone, href: '/avivar/marketing' },
-  { id: 'mentorship', label: 'Mentoria', icon: GraduationCap, href: '/avivar/mentorship' },
+  { id: 'tutorials', label: 'Tutoriais', icon: GraduationCap, href: '/avivar/tutorials' },
   { id: 'agenda', label: 'Agenda', icon: CalendarDays, href: '/avivar/agenda', isHighlight: true },
   { id: 'voip', label: 'Telefonia', icon: PhoneCall, href: '/avivar/voip', isHighlight: true },
   { id: 'divider3', label: '', icon: null, href: '', isDivider: true },
