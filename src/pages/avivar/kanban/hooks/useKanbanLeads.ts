@@ -44,9 +44,25 @@ export function useKanbanLeads(kanbanId: string | undefined) {
     enabled: !!kanbanId,
   });
 
-  // Move lead to another column
+  // Move lead to another column with checklist validation
   const moveLeadMutation = useMutation({
     mutationFn: async ({ leadId, columnId }: { leadId: string; columnId: string }) => {
+      // Get the lead's current custom_fields
+      const lead = leads.find(l => l.id === leadId);
+      
+      // Check if can move (checklist validation)
+      const { data: canMove, error: checkError } = await supabase.rpc('can_move_lead_to_column', {
+        _lead_id: leadId,
+        _target_column_id: columnId
+      });
+      
+      if (checkError) {
+        console.error('Error checking move permission:', checkError);
+        // If function doesn't exist yet, allow move
+      } else if (canMove === false) {
+        throw new Error('Preencha todos os campos obrigatórios do checklist antes de mover o lead');
+      }
+      
       const { error } = await supabase
         .from('avivar_kanban_leads')
         .update({ column_id: columnId, updated_at: new Date().toISOString() })
@@ -57,9 +73,9 @@ export function useKanbanLeads(kanbanId: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Error moving lead:', error);
-      toast.error('Erro ao mover lead');
+      toast.error(error.message || 'Erro ao mover lead');
     },
   });
 

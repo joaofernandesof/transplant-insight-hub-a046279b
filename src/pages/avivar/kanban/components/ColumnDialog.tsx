@@ -1,5 +1,6 @@
 /**
  * ColumnDialog - Dialog para criar/editar colunas do Kanban
+ * Instrução para IA é OBRIGATÓRIA
  */
 
 import { useState, useEffect } from 'react';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -77,7 +79,11 @@ export function ColumnDialog({
       toast.error('Digite um nome para a coluna');
       return;
     }
-    onSave({ name: name.trim(), color, ai_instruction: aiInstruction.trim() || undefined });
+    if (!aiInstruction.trim()) {
+      toast.error('A instrução da coluna é obrigatória para que a IA saiba como atuar');
+      return;
+    }
+    onSave({ name: name.trim(), color, ai_instruction: aiInstruction.trim() });
   };
 
   return (
@@ -127,17 +133,21 @@ export function ColumnDialog({
             </Select>
           </div>
 
-          {/* AI Instruction */}
+          {/* AI Instruction - OBRIGATÓRIO */}
           <div className="space-y-2">
             <Label className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
               <Bot className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
               Instrução para IA
+              <span className="text-red-500 text-xs">*obrigatório</span>
             </Label>
             <Textarea
               placeholder="Ex: Mova o lead para esta coluna quando ele cancelar ou remarcar o agendamento..."
               value={aiInstruction}
               onChange={(e) => setAiInstruction(e.target.value)}
-              className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] min-h-[80px] text-sm"
+              className={cn(
+                "bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] min-h-[80px] text-sm",
+                !aiInstruction.trim() && "border-amber-500/50"
+              )}
             />
             <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
               A IA usará esta instrução para decidir automaticamente quando mover leads para esta coluna.
