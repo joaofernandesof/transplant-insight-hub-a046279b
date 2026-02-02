@@ -13,7 +13,8 @@ import {
   CheckCircle2, 
   Brain,
   Sparkles,
-  SkipForward
+  SkipForward,
+  Download
 } from 'lucide-react';
 import { KnowledgeUpload } from '../../KnowledgeUpload';
 import { KnowledgeFile } from '../../../types';
@@ -45,6 +46,18 @@ export function StepKnowledgeSimple({
 
   const handleRemoveFile = (fileId: string) => {
     onFilesChange(knowledgeFiles.filter(f => f.id !== fileId));
+  };
+
+  const handleDownloadFile = (file: KnowledgeFile) => {
+    const blob = new Blob([file.content], { type: file.type || 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const totalChars = knowledgeFiles.reduce((sum, f) => sum + f.content.length, 0);
@@ -122,14 +135,26 @@ export function StepKnowledgeSimple({
                         </p>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveFile(file.id)}
-                      className="text-[hsl(var(--avivar-muted-foreground))] hover:text-destructive"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadFile(file)}
+                        className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))]"
+                        title="Baixar arquivo"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveFile(file.id)}
+                        className="text-[hsl(var(--avivar-muted-foreground))] hover:text-destructive"
+                        title="Remover arquivo"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
