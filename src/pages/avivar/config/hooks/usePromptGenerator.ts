@@ -105,6 +105,17 @@ Quando o cliente demonstrar interesse, você também pode:
     return result;
   };
 
+  // Verifica se o agente tem objetivos de agendamento
+  const hasSchedulingObjective = useMemo(() => {
+    const objectives = config.agentObjectives;
+    const schedulingObjectives = ['agendar_presencial', 'agendar_online', 'agendar_domicilio'];
+    
+    const primaryIsScheduling = objectives.primary && schedulingObjectives.includes(objectives.primary);
+    const secondaryHasScheduling = (objectives.secondary || []).some(obj => schedulingObjectives.includes(obj));
+    
+    return primaryIsScheduling || secondaryHasScheduling;
+  }, [config.agentObjectives]);
+
   const generatePrompt = useMemo(() => {
     const attendantName = config.attendantName || 'Assistente';
     const companyName = config.companyName || 'Clínica';
@@ -186,6 +197,29 @@ ${formatPaymentMethods()}
 - Duração padrão da consulta: ${config.consultationDuration} minutos
 - Tom de voz: ${config.toneOfVoice}
 </configuracoes>`;
+
+    // Instruções obrigatórias para agentes com objetivo de agendamento
+    if (hasSchedulingObjective) {
+      prompt += `\n\n<regras_agendamento>
+## REGRAS OBRIGATÓRIAS DE AGENDAMENTO
+
+### 1. SEMPRE USE check_slot ANTES DE RESPONDER
+Quando o lead sugerir um horário específico (ex: "dia 09 às 09:30", "amanhã às 14h"):
+- OBRIGATORIAMENTE execute check_slot(agenda, data, horário) ANTES de responder
+- NUNCA responda sobre disponibilidade sem consultar a ferramenta primeiro
+- A verificação deve ser feita em tempo real, não baseada em suposições
+
+### 2. NUNCA AFIRME "OCUPADO" SEM VERIFICAR
+- É PROIBIDO dizer que um horário está "ocupado", "indisponível" ou "reservado" sem ter executado check_slot
+- Se por algum motivo a verificação falhar, pergunte ao lead qual outro horário ele prefere
+- Não invente desculpas sobre disponibilidade - sempre verifique primeiro
+
+### FLUXO CORRETO:
+1. Lead pede horário específico → executar check_slot
+2. Se disponível → confirmar e criar agendamento
+3. Se indisponível → informar E sugerir alternativas próximas
+</regras_agendamento>`;
+    }
 
     // Nota: As instruções de movimentação dinâmica são carregadas na edge function
     // com base nas colunas do Kanban configuradas pelo usuário
