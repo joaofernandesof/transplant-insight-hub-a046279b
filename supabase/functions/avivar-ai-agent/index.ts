@@ -1017,15 +1017,46 @@ function buildDynamicMovementInstructions(columns: KanbanColumnInfo[]): string {
     return `MOVIMENTAÇÃO NO FUNIL:
 Use mover_lead_para_etapa para mover leads entre as etapas padrão:
 - triagem: Lead respondeu e demonstrou interesse inicial
-- tentando_agendar: Lead quer agendar
-- agendado: Agendamento confirmado
+- tentando_agendar: Lead quer agendar OU você usou get_available_slots
+- agendado: Agendamento confirmado com create_appointment
 - follow_up: Lead precisa de mais tempo
 - desqualificado: Sem interesse`;
   }
 
-  let instructions = `## MOVIMENTAÇÃO AUTOMÁTICA NO FUNIL (CRÍTICO)
+  // Find column keys that match common patterns
+  const findColumnKey = (patterns: string[]): string | null => {
+    for (const col of columns) {
+      const key = col.column_key.toLowerCase();
+      const name = col.column_name.toLowerCase();
+      for (const pattern of patterns) {
+        if (key.includes(pattern) || name.includes(pattern)) {
+          return col.column_key;
+        }
+      }
+    }
+    return null;
+  };
 
-Você tem acesso à ferramenta "mover_lead_para_etapa". Use SEMPRE para atualizar o status do lead.
+  const tentandoAgendarKey = findColumnKey(["tentando_agendar", "tentandoagendar", "agendando", "negociando"]);
+  const agendadoKey = findColumnKey(["agendado", "confirmado", "marcado"]);
+
+  let instructions = `## MOVIMENTAÇÃO AUTOMÁTICA NO FUNIL (CRÍTICO!)
+
+Você TEM QUE usar "mover_lead_para_etapa" para atualizar o funil. NÃO É OPCIONAL!
+
+### GATILHOS DE MOVIMENTAÇÃO AUTOMÁTICA:
+
+1. **IMEDIATAMENTE após usar get_available_slots** (consultar horários):
+   → Mova para "${tentandoAgendarKey || "tentando_agendar"}" com motivo "Ofereceu horários disponíveis"
+
+2. **IMEDIATAMENTE após usar create_appointment** (criar agendamento):
+   → Mova para "${agendadoKey || "agendado"}" com motivo "Agendamento confirmado"
+
+3. **Quando lead fornece nome/interesse inicial**:
+   → Mova para "triagem" com motivo apropriado
+
+4. **Quando lead desiste ou não tem perfil**:
+   → Mova para "desqualificado" ou última coluna
 
 ### ESTRUTURA DO CRM DESTE CLIENTE:
 
@@ -1053,16 +1084,10 @@ Você tem acesso à ferramenta "mover_lead_para_etapa". Use SEMPRE para atualiza
     instructions += `\n`;
   }
 
-  instructions += `### COMO USAR:
-1. Identifique em qual momento da conversa o lead está
-2. Compare com as instruções acima para determinar a etapa correta
-3. Execute: mover_lead_para_etapa(nova_etapa: "nome_da_coluna", motivo: "razão da movimentação")
-
-### REGRAS:
-- Após QUALQUER resposta do lead → mova para a etapa apropriada
-- Após criar agendamento com create_appointment → mova para "agendado" ou equivalente
-- Quando lead não tiver interesse → mova para "desqualificado" ou última coluna do funil
-- Execute a movimentação IMEDIATAMENTE após cada marco do atendimento!`;
+  instructions += `### IMPORTANTE - SEMPRE MOVA APÓS TOOL CALLS:
+- Após get_available_slots → mova para "${tentandoAgendarKey || "tentando_agendar"}"
+- Após create_appointment → mova para "${agendadoKey || "agendado"}"
+- NUNCA deixe de mover o lead quando usar essas ferramentas!`;
 
   return instructions;
 }
