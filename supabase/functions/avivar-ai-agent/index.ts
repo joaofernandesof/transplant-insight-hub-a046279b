@@ -146,6 +146,31 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "check_slot",
+      description: "Verifica se um horário específico (data + hora) está disponível em uma agenda/unidade. Use SEMPRE quando o lead sugerir uma data/horário diferente dos oferecidos.",
+      parameters: {
+        type: "object",
+        properties: {
+          agenda_name: {
+            type: "string",
+            description: "Nome da unidade/agenda (ex: 'Juazeiro'). Case-insensitive."
+          },
+          date: {
+            type: "string",
+            description: "Data preferida do lead. Preferencialmente no formato YYYY-MM-DD (aceita também DD/MM ou DD/MM/YYYY)."
+          },
+          time: {
+            type: "string",
+            description: "Horário preferido do lead no formato HH:MM (ex: 09:30)."
+          }
+        },
+        required: ["agenda_name", "date", "time"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
       name: "create_appointment",
       description: "Cria um agendamento na agenda/unidade específica. Use após confirmação de data, horário e unidade.",
       parameters: {
@@ -388,6 +413,82 @@ async function searchKnowledgeBase(
   return topChunks.map((c) => c.content).join("\n\n---\n\n");
 }
 
+type ResolvedAgendaInfo = {
+  agendaId: string | null;
+  agendaInfo: { id: string; name: string; city: string | null; professional_name: string | null; address?: string | null } | null;
+};
+
+function normalizeTimeHHMM(raw: string): string | null {
+  const trimmed = (raw || "").trim();
+  if (!trimmed) return null;
+
+  // Accept HH:MM or HH:MM:SS
+  const match = trimmed.match(/^(\d{1,2})\s*[:h]\s*(\d{2})(?::\d{2})?$/i);
+  if (!match) return null;
+
+  const h = Number(match[1]);
+  const m = Number(match[2]);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function normalizeDateISO(raw: string, now = new Date()): string | null {
+  const trimmed = (raw || "").trim();
+  if (!trimmed) return null;
+
+  // YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+
+  // DD/MM or DD/MM/YYYY
+  const m = trimmed.match(/^(\d{2})\/(\d{2})(?:\/(\d{4}))?$/);
+  if (m) {
+    const day = Number(m[1]);
+    const month = Number(m[2]);
+    const year = m[3] ? Number(m[3]) : now.getFullYear();
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 2000 || year > 2100) return null;
+    const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return iso;
+  }
+
+  return null;
+}
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+async function resolveAgenda(
+  supabase: AnySupabaseClient,
+  userId: string,
+  agendaName: string
+): Promise<ResolvedAgendaInfo> {
+  const { data: agendas } = await supabase
+    .from("avivar_agendas")
+    .select("id, name, city, professional_name, address")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .ilike("name", `%${agendaName}%`);
+
+  let agendaInfo = agendas?.[0] || null;
+
+  if (!agendaInfo) {
+    const { data: byCity } = await supabase
+      .from("avivar_agendas")
+      .select("id, name, city, professional_name, address")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .ilike("city", `%${agendaName}%`);
+    agendaInfo = byCity?.[0] || null;
+  }
+
+  return {
+    agendaId: agendaInfo?.id || null,
+    agendaInfo,
+  };
+}
+
 async function getAvailableSlots(
   supabase: AnySupabaseClient,
   userId: string,
@@ -396,27 +497,7 @@ async function getAvailableSlots(
 ): Promise<string> {
   console.log(`[AI Agent] Tool: get_available_slots(agenda="${agendaName}", date=${dateStr || "próximos dias"})`);
 
-  const { data: agendas } = await supabase
-    .from("avivar_agendas")
-    .select("id, name, city, professional_name")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .ilike("name", `%${agendaName}%`);
-
-  let agendaInfo = agendas?.[0];
-  let agendaId: string | null = agendaInfo?.id || null;
-
-  if (!agendaInfo) {
-    const { data: byCity } = await supabase
-      .from("avivar_agendas")
-      .select("id, name, city, professional_name")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .ilike("city", `%${agendaName}%`);
-    
-    agendaInfo = byCity?.[0];
-    agendaId = agendaInfo?.id || null;
-  }
+  const { agendaId, agendaInfo } = await resolveAgenda(supabase, userId, agendaName);
 
   const dates: string[] = [];
   if (dateStr) {
@@ -436,7 +517,6 @@ async function getAvailableSlots(
   }
 
   const results: string[] = [];
-  const internalSlots: { date: string; allTimes: string[] }[] = []; // Para validação interna
   
   for (const date of dates) {
     const { data: slots, error } = await supabase.rpc("get_available_slots_flexible", {
@@ -478,9 +558,6 @@ async function getAvailableSlots(
       }
       
       results.push(`📅 ${dayName} (${dateFormatted}): ${selectedTimes.join(" ou ")}`);
-      
-      // Guardar info interna para validação - não mostrar ao lead
-      internalSlots.push({ date, allTimes });
     }
   }
 
@@ -498,6 +575,72 @@ async function getAvailableSlots(
   return `${header}\n\n${limitedResults.join("\n")}\n\nQual desses horários fica melhor para você?`;
 }
 
+async function checkSlot(
+  supabase: AnySupabaseClient,
+  userId: string,
+  agendaName: string,
+  rawDate: string,
+  rawTime: string
+): Promise<string> {
+  const normalizedTime = normalizeTimeHHMM(rawTime);
+  const normalizedDate = normalizeDateISO(rawDate);
+
+  console.log(
+    `[AI Agent] Tool: check_slot(agenda="${agendaName}", date=${rawDate}=>${normalizedDate || "invalid"}, time=${rawTime}=>${normalizedTime || "invalid"})`
+  );
+
+  if (!normalizedDate) {
+    return "Não entendi a data. Você pode me dizer no formato 09/02 ou 2026-02-09?";
+  }
+  if (!normalizedTime) {
+    return "Não entendi o horário. Você pode me dizer no formato 09:30?";
+  }
+
+  const { agendaId } = await resolveAgenda(supabase, userId, agendaName);
+
+  const { data: slots, error } = await supabase.rpc("get_available_slots_flexible", {
+    p_user_id: userId,
+    p_agenda_id: agendaId,
+    p_date: normalizedDate,
+    p_duration_minutes: 30,
+  });
+
+  if (error) {
+    console.error("[AI Agent] Error checking slot:", error);
+    return "Não consegui verificar a agenda agora. Qual outra data e horário você prefere?";
+  }
+
+  const availableTimes = (slots || [])
+    .filter((s: { is_available: boolean }) => s.is_available)
+    .map((s: { slot_start: string }) => s.slot_start.substring(0, 5))
+    .sort((a: string, b: string) => timeToMinutes(a) - timeToMinutes(b));
+
+  const dateObj = new Date(normalizedDate + "T12:00:00");
+  const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
+  const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+
+  if (availableTimes.includes(normalizedTime)) {
+    return `Sim, ${dayName} (${dateFormatted}) às ${normalizedTime} está disponível. Posso confirmar o agendamento?`;
+  }
+
+  if (availableTimes.length === 0) {
+    return `Para ${dayName} (${dateFormatted}) não encontrei horários disponíveis. Qual outra data e horário ficaria melhor pra você?`;
+  }
+
+  const target = timeToMinutes(normalizedTime);
+  const suggestions = availableTimes
+    .map((t: string) => ({ t, diff: Math.abs(timeToMinutes(t) - target) }))
+    .sort((a: { t: string; diff: number }, b: { t: string; diff: number }) => a.diff - b.diff)
+    .slice(0, 2)
+    .map((x: { t: string }) => x.t);
+
+  const suggestionText = suggestions.length === 1
+    ? suggestions[0]
+    : `${suggestions[0]} ou ${suggestions[1]}`;
+
+  return `Esse horário não está disponível. Para ${dayName} (${dateFormatted}) tenho ${suggestionText}. Qual fica melhor para você?`;
+}
+
 async function createAppointment(
   supabase: AnySupabaseClient,
   userId: string,
@@ -513,29 +656,15 @@ async function createAppointment(
 ): Promise<string> {
   console.log(`[AI Agent] Tool: create_appointment(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
 
-  const { data: agendas } = await supabase
-    .from("avivar_agendas")
-    .select("id, name, city, professional_name, address")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .ilike("name", `%${agendaName}%`);
+  const { agendaId, agendaInfo } = await resolveAgenda(supabase, userId, agendaName);
 
-  let agendaInfo = agendas?.[0];
-  let agendaId: string | null = agendaInfo?.id || null;
-
-  if (!agendaInfo) {
-    const { data: byCity } = await supabase
-      .from("avivar_agendas")
-      .select("id, name, city, professional_name, address")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .ilike("city", `%${agendaName}%`);
-    
-    agendaInfo = byCity?.[0];
-    agendaId = agendaInfo?.id || null;
+  const normalizedDate = normalizeDateISO(date);
+  const normalizedTime = normalizeTimeHHMM(time);
+  if (!normalizedDate || !normalizedTime) {
+    return "Não consegui entender a data/horário para agendar. Você pode confirmar no formato 2026-02-09 às 09:30?";
   }
 
-  const [hours, minutes] = time.split(":").map(Number);
+  const [hours, minutes] = normalizedTime.split(":").map(Number);
   const endHours = Math.floor((hours * 60 + minutes + 30) / 60);
   const endMinutes = (hours * 60 + minutes + 30) % 60;
   const endTime = `${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
@@ -543,16 +672,16 @@ async function createAppointment(
   const { data: slots } = await supabase.rpc("get_available_slots_flexible", {
     p_user_id: userId,
     p_agenda_id: agendaId,
-    p_date: date,
+    p_date: normalizedDate,
     p_duration_minutes: 30
   });
 
   const slotAvailable = (slots || []).some((s: { slot_start: string; is_available: boolean }) => 
-    s.slot_start.substring(0, 5) === time && s.is_available
+    s.slot_start.substring(0, 5) === normalizedTime && s.is_available
   );
 
   if (!slotAvailable) {
-    return `❌ Infelizmente o horário ${time} do dia ${date} não está mais disponível. Por favor, escolha outro horário.`;
+    return `❌ Infelizmente o horário ${normalizedTime} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
   }
 
   const { data: appointment, error } = await supabase
@@ -564,8 +693,8 @@ async function createAppointment(
       conversation_id: conversationId,
       patient_name: patientName,
       patient_phone: patientPhone,
-      appointment_date: date,
-      start_time: time + ":00",
+      appointment_date: normalizedDate,
+      start_time: normalizedTime + ":00",
       end_time: endTime + ":00",
       service_type: serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar",
       location: agendaInfo?.city || null,
@@ -582,7 +711,7 @@ async function createAppointment(
     return "❌ Ocorreu um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato conosco.";
   }
 
-  const dateObj = new Date(date + "T12:00:00");
+  const dateObj = new Date(normalizedDate + "T12:00:00");
   const dayName = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
   const dateFormatted = dateObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
@@ -593,7 +722,7 @@ async function createAppointment(
   return `✅ Agendamento confirmado!
 
 📅 Data: ${dayName}, ${dateFormatted}
-⏰ Horário: ${time}
+⏰ Horário: ${normalizedTime}
 👤 Paciente: ${patientName}
 📋 Tipo: ${serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar"}${locationInfo}
 
@@ -777,6 +906,15 @@ async function processToolCall(
         userId, 
         toolArgs.agenda_name as string,
         toolArgs.date as string | undefined
+      );
+
+    case "check_slot":
+      return await checkSlot(
+        supabase,
+        userId,
+        toolArgs.agenda_name as string,
+        toolArgs.date as string,
+        toolArgs.time as string
       );
     
     case "create_appointment":
@@ -1177,6 +1315,7 @@ Você tem acesso a:
 - list_products: Ver catálogo de produtos e preços
 - search_knowledge_base: Consultar base de conhecimento COMPLETA (pré-op, pós-op, comercial, tudo!)
 - get_available_slots: Ver horários disponíveis em qualquer agenda
+- check_slot: Verificar se uma data/horário específico está disponível
 - create_appointment: Agendar em qualquer agenda
 - transfer_to_human: Transferir para humano
 - mover_lead_para_etapa: Mover o lead no funil de vendas conforme o progresso da conversa
@@ -1208,9 +1347,11 @@ Você tem acesso a:
 - "Entendi! E qual data e horário ficaria melhor pra você? Assim consigo verificar na agenda."
 
 ### SE O LEAD PERGUNTAR POR OUTRA DATA ESPECÍFICA:
-- Use get_available_slots com a data específica que ele pediu
-- Se houver horário disponível: "Ótimo! Temos sim vaga para [data] às [horários disponíveis]. Posso confirmar?"
-- Se NÃO houver horário: "Infelizmente essa data está ocupada. Mas tenho disponibilidade para [sugerir nova data próxima com 2 horários]. O que acha?"
+Se o lead sugerir UMA DATA E UM HORÁRIO específico (ex: "dia 09 às 09:30"), use check_slot para verificar.
+- Se estiver livre: "Ótimo! Esse horário está disponível. Posso confirmar?"
+- Se estiver ocupado: avise que está ocupado e já ofereça 2 alternativas (técnica ou/ou)
+
+Se o lead sugerir apenas UMA DATA (sem horário), use get_available_slots com essa data e ofereça 2 horários (ou/ou).
 
 ### CONFIRMAÇÃO FINAL:
 - Só use create_appointment após o lead CONFIRMAR explicitamente a data e horário
