@@ -420,13 +420,21 @@ export default function AvivarKanbanPage() {
                     <SortableColumn
                       key={column.id}
                       column={column}
-                       leads={leadsByColumn[column.id] ?? []}
+                      leads={leadsByColumn[column.id] ?? []}
                       onEdit={() => {
                         setEditingColumn(column);
                         setIsColumnDialogOpen(true);
                       }}
                       onDelete={() => deleteColumn.mutate(column.id)}
-                       onDeleteLead={deleteLead}
+                      onDeleteLead={deleteLead}
+                      onLeadClick={(lead) => {
+                        // Navigate to inbox with lead's phone to open conversation
+                        if (lead.phone) {
+                          navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
+                        } else {
+                          toast.error('Lead não possui telefone cadastrado');
+                        }
+                      }}
                     />
                   ))}
 

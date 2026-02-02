@@ -22,9 +22,10 @@ import { ChatHeader } from './chat/ChatHeader';
 
 interface CrmInboxProps {
   initialLeadId?: string;
+  initialPhone?: string;
 }
 
-export function CrmInbox({ initialLeadId }: CrmInboxProps) {
+export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showLeadWithoutConversation, setShowLeadWithoutConversation] = useState(false);
 
@@ -44,6 +45,25 @@ export function CrmInbox({ initialLeadId }: CrmInboxProps) {
   const directJourney = initialLeadId ? journeys.find(j => j.id === initialLeadId) : null;
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
+
+  // Handle initialPhone - find conversation by phone number
+  useEffect(() => {
+    if (!initialPhone || isLoadingConversations) return;
+    
+    // Normalize phone for comparison (remove non-digits)
+    const normalizedPhone = initialPhone.replace(/\D/g, '');
+    
+    // Find conversation where the lead has matching phone
+    const conversationByPhone = conversations.find(c => {
+      const leadPhone = c.lead?.phone?.replace(/\D/g, '');
+      return leadPhone && (leadPhone === normalizedPhone || leadPhone.endsWith(normalizedPhone) || normalizedPhone.endsWith(leadPhone));
+    });
+    
+    if (conversationByPhone) {
+      setSelectedConversation(conversationByPhone.id);
+      setShowLeadWithoutConversation(false);
+    }
+  }, [initialPhone, conversations, isLoadingConversations]);
 
   // Handle initialLeadId - find existing conversation or show lead panel
   // The initialLeadId can be either a journey id (from avivar_patient_journeys) or a lead id
