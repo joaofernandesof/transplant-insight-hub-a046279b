@@ -10,14 +10,44 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 11 |
-| Aprovadas | 11 |
+| Total de Tarefas Validadas | 12 |
+| Aprovadas | 12 |
 | Reprovadas | 0 |
-| Última Atualização | 2026-01-27 |
+| Última Atualização | 2026-02-02 |
 
 ---
 
 ## 🗂️ Registro de Validações
+
+### 2026-02-02
+
+#### ✅ QA-012: Detecção de Abandono e Resiliência do Agente IA
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Avivar / Edge Function `avivar-ai-agent` |
+| **Descrição** | Implementação de detecção proativa de abandono de leads e mecanismo de retry para respostas vazias da IA |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-02-02 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | AVIVAR-AI-001 |
+
+**Validações Realizadas:**
+- [x] Padrões de desistência (`DESISTENCIA_PATTERNS`) com regex para frases como "desisti", "cancela", "não quero mais"
+- [x] Movimentação automática para coluna "Desqualificado" ao detectar abandono
+- [x] Mecanismo de retry (`maxRetries: 2`) para chamadas à IA com respostas vazias
+- [x] Fallback com mensagem de despedida educada quando IA falha
+- [x] Tratamento de rate-limiting com retry automático
+- [x] Comportamento global aplicado a todos os agentes do CRM Avivar
+
+**Observações:**
+- A detecção de abandono ocorre ANTES da chamada à IA, garantindo movimentação no CRM mesmo em falhas
+- Padrões detectados: "desisti", "desistir", "cancela", "cancelar", "não quero mais", "mudei de ideia", "deixa pra lá", "esquece"
+- Mensagem fallback: "Entendo, sem problemas! Se precisar de algo no futuro, estarei por aqui. 🙂"
+- Arquivo alterado: `supabase/functions/avivar-ai-agent/index.ts`
+
+---
 
 ### 2026-01-27
 
