@@ -1,9 +1,9 @@
 /**
  * AvivarKanbanPage - Página individual do Kanban com colunas customizáveis
- * Suporta drag-and-drop para reordenar colunas
+ * Suporta drag-and-drop para reordenar colunas e leads
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -16,6 +16,7 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
+  DragOverEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -44,6 +45,8 @@ import { ViewModeToggle, ViewMode } from './components/ViewModeToggle';
 import { LeadsListView } from './components/LeadsListView';
 import { ImportLeadsDialog } from './components/ImportLeadsDialog';
 import { ExportLeadsDialog } from './components/ExportLeadsDialog';
+import { useKanbanLeads, KanbanLead } from './hooks/useKanbanLeads';
+import { LeadCard } from './components/LeadCard';
 
 export interface KanbanColumnData {
   id: string;
@@ -81,6 +84,10 @@ export default function AvivarKanbanPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [activeLead, setActiveLead] = useState<KanbanLead | null>(null);
+
+  // Fetch leads for this kanban
+  const { leadsByColumn, deleteLead, moveLead, isLoading: isLoadingLeads } = useKanbanLeads(kanbanId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -207,18 +214,49 @@ export default function AvivarKanbanPage() {
   });
 
   const handleDragStart = (event: DragStartEvent) => {
-    const column = columns.find(c => c.id === event.active.id);
-    if (column) setActiveColumn(column);
+    const { active } = event;
+    // Check if dragging a column or a lead
+    const column = columns.find(c => c.id === active.id);
+    if (column) {
+      setActiveColumn(column);
+      return;
+    }
+    // Check if it's a lead
+    const leadData = active.data.current;
+    if (leadData?.type === 'lead') {
+      setActiveLead(leadData.lead);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveColumn(null);
+    setActiveLead(null);
 
-    if (!over || active.id === over.id) return;
+    if (!over) return;
+
+    // Handle lead drop
+    const activeData = active.data.current;
+    const overData = over.data.current;
+    
+    if (activeData?.type === 'lead') {
+      const targetColumnId = overData?.type === 'column' 
+        ? overData.columnId 
+        : (overData?.lead?.column_id || over.id.toString().replace('column-', ''));
+      
+      if (targetColumnId && targetColumnId !== activeData.lead.column_id) {
+        moveLead({ leadId: active.id.toString(), columnId: targetColumnId });
+      }
+      return;
+    }
+
+    // Handle column reorder
+    if (active.id === over.id) return;
 
     const oldIndex = columns.findIndex(c => c.id === active.id);
     const newIndex = columns.findIndex(c => c.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
 
     const reordered = arrayMove(columns, oldIndex, newIndex);
     
@@ -239,7 +277,7 @@ export default function AvivarKanbanPage() {
   };
 
   const Icon = kanban ? getIconComponent(kanban.icon) : Briefcase;
-  const isLoading = isLoadingKanban || isLoadingColumns;
+  const isLoading = isLoadingKanban || isLoadingColumns || isLoadingLeads;
 
   if (isLoading) {
     return (
