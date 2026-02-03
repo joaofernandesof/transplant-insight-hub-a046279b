@@ -15,12 +15,14 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
-  Edit2,
   Bookmark,
   Target,
+  MoreVertical,
+  Edit2,
+  Tags,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -32,6 +34,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { LeadEditDialog } from './LeadEditDialog';
 import { Lead } from '@/hooks/useLeads';
 
@@ -66,13 +75,7 @@ export function LeadDetailsSidebarStandalone({ lead, onLeadUpdated }: LeadDetail
     <div className="h-full flex flex-col bg-[hsl(var(--avivar-card))] border-l border-[hsl(var(--avivar-border))]">
       {/* Header */}
       <div className="p-4 border-b border-[hsl(var(--avivar-border))]">
-        <div className="flex items-start gap-3">
-          <Avatar className="h-14 w-14 border-2 border-[hsl(var(--avivar-primary))]">
-            <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-primary))] text-xl font-bold">
-              {lead.name?.charAt(0).toUpperCase() || '?'}
-            </AvatarFallback>
-          </Avatar>
-          
+        <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-[hsl(var(--avivar-foreground))] text-lg truncate">
               {lead.name}
@@ -85,14 +88,43 @@ export function LeadDetailsSidebarStandalone({ lead, onLeadUpdated }: LeadDetail
             </Badge>
           </div>
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="shrink-0"
-            onClick={() => setIsEditDialogOpen(true)}
-          >
-            <Edit2 className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="shrink-0"
+              >
+                <MoreVertical className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="end" 
+              className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
+            >
+              <DropdownMenuItem 
+                onClick={() => setIsEditDialogOpen(true)}
+                className="gap-2 text-[hsl(var(--avivar-foreground))]"
+              >
+                <Edit2 className="h-4 w-4" />
+                Editar Lead
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setIsEditDialogOpen(true)}
+                className="gap-2 text-[hsl(var(--avivar-foreground))]"
+              >
+                <Tags className="h-4 w-4" />
+                Editar Tags
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-[hsl(var(--avivar-border))]" />
+              <DropdownMenuItem 
+                className="gap-2 text-red-500 focus:text-red-500"
+              >
+                <Trash2 className="h-4 w-4" />
+                Excluir Lead
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
