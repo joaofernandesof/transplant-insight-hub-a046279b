@@ -77,15 +77,16 @@ export function ImageGalleryUpload({
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with external gallery prop - track if initially loaded
-  const [initiallyLoaded, setInitiallyLoaded] = useState(false);
+  // Track the last gallery JSON to detect real external changes
+  const [lastGalleryJson, setLastGalleryJson] = useState<string>('');
   
+  // Sync with external gallery prop when it has content we haven't loaded yet
   useEffect(() => {
-    // Only sync from external gallery on first meaningful load
-    // or when gallery has content and we haven't synced yet
+    const galleryJson = JSON.stringify(gallery);
     const hasGalleryContent = gallery && Object.values(gallery).some(arr => arr && arr.length > 0);
     
-    if (!initiallyLoaded && hasGalleryContent) {
+    // Only sync if gallery has content AND it's different from what we already have
+    if (hasGalleryContent && galleryJson !== lastGalleryJson) {
       const items: Record<ImageCategory, ImageItem[]> = {
         before_after: [],
         catalog: [],
@@ -103,12 +104,9 @@ export function ImageGalleryUpload({
       });
 
       setImageItems(items);
-      setInitiallyLoaded(true);
-    } else if (!initiallyLoaded && !hasGalleryContent) {
-      // Mark as loaded even if empty, so we don't overwrite user additions
-      setInitiallyLoaded(true);
+      setLastGalleryJson(galleryJson);
     }
-  }, [gallery, initiallyLoaded]);
+  }, [gallery, lastGalleryJson]);
 
   // Update parent when items change
   const updateParent = useCallback((items: Record<ImageCategory, ImageItem[]>) => {
