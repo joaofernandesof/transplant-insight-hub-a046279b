@@ -62,8 +62,12 @@ export function StepServicesOnly({
   };
 
   const updatePrice = (id: string, value: string) => {
-    // Apenas salva quando perde o foco ou pressiona Enter
-    const cleanValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
+    // Limpa e converte para número
+    // Aceita formato: 1000 ou 1.000 ou 1000,50 ou 1.000,50
+    const cleanValue = value
+      .replace(/\./g, '') // remove pontos (separador de milhar)
+      .replace(',', '.'); // troca vírgula por ponto (decimal)
+    
     const numValue = cleanValue ? Math.round(parseFloat(cleanValue) * 100) : null;
     onServicesChange(
       services.map(s => s.id === id ? { ...s, price: numValue } : s)
@@ -72,7 +76,11 @@ export function StepServicesOnly({
 
   const formatPrice = (cents: number | null | undefined): string => {
     if (cents === null || cents === undefined) return '';
-    return (cents / 100).toFixed(2).replace('.', ',');
+    // Formata para padrão brasileiro: 1.000,00
+    return (cents / 100).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   };
 
   const addCustomService = () => {
@@ -164,14 +172,25 @@ export function StepServicesOnly({
                                 type="text"
                                 inputMode="decimal"
                                 defaultValue={formatPrice(service.price)}
-                                onBlur={(e) => updatePrice(service.id, e.target.value)}
+                                onBlur={(e) => {
+                                  updatePrice(service.id, e.target.value);
+                                  // Formata o valor ao sair do campo
+                                  const cleanValue = e.target.value.replace(/\./g, '').replace(',', '.');
+                                  const num = parseFloat(cleanValue);
+                                  if (!isNaN(num)) {
+                                    e.target.value = num.toLocaleString('pt-BR', {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2
+                                    });
+                                  }
+                                }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
-                                    updatePrice(service.id, e.currentTarget.value);
+                                    e.currentTarget.blur();
                                   }
                                 }}
                                 placeholder="0,00"
-                                className="w-24 h-8 text-sm bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                                className="w-28 h-8 text-sm bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
                               />
                             </div>
                             <TooltipProvider>
