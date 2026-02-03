@@ -4,11 +4,10 @@
  * - Outros módulos bloqueados com cadeado "EM BREVE"
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Check, Lock } from 'lucide-react';
+import { Check, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
   NichoType, 
@@ -23,19 +22,38 @@ interface StepSelectBusinessProps {
   selectedSubnicho: SubnichoType | null;
   selectedSubnichos?: SubnichoType[]; // Para multi-seleção
   onSelect: (nicho: NichoType, subnicho: SubnichoType, allSubnichos?: SubnichoType[]) => void;
+  onViewingSubnichos?: (viewing: boolean) => void; // Callback para informar ao wizard se está vendo subnichos
+  forceShowNichos?: boolean; // Forçar exibição de nichos (quando wizard quer voltar)
 }
 
 export function StepSelectBusiness({ 
   selectedNicho, 
   selectedSubnicho,
   selectedSubnichos = [],
-  onSelect 
+  onSelect,
+  onViewingSubnichos,
+  forceShowNichos = false
 }: StepSelectBusinessProps) {
-  const [viewingNicho, setViewingNicho] = useState<NichoType | null>(selectedNicho);
+  const [viewingNicho, setViewingNicho] = useState<NichoType | null>(
+    // Se já tem seleção e não está forçando nichos, mostrar os subnichos
+    (!forceShowNichos && selectedNicho) ? 'saude' : null
+  );
   // Estado local para multi-seleção
   const [localSelectedSubnichos, setLocalSelectedSubnichos] = useState<SubnichoType[]>(
     selectedSubnichos.length > 0 ? selectedSubnichos : (selectedSubnicho ? [selectedSubnicho] : [])
   );
+
+  // Quando forceShowNichos mudar para true, voltar para nichos
+  useEffect(() => {
+    if (forceShowNichos) {
+      setViewingNicho(null);
+    }
+  }, [forceShowNichos]);
+
+  // Notificar o wizard quando está vendo subnichos
+  useEffect(() => {
+    onViewingSubnichos?.(!!viewingNicho);
+  }, [viewingNicho, onViewingSubnichos]);
 
   const handleNichoClick = (nichoId: NichoType) => {
     // Se está bloqueado, não faz nada
@@ -45,31 +63,29 @@ export function StepSelectBusiness({
 
   const handleSubnichoClick = (subnichoId: SubnichoType) => {
     // Multi-seleção: toggle
-    setLocalSelectedSubnichos(prev => {
-      if (prev.includes(subnichoId)) {
-        return prev.filter(s => s !== subnichoId);
-      } else {
-        return [...prev, subnichoId];
-      }
-    });
+    let newSelection: SubnichoType[];
+    if (localSelectedSubnichos.includes(subnichoId)) {
+      newSelection = localSelectedSubnichos.filter(s => s !== subnichoId);
+    } else {
+      newSelection = [...localSelectedSubnichos, subnichoId];
+    }
+    setLocalSelectedSubnichos(newSelection);
+    
+    // Atualizar imediatamente o wizard
+    if (newSelection.length > 0) {
+      const primarySubnicho = newSelection[0];
+      const nicho = SUBNICHO_TO_NICHO[primarySubnicho];
+      onSelect(nicho, primarySubnicho, newSelection);
+    }
   };
 
-  const handleConfirmSelection = () => {
-    if (localSelectedSubnichos.length === 0) return;
-    
-    // Pegar o nicho do primeiro subnicho selecionado
-    const primarySubnicho = localSelectedSubnichos[0];
-    const nicho = SUBNICHO_TO_NICHO[primarySubnicho];
-    
-    // Chamar onSelect com o primeiro subnicho como principal e todos como array
-    onSelect(nicho, primarySubnicho, localSelectedSubnichos);
-  };
-
+  // Função pública para voltar (será chamada pelo wizard)
   const handleBack = () => {
     setViewingNicho(null);
-    // Reset local selection quando voltar
-    setLocalSelectedSubnichos(selectedSubnichos.length > 0 ? selectedSubnichos : (selectedSubnicho ? [selectedSubnicho] : []));
   };
+
+  // Expor handleBack para o wizard via ref ou passar como prop inversa
+  // Vamos usar um approach diferente: o wizard vai controlar isso
 
   const currentNicho = NICHOS_CATEGORIES_UI.find(n => n.id === viewingNicho);
 
@@ -78,14 +94,6 @@ export function StepSelectBusiness({
     return (
       <div className="space-y-6">
         <div className="text-center space-y-2">
-          <Button 
-            variant="ghost" 
-            onClick={handleBack}
-            className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Voltar
-          </Button>
           <h2 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
             {currentNicho.name}
           </h2>
@@ -143,17 +151,6 @@ export function StepSelectBusiness({
               </Card>
             );
           })}
-        </div>
-
-        {/* Botão de confirmação */}
-        <div className="flex justify-center pt-4">
-          <Button
-            onClick={handleConfirmSelection}
-            disabled={localSelectedSubnichos.length === 0}
-            className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)] text-white px-8"
-          >
-            Confirmar Seleção ({localSelectedSubnichos.length})
-          </Button>
         </div>
       </div>
     );
@@ -246,3 +243,9 @@ export function StepSelectBusiness({
     </div>
   );
 }
+
+// Exportar tipo para o wizard usar
+export type StepSelectBusinessHandle = {
+  goBackToNichos: () => void;
+  isViewingSubnichos: () => boolean;
+};
