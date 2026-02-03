@@ -40,7 +40,7 @@ import {
   KnowledgeFile,
   ImageGallery
 } from './types';
-import { getProfessionalFieldConfig, shouldShowBeforeAfterStep } from './nichoConfig';
+import { getProfessionalFieldConfig } from './nichoConfig';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -64,36 +64,19 @@ export default function AvivarConfigWizard() {
   // Get field config to check if registration is required
   const professionalFieldConfig = getProfessionalFieldConfig(config.nicho, config.subnicho);
   
-  // Check if before/after step should be shown
-  const showBeforeAfterStep = shouldShowBeforeAfterStep(config.nicho, config.subnicho);
-  
-  // Lista de etapas que devem ser puladas
-  const isStepSkipped = (step: number): boolean => {
-    // Etapa 10 (índice 10) é a de fotos antes/depois (após adicionar objectives no índice 8)
-    if (step === 10 && !showBeforeAfterStep) {
-      return true;
-    }
-    return false;
-  };
+  // A galeria de imagens agora é sempre visível (tem categorias: catálogo, localização, geral, além de antes/depois)
+  // Não pulamos mais nenhuma etapa baseada no nicho
 
-  // Navegação inteligente que pula etapas não aplicáveis
+  // Navegação simples entre etapas
   const nextStep = () => {
-    let next = currentStep + 1;
-    while (next < totalSteps && isStepSkipped(next)) {
-      next++;
-    }
-    if (next < totalSteps) {
-      setCurrentStep(next);
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
   const prevStep = () => {
-    let prev = currentStep - 1;
-    while (prev >= 0 && isStepSkipped(prev)) {
-      prev--;
-    }
-    if (prev >= 0) {
-      setCurrentStep(prev);
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
@@ -345,15 +328,8 @@ export default function AvivarConfigWizard() {
   const isWelcomeStep = currentStep === 0 && !isEditMode;
   const isReviewStep = currentStep === 16; // Step 16 is the final review step (after adding objectives)
   
-  // Optional steps that can be skipped (adjusting for hidden steps)
-  const getShowSkip = (): boolean => {
-    // Step 10 (Images) - only show skip if it's visible
-    if (currentStep === 10 && showBeforeAfterStep) return true;
-    // Step 12 (Personalization), Step 13 (Instructions), Step 14 (Fluxo), Step 15 (Knowledge) are always optional
-    if (currentStep === 12 || currentStep === 13 || currentStep === 14 || currentStep === 15) return true;
-    return false;
-  };
-  const showSkip = getShowSkip();
+  // Optional steps that can be skipped
+  const showSkip = currentStep === 10 || currentStep === 12 || currentStep === 13 || currentStep === 14 || currentStep === 15;
 
   // Show loading while fetching agent data in edit mode
   if (loading) {
