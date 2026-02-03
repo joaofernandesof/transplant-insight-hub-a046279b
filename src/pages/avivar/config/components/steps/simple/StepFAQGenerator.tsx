@@ -432,18 +432,6 @@ export function StepFAQGenerator({
             </CardContent>
           </Card>
         )}
-
-        {/* Skip Button */}
-        <div className="text-center pt-4">
-          <Button
-            variant="ghost"
-            onClick={onSkip}
-            className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
-          >
-            <SkipForward className="h-4 w-4 mr-2" />
-            Pular etapa
-          </Button>
-        </div>
       </div>
     </div>
   );

@@ -498,26 +498,12 @@ export default function AvivarSimpleWizard() {
             Voltar
           </Button>
 
-          {/* Show tooltip when FAQ needs to be added */}
-          {currentStep === 5 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Button
-                      disabled
-                      className="bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))] cursor-not-allowed opacity-50"
-                    >
-                      Próximo
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
-                  <p>Clique em "Adicionar à Base de Conhecimento"</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          {/* Logic for FAQ step (currentStep === 6):
+              - If no FAQ generated: show normal Próximo button
+              - If FAQ generated but not added to knowledge: hide button completely */}
+          {currentStep === 6 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
+            // Hide button completely when FAQ generated but not added to knowledge
+            null
           ) : (
             <Button
               onClick={handleNext}
