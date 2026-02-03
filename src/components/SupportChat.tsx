@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -38,6 +39,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 
 export default function SupportChat() {
   const { user } = useAuth();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
@@ -48,6 +50,9 @@ export default function SupportChat() {
   const inputRef = useRef<HTMLInputElement>(null);
   const hasLoadedHistory = useRef(false);
   const lastSeenMessageCount = useRef(1); // Start with welcome message
+
+  // Hide on Avivar portal routes
+  const isAvivarRoute = location.pathname.startsWith('/avivar');
 
   // Listen for external open requests
   useEffect(() => {
@@ -173,6 +178,11 @@ export default function SupportChat() {
       }
     }
   }, [messages.length, isOpen]);
+
+  // Hide on Avivar portal routes (after all hooks)
+  if (isAvivarRoute) {
+    return null;
+  }
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
