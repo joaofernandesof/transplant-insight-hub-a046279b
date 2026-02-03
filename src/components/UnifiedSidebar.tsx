@@ -47,6 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ThemedLogo } from "@/components/ThemedLogo";
+import { ModuleSwitcher } from "@/components/shared/ModuleSwitcher";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { 
   Collapsible,
@@ -263,14 +264,18 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
           </div>
           <span className={cn("font-bold", portalConfig.headerText)}>{portalConfig.name}</span>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={cn("hover:bg-white/10", portalConfig.headerText)}
-          onClick={() => setIsMobileOpen(true)}
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {/* Module Switcher Button - Mobile Header */}
+          <ModuleSwitcher variant="icon" theme="light" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn("hover:bg-white/10", portalConfig.headerText)}
+            onClick={() => setIsMobileOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
       </header>
 
       {/* Overlay for mobile */}
@@ -496,17 +501,7 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
             <div className="my-3 border-t border-border" />
             
             {/* Switch Module */}
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-3 h-9 text-muted-foreground hover:text-foreground",
-                isCollapsed && "justify-center px-2"
-              )}
-              onClick={() => navigate('/select-profile')}
-            >
-              <Layers className="h-4 w-4 flex-shrink-0" />
-              {!isCollapsed && <span className="truncate text-sm">Alternar Módulo</span>}
-            </Button>
+            <ModuleSwitcher isCollapsed={isCollapsed} />
             
             {/* Logout Button */}
             <Button

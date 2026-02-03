@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, Building2 } from 'lucide-react';
 import UserNotificationsPopover from './UserNotificationsPopover';
+import { ModuleSwitcher } from '@/components/shared/ModuleSwitcher';
 
 // Helper to get initials from name
 const getInitials = (name: string): string => {
@@ -47,7 +48,10 @@ export function Header() {
             )}
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Module Switcher */}
+            <ModuleSwitcher variant="icon" />
+            
             {/* Notifications */}
             <UserNotificationsPopover />
             
