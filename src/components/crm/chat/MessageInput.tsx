@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef } from 'react';
-import { Send, Paperclip, Smile, Mic, Image, FileText, X, Square, Trash2 } from 'lucide-react';
+import { Send, Paperclip, Smile, Mic, Image, FileText, X, Square, Trash2, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,17 +26,21 @@ interface MessageInputProps {
   onSend: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video' | 'audio' | 'document') => void;
   onSendAudio?: (audioBlob: Blob) => void;
   onSendImage?: (imageBase64: string, caption?: string) => void;
+  onSendVideo?: (videoBase64: string, caption?: string) => void;
   disabled?: boolean;
   placeholder?: string;
 }
 
-export function MessageInput({ onSend, onSendAudio, onSendImage, disabled, placeholder }: MessageInputProps) {
+export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, disabled, placeholder }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ base64: string; preview: string } | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ base64: string; preview: string } | null>(null);
   const [imageCaption, setImageCaption] = useState('');
+  const [videoCaption, setVideoCaption] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const {
     isRecording,
@@ -104,6 +108,52 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, disabled, place
   const handleCancelImage = () => {
     setSelectedImage(null);
     setImageCaption('');
+  };
+
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('video/')) {
+      return;
+    }
+
+    // Validate file size (max 16MB for videos)
+    if (file.size > 16 * 1024 * 1024) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setSelectedVideo({
+        base64,
+        preview: URL.createObjectURL(file),
+      });
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
+  };
+
+  const handleSendVideo = () => {
+    if (selectedVideo && onSendVideo) {
+      onSendVideo(selectedVideo.base64, videoCaption || undefined);
+      setSelectedVideo(null);
+      setVideoCaption('');
+    }
+  };
+
+  const handleCancelVideo = () => {
+    if (selectedVideo?.preview) {
+      URL.revokeObjectURL(selectedVideo.preview);
+    }
+    setSelectedVideo(null);
+    setVideoCaption('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -283,6 +333,65 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, disabled, place
     );
   }
 
+  // Interface de preview de vídeo
+  if (selectedVideo) {
+    return (
+      <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
+        <div className="flex gap-3">
+          {/* Vídeo preview */}
+          <div className="relative shrink-0">
+            <video 
+              src={selectedVideo.preview} 
+              className="h-24 w-32 object-cover rounded-lg"
+              muted
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCancelVideo}
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-500/10"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center">
+                <Video className="h-4 w-4 text-white" />
+              </div>
+            </div>
+          </div>
+
+          {/* Caption input e botão enviar */}
+          <div className="flex-1 flex flex-col gap-2">
+            <Textarea
+              value={videoCaption}
+              onChange={(e) => setVideoCaption(e.target.value)}
+              placeholder="Adicionar legenda (opcional)..."
+              disabled={disabled}
+              className={cn(
+                "min-h-[60px] max-h-[80px] resize-none",
+                "bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]",
+                "text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]",
+                "focus:ring-[hsl(var(--avivar-primary))]"
+              )}
+              rows={2}
+            />
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSendVideo}
+                disabled={disabled}
+                size="sm"
+                className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)] text-white"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Enviar Vídeo
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Interface normal de input
   return (
     <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
@@ -292,6 +401,15 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, disabled, place
         type="file"
         accept="image/*"
         onChange={handleImageSelect}
+        className="hidden"
+      />
+
+      {/* Hidden video input */}
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/*"
+        onChange={handleVideoSelect}
         className="hidden"
       />
 
@@ -319,6 +437,13 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, disabled, place
               >
                 <Image className="h-4 w-4 text-green-500" />
                 Imagem
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="gap-2 text-[hsl(var(--avivar-foreground))] cursor-pointer"
+                onClick={() => videoInputRef.current?.click()}
+              >
+                <Video className="h-4 w-4 text-purple-500" />
+                Vídeo
               </DropdownMenuItem>
               <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))] opacity-50 cursor-not-allowed">
                 <FileText className="h-4 w-4 text-blue-500" />

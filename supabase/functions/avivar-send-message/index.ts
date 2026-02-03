@@ -13,6 +13,7 @@ interface SendMessagePayload {
   mediaType?: 'image' | 'video' | 'audio' | 'document';
   audioBase64?: string; // Base64 encoded audio for voice messages
   imageBase64?: string; // Base64 encoded image
+  videoBase64?: string; // Base64 encoded video
   caption?: string; // Caption for media messages
   isAIGenerated?: boolean;
 }
@@ -72,19 +73,20 @@ serve(async (req) => {
 
     // Parse payload
     const payload: SendMessagePayload = await req.json();
-    const { conversationId, content, mediaUrl, mediaType, audioBase64, imageBase64, caption, isAIGenerated } = payload;
+    const { conversationId, content, mediaUrl, mediaType, audioBase64, imageBase64, videoBase64, caption, isAIGenerated } = payload;
 
-    // Validate: need either content, audioBase64, or imageBase64
-    if (!conversationId || (!content && !audioBase64 && !imageBase64)) {
+    // Validate: need either content, audioBase64, imageBase64, or videoBase64
+    if (!conversationId || (!content && !audioBase64 && !imageBase64 && !videoBase64)) {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing conversationId or content/audio/image" }),
+        JSON.stringify({ success: false, error: "Missing conversationId or content/audio/image/video" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const isAudioMessage = !!audioBase64;
     const isImageMessage = !!imageBase64;
-    const messageTypeLog = isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : `Content: ${content?.substring(0, 50)}`;
+    const isVideoMessage = !!videoBase64;
+    const messageTypeLog = isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : isVideoMessage ? "Video message" : `Content: ${content?.substring(0, 50)}`;
     console.log("[Avivar Send Message] Conversation:", conversationId, messageTypeLog);
 
     // Get conversation with lead info and assigned_to (to find the user's instance)
@@ -285,6 +287,69 @@ serve(async (req) => {
       await logAttempt("/send/media type=image", uazapiResponse);
       
       messageContent = caption || "📷 Imagem";
+    } else if (isVideoMessage && videoBase64) {
+      // Send video message
+      console.log("[Avivar Send Message] Sending video message via UazAPI");
+      
+      // Extract raw base64 if it has data URI prefix
+      const videoRawBase64 = videoBase64.includes(",") ? videoBase64.split(",")[1] : videoBase64;
+      
+      // Detect mimetype from data URI or default to mp4
+      let mimetype = "video/mp4";
+      let fileExtension = "mp4";
+      if (videoBase64.startsWith("data:")) {
+        const mimeMatch = videoBase64.match(/data:([^;]+);/);
+        if (mimeMatch) {
+          mimetype = mimeMatch[1];
+          if (mimetype === "video/webm") fileExtension = "webm";
+          else if (mimetype === "video/quicktime") fileExtension = "mov";
+          else if (mimetype === "video/x-msvideo") fileExtension = "avi";
+        }
+      }
+
+      // Upload video to Supabase Storage for preview
+      try {
+        const videoBuffer = Uint8Array.from(atob(videoRawBase64), c => c.charCodeAt(0));
+        const fileName = `chat-videos/${conversationId}/${Date.now()}.${fileExtension}`;
+        
+        const { data: uploadData, error: uploadError } = await adminClient.storage
+          .from("avivar-media")
+          .upload(fileName, videoBuffer, {
+            contentType: mimetype,
+            upsert: false,
+          });
+        
+        if (!uploadError && uploadData) {
+          const { data: publicUrl } = adminClient.storage
+            .from("avivar-media")
+            .getPublicUrl(fileName);
+          savedMediaUrl = publicUrl.publicUrl;
+          console.log("[Avivar Send Message] Video uploaded to storage:", savedMediaUrl);
+        } else {
+          console.error("[Avivar Send Message] Storage upload error:", uploadError);
+        }
+      } catch (storageErr) {
+        console.error("[Avivar Send Message] Storage upload failed:", storageErr);
+      }
+
+      // Send video via /send/media with type: "video"
+      uazapiResponse = await fetch(`${uazapiUrl}/send/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "token": uazapiToken,
+        },
+        body: JSON.stringify({
+          number: phone,
+          type: "video",
+          file: videoRawBase64,
+          mimetype,
+          text: caption || " ",
+        }),
+      });
+      await logAttempt("/send/media type=video", uazapiResponse);
+      
+      messageContent = caption || "🎬 Vídeo";
     } else {
       // Send text message: POST /send/text
       uazapiResponse = await fetch(`${uazapiUrl}/send/text`, {
@@ -346,7 +411,7 @@ serve(async (req) => {
     }
 
     // Determine media type for storage
-    const finalMediaType = isAudioMessage ? "audio" : isImageMessage ? "image" : (mediaType || null);
+    const finalMediaType = isAudioMessage ? "audio" : isImageMessage ? "image" : isVideoMessage ? "video" : (mediaType || null);
     const finalMediaUrl = savedMediaUrl || mediaUrl || null;
 
     // Save message to crm_messages
@@ -390,7 +455,7 @@ serve(async (req) => {
         .maybeSingle();
 
       if (avivarConversa) {
-        const legacyMsgType = isAudioMessage ? "audio" : isImageMessage ? "image" : "text";
+        const legacyMsgType = isAudioMessage ? "audio" : isImageMessage ? "image" : isVideoMessage ? "video" : "text";
         await adminClient.from("avivar_mensagens").insert({
           conversa_id: avivarConversa.id,
           numero: phone,

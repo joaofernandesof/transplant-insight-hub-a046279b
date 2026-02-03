@@ -98,6 +98,14 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 alt="Imagem"
                 className="rounded-lg max-w-full max-h-64 object-cover"
               />
+            ) : message.media_type === 'video' ? (
+              <video
+                src={message.media_url}
+                controls
+                className="rounded-lg max-w-full max-h-64"
+              >
+                Seu navegador não suporta a reprodução de vídeos.
+              </video>
             ) : message.media_type === 'audio' ? (
               <div className="flex items-center gap-2 p-2 bg-black/10 rounded-lg">
                 <Mic className="h-5 w-5" />
