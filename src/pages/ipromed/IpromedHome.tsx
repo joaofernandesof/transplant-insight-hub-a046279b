@@ -1,28 +1,22 @@
 /**
- * IPROMED - Home do Módulo Jurídico
- * Instituto de Proteção Médica - Portal Jurídico Completo
+ * IPROMED - Home do Módulo Jurídico (Aba Início)
+ * Foco: Tarefas, agenda e operação do dia a dia das advogadas
+ * Para visão geral do sistema, usar Dashboard
  */
 
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { PortalBanner } from '@/components/shared/PortalBanner';
-import IpromedLogo from '@/components/icons/IpromedLogo';
 import { TaskStatsCards } from './components/TaskStatsCards';
 
 import {
   Scale,
   Users,
   BarChart3,
-  FileText,
-  GraduationCap,
-  Gavel,
-  TrendingUp,
   FileSignature,
+  TrendingUp,
+  GraduationCap,
   Building2,
 } from "lucide-react";
 
@@ -80,87 +74,6 @@ const quickAccessModules = [
 export default function IpromedHome() {
   const navigate = useNavigate();
 
-  // Fetch real stats from database
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['ipromed-home-stats'],
-    queryFn: async () => {
-      // Get all clients
-      const { data: clients, error } = await supabase
-        .from('ipromed_legal_clients')
-        .select('*');
-
-      if (error) throw error;
-
-      // Get all legal cases (processes)
-      const { data: cases } = await supabase
-        .from('ipromed_legal_cases')
-        .select('id, status')
-        .eq('status', 'active');
-
-      // Get contracts count
-      const { data: contracts } = await supabase
-        .from('ipromed_contracts')
-        .select('id, status');
-
-      // Calculate stats
-      const totalClients = clients?.length || 0;
-      const activeProcesses = cases?.length || 0;
-      const activeContracts = contracts?.filter(c => c.status === 'active' || c.status === 'signed')?.length || 0;
-      
-      // Count pending signatures from clients metadata
-      const pendingSignatures = clients?.filter(c => {
-        const meta = c.metadata as any;
-        return meta?.contract_status === 'pending_signature';
-      })?.length || 0;
-
-      // Count clients with pending contract (draft)
-      const pendingContracts = clients?.filter(c => {
-        const meta = c.metadata as any;
-        return meta?.contract_status === 'draft';
-      })?.length || 0;
-
-      return {
-        activeProcesses,
-        totalClients,
-        activeContracts,
-        pendingSignatures,
-        pendingContracts,
-      };
-    },
-  });
-
-  // Count unique contracts (partners share one contract)
-  const uniqueContracts = stats?.totalClients 
-    ? stats.totalClients - (stats.totalClients > 0 ? Math.floor((stats.pendingContracts || 0) / 2) : 0)
-    : 0;
-
-  const statsCards = [
-    { 
-      label: 'Processos Ativos', 
-      value: stats?.activeProcesses ?? 0, 
-      icon: Gavel, 
-      color: 'text-blue-600' 
-    },
-    { 
-      label: 'Clientes', 
-      value: stats?.totalClients ?? 0, 
-      icon: Users, 
-      color: 'text-emerald-600' 
-    },
-    { 
-      label: 'Contratos Pendentes', 
-      value: stats?.pendingContracts ?? 0, 
-      icon: FileText, 
-      color: 'text-amber-600' 
-    },
-    { 
-      label: 'Aguard. Assinatura', 
-      value: stats?.pendingSignatures ?? 0, 
-      icon: FileSignature, 
-      color: 'text-purple-600' 
-    },
-  ];
-
   return (
     <div className="container mx-auto p-6 space-y-8">
       {/* Portal Banner */}
@@ -181,33 +94,10 @@ export default function IpromedHome() {
         }
       />
 
-      {/* Task Stats Cards */}
+      {/* Task Stats Cards - Foco operacional */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Tarefas</h2>
         <TaskStatsCards />
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((stat) => (
-          <Card key={stat.label} className="border-none shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  {isLoading ? (
-                    <Skeleton className="h-8 w-12 mt-1" />
-                  ) : (
-                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                  )}
-                </div>
-                <div className="p-3 bg-muted rounded-xl">
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
       </div>
 
       {/* Quick Access Modules */}
@@ -236,7 +126,6 @@ export default function IpromedHome() {
             </Card>
           ))}
         </div>
-
       </div>
     </div>
   );
