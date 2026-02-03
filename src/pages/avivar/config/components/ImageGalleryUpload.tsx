@@ -77,26 +77,38 @@ export function ImageGalleryUpload({
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with external gallery prop
+  // Sync with external gallery prop - track if initially loaded
+  const [initiallyLoaded, setInitiallyLoaded] = useState(false);
+  
   useEffect(() => {
-    const items: Record<ImageCategory, ImageItem[]> = {
-      before_after: [],
-      catalog: [],
-      location: [],
-      general: []
-    };
+    // Only sync from external gallery on first meaningful load
+    // or when gallery has content and we haven't synced yet
+    const hasGalleryContent = gallery && Object.values(gallery).some(arr => arr && arr.length > 0);
+    
+    if (!initiallyLoaded && hasGalleryContent) {
+      const items: Record<ImageCategory, ImageItem[]> = {
+        before_after: [],
+        catalog: [],
+        location: [],
+        general: []
+      };
 
-    (Object.keys(gallery) as ImageCategory[]).forEach(cat => {
-      items[cat] = (gallery[cat] || []).map(img => ({
-        id: img.id,
-        url: img.url,
-        caption: img.caption || '',
-        isUploaded: true
-      }));
-    });
+      (Object.keys(gallery) as ImageCategory[]).forEach(cat => {
+        items[cat] = (gallery[cat] || []).map(img => ({
+          id: img.id,
+          url: img.url,
+          caption: img.caption || '',
+          isUploaded: true
+        }));
+      });
 
-    setImageItems(items);
-  }, []);
+      setImageItems(items);
+      setInitiallyLoaded(true);
+    } else if (!initiallyLoaded && !hasGalleryContent) {
+      // Mark as loaded even if empty, so we don't overwrite user additions
+      setInitiallyLoaded(true);
+    }
+  }, [gallery, initiallyLoaded]);
 
   // Update parent when items change
   const updateParent = useCallback((items: Record<ImageCategory, ImageItem[]>) => {
