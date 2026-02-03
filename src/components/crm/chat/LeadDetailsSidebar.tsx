@@ -23,9 +23,18 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  MoreVertical,
+  Tags,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -83,6 +92,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
   const [notes, setNotes] = useState('');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const { deleteLead } = useLeads();
   const { isAdmin } = useAuth();
@@ -148,13 +158,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
     <div className="h-full flex flex-col bg-[hsl(var(--avivar-card))] border-l border-[hsl(var(--avivar-border))]">
       {/* Header */}
       <div className="p-4 border-b border-[hsl(var(--avivar-border))]">
-        <div className="flex items-start gap-3">
-          <Avatar className="h-14 w-14 border-2 border-[hsl(var(--avivar-primary))]">
-            <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-primary))] text-xl font-bold">
-              {lead.name?.charAt(0).toUpperCase() || '?'}
-            </AvatarFallback>
-          </Avatar>
-          
+        <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-[hsl(var(--avivar-foreground))] text-lg truncate">
               {lead.name}
@@ -167,62 +171,82 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             </Badge>
           </div>
           
-          <div className="flex gap-1 shrink-0">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setIsEditDialogOpen(true)}
-            >
-              <Edit2 className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-            </Button>
-            
-            {isAdmin && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    disabled={isDeleting}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="shrink-0"
+              >
+                <MoreVertical className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-popover border-[hsl(var(--avivar-border))]">
+              <DropdownMenuItem 
+                onClick={() => setIsEditDialogOpen(true)}
+                className="cursor-pointer"
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Editar Lead
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setIsEditDialogOpen(true)}
+                className="cursor-pointer"
+              >
+                <Tags className="h-4 w-4 mr-2" />
+                Editar Tags
+              </DropdownMenuItem>
+              {isAdmin && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="cursor-pointer text-destructive focus:text-destructive"
                   >
-                    {isDeleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-[hsl(var(--avivar-muted-foreground))]" />
-                    ) : (
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    )}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir Lead</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tem certeza que deseja excluir <strong>{lead.name}</strong>?
-                      <br /><br />
-                      Esta ação irá excluir permanentemente:
-                      <ul className="list-disc list-inside mt-2 text-sm">
-                        <li>Todas as conversas</li>
-                        <li>Todas as mensagens</li>
-                        <li>Histórico da jornada</li>
-                        <li>Contatos vinculados</li>
-                      </ul>
-                      <br />
-                      <strong className="text-destructive">Esta ação não pode ser desfeita.</strong>
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteLead}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Excluir Lead
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-          </div>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir Lead
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
+      {/* AlertDialog de confirmação de exclusão */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Lead</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{lead.name}</strong>?
+              <br /><br />
+              Esta ação irá excluir permanentemente:
+              <ul className="list-disc list-inside mt-2 text-sm">
+                <li>Todas as conversas</li>
+                <li>Todas as mensagens</li>
+                <li>Histórico da jornada</li>
+                <li>Contatos vinculados</li>
+              </ul>
+              <br />
+              <strong className="text-destructive">Esta ação não pode ser desfeita.</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteLead}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Excluir Lead
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Content with visible scrollbar */}
       <div className="flex-1 overflow-y-scroll scrollbar-avivar">
