@@ -7,7 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Package, DollarSign, EyeOff } from 'lucide-react';
+import { Plus, Trash2, Package, EyeOff } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Service, NichoType, SubnichoType } from '../../../types';
 import { getServicesForSubnicho } from '../../../nichoConfig';
@@ -32,11 +33,11 @@ export function StepServicesOnly({
     if (subnicho && services.length === 0) {
       const templateServices = getServicesForSubnicho(subnicho);
       if (templateServices.length > 0) {
-        // Ativa os 3 primeiros por padrão, todos com showPrice=false (não informar valores)
+        // Ativa os 3 primeiros por padrão, todos com showPrice=true (mostrar valores)
         const initialServices = templateServices.map((s, i) => ({
           ...s,
           enabled: i < 3,
-          showPrice: false, // Por padrão, não informar valores
+          showPrice: true, // Por padrão, mostrar campo de valores
           price: null,
         }));
         onServicesChange(initialServices);
@@ -80,7 +81,7 @@ export function StepServicesOnly({
       name: newServiceName.trim(),
       description: 'Serviço personalizado',
       enabled: true,
-      showPrice: false,
+      showPrice: true, // Por padrão mostrar valores
       price: null,
     };
     
@@ -150,38 +151,57 @@ export function StepServicesOnly({
                       </div>
                     </div>
 
-                    {/* Controle de Preço */}
+                    {/* Controle de Preço - Sempre visível quando habilitado */}
                     {service.enabled && (
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleShowPrice(service.id)}
-                          className={cn(
-                            "text-xs h-8 px-2",
-                            service.showPrice 
-                              ? "text-[hsl(var(--avivar-primary))]" 
-                              : "text-[hsl(var(--avivar-muted-foreground))]"
-                          )}
-                          title={service.showPrice ? "Ocultar valor" : "Informar valor"}
-                        >
-                          {service.showPrice ? (
-                            <DollarSign className="h-4 w-4" />
-                          ) : (
-                            <EyeOff className="h-4 w-4" />
-                          )}
-                        </Button>
-
-                        {service.showPrice && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">R$</span>
-                            <Input
-                              value={formatPrice(service.price)}
-                              onChange={(e) => updatePrice(service.id, e.target.value)}
-                              placeholder="0,00"
-                              className="w-24 h-8 text-sm bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-                            />
-                          </div>
+                        {service.showPrice ? (
+                          <>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">R$</span>
+                              <Input
+                                value={formatPrice(service.price)}
+                                onChange={(e) => updatePrice(service.id, e.target.value)}
+                                placeholder="0,00"
+                                className="w-24 h-8 text-sm bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                              />
+                            </div>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleShowPrice(service.id)}
+                                    className="text-xs h-8 px-2 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))]"
+                                  >
+                                    <EyeOff className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
+                                  <p className="text-xs">Clique para ocultar valor.<br/>A IA não informará preços.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </>
+                        ) : (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleShowPrice(service.id)}
+                                  className="text-xs h-8 px-2 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))] italic"
+                                >
+                                  <EyeOff className="h-4 w-4 mr-1" />
+                                  <span className="text-xs">Valor oculto</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
+                                <p className="text-xs">Clique para informar valor</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </div>
                     )}
@@ -221,7 +241,7 @@ export function StepServicesOnly({
 
             <div className="bg-[hsl(var(--avivar-muted)/0.3)] rounded-lg p-3 mt-4">
               <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                <strong>💡 Dica:</strong> Clique em <DollarSign className="h-3 w-3 inline" /> para adicionar valor ou deixe com <EyeOff className="h-3 w-3 inline" /> para não informar valores (ideal para trazer o cliente até a clínica).
+                <strong>💡 Dica:</strong> Clique em <EyeOff className="h-3 w-3 inline" /> ao lado do valor para ocultar o preço. A IA não vai informar valores, ideal para trazer o cliente até a clínica.
               </p>
             </div>
           </CardContent>
