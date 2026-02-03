@@ -349,21 +349,30 @@ export function StepObjectivesSimple({
                 />
               ))}
 
-              {/* Objetivos customizados */}
-              {customObjectives.map((custom) => (
-                <ObjectiveCard
-                  key={custom.id}
-                  id={custom.id}
-                  name={custom.name}
-                  description={custom.description}
-                  icon={<Sparkles className="h-5 w-5" />}
-                  isSelected={objectives.primary === 'custom' && objectives.primaryCustomId === custom.id}
-                  isPrimary
-                  isCustom
-                  onEdit={() => handleEditCustom(custom)}
-                  onDelete={() => handleDeleteCustom(custom.id)}
-                />
-              ))}
+              {/* Objetivos customizados - apenas os que NÃO estão como secundários */}
+              {customObjectives
+                .filter(custom => {
+                  // Mostrar na lista principal se:
+                  // 1. Está selecionado como principal OU
+                  // 2. NÃO está selecionado como secundário (pode ser escolhido como principal)
+                  const isSelectedAsPrimary = objectives.primary === 'custom' && objectives.primaryCustomId === custom.id;
+                  const isSelectedAsSecondary = objectives.secondaryCustomIds?.includes(custom.id) || false;
+                  return isSelectedAsPrimary || !isSelectedAsSecondary;
+                })
+                .map((custom) => (
+                  <ObjectiveCard
+                    key={custom.id}
+                    id={custom.id}
+                    name={custom.name}
+                    description={custom.description}
+                    icon={<Sparkles className="h-5 w-5" />}
+                    isSelected={objectives.primary === 'custom' && objectives.primaryCustomId === custom.id}
+                    isPrimary
+                    isCustom
+                    onEdit={() => handleEditCustom(custom)}
+                    onDelete={() => handleDeleteCustom(custom.id)}
+                  />
+                ))}
             </div>
           </RadioGroup>
         </div>
@@ -417,9 +426,14 @@ export function StepObjectivesSimple({
                   );
                 })}
 
-              {/* Objetivos customizados secundários */}
+              {/* Objetivos customizados secundários - apenas os que NÃO estão como principal */}
               {customObjectives
-                .filter(custom => !(objectives.primary === 'custom' && objectives.primaryCustomId === custom.id))
+                .filter(custom => {
+                  // Mostrar na lista secundária se:
+                  // 1. NÃO está selecionado como principal
+                  const isSelectedAsPrimary = objectives.primary === 'custom' && objectives.primaryCustomId === custom.id;
+                  return !isSelectedAsPrimary;
+                })
                 .map((custom) => {
                   const isSelected = objectives.secondaryCustomIds?.includes(custom.id) || false;
                   return (
