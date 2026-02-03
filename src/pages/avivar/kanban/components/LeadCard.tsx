@@ -1,10 +1,11 @@
 /**
  * LeadCard - Card compacto para exibição de lead no Kanban
+ * Com indicador de fonte (bolinha) e prévia da última mensagem
  */
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Phone, Mail, MessageSquare, MoreHorizontal, Trash2, User } from 'lucide-react';
+import { Phone, Mail, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -21,6 +22,24 @@ interface LeadCardProps {
   onDelete?: (leadId: string) => void;
   onClick?: (lead: KanbanLead) => void;
 }
+
+// Source colors for visual identification
+const sourceColors: Record<string, string> = {
+  'whatsapp': 'bg-green-500',
+  'instagram': 'bg-gradient-to-br from-purple-500 to-pink-500',
+  'facebook': 'bg-blue-600',
+  'google': 'bg-red-500',
+  'site': 'bg-cyan-500',
+  'indicacao': 'bg-amber-500',
+  'manual': 'bg-gray-500',
+  'default': 'bg-violet-500',
+};
+
+const getSourceColor = (source: string | null) => {
+  if (!source) return sourceColors.default;
+  const normalized = source.toLowerCase().trim();
+  return sourceColors[normalized] || sourceColors.default;
+};
 
 export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
   const {
@@ -45,13 +64,10 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
 
   const formatPhone = (phone: string | null) => {
     if (!phone) return null;
-    // Format: 55 85 91234-5678
     const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 13) {
-      return `(${cleaned.slice(2, 4)}) ${cleaned.slice(4, 9)}-${cleaned.slice(9)}`;
-    }
-    if (cleaned.length === 12) {
-      return `(${cleaned.slice(2, 4)}) ${cleaned.slice(4, 8)}-${cleaned.slice(8)}`;
+    if (cleaned.length >= 10) {
+      // Show last 4 digits
+      return `***-${cleaned.slice(-4)}`;
     }
     return phone;
   };
@@ -64,6 +80,9 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
       .join('')
       .toUpperCase();
   };
+
+  // Get last message preview from custom_fields if available
+  const lastMessage = (lead.custom_fields as Record<string, unknown>)?.last_message as string | undefined;
 
   return (
     <div
@@ -82,24 +101,31 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
       {/* Header with name and menu */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* Avatar */}
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[hsl(var(--avivar-primary))] to-[hsl(var(--avivar-accent))] flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-semibold text-white">
-              {getInitials(lead.name)}
-            </span>
+          {/* Avatar with source indicator */}
+          <div className="relative flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[hsl(var(--avivar-primary))] to-[hsl(var(--avivar-accent))] flex items-center justify-center">
+              <span className="text-xs font-semibold text-white">
+                {getInitials(lead.name)}
+              </span>
+            </div>
+            {/* Source indicator (bolinha) */}
+            <div 
+              className={cn(
+                "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[hsl(var(--avivar-card))]",
+                getSourceColor(lead.source)
+              )}
+              title={lead.source || 'Desconhecido'}
+            />
           </div>
           
           <div className="min-w-0 flex-1">
             <h4 className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">
               {lead.name}
             </h4>
-            {lead.source && (
-              <Badge 
-                variant="secondary" 
-                className="text-[10px] px-1.5 py-0 bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))]"
-              >
-                {lead.source}
-              </Badge>
+            {lead.phone && (
+              <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+                {formatPhone(lead.phone)}
+              </p>
             )}
           </div>
         </div>
@@ -132,25 +158,16 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
         </DropdownMenu>
       </div>
 
-      {/* Contact Info */}
-      <div className="space-y-1">
-        {lead.phone && (
-          <div className="flex items-center gap-2 text-xs text-[hsl(var(--avivar-muted-foreground))]">
-            <Phone className="h-3 w-3" />
-            <span className="truncate">{formatPhone(lead.phone)}</span>
-          </div>
-        )}
-        {lead.email && (
-          <div className="flex items-center gap-2 text-xs text-[hsl(var(--avivar-muted-foreground))]">
-            <Mail className="h-3 w-3" />
-            <span className="truncate">{lead.email}</span>
-          </div>
-        )}
-      </div>
+      {/* Last message preview */}
+      {lastMessage && (
+        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] truncate mb-2 italic">
+          "{lastMessage}"
+        </p>
+      )}
 
       {/* Tags */}
       {lead.tags && lead.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
+        <div className="flex flex-wrap gap-1">
           {lead.tags.slice(0, 2).map((tag, idx) => (
             <Badge 
               key={idx}
