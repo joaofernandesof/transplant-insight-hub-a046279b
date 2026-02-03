@@ -54,8 +54,9 @@ export function KanbanColumn({
   return (
     <Card
       className={cn(
-        "w-[280px] flex-shrink-0 border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] flex flex-col h-full max-h-[calc(100vh-200px)]",
-        isDragging && "shadow-xl ring-2 ring-[hsl(var(--avivar-primary))]"
+        "w-[280px] flex-shrink-0 border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] flex flex-col h-full max-h-[calc(100vh-200px)] transition-all duration-200",
+        isDragging && "shadow-xl ring-2 ring-[hsl(var(--avivar-primary))]",
+        isOver && "ring-2 ring-[hsl(var(--avivar-primary))] shadow-lg shadow-[hsl(var(--avivar-primary)/0.3)]"
       )}
     >
       <CardHeader className="p-0 flex-shrink-0">
@@ -121,8 +122,10 @@ export function KanbanColumn({
       <CardContent 
         ref={setNodeRef}
         className={cn(
-          "p-3 flex-1 overflow-hidden bg-[hsl(var(--avivar-muted)/0.2)] transition-colors duration-200",
-          isOver && "bg-[hsl(var(--avivar-primary)/0.1)] ring-2 ring-inset ring-[hsl(var(--avivar-primary)/0.3)]"
+          "p-3 flex-1 overflow-hidden transition-all duration-200",
+          isOver 
+            ? "bg-[hsl(var(--avivar-primary)/0.15)]" 
+            : "bg-[hsl(var(--avivar-muted)/0.2)]"
         )}
       >
         <SortableContext items={leadIds} strategy={verticalListSortingStrategy}>
@@ -160,14 +163,20 @@ export function KanbanColumn({
               ))
             ) : (
               <div className={cn(
-                "flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg transition-colors",
+                "flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg transition-all duration-200",
                 isOver 
-                  ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.05)]" 
+                  ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)] scale-[1.02]" 
                   : "border-[hsl(var(--avivar-border))]"
               )}>
-                <Users className="h-6 w-6 mb-2 text-[hsl(var(--avivar-muted-foreground))] opacity-50" />
-                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                  {isOver ? "Solte aqui" : "Arraste leads aqui"}
+                <Users className={cn(
+                  "h-6 w-6 mb-2 transition-colors",
+                  isOver ? "text-[hsl(var(--avivar-primary))]" : "text-[hsl(var(--avivar-muted-foreground))] opacity-50"
+                )} />
+                <p className={cn(
+                  "text-xs font-medium transition-colors",
+                  isOver ? "text-[hsl(var(--avivar-primary))]" : "text-[hsl(var(--avivar-muted-foreground))]"
+                )}>
+                  {isOver ? "Solte aqui!" : "Arraste leads aqui"}
                 </p>
               </div>
             )}

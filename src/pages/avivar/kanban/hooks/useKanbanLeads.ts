@@ -75,13 +75,40 @@ export function useKanbanLeads(kanbanId: string | undefined) {
         .eq('id', leadId);
       
       if (error) throw error;
+      
+      return { leadId, columnId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
+    // Optimistic update - move lead immediately in UI
+    onMutate: async ({ leadId, columnId }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
+      
+      // Snapshot previous value
+      const previousLeads = queryClient.getQueryData<KanbanLead[]>(['avivar-kanban-leads', kanbanId]);
+      
+      // Optimistically update the lead's column
+      if (previousLeads) {
+        const updatedLeads = previousLeads.map(lead => 
+          lead.id === leadId 
+            ? { ...lead, column_id: columnId, updated_at: new Date().toISOString() }
+            : lead
+        );
+        queryClient.setQueryData(['avivar-kanban-leads', kanbanId], updatedLeads);
+      }
+      
+      return { previousLeads };
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousLeads) {
+        queryClient.setQueryData(['avivar-kanban-leads', kanbanId], context.previousLeads);
+      }
       console.error('Error moving lead:', error);
       toast.error(error.message || 'Erro ao mover lead');
+    },
+    onSettled: () => {
+      // Refetch after mutation settles to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['avivar-kanban-leads', kanbanId] });
     },
   });
 
