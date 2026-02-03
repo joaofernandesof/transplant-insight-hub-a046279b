@@ -27,20 +27,24 @@ interface MessageInputProps {
   onSendAudio?: (audioBlob: Blob) => void;
   onSendImage?: (imageBase64: string, caption?: string) => void;
   onSendVideo?: (videoBase64: string, caption?: string) => void;
+  onSendDocument?: (documentBase64: string, documentName: string, caption?: string) => void;
   disabled?: boolean;
   placeholder?: string;
 }
 
-export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, disabled, placeholder }: MessageInputProps) {
+export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, onSendDocument, disabled, placeholder }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ base64: string; preview: string } | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<{ base64: string; preview: string } | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<{ base64: string; name: string; size: number } | null>(null);
   const [imageCaption, setImageCaption] = useState('');
   const [videoCaption, setVideoCaption] = useState('');
+  const [documentCaption, setDocumentCaption] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
 
   const {
     isRecording,
@@ -154,6 +158,66 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, di
     }
     setSelectedVideo(null);
     setVideoCaption('');
+  };
+
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Allowed document types
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'application/zip',
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      return;
+    }
+
+    // Validate file size (max 10MB for documents)
+    if (file.size > 10 * 1024 * 1024) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setSelectedDocument({
+        base64,
+        name: file.name,
+        size: file.size,
+      });
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input
+    if (documentInputRef.current) {
+      documentInputRef.current.value = '';
+    }
+  };
+
+  const handleSendDocument = () => {
+    if (selectedDocument && onSendDocument) {
+      onSendDocument(selectedDocument.base64, selectedDocument.name, documentCaption || undefined);
+      setSelectedDocument(null);
+      setDocumentCaption('');
+    }
+  };
+
+  const handleCancelDocument = () => {
+    setSelectedDocument(null);
+    setDocumentCaption('');
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -392,6 +456,65 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, di
     );
   }
 
+  // Interface de preview de documento
+  if (selectedDocument) {
+    return (
+      <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
+        <div className="flex gap-3">
+          {/* Documento preview */}
+          <div className="relative shrink-0">
+            <div className="h-24 w-20 bg-[hsl(var(--avivar-muted))] rounded-lg flex flex-col items-center justify-center">
+              <FileText className="h-8 w-8 text-[hsl(var(--avivar-primary))]" />
+              <span className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1 uppercase">
+                {selectedDocument.name.split('.').pop()}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCancelDocument}
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-500/10"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+
+          {/* Documento info e botão enviar */}
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="text-sm">
+              <p className="font-medium text-[hsl(var(--avivar-foreground))] truncate">{selectedDocument.name}</p>
+              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{formatFileSize(selectedDocument.size)}</p>
+            </div>
+            <Textarea
+              value={documentCaption}
+              onChange={(e) => setDocumentCaption(e.target.value)}
+              placeholder="Adicionar legenda (opcional)..."
+              disabled={disabled}
+              className={cn(
+                "min-h-[40px] max-h-[60px] resize-none",
+                "bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]",
+                "text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]",
+                "focus:ring-[hsl(var(--avivar-primary))]"
+              )}
+              rows={1}
+            />
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSendDocument}
+                disabled={disabled}
+                size="sm"
+                className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)] text-white"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Enviar Documento
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Interface normal de input
   return (
     <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
@@ -410,6 +533,15 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, di
         type="file"
         accept="video/*"
         onChange={handleVideoSelect}
+        className="hidden"
+      />
+
+      {/* Hidden document input */}
+      <input
+        ref={documentInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+        onChange={handleDocumentSelect}
         className="hidden"
       />
 
@@ -445,9 +577,12 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, di
                 <Video className="h-4 w-4 text-purple-500" />
                 Vídeo
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))] opacity-50 cursor-not-allowed">
+              <DropdownMenuItem 
+                className="gap-2 text-[hsl(var(--avivar-foreground))] cursor-pointer"
+                onClick={() => documentInputRef.current?.click()}
+              >
                 <FileText className="h-4 w-4 text-blue-500" />
-                Documento (em breve)
+                Documento
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

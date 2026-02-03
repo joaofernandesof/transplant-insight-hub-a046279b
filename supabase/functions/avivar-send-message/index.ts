@@ -14,6 +14,8 @@ interface SendMessagePayload {
   audioBase64?: string; // Base64 encoded audio for voice messages
   imageBase64?: string; // Base64 encoded image
   videoBase64?: string; // Base64 encoded video
+  documentBase64?: string; // Base64 encoded document (PDF, DOC, etc.)
+  documentName?: string; // Original filename for document
   caption?: string; // Caption for media messages
   isAIGenerated?: boolean;
 }
@@ -73,12 +75,12 @@ serve(async (req) => {
 
     // Parse payload
     const payload: SendMessagePayload = await req.json();
-    const { conversationId, content, mediaUrl, mediaType, audioBase64, imageBase64, videoBase64, caption, isAIGenerated } = payload;
+    const { conversationId, content, mediaUrl, mediaType, audioBase64, imageBase64, videoBase64, documentBase64, documentName, caption, isAIGenerated } = payload;
 
-    // Validate: need either content, audioBase64, imageBase64, or videoBase64
-    if (!conversationId || (!content && !audioBase64 && !imageBase64 && !videoBase64)) {
+    // Validate: need either content, audioBase64, imageBase64, videoBase64, or documentBase64
+    if (!conversationId || (!content && !audioBase64 && !imageBase64 && !videoBase64 && !documentBase64)) {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing conversationId or content/audio/image/video" }),
+        JSON.stringify({ success: false, error: "Missing conversationId or content/audio/image/video/document" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -86,7 +88,8 @@ serve(async (req) => {
     const isAudioMessage = !!audioBase64;
     const isImageMessage = !!imageBase64;
     const isVideoMessage = !!videoBase64;
-    const messageTypeLog = isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : isVideoMessage ? "Video message" : `Content: ${content?.substring(0, 50)}`;
+    const isDocumentMessage = !!documentBase64;
+    const messageTypeLog = isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : isVideoMessage ? "Video message" : isDocumentMessage ? "Document message" : `Content: ${content?.substring(0, 50)}`;
     console.log("[Avivar Send Message] Conversation:", conversationId, messageTypeLog);
 
     // Get conversation with lead info and assigned_to (to find the user's instance)
@@ -350,6 +353,78 @@ serve(async (req) => {
       await logAttempt("/send/media type=video", uazapiResponse);
       
       messageContent = caption || "🎬 Vídeo";
+    } else if (isDocumentMessage && documentBase64) {
+      // Send document message
+      console.log("[Avivar Send Message] Sending document message via UazAPI");
+      
+      // Extract raw base64 if it has data URI prefix
+      const docRawBase64 = documentBase64.includes(",") ? documentBase64.split(",")[1] : documentBase64;
+      
+      // Detect mimetype from data URI or default to pdf
+      let mimetype = "application/pdf";
+      let fileExtension = "pdf";
+      if (documentBase64.startsWith("data:")) {
+        const mimeMatch = documentBase64.match(/data:([^;]+);/);
+        if (mimeMatch) {
+          mimetype = mimeMatch[1];
+          if (mimetype === "application/pdf") fileExtension = "pdf";
+          else if (mimetype === "application/msword") fileExtension = "doc";
+          else if (mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") fileExtension = "docx";
+          else if (mimetype === "application/vnd.ms-excel") fileExtension = "xls";
+          else if (mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") fileExtension = "xlsx";
+          else if (mimetype === "text/plain") fileExtension = "txt";
+          else if (mimetype === "application/zip") fileExtension = "zip";
+        }
+      }
+
+      // Use original filename if provided, otherwise generate one
+      const originalName = documentName || `documento_${Date.now()}.${fileExtension}`;
+      const safeFileName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+      // Upload document to Supabase Storage for preview
+      try {
+        const docBuffer = Uint8Array.from(atob(docRawBase64), c => c.charCodeAt(0));
+        const fileName = `chat-documents/${conversationId}/${Date.now()}_${safeFileName}`;
+        
+        const { data: uploadData, error: uploadError } = await adminClient.storage
+          .from("avivar-media")
+          .upload(fileName, docBuffer, {
+            contentType: mimetype,
+            upsert: false,
+          });
+        
+        if (!uploadError && uploadData) {
+          const { data: publicUrl } = adminClient.storage
+            .from("avivar-media")
+            .getPublicUrl(fileName);
+          savedMediaUrl = publicUrl.publicUrl;
+          console.log("[Avivar Send Message] Document uploaded to storage:", savedMediaUrl);
+        } else {
+          console.error("[Avivar Send Message] Storage upload error:", uploadError);
+        }
+      } catch (storageErr) {
+        console.error("[Avivar Send Message] Storage upload failed:", storageErr);
+      }
+
+      // Send document via /send/media with type: "document"
+      uazapiResponse = await fetch(`${uazapiUrl}/send/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "token": uazapiToken,
+        },
+        body: JSON.stringify({
+          number: phone,
+          type: "document",
+          file: docRawBase64,
+          mimetype,
+          filename: originalName,
+          text: caption || " ",
+        }),
+      });
+      await logAttempt("/send/media type=document", uazapiResponse);
+      
+      messageContent = caption || `📄 ${originalName}`;
     } else {
       // Send text message: POST /send/text
       uazapiResponse = await fetch(`${uazapiUrl}/send/text`, {
@@ -411,7 +486,7 @@ serve(async (req) => {
     }
 
     // Determine media type for storage
-    const finalMediaType = isAudioMessage ? "audio" : isImageMessage ? "image" : isVideoMessage ? "video" : (mediaType || null);
+    const finalMediaType = isAudioMessage ? "audio" : isImageMessage ? "image" : isVideoMessage ? "video" : isDocumentMessage ? "document" : (mediaType || null);
     const finalMediaUrl = savedMediaUrl || mediaUrl || null;
 
     // Save message to crm_messages
@@ -455,7 +530,7 @@ serve(async (req) => {
         .maybeSingle();
 
       if (avivarConversa) {
-        const legacyMsgType = isAudioMessage ? "audio" : isImageMessage ? "image" : isVideoMessage ? "video" : "text";
+        const legacyMsgType = isAudioMessage ? "audio" : isImageMessage ? "image" : isVideoMessage ? "video" : isDocumentMessage ? "document" : "text";
         await adminClient.from("avivar_mensagens").insert({
           conversa_id: avivarConversa.id,
           numero: phone,
