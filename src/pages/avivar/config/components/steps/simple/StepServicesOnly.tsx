@@ -62,14 +62,16 @@ export function StepServicesOnly({
   };
 
   const updatePrice = (id: string, value: string) => {
-    const numValue = value ? parseFloat(value.replace(/[^\d.,]/g, '').replace(',', '.')) * 100 : null;
+    // Apenas salva quando perde o foco ou pressiona Enter
+    const cleanValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
+    const numValue = cleanValue ? Math.round(parseFloat(cleanValue) * 100) : null;
     onServicesChange(
       services.map(s => s.id === id ? { ...s, price: numValue } : s)
     );
   };
 
   const formatPrice = (cents: number | null | undefined): string => {
-    if (!cents) return '';
+    if (cents === null || cents === undefined) return '';
     return (cents / 100).toFixed(2).replace('.', ',');
   };
 
@@ -159,8 +161,15 @@ export function StepServicesOnly({
                             <div className="flex items-center gap-1">
                               <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">R$</span>
                               <Input
-                                value={formatPrice(service.price)}
-                                onChange={(e) => updatePrice(service.id, e.target.value)}
+                                type="text"
+                                inputMode="decimal"
+                                defaultValue={formatPrice(service.price)}
+                                onBlur={(e) => updatePrice(service.id, e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    updatePrice(service.id, e.currentTarget.value);
+                                  }
+                                }}
                                 placeholder="0,00"
                                 className="w-24 h-8 text-sm bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
                               />
