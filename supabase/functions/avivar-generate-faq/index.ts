@@ -84,6 +84,7 @@ serve(async (req) => {
       crm,
       businessUnits,
       services, 
+      paymentMethods,
       objectives 
     } = await req.json();
 
@@ -94,6 +95,7 @@ serve(async (req) => {
       city,
       state,
       servicesCount: services?.length,
+      paymentsCount: paymentMethods?.length,
       hasObjectives: !!objectives,
       hasUnits: businessUnits?.length > 0
     });
@@ -105,9 +107,25 @@ serve(async (req) => {
 
     const nichoName = NICHO_NAMES[nicho] || nicho;
     const subnichoName = SUBNICHO_NAMES[subnicho] || subnicho;
-    const servicesText = services?.length > 0 
-      ? `Os serviços oferecidos são: ${services.join(', ')}.`
-      : '';
+
+    // Construir texto de serviços com preços
+    let servicesText = '';
+    if (services?.length > 0) {
+      const servicesList = services.map((s: { name: string; price?: number | null; showPrice?: boolean }) => {
+        if (s.showPrice && s.price) {
+          return `${s.name} (R$ ${s.price.toFixed(2).replace('.', ',')})`;
+        } else {
+          return `${s.name} (valor sob consulta)`;
+        }
+      });
+      servicesText = `Os serviços oferecidos são: ${servicesList.join(', ')}.`;
+    }
+
+    // Construir texto de formas de pagamento
+    let paymentsText = '';
+    if (paymentMethods?.length > 0) {
+      paymentsText = `\nFORMAS DE PAGAMENTO ACEITAS: ${paymentMethods.join(', ')}`;
+    }
 
     // Construir informações da empresa
     let companyInfoText = '';
@@ -128,6 +146,9 @@ serve(async (req) => {
       if (crm) {
         companyInfoText += ` (Registro: ${crm})`;
       }
+    }
+    if (paymentsText) {
+      companyInfoText += paymentsText;
     }
 
     // Adicionar unidades/filiais se existirem
