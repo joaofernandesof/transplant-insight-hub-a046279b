@@ -512,58 +512,23 @@ export default function IpromedJourney() {
           </div>
         </div>
 
-        {/* Pipeline View - Enhanced Kanban */}
+        {/* Pipeline View - Enhanced Kanban with horizontal scroll */}
         <TabsContent value="pipeline" className="mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
-            {journeyPhases.map((phase) => {
-              const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
-              return (
-                <div key={phase.id} className="flex flex-col">
-                  {/* Column Header */}
-                  <div className={cn("text-white text-center py-2 rounded-t-lg relative group", phase.color)}>
-                    <p className="font-semibold text-sm">{phase.id}</p>
-                    <p className="text-xs opacity-80">{phase.label}</p>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 text-white hover:bg-white/20"
-                      onClick={() => {
-                        if (phaseDetail) {
-                          setSelectedPhaseDetail(phaseDetail);
-                          setPhaseDetailOpen(true);
-                        }
-                      }}
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  
-                  {/* Column Content */}
-                  <ScrollArea className="bg-muted/30 rounded-b-lg p-2 min-h-[350px] max-h-[500px]">
-                    <div className="space-y-2">
-                      {clientsByPhase[phase.id]?.map((client) => (
-                        <div key={client.id} className="group/card">
-                          <ClientCard client={client} />
-                        </div>
-                      ))}
-                      {(!clientsByPhase[phase.id] || clientsByPhase[phase.id].length === 0) && (
-                        <div className="text-center text-muted-foreground text-xs py-8 space-y-2">
-                          <Users className="h-8 w-8 mx-auto opacity-20" />
-                          <p>Nenhum cliente</p>
-                          <p className="text-[10px]">nesta fase</p>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                  
-                  {/* Column Footer with phase info */}
-                  <div className="bg-muted/20 rounded-b-lg px-2 py-1.5 border-t">
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span>{phase.deliverables} entregáveis</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-5 text-[10px] px-1"
+          <div className="overflow-x-auto pb-4">
+            <div className="flex gap-4 min-w-max">
+              {journeyPhases.map((phase) => {
+                const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
+                const phaseClients = clientsByPhase[phase.id] || [];
+                return (
+                  <div key={phase.id} className="flex flex-col w-[220px] flex-shrink-0">
+                    {/* Column Header */}
+                    <div className={cn("text-white text-center py-3 rounded-t-lg relative group", phase.color)}>
+                      <p className="font-bold text-sm">{phase.id}</p>
+                      <p className="text-xs opacity-90">{phase.label}</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 text-white hover:bg-white/20"
                         onClick={() => {
                           if (phaseDetail) {
                             setSelectedPhaseDetail(phaseDetail);
@@ -571,13 +536,79 @@ export default function IpromedJourney() {
                           }
                         }}
                       >
-                        Ver detalhes
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    
+                    {/* Column Content */}
+                    <ScrollArea className="bg-muted/30 rounded-b-lg p-2 min-h-[400px] max-h-[450px] flex-1">
+                      <div className="space-y-2 pr-2">
+                        {phaseClients.map((client) => (
+                          <Card 
+                            key={client.id} 
+                            className="bg-card hover:shadow-md transition-shadow cursor-pointer border"
+                            onClick={() => setSelectedClient(client)}
+                          >
+                            <CardContent className="p-3">
+                              <div className="flex items-start gap-2">
+                                <Avatar className="h-8 w-8 flex-shrink-0">
+                                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                                    {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate">{client.name}</p>
+                                  <Badge 
+                                    variant="secondary" 
+                                    className={cn("text-[10px] h-4 mt-1", phase.color.replace('bg-', 'bg-opacity-20 text-').replace('-500', '-700').replace('-600', '-700'))}
+                                  >
+                                    {phase.id}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="mt-2">
+                                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                                  <span>Progresso</span>
+                                  <span>{(client.metadata as any)?.journey_progress || 0}%</span>
+                                </div>
+                                <Progress 
+                                  value={(client.metadata as any)?.journey_progress || 0} 
+                                  className="h-1.5"
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                        {phaseClients.length === 0 && (
+                          <div className="text-center text-muted-foreground text-xs py-12 space-y-2">
+                            <Users className="h-8 w-8 mx-auto opacity-20" />
+                            <p>Nenhum cliente</p>
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                    
+                    {/* Column Footer */}
+                    <div className="bg-muted/20 px-3 py-2 border-t flex items-center justify-between">
+                      <span className="text-[10px] text-muted-foreground">{phase.deliverables} entregáveis</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-5 text-[10px] px-2 hover:text-primary"
+                        onClick={() => {
+                          if (phaseDetail) {
+                            setSelectedPhaseDetail(phaseDetail);
+                            setPhaseDetailOpen(true);
+                          }
+                        }}
+                      >
+                        Detalhes
                       </Button>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </TabsContent>
 
