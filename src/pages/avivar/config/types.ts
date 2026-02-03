@@ -161,6 +161,7 @@ export interface CustomObjective {
   name: string;
   description: string;
   context: string; // Contexto detalhado para a IA entender o objetivo
+  targetList?: 'primary' | 'secondary'; // Em qual lista o objetivo foi criado
 }
 
 export interface AgentObjectives {
