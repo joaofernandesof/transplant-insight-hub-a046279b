@@ -136,7 +136,7 @@ export function StepFluxoSimple({
                       <Input
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        className="h-8 text-sm"
+                        className="h-8 text-sm !bg-[hsl(var(--avivar-card))] !text-[hsl(var(--avivar-foreground))] border-[hsl(var(--avivar-border))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
                         autoFocus
                       />
                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => saveEdit(type)}>
@@ -192,7 +192,7 @@ export function StepFluxoSimple({
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       rows={3}
-                      className="resize-none"
+                      className="resize-none !bg-[hsl(var(--avivar-card))] !text-[hsl(var(--avivar-foreground))] border-[hsl(var(--avivar-border))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
                       autoFocus
                     />
                     <div className="flex gap-2">
@@ -236,7 +236,7 @@ export function StepFluxoSimple({
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         rows={3}
-                        className="resize-none bg-[hsl(var(--avivar-card))] text-[hsl(var(--avivar-foreground))] border-[hsl(var(--avivar-primary))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+                        className="resize-none !bg-[hsl(var(--avivar-card))] !text-[hsl(var(--avivar-foreground))] border-[hsl(var(--avivar-primary))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
                         autoFocus
                       />
                       <div className="flex gap-2">
