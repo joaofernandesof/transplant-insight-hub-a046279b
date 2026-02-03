@@ -23,7 +23,6 @@ import {
   StepBusinessInfo,
   StepServicesOnly,
   StepPaymentsSimple,
-  StepConsultationSimple,
   StepObjectivesSimple,
   StepFluxoSimple,
   StepFAQGenerator,
@@ -60,7 +59,6 @@ const SIMPLE_STEPS = [
   { id: 'info', title: 'Sua Empresa', description: 'Informações básicas' },
   { id: 'services', title: 'Serviços', description: 'O que você oferece?' },
   { id: 'payments', title: 'Pagamentos', description: 'Formas de pagamento' },
-  { id: 'consultation', title: 'Atendimento', description: 'Como você atende?' },
   { id: 'objectives', title: 'Objetivos', description: 'Foco do agente' },
   { id: 'fluxo', title: 'Fluxo', description: 'Passos do atendimento' },
   { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
@@ -169,26 +167,24 @@ export default function AvivarSimpleWizard() {
         return config.services.some(s => s.enabled);
       case 3: // Pagamentos (opcional - sempre pode prosseguir)
         return true;
-      case 4: // Tipo de atendimento
-        return config.consultationType.presencial || config.consultationType.online || config.consultationType.domicilio;
-      case 5: // Objetivos
+      case 4: // Objetivos
         return !!config.agentObjectives?.primary;
-      case 6: // Fluxo de atendimento - sempre pode prosseguir (template já carregado)
+      case 5: // Fluxo de atendimento - sempre pode prosseguir (template já carregado)
         return true;
-      case 7: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
+      case 6: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
         if (generatedFAQ.length > 0 && !faqAddedToKnowledge) {
           return false;
         }
         return true;
-      case 8: // Knowledge (opcional - sempre pode prosseguir)
+      case 7: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 9: {
+      case 8: {
         // Imagens - se tiver imagens, todas precisam ter legenda
         const allImages = Object.values(config.imageGallery || {}).flat();
         if (allImages.length === 0) return true; // Sem imagens, pode prosseguir
         return allImages.every(img => img?.caption?.trim()); // Todas precisam ter legenda
       }
-      case 10: // Review
+      case 9: // Review
         return true;
       default:
         return true;
@@ -394,17 +390,6 @@ export default function AvivarSimpleWizard() {
         );
       case 4:
         return (
-          <StepConsultationSimple
-            consultationType={config.consultationType}
-            city={config.city}
-            state={config.state}
-            onChange={(consultationType) => updateConfig({ consultationType })}
-            nicho={config.nicho}
-            subnicho={config.subnicho}
-          />
-        );
-      case 5:
-        return (
           <StepObjectivesSimple
             objectives={config.agentObjectives}
             onChange={(agentObjectives) => updateConfig({ agentObjectives })}
@@ -412,7 +397,7 @@ export default function AvivarSimpleWizard() {
             subnicho={config.subnicho}
           />
         );
-      case 6:
+      case 5:
         return (
           <StepFluxoSimple
             fluxoAtendimento={config.fluxoAtendimento}
@@ -422,7 +407,7 @@ export default function AvivarSimpleWizard() {
             onChange={(fluxoAtendimento) => updateConfig({ fluxoAtendimento })}
           />
         );
-      case 7:
+      case 6:
         return (
           <StepFAQGenerator
             nicho={config.nicho}
@@ -444,7 +429,7 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 8:
+      case 7:
         return (
           <StepKnowledgeSimple
             knowledgeFiles={config.knowledgeFiles || []}
@@ -452,14 +437,14 @@ export default function AvivarSimpleWizard() {
             onSkip={handleNext}
           />
         );
-      case 9:
+      case 8:
         return (
           <StepImagesSimple
             gallery={config.imageGallery}
             onChange={(imageGallery) => updateConfig({ imageGallery })}
           />
         );
-      case 10:
+      case 9:
         return (
           <StepReviewSimple
             config={config}
@@ -512,10 +497,10 @@ export default function AvivarSimpleWizard() {
             Voltar
           </Button>
 
-          {/* Logic for FAQ step (currentStep === 7):
+          {/* Logic for FAQ step (currentStep === 6):
               - If no FAQ generated: show normal Próximo button
               - If FAQ generated but not added to knowledge: hide button completely */}
-          {currentStep === 7 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
+          {currentStep === 6 && generatedFAQ.length > 0 && !faqAddedToKnowledge ? (
             // Hide button completely when FAQ generated but not added to knowledge
             null
           ) : (
