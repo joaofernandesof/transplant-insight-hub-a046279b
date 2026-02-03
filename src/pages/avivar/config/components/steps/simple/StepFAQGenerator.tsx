@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { NichoType, SubnichoType, Service, AgentObjectives, BusinessUnit } from '../../../types';
+import { NichoType, SubnichoType, Service, PaymentMethod, AgentObjectives, BusinessUnit } from '../../../types';
 
 interface FAQItem {
   id: string;
@@ -46,6 +46,7 @@ interface StepFAQGeneratorProps {
   crm?: string;
   businessUnits?: BusinessUnit[];
   services: Service[];
+  paymentMethods?: PaymentMethod[];
   objectives: AgentObjectives;
   generatedFAQ: FAQItem[];
   onFAQChange: (faq: FAQItem[]) => void;
@@ -65,6 +66,7 @@ export function StepFAQGenerator({
   crm,
   businessUnits,
   services,
+  paymentMethods,
   objectives,
   generatedFAQ,
   onFAQChange,
@@ -77,7 +79,14 @@ export function StepFAQGenerator({
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<{ id: string; pergunta: string; resposta: string } | null>(null);
 
-  const enabledServices = services.filter(s => s.enabled).map(s => s.name);
+  // Preparar dados de serviços com preços
+  const enabledServices = services.filter(s => s.enabled).map(s => ({
+    name: s.name,
+    price: s.showPrice && s.price ? s.price / 100 : null,
+    showPrice: s.showPrice || false,
+  }));
+
+  const enabledPayments = paymentMethods?.filter(p => p.enabled).map(p => p.name) || [];
 
   const handleGenerate = async () => {
     if (!nicho || !subnicho) {
@@ -100,7 +109,8 @@ export function StepFAQGenerator({
           crm,
           businessUnits,
           services: enabledServices,
-          objectives, // Passar objetivos como fonte principal
+          paymentMethods: enabledPayments,
+          objectives,
         }
       });
 
@@ -216,7 +226,8 @@ export function StepFAQGenerator({
               <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
                 A IA vai criar perguntas e respostas baseadas nos seus <strong>objetivos</strong>
                 {companyName && `, tipo de negócio (${companyName})`}
-                {enabledServices.length > 0 && ` e ${enabledServices.length} serviços`}
+                {enabledServices.length > 0 && `, ${enabledServices.length} serviços`}
+                {enabledPayments.length > 0 && ` e ${enabledPayments.length} formas de pagamento`}
               </p>
             </div>
 

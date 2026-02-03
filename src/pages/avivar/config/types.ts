@@ -128,6 +128,8 @@ export interface Service {
   name: string;
   description: string;
   enabled: boolean;
+  price?: number | null;     // Valor do serviço em centavos (null = não informar)
+  showPrice?: boolean;       // Se deve exibir preço (false = não informar valores)
 }
 
 export interface PaymentMethod {
