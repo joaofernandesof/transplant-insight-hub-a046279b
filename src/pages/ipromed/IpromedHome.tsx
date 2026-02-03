@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PortalBanner } from '@/components/shared/PortalBanner';
 import IpromedLogo from '@/components/icons/IpromedLogo';
+import { TaskStatsCards } from './components/TaskStatsCards';
 
 import {
   Scale,
@@ -179,6 +180,12 @@ export default function IpromedHome() {
           </div>
         }
       />
+
+      {/* Task Stats Cards */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Tarefas</h2>
+        <TaskStatsCards />
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
