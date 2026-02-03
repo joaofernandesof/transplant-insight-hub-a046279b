@@ -236,7 +236,7 @@ export function StepFluxoSimple({
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         rows={3}
-                        className="resize-none bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] border-[hsl(var(--avivar-primary))]"
+                        className="resize-none bg-[hsl(var(--avivar-card))] text-[hsl(var(--avivar-foreground))] border-[hsl(var(--avivar-primary))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
                         autoFocus
                       />
                       <div className="flex gap-2">
