@@ -128,6 +128,36 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
     });
   };
 
+  // Convert Blob to base64
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Remove data URL prefix (e.g., "data:audio/webm;base64,")
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const handleSendAudio = async (audioBlob: Blob) => {
+    if (!selectedConversation) return;
+    
+    try {
+      const audioBase64 = await blobToBase64(audioBlob);
+      
+      sendMessage.mutate({
+        conversationId: selectedConversation,
+        audioBase64,
+      });
+    } catch (error) {
+      console.error('Error converting audio:', error);
+    }
+  };
+
   const handleStatusChange = (status: 'resolved' | 'archived') => {
     if (!selectedConversation) return;
     
@@ -294,6 +324,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
             <div className="shrink-0">
               <MessageInput
                 onSend={handleSendMessage}
+                onSendAudio={handleSendAudio}
                 disabled={sendMessage.isPending}
                 placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
               />

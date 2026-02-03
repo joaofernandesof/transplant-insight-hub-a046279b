@@ -8,9 +8,10 @@ const corsHeaders = {
 
 interface SendMessagePayload {
   conversationId: string;
-  content: string;
+  content?: string;
   mediaUrl?: string;
-  mediaType?: string;
+  mediaType?: 'image' | 'video' | 'audio' | 'document';
+  audioBase64?: string; // Base64 encoded audio for voice messages
   isAIGenerated?: boolean;
 }
 
@@ -69,16 +70,18 @@ serve(async (req) => {
 
     // Parse payload
     const payload: SendMessagePayload = await req.json();
-    const { conversationId, content, mediaUrl, mediaType, isAIGenerated } = payload;
+    const { conversationId, content, mediaUrl, mediaType, audioBase64, isAIGenerated } = payload;
 
-    if (!conversationId || !content) {
+    // Validate: need either content or audioBase64
+    if (!conversationId || (!content && !audioBase64)) {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing conversationId or content" }),
+        JSON.stringify({ success: false, error: "Missing conversationId or content/audio" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("[Avivar Send Message] Conversation:", conversationId, "Content:", content.substring(0, 50));
+    const isAudioMessage = !!audioBase64;
+    console.log("[Avivar Send Message] Conversation:", conversationId, isAudioMessage ? "Audio message" : `Content: ${content?.substring(0, 50)}`);
 
     // Get conversation with lead info and assigned_to (to find the user's instance)
     const { data: conversation, error: convError } = await adminClient
@@ -160,20 +163,40 @@ serve(async (req) => {
     console.log("[Avivar Send Message] UazAPI URL:", uazapiUrl);
     console.log("[Avivar Send Message] Phone:", phone);
 
-    // Send message via UazAPI - correct endpoint: POST /send/text
-    // Docs: https://docs.uazapi.com/endpoint/post/send~text
-    // Uses "number" field and "token" header (not Authorization Bearer)
-    const uazapiResponse = await fetch(`${uazapiUrl}/send/text`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "token": uazapiToken,
-      },
-      body: JSON.stringify({
-        number: phone,
-        text: content,
-      }),
-    });
+    // Send message via UazAPI - different endpoints for text vs audio
+    let uazapiResponse: Response;
+    let messageContent = content || "";
+    
+    if (isAudioMessage && audioBase64) {
+      // Send audio message: POST /send/audio (base64)
+      console.log("[Avivar Send Message] Sending audio message via UazAPI");
+      uazapiResponse = await fetch(`${uazapiUrl}/send/audio`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "token": uazapiToken,
+        },
+        body: JSON.stringify({
+          number: phone,
+          audio: audioBase64, // Base64 encoded audio
+          ptt: true, // Send as voice note (push-to-talk)
+        }),
+      });
+      messageContent = "🎤 Mensagem de voz";
+    } else {
+      // Send text message: POST /send/text
+      uazapiResponse = await fetch(`${uazapiUrl}/send/text`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "token": uazapiToken,
+        },
+        body: JSON.stringify({
+          number: phone,
+          text: content,
+        }),
+      });
+    }
 
     const uazapiResult = await uazapiResponse.text();
     console.log("[Avivar Send Message] UazAPI response:", uazapiResponse.status, uazapiResult);
@@ -225,9 +248,9 @@ serve(async (req) => {
       .insert({
         conversation_id: conversationId,
         direction: "outbound",
-        content,
-        media_url: mediaUrl || null,
-        media_type: mediaType || null,
+        content: messageContent,
+        media_url: isAudioMessage ? null : (mediaUrl || null), // For audio, UazAPI handles it
+        media_type: isAudioMessage ? "audio" : (mediaType || null),
         sender_name: senderName,
         sender_user_id: isAIGenerated ? null : (userId || null),
         sent_at: new Date().toISOString(),
@@ -263,10 +286,10 @@ serve(async (req) => {
         await adminClient.from("avivar_mensagens").insert({
           conversa_id: avivarConversa.id,
           numero: phone,
-          mensagem: content,
+          mensagem: messageContent,
           direcao: "saida",
           data_hora: new Date().toISOString(),
-          tipo_mensagem: "text",
+          tipo_mensagem: isAudioMessage ? "audio" : "text",
           lida: true,
         });
       }

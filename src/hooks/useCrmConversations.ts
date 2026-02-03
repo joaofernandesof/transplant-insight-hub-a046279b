@@ -204,11 +204,13 @@ export function useCrmConversations(conversationId?: string) {
       content,
       mediaUrl,
       mediaType,
+      audioBase64,
     }: {
       conversationId: string;
-      content: string;
+      content?: string;
       mediaUrl?: string;
       mediaType?: CrmMessage['media_type'];
+      audioBase64?: string;
     }) => {
       // Call edge function to send via UazAPI
       const { data, error } = await supabase.functions.invoke('avivar-send-message', {
@@ -217,6 +219,7 @@ export function useCrmConversations(conversationId?: string) {
           content,
           mediaUrl,
           mediaType,
+          audioBase64,
         },
       });
 
@@ -225,10 +228,10 @@ export function useCrmConversations(conversationId?: string) {
 
       return data.message;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['crm-messages'] });
       queryClient.invalidateQueries({ queryKey: ['crm-conversations'] });
-      toast.success('Mensagem enviada via WhatsApp');
+      toast.success(variables.audioBase64 ? 'Áudio enviado via WhatsApp' : 'Mensagem enviada via WhatsApp');
     },
     onError: (error) => {
       console.error('Error sending message:', error);
