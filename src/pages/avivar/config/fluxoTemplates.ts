@@ -68,6 +68,20 @@ export const FLUXO_AGENDAMENTO_CONSULTA: FluxoAtendimento = {
       descricao: 'Quando o lead pedir para ver fotos de antes/depois ou resultados, envie da galeria.',
       exemploMensagem: 'Claro! Vou te enviar algumas fotos de resultados de nossos pacientes.' 
     },
+    { 
+      id: 'reagendamento', 
+      ordem: 3, 
+      titulo: 'Reagendamento', 
+      descricao: 'Quando o lead precisar reagendar sua consulta. Verifique o agendamento atual, pergunte o motivo e ofereça novas datas disponíveis.',
+      exemploMensagem: 'Sem problemas, {nome}! Vou verificar sua consulta atual. Posso te oferecer {dia1} às {hora1} ou {dia2} às {hora2}. Qual fica melhor para você?' 
+    },
+    { 
+      id: 'cancelamento', 
+      ordem: 4, 
+      titulo: 'Cancelamento', 
+      descricao: 'Quando o lead quiser cancelar sua consulta. Tente entender o motivo, ofereça reagendamento como alternativa e, se confirmar o cancelamento, finalize com cordialidade.',
+      exemploMensagem: 'Entendo, {nome}. Posso saber o motivo do cancelamento? Se preferir, podemos reagendar para outra data que seja mais conveniente para você.' 
+    },
   ]
 };
 
