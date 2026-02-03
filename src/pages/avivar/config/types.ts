@@ -345,6 +345,9 @@ export const NICHOS_CATEGORIES_UI: NichoCategory[] = [
     icon: 'Stethoscope',
     color: 'from-pink-500 to-rose-600',
     subnichos: [
+      // Estética (priorizados)
+      { id: 'transplante_capilar', name: 'Transplante Capilar', description: 'Clínicas especializadas em transplante capilar, barba e sobrancelha' },
+      { id: 'clinica_estetica', name: 'Clínica de Estética', description: 'Tratamentos estéticos faciais e corporais' },
       // Saúde
       { id: 'clinica_medica', name: 'Clínica Médica', description: 'Consultórios e clínicas de especialidades' },
       { id: 'hospital', name: 'Hospital', description: 'Hospitais e prontos-socorros' },
@@ -354,9 +357,7 @@ export const NICHOS_CATEGORIES_UI: NichoCategory[] = [
       { id: 'nutricao', name: 'Nutrição', description: 'Nutricionistas e dietistas' },
       { id: 'laboratorio', name: 'Laboratório', description: 'Laboratórios de análises clínicas' },
       { id: 'farmacia', name: 'Farmácia', description: 'Farmácias e drogarias' },
-      // Estética
-      { id: 'transplante_capilar', name: 'Transplante Capilar', description: 'Clínicas especializadas em transplante capilar, barba e sobrancelha' },
-      { id: 'clinica_estetica', name: 'Clínica de Estética', description: 'Tratamentos estéticos faciais e corporais' },
+      // Estética (restante)
       { id: 'salao_beleza', name: 'Salão de Beleza', description: 'Salões de cabeleireiro e beleza' },
       { id: 'barbearia', name: 'Barbearia', description: 'Barbearias e cuidados masculinos' },
       { id: 'spa', name: 'Spa', description: 'Spas e centros de bem-estar' },
