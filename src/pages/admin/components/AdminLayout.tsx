@@ -3,7 +3,7 @@
  * Wrapper com sidebar própria para todas as páginas admin
  */
 
-import { ReactNode, useState, useEffect } from "react";
+import React, { ReactNode, useState, useEffect, forwardRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AdminSidebar } from "./AdminSidebar";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ interface AdminLayoutProps {
   children: ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+const AdminLayout = forwardRef<HTMLDivElement, AdminLayoutProps>(function AdminLayout({ children }, ref) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
@@ -94,4 +94,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </main>
     </div>
   );
-}
+});
+
+export default AdminLayout;
