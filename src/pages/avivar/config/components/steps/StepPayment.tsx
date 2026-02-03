@@ -17,21 +17,19 @@ interface StepPaymentProps {
 
 const methodIcons: Record<string, React.ReactNode> = {
   pix: <Banknote className="h-5 w-5" />,
-  credito: <CreditCard className="h-5 w-5" />,
+  cartao_credito: <CreditCard className="h-5 w-5" />,
   boleto: <Building className="h-5 w-5" />,
-  credito_parcelado: <CreditCard className="h-5 w-5" />,
   recorrente: <RefreshCcw className="h-5 w-5" />,
-  convenio: <Heart className="h-5 w-5" />,
+  plano_saude: <Heart className="h-5 w-5" />,
   financiamento: <Landmark className="h-5 w-5" />
 };
 
 const methodColors: Record<string, string> = {
   pix: 'from-green-500 to-emerald-500',
-  credito: 'from-blue-500 to-indigo-500',
+  cartao_credito: 'from-blue-500 to-indigo-500',
   boleto: 'from-gray-500 to-slate-500',
-  credito_parcelado: 'from-purple-500 to-violet-500',
   recorrente: 'from-orange-500 to-amber-500',
-  convenio: 'from-pink-500 to-rose-500',
+  plano_saude: 'from-pink-500 to-rose-500',
   financiamento: 'from-teal-500 to-cyan-500'
 };
 
