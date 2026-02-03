@@ -168,20 +168,63 @@ serve(async (req) => {
     let messageContent = content || "";
     
     if (isAudioMessage && audioBase64) {
-      // Send audio message: POST /send/audio (base64)
+      // Send audio message: POST /chat/send/audio (base64 with data URI)
       console.log("[Avivar Send Message] Sending audio message via UazAPI");
-      uazapiResponse = await fetch(`${uazapiUrl}/send/audio`, {
+      
+      // Ensure the audio has the proper data URI format
+      let audioData = audioBase64;
+      if (!audioBase64.startsWith('data:')) {
+        // Add data URI prefix if not present (assume ogg/opus for voice notes)
+        audioData = `data:audio/ogg;base64,${audioBase64}`;
+      }
+      
+      // Try the /chat/send/audio endpoint first (wuzapi-style)
+      uazapiResponse = await fetch(`${uazapiUrl}/chat/send/audio`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "token": uazapiToken,
         },
         body: JSON.stringify({
-          number: phone,
-          audio: audioBase64, // Base64 encoded audio
-          ptt: true, // Send as voice note (push-to-talk)
+          Phone: phone,
+          Audio: audioData,
         }),
       });
+      
+      // If that fails, try alternative endpoints
+      if (!uazapiResponse.ok && uazapiResponse.status === 404) {
+        console.log("[Avivar Send Message] Trying alternative audio endpoint...");
+        // Try /sendPTT endpoint (whats2api-style)
+        uazapiResponse = await fetch(`${uazapiUrl}/sendPTT`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": uazapiToken,
+          },
+          body: JSON.stringify({
+            phone: phone,
+            audio: audioData,
+          }),
+        });
+      }
+      
+      // If still failing, try /send/audio with different body format
+      if (!uazapiResponse.ok && (uazapiResponse.status === 404 || uazapiResponse.status === 405)) {
+        console.log("[Avivar Send Message] Trying /send/audio with alternative format...");
+        uazapiResponse = await fetch(`${uazapiUrl}/send/audio`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": uazapiToken,
+          },
+          body: JSON.stringify({
+            phone: phone,
+            base64: audioData,
+            ptt: true,
+          }),
+        });
+      }
+      
       messageContent = "🎤 Mensagem de voz";
     } else {
       // Send text message: POST /send/text
