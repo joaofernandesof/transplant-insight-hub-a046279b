@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { MessageCircle, Loader2, User } from 'lucide-react';
+import { LeadEditDialog } from './chat/LeadEditDialog';
 import { Card } from '@/components/ui/card';
 import { useCrmConversations } from '@/hooks/useCrmConversations';
 import { usePatientJourneys } from '@/pages/avivar/journey/hooks/usePatientJourneys';
@@ -28,6 +29,8 @@ interface CrmInboxProps {
 export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showLeadWithoutConversation, setShowLeadWithoutConversation] = useState(false);
+  const [showEditLeadDialog, setShowEditLeadDialog] = useState(false);
+  const [showEditTagsDialog, setShowEditTagsDialog] = useState(false);
 
   const {
     conversations,
@@ -152,6 +155,14 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
         }
       });
     }
+  };
+
+  const handleEditLead = () => {
+    setShowEditLeadDialog(true);
+  };
+
+  const handleEditTags = () => {
+    setShowEditTagsDialog(true);
   };
 
   // Estado de loading inicial
@@ -279,10 +290,19 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
                 onAIToggle={handleAIToggle}
                 onDeleteLead={handleDeleteLead}
                 isDeletingLead={deleteLeadFromChat.isPending}
+                onEditLead={handleEditLead}
+                onEditTags={handleEditTags}
                 onBack={() => setSelectedConversation(null)}
                 showBackButton
               />
             </div>
+
+            {/* Dialog de Edição do Lead */}
+            <LeadEditDialog
+              lead={currentConversation.lead || null}
+              open={showEditLeadDialog}
+              onOpenChange={setShowEditLeadDialog}
+            />
 
             {/* Área de mensagens - scroll independente */}
             <MessageThread
