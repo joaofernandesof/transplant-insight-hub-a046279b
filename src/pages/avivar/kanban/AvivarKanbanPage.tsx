@@ -27,7 +27,7 @@ import {
 import {
   Plus, ArrowLeft, Loader2,
   Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid as LayoutGridIcon,
-  MoreHorizontal, Upload, Download
+  MoreHorizontal, Upload, Download, ListChecks
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -45,6 +45,7 @@ import { ViewModeToggle, ViewMode } from './components/ViewModeToggle';
 import { LeadsListView } from './components/LeadsListView';
 import { ImportLeadsDialog } from './components/ImportLeadsDialog';
 import { ExportLeadsDialog } from './components/ExportLeadsDialog';
+import { ColumnChecklistDialog } from './components/ColumnChecklistDialog';
 import { useKanbanLeads, KanbanLead } from './hooks/useKanbanLeads';
 import { LeadCard } from './components/LeadCard';
 
@@ -85,6 +86,7 @@ export default function AvivarKanbanPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isChecklistDialogOpen, setIsChecklistDialogOpen] = useState(false);
   const [activeLead, setActiveLead] = useState<KanbanLead | null>(null);
 
   // Fetch leads for this kanban
@@ -359,6 +361,13 @@ export default function AvivarKanbanPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem 
+                onClick={() => setIsChecklistDialogOpen(true)}
+                className="cursor-pointer"
+              >
+                <ListChecks className="h-4 w-4 mr-2" />
+                Checklists de Bloqueio
+              </DropdownMenuItem>
+              <DropdownMenuItem 
                 onClick={() => setIsImportDialogOpen(true)}
                 className="cursor-pointer"
               >
@@ -502,6 +511,13 @@ export default function AvivarKanbanPage() {
           columns={columns}
         />
       )}
+
+      {/* Checklist Dialog */}
+      <ColumnChecklistDialog
+        open={isChecklistDialogOpen}
+        onOpenChange={setIsChecklistDialogOpen}
+        columns={columns}
+      />
     </div>
   );
 }
