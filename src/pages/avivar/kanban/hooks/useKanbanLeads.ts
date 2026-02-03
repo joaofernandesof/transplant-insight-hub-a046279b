@@ -47,11 +47,8 @@ export function useKanbanLeads(kanbanId: string | undefined) {
   // Move lead to another column with checklist validation
   const moveLeadMutation = useMutation({
     mutationFn: async ({ leadId, columnId }: { leadId: string; columnId: string }) => {
-      // Get the lead's current custom_fields
-      const lead = leads.find(l => l.id === leadId);
-      
       // Check if can move (checklist validation)
-      const { data: canMove, error: checkError } = await supabase.rpc('can_move_lead_to_column', {
+      const { data, error: checkError } = await supabase.rpc('can_move_lead_to_column', {
         _lead_id: leadId,
         _target_column_id: columnId
       });
@@ -59,8 +56,17 @@ export function useKanbanLeads(kanbanId: string | undefined) {
       if (checkError) {
         console.error('Error checking move permission:', checkError);
         // If function doesn't exist yet, allow move
-      } else if (canMove === false) {
-        throw new Error('Preencha todos os campos obrigatórios do checklist antes de mover o lead');
+      } else if (data) {
+        // Type assertion for the RPC response
+        const result = data as { can_move?: boolean; missing_fields?: string[] };
+        
+        if (result.can_move === false) {
+          const missingFields = result.missing_fields || [];
+          const fieldsList = missingFields.length > 0 
+            ? `\n\nCampos pendentes:\n• ${missingFields.join('\n• ')}`
+            : '';
+          throw new Error(`Preencha todos os campos obrigatórios do checklist antes de mover o lead.${fieldsList}`);
+        }
       }
       
       const { error } = await supabase
