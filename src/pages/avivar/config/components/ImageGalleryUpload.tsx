@@ -567,6 +567,9 @@ export function ImageGalleryUpload({
             A IA usa as legendas para escolher a foto certa. Quando um lead pedir "foto de resultado masculino", 
             ela buscará imagens com "masculino" na legenda.
           </p>
+          <p className="text-amber-600 italic">
+            ⚠️ Essa legenda não será enviada junto com a foto para o lead, serve apenas para ensinar a IA qual foto mandar.
+          </p>
           <div className="bg-[hsl(var(--avivar-card))] rounded-lg p-3 space-y-1.5">
             <p className="font-medium text-[hsl(var(--avivar-foreground))] flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--avivar-primary))]" />
