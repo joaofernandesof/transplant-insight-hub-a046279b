@@ -59,6 +59,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import LegalCaseDetailView from "./LegalCaseDetailView";
 
 interface LegalCase {
   id: string;
@@ -751,135 +752,14 @@ export default function LegalCasesManager() {
         </CardContent>
       </Card>
 
-      {/* Case Details Dialog */}
+      {/* Case Details Dialog - Full View */}
       <Dialog open={!!viewCase} onOpenChange={(open) => !open && setViewCase(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Gavel className="h-5 w-5" />
-              Detalhes do Processo
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-5xl max-h-[95vh] p-0">
           {viewCase && (
-            <Tabs defaultValue="info" className="mt-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="info">Informações</TabsTrigger>
-                <TabsTrigger value="timeline">Andamentos</TabsTrigger>
-                <TabsTrigger value="actions">Ações</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="info" className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Número</p>
-                    <p className="font-mono">{viewCase.case_number || 'Sem número'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    {getStatusBadge(viewCase.status)}
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Título</p>
-                    <p className="font-medium">{viewCase.title}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Tipo</p>
-                    <p>{viewCase.case_type || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Tribunal</p>
-                    <p>{viewCase.court || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cliente</p>
-                    <p>{viewCase.ipromed_legal_clients?.name || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Valor Estimado</p>
-                    <p className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" />
-                      {viewCase.estimated_value 
-                        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(viewCase.estimated_value)
-                        : '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Nível de Risco</p>
-                    {getRiskBadge(viewCase.risk_level)}
-                  </div>
-                </div>
-                {viewCase.description && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Descrição</p>
-                    <p className="text-sm p-3 bg-muted rounded-lg">{viewCase.description}</p>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="timeline" className="mt-4">
-                <div className="p-8 text-center text-muted-foreground border border-dashed rounded-lg">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                  <p className="font-medium">Histórico de Andamentos</p>
-                  <p className="text-sm">A integração com TJ/PJe para acompanhamento automático será ativada em breve.</p>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="actions" className="mt-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="outline" 
-                    className="justify-start"
-                    onClick={() => {
-                      updateCaseStatus.mutate({ caseId: viewCase.id, newStatus: 'pending' });
-                      setViewCase(null);
-                    }}
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    Marcar como Pendente
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="justify-start"
-                    onClick={() => {
-                      updateCaseStatus.mutate({ caseId: viewCase.id, newStatus: 'active' });
-                      setViewCase(null);
-                    }}
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    Marcar como Ativo
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="justify-start"
-                    onClick={() => {
-                      updateCaseStatus.mutate({ caseId: viewCase.id, newStatus: 'closed' });
-                      setViewCase(null);
-                    }}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Encerrar Processo
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="justify-start"
-                    onClick={() => {
-                      updateCaseStatus.mutate({ caseId: viewCase.id, newStatus: 'archived' });
-                      setViewCase(null);
-                    }}
-                  >
-                    <Gavel className="h-4 w-4 mr-2" />
-                    Arquivar
-                  </Button>
-                </div>
-                
-                <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800 text-sm">
-                  <p className="font-medium text-amber-800 dark:text-amber-300 mb-1">🚧 Em desenvolvimento</p>
-                  <p className="text-amber-700 dark:text-amber-400">
-                    A integração automática com TJ, e-SAJ e PJe para acompanhamento de andamentos será ativada em breve.
-                  </p>
-                </div>
-              </TabsContent>
-            </Tabs>
+            <LegalCaseDetailView 
+              caseData={viewCase as any} 
+              onClose={() => setViewCase(null)} 
+            />
           )}
         </DialogContent>
       </Dialog>
