@@ -1,6 +1,6 @@
 /**
  * LeadDetailsSidebar - Painel lateral com detalhes do lead
- * Exibe: nome, responsável, funil, estágio, campos customizados, observações
+ * Exibe: nome, responsável, funil, estágio, campos customizados (checklist), observações
  */
 
 import { useState } from 'react';
@@ -19,6 +19,10 @@ import {
   Bookmark,
   Trash2,
   Loader2,
+  ListChecks,
+  CheckCircle2,
+  XCircle,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -49,6 +53,7 @@ import { LeadEditDialog } from './LeadEditDialog';
 import { Lead, useLeads } from '@/hooks/useLeads';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLeadKanbanInfo } from '@/hooks/useLeadKanbanInfo';
+import { useLeadChecklistFields } from '@/hooks/useLeadChecklistFields';
 import { FunnelColumnSelector } from './FunnelColumnSelector';
 import { useNavigate } from 'react-router-dom';
 
@@ -87,6 +92,9 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
   
   // Buscar informações do Kanban/Coluna
   const { data: kanbanInfo } = useLeadKanbanInfo(lead?.phone);
+  
+  // Buscar campos do checklist da coluna atual
+  const { data: checklistFields = [] } = useLeadChecklistFields(kanbanInfo?.columnId, lead?.phone);
 
   const handleDeleteLead = async () => {
     if (!lead) return;
@@ -306,13 +314,18 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
 
           <Separator className="bg-[hsl(var(--avivar-border))]" />
 
-          {/* Campos Customizados */}
+          {/* Campos do Checklist */}
           <Collapsible open={isFieldsOpen} onOpenChange={setIsFieldsOpen}>
             <CollapsibleTrigger asChild>
               <button className="flex items-center justify-between w-full py-2 text-left">
                 <span className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
-                  <Tag className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-                  Campos Customizados
+                  <ListChecks className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                  Checklist
+                  {checklistFields.length > 0 && (
+                    <Badge variant="secondary" className="text-xs ml-1">
+                      {checklistFields.filter(f => f.value).length}/{checklistFields.length}
+                    </Badge>
+                  )}
                 </span>
                 {isFieldsOpen ? (
                   <ChevronUp className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
@@ -322,42 +335,64 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 pt-2">
-              <div className="flex items-center gap-2">
-                <Checkbox id="confirmacao" />
-                <label 
-                  htmlFor="confirmacao" 
-                  className="text-sm text-[hsl(var(--avivar-foreground))]"
-                >
-                  Confirmação de consulta enviada
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox id="pre-atendimento" />
-                <label 
-                  htmlFor="pre-atendimento" 
-                  className="text-sm text-[hsl(var(--avivar-foreground))]"
-                >
-                  Pré-atendimento realizado
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox id="contrato" />
-                <label 
-                  htmlFor="contrato" 
-                  className="text-sm text-[hsl(var(--avivar-foreground))]"
-                >
-                  Contrato enviado
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox id="pagamento" />
-                <label 
-                  htmlFor="pagamento" 
-                  className="text-sm text-[hsl(var(--avivar-foreground))]"
-                >
-                  Pagamento confirmado
-                </label>
-              </div>
+              {checklistFields.length > 0 ? (
+                checklistFields.map((field) => (
+                  <div key={field.id} className="flex items-start gap-2 p-2 rounded-lg bg-[hsl(var(--avivar-muted)/0.3)]">
+                    {/* Status Icon */}
+                    {field.value ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))] mt-0.5 shrink-0" />
+                    )}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">
+                          {field.field_label}
+                        </span>
+                        {field.is_required && (
+                          <span className="text-red-500 text-xs">*</span>
+                        )}
+                      </div>
+                      
+                      {/* Field Value Display */}
+                      {field.value ? (
+                        <div className="mt-1">
+                          {field.field_type === 'boolean' ? (
+                            <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                              Sim
+                            </Badge>
+                          ) : field.field_type === 'date' || field.field_type === 'datetime' ? (
+                            <div className="flex items-center gap-1 text-xs text-[hsl(var(--avivar-primary))]">
+                              <Clock className="h-3 w-3" />
+                              {typeof field.value === 'string' && (
+                                <span className="font-medium">
+                                  {field.field_type === 'datetime' 
+                                    ? format(new Date(field.value), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                                    : format(new Date(field.value), "dd/MM/yyyy", { locale: ptBR })
+                                  }
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-[hsl(var(--avivar-foreground))]">
+                              {String(field.value)}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-[hsl(var(--avivar-muted-foreground))] italic">
+                          Não preenchido
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] text-center py-2">
+                  Nenhum campo de checklist configurado para esta coluna
+                </p>
+              )}
             </CollapsibleContent>
           </Collapsible>
 
