@@ -56,6 +56,7 @@ interface UazAPIPayload {
   event: string;
   instance?: string;
   instanceName?: string;
+  BaseUrl?: string; // UazAPI base URL for API calls
   data?: {
     key?: {
       remoteJid: string;
@@ -126,159 +127,64 @@ interface UazAPINativeMessage {
   type?: string; // "media" | "text" etc
 }
 
-// Helper to download media via UazAPI and upload to Supabase Storage
-async function downloadAndUploadMedia(
-  supabase: any,
+// Helper to download media via UazAPI /message/download endpoint
+// Documentation: POST /message/download with { id, return_link: true, generate_mp3: true }
+// Returns: { fileURL, mimetype, base64Data?, transcription? }
+async function downloadMediaFromUazAPI(
   uazapiUrl: string,
   instanceToken: string,
   messageId: string,
-  mediaContent: UazAPINativeMessage["content"],
-  conversationId: string,
   mediaType: string
-): Promise<string | null> {
-  if (!mediaContent?.URL || !mediaContent?.mediaKey) {
-    console.log("[UazAPI Webhook] Missing media URL or mediaKey, cannot download");
-    return null;
-  }
-
+): Promise<{ fileURL: string | null; transcription: string | null }> {
   try {
-    console.log(`[UazAPI Webhook] 📥 Downloading media via UazAPI...`);
+    console.log(`[UazAPI Webhook] 📥 Downloading media via /message/download, messageId: ${messageId}`);
     
-    // Try UazAPI download endpoint (common patterns: /message/downloadMedia, /chat/downloadMedia)
-    // The endpoint accepts the encrypted URL and media key to decrypt the file
-    const downloadResponse = await fetch(`${uazapiUrl}/message/downloadMedia`, {
+    // Prepare request body according to UazAPI documentation
+    const requestBody: Record<string, unknown> = {
+      id: messageId,
+      return_link: true, // Get public URL
+      return_base64: false, // We don't need base64 if we have URL
+    };
+    
+    // For audio, request MP3 format (better browser compatibility)
+    if (mediaType === "audio" || mediaType === "ptt") {
+      requestBody.generate_mp3 = true;
+    }
+    
+    console.log(`[UazAPI Webhook] Request body:`, JSON.stringify(requestBody));
+    
+    const downloadResponse = await fetch(`${uazapiUrl}/message/download`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "token": instanceToken,
       },
-      body: JSON.stringify({
-        url: mediaContent.URL,
-        mediaKey: mediaContent.mediaKey,
-        mimetype: mediaContent.mimetype,
-        fileSha256: mediaContent.fileSHA256,
-        fileEncSha256: mediaContent.fileEncSHA256,
-        directPath: mediaContent.directPath,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!downloadResponse.ok) {
-      // Try alternative endpoint
-      console.log(`[UazAPI Webhook] First download attempt failed (${downloadResponse.status}), trying alternative...`);
-      
-      const altResponse = await fetch(`${uazapiUrl}/chat/downloadMedia`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "token": instanceToken,
-        },
-        body: JSON.stringify({
-          Url: mediaContent.URL,
-          MediaKey: mediaContent.mediaKey,
-          Mimetype: mediaContent.mimetype,
-          FileSHA256: mediaContent.fileSHA256,
-          FileEncSHA256: mediaContent.fileEncSHA256,
-        }),
-      });
-
-      if (!altResponse.ok) {
-        console.error(`[UazAPI Webhook] Media download failed: ${altResponse.status}`);
-        return null;
-      }
-
-      const altData = await altResponse.json();
-      if (altData.base64) {
-        // Upload base64 to storage
-        return await uploadBase64ToStorage(supabase, altData.base64, mediaContent.mimetype || "audio/ogg", conversationId, messageId, mediaType);
-      }
-      return null;
+      const errorText = await downloadResponse.text();
+      console.error(`[UazAPI Webhook] Download failed (${downloadResponse.status}): ${errorText}`);
+      return { fileURL: null, transcription: null };
     }
 
     const data = await downloadResponse.json();
+    console.log(`[UazAPI Webhook] Download response:`, JSON.stringify(data).substring(0, 500));
     
-    // Response might contain base64 encoded media
-    if (data.base64 || data.data) {
-      const base64Data = data.base64 || data.data;
-      return await uploadBase64ToStorage(supabase, base64Data, mediaContent.mimetype || "audio/ogg", conversationId, messageId, mediaType);
+    // UazAPI returns: { fileURL, mimetype, base64Data?, transcription? }
+    const fileURL = data.fileURL || data.fileUrl || data.url || null;
+    const transcription = data.transcription || null;
+    
+    if (fileURL) {
+      console.log(`[UazAPI Webhook] ✅ Media downloaded successfully: ${fileURL.substring(0, 80)}...`);
+    } else {
+      console.log(`[UazAPI Webhook] ⚠️ No fileURL in response`);
     }
-
-    // Response might contain URL to downloaded file
-    if (data.url) {
-      return data.url;
-    }
-
-    console.log("[UazAPI Webhook] Unexpected download response format:", JSON.stringify(data).substring(0, 200));
-    return null;
+    
+    return { fileURL, transcription };
   } catch (error) {
     console.error("[UazAPI Webhook] Error downloading media:", error);
-    return null;
-  }
-}
-
-// Helper to upload base64 media to Supabase Storage
-async function uploadBase64ToStorage(
-  supabase: any,
-  base64Data: string,
-  mimetype: string,
-  conversationId: string,
-  messageId: string,
-  mediaType: string
-): Promise<string | null> {
-  try {
-    // Determine file extension from mimetype
-    const extensionMap: Record<string, string> = {
-      "audio/ogg": "ogg",
-      "audio/ogg; codecs=opus": "ogg",
-      "audio/mpeg": "mp3",
-      "audio/mp4": "m4a",
-      "audio/wav": "wav",
-      "audio/webm": "webm",
-      "image/jpeg": "jpg",
-      "image/png": "png",
-      "image/webp": "webp",
-      "video/mp4": "mp4",
-      "video/webm": "webm",
-    };
-    
-    const mimeBase = mimetype.split(";")[0].trim();
-    const extension = extensionMap[mimetype] || extensionMap[mimeBase] || "bin";
-    const folder = mediaType === "audio" || mediaType === "ptt" ? "chat-audios" : 
-                   mediaType === "image" ? "chat-images" : 
-                   mediaType === "video" ? "chat-videos" : "chat-files";
-    
-    const fileName = `${Date.now()}_${messageId.replace(/[^a-zA-Z0-9]/g, "_")}.${extension}`;
-    const filePath = `${folder}/${conversationId}/${fileName}`;
-    
-    // Convert base64 to Uint8Array
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("avivar-media")
-      .upload(filePath, bytes, {
-        contentType: mimeBase,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error("[UazAPI Webhook] Storage upload error:", uploadError);
-      return null;
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("avivar-media")
-      .getPublicUrl(filePath);
-
-    console.log(`[UazAPI Webhook] ✅ Media uploaded to Storage: ${urlData.publicUrl}`);
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error("[UazAPI Webhook] Error uploading to storage:", error);
-    return null;
+    return { fileURL: null, transcription: null };
   }
 }
 
@@ -546,7 +452,7 @@ serve(async (req) => {
 
           const phone = normalizePhone(extractPhone(msg.key.remoteJid));
           const isGroupChat = isGroup(msg.key.remoteJid);
-          const { content, mediaType, mediaUrl } = extractMessageContent(msg.message);
+          let { content, mediaType, mediaUrl } = extractMessageContent(msg.message);
 
           // Skip if no content
           if (!content && !mediaUrl) {
@@ -568,7 +474,36 @@ serve(async (req) => {
           }
           const timestamp = new Date(timestampMs).toISOString();
 
-          console.log(`[UazAPI Webhook] Message: ${msg.key.fromMe ? "OUT" : "IN"} | Phone: ${phone} | Content: ${content?.substring(0, 50)}...`);
+          console.log(`[UazAPI Webhook] Message: ${msg.key.fromMe ? "OUT" : "IN"} | Phone: ${phone} | Content: ${content?.substring(0, 50)}... | MediaType: ${mediaType}`);
+
+          // 🎵 MEDIA DOWNLOAD: If this is a media message, download from UazAPI to get a playable URL
+          // WhatsApp media URLs are encrypted and only accessible via UazAPI /message/download
+          const baseUrl = payload.BaseUrl || `https://${instanceName?.split("-")[0] || "neofolic"}.uazapi.com`;
+          const instanceToken = payload.token || Deno.env.get("UAZAPI_TOKEN") || "";
+          
+          if (mediaType && (mediaType === "audio" || mediaType === "image" || mediaType === "video" || mediaType === "document")) {
+            console.log(`[UazAPI Webhook] 🎵 Media message detected (${mediaType}), downloading from UazAPI...`);
+            
+            const { fileURL, transcription } = await downloadMediaFromUazAPI(
+              baseUrl,
+              instanceToken,
+              msg.key.id,
+              mediaType
+            );
+            
+            if (fileURL) {
+              mediaUrl = fileURL;
+              console.log(`[UazAPI Webhook] ✅ Media URL updated to: ${fileURL.substring(0, 80)}...`);
+            } else {
+              console.log(`[UazAPI Webhook] ⚠️ Could not download media, keeping original URL`);
+            }
+            
+            // If transcription was returned (for audio with OpenAI key configured in UazAPI)
+            if (transcription && mediaType === "audio") {
+              content = `[Áudio transcrito]: ${transcription}`;
+              console.log(`[UazAPI Webhook] ✅ Got transcription from UazAPI: ${transcription.substring(0, 50)}...`);
+            }
+          }
 
           // Find the user/clinic that owns this WhatsApp instance
           // Check both tables: avivar_uazapi_instances (new) and avivar_whatsapp_sessions (legacy)
