@@ -5,6 +5,8 @@
 
 import { 
   MoreVertical, 
+  Check, 
+  Archive, 
   Phone, 
   Video,
   User,
@@ -13,10 +15,9 @@ import {
   BotOff,
   Trash2,
   Loader2,
-  Pencil,
-  Tags,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -41,8 +42,6 @@ interface ChatHeaderProps {
   onAIToggle?: (enabled: boolean) => void;
   onDeleteLead?: () => void;
   isDeletingLead?: boolean;
-  onEditLead?: () => void;
-  onEditTags?: () => void;
   onBack?: () => void;
   showBackButton?: boolean;
 }
@@ -67,8 +66,6 @@ export function ChatHeader({
   onAIToggle,
   onDeleteLead,
   isDeletingLead,
-  onEditLead,
-  onEditTags,
   onBack,
   showBackButton 
 }: ChatHeaderProps) {
@@ -88,6 +85,12 @@ export function ChatHeader({
             <ChevronLeft className="h-5 w-5" />
           </Button>
         )}
+
+        <Avatar className="h-10 w-10 border-2 border-[hsl(var(--avivar-primary))]">
+          <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-primary))] font-semibold">
+            {lead?.name?.charAt(0).toUpperCase() || '?'}
+          </AvatarFallback>
+        </Avatar>
 
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -168,32 +171,37 @@ export function ChatHeader({
             className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
           >
             <DropdownMenuItem 
-              onClick={onEditLead}
+              onClick={() => onStatusChange('resolved')}
               className="gap-2 text-[hsl(var(--avivar-foreground))]"
             >
-              <Pencil className="h-4 w-4" />
-              Editar Lead
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={onEditTags}
-              className="gap-2 text-[hsl(var(--avivar-foreground))]"
-            >
-              <Tags className="h-4 w-4" />
-              Editar Tags
+              <Check className="h-4 w-4 text-green-500" />
+              Marcar como Resolvida
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-[hsl(var(--avivar-border))]" />
             <DropdownMenuItem 
-              onClick={onDeleteLead}
-              disabled={isDeletingLead}
-              className="gap-2 text-red-500 focus:text-red-500"
+              onClick={() => onStatusChange('archived')}
+              className="gap-2 text-[hsl(var(--avivar-foreground))]"
             >
-              {isDeletingLead ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-              Excluir Lead
+              <Archive className="h-4 w-4" />
+              Arquivar Conversa
             </DropdownMenuItem>
+            {onDeleteLead && (
+              <>
+                <DropdownMenuSeparator className="bg-[hsl(var(--avivar-border))]" />
+                <DropdownMenuItem 
+                  onClick={onDeleteLead}
+                  disabled={isDeletingLead}
+                  className="gap-2 text-red-500 focus:text-red-500"
+                >
+                  {isDeletingLead ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  Excluir Lead
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

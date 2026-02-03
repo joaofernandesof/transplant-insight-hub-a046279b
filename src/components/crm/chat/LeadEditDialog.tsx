@@ -23,6 +23,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Lead } from '@/hooks/useLeads';
 
 // Schema de validação - DDI (2) + DDD (2) + Número (8) = 12 dígitos
 const leadEditSchema = z.object({
@@ -44,18 +45,8 @@ const leadEditSchema = z.object({
 
 type LeadEditFormData = z.infer<typeof leadEditSchema>;
 
-// Tipo parcial do lead vindo da conversa
-interface PartialLead {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string | null;
-  source?: string | null;
-  notes?: string | null;
-}
-
 interface LeadEditDialogProps {
-  lead: PartialLead | null;
+  lead: Lead | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved?: () => void;
