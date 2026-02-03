@@ -76,17 +76,16 @@ export function ConversationList({
     <div className="h-full flex flex-col bg-[hsl(var(--avivar-card))]">
       {/* Header */}
       <div className="p-4 border-b border-[hsl(var(--avivar-border))] space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
-            Conversas
-          </h2>
-          <Button variant="ghost" size="icon" className="text-[hsl(var(--avivar-muted-foreground))]">
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
-
         {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+          <Input
+            placeholder="Buscar por nome, telefone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+          />
+        </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
           <Input
