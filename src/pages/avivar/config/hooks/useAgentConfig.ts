@@ -11,7 +11,8 @@ import {
   INITIAL_CONFIG, 
   WIZARD_STEPS,
   DEFAULT_WEEK_SCHEDULE,
-  PAYMENT_METHODS
+  PAYMENT_METHODS,
+  EMPTY_IMAGE_GALLERY
 } from '../types';
 
 const STORAGE_KEY = 'avivar_agent_config';
@@ -52,8 +53,17 @@ function mapAgentToConfig(agent: Record<string, unknown>): Partial<AgentConfig> 
     consultationDuration: (agent.consultation_duration as number) || 60,
     agentObjectives: (agent.agent_objectives as AgentConfig['agentObjectives']) || { primary: null, secondary: [], customObjectives: [] },
     
-    // Imagens e arquivos
+    // Imagens - migrar beforeAfterImages para imageGallery se existir
     beforeAfterImages: (agent.before_after_images as string[]) || [],
+    imageGallery: (agent.image_gallery as AgentConfig['imageGallery']) || {
+      ...EMPTY_IMAGE_GALLERY,
+      before_after: ((agent.before_after_images as string[]) || []).map((url, i) => ({
+        id: `legacy_${i}`,
+        url,
+        caption: '',
+        category: 'before_after' as const
+      }))
+    },
     knowledgeFiles: (agent.knowledge_files as AgentConfig['knowledgeFiles']) || [],
     
     // Horários e fluxo

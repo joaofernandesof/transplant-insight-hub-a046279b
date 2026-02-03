@@ -231,7 +231,10 @@ export interface AgentConfig {
   // Objetivos do Agente
   agentObjectives: AgentObjectives;
   
-  // Imagens
+  // Galeria de Imagens (por categoria)
+  imageGallery: ImageGallery;
+  
+  // Legado - mantido para compatibilidade
   beforeAfterImages: string[];
   
   // Horários
@@ -272,6 +275,54 @@ export interface KnowledgeFile {
   content: string;
   type: string;
 }
+
+// ============= GALERIA DE IMAGENS =============
+
+export type ImageCategory = 'before_after' | 'catalog' | 'location' | 'general';
+
+export interface GalleryImage {
+  id: string;
+  url: string;
+  caption?: string; // Legenda para a IA saber quando usar
+  category: ImageCategory;
+}
+
+export interface ImageGallery {
+  before_after: GalleryImage[];  // Fotos de resultados
+  catalog: GalleryImage[];       // Catálogo de serviços/produtos
+  location: GalleryImage[];      // Fotos de localização, como chegar
+  general: GalleryImage[];       // Imagens gerais
+}
+
+export const EMPTY_IMAGE_GALLERY: ImageGallery = {
+  before_after: [],
+  catalog: [],
+  location: [],
+  general: []
+};
+
+export const IMAGE_CATEGORY_LABELS: Record<ImageCategory, { name: string; description: string; icon: string }> = {
+  before_after: { 
+    name: 'Antes e Depois', 
+    description: 'Fotos de resultados reais para mostrar aos leads interessados',
+    icon: 'split'
+  },
+  catalog: { 
+    name: 'Catálogo', 
+    description: 'Fotos de serviços, produtos ou procedimentos oferecidos',
+    icon: 'shopping-bag'
+  },
+  location: { 
+    name: 'Localização', 
+    description: 'Fotos da clínica, fachada, como chegar, estacionamento',
+    icon: 'map-pin'
+  },
+  general: { 
+    name: 'Geral', 
+    description: 'Outras imagens úteis para o atendimento',
+    icon: 'image'
+  }
+};
 
 export const BRAZILIAN_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
@@ -461,6 +512,7 @@ export const INITIAL_CONFIG: AgentConfig = {
   paymentMethods: [...PAYMENT_METHODS],
   consultationType: { presencial: true, online: false, domicilio: false },
   agentObjectives: { primary: null, secondary: [], customObjectives: [] },
+  imageGallery: { ...EMPTY_IMAGE_GALLERY },
   beforeAfterImages: [],
   schedule: DEFAULT_WEEK_SCHEDULE,
   aiIdentity: '',

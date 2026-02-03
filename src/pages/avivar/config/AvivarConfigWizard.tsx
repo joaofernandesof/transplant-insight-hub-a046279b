@@ -37,7 +37,8 @@ import {
   WeekSchedule, 
   TomVoz,
   FluxoAtendimento,
-  KnowledgeFile
+  KnowledgeFile,
+  ImageGallery
 } from './types';
 import { getProfessionalFieldConfig, shouldShowBeforeAfterStep } from './nichoConfig';
 import { useNavigate } from 'react-router-dom';
@@ -264,8 +265,8 @@ export default function AvivarConfigWizard() {
       case 10:
         return (
           <StepImages
-            images={config.beforeAfterImages}
-            onChange={(images) => updateConfig({ beforeAfterImages: images })}
+            gallery={config.imageGallery}
+            onChange={(gallery) => updateConfig({ imageGallery: gallery })}
           />
         );
       
