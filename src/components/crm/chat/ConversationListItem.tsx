@@ -1,30 +1,13 @@
 /**
  * ConversationListItem - Item individual na lista de conversas
- * Exibe: nome do lead, última mensagem, horário, badge não lidas, emoji WhatsApp no avatar
+ * Exibe: nome do lead, última mensagem, horário, badge não lidas, ícone de fonte no avatar
  */
 
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { MessageCircle, Instagram, Phone, Mail, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { LeadSourceAvatar } from '@/components/avivar/LeadSourceAvatar';
 import { CrmConversation } from '@/hooks/useCrmConversations';
-
-const channelIcons = {
-  whatsapp: MessageCircle,
-  instagram: Instagram,
-  phone: Phone,
-  email: Mail,
-  manual: User,
-};
-
-const channelColors = {
-  whatsapp: 'text-green-500',
-  instagram: 'text-pink-500',
-  phone: 'text-blue-500',
-  email: 'text-orange-500',
-  manual: 'text-muted-foreground',
-};
 
 interface ConversationListItemProps {
   conversation: CrmConversation;
@@ -49,14 +32,28 @@ function formatMessageTime(dateString: string | null): string {
   return format(date, 'dd/MM', { locale: ptBR });
 }
 
+// Map channel to source for the avatar component
+const getSourceFromChannel = (channel: string): string => {
+  switch (channel) {
+    case 'whatsapp':
+      return 'whatsapp';
+    case 'instagram':
+      return 'instagram';
+    case 'facebook':
+      return 'facebook';
+    default:
+      return channel || 'manual';
+  }
+};
+
 export function ConversationListItem({
   conversation,
   isSelected,
   onClick,
   lastMessagePreview,
 }: ConversationListItemProps) {
-  const isWhatsApp = conversation.channel === 'whatsapp';
-  const isInstagram = conversation.channel === 'instagram';
+  // Determine source - use channel as source
+  const source = getSourceFromChannel(conversation.channel);
   
   return (
     <button
@@ -68,20 +65,12 @@ export function ConversationListItem({
       )}
     >
       <div className="flex items-start gap-3">
-        {/* Avatar com emoji do canal */}
-        <div className="relative shrink-0">
-          <Avatar className="h-12 w-12 border-2 border-[hsl(var(--avivar-border))]">
-            <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-primary))] font-semibold text-lg">
-              {conversation.lead?.name?.charAt(0).toUpperCase() || '?'}
-            </AvatarFallback>
-          </Avatar>
-          {/* Emoji do canal no canto do avatar */}
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] flex items-center justify-center text-xs">
-            {isWhatsApp && '💬'}
-            {isInstagram && '📸'}
-            {!isWhatsApp && !isInstagram && '📩'}
-          </div>
-        </div>
+        {/* Avatar com ícone de fonte */}
+        <LeadSourceAvatar 
+          name={conversation.lead?.name || 'Lead'}
+          source={source}
+          size="lg"
+        />
 
         {/* Content */}
         <div className="flex-1 min-w-0 space-y-0.5">
