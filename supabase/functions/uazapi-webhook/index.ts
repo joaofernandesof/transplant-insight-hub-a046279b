@@ -104,13 +104,20 @@ interface UazAPINativeMessage {
   id: string;
   messageid?: string;
   text?: string;
-  content?: { text?: string };
+  content?: { 
+    text?: string;
+    URL?: string;
+    mimetype?: string;
+    caption?: string;
+    fileName?: string;
+  };
   senderName?: string;
   messageTimestamp?: number;
   messageType?: string;
   mediaType?: string;
   isGroup?: boolean;
   groupName?: string;
+  type?: string; // "media" | "text" etc
 }
 
 // Extract phone number from JID
@@ -280,6 +287,68 @@ serve(async (req) => {
         else if (payload.message && "chatid" in payload.message) {
           const msg = payload.message as UazAPINativeMessage;
           
+          // Determine message content based on type
+          let messageContent: UazAPIMessage["message"] | undefined;
+          
+          // Check if it's a media message (audio, image, video, document)
+          if (msg.type === "media" || msg.mediaType) {
+            const mediaType = msg.mediaType || "";
+            const mediaUrl = msg.content?.URL || null;
+            
+            if (mediaType === "ptt" || mediaType === "audio" || msg.messageType === "AudioMessage") {
+              // Audio/PTT message
+              messageContent = {
+                audioMessage: {
+                  url: mediaUrl || undefined,
+                  mimetype: msg.content?.mimetype,
+                },
+              };
+              console.log(`[UazAPI Webhook] 🎤 Audio message detected, URL: ${mediaUrl?.substring(0, 50)}...`);
+            } else if (mediaType === "image" || msg.messageType === "ImageMessage") {
+              // Image message
+              messageContent = {
+                imageMessage: {
+                  url: mediaUrl || undefined,
+                  caption: msg.content?.caption || msg.text,
+                  mimetype: msg.content?.mimetype,
+                },
+              };
+            } else if (mediaType === "video" || msg.messageType === "VideoMessage") {
+              // Video message
+              messageContent = {
+                videoMessage: {
+                  url: mediaUrl || undefined,
+                  caption: msg.content?.caption || msg.text,
+                  mimetype: msg.content?.mimetype,
+                },
+              };
+            } else if (mediaType === "document" || msg.messageType === "DocumentMessage") {
+              // Document message
+              messageContent = {
+                documentMessage: {
+                  url: mediaUrl || undefined,
+                  fileName: msg.content?.fileName,
+                  mimetype: msg.content?.mimetype,
+                },
+              };
+            } else {
+              // Unknown media type, try to extract URL anyway
+              console.log(`[UazAPI Webhook] Unknown media type: ${mediaType}, messageType: ${msg.messageType}`);
+              if (mediaUrl) {
+                messageContent = {
+                  audioMessage: {
+                    url: mediaUrl,
+                  },
+                };
+              }
+            }
+          } else {
+            // Text message
+            messageContent = {
+              conversation: msg.text || msg.content?.text,
+            };
+          }
+          
           messages = [{
             key: {
               remoteJid: msg.chatid,
@@ -287,9 +356,7 @@ serve(async (req) => {
               id: msg.messageid || msg.id,
             },
             pushName: msg.senderName || payload.chat?.wa_name || payload.chat?.name,
-            message: {
-              conversation: msg.text || msg.content?.text,
-            },
+            message: messageContent,
             messageTimestamp: msg.messageTimestamp,
           }];
         }
