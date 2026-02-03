@@ -1115,6 +1115,9 @@ async function sendImage(
     const cleanPhone = leadPhone.replace(/\D/g, "");
     const apiUrl = `${session.base_url}/send/media`;
     
+    console.log(`[AI Agent] Sending image to ${cleanPhone} via ${apiUrl}`);
+    console.log(`[AI Agent] Image URL: ${selectedImage.url}`);
+    
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
@@ -1123,15 +1126,17 @@ async function sendImage(
       },
       body: JSON.stringify({
         number: cleanPhone,
-        url: selectedImage.url,
         type: "image",
-        text: selectedImage.caption || "" // Caption as text
+        file: selectedImage.url, // UazAPI uses 'file' not 'url'
+        text: selectedImage.caption || "" // Caption
       })
     });
+    
+    const responseText = await response.text();
+    console.log(`[AI Agent] UazAPI response (${response.status}): ${responseText}`);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[AI Agent] Failed to send image:", errorText);
+      console.error("[AI Agent] Failed to send image:", responseText);
       return { 
         success: true, 
         message: `Aqui está a imagem: ${selectedImage.url}`,
