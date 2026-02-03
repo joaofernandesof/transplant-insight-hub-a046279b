@@ -1,6 +1,7 @@
 /**
  * UazApiConnectionDialog - Modal para conectar WhatsApp via UazAPI
  * Suporta QR Code e Código de Pareamento
+ * Agora inclui popups centrais de sucesso/erro
  */
 
 import React, { useState, useEffect } from 'react';
@@ -30,6 +31,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useUazApiIntegration } from '@/hooks/useUazApiIntegration';
 import { toast } from 'sonner';
+import { WhatsAppConnectionSuccessDialog } from './WhatsAppConnectionSuccessDialog';
+import { WhatsAppConnectionErrorDialog } from './WhatsAppConnectionErrorDialog';
 
 interface UazApiConnectionDialogProps {
   open: boolean;
@@ -52,6 +55,12 @@ export function UazApiConnectionDialog({
   const [pairCode, setPairCode] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(120);
   const [isPolling, setIsPolling] = useState(false);
+  
+  // Estados para popups centrais
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [connectedPhone, setConnectedPhone] = useState<string | undefined>();
 
   // Handle connection request
   const handleConnect = async () => {
@@ -110,22 +119,28 @@ export function UazApiConnectionDialog({
       if (isConnected) {
         console.log('Connection detected! Stopping poll and showing success.');
         setIsPolling(false);
-        toast.success('WhatsApp conectado com sucesso!');
-        onSuccess?.();
+        setConnectedPhone(instance?.phone_number || phone);
         onOpenChange(false);
+        // Mostrar popup central de sucesso em vez de toast
+        setShowSuccessDialog(true);
+        onSuccess?.();
       }
     }, 3000);
 
-    // Auto-stop after timeout
+    // Auto-stop after timeout - mostrar erro
     const timeout = setTimeout(() => {
-      setIsPolling(false);
+      if (isPolling) {
+        setIsPolling(false);
+        setErrorMessage('Tempo esgotado. O QR Code expirou.');
+        setShowErrorDialog(true);
+      }
     }, activeTab === 'paircode' ? 300000 : 120000);
 
     return () => {
       clearInterval(pollInterval);
       clearTimeout(timeout);
     };
-  }, [isPolling, activeTab, checkStatus, onSuccess, onOpenChange]);
+  }, [isPolling, activeTab, checkStatus, onSuccess, onOpenChange, instance?.phone_number, phone]);
 
   // Note: Connection success is now handled directly in the polling effect above
 
@@ -352,6 +367,24 @@ export function UazApiConnectionDialog({
           </Button>
         </div>
       </DialogContent>
+
+      {/* Popup Central de Sucesso */}
+      <WhatsAppConnectionSuccessDialog
+        open={showSuccessDialog}
+        onOpenChange={setShowSuccessDialog}
+        phoneNumber={connectedPhone}
+      />
+
+      {/* Popup Central de Erro */}
+      <WhatsAppConnectionErrorDialog
+        open={showErrorDialog}
+        onOpenChange={setShowErrorDialog}
+        errorMessage={errorMessage}
+        onRetry={() => {
+          setShowErrorDialog(false);
+          handleConnect();
+        }}
+      />
     </Dialog>
   );
 }
