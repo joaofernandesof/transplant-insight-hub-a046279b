@@ -86,11 +86,6 @@ export function ChatHeader({
           </Button>
         )}
 
-        <Avatar className="h-10 w-10 border-2 border-[hsl(var(--avivar-primary))]">
-          <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.15)] text-[hsl(var(--avivar-primary))] font-semibold">
-            {lead?.name?.charAt(0).toUpperCase() || '?'}
-          </AvatarFallback>
-        </Avatar>
 
         <div className="min-w-0">
           <div className="flex items-center gap-2">
