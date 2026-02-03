@@ -6796,24 +6796,41 @@ export type Database = {
       }
       ipromed_legal_cases: {
         Row: {
+          access_type: string | null
+          action_type: string | null
           case_number: string | null
+          case_object: string | null
           case_type: string | null
+          case_value: number | null
           client_id: string | null
+          client_qualification: string | null
           closing_date: string | null
+          condemnation_value: number | null
           court: string | null
+          court_branch: string | null
+          court_link: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
+          distribution_date: string | null
           estimated_value: number | null
           filing_date: string | null
           financial_provision: number | null
+          folder: string | null
+          forum: string | null
           id: string
+          instance: string | null
           judge: string | null
+          judge_number: string | null
+          label: string | null
           metadata: Json | null
           next_deadline: string | null
+          observations: string | null
+          other_parties: Json | null
           outcome: string | null
           priority: number | null
           responsible_lawyer_id: string | null
+          responsible_name: string | null
           risk_level: Database["public"]["Enums"]["risk_level"] | null
           status: Database["public"]["Enums"]["legal_case_status"] | null
           tags: string[] | null
@@ -6821,24 +6838,41 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          access_type?: string | null
+          action_type?: string | null
           case_number?: string | null
+          case_object?: string | null
           case_type?: string | null
+          case_value?: number | null
           client_id?: string | null
+          client_qualification?: string | null
           closing_date?: string | null
+          condemnation_value?: number | null
           court?: string | null
+          court_branch?: string | null
+          court_link?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          distribution_date?: string | null
           estimated_value?: number | null
           filing_date?: string | null
           financial_provision?: number | null
+          folder?: string | null
+          forum?: string | null
           id?: string
+          instance?: string | null
           judge?: string | null
+          judge_number?: string | null
+          label?: string | null
           metadata?: Json | null
           next_deadline?: string | null
+          observations?: string | null
+          other_parties?: Json | null
           outcome?: string | null
           priority?: number | null
           responsible_lawyer_id?: string | null
+          responsible_name?: string | null
           risk_level?: Database["public"]["Enums"]["risk_level"] | null
           status?: Database["public"]["Enums"]["legal_case_status"] | null
           tags?: string[] | null
@@ -6846,24 +6880,41 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          access_type?: string | null
+          action_type?: string | null
           case_number?: string | null
+          case_object?: string | null
           case_type?: string | null
+          case_value?: number | null
           client_id?: string | null
+          client_qualification?: string | null
           closing_date?: string | null
+          condemnation_value?: number | null
           court?: string | null
+          court_branch?: string | null
+          court_link?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          distribution_date?: string | null
           estimated_value?: number | null
           filing_date?: string | null
           financial_provision?: number | null
+          folder?: string | null
+          forum?: string | null
           id?: string
+          instance?: string | null
           judge?: string | null
+          judge_number?: string | null
+          label?: string | null
           metadata?: Json | null
           next_deadline?: string | null
+          observations?: string | null
+          other_parties?: Json | null
           outcome?: string | null
           priority?: number | null
           responsible_lawyer_id?: string | null
+          responsible_name?: string | null
           risk_level?: Database["public"]["Enums"]["risk_level"] | null
           status?: Database["public"]["Enums"]["legal_case_status"] | null
           tags?: string[] | null
