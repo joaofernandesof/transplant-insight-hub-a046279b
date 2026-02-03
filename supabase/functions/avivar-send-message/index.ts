@@ -204,61 +204,43 @@ serve(async (req) => {
       });
       logAttempt("/send/media", uazapiResponse);
 
-      if (!uazapiResponse.ok && (uazapiResponse.status === 400 || uazapiResponse.status === 404 || uazapiResponse.status === 405)) {
-        try {
-          await uazapiResponse.text();
-        } catch {
-          // ignore
+      // Check if we need to try a different endpoint (400, 404, 405, or 500 with 'missing text' error)
+      if (!uazapiResponse.ok) {
+        const firstBody = await uazapiResponse.text();
+        console.log("[Avivar Send Message] First attempt response:", firstBody);
+        
+        // 500 with "missing text" means this endpoint doesn't support audio
+        const needsFallback = uazapiResponse.status === 400 || 
+                              uazapiResponse.status === 404 || 
+                              uazapiResponse.status === 405 ||
+                              (uazapiResponse.status === 500 && firstBody.includes("missing text"));
+        
+        if (needsFallback) {
+          // Try /send/ptt which is specific for voice notes
+          console.log("[Avivar Send Message] Trying /send/ptt...");
+          uazapiResponse = await fetch(`${uazapiUrl}/send/ptt`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "token": uazapiToken,
+            },
+            body: JSON.stringify({
+              number: phone,
+              audio: audioRawBase64,
+            }),
+          });
+          logAttempt("/send/ptt", uazapiResponse);
         }
-
-        // Alternative payload keys (some servers use 'media' + 'type')
-        uazapiResponse = await fetch(`${uazapiUrl}/send/media`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "token": uazapiToken,
-          },
-          body: JSON.stringify({
-            number: phone,
-            type: "audio",
-            media: audioRawBase64,
-            ptt: true,
-          }),
-        });
-        logAttempt("/send/media (alt payload)", uazapiResponse);
       }
       
-      // 2) Fallbacks for other deployments
-      if (!uazapiResponse.ok && (uazapiResponse.status === 404 || uazapiResponse.status === 405)) {
-        console.log("[Avivar Send Message] Trying /send/ptt...");
+      // 2) Fallback to /sendPTT (alternative casing)
+      if (!uazapiResponse.ok) {
         try {
-          await uazapiResponse.text();
-        } catch {
-          // ignore
-        }
+          const body = await uazapiResponse.text();
+          console.log("[Avivar Send Message] /send/ptt response:", body);
+        } catch { /* ignore */ }
 
-        uazapiResponse = await fetch(`${uazapiUrl}/send/ptt`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "token": uazapiToken,
-          },
-          body: JSON.stringify({
-            number: phone,
-            audio: audioRawBase64,
-          }),
-        });
-        logAttempt("/send/ptt", uazapiResponse);
-      }
-
-      if (!uazapiResponse.ok && (uazapiResponse.status === 404 || uazapiResponse.status === 405)) {
         console.log("[Avivar Send Message] Trying /sendPTT...");
-        try {
-          await uazapiResponse.text();
-        } catch {
-          // ignore
-        }
-
         uazapiResponse = await fetch(`${uazapiUrl}/sendPTT`, {
           method: "POST",
           headers: {
@@ -272,15 +254,38 @@ serve(async (req) => {
         });
         logAttempt("/sendPTT", uazapiResponse);
       }
-
-      if (!uazapiResponse.ok && (uazapiResponse.status === 404 || uazapiResponse.status === 405)) {
-        console.log("[Avivar Send Message] Trying /chat/send/audio...");
+      
+      // 3) Fallback to /send/audio
+      if (!uazapiResponse.ok) {
         try {
-          await uazapiResponse.text();
-        } catch {
-          // ignore
-        }
+          const body = await uazapiResponse.text();
+          console.log("[Avivar Send Message] /sendPTT response:", body);
+        } catch { /* ignore */ }
 
+        console.log("[Avivar Send Message] Trying /send/audio...");
+        uazapiResponse = await fetch(`${uazapiUrl}/send/audio`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": uazapiToken,
+          },
+          body: JSON.stringify({
+            number: phone,
+            audio: audioRawBase64,
+            ptt: true,
+          }),
+        });
+        logAttempt("/send/audio", uazapiResponse);
+      }
+
+      // 4) Final fallback to /chat/send/audio (PascalCase)
+      if (!uazapiResponse.ok) {
+        try {
+          const body = await uazapiResponse.text();
+          console.log("[Avivar Send Message] /send/audio response:", body);
+        } catch { /* ignore */ }
+
+        console.log("[Avivar Send Message] Trying /chat/send/audio...");
         uazapiResponse = await fetch(`${uazapiUrl}/chat/send/audio`, {
           method: "POST",
           headers: {
