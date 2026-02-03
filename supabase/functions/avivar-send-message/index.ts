@@ -231,9 +231,40 @@ serve(async (req) => {
       
       // Detect mimetype from data URI or default to jpeg
       let mimetype = "image/jpeg";
+      let fileExtension = "jpg";
       if (imageBase64.startsWith("data:")) {
         const mimeMatch = imageBase64.match(/data:([^;]+);/);
-        if (mimeMatch) mimetype = mimeMatch[1];
+        if (mimeMatch) {
+          mimetype = mimeMatch[1];
+          if (mimetype === "image/png") fileExtension = "png";
+          else if (mimetype === "image/gif") fileExtension = "gif";
+          else if (mimetype === "image/webp") fileExtension = "webp";
+        }
+      }
+
+      // Upload image to Supabase Storage for preview
+      try {
+        const imageBuffer = Uint8Array.from(atob(imageRawBase64), c => c.charCodeAt(0));
+        const fileName = `chat-images/${conversationId}/${Date.now()}.${fileExtension}`;
+        
+        const { data: uploadData, error: uploadError } = await adminClient.storage
+          .from("avivar-media")
+          .upload(fileName, imageBuffer, {
+            contentType: mimetype,
+            upsert: false,
+          });
+        
+        if (!uploadError && uploadData) {
+          const { data: publicUrl } = adminClient.storage
+            .from("avivar-media")
+            .getPublicUrl(fileName);
+          savedMediaUrl = publicUrl.publicUrl;
+          console.log("[Avivar Send Message] Image uploaded to storage:", savedMediaUrl);
+        } else {
+          console.error("[Avivar Send Message] Storage upload error:", uploadError);
+        }
+      } catch (storageErr) {
+        console.error("[Avivar Send Message] Storage upload failed:", storageErr);
       }
 
       // Send image via /send/media with type: "image"
@@ -254,8 +285,6 @@ serve(async (req) => {
       await logAttempt("/send/media type=image", uazapiResponse);
       
       messageContent = caption || "📷 Imagem";
-      // Store a placeholder - we could upload to storage for preview, but for now just mark as image
-      savedMediaUrl = `data:${mimetype};base64,${imageRawBase64.substring(0, 100)}...`; // Truncated for DB
     } else {
       // Send text message: POST /send/text
       uazapiResponse = await fetch(`${uazapiUrl}/send/text`, {
