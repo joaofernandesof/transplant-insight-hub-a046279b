@@ -48,9 +48,25 @@ const STEP_ICONS: Record<string, React.ElementType> = {
   rocket: Rocket
 };
 
-export function AvivarOnboardingWizard() {
+interface AvivarOnboardingWizardProps {
+  initialPath?: 'whatsapp_first' | 'funnel_first' | 'ai_first';
+}
+
+export function AvivarOnboardingWizard({ initialPath = 'whatsapp_first' }: AvivarOnboardingWizardProps) {
   const { onboardingStatus, currentStep, checkAndUpdateSteps } = useAvivarOnboarding();
-  const [activeStep, setActiveStep] = useState(1);
+  
+  // Determinar step inicial baseado no caminho escolhido
+  const getInitialStep = () => {
+    if (currentStep && currentStep > 1) return currentStep;
+    switch (initialPath) {
+      case 'whatsapp_first': return 1; // WhatsApp -> Funis -> IA
+      case 'funnel_first': return 2;   // Funis -> Colunas -> WhatsApp -> IA
+      case 'ai_first': return 4;       // Agente -> Knowledge -> WhatsApp -> Funis
+      default: return 1;
+    }
+  };
+  
+  const [activeStep, setActiveStep] = useState(getInitialStep());
   
   // Sincronizar com o step atual do backend
   useEffect(() => {
