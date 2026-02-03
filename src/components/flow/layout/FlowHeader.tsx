@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Bell, Home, LogOut, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ModuleSwitcher } from "@/components/shared/ModuleSwitcher";
 
 export function FlowHeader() {
   const { user, logout } = useUnifiedAuth();
@@ -39,7 +40,10 @@ export function FlowHeader() {
       </div>
 
       {/* Right side */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        {/* Module Switcher */}
+        <ModuleSwitcher variant="icon" />
+
         <Button variant="ghost" size="icon" asChild>
           <Link to="/">
             <Home className="h-5 w-5" />
