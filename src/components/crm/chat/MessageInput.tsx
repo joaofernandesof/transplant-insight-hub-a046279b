@@ -19,8 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import { EmojiPicker } from './EmojiPicker';
 
 interface MessageInputProps {
   onSend: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video' | 'audio' | 'document') => void;
@@ -56,8 +55,8 @@ export function MessageInput({ onSend, disabled, placeholder }: MessageInputProp
     textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
   };
 
-  const handleEmojiSelect = (emoji: { native: string }) => {
-    setMessage(prev => prev + emoji.native);
+  const handleEmojiSelect = (emoji: string) => {
+    setMessage(prev => prev + emoji);
     textareaRef.current?.focus();
   };
 
@@ -110,21 +109,10 @@ export function MessageInput({ onSend, disabled, placeholder }: MessageInputProp
             <PopoverContent 
               side="top" 
               align="start" 
-              className="w-auto p-0 border-[hsl(var(--avivar-border))] bg-transparent shadow-xl"
+              className="w-auto p-0 border-0 bg-transparent shadow-none"
               sideOffset={8}
             >
-              <Picker 
-                data={data} 
-                onEmojiSelect={handleEmojiSelect}
-                theme="dark"
-                locale="pt"
-                previewPosition="none"
-                skinTonePosition="search"
-                navPosition="bottom"
-                perLine={8}
-                emojiSize={28}
-                emojiButtonSize={36}
-              />
+              <EmojiPicker onSelect={handleEmojiSelect} />
             </PopoverContent>
           </Popover>
 
