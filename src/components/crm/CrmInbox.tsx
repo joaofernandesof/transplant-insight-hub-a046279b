@@ -158,6 +158,16 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
     }
   };
 
+  const handleSendImage = async (imageBase64: string, caption?: string) => {
+    if (!selectedConversation) return;
+    
+    sendMessage.mutate({
+      conversationId: selectedConversation,
+      imageBase64,
+      caption,
+    });
+  };
+
   const handleStatusChange = (status: 'resolved' | 'archived') => {
     if (!selectedConversation) return;
     
@@ -325,6 +335,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
               <MessageInput
                 onSend={handleSendMessage}
                 onSendAudio={handleSendAudio}
+                onSendImage={handleSendImage}
                 disabled={sendMessage.isPending}
                 placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
               />
