@@ -2,7 +2,7 @@
  * Dialog para configurar checklists de bloqueio por coluna
  */
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   columns: KanbanColumnData[];
+  preSelectedColumnId?: string;
 }
 
 interface ChecklistField {
@@ -54,15 +55,22 @@ const PRESET_FIELDS: Record<string, ChecklistField[]> = {
   ]
 };
 
-export function ColumnChecklistDialog({ open, onOpenChange, columns }: Props) {
+export function ColumnChecklistDialog({ open, onOpenChange, columns, preSelectedColumnId }: Props) {
   const queryClient = useQueryClient();
-  const [selectedColumn, setSelectedColumn] = useState<string>('');
+  const [selectedColumn, setSelectedColumn] = useState<string>(preSelectedColumnId || '');
   const [newField, setNewField] = useState<ChecklistField>({
     field_key: '',
     field_label: '',
     field_type: 'text',
     is_required: true
   });
+
+  // Update selected column when preSelectedColumnId changes
+  useEffect(() => {
+    if (preSelectedColumnId) {
+      setSelectedColumn(preSelectedColumnId);
+    }
+  }, [preSelectedColumnId, open]);
 
   // Buscar checklists existentes
   const { data: checklists, isLoading, refetch } = useQuery({

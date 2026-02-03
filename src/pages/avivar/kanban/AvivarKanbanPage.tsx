@@ -70,6 +70,7 @@ export default function AvivarKanbanPage() {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isChecklistDialogOpen, setIsChecklistDialogOpen] = useState(false);
+  const [checklistPreSelectedColumn, setChecklistPreSelectedColumn] = useState<string>('');
   const [isAddLeadDialogOpen, setIsAddLeadDialogOpen] = useState(false);
   const [activeLead, setActiveLead] = useState<KanbanLead | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -340,7 +341,10 @@ export default function AvivarKanbanPage() {
         onAddLead={() => setIsAddLeadDialogOpen(true)}
         onImport={() => setIsImportDialogOpen(true)}
         onExport={() => setIsExportDialogOpen(true)}
-        onChecklist={() => setIsChecklistDialogOpen(true)}
+        onChecklist={() => {
+          setChecklistPreSelectedColumn('');
+          setIsChecklistDialogOpen(true);
+        }}
         onRefresh={refetch}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -464,6 +468,10 @@ export default function AvivarKanbanPage() {
         editingColumn={editingColumn}
         onSave={handleSaveColumn}
         isLoading={createColumn.isPending || updateColumn.isPending}
+        onOpenChecklist={(columnId) => {
+          setChecklistPreSelectedColumn(columnId);
+          setIsChecklistDialogOpen(true);
+        }}
       />
 
       {/* Add Lead Dialog */}
@@ -502,6 +510,7 @@ export default function AvivarKanbanPage() {
         open={isChecklistDialogOpen}
         onOpenChange={setIsChecklistDialogOpen}
         columns={columns}
+        preSelectedColumnId={checklistPreSelectedColumn}
       />
     </div>
   );

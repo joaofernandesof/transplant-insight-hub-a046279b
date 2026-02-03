@@ -134,6 +134,16 @@ export function KanbanHeader({
             </Button>
           )}
 
+          {/* Checklist Button - Visible */}
+          <Button
+            variant="outline"
+            onClick={onChecklist}
+            className="border-[hsl(var(--avivar-border))] gap-2"
+          >
+            <ListChecks className="h-4 w-4" />
+            Checklist
+          </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -145,12 +155,6 @@ export function KanbanHeader({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={onChecklist} className="cursor-pointer">
-                <ListChecks className="h-4 w-4 mr-2" />
-                Checklists de Bloqueio
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              
               {/* Column Visibility */}
               <div className="px-2 py-1.5 text-xs font-semibold text-[hsl(var(--avivar-muted-foreground))]">
                 Colunas Visíveis

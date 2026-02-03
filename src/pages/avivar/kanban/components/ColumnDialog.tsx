@@ -1,10 +1,11 @@
 /**
  * ColumnDialog - Dialog para criar/editar colunas do Kanban
  * Instrução para IA é OBRIGATÓRIA
+ * Inclui acesso rápido ao Checklist da coluna
  */
 
 import { useState, useEffect } from 'react';
-import { Loader2, Plus, Save, Bot } from 'lucide-react';
+import { Loader2, Plus, Save, Bot, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,6 +50,7 @@ interface ColumnDialogProps {
   editingColumn: KanbanColumnData | null;
   onSave: (data: { name: string; color: string; ai_instruction?: string }) => void;
   isLoading: boolean;
+  onOpenChecklist?: (columnId: string) => void;
 }
 
 export function ColumnDialog({
@@ -57,6 +59,7 @@ export function ColumnDialog({
   editingColumn,
   onSave,
   isLoading,
+  onOpenChecklist,
 }: ColumnDialogProps) {
   const [name, setName] = useState('');
   const [color, setColor] = useState('from-blue-500 to-blue-600');
@@ -84,6 +87,13 @@ export function ColumnDialog({
       return;
     }
     onSave({ name: name.trim(), color, ai_instruction: aiInstruction.trim() });
+  };
+
+  const handleOpenChecklist = () => {
+    if (editingColumn && onOpenChecklist) {
+      onOpenChange(false);
+      onOpenChecklist(editingColumn.id);
+    }
   };
 
   return (
@@ -153,6 +163,24 @@ export function ColumnDialog({
               A IA usará esta instrução para decidir automaticamente quando mover leads para esta coluna.
             </p>
           </div>
+
+          {/* Checklist Button - Only when editing */}
+          {editingColumn && onOpenChecklist && (
+            <div className="pt-2 border-t border-[hsl(var(--avivar-border))]">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleOpenChecklist}
+                className="w-full border-[hsl(var(--avivar-primary))] text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+              >
+                <ListChecks className="h-4 w-4 mr-2" />
+                Configurar Checklist desta Coluna
+              </Button>
+              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1 text-center">
+                Defina campos obrigatórios que bloqueiam a movimentação de leads
+              </p>
+            </div>
+          )}
 
           {/* Preview */}
           <div className="space-y-2">
