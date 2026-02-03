@@ -242,6 +242,28 @@ const TOOLS = [
             required: ["nova_etapa", "motivo"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "send_image",
+          description: `Envia uma imagem para o lead via WhatsApp. Use quando o lead pedir para ver fotos, resultados, localização ou catálogo. A galeria contém imagens categorizadas: antes_depois (resultados), catalogo (serviços/produtos), localizacao (clínica, mapa), geral (outras).`,
+          parameters: {
+            type: "object",
+            properties: {
+              category: {
+                type: "string",
+                enum: ["antes_depois", "catalogo", "localizacao", "geral"],
+                description: "Categoria da imagem: antes_depois (resultados), catalogo (serviços/produtos), localizacao (clínica, como chegar), geral (outras)"
+              },
+              search_term: {
+                type: "string",
+                description: "Termo de busca opcional para filtrar imagens pela legenda (ex: 'barba', 'fachada', 'cabelo masculino')"
+              }
+            },
+            required: ["category"]
+          }
+        }
       }
 ];
 
@@ -939,6 +961,214 @@ async function moverLeadParaEtapa(
 }
 
 // ============================================
+// SEND IMAGE TOOL
+// ============================================
+
+interface GalleryImage {
+  id: string;
+  url: string;
+  caption?: string;
+  category: string;
+}
+
+interface ImageGallery {
+  before_after: GalleryImage[];
+  catalog: GalleryImage[];
+  location: GalleryImage[];
+  general: GalleryImage[];
+}
+
+async function sendImage(
+  supabase: AnySupabaseClient,
+  userId: string,
+  agentId: string | null,
+  conversationId: string,
+  leadPhone: string,
+  category: string,
+  searchTerm?: string
+): Promise<{ success: boolean; message: string; imageUrl?: string }> {
+  console.log(`[AI Agent] Tool: send_image(category="${category}", search="${searchTerm || ''}")`);
+
+  // Map category from tool to gallery key
+  const categoryMap: Record<string, keyof ImageGallery> = {
+    "antes_depois": "before_after",
+    "before_after": "before_after",
+    "catalogo": "catalog",
+    "catalog": "catalog",
+    "localizacao": "location",
+    "location": "location",
+    "geral": "general",
+    "general": "general"
+  };
+
+  const galleryKey = categoryMap[category.toLowerCase()] || "general";
+
+  // Get the agent's image gallery
+  let gallery: ImageGallery | null = null;
+
+  if (agentId) {
+    const { data: agent } = await supabase
+      .from("avivar_agents")
+      .select("image_gallery, before_after_images")
+      .eq("id", agentId)
+      .single();
+
+    if (agent?.image_gallery) {
+      gallery = agent.image_gallery as ImageGallery;
+    } else if (agent?.before_after_images && Array.isArray(agent.before_after_images)) {
+      // Fallback to legacy before_after_images
+      gallery = {
+        before_after: agent.before_after_images.map((url: string, i: number) => ({
+          id: `legacy_${i}`,
+          url,
+          caption: "",
+          category: "before_after"
+        })),
+        catalog: [],
+        location: [],
+        general: []
+      };
+    }
+  }
+
+  // If no agent gallery, try to get from any agent of this user
+  if (!gallery) {
+    const { data: agents } = await supabase
+      .from("avivar_agents")
+      .select("image_gallery, before_after_images")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .limit(1);
+
+    if (agents?.[0]?.image_gallery) {
+      gallery = agents[0].image_gallery as ImageGallery;
+    } else if (agents?.[0]?.before_after_images && Array.isArray(agents[0].before_after_images)) {
+      gallery = {
+        before_after: agents[0].before_after_images.map((url: string, i: number) => ({
+          id: `legacy_${i}`,
+          url,
+          caption: "",
+          category: "before_after"
+        })),
+        catalog: [],
+        location: [],
+        general: []
+      };
+    }
+  }
+
+  if (!gallery) {
+    console.log("[AI Agent] No image gallery found");
+    return { success: false, message: "Ainda não temos imagens configuradas nesta categoria." };
+  }
+
+  const images = gallery[galleryKey] || [];
+  
+  if (images.length === 0) {
+    console.log(`[AI Agent] No images in category ${galleryKey}`);
+    return { success: false, message: `Não temos imagens na categoria "${category}" ainda.` };
+  }
+
+  // Filter by search term if provided
+  let selectedImage: GalleryImage;
+  
+  if (searchTerm) {
+    const searchLower = searchTerm.toLowerCase();
+    const matching = images.filter((img: GalleryImage) => 
+      img.caption?.toLowerCase().includes(searchLower)
+    );
+    
+    if (matching.length > 0) {
+      // Pick random from matching
+      selectedImage = matching[Math.floor(Math.random() * matching.length)];
+    } else {
+      // No match, pick random from all
+      selectedImage = images[Math.floor(Math.random() * images.length)];
+    }
+  } else {
+    // Pick random image from category
+    selectedImage = images[Math.floor(Math.random() * images.length)];
+  }
+
+  console.log(`[AI Agent] Selected image: ${selectedImage.url.substring(0, 50)}...`);
+
+  // Get WhatsApp instance to send the image
+  const { data: session } = await supabase
+    .from("avivar_whatsapp_sessions")
+    .select("instance_name, base_url, token")
+    .eq("user_id", userId)
+    .eq("is_connected", true)
+    .limit(1)
+    .maybeSingle();
+
+  if (!session) {
+    console.log("[AI Agent] No WhatsApp session, returning URL only");
+    return { 
+      success: true, 
+      message: `Aqui está a imagem: ${selectedImage.url}`,
+      imageUrl: selectedImage.url
+    };
+  }
+
+  // Send image via UazAPI
+  try {
+    const cleanPhone = leadPhone.replace(/\D/g, "");
+    const apiUrl = `${session.base_url}/send/media`;
+    
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "token": session.token
+      },
+      body: JSON.stringify({
+        number: cleanPhone,
+        url: selectedImage.url,
+        type: "image",
+        text: selectedImage.caption || "" // Caption as text
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[AI Agent] Failed to send image:", errorText);
+      return { 
+        success: true, 
+        message: `Aqui está a imagem: ${selectedImage.url}`,
+        imageUrl: selectedImage.url
+      };
+    }
+
+    // Save message to CRM
+    await supabase.from("crm_messages").insert({
+      conversation_id: conversationId,
+      sender_id: null,
+      sender_type: "ai",
+      content: selectedImage.caption || "[Imagem enviada]",
+      media_url: selectedImage.url,
+      media_type: "image",
+      direction: "outbound",
+      sent_at: new Date().toISOString()
+    });
+
+    console.log("[AI Agent] ✅ Image sent successfully");
+    return { 
+      success: true, 
+      message: `Imagem enviada com sucesso!${selectedImage.caption ? ` (${selectedImage.caption})` : ""}`,
+      imageUrl: selectedImage.url
+    };
+    
+  } catch (error) {
+    console.error("[AI Agent] Error sending image:", error);
+    return { 
+      success: true, 
+      message: `Aqui está a imagem: ${selectedImage.url}`,
+      imageUrl: selectedImage.url
+    };
+  }
+}
+
+// ============================================
 // PROCESS TOOL CALLS
 // ============================================
 
@@ -1004,6 +1234,19 @@ async function processToolCall(
         toolArgs.nova_etapa as string,
         toolArgs.motivo as string
       );
+    
+    case "send_image": {
+      const result = await sendImage(
+        supabase,
+        userId,
+        _agentId,
+        conversationId,
+        patientPhone,
+        toolArgs.category as string,
+        toolArgs.search_term as string | undefined
+      );
+      return result.message;
+    }
     
     default:
       return "Ferramenta não reconhecida.";

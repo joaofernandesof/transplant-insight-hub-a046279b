@@ -1,33 +1,37 @@
 /**
- * Etapa 9: Fotos Antes e Depois
- * Suporta upload de arquivos do dispositivo (computador/celular), drag & drop, paste e URLs
+ * Etapa 9: Galeria de Imagens do Agente
+ * Categorias: Antes/Depois, Catálogo, Localização, Geral
  */
 
 import React from 'react';
-import { ImageUpload } from '../ImageUpload';
+import { ImageGalleryUpload } from '../ImageGalleryUpload';
+import { ImageGallery, EMPTY_IMAGE_GALLERY } from '../../types';
 
 interface StepImagesProps {
-  images: string[];
-  onChange: (images: string[]) => void;
+  gallery: ImageGallery;
+  onChange: (gallery: ImageGallery) => void;
+  // Legado - para compatibilidade
+  images?: string[];
+  onImagesChange?: (images: string[]) => void;
 }
 
-export function StepImages({ images, onChange }: StepImagesProps) {
+export function StepImages({ gallery = EMPTY_IMAGE_GALLERY, onChange }: StepImagesProps) {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-          Adicione fotos de resultados (opcional)
+          Galeria de Imagens do Agente
         </h2>
         <p className="text-[hsl(var(--avivar-muted-foreground))]">
-          Mostre resultados reais! A IA enviará quando pacientes pedirem
+          Configure as imagens que a IA pode enviar durante as conversas
         </p>
       </div>
 
-      <div className="max-w-xl mx-auto">
-        <ImageUpload 
-          images={images} 
+      <div className="max-w-2xl mx-auto">
+        <ImageGalleryUpload 
+          gallery={gallery} 
           onChange={onChange} 
-          maxImages={10} 
+          maxImagesPerCategory={10} 
         />
       </div>
     </div>

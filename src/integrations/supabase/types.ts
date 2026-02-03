@@ -411,6 +411,7 @@ export type Database = {
           crm: string | null
           fluxo_atendimento: Json | null
           id: string
+          image_gallery: Json | null
           instagram: string | null
           is_active: boolean | null
           knowledge_files: Json | null
@@ -447,6 +448,7 @@ export type Database = {
           crm?: string | null
           fluxo_atendimento?: Json | null
           id?: string
+          image_gallery?: Json | null
           instagram?: string | null
           is_active?: boolean | null
           knowledge_files?: Json | null
@@ -483,6 +485,7 @@ export type Database = {
           crm?: string | null
           fluxo_atendimento?: Json | null
           id?: string
+          image_gallery?: Json | null
           instagram?: string | null
           is_active?: boolean | null
           knowledge_files?: Json | null
