@@ -6,10 +6,19 @@
 import { ReactNode, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import AstreaStyleSidebar from "./AstreaStyleSidebar";
+import IpromedGlobalSearch from "./IpromedGlobalSearch";
+import IpromedGuidedTour from "./IpromedGuidedTour";
 import { Button } from "@/components/ui/button";
-import { Menu, Scale } from "lucide-react";
+import { Menu, Scale, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useIpromedOnboarding } from "@/hooks/useIpromedOnboarding";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface IpromedLayoutProps {
   children: ReactNode;
@@ -19,6 +28,7 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
+  const { showTour, completeTour, startTour } = useIpromedOnboarding();
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -31,7 +41,7 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
   if (isMobile) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
-        {/* Mobile Header - NeoPay style */}
+        {/* Mobile Header */}
         <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-primary to-primary/90 border-b border-primary/20">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
@@ -39,25 +49,36 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
             </div>
             <span className="font-bold text-white">IPROMED</span>
           </div>
-          <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72 border-primary/20">
-              <AstreaStyleSidebar 
-                isCollapsed={false}
-                onToggle={() => {}}
-                isMobileOpen={true}
-                onMobileClose={() => setIsMobileOpen(false)}
-              />
-            </SheetContent>
-          </Sheet>
+          
+          <div className="flex items-center gap-2">
+            <div data-tour="global-search">
+              <IpromedGlobalSearch isCollapsed />
+            </div>
+            
+            <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-72 border-primary/20">
+                <AstreaStyleSidebar 
+                  isCollapsed={false}
+                  onToggle={() => {}}
+                  isMobileOpen={true}
+                  onMobileClose={() => setIsMobileOpen(false)}
+                />
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
+        
         <main className="flex-1 overflow-auto">
           {children}
         </main>
+        
+        {/* Guided Tour */}
+        <IpromedGuidedTour isOpen={showTour} onComplete={completeTour} />
       </div>
     );
   }
@@ -71,12 +92,46 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
         onMobileClose={() => setIsMobileOpen(false)}
       />
       
-      <main className={cn(
-        "flex-1 overflow-auto transition-all duration-300",
+      <div className={cn(
+        "flex-1 flex flex-col transition-all duration-300",
         isCollapsed ? "lg:ml-16" : "lg:ml-60"
       )}>
-        {children}
-      </main>
+        {/* Top Bar with Global Search */}
+        <header className="sticky top-0 z-40 h-14 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+          <div className="flex items-center justify-between h-full px-4">
+            <div data-tour="global-search" className="flex-1 max-w-md">
+              <IpromedGlobalSearch />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={startTour}
+                      className="text-muted-foreground hover:text-primary"
+                    >
+                      <HelpCircle className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Iniciar tour guiado</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        </header>
+        
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+      
+      {/* Guided Tour */}
+      <IpromedGuidedTour isOpen={showTour} onComplete={completeTour} />
     </div>
   );
 }
