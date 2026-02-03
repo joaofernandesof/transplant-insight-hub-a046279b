@@ -46,21 +46,26 @@ interface NavItem {
   tourId?: string;
 }
 
-const mainNavItems: NavItem[] = [
+// CPG - Escritório Jurídico
+const cpgNavItems: NavItem[] = [
   { id: 'home', label: 'Início', icon: Home, href: '/ipromed', tourId: 'sidebar-home' },
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/ipromed/dashboard', tourId: 'sidebar-dashboard' },
-  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', isNew: true, tourId: 'sidebar-university' },
   { id: 'clients', label: 'Clientes', icon: Users, href: '/ipromed/clients', tourId: 'sidebar-clients' },
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts', tourId: 'sidebar-contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', isNew: true, tourId: 'sidebar-financial' },
   { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico', isNew: true },
-  { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
   { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda', tourId: 'sidebar-agenda' },
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases', tourId: 'sidebar-cases' },
   { id: 'documents', label: 'Documentos', icon: FileBox, href: '/ipromed/legal?tab=documents' },
   { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', isNew: true, tourId: 'sidebar-ai' },
+];
+
+// IPROMED - Educacional
+const ipromedNavItems: NavItem[] = [
+  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', isNew: true, tourId: 'sidebar-university' },
+  { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
 ];
 
 interface AstreaStyleSidebarProps {
@@ -139,7 +144,72 @@ export default function AstreaStyleSidebar({
             {/* Admin Back Button */}
             <AdminBackButton isCollapsed={isCollapsed} />
             
-            {mainNavItems.map(item => {
+            {/* CPG Section Header */}
+            {!isCollapsed && (
+              <div className="px-3 py-2">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  CPG Escritório
+                </p>
+              </div>
+            )}
+            {isCollapsed && <Separator className="my-2" />}
+            
+            {cpgNavItems.map(item => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.href}
+                  onClick={onMobileClose}
+                  data-tour={item.tourId}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group",
+                    isCollapsed && "justify-center px-2",
+                    active
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  <Icon className={cn(
+                    "h-5 w-5 flex-shrink-0",
+                    active ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  
+                  {!isCollapsed && (
+                    <>
+                      <span className="flex-1">{item.label}</span>
+                      
+                      {item.isNew && (
+                        <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
+                          <Sparkles className="h-3 w-3 mr-0.5" />
+                          IA
+                        </Badge>
+                      )}
+                      
+                      {item.badge && (
+                        <Badge className={cn("text-white text-xs px-1.5 min-w-[20px] justify-center", item.badgeColor)}>
+                          {item.badge > 99 ? '99+' : item.badge}
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+
+            {/* IPROMED Section Header */}
+            {!isCollapsed && (
+              <div className="px-3 pt-4 pb-2">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  IPROMED Educacional
+                </p>
+              </div>
+            )}
+            {isCollapsed && <Separator className="my-2" />}
+            
+            {ipromedNavItems.map(item => {
               const Icon = item.icon;
               const active = isActive(item.href);
               
