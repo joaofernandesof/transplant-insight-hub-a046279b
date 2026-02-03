@@ -385,8 +385,13 @@ export function StepObjectivesSimple({
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
                 <Label className="text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
-                  Objetivos Secundários (opcional)
+                  Objetivos Secundários
                 </Label>
+                {!objectives.secondaryConfirmed && (
+                  <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-400 bg-amber-50">
+                    Obrigatório
+                  </Badge>
+                )}
               </div>
               <Button
                 type="button"
@@ -405,10 +410,43 @@ export function StepObjectivesSimple({
               </Button>
             </div>
             <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-              Se o cliente pedir, a IA também pode realizar essas ações
+              Selecione objetivos adicionais ou escolha "Nenhum" se não desejar objetivos secundários
             </p>
             
             <div className="space-y-2">
+              {/* Opção NENHUM - fixa no topo */}
+              <div
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer",
+                  objectives.secondaryConfirmed && objectives.secondary.length === 0 && (!objectives.secondaryCustomIds || objectives.secondaryCustomIds.length === 0)
+                    ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)]"
+                    : "border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.5)]"
+                )}
+                onClick={() => {
+                  // Limpar todos os secundários e marcar como confirmado
+                  onChange({
+                    ...objectives,
+                    secondary: [],
+                    secondaryCustomIds: [],
+                    secondaryConfirmed: true,
+                  });
+                }}
+              >
+                <Checkbox
+                  checked={objectives.secondaryConfirmed && objectives.secondary.length === 0 && (!objectives.secondaryCustomIds || objectives.secondaryCustomIds.length === 0)}
+                  className="border-[hsl(var(--avivar-muted-foreground))] data-[state=checked]:bg-[hsl(var(--avivar-primary))] data-[state=checked]:border-[hsl(var(--avivar-primary))]"
+                />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800">
+                  <Target className="h-5 w-5 text-slate-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))]">Nenhum</p>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                    Não desejo objetivos secundários
+                  </p>
+                </div>
+              </div>
+
               {/* Objetivos padrão secundários */}
               {applicableObjectives
                 .filter(obj => obj.id !== objectives.primary)
@@ -422,7 +460,19 @@ export function StepObjectivesSimple({
                       description={obj.description}
                       icon={obj.icon}
                       isSelected={isSelected}
-                      onToggle={() => handleSecondaryToggle(obj.id)}
+                      onToggle={() => {
+                        handleSecondaryToggle(obj.id);
+                        // Marcar como confirmado quando selecionar qualquer objetivo
+                        if (!objectives.secondaryConfirmed) {
+                          onChange({
+                            ...objectives,
+                            secondary: objectives.secondary.includes(obj.id as AgentObjective)
+                              ? objectives.secondary.filter(s => s !== obj.id)
+                              : [...objectives.secondary, obj.id as AgentObjective],
+                            secondaryConfirmed: true,
+                          });
+                        }
+                      }}
                     />
                   );
                 })}
@@ -447,7 +497,21 @@ export function StepObjectivesSimple({
                       description={custom.description}
                       icon={<Sparkles className="h-5 w-5" />}
                       isSelected={isSelected}
-                      onToggle={() => handleSecondaryToggle(custom.id)}
+                      onToggle={() => {
+                        handleSecondaryToggle(custom.id);
+                        // Marcar como confirmado quando selecionar qualquer objetivo customizado
+                        if (!objectives.secondaryConfirmed) {
+                          const currentSecondaryCustomIds = objectives.secondaryCustomIds || [];
+                          const isCurrentlySelected = currentSecondaryCustomIds.includes(custom.id);
+                          onChange({
+                            ...objectives,
+                            secondaryCustomIds: isCurrentlySelected
+                              ? currentSecondaryCustomIds.filter(s => s !== custom.id)
+                              : [...currentSecondaryCustomIds, custom.id],
+                            secondaryConfirmed: true,
+                          });
+                        }
+                      }}
                       isCustom
                       onEdit={() => handleEditCustom(custom)}
                       onDelete={() => handleDeleteCustom(custom.id)}
@@ -455,6 +519,13 @@ export function StepObjectivesSimple({
                   );
                 })}
             </div>
+
+            {/* Aviso se não confirmou */}
+            {!objectives.secondaryConfirmed && (
+              <p className="text-center text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
+                ⚠️ Selecione um objetivo secundário ou escolha "Nenhum" para continuar
+              </p>
+            )}
           </div>
         )}
 

@@ -167,8 +167,8 @@ export default function AvivarSimpleWizard() {
         return config.services.some(s => s.enabled);
       case 3: // Pagamentos (opcional - sempre pode prosseguir)
         return true;
-      case 4: // Objetivos
-        return !!config.agentObjectives?.primary;
+      case 4: // Objetivos - precisa de objetivo principal E confirmação de secundários
+        return !!config.agentObjectives?.primary && !!config.agentObjectives?.secondaryConfirmed;
       case 5: // Fluxo de atendimento - sempre pode prosseguir (template já carregado)
         return true;
       case 6: // FAQ - se há FAQ gerado, precisa adicionar à base primeiro
