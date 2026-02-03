@@ -171,6 +171,24 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             >
               Lead #{lead.id.slice(0, 8)}
             </Badge>
+            {/* Tags do lead */}
+            {kanbanInfo?.tags && kanbanInfo.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {kanbanInfo.tags.slice(0, 3).map((tag, idx) => (
+                  <span 
+                    key={idx}
+                    className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]"
+                  >
+                    #{tag}{idx < Math.min(kanbanInfo.tags.length, 3) - 1 ? ',' : ''}
+                  </span>
+                ))}
+                {kanbanInfo.tags.length > 3 && (
+                  <span className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
+                    +{kanbanInfo.tags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           
           <DropdownMenu>
