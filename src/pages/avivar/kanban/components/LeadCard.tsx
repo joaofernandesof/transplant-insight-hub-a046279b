@@ -1,13 +1,16 @@
 /**
  * LeadCard - Card compacto para exibição de lead no Kanban
- * Com indicador de fonte (ícone) e prévia da última mensagem
+ * Exibe nome, data de criação, tarefas pendentes e tags
  */
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreHorizontal, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Trash2, CheckSquare } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +18,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { LeadSourceAvatar } from '@/components/avivar/LeadSourceAvatar';
 import type { KanbanLead } from '../hooks/useKanbanLeads';
 
 interface LeadCardProps {
@@ -45,19 +47,27 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
     transition,
   };
 
-  const formatPhone = (phone: string | null) => {
-    if (!phone) return null;
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length >= 10) {
-      // Show last 4 digits
-      return `***-${cleaned.slice(-4)}`;
+  // Get initials from name
+  const getInitials = (name: string) => {
+    const parts = name.split(' ').filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
-    return phone;
+    return name.slice(0, 2).toUpperCase();
   };
 
+  // Format creation date
+  const formatCreationDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return format(date, 'dd.MM.yyyy', { locale: ptBR });
+    } catch {
+      return '';
+    }
+  };
 
-  // Get last message preview from custom_fields if available
-  const lastMessage = (lead.custom_fields as Record<string, unknown>)?.last_message as string | undefined;
+  // Get pending tasks count from custom_fields
+  const pendingTasks = (lead.custom_fields as Record<string, unknown>)?.pending_tasks as number | undefined;
 
   return (
     <div
@@ -73,27 +83,27 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
       )}
       onClick={() => onClick?.(lead)}
     >
-      {/* Header with name and menu */}
+      {/* Header with avatar, name and date */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* Avatar with source indicator */}
-          <LeadSourceAvatar 
-            name={lead.name} 
-            source={lead.source}
-            size="sm"
-          />
+          {/* Simple Avatar with initials */}
+          <Avatar className="h-8 w-8 flex-shrink-0">
+            <AvatarFallback className="bg-[hsl(var(--avivar-primary)/0.2)] text-[hsl(var(--avivar-primary))] text-xs font-medium">
+              {getInitials(lead.name)}
+            </AvatarFallback>
+          </Avatar>
           
           <div className="min-w-0 flex-1">
             <h4 className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">
               {lead.name}
             </h4>
-            {lead.phone && (
-              <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
-                {formatPhone(lead.phone)}
-              </p>
-            )}
           </div>
         </div>
+
+        {/* Date */}
+        <span className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] flex-shrink-0">
+          {formatCreationDate(lead.created_at)}
+        </span>
 
         {/* Actions Menu */}
         <DropdownMenu>
@@ -123,35 +133,41 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
         </DropdownMenu>
       </div>
 
-      {/* Last message preview */}
-      {lastMessage && (
-        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] truncate mb-2 italic">
-          "{lastMessage}"
-        </p>
-      )}
-
-      {/* Tags */}
-      {lead.tags && lead.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {lead.tags.slice(0, 2).map((tag, idx) => (
-            <Badge 
-              key={idx}
-              variant="outline"
-              className="text-[10px] px-1.5 py-0 border-[hsl(var(--avivar-primary)/0.3)] text-[hsl(var(--avivar-primary))]"
-            >
-              {tag}
-            </Badge>
-          ))}
-          {lead.tags.length > 2 && (
-            <Badge 
-              variant="outline"
-              className="text-[10px] px-1.5 py-0 border-[hsl(var(--avivar-border))]"
-            >
-              +{lead.tags.length - 2}
-            </Badge>
-          )}
+      {/* Footer with tags and pending tasks */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1 flex-1 min-w-0">
+          {lead.tags && lead.tags.length > 0 ? (
+            <>
+              {lead.tags.slice(0, 2).map((tag, idx) => (
+                <Badge 
+                  key={idx}
+                  variant="outline"
+                  className="text-[10px] px-1.5 py-0 border-[hsl(var(--avivar-primary)/0.3)] text-[hsl(var(--avivar-primary))] truncate max-w-[100px]"
+                >
+                  #{tag}
+                </Badge>
+              ))}
+              {lead.tags.length > 2 && (
+                <Badge 
+                  variant="outline"
+                  className="text-[10px] px-1.5 py-0 border-[hsl(var(--avivar-border))]"
+                >
+                  +{lead.tags.length - 2}
+                </Badge>
+              )}
+            </>
+          ) : null}
         </div>
-      )}
+
+        {/* Pending tasks indicator */}
+        {pendingTasks !== undefined && pendingTasks > 0 && (
+          <div className="flex items-center gap-1 text-[hsl(var(--avivar-primary))]">
+            <CheckSquare className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-medium">{pendingTasks}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
