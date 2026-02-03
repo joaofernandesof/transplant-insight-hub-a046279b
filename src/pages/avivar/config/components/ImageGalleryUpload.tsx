@@ -23,8 +23,18 @@ import {
   ShoppingBag,
   MapPin,
   ImageIcon,
-  Edit2
+  Edit2,
+  Lightbulb,
+  Info,
+  Sparkles
 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -324,6 +334,12 @@ export function ImageGalleryUpload({
 
   const currentItems = imageItems[activeCategory];
   const totalImages = Object.values(imageItems).reduce((acc, items) => acc + items.filter(i => i.isUploaded).length, 0);
+  
+  // Count images without captions for warning
+  const imagesWithoutCaption = Object.values(imageItems).reduce(
+    (acc, items) => acc + items.filter(i => i.isUploaded && !i.caption?.trim()).length, 
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -468,14 +484,38 @@ export function ImageGalleryUpload({
                         )}
                       </div>
                       
-                      {/* Caption input */}
+                      {/* Caption input with tooltip */}
                       <div className="p-2 border-t border-[hsl(var(--avivar-border))]">
-                        <Input
-                          value={image.caption}
-                          onChange={(e) => updateCaption(image.id, e.target.value)}
-                          placeholder="Legenda (opcional)"
-                          className="text-xs h-7 bg-transparent border-none p-1"
-                        />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="relative">
+                                <Input
+                                  value={image.caption}
+                                  onChange={(e) => updateCaption(image.id, e.target.value)}
+                                  placeholder="⚠️ Legenda obrigatória"
+                                  className={cn(
+                                    "text-xs h-7 bg-transparent border p-1 pr-6",
+                                    !image.caption?.trim() 
+                                      ? "border-amber-500/50 placeholder:text-amber-600" 
+                                      : "border-transparent"
+                                  )}
+                                />
+                                {!image.caption?.trim() && (
+                                  <Info className="absolute right-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-amber-500" />
+                                )}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-xs text-xs">
+                              <p className="font-semibold mb-1">📝 Dicas para legendas:</p>
+                              <ul className="space-y-0.5 text-[10px]">
+                                <li>• Inclua <strong>gênero</strong>: "masculino" ou "feminino"</li>
+                                <li>• Descreva a <strong>área</strong>: "cabelo", "barba", "sobrancelha"</li>
+                                <li>• Adicione <strong>tempo</strong>: "após 6 meses", "1 ano depois"</li>
+                              </ul>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </CardContent>
                   </Card>
@@ -499,20 +539,48 @@ export function ImageGalleryUpload({
         ))}
       </Tabs>
 
-      {/* Total summary */}
-      <div className="text-center text-sm text-[hsl(var(--avivar-muted-foreground))]">
-        Total: <span className="font-medium text-[hsl(var(--avivar-foreground))]">{totalImages}</span> imagens na galeria
+      {/* Total summary with caption warning */}
+      <div className="flex flex-col items-center gap-2">
+        <div className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+          Total: <span className="font-medium text-[hsl(var(--avivar-foreground))]">{totalImages}</span> imagens na galeria
+        </div>
+        
+        {imagesWithoutCaption > 0 && (
+          <Badge 
+            variant="outline" 
+            className="border-amber-500 text-amber-600 bg-amber-500/10 gap-1.5"
+          >
+            <AlertCircle className="h-3 w-3" />
+            {imagesWithoutCaption} {imagesWithoutCaption === 1 ? 'imagem sem legenda' : 'imagens sem legenda'}
+          </Badge>
+        )}
       </div>
 
-      {/* Usage tip */}
-      <Card className="bg-[hsl(var(--avivar-primary)/0.05)] border-[hsl(var(--avivar-primary)/0.2)]">
-        <CardContent className="p-4">
-          <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-            💡 <strong>Dica:</strong> Adicione legendas descritivas! A IA usa as legendas para saber 
-            quando enviar cada imagem. Ex: "Resultado de transplante capilar masculino após 1 ano"
+      {/* Caption importance alert */}
+      <Alert className="border-amber-500/30 bg-amber-500/5">
+        <Lightbulb className="h-4 w-4 text-amber-500" />
+        <AlertTitle className="text-sm font-semibold text-amber-600">
+          Legendas são essenciais para a IA!
+        </AlertTitle>
+        <AlertDescription className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1 space-y-2">
+          <p>
+            A IA usa as legendas para escolher a foto certa. Quando um lead pedir "foto de resultado masculino", 
+            ela buscará imagens com "masculino" na legenda.
           </p>
-        </CardContent>
-      </Card>
+          <div className="bg-[hsl(var(--avivar-card))] rounded-lg p-3 space-y-1.5">
+            <p className="font-medium text-[hsl(var(--avivar-foreground))] flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--avivar-primary))]" />
+              Exemplos de boas legendas:
+            </p>
+            <ul className="text-[11px] space-y-1 ml-5">
+              <li>✅ "Transplante capilar <strong>masculino</strong> - topo da cabeça - 8 meses"</li>
+              <li>✅ "Resultado <strong>feminino</strong> - sobrancelha - antes e depois"</li>
+              <li>✅ "Transplante de <strong>barba masculina</strong> - 1 ano"</li>
+              <li>❌ "Foto 1" (sem informação útil)</li>
+            </ul>
+          </div>
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
