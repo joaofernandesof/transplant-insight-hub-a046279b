@@ -12,7 +12,7 @@ import {
   Settings,
   History,
   Radar,
-  AlertCircle,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +22,10 @@ import PushAlerts from "./components/push-juridico/PushAlerts";
 import PushSettings from "./components/push-juridico/PushSettings";
 import PushHistory from "./components/push-juridico/PushHistory";
 import PushMonitoring from "./components/push-juridico/PushMonitoring";
+import AstreaPublicationsView from "./components/push-juridico/AstreaPublicationsView";
 
 const tabs = [
+  { id: 'publications', label: 'Publicações', icon: FileText, badge: 2 },
   { id: 'dashboard', label: 'Dashboard', icon: Radar },
   { id: 'alerts', label: 'Alertas', icon: Bell, badge: 5 },
   { id: 'monitoring', label: 'Monitoramento', icon: Search },
@@ -32,7 +34,7 @@ const tabs = [
 ];
 
 export default function IpromedPushJuridico() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('publications');
 
   return (
     <div className="p-6 space-y-6">
@@ -78,6 +80,10 @@ export default function IpromedPushJuridico() {
             );
           })}
         </TabsList>
+
+        <TabsContent value="publications" className="mt-6">
+          <AstreaPublicationsView />
+        </TabsContent>
 
         <TabsContent value="dashboard" className="mt-6">
           <PushDashboard />
