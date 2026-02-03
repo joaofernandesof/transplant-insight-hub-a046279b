@@ -1,6 +1,7 @@
 /**
  * IPROMED - Jornada do Cliente Interativa
  * Visualização por cliente com tracking real das etapas D0 a D+30
+ * Com Kanban de clientes, detalhes de fase e checklists
  */
 
 import { useState } from "react";
@@ -16,12 +17,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   ArrowLeft,
   Search,
@@ -32,26 +32,28 @@ import {
   AlertTriangle,
   Calendar,
   ChevronRight,
-  Play,
-  Pause,
-  Filter,
   Download,
+  Info,
+  GripVertical,
+  Plus,
+  Eye,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import ClientJourneyTracker from "./components/ClientJourneyTracker";
+import JourneyPhaseDetail, { journeyPhasesDetailed, PhaseDetail } from "./components/JourneyPhaseDetail";
+import { cn } from "@/lib/utils";
 
-// Journey phases with colors
-const journeyPhases = [
-  { id: 'D0', label: 'Ativação', color: 'bg-blue-500', deliverables: [1, 2] },
-  { id: 'D+1', label: 'Agendamento', color: 'bg-indigo-500', deliverables: [3] },
-  { id: 'D+3', label: 'Onboarding', color: 'bg-purple-500', deliverables: [4, 5, 6, 7, 8] },
-  { id: 'D+7', label: 'Dossiê', color: 'bg-teal-500', deliverables: [9, 10, 11] },
-  { id: 'D+15', label: 'Documentação', color: 'bg-amber-500', deliverables: [13, 14] },
-  { id: 'D+30', label: 'Compliance', color: 'bg-rose-500', deliverables: [15, 16] },
-  { id: 'Contínuo', label: 'Acompanhamento', color: 'bg-emerald-500', deliverables: [12, 17] },
-];
+// Journey phases with colors - mapped to detailed phases
+const journeyPhases = journeyPhasesDetailed.map(p => ({
+  id: p.id,
+  label: p.name,
+  fullLabel: p.label,
+  color: p.bgColor,
+  description: p.description,
+  deliverables: p.deliverables.length,
+}));
 
 interface Client {
   id: string;
@@ -75,6 +77,8 @@ export default function IpromedJourney() {
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [activeTab, setActiveTab] = useState("pipeline");
+  const [phaseDetailOpen, setPhaseDetailOpen] = useState(false);
+  const [selectedPhaseDetail, setSelectedPhaseDetail] = useState<PhaseDetail | null>(null);
 
   // Fetch clients with journey data
   const { data: clients = [], isLoading } = useQuery({
@@ -263,24 +267,54 @@ export default function IpromedJourney() {
         </div>
       </div>
 
-      {/* Phase Overview */}
+      {/* Phase Overview with Details */}
       <div className="grid grid-cols-7 gap-2">
-        {journeyPhases.map((phase) => (
-          <Card 
-            key={phase.id}
-            className={`border-none shadow-sm cursor-pointer transition-all ${
-              selectedPhase === phase.id ? 'ring-2 ring-primary' : ''
-            }`}
-            onClick={() => setSelectedPhase(selectedPhase === phase.id ? null : phase.id)}
-          >
-            <CardContent className="p-3 text-center">
-              <div className={`w-3 h-3 ${phase.color} rounded-full mx-auto mb-2`} />
-              <p className="text-xs font-medium">{phase.id}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{phase.label}</p>
-              <p className="text-lg font-bold mt-1">{clientsByPhase[phase.id]?.length || 0}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {journeyPhases.map((phase) => {
+          const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
+          return (
+            <TooltipProvider key={phase.id}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Card 
+                    className={cn(
+                      "border-none shadow-sm cursor-pointer transition-all hover:shadow-md",
+                      selectedPhase === phase.id && 'ring-2 ring-primary'
+                    )}
+                    onClick={() => setSelectedPhase(selectedPhase === phase.id ? null : phase.id)}
+                  >
+                    <CardContent className="p-3 text-center relative">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-1 right-1 h-6 w-6 opacity-60 hover:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (phaseDetail) {
+                            setSelectedPhaseDetail(phaseDetail);
+                            setPhaseDetailOpen(true);
+                          }
+                        }}
+                      >
+                        <Info className="h-3 w-3" />
+                      </Button>
+                      <div className={cn("w-3 h-3 rounded-full mx-auto mb-2", phase.color)} />
+                      <p className="text-xs font-medium">{phase.id}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{phase.label}</p>
+                      <p className="text-lg font-bold mt-1">{clientsByPhase[phase.id]?.length || 0}</p>
+                    </CardContent>
+                  </Card>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-semibold">{phase.fullLabel}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{phase.description}</p>
+                  <p className="text-xs mt-2">
+                    <span className="font-medium">{phase.deliverables}</span> entregáveis nesta fase
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
       </div>
 
       {/* Main Content */}
@@ -304,27 +338,72 @@ export default function IpromedJourney() {
           </div>
         </div>
 
-        {/* Pipeline View */}
+        {/* Pipeline View - Enhanced Kanban */}
         <TabsContent value="pipeline" className="mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
-            {journeyPhases.map((phase) => (
-              <div key={phase.id}>
-                <div className={`${phase.color} text-white text-center py-2 rounded-t-lg`}>
-                  <p className="font-semibold text-sm">{phase.id}</p>
-                  <p className="text-xs opacity-80">{phase.label}</p>
-                </div>
-                <div className="bg-muted/30 rounded-b-lg p-2 min-h-[300px] space-y-2">
-                  {clientsByPhase[phase.id]?.map((client) => (
-                    <ClientCard key={client.id} client={client} />
-                  ))}
-                  {(!clientsByPhase[phase.id] || clientsByPhase[phase.id].length === 0) && (
-                    <div className="text-center text-muted-foreground text-xs py-8">
-                      Nenhum cliente
+            {journeyPhases.map((phase) => {
+              const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
+              return (
+                <div key={phase.id} className="flex flex-col">
+                  {/* Column Header */}
+                  <div className={cn("text-white text-center py-2 rounded-t-lg relative group", phase.color)}>
+                    <p className="font-semibold text-sm">{phase.id}</p>
+                    <p className="text-xs opacity-80">{phase.label}</p>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 text-white hover:bg-white/20"
+                      onClick={() => {
+                        if (phaseDetail) {
+                          setSelectedPhaseDetail(phaseDetail);
+                          setPhaseDetailOpen(true);
+                        }
+                      }}
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  {/* Column Content */}
+                  <ScrollArea className="bg-muted/30 rounded-b-lg p-2 min-h-[350px] max-h-[500px]">
+                    <div className="space-y-2">
+                      {clientsByPhase[phase.id]?.map((client) => (
+                        <div key={client.id} className="group/card">
+                          <ClientCard client={client} />
+                        </div>
+                      ))}
+                      {(!clientsByPhase[phase.id] || clientsByPhase[phase.id].length === 0) && (
+                        <div className="text-center text-muted-foreground text-xs py-8 space-y-2">
+                          <Users className="h-8 w-8 mx-auto opacity-20" />
+                          <p>Nenhum cliente</p>
+                          <p className="text-[10px]">nesta fase</p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </ScrollArea>
+                  
+                  {/* Column Footer with phase info */}
+                  <div className="bg-muted/20 rounded-b-lg px-2 py-1.5 border-t">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>{phase.deliverables} entregáveis</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-5 text-[10px] px-1"
+                        onClick={() => {
+                          if (phaseDetail) {
+                            setSelectedPhaseDetail(phaseDetail);
+                            setPhaseDetailOpen(true);
+                          }
+                        }}
+                      >
+                        Ver detalhes
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </TabsContent>
 
@@ -431,6 +510,14 @@ export default function IpromedJourney() {
           </CardContent>
         </Card>
       )}
+
+      {/* Phase Detail Modal */}
+      <JourneyPhaseDetail
+        phase={selectedPhaseDetail}
+        open={phaseDetailOpen}
+        onClose={() => setPhaseDetailOpen(false)}
+        clientName={selectedClient?.name}
+      />
     </div>
   );
 }
