@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, MessageSquare, Kanban, Sparkles } from 'lucide-react';
+import { CheckCircle2, Kanban, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Props {
@@ -22,11 +22,6 @@ interface Props {
 
 export function WhatsAppConnectionSuccessDialog({ open, onOpenChange, phoneNumber }: Props) {
   const navigate = useNavigate();
-
-  const handleGoToChats = () => {
-    onOpenChange(false);
-    navigate('/avivar/inbox');
-  };
 
   const handleGoToFunnels = () => {
     onOpenChange(false);
@@ -64,31 +59,19 @@ export function WhatsAppConnectionSuccessDialog({ open, onOpenChange, phoneNumbe
 
         <div className="py-4 px-2">
           <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-            Agora você pode receber e enviar mensagens diretamente pelo CRM. Para onde deseja ir?
+            Agora você pode receber e enviar mensagens diretamente pelo CRM.
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-3">
-          <Button
-            onClick={handleGoToChats}
-            className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-            size="lg"
-          >
-            <MessageSquare className="h-5 w-5" />
-            Ir para Chats
-          </Button>
-          
-          <Button
-            onClick={handleGoToFunnels}
-            variant="outline"
-            className="w-full gap-2 border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-muted))]"
-            size="lg"
-          >
-            <Kanban className="h-5 w-5" />
-            Ir para Funis
-          </Button>
-        </div>
+        {/* Action Button */}
+        <Button
+          onClick={handleGoToFunnels}
+          className="w-full gap-2 bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+          size="lg"
+        >
+          <Kanban className="h-5 w-5" />
+          Editar Funil de Vendas
+        </Button>
       </DialogContent>
     </Dialog>
   );
