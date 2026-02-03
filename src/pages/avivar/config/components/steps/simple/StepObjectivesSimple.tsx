@@ -215,6 +215,7 @@ export function StepObjectivesSimple({
       name: customForm.name.trim(),
       description: customForm.description.trim(),
       context: customForm.context.trim() || generateContext(customForm.name, customForm.description),
+      targetList: editingCustom?.targetList || customTarget, // Preservar lista original se editando
     };
 
     const existingCustoms = objectives.customObjectives || [];
@@ -349,15 +350,15 @@ export function StepObjectivesSimple({
                 />
               ))}
 
-              {/* Objetivos customizados - apenas os que NÃO estão como secundários */}
+              {/* Objetivos customizados - apenas os criados para lista Principal */}
               {customObjectives
                 .filter(custom => {
                   // Mostrar na lista principal se:
-                  // 1. Está selecionado como principal OU
-                  // 2. NÃO está selecionado como secundário (pode ser escolhido como principal)
+                  // 1. Foi criado para lista principal (targetList === 'primary' ou undefined para compatibilidade)
+                  // 2. OU está selecionado como principal
+                  const isCreatedForPrimary = !custom.targetList || custom.targetList === 'primary';
                   const isSelectedAsPrimary = objectives.primary === 'custom' && objectives.primaryCustomId === custom.id;
-                  const isSelectedAsSecondary = objectives.secondaryCustomIds?.includes(custom.id) || false;
-                  return isSelectedAsPrimary || !isSelectedAsSecondary;
+                  return isCreatedForPrimary || isSelectedAsPrimary;
                 })
                 .map((custom) => (
                   <ObjectiveCard
@@ -426,13 +427,15 @@ export function StepObjectivesSimple({
                   );
                 })}
 
-              {/* Objetivos customizados secundários - apenas os que NÃO estão como principal */}
+              {/* Objetivos customizados secundários - apenas os criados para lista Secundária */}
               {customObjectives
                 .filter(custom => {
                   // Mostrar na lista secundária se:
-                  // 1. NÃO está selecionado como principal
+                  // 1. Foi criado para lista secundária (targetList === 'secondary')
+                  // 2. E NÃO está selecionado como principal
+                  const isCreatedForSecondary = custom.targetList === 'secondary';
                   const isSelectedAsPrimary = objectives.primary === 'custom' && objectives.primaryCustomId === custom.id;
-                  return !isSelectedAsPrimary;
+                  return isCreatedForSecondary && !isSelectedAsPrimary;
                 })
                 .map((custom) => {
                   const isSelected = objectives.secondaryCustomIds?.includes(custom.id) || false;
