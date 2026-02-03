@@ -14,6 +14,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 
 interface MessageInputProps {
   onSend: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video' | 'audio' | 'document') => void;
@@ -24,6 +31,7 @@ interface MessageInputProps {
 export function MessageInput({ onSend, disabled, placeholder }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = () => {
@@ -48,38 +56,93 @@ export function MessageInput({ onSend, disabled, placeholder }: MessageInputProp
     textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
   };
 
+  const handleEmojiSelect = (emoji: { native: string }) => {
+    setMessage(prev => prev + emoji.native);
+    textareaRef.current?.focus();
+  };
+
   return (
     <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
       <div className="flex items-end gap-2">
-        {/* Attachment dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="shrink-0 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+        {/* Left side buttons: Attachment, Emoji, Mic */}
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Attachment dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))] h-10 w-10"
+              >
+                <Paperclip className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="start" 
+              className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
             >
-              <Paperclip className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            align="start" 
-            className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
+              <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
+                <Image className="h-4 w-4 text-green-500" />
+                Imagem
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
+                <FileText className="h-4 w-4 text-blue-500" />
+                Documento
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
+                <Mic className="h-4 w-4 text-orange-500" />
+                Áudio
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Emoji picker */}
+          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))] h-10 w-10"
+              >
+                <Smile className="h-5 w-5" strokeWidth={1.5} />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent 
+              side="top" 
+              align="start" 
+              className="w-auto p-0 border-[hsl(var(--avivar-border))] bg-transparent shadow-xl"
+              sideOffset={8}
+            >
+              <Picker 
+                data={data} 
+                onEmojiSelect={handleEmojiSelect}
+                theme="dark"
+                locale="pt"
+                previewPosition="none"
+                skinTonePosition="search"
+                navPosition="bottom"
+                perLine={8}
+                emojiSize={28}
+                emojiButtonSize={36}
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Voice recording button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-10 w-10",
+              isRecording 
+                ? "bg-red-500 text-white animate-pulse hover:bg-red-600" 
+                : "text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
+            )}
+            onClick={() => setIsRecording(!isRecording)}
           >
-            <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
-              <Image className="h-4 w-4 text-green-500" />
-              Imagem
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
-              <FileText className="h-4 w-4 text-blue-500" />
-              Documento
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
-              <Mic className="h-4 w-4 text-orange-500" />
-              Áudio
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            {isRecording ? <X className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+          </Button>
+        </div>
 
         {/* Text input */}
         <div className="flex-1 relative">
@@ -91,46 +154,29 @@ export function MessageInput({ onSend, disabled, placeholder }: MessageInputProp
             placeholder={placeholder || "Digite sua mensagem..."}
             disabled={disabled}
             className={cn(
-              "min-h-[44px] max-h-[150px] resize-none pr-10",
+              "min-h-[44px] max-h-[150px] resize-none",
               "bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]",
               "text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]",
               "focus:ring-[hsl(var(--avivar-primary))]"
             )}
             rows={1}
           />
-          <button 
-            type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] transition-colors"
-          >
-            <Smile className="h-6 w-6" strokeWidth={1.5} />
-          </button>
         </div>
 
-        {/* Send / Record button */}
-        {message.trim() ? (
-          <Button
-            onClick={handleSend}
-            disabled={disabled}
-            size="icon"
-            className="shrink-0 bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)] text-white rounded-full h-11 w-11"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "shrink-0 rounded-full h-11 w-11",
-              isRecording 
-                ? "bg-red-500 text-white animate-pulse" 
-                : "text-[hsl(var(--avivar-muted-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
-            )}
-            onClick={() => setIsRecording(!isRecording)}
-          >
-            {isRecording ? <X className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          </Button>
-        )}
+        {/* Send button */}
+        <Button
+          onClick={handleSend}
+          disabled={disabled || !message.trim()}
+          size="icon"
+          className={cn(
+            "shrink-0 rounded-full h-11 w-11 transition-all",
+            message.trim() 
+              ? "bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)] text-white" 
+              : "bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))] cursor-not-allowed"
+          )}
+        >
+          <Send className="h-5 w-5" />
+        </Button>
       </div>
 
       {/* Character count / hints */}
