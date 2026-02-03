@@ -48,11 +48,17 @@ import {
   FileText,
   Calendar,
   DollarSign,
+  Link,
+  Trash2,
+  UserPlus,
+  Tag,
   Shield,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface LegalCase {
   id: string;
@@ -99,15 +105,51 @@ export default function LegalCasesManager() {
   const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
   const [viewCase, setViewCase] = useState<LegalCase | null>(null);
   const [newCase, setNewCase] = useState({
-    case_number: '',
-    title: '',
-    case_type: '',
+    folder: '',
     client_id: '',
+    client_qualification: '',
+    other_parties: [] as { name: string; qualification: string }[],
+    title: '',
+    label: '',
+    instance: '',
+    case_number: '',
+    judge_number: '',
+    court_branch: '',
+    forum: '',
+    action_type: '',
+    court_link: '',
+    case_object: '',
+    case_value: '',
+    distribution_date: '',
+    condemnation_value: '',
+    observations: '',
+    responsible_name: '',
+    access_type: 'public',
+    case_type: '',
     court: '',
     estimated_value: '',
     risk_level: '',
     description: '',
   });
+  
+  const [newParty, setNewParty] = useState({ name: '', qualification: '' });
+  
+  const addParty = () => {
+    if (newParty.name.trim()) {
+      setNewCase(prev => ({
+        ...prev,
+        other_parties: [...prev.other_parties, { ...newParty }]
+      }));
+      setNewParty({ name: '', qualification: '' });
+    }
+  };
+  
+  const removeParty = (index: number) => {
+    setNewCase(prev => ({
+      ...prev,
+      other_parties: prev.other_parties.filter((_, i) => i !== index)
+    }));
+  };
 
   // Update case status
   const updateCaseStatus = useMutation({
@@ -170,10 +212,27 @@ export default function LegalCasesManager() {
       const { data, error } = await supabase
         .from('ipromed_legal_cases')
         .insert([{
-          case_number: caseData.case_number || null,
-          title: caseData.title,
-          case_type: caseData.case_type || null,
+          folder: caseData.folder || null,
           client_id: caseData.client_id || null,
+          client_qualification: caseData.client_qualification || null,
+          other_parties: caseData.other_parties.length > 0 ? caseData.other_parties : null,
+          title: caseData.title,
+          label: caseData.label || null,
+          instance: caseData.instance || null,
+          case_number: caseData.case_number || null,
+          judge_number: caseData.judge_number || null,
+          court_branch: caseData.court_branch || null,
+          forum: caseData.forum || null,
+          action_type: caseData.action_type || null,
+          court_link: caseData.court_link || null,
+          case_object: caseData.case_object || null,
+          case_value: caseData.case_value ? parseFloat(caseData.case_value) : null,
+          distribution_date: caseData.distribution_date || null,
+          condemnation_value: caseData.condemnation_value ? parseFloat(caseData.condemnation_value) : null,
+          observations: caseData.observations || null,
+          responsible_name: caseData.responsible_name || null,
+          access_type: caseData.access_type || 'public',
+          case_type: caseData.case_type || null,
           court: caseData.court || null,
           estimated_value: caseData.estimated_value ? parseFloat(caseData.estimated_value) : null,
           risk_level: caseData.risk_level as 'low' | 'medium' | 'high' | 'critical' | null || null,
@@ -191,10 +250,27 @@ export default function LegalCasesManager() {
       toast.success('Processo cadastrado com sucesso!');
       setIsNewCaseOpen(false);
       setNewCase({
-        case_number: '',
-        title: '',
-        case_type: '',
+        folder: '',
         client_id: '',
+        client_qualification: '',
+        other_parties: [],
+        title: '',
+        label: '',
+        instance: '',
+        case_number: '',
+        judge_number: '',
+        court_branch: '',
+        forum: '',
+        action_type: '',
+        court_link: '',
+        case_object: '',
+        case_value: '',
+        distribution_date: '',
+        condemnation_value: '',
+        observations: '',
+        responsible_name: '',
+        access_type: 'public',
+        case_type: '',
         court: '',
         estimated_value: '',
         risk_level: '',
@@ -259,120 +335,307 @@ export default function LegalCasesManager() {
                 Novo Processo
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-4xl max-h-[90vh]">
               <DialogHeader>
-                <DialogTitle>Cadastrar Novo Processo</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  <Gavel className="h-5 w-5" />
+                  Adicionar Processo
+                </DialogTitle>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+              <ScrollArea className="max-h-[70vh] pr-4">
+                <div className="grid gap-5 py-4">
+                  {/* Pasta */}
                   <div className="space-y-2">
-                    <Label>Número do Processo</Label>
+                    <Label>Pasta</Label>
                     <Input 
-                      placeholder="0000000-00.0000.0.00.0000" 
-                      value={newCase.case_number}
-                      onChange={(e) => setNewCase({ ...newCase, case_number: e.target.value })}
+                      placeholder="Digite o nome ou número da pasta" 
+                      value={newCase.folder}
+                      onChange={(e) => setNewCase({ ...newCase, folder: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Tipo do Processo</Label>
-                    <Select 
-                      value={newCase.case_type}
-                      onValueChange={(value) => setNewCase({ ...newCase, case_type: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="erro_medico">Erro Médico</SelectItem>
-                        <SelectItem value="contratual">Contratual</SelectItem>
-                        <SelectItem value="trabalhista">Trabalhista</SelectItem>
-                        <SelectItem value="cobranca">Cobrança</SelectItem>
-                        <SelectItem value="etico">Processo Ético</SelectItem>
-                        <SelectItem value="administrativo">Administrativo</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                  {/* Cliente + Qualificação */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Clientes *</Label>
+                      <Select 
+                        value={newCase.client_id}
+                        onValueChange={(value) => setNewCase({ ...newCase, client_id: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Digite o nome do cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Qualificação</Label>
+                      <Select 
+                        value={newCase.client_qualification}
+                        onValueChange={(value) => setNewCase({ ...newCase, client_qualification: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Qualificação" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="autor">Autor</SelectItem>
+                          <SelectItem value="reu">Réu</SelectItem>
+                          <SelectItem value="terceiro">Terceiro Interessado</SelectItem>
+                          <SelectItem value="assistente">Assistente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Título / Descrição *</Label>
-                  <Input 
-                    placeholder="Título do processo" 
-                    value={newCase.title}
-                    onChange={(e) => setNewCase({ ...newCase, title: e.target.value })}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Cliente</Label>
-                    <Select 
-                      value={newCase.client_id}
-                      onValueChange={(value) => setNewCase({ ...newCase, client_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                      {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name}
-                          </SelectItem>
+
+                  {/* Outros Envolvidos */}
+                  <div className="space-y-3">
+                    <Label>Outros Envolvidos</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input 
+                        placeholder="Digite o nome do envolvido"
+                        value={newParty.name}
+                        onChange={(e) => setNewParty({ ...newParty, name: e.target.value })}
+                      />
+                      <div className="flex gap-2">
+                        <Select 
+                          value={newParty.qualification}
+                          onValueChange={(value) => setNewParty({ ...newParty, qualification: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Qualificação" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="autor">Autor</SelectItem>
+                            <SelectItem value="reu">Réu</SelectItem>
+                            <SelectItem value="testemunha">Testemunha</SelectItem>
+                            <SelectItem value="perito">Perito</SelectItem>
+                            <SelectItem value="terceiro">Terceiro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button type="button" variant="outline" size="icon" onClick={addParty}>
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {newCase.other_parties.length > 0 && (
+                      <div className="space-y-2 mt-2">
+                        {newCase.other_parties.map((party, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-muted/50 rounded px-3 py-2 text-sm">
+                            <span>{party.name} - <span className="text-muted-foreground capitalize">{party.qualification}</span></span>
+                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeParty(idx)}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </div>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Título */}
                   <div className="space-y-2">
-                    <Label>Tribunal</Label>
+                    <Label>Título *</Label>
                     <Input 
-                      placeholder="Ex: TJ-SP" 
-                      value={newCase.court}
-                      onChange={(e) => setNewCase({ ...newCase, court: e.target.value })}
+                      placeholder="Digite o título do processo" 
+                      value={newCase.title}
+                      onChange={(e) => setNewCase({ ...newCase, title: e.target.value })}
                     />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+
+                  {/* Etiqueta */}
                   <div className="space-y-2">
-                    <Label>Valor Estimado (R$)</Label>
+                    <Label className="flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      Etiqueta
+                    </Label>
                     <Input 
-                      type="number" 
-                      placeholder="0,00" 
-                      value={newCase.estimated_value}
-                      onChange={(e) => setNewCase({ ...newCase, estimated_value: e.target.value })}
+                      placeholder="Adicione uma etiqueta" 
+                      value={newCase.label}
+                      onChange={(e) => setNewCase({ ...newCase, label: e.target.value })}
                     />
                   </div>
+
+                  {/* Instância + Número */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Instância</Label>
+                      <Select 
+                        value={newCase.instance}
+                        onValueChange={(value) => setNewCase({ ...newCase, instance: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1_grau">1º Grau</SelectItem>
+                          <SelectItem value="2_grau">2º Grau</SelectItem>
+                          <SelectItem value="superior">Tribunais Superiores</SelectItem>
+                          <SelectItem value="stf">STF</SelectItem>
+                          <SelectItem value="stj">STJ</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Número</Label>
+                      <Input 
+                        placeholder="Digite o número do processo" 
+                        value={newCase.case_number}
+                        onChange={(e) => setNewCase({ ...newCase, case_number: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Juízo: Nº, Vara, Foro */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Juízo Nº</Label>
+                      <Input 
+                        placeholder="Nº" 
+                        value={newCase.judge_number}
+                        onChange={(e) => setNewCase({ ...newCase, judge_number: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Vara</Label>
+                      <Input 
+                        placeholder="Vara" 
+                        value={newCase.court_branch}
+                        onChange={(e) => setNewCase({ ...newCase, court_branch: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Foro</Label>
+                      <Input 
+                        placeholder="Foro" 
+                        value={newCase.forum}
+                        onChange={(e) => setNewCase({ ...newCase, forum: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Ação */}
                   <div className="space-y-2">
-                    <Label>Nível de Risco</Label>
-                    <Select 
-                      value={newCase.risk_level}
-                      onValueChange={(value) => setNewCase({ ...newCase, risk_level: value })}
+                    <Label>Ação</Label>
+                    <Input 
+                      placeholder="Digite a ação" 
+                      value={newCase.action_type}
+                      onChange={(e) => setNewCase({ ...newCase, action_type: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Link no Tribunal */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Link className="h-4 w-4" />
+                      Link no Tribunal
+                    </Label>
+                    <Input 
+                      placeholder="Digite o link no tribunal" 
+                      value={newCase.court_link}
+                      onChange={(e) => setNewCase({ ...newCase, court_link: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Objeto */}
+                  <div className="space-y-2">
+                    <Label>Objeto</Label>
+                    <Textarea 
+                      placeholder="Digite a descrição do processo" 
+                      value={newCase.case_object}
+                      onChange={(e) => setNewCase({ ...newCase, case_object: e.target.value })}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+
+                  {/* Valor da Causa + Distribuído em */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Valor da Causa</Label>
+                      <Input 
+                        type="number"
+                        placeholder="Digite o valor" 
+                        value={newCase.case_value}
+                        onChange={(e) => setNewCase({ ...newCase, case_value: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Distribuído em</Label>
+                      <Input 
+                        type="date"
+                        value={newCase.distribution_date}
+                        onChange={(e) => setNewCase({ ...newCase, distribution_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Valor da Condenação */}
+                  <div className="space-y-2">
+                    <Label>Valor da Condenação</Label>
+                    <Input 
+                      type="number"
+                      placeholder="Digite o valor" 
+                      value={newCase.condemnation_value}
+                      onChange={(e) => setNewCase({ ...newCase, condemnation_value: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Observações */}
+                  <div className="space-y-2">
+                    <Label>Observações</Label>
+                    <Textarea 
+                      placeholder="Digite mais detalhes" 
+                      value={newCase.observations}
+                      onChange={(e) => setNewCase({ ...newCase, observations: e.target.value })}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+
+                  {/* Responsável */}
+                  <div className="space-y-2">
+                    <Label>Responsável *</Label>
+                    <Input 
+                      placeholder="Nome do responsável" 
+                      value={newCase.responsible_name}
+                      onChange={(e) => setNewCase({ ...newCase, responsible_name: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Acesso */}
+                  <div className="space-y-3">
+                    <Label>Acesso</Label>
+                    <RadioGroup 
+                      value={newCase.access_type} 
+                      onValueChange={(value) => setNewCase({ ...newCase, access_type: value })}
+                      className="flex gap-6"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Baixo</SelectItem>
-                        <SelectItem value="medium">Médio</SelectItem>
-                        <SelectItem value="high">Alto</SelectItem>
-                        <SelectItem value="critical">Crítico</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="public" id="access-public" />
+                        <Label htmlFor="access-public" className="font-normal cursor-pointer">Público</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="private" id="access-private" />
+                        <Label htmlFor="access-private" className="font-normal cursor-pointer">Privado</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="envolvidos" id="access-envolvidos" />
+                        <Label htmlFor="access-envolvidos" className="font-normal cursor-pointer">Envolvidos</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Observações</Label>
-                  <Textarea 
-                    placeholder="Detalhes adicionais..." 
-                    value={newCase.description}
-                    onChange={(e) => setNewCase({ ...newCase, description: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
+              </ScrollArea>
+              <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button variant="outline" onClick={() => setIsNewCaseOpen(false)}>
                   Cancelar
                 </Button>
                 <Button onClick={handleSubmit} disabled={createCase.isPending}>
                   {createCase.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Salvar Processo
+                  SALVAR
                 </Button>
               </div>
             </DialogContent>
