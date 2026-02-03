@@ -16,6 +16,7 @@ import { getCompanyFieldConfig, getProfessionalFieldConfig } from '../../../nich
 
 interface StepBusinessInfoProps {
   companyName: string;
+  companyPhone: string;
   address: string;
   city: string;
   state: string;
@@ -32,6 +33,7 @@ const attendantSuggestions = ['Ana', 'Iza', 'Sofia', 'Luna', 'Mel', 'Clara'];
 
 export function StepBusinessInfo({
   companyName,
+  companyPhone,
   address,
   city,
   state,
@@ -164,6 +166,23 @@ export function StepBusinessInfo({
                 rows={2}
                 className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] resize-none"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="companyPhone" className="text-[hsl(var(--avivar-foreground))]">
+                Telefone para Ligação
+                <span className="text-[hsl(var(--avivar-muted-foreground))] text-xs ml-1">(opcional)</span>
+              </Label>
+              <Input
+                id="companyPhone"
+                value={companyPhone}
+                onChange={(e) => onChange('companyPhone', e.target.value)}
+                placeholder="(11) 99999-9999"
+                className="bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+              />
+              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                Número que os clientes podem ligar para atendimento
+              </p>
             </div>
 
             {/* Profissional Responsável da Matriz */}

@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { NichoType, SubnichoType, Service, AgentObjectives } from '../../../types';
+import { NichoType, SubnichoType, Service, AgentObjectives, BusinessUnit } from '../../../types';
 
 interface FAQItem {
   id: string;
@@ -38,6 +38,13 @@ interface StepFAQGeneratorProps {
   nicho: NichoType | null;
   subnicho: SubnichoType | null;
   companyName: string;
+  companyPhone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  professionalName?: string;
+  crm?: string;
+  businessUnits?: BusinessUnit[];
   services: Service[];
   objectives: AgentObjectives;
   generatedFAQ: FAQItem[];
@@ -50,6 +57,13 @@ export function StepFAQGenerator({
   nicho,
   subnicho,
   companyName,
+  companyPhone,
+  address,
+  city,
+  state,
+  professionalName,
+  crm,
+  businessUnits,
   services,
   objectives,
   generatedFAQ,
@@ -78,6 +92,13 @@ export function StepFAQGenerator({
           nicho,
           subnicho,
           companyName,
+          companyPhone,
+          address,
+          city,
+          state,
+          professionalName,
+          crm,
+          businessUnits,
           services: enabledServices,
           objectives, // Passar objetivos como fonte principal
         }

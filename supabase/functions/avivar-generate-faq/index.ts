@@ -72,14 +72,30 @@ serve(async (req) => {
   }
 
   try {
-    const { nicho, subnicho, companyName, services, objectives } = await req.json();
+    const { 
+      nicho, 
+      subnicho, 
+      companyName, 
+      companyPhone,
+      address,
+      city,
+      state,
+      professionalName,
+      crm,
+      businessUnits,
+      services, 
+      objectives 
+    } = await req.json();
 
     console.log('Generating FAQ for:', { 
       nicho, 
       subnicho, 
-      companyName, 
+      companyName,
+      city,
+      state,
       servicesCount: services?.length,
-      hasObjectives: !!objectives
+      hasObjectives: !!objectives,
+      hasUnits: businessUnits?.length > 0
     });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -92,6 +108,38 @@ serve(async (req) => {
     const servicesText = services?.length > 0 
       ? `Os serviços oferecidos são: ${services.join(', ')}.`
       : '';
+
+    // Construir informações da empresa
+    let companyInfoText = '';
+    if (companyName) {
+      companyInfoText += `\nNOME DA EMPRESA: ${companyName}`;
+    }
+    if (city && state) {
+      companyInfoText += `\nLOCALIZAÇÃO: ${city}/${state}`;
+    }
+    if (address) {
+      companyInfoText += `\nENDEREÇO COMPLETO: ${address}`;
+    }
+    if (companyPhone) {
+      companyInfoText += `\nTELEFONE PARA LIGAÇÃO: ${companyPhone}`;
+    }
+    if (professionalName) {
+      companyInfoText += `\nPROFISSIONAL RESPONSÁVEL: ${professionalName}`;
+      if (crm) {
+        companyInfoText += ` (Registro: ${crm})`;
+      }
+    }
+
+    // Adicionar unidades/filiais se existirem
+    if (businessUnits && businessUnits.length > 0) {
+      companyInfoText += `\n\nUNIDADES/FILIAIS (${businessUnits.length}):`;
+      businessUnits.forEach((unit: { name: string; city: string; state: string; address?: string; phone?: string; professionalName?: string }, idx: number) => {
+        companyInfoText += `\n- ${unit.name}: ${unit.city}/${unit.state}`;
+        if (unit.address) companyInfoText += ` - ${unit.address}`;
+        if (unit.phone) companyInfoText += ` | Tel: ${unit.phone}`;
+        if (unit.professionalName) companyInfoText += ` | Profissional: ${unit.professionalName}`;
+      });
+    }
 
     // Formatar objetivos para o prompt
     let objectivesText = '';
@@ -145,22 +193,35 @@ serve(async (req) => {
     const systemPrompt = `Você é um especialista em atendimento ao cliente e criação de FAQs para empresas brasileiras.
 Sua tarefa é gerar perguntas e respostas frequentes (FAQ) realistas e úteis para um negócio.
 As respostas devem ser naturais, informativas e adequadas para um chatbot de WhatsApp responder.
-IMPORTANTE: As perguntas devem estar alinhadas com os OBJETIVOS do negócio - ajudando a guiar o cliente em direção a esses objetivos.
+IMPORTANTE: 
+- As perguntas devem estar alinhadas com os OBJETIVOS do negócio - ajudando a guiar o cliente em direção a esses objetivos.
+- Use os DADOS REAIS da empresa (nome, endereço, telefone, cidade, profissional) nas respostas quando apropriado.
+- NÃO invente dados. Se um dado não foi fornecido, não inclua na resposta.
 Responda SEMPRE em português brasileiro.`;
 
     const userPrompt = `Gere exatamente 12 perguntas e respostas frequentes para um(a) ${subnichoName} no setor de ${nichoName}.
-${companyName ? `O nome da empresa é: ${companyName}.` : ''}
-${servicesText}
-${objectivesText}
 
-IMPORTANTE: Priorize perguntas que ajudem o cliente a avançar em direção aos objetivos do negócio listados acima.
+=== DADOS DA EMPRESA ===
+${companyInfoText || 'Dados não fornecidos.'}
+
+=== SERVIÇOS ===
+${servicesText || 'Serviços não especificados.'}
+
+=== OBJETIVOS ===
+${objectivesText || 'Objetivos não definidos.'}
+
+IMPORTANTE: 
+- Priorize perguntas que ajudem o cliente a avançar em direção aos objetivos do negócio.
+- Use os DADOS REAIS da empresa nas respostas (nome, endereço, telefone, cidade, etc.).
+- NÃO invente dados que não foram fornecidos.
 
 As perguntas devem cobrir temas como:
 - Dúvidas relacionadas ao objetivo principal (como agendar, como comprar, como funciona)
 - Horário de funcionamento
 - Formas de agendamento/pedido
+- Localização e como chegar (use o endereço real se fornecido)
+- Telefone para contato (use o telefone real se fornecido)
 - Preços e formas de pagamento
-- Localização e estacionamento
 - Cancelamento e reagendamento
 - Dúvidas específicas sobre os serviços
 - Tempo de espera/duração

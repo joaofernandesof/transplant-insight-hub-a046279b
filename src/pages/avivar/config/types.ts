@@ -217,6 +217,7 @@ export interface AgentConfig {
   
   // Clínica/Empresa
   companyName: string;
+  companyPhone: string; // Telefone para ligações
   address: string;
   city: string;
   state: string;
@@ -672,6 +673,7 @@ export const INITIAL_CONFIG: AgentConfig = {
   crm: '',
   instagram: '',
   companyName: '',
+  companyPhone: '',
   address: '',
   city: '',
   state: '',
