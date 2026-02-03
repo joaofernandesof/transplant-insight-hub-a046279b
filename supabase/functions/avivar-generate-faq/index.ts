@@ -140,10 +140,38 @@ serve(async (req) => {
       }
     }
 
-    // Construir texto de formas de pagamento
+    // Construir texto de formas de pagamento com instruções detalhadas para FAQ
     let paymentsText = '';
+    let paymentsFAQInstructions = '';
     if (paymentMethods?.length > 0) {
-      paymentsText = `\nFORMAS DE PAGAMENTO ACEITAS: ${paymentMethods.join(', ')}`;
+      const paymentNames = paymentMethods.map((p: { id: string; name: string }) => p.name);
+      paymentsText = `\nFORMAS DE PAGAMENTO ACEITAS: ${paymentNames.join(', ')}`;
+      
+      // Gerar instruções específicas para FAQ baseadas nas formas de pagamento
+      paymentsFAQInstructions = '\n\n=== INSTRUÇÕES ESPECÍFICAS PARA PERGUNTAS SOBRE PAGAMENTO ===\n';
+      
+      paymentMethods.forEach((method: { id: string; name: string }) => {
+        switch (method.id) {
+          case 'pix':
+            paymentsFAQInstructions += `\n- PIX: Gere uma pergunta como "Qual o PIX de vocês?" e responda com algo como "Sim, aceitamos PIX! Após confirmar seu agendamento, enviaremos nossa chave PIX para pagamento." (não invente chave PIX)`;
+            break;
+          case 'cartao_credito':
+            paymentsFAQInstructions += `\n- CARTÃO DE CRÉDITO: Gere pergunta sobre parcelamento no cartão e responda detalhando as condições de parcelamento disponíveis.`;
+            break;
+          case 'boleto':
+            paymentsFAQInstructions += `\n- BOLETO: Gere pergunta como "Como funciona o pagamento no boleto?" e explique o processo (prazo, vencimento, etc).`;
+            break;
+          case 'recorrente':
+            paymentsFAQInstructions += `\n- PAGAMENTO RECORRENTE: Gere pergunta sobre mensalidades/planos e explique como funciona o sistema de pagamento recorrente.`;
+            break;
+          case 'plano_saude':
+            paymentsFAQInstructions += `\n- PLANO DE SAÚDE: Gere pergunta como "Vocês aceitam planos de saúde?" e responda positivamente, orientando que o cliente informe qual o plano para verificar cobertura.`;
+            break;
+          case 'financiamento':
+            paymentsFAQInstructions += `\n- FINANCIAMENTO BANCÁRIO: Gere pergunta sobre financiamento e explique as parcerias com instituições financeiras disponíveis.`;
+            break;
+        }
+      });
     }
 
     // Construir informações da empresa
@@ -264,12 +292,14 @@ ${servicesText || 'Serviços não especificados.'}
 
 === OBJETIVOS ===
 ${objectivesText || 'Objetivos não definidos.'}
+${paymentsFAQInstructions}
 
 INSTRUÇÕES ESPECÍFICAS:
 1. Para serviços COM preço definido: inclua o valor na resposta quando perguntarem.
 2. Para serviços SEM preço (valor sob avaliação): crie respostas persuasivas que incentivem o agendamento de avaliação presencial. Não invente valores!
 3. Priorize perguntas que ajudem o cliente a avançar em direção aos objetivos do negócio.
 4. Use os DADOS REAIS da empresa nas respostas.
+5. IMPORTANTE: Se houver formas de pagamento habilitadas, gere perguntas específicas sobre CADA forma de pagamento selecionada conforme as instruções acima.
 
 As perguntas devem cobrir temas como:
 - Valores e investimento dos procedimentos (respeitando as regras acima)
@@ -278,7 +308,7 @@ As perguntas devem cobrir temas como:
 - Formas de agendamento
 - Localização e como chegar
 - Telefone para contato
-- Formas de pagamento e parcelamento
+- FORMAS DE PAGAMENTO (crie uma pergunta para cada método habilitado)
 - Cancelamento e reagendamento
 - Dúvidas específicas sobre os serviços/procedimentos
 - Tempo de duração/espera

@@ -647,11 +647,10 @@ export const TRANSPLANTE_SERVICES: Service[] = [
 
 export const PAYMENT_METHODS: PaymentMethod[] = [
   { id: 'pix', name: 'PIX', description: 'Instantâneo', enabled: false },
-  { id: 'credito', name: 'Cartão de Crédito', description: 'Parcelamento', enabled: false },
+  { id: 'cartao_credito', name: 'Cartão de Crédito', description: 'Parcelamento até 12x', enabled: false },
   { id: 'boleto', name: 'Boleto', description: 'Até 3 dias', enabled: false },
-  { id: 'credito_parcelado', name: 'Crédito', description: 'Em até 12x', enabled: false },
   { id: 'recorrente', name: 'Recorrente', description: 'Mensalidades', enabled: false },
-  { id: 'convenio', name: 'Convênio', description: 'Consulte convênios', enabled: false },
+  { id: 'plano_saude', name: 'Plano de Saúde', description: 'Consulte planos aceitos', enabled: false },
   { id: 'financiamento', name: 'Financiamento Bancário', description: 'Parcerias com instituições', enabled: false }
 ];
 
