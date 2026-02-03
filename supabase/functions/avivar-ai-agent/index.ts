@@ -1069,22 +1069,74 @@ async function sendImage(
     return { success: false, message: `Não temos imagens na categoria "${category}" ainda.` };
   }
 
+  // Synonym map for expanding search terms (Portuguese)
+  const SYNONYMS: Record<string, string[]> = {
+    // Location/building terms
+    "frente": ["fachada", "entrada", "exterior", "predio", "prédio"],
+    "fachada": ["frente", "entrada", "exterior", "predio", "prédio"],
+    "entrada": ["fachada", "frente", "porta", "recepção", "recepcao"],
+    "clinica": ["consultório", "consultorio", "clínica", "unidade", "estabelecimento"],
+    "consultorio": ["clínica", "clinica", "consultório"],
+    // Hair transplant terms
+    "cabelo": ["capilar", "couro cabeludo", "calvície", "calvicie"],
+    "capilar": ["cabelo", "calvície", "calvicie"],
+    "barba": ["bigode", "cavanhaque", "pelos faciais", "facial"],
+    "sobrancelha": ["sombrancelha", "supercílio"],
+    // Gender terms
+    "homem": ["masculino", "masc", "homen"],
+    "masculino": ["homem", "masc", "homen"],
+    "mulher": ["feminino", "fem", "feminina"],
+    "feminino": ["mulher", "fem", "feminina"],
+    // Procedure terms
+    "antes": ["anterior", "pré", "pre"],
+    "depois": ["posterior", "pós", "pos", "resultado"],
+    "resultado": ["depois", "final", "pós", "pos"],
+    // Facility terms
+    "estacionamento": ["garagem", "vaga", "parking"],
+    "recepção": ["recepcao", "entrada", "atendimento", "sala de espera"],
+    "sala": ["ambiente", "espaço", "espaco", "local"],
+  };
+
+  // Expand search term with synonyms
+  const expandSearchTerms = (term: string): string[] => {
+    const termLower = term.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const terms = [termLower];
+    
+    // Add synonyms for each word in the term
+    const words = termLower.split(/\s+/);
+    for (const word of words) {
+      const synonyms = SYNONYMS[word];
+      if (synonyms) {
+        for (const syn of synonyms) {
+          // Add the term with the word replaced by synonym
+          terms.push(termLower.replace(word, syn));
+          terms.push(syn); // Also add just the synonym
+        }
+      }
+    }
+    
+    return [...new Set(terms)]; // Remove duplicates
+  };
+
   // Filter by search term if provided
   let selectedImage: GalleryImage;
   
   if (searchTerm) {
-    const searchLower = searchTerm.toLowerCase();
-    const matching = images.filter((img: GalleryImage) => 
-      img.caption?.toLowerCase().includes(searchLower)
-    );
+    const searchTerms = expandSearchTerms(searchTerm);
+    console.log(`[AI Agent] Expanded search terms: ${searchTerms.join(", ")}`);
+    
+    const matching = images.filter((img: GalleryImage) => {
+      const captionLower = img.caption?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+      return searchTerms.some(term => captionLower.includes(term));
+    });
     
     if (matching.length > 0) {
       // Pick random from matching
       selectedImage = matching[Math.floor(Math.random() * matching.length)];
+      console.log(`[AI Agent] Found ${matching.length} matching image(s)`);
     } else {
       // CRITICAL: Do NOT send a random image if no match found
-      // This prevents sending wrong images (e.g., female when male was requested)
-      console.log(`[AI Agent] No images matching "${searchTerm}" in category ${galleryKey}`);
+      console.log(`[AI Agent] No images matching "${searchTerm}" (expanded: ${searchTerms.join(", ")}) in category ${galleryKey}`);
       return { 
         success: false, 
         message: `Não encontrei fotos com as características "${searchTerm}" na galeria. Pergunte ao paciente se deseja ver outros tipos de resultados que temos disponíveis.` 
