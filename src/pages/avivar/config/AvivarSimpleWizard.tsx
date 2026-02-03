@@ -355,6 +355,7 @@ export default function AvivarSimpleWizard() {
         return (
           <StepBusinessInfo
             companyName={config.companyName}
+            companyPhone={config.companyPhone}
             address={config.address}
             city={config.city}
             state={config.state}
@@ -404,6 +405,13 @@ export default function AvivarSimpleWizard() {
             nicho={config.nicho}
             subnicho={config.subnicho}
             companyName={config.companyName}
+            companyPhone={config.companyPhone}
+            address={config.address}
+            city={config.city}
+            state={config.state}
+            professionalName={config.professionalName}
+            crm={config.crm}
+            businessUnits={config.businessUnits}
             services={config.services}
             objectives={config.agentObjectives}
             generatedFAQ={generatedFAQ}

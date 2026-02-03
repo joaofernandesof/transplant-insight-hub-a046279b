@@ -35,6 +35,7 @@ function mapAgentToConfig(agent: Record<string, unknown>): Partial<AgentConfig> 
     instagram: (agent.instagram as string) || '',
     
     // Localização
+    companyPhone: (agent.company_phone as string) || '',
     address: (agent.address as string) || '',
     city: (agent.city as string) || '',
     state: (agent.state as string) || '',
