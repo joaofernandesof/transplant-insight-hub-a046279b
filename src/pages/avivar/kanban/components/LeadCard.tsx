@@ -1,11 +1,11 @@
 /**
  * LeadCard - Card compacto para exibição de lead no Kanban
- * Com indicador de fonte (bolinha) e prévia da última mensagem
+ * Com indicador de fonte (ícone) e prévia da última mensagem
  */
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Phone, Mail, MoreHorizontal, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { LeadSourceAvatar } from '@/components/avivar/LeadSourceAvatar';
 import type { KanbanLead } from '../hooks/useKanbanLeads';
 
 interface LeadCardProps {
@@ -22,24 +23,6 @@ interface LeadCardProps {
   onDelete?: (leadId: string) => void;
   onClick?: (lead: KanbanLead) => void;
 }
-
-// Source colors for visual identification
-const sourceColors: Record<string, string> = {
-  'whatsapp': 'bg-green-500',
-  'instagram': 'bg-gradient-to-br from-purple-500 to-pink-500',
-  'facebook': 'bg-blue-600',
-  'google': 'bg-red-500',
-  'site': 'bg-cyan-500',
-  'indicacao': 'bg-amber-500',
-  'manual': 'bg-gray-500',
-  'default': 'bg-violet-500',
-};
-
-const getSourceColor = (source: string | null) => {
-  if (!source) return sourceColors.default;
-  const normalized = source.toLowerCase().trim();
-  return sourceColors[normalized] || sourceColors.default;
-};
 
 export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
   const {
@@ -72,14 +55,6 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
     return phone;
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .slice(0, 2)
-      .map(n => n[0])
-      .join('')
-      .toUpperCase();
-  };
 
   // Get last message preview from custom_fields if available
   const lastMessage = (lead.custom_fields as Record<string, unknown>)?.last_message as string | undefined;
@@ -102,21 +77,11 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {/* Avatar with source indicator */}
-          <div className="relative flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[hsl(var(--avivar-primary))] to-[hsl(var(--avivar-accent))] flex items-center justify-center">
-              <span className="text-xs font-semibold text-white">
-                {getInitials(lead.name)}
-              </span>
-            </div>
-            {/* Source indicator (bolinha) */}
-            <div 
-              className={cn(
-                "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[hsl(var(--avivar-card))]",
-                getSourceColor(lead.source)
-              )}
-              title={lead.source || 'Desconhecido'}
-            />
-          </div>
+          <LeadSourceAvatar 
+            name={lead.name} 
+            source={lead.source}
+            size="sm"
+          />
           
           <div className="min-w-0 flex-1">
             <h4 className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">
