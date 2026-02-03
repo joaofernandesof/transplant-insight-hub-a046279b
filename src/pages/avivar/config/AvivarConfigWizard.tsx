@@ -114,7 +114,12 @@ export default function AvivarConfigWizard() {
       case 9: 
         // No modo edição, pagamento é opcional
         return isEditMode || config.paymentMethods.some(m => m.enabled);
-      case 10: return true; // Images (optional)
+      case 10: {
+        // Images - se tiver imagens, todas precisam ter legenda
+        const allImages = Object.values(config.imageGallery || {}).flat();
+        if (allImages.length === 0) return true; // Sem imagens, pode prosseguir
+        return allImages.every(img => img?.caption?.trim()); // Todas precisam ter legenda
+      }
       case 11: 
         // No modo edição, schedule é opcional
         return isEditMode || Object.values(config.schedule).some(d => d.enabled && d.intervals.length > 0);
