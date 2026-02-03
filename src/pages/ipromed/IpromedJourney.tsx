@@ -71,6 +71,177 @@ interface Client {
   } | null;
 }
 
+// Mock clients for demonstration
+const mockClients: Client[] = [
+  // D0 - Ativação (hoje)
+  {
+    id: 'mock-1',
+    name: 'Maria Fernanda Costa',
+    email: 'maria.costa@empresa.com.br',
+    phone: '(11) 99876-5432',
+    status: 'ativo',
+    journey_stage: 'D0',
+    created_at: new Date().toISOString(),
+    metadata: { journey_phase: 'D0', journey_progress: 5, risk_level: 'baixo' }
+  },
+  {
+    id: 'mock-2',
+    name: 'Tech Solutions Ltda',
+    email: 'juridico@techsolutions.com.br',
+    phone: '(11) 3456-7890',
+    status: 'ativo',
+    journey_stage: 'D0',
+    created_at: new Date().toISOString(),
+    metadata: { journey_phase: 'D0', journey_progress: 8, risk_level: 'medio' }
+  },
+  // D+1 - Agendamento
+  {
+    id: 'mock-3',
+    name: 'Carlos Eduardo Silva',
+    email: 'carlos.silva@gmail.com',
+    phone: '(21) 98765-4321',
+    status: 'ativo',
+    journey_stage: 'D+1',
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+1', journey_progress: 15, risk_level: 'baixo' }
+  },
+  {
+    id: 'mock-4',
+    name: 'Indústria Metalúrgica ABC',
+    email: 'contato@metalurgicaabc.com.br',
+    phone: '(31) 3333-4444',
+    status: 'ativo',
+    journey_stage: 'D+1',
+    created_at: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+1', journey_progress: 18, risk_level: 'baixo' }
+  },
+  // D+3 - Onboarding
+  {
+    id: 'mock-5',
+    name: 'Ana Paula Rodrigues',
+    email: 'ana.rodrigues@clinica.com.br',
+    phone: '(11) 97777-8888',
+    status: 'ativo',
+    journey_stage: 'D+3',
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+3', journey_progress: 28, risk_level: 'baixo' }
+  },
+  {
+    id: 'mock-6',
+    name: 'Construtora Norte Sul',
+    email: 'juridico@nortesul.com.br',
+    phone: '(41) 3030-4040',
+    status: 'ativo',
+    journey_stage: 'D+3',
+    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+3', journey_progress: 35, risk_level: 'alto' }
+  },
+  {
+    id: 'mock-7',
+    name: 'Roberto Mendes Filho',
+    email: 'roberto.mendes@hotmail.com',
+    phone: '(85) 99999-1111',
+    status: 'ativo',
+    journey_stage: 'D+3',
+    created_at: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+3', journey_progress: 30, risk_level: 'medio' }
+  },
+  // D+7 - Dossiê
+  {
+    id: 'mock-8',
+    name: 'Farmácia Popular Express',
+    email: 'gerencia@farmaciapopular.com.br',
+    phone: '(71) 3222-5555',
+    status: 'ativo',
+    journey_stage: 'D+7',
+    created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+7', journey_progress: 45, risk_level: 'baixo' }
+  },
+  {
+    id: 'mock-9',
+    name: 'Juliana Campos Oliveira',
+    email: 'juliana.oliveira@advocacia.com.br',
+    phone: '(61) 98888-2222',
+    status: 'ativo',
+    journey_stage: 'D+7',
+    created_at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+7', journey_progress: 52, risk_level: 'medio' }
+  },
+  // D+15 - Documentação
+  {
+    id: 'mock-10',
+    name: 'Grupo Empresarial Delta',
+    email: 'legal@grupodelta.com.br',
+    phone: '(11) 2222-3333',
+    status: 'ativo',
+    journey_stage: 'D+15',
+    created_at: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+15', journey_progress: 65, risk_level: 'baixo' }
+  },
+  {
+    id: 'mock-11',
+    name: 'Patrícia Lima Santos',
+    email: 'patricia.santos@email.com',
+    phone: '(19) 99666-5555',
+    status: 'ativo',
+    journey_stage: 'D+15',
+    created_at: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+15', journey_progress: 70, risk_level: 'alto' }
+  },
+  // D+30 - Compliance
+  {
+    id: 'mock-12',
+    name: 'Hospital Santa Clara',
+    email: 'juridico@santaclara.org.br',
+    phone: '(51) 3344-5566',
+    status: 'ativo',
+    journey_stage: 'D+30',
+    created_at: new Date(Date.now() - 32 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+30', journey_progress: 88, risk_level: 'baixo' }
+  },
+  {
+    id: 'mock-13',
+    name: 'Fernando Gomes Almeida',
+    email: 'fernando.almeida@empresa.com',
+    phone: '(27) 99777-4444',
+    status: 'ativo',
+    journey_stage: 'D+30',
+    created_at: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'D+30', journey_progress: 92, risk_level: 'baixo' }
+  },
+  // Contínuo - Acompanhamento
+  {
+    id: 'mock-14',
+    name: 'Supermercado Bom Preço',
+    email: 'contabil@bompreco.com.br',
+    phone: '(81) 3456-7890',
+    status: 'ativo',
+    journey_stage: 'Contínuo',
+    created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'Contínuo', journey_progress: 100, risk_level: 'baixo' }
+  },
+  {
+    id: 'mock-15',
+    name: 'Clínica Odontológica Sorriso',
+    email: 'admin@clinicasorriso.com.br',
+    phone: '(47) 3333-2222',
+    status: 'ativo',
+    journey_stage: 'Contínuo',
+    created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'Contínuo', journey_progress: 100, risk_level: 'baixo' }
+  },
+  {
+    id: 'mock-16',
+    name: 'Marcelo Ribeiro Costa',
+    email: 'marcelo.costa@gmail.com',
+    phone: '(11) 98765-1234',
+    status: 'ativo',
+    journey_stage: 'Contínuo',
+    created_at: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { journey_phase: 'Contínuo', journey_progress: 100, risk_level: 'baixo' }
+  },
+];
+
 export default function IpromedJourney() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -80,8 +251,8 @@ export default function IpromedJourney() {
   const [phaseDetailOpen, setPhaseDetailOpen] = useState(false);
   const [selectedPhaseDetail, setSelectedPhaseDetail] = useState<PhaseDetail | null>(null);
 
-  // Fetch clients with journey data
-  const { data: clients = [], isLoading } = useQuery({
+  // Fetch clients with journey data - combined with mocks for demo
+  const { data: dbClients = [], isLoading } = useQuery({
     queryKey: ['ipromed-journey-clients'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -94,6 +265,9 @@ export default function IpromedJourney() {
       return data as Client[];
     },
   });
+
+  // Combine real DB clients with mock data for demonstration
+  const clients = [...mockClients, ...dbClients];
 
   // Calculate client's current phase based on contract date
   const getClientPhase = (client: Client) => {
