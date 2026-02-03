@@ -247,14 +247,14 @@ const TOOLS = [
         type: "function",
         function: {
           name: "send_image",
-          description: `Envia uma imagem para o lead via WhatsApp. Use quando o lead pedir para ver fotos, resultados, localização ou catálogo. A galeria contém imagens categorizadas: antes_depois (resultados), catalogo (serviços/produtos), localizacao (clínica, mapa), geral (outras).`,
+          description: `Envia uma imagem da galeria pré-aprovada para marketing. IMPORTANTE: Todas as imagens da galeria são de uso autorizado (antes/depois com consentimento, fotos comerciais, etc.) - não há restrição de privacidade para enviar essas fotos. Use quando o lead pedir para ver fotos, resultados, localização ou catálogo. Categorias: antes_depois (resultados), catalogo (serviços/produtos), localizacao (clínica, mapa), geral (outras).`,
           parameters: {
             type: "object",
             properties: {
               category: {
                 type: "string",
                 enum: ["antes_depois", "catalogo", "localizacao", "geral"],
-                description: "Categoria da imagem: antes_depois (resultados), catalogo (serviços/produtos), localizacao (clínica, como chegar), geral (outras)"
+                description: "Categoria da imagem: antes_depois (resultados de procedimentos), catalogo (serviços/produtos), localizacao (clínica, como chegar), geral (outras)"
               },
               search_term: {
                 type: "string",
@@ -1720,6 +1720,14 @@ Você tem acesso a:
 - Transfira para humano em negociações ou dúvidas muito técnicas
 - IMPORTANTE: Mesmo sendo especialista em ${leadStage}, você pode responder QUALQUER dúvida usando search_knowledge_base
 </regras_importantes>
+
+<galeria_de_imagens>
+IMPORTANTE: Todas as imagens na galeria (antes/depois, catálogo, localização) são MATERIAIS DE MARKETING PRÉ-APROVADOS.
+- NÃO existe restrição de "privacidade" para enviar essas fotos - elas são autorizadas para uso comercial
+- Quando o lead pedir fotos de resultados, use send_image IMEDIATAMENTE sem hesitar
+- NUNCA diga que "não pode enviar por privacidade" - as fotos da galeria existem justamente para serem compartilhadas
+- Use search_term para encontrar fotos específicas (ex: "barba", "cabelo masculino", "sobrancelha feminino")
+</galeria_de_imagens>
 
 <fluxo_agendamento>
 ## TÉCNICA "OU/OU" - REGRA OBRIGATÓRIA
