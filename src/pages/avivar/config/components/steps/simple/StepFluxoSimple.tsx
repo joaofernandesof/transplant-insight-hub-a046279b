@@ -34,8 +34,93 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { FluxoAtendimento, FluxoStep, AgentObjectives } from '../../../types';
+import { FluxoAtendimento, FluxoStep, AgentObjectives, AgentObjective, CustomObjective } from '../../../types';
 import { getFluxoByObjective, OBJECTIVE_TEMPLATE_LABELS } from '../../../fluxoTemplates';
+
+// Mapeamento de objetivos secundários para passos extras
+const SECONDARY_OBJECTIVE_TO_STEP: Record<AgentObjective, { titulo: string; descricao: string; exemploMensagem: string }> = {
+  'agendar_presencial': {
+    titulo: 'Agendar Consulta Presencial',
+    descricao: 'Quando o lead demonstrar interesse em agendar uma consulta presencial, ofereça datas disponíveis usando a técnica "ou/ou" com 2 opções.',
+    exemploMensagem: 'Tenho disponível {dia1} às {hora1} ou {dia2} às {hora2}. Qual fica melhor para você?',
+  },
+  'agendar_online': {
+    titulo: 'Agendar Reunião Online',
+    descricao: 'Quando o lead quiser agendar uma reunião online/videoconferência, ofereça datas disponíveis e explique como será o acesso.',
+    exemploMensagem: 'Para a reunião online, tenho {dia1} às {hora1} ou {dia2} às {hora2}. Você receberá o link por WhatsApp. Qual prefere?',
+  },
+  'agendar_domicilio': {
+    titulo: 'Agendar Visita em Domicílio',
+    descricao: 'Quando o lead preferir atendimento em domicílio, confirme o endereço e ofereça datas disponíveis.',
+    exemploMensagem: 'Para a visita em domicílio, preciso confirmar seu endereço. Tenho disponível {dia1} às {hora1} ou {dia2} às {hora2}.',
+  },
+  'vender_produto': {
+    titulo: 'Apresentar Produtos',
+    descricao: 'Quando o lead demonstrar interesse em produtos, apresente o catálogo, destaque benefícios e facilite a compra.',
+    exemploMensagem: 'Temos ótimas opções! Posso te mostrar nosso catálogo? Qual categoria te interessa mais?',
+  },
+  'delivery': {
+    titulo: 'Fazer Pedido Delivery',
+    descricao: 'Quando o lead quiser fazer um pedido para entrega, anote os itens, confirme endereço e forma de pagamento.',
+    exemploMensagem: 'Vamos fazer seu pedido! O que você gostaria hoje?',
+  },
+  'capturar_lead': {
+    titulo: 'Coletar Informações',
+    descricao: 'Quando precisar capturar dados do lead para contato posterior, colete nome, telefone e/ou e-mail de forma natural.',
+    exemploMensagem: 'Para te manter informado(a), qual seu melhor e-mail ou telefone?',
+  },
+  'custom': {
+    titulo: 'Objetivo Personalizado',
+    descricao: 'Execute o objetivo personalizado conforme definido.',
+    exemploMensagem: '',
+  },
+};
+
+// Função para gerar passos extras a partir dos objetivos secundários
+function generateSecondarySteps(
+  objectives: AgentObjectives,
+  existingExtras: FluxoStep[]
+): FluxoStep[] {
+  const secondarySteps: FluxoStep[] = [];
+  let ordem = existingExtras.length + 1;
+
+  // Adicionar objetivos secundários padrão
+  for (const secondaryId of objectives.secondary || []) {
+    const stepTemplate = SECONDARY_OBJECTIVE_TO_STEP[secondaryId];
+    if (stepTemplate) {
+      // Verificar se já existe um passo com este objetivo
+      const alreadyExists = existingExtras.some(e => e.id === `secondary_${secondaryId}`);
+      if (!alreadyExists) {
+        secondarySteps.push({
+          id: `secondary_${secondaryId}`,
+          ordem: ordem++,
+          titulo: stepTemplate.titulo,
+          descricao: stepTemplate.descricao,
+          exemploMensagem: stepTemplate.exemploMensagem,
+        });
+      }
+    }
+  }
+
+  // Adicionar objetivos secundários customizados
+  for (const customId of objectives.secondaryCustomIds || []) {
+    const custom = objectives.customObjectives?.find(c => c.id === customId);
+    if (custom) {
+      const alreadyExists = existingExtras.some(e => e.id === `secondary_custom_${customId}`);
+      if (!alreadyExists) {
+        secondarySteps.push({
+          id: `secondary_custom_${customId}`,
+          ordem: ordem++,
+          titulo: custom.name,
+          descricao: custom.context || custom.description,
+          exemploMensagem: '',
+        });
+      }
+    }
+  }
+
+  return secondarySteps;
+}
 
 interface StepFluxoSimpleProps {
   fluxoAtendimento: FluxoAtendimento;
@@ -98,9 +183,71 @@ export function StepFluxoSimple({
     // Se não tem passos cronológicos, carrega o template do objetivo
     if (!fluxoAtendimento.passosCronologicos?.length && objectives.primary) {
       const template = getFluxoByObjective(objectives.primary);
+      
+      // Adicionar objetivos secundários como passos extras (se houver e não for "Nenhum")
+      const hasSecondaryObjectives = 
+        (objectives.secondary && objectives.secondary.length > 0) ||
+        (objectives.secondaryCustomIds && objectives.secondaryCustomIds.length > 0);
+      
+      if (hasSecondaryObjectives) {
+        const secondarySteps = generateSecondarySteps(objectives, template.passosExtras || []);
+        template.passosExtras = [...(template.passosExtras || []), ...secondarySteps];
+      }
+      
       onChange(template);
     }
   }, [objectives.primary]);
+
+  // Atualizar passos extras quando objetivos secundários mudarem
+  useEffect(() => {
+    // Verificar se há objetivos secundários selecionados
+    const hasSecondaryObjectives = 
+      (objectives.secondary && objectives.secondary.length > 0) ||
+      (objectives.secondaryCustomIds && objectives.secondaryCustomIds.length > 0);
+    
+    if (!hasSecondaryObjectives) return;
+    
+    // Filtrar passos extras que NÃO são de objetivos secundários (manter os originais do template)
+    const nonSecondaryExtras = (fluxoAtendimento.passosExtras || []).filter(
+      step => !step.id.startsWith('secondary_')
+    );
+    
+    // Gerar novos passos extras baseados nos objetivos secundários atuais
+    const secondarySteps = generateSecondarySteps(objectives, []);
+    
+    // Mesclar: passos originais + passos de objetivos secundários
+    const updatedExtras = [...nonSecondaryExtras];
+    let ordem = nonSecondaryExtras.length + 1;
+    
+    for (const newStep of secondarySteps) {
+      // Verificar se este objetivo secundário já tem um passo
+      const existingIndex = (fluxoAtendimento.passosExtras || []).findIndex(e => e.id === newStep.id);
+      if (existingIndex !== -1) {
+        // Manter o passo existente (pode ter sido editado pelo usuário)
+        updatedExtras.push({
+          ...fluxoAtendimento.passosExtras![existingIndex],
+          ordem: ordem++,
+        });
+      } else {
+        // Adicionar novo passo
+        updatedExtras.push({
+          ...newStep,
+          ordem: ordem++,
+        });
+      }
+    }
+    
+    // Só atualizar se houver diferença
+    const currentIds = (fluxoAtendimento.passosExtras || []).map(e => e.id).sort().join(',');
+    const newIds = updatedExtras.map(e => e.id).sort().join(',');
+    
+    if (currentIds !== newIds) {
+      onChange({
+        ...fluxoAtendimento,
+        passosExtras: updatedExtras,
+      });
+    }
+  }, [objectives.secondary, objectives.secondaryCustomIds]);
 
   const toggleStep = (stepId: string) => {
     setExpandedSteps(prev => {
