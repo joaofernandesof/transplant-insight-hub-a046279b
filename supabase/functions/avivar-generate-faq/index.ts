@@ -282,7 +282,39 @@ REGRAS CRÍTICAS SOBRE PREÇOS:
 
 Responda SEMPRE em português brasileiro.`;
 
-    const userPrompt = `Gere exatamente 12 perguntas e respostas frequentes para um(a) ${subnichoName} no setor de ${nichoName}.
+    // Calcular número dinâmico de perguntas baseado no conteúdo
+    let questionCount = 10; // Base mínima
+    
+    // Adicionar perguntas para cada serviço (2 por serviço com preço, 3 por serviço sem preço)
+    if (servicesWithPrice.length > 0) {
+      questionCount += servicesWithPrice.length * 2;
+    }
+    if (servicesWithHiddenPrice.length > 0) {
+      questionCount += servicesWithHiddenPrice.length * 3; // Mais perguntas persuasivas para valores ocultos
+    }
+    
+    // Adicionar pergunta para cada forma de pagamento
+    const enabledPayments = paymentMethods?.filter((p: { id: string; name: string; enabled?: boolean }) => p.enabled !== false) || [];
+    questionCount += enabledPayments.length * 2;
+    
+    // Adicionar perguntas para unidades/filiais
+    if (businessUnits && businessUnits.length > 0) {
+      questionCount += businessUnits.length * 2;
+    }
+    
+    // Adicionar perguntas para objetivos
+    if (objectives) {
+      if (objectives.primary) questionCount += 3;
+      if (objectives.secondary?.length > 0) questionCount += objectives.secondary.length * 2;
+      if (objectives.customObjectives?.length > 0) questionCount += objectives.customObjectives.length * 2;
+    }
+    
+    // Limite máximo e mínimo
+    questionCount = Math.max(15, Math.min(questionCount, 40));
+    
+    console.log(`Calculated question count: ${questionCount}`);
+
+    const userPrompt = `Gere exatamente ${questionCount} perguntas e respostas frequentes para um(a) ${subnichoName} no setor de ${nichoName}.
 
 === DADOS DA EMPRESA ===
 ${companyInfoText || 'Dados não fornecidos.'}
@@ -294,26 +326,57 @@ ${servicesText || 'Serviços não especificados.'}
 ${objectivesText || 'Objetivos não definidos.'}
 ${paymentsFAQInstructions}
 
-INSTRUÇÕES ESPECÍFICAS:
-1. Para serviços COM preço definido: inclua o valor na resposta quando perguntarem.
-2. Para serviços SEM preço (valor sob avaliação): crie respostas persuasivas que incentivem o agendamento de avaliação presencial. Não invente valores!
-3. Priorize perguntas que ajudem o cliente a avançar em direção aos objetivos do negócio.
-4. Use os DADOS REAIS da empresa nas respostas.
-5. IMPORTANTE: Se houver formas de pagamento habilitadas, gere perguntas específicas sobre CADA forma de pagamento selecionada conforme as instruções acima.
+INSTRUÇÕES ESPECÍFICAS DE DISTRIBUIÇÃO:
+Você DEVE gerar perguntas nas seguintes categorias proporcionalmente:
 
-As perguntas devem cobrir temas como:
-- Valores e investimento dos procedimentos (respeitando as regras acima)
-- Dúvidas relacionadas ao objetivo principal
-- Horário de funcionamento
-- Formas de agendamento
-- Localização e como chegar
-- Telefone para contato
-- FORMAS DE PAGAMENTO (crie uma pergunta para cada método habilitado)
-- Cancelamento e reagendamento
-- Dúvidas específicas sobre os serviços/procedimentos
-- Tempo de duração/espera
-- Preparações necessárias
-- Garantias e políticas
+📍 LOCALIZAÇÃO E CONTATO (mínimo 3 perguntas):
+- "Qual o endereço de vocês?"
+- "Como faço para chegar aí?"
+- "Qual o telefone/WhatsApp para contato?"
+- "Vocês tem estacionamento?"
+${businessUnits && businessUnits.length > 0 ? `- IMPORTANTE: Gere perguntas sobre CADA UNIDADE/FILIAL (${businessUnits.length} unidades)` : ''}
+
+💰 FORMAS DE PAGAMENTO (${enabledPayments.length > 0 ? `gere 2 perguntas para CADA forma de pagamento habilitada` : 'sem pagamentos definidos'}):
+${paymentsFAQInstructions}
+
+💼 SERVIÇOS E VALORES (MUITO IMPORTANTE):
+${servicesWithPrice.length > 0 ? `
+- Para serviços COM PREÇO (${servicesWithPrice.length}): Gere 2 perguntas sobre CADA serviço citando o valor exato.
+  Serviços com preço: ${servicesWithPrice.join(', ')}
+` : ''}
+${servicesWithHiddenPrice.length > 0 ? `
+- Para serviços SEM PREÇO VISÍVEL (${servicesWithHiddenPrice.length}): Gere 3 perguntas persuasivas sobre CADA serviço SEM citar valores.
+  Serviços sem preço: ${servicesWithHiddenPrice.join(', ')}
+  Respostas devem ser persuasivas como: "Entendo sua curiosidade! 😊 Como cada caso é único, o investimento varia de acordo com a avaliação. Posso agendar uma consulta gratuita para você conhecer nossa estrutura e receber um orçamento personalizado?"
+` : ''}
+
+🕐 HORÁRIOS E AGENDAMENTO (mínimo 3 perguntas):
+- "Qual o horário de funcionamento?"
+- "Como faço para agendar?"
+- "Vocês atendem aos sábados/domingos?"
+- "Consigo agendar online?"
+
+🎯 OBJETIVOS DO NEGÓCIO:
+${objectivesText ? `
+Gere perguntas que guiem o cliente para o objetivo: ${objectivesText}
+` : 'Sem objetivos definidos'}
+
+📋 PROCEDIMENTOS E PROCESSOS (mínimo 4 perguntas):
+- "Quanto tempo dura o procedimento?"
+- "Preciso de alguma preparação?"
+- "Posso remarcar/cancelar?"
+- "O que acontece no dia do atendimento?"
+- "Tem garantia?"
+- "Qual o pós-procedimento?"
+
+❓ DÚVIDAS ESPECÍFICAS DO NICHO ${nichoName.toUpperCase()} (mínimo 4 perguntas):
+Gere perguntas específicas que clientes de ${subnichoName} costumam fazer.
+
+REGRAS FINAIS:
+1. Use DADOS REAIS da empresa (nome, endereço, telefone) nas respostas
+2. NÃO invente informações não fornecidas
+3. Respostas devem ser naturais para WhatsApp (com emojis moderados)
+4. Total de perguntas DEVE ser exatamente ${questionCount}
 
 Retorne APENAS um JSON válido no seguinte formato, sem texto adicional:
 {
