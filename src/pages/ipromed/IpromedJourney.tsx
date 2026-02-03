@@ -515,20 +515,20 @@ export default function IpromedJourney() {
         {/* Pipeline View - Enhanced Kanban with horizontal scroll */}
         <TabsContent value="pipeline" className="mt-4">
           <div className="overflow-x-auto pb-4">
-            <div className="flex gap-4 min-w-max">
+            <div className="flex gap-3 min-w-max">
               {journeyPhases.map((phase) => {
                 const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
                 const phaseClients = clientsByPhase[phase.id] || [];
                 return (
-                  <div key={phase.id} className="flex flex-col w-[220px] flex-shrink-0">
+                  <div key={phase.id} className="flex flex-col w-[200px] flex-shrink-0">
                     {/* Column Header */}
-                    <div className={cn("text-white text-center py-3 rounded-t-lg relative group", phase.color)}>
+                    <div className={cn("text-white text-center py-2.5 rounded-t-lg relative group", phase.color)}>
                       <p className="font-bold text-sm">{phase.id}</p>
-                      <p className="text-xs opacity-90">{phase.label}</p>
+                      <p className="text-[11px] opacity-90">{phase.label}</p>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 text-white hover:bg-white/20"
+                        className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 text-white hover:bg-white/20"
                         onClick={() => {
                           if (phaseDetail) {
                             setSelectedPhaseDetail(phaseDetail);
@@ -541,44 +541,44 @@ export default function IpromedJourney() {
                     </div>
                     
                     {/* Column Content */}
-                    <ScrollArea className="bg-muted/30 rounded-b-lg p-2 min-h-[400px] max-h-[450px] flex-1">
-                      <div className="space-y-2 pr-2">
-                        {phaseClients.map((client) => (
-                          <Card 
-                            key={client.id} 
-                            className="bg-card hover:shadow-md transition-shadow cursor-pointer border"
-                            onClick={() => setSelectedClient(client)}
-                          >
-                            <CardContent className="p-3">
-                              <div className="flex items-start gap-2">
-                                <Avatar className="h-8 w-8 flex-shrink-0">
-                                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                    {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm truncate">{client.name}</p>
-                                  <Badge 
-                                    variant="secondary" 
-                                    className={cn("text-[10px] h-4 mt-1", phase.color.replace('bg-', 'bg-opacity-20 text-').replace('-500', '-700').replace('-600', '-700'))}
-                                  >
-                                    {phase.id}
-                                  </Badge>
+                    <ScrollArea className="bg-muted/30 rounded-b-lg min-h-[400px] max-h-[450px] flex-1">
+                      <div className="space-y-2 p-2">
+                        {phaseClients.map((client) => {
+                          const progress = (client.metadata as any)?.journey_progress || 0;
+                          return (
+                            <Card 
+                              key={client.id} 
+                              className="bg-card hover:shadow-md transition-shadow cursor-pointer border"
+                              onClick={() => setSelectedClient(client)}
+                            >
+                              <CardContent className="p-2.5">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Avatar className="h-7 w-7 flex-shrink-0">
+                                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-medium">
+                                      {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-xs leading-tight line-clamp-2">{client.name}</p>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="mt-2">
-                                <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
-                                  <span>Progresso</span>
-                                  <span>{(client.metadata as any)?.journey_progress || 0}%</span>
+                                <Badge 
+                                  variant="secondary" 
+                                  className={cn("text-[9px] h-4 px-1.5", phase.color.replace('bg-', 'bg-opacity-20 text-').replace('-500', '-700').replace('-600', '-700'))}
+                                >
+                                  {phase.id}
+                                </Badge>
+                                <div className="mt-2">
+                                  <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                                    <span>Progresso</span>
+                                    <span>{progress}%</span>
+                                  </div>
+                                  <Progress value={progress} className="h-1" />
                                 </div>
-                                <Progress 
-                                  value={(client.metadata as any)?.journey_progress || 0} 
-                                  className="h-1.5"
-                                />
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                         {phaseClients.length === 0 && (
                           <div className="text-center text-muted-foreground text-xs py-12 space-y-2">
                             <Users className="h-8 w-8 mx-auto opacity-20" />
@@ -589,12 +589,12 @@ export default function IpromedJourney() {
                     </ScrollArea>
                     
                     {/* Column Footer */}
-                    <div className="bg-muted/20 px-3 py-2 border-t flex items-center justify-between">
-                      <span className="text-[10px] text-muted-foreground">{phase.deliverables} entregáveis</span>
+                    <div className="bg-muted/20 px-2 py-1.5 border-t flex items-center justify-between">
+                      <span className="text-[9px] text-muted-foreground">{phase.deliverables} entregáveis</span>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-5 text-[10px] px-2 hover:text-primary"
+                        className="h-5 text-[9px] px-1.5 hover:text-primary"
                         onClick={() => {
                           if (phaseDetail) {
                             setSelectedPhaseDetail(phaseDetail);
