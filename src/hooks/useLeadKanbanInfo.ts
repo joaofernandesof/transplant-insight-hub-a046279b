@@ -11,6 +11,7 @@ interface KanbanInfo {
   columnName: string | null;
   kanbanId: string | null;
   columnId: string | null;
+  tags: string[];
 }
 
 export function useLeadKanbanInfo(phone: string | undefined | null) {
@@ -18,7 +19,7 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
     queryKey: ['lead-kanban-info', phone],
     queryFn: async (): Promise<KanbanInfo> => {
       if (!phone) {
-        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null };
+        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [] };
       }
 
       // Buscar o lead no kanban pelo telefone
@@ -29,6 +30,7 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
         .select(`
           kanban_id,
           column_id,
+          tags,
           kanban:avivar_kanbans(id, name, order_index),
           column:avivar_kanban_columns(id, name)
         `)
@@ -38,17 +40,19 @@ export function useLeadKanbanInfo(phone: string | undefined | null) {
         .maybeSingle();
 
       if (leadError || !kanbanLead) {
-        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null };
+        return { kanbanName: null, columnName: null, kanbanId: null, columnId: null, tags: [] };
       }
 
       const kanban = kanbanLead.kanban as { id: string; name: string; order_index: number } | null;
       const column = kanbanLead.column as { id: string; name: string } | null;
+      const tags = (kanbanLead.tags as string[]) || [];
 
       return {
         kanbanName: kanban?.name || null,
         columnName: column?.name || null,
         kanbanId: kanban?.id || null,
         columnId: column?.id || null,
+        tags,
       };
     },
     enabled: !!phone,

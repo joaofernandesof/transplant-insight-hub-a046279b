@@ -64,6 +64,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLeadKanbanInfo } from '@/hooks/useLeadKanbanInfo';
 import { useLeadChecklistFields } from '@/hooks/useLeadChecklistFields';
 import { FunnelColumnSelector } from './FunnelColumnSelector';
+import { LeadTagsDialog } from './LeadTagsDialog';
 import { useNavigate } from 'react-router-dom';
 
 interface LeadDetailsSidebarProps {
@@ -91,6 +92,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
   const [isFieldsOpen, setIsFieldsOpen] = useState(true);
   const [notes, setNotes] = useState('');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
@@ -190,7 +192,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
                 Editar Lead
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => setIsEditDialogOpen(true)}
+                onClick={() => setIsTagsDialogOpen(true)}
                 className="cursor-pointer"
               >
                 <Tags className="h-4 w-4 mr-2" />
@@ -462,6 +464,16 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
         lead={leadForEdit}
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
+        onSaved={onLeadUpdated}
+      />
+
+      {/* Dialog de Tags */}
+      <LeadTagsDialog
+        leadPhone={lead.phone || ''}
+        leadName={lead.name || ''}
+        currentTags={kanbanInfo?.tags || []}
+        open={isTagsDialogOpen}
+        onOpenChange={setIsTagsDialogOpen}
         onSaved={onLeadUpdated}
       />
     </>
