@@ -26,6 +26,7 @@ import {
   StepObjectivesSimple,
   StepFAQGenerator,
   StepKnowledgeSimple,
+  StepImagesSimple,
   StepReviewSimple,
 } from './components/steps/simple';
 
@@ -33,6 +34,7 @@ import { autoGenerateConfig } from './utils/autoGenerateConfig';
 import { 
   AgentConfig, 
   INITIAL_CONFIG, 
+  EMPTY_IMAGE_GALLERY,
   PAYMENT_METHODS,
   DEFAULT_WEEK_SCHEDULE,
   NichoType,
@@ -59,6 +61,7 @@ const SIMPLE_STEPS = [
   { id: 'objectives', title: 'Objetivos', description: 'Foco do agente' },
   { id: 'faq', title: 'FAQ', description: 'Perguntas frequentes' },
   { id: 'knowledge', title: 'Documentos', description: 'Base de conhecimento (opcional)' },
+  { id: 'images', title: 'Imagens', description: 'Galeria para envio (opcional)' },
   { id: 'review', title: 'Finalizar', description: 'Revisar e criar' },
 ];
 
@@ -120,6 +123,15 @@ export default function AvivarSimpleWizard() {
             consultationDuration: agent.consultation_duration || 60,
             // agentObjectives não existe na tabela, será preenchido na próxima etapa
             beforeAfterImages: (agent.before_after_images as unknown as string[]) || [],
+            imageGallery: (agent.image_gallery as unknown as AgentConfig['imageGallery']) || {
+              ...EMPTY_IMAGE_GALLERY,
+              before_after: (((agent.before_after_images as unknown as string[]) || [])).map((url, i) => ({
+                id: `legacy_${i}`,
+                url,
+                caption: '',
+                category: 'before_after' as const,
+              })),
+            },
             knowledgeFiles: (agent.knowledge_files as unknown as AgentConfig['knowledgeFiles']) || [],
             fluxoAtendimento: (agent.fluxo_atendimento as unknown as AgentConfig['fluxoAtendimento']) || { passosCronologicos: [], passosExtras: [] },
           }));
@@ -160,7 +172,9 @@ export default function AvivarSimpleWizard() {
         return true;
       case 6: // Knowledge (opcional - sempre pode prosseguir)
         return true;
-      case 7: // Review
+      case 7: // Imagens (opcional - sempre pode prosseguir)
+        return true;
+      case 8: // Review
         return true;
       default:
         return true;
@@ -221,6 +235,12 @@ export default function AvivarSimpleWizard() {
         schedule: config.schedule,
         consultation_type: config.consultationType,
         consultation_duration: config.consultationDuration,
+        // Imagens (novo formato) + compatibilidade com legado
+        image_gallery: config.imageGallery || EMPTY_IMAGE_GALLERY,
+        before_after_images: (config.imageGallery?.before_after?.length
+          ? config.imageGallery.before_after.map((img) => img.url)
+          : (config.beforeAfterImages || []))
+          .filter(Boolean),
         tone_of_voice: autoConfig.toneOfVoice,
         ai_identity: autoConfig.aiIdentity,
         ai_objective: autoConfig.aiObjective,
@@ -373,6 +393,13 @@ export default function AvivarSimpleWizard() {
           />
         );
       case 7:
+        return (
+          <StepImagesSimple
+            gallery={config.imageGallery}
+            onChange={(imageGallery) => updateConfig({ imageGallery })}
+          />
+        );
+      case 8:
         return (
           <StepReviewSimple
             config={config}
