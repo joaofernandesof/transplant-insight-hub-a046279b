@@ -131,6 +131,7 @@ export function StepObjectivesSimple({
   const [showCustomDialog, setShowCustomDialog] = useState(false);
   const [editingCustom, setEditingCustom] = useState<CustomObjective | null>(null);
   const [customForm, setCustomForm] = useState({ name: '', description: '', context: '' });
+  const [customTarget, setCustomTarget] = useState<'primary' | 'secondary'>('primary');
 
   // Filtrar objetivos aplicáveis ao nicho
   const applicableObjectives = AVAILABLE_OBJECTIVES.filter(obj => {
@@ -225,10 +226,29 @@ export function StepObjectivesSimple({
       updatedCustoms = [...existingCustoms, newCustom];
     }
 
-    onChange({
-      ...objectives,
-      customObjectives: updatedCustoms,
-    });
+    // Se for um novo objetivo (não edição), adicionar automaticamente à lista apropriada
+    if (!editingCustom) {
+      if (customTarget === 'secondary') {
+        // Adicionar aos secundários selecionados
+        const currentSecondaryCustomIds = objectives.secondaryCustomIds || [];
+        onChange({
+          ...objectives,
+          customObjectives: updatedCustoms,
+          secondaryCustomIds: [...currentSecondaryCustomIds, newCustom.id],
+        });
+      } else {
+        // Apenas adicionar à lista de customObjectives (usuário escolhe se quer selecionar)
+        onChange({
+          ...objectives,
+          customObjectives: updatedCustoms,
+        });
+      }
+    } else {
+      onChange({
+        ...objectives,
+        customObjectives: updatedCustoms,
+      });
+    }
 
     setCustomForm({ name: '', description: '', context: '' });
     setEditingCustom(null);
@@ -301,6 +321,7 @@ export function StepObjectivesSimple({
               onClick={() => {
                 setEditingCustom(null);
                 setCustomForm({ name: '', description: '', context: '' });
+                setCustomTarget('primary');
                 setShowCustomDialog(true);
               }}
               className="gap-1 text-xs border-[hsl(var(--avivar-primary)/0.5)] text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
@@ -350,11 +371,28 @@ export function StepObjectivesSimple({
         {/* Objetivos Secundários */}
         {objectives.primary && (
           <div className="space-y-3 pt-4 border-t border-[hsl(var(--avivar-border))]">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-              <Label className="text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
-                Objetivos Secundários (opcional)
-              </Label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                <Label className="text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
+                  Objetivos Secundários (opcional)
+                </Label>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEditingCustom(null);
+                  setCustomForm({ name: '', description: '', context: '' });
+                  setCustomTarget('secondary');
+                  setShowCustomDialog(true);
+                }}
+                className="gap-1 text-xs border-[hsl(var(--avivar-primary)/0.5)] text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+              >
+                <Plus className="h-3 w-3" />
+                Objetivo Secundário
+              </Button>
             </div>
             <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
               Se o cliente pedir, a IA também pode realizar essas ações
