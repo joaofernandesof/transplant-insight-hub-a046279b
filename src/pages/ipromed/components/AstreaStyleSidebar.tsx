@@ -43,23 +43,24 @@ interface NavItem {
   badge?: number;
   badgeColor?: string;
   isNew?: boolean;
+  tourId?: string;
 }
 
 const mainNavItems: NavItem[] = [
-  { id: 'home', label: 'Início', icon: Home, href: '/ipromed' },
-  { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/ipromed/dashboard' },
-  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', isNew: true },
-  { id: 'clients', label: 'Clientes', icon: Users, href: '/ipromed/clients' },
-  { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts' },
+  { id: 'home', label: 'Início', icon: Home, href: '/ipromed', tourId: 'sidebar-home' },
+  { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/ipromed/dashboard', tourId: 'sidebar-dashboard' },
+  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', isNew: true, tourId: 'sidebar-university' },
+  { id: 'clients', label: 'Clientes', icon: Users, href: '/ipromed/clients', tourId: 'sidebar-clients' },
+  { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts', tourId: 'sidebar-contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
-  { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', isNew: true },
+  { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', isNew: true, tourId: 'sidebar-financial' },
   { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico', isNew: true },
   { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
   { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
-  { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda' },
-  { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases' },
+  { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda', tourId: 'sidebar-agenda' },
+  { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases', tourId: 'sidebar-cases' },
   { id: 'documents', label: 'Documentos', icon: FileBox, href: '/ipromed/legal?tab=documents' },
-  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', isNew: true },
+  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', isNew: true, tourId: 'sidebar-ai' },
 ];
 
 interface AstreaStyleSidebarProps {
@@ -147,6 +148,7 @@ export default function AstreaStyleSidebar({
                   key={item.id}
                   to={item.href}
                   onClick={onMobileClose}
+                  data-tour={item.tourId}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group",
                     isCollapsed && "justify-center px-2",
