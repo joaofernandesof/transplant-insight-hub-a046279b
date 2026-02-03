@@ -49,8 +49,6 @@ const menuItems = [
   { id: 'cadences', label: 'Cadências', icon: Zap, href: '/avivar/cadences', isHighlight: true },
   { id: 'agenda', label: 'Agenda', icon: CalendarDays, href: '/avivar/agenda', isHighlight: true },
   { id: 'divider1', label: '', icon: null, href: '', isDivider: true },
-  { id: 'dashboards', label: 'Dashboards', icon: BarChart3, href: '/avivar/dashboards', isHighlight: true },
-  { id: 'divider2', label: '', icon: null, href: '', isDivider: true },
   { id: 'config', label: 'Configurar IA', icon: Sparkles, href: '/avivar/config' },
   { id: 'tutorials', label: 'Tutoriais', icon: GraduationCap, href: '/avivar/tutorials' },
   { id: 'divider3', label: '', icon: null, href: '', isDivider: true },
