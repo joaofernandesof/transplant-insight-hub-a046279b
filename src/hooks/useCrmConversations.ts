@@ -206,6 +206,7 @@ export function useCrmConversations(conversationId?: string) {
       mediaType,
       audioBase64,
       imageBase64,
+      videoBase64,
       caption,
     }: {
       conversationId: string;
@@ -214,6 +215,7 @@ export function useCrmConversations(conversationId?: string) {
       mediaType?: CrmMessage['media_type'];
       audioBase64?: string;
       imageBase64?: string;
+      videoBase64?: string;
       caption?: string;
     }) => {
       // Call edge function to send via UazAPI
@@ -225,6 +227,7 @@ export function useCrmConversations(conversationId?: string) {
           mediaType,
           audioBase64,
           imageBase64,
+          videoBase64,
           caption,
         },
       });
@@ -237,7 +240,7 @@ export function useCrmConversations(conversationId?: string) {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['crm-messages'] });
       queryClient.invalidateQueries({ queryKey: ['crm-conversations'] });
-      const msgType = variables.audioBase64 ? 'Áudio' : variables.imageBase64 ? 'Imagem' : 'Mensagem';
+      const msgType = variables.audioBase64 ? 'Áudio' : variables.imageBase64 ? 'Imagem' : variables.videoBase64 ? 'Vídeo' : 'Mensagem';
       toast.success(`${msgType} enviado(a) via WhatsApp`);
     },
     onError: (error) => {

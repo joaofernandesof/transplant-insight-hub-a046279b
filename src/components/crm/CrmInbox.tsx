@@ -168,6 +168,16 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
     });
   };
 
+  const handleSendVideo = async (videoBase64: string, caption?: string) => {
+    if (!selectedConversation) return;
+    
+    sendMessage.mutate({
+      conversationId: selectedConversation,
+      videoBase64,
+      caption,
+    });
+  };
+
   const handleStatusChange = (status: 'resolved' | 'archived') => {
     if (!selectedConversation) return;
     
@@ -336,6 +346,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
                 onSend={handleSendMessage}
                 onSendAudio={handleSendAudio}
                 onSendImage={handleSendImage}
+                onSendVideo={handleSendVideo}
                 disabled={sendMessage.isPending}
                 placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
               />
