@@ -110,6 +110,12 @@ interface UazAPINativeMessage {
     mimetype?: string;
     caption?: string;
     fileName?: string;
+    // Media encryption fields
+    mediaKey?: string;
+    fileSHA256?: string;
+    fileEncSHA256?: string;
+    fileLength?: number;
+    directPath?: string;
   };
   senderName?: string;
   messageTimestamp?: number;
@@ -118,6 +124,162 @@ interface UazAPINativeMessage {
   isGroup?: boolean;
   groupName?: string;
   type?: string; // "media" | "text" etc
+}
+
+// Helper to download media via UazAPI and upload to Supabase Storage
+async function downloadAndUploadMedia(
+  supabase: any,
+  uazapiUrl: string,
+  instanceToken: string,
+  messageId: string,
+  mediaContent: UazAPINativeMessage["content"],
+  conversationId: string,
+  mediaType: string
+): Promise<string | null> {
+  if (!mediaContent?.URL || !mediaContent?.mediaKey) {
+    console.log("[UazAPI Webhook] Missing media URL or mediaKey, cannot download");
+    return null;
+  }
+
+  try {
+    console.log(`[UazAPI Webhook] 📥 Downloading media via UazAPI...`);
+    
+    // Try UazAPI download endpoint (common patterns: /message/downloadMedia, /chat/downloadMedia)
+    // The endpoint accepts the encrypted URL and media key to decrypt the file
+    const downloadResponse = await fetch(`${uazapiUrl}/message/downloadMedia`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "token": instanceToken,
+      },
+      body: JSON.stringify({
+        url: mediaContent.URL,
+        mediaKey: mediaContent.mediaKey,
+        mimetype: mediaContent.mimetype,
+        fileSha256: mediaContent.fileSHA256,
+        fileEncSha256: mediaContent.fileEncSHA256,
+        directPath: mediaContent.directPath,
+      }),
+    });
+
+    if (!downloadResponse.ok) {
+      // Try alternative endpoint
+      console.log(`[UazAPI Webhook] First download attempt failed (${downloadResponse.status}), trying alternative...`);
+      
+      const altResponse = await fetch(`${uazapiUrl}/chat/downloadMedia`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "token": instanceToken,
+        },
+        body: JSON.stringify({
+          Url: mediaContent.URL,
+          MediaKey: mediaContent.mediaKey,
+          Mimetype: mediaContent.mimetype,
+          FileSHA256: mediaContent.fileSHA256,
+          FileEncSHA256: mediaContent.fileEncSHA256,
+        }),
+      });
+
+      if (!altResponse.ok) {
+        console.error(`[UazAPI Webhook] Media download failed: ${altResponse.status}`);
+        return null;
+      }
+
+      const altData = await altResponse.json();
+      if (altData.base64) {
+        // Upload base64 to storage
+        return await uploadBase64ToStorage(supabase, altData.base64, mediaContent.mimetype || "audio/ogg", conversationId, messageId, mediaType);
+      }
+      return null;
+    }
+
+    const data = await downloadResponse.json();
+    
+    // Response might contain base64 encoded media
+    if (data.base64 || data.data) {
+      const base64Data = data.base64 || data.data;
+      return await uploadBase64ToStorage(supabase, base64Data, mediaContent.mimetype || "audio/ogg", conversationId, messageId, mediaType);
+    }
+
+    // Response might contain URL to downloaded file
+    if (data.url) {
+      return data.url;
+    }
+
+    console.log("[UazAPI Webhook] Unexpected download response format:", JSON.stringify(data).substring(0, 200));
+    return null;
+  } catch (error) {
+    console.error("[UazAPI Webhook] Error downloading media:", error);
+    return null;
+  }
+}
+
+// Helper to upload base64 media to Supabase Storage
+async function uploadBase64ToStorage(
+  supabase: any,
+  base64Data: string,
+  mimetype: string,
+  conversationId: string,
+  messageId: string,
+  mediaType: string
+): Promise<string | null> {
+  try {
+    // Determine file extension from mimetype
+    const extensionMap: Record<string, string> = {
+      "audio/ogg": "ogg",
+      "audio/ogg; codecs=opus": "ogg",
+      "audio/mpeg": "mp3",
+      "audio/mp4": "m4a",
+      "audio/wav": "wav",
+      "audio/webm": "webm",
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "video/mp4": "mp4",
+      "video/webm": "webm",
+    };
+    
+    const mimeBase = mimetype.split(";")[0].trim();
+    const extension = extensionMap[mimetype] || extensionMap[mimeBase] || "bin";
+    const folder = mediaType === "audio" || mediaType === "ptt" ? "chat-audios" : 
+                   mediaType === "image" ? "chat-images" : 
+                   mediaType === "video" ? "chat-videos" : "chat-files";
+    
+    const fileName = `${Date.now()}_${messageId.replace(/[^a-zA-Z0-9]/g, "_")}.${extension}`;
+    const filePath = `${folder}/${conversationId}/${fileName}`;
+    
+    // Convert base64 to Uint8Array
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("avivar-media")
+      .upload(filePath, bytes, {
+        contentType: mimeBase,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error("[UazAPI Webhook] Storage upload error:", uploadError);
+      return null;
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from("avivar-media")
+      .getPublicUrl(filePath);
+
+    console.log(`[UazAPI Webhook] ✅ Media uploaded to Storage: ${urlData.publicUrl}`);
+    return urlData.publicUrl;
+  } catch (error) {
+    console.error("[UazAPI Webhook] Error uploading to storage:", error);
+    return null;
+  }
 }
 
 // Extract phone number from JID
@@ -289,11 +451,13 @@ serve(async (req) => {
           
           // Determine message content based on type
           let messageContent: UazAPIMessage["message"] | undefined;
+          let nativeMediaContent: UazAPINativeMessage["content"] | undefined;
           
           // Check if it's a media message (audio, image, video, document)
           if (msg.type === "media" || msg.mediaType) {
             const mediaType = msg.mediaType || "";
             const mediaUrl = msg.content?.URL || null;
+            nativeMediaContent = msg.content; // Preserve for download later
             
             if (mediaType === "ptt" || mediaType === "audio" || msg.messageType === "AudioMessage") {
               // Audio/PTT message
@@ -303,7 +467,7 @@ serve(async (req) => {
                   mimetype: msg.content?.mimetype,
                 },
               };
-              console.log(`[UazAPI Webhook] 🎤 Audio message detected, URL: ${mediaUrl?.substring(0, 50)}...`);
+              console.log(`[UazAPI Webhook] 🎤 Audio message detected, URL: ${mediaUrl?.substring(0, 50)}..., has mediaKey: ${!!msg.content?.mediaKey}`);
             } else if (mediaType === "image" || msg.messageType === "ImageMessage") {
               // Image message
               messageContent = {
@@ -349,7 +513,8 @@ serve(async (req) => {
             };
           }
           
-          messages = [{
+          // Store native media content for download processing
+          const msgWithMedia = {
             key: {
               remoteJid: msg.chatid,
               fromMe: msg.fromMe,
@@ -358,7 +523,11 @@ serve(async (req) => {
             pushName: msg.senderName || payload.chat?.wa_name || payload.chat?.name,
             message: messageContent,
             messageTimestamp: msg.messageTimestamp,
-          }];
+            _nativeMediaContent: nativeMediaContent, // Custom field for media download
+            _nativeMediaType: msg.mediaType,
+          } as UazAPIMessage & { _nativeMediaContent?: typeof nativeMediaContent; _nativeMediaType?: string };
+          
+          messages = [msgWithMedia];
         }
 
         console.log(`[UazAPI Webhook] Processing ${messages.length} messages`);
