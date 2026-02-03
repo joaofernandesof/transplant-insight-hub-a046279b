@@ -414,39 +414,6 @@ export function StepObjectivesSimple({
             </p>
             
             <div className="space-y-2">
-              {/* Opção NENHUM - fixa no topo */}
-              <div
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer",
-                  objectives.secondaryConfirmed && objectives.secondary.length === 0 && (!objectives.secondaryCustomIds || objectives.secondaryCustomIds.length === 0)
-                    ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)]"
-                    : "border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.5)]"
-                )}
-                onClick={() => {
-                  // Limpar todos os secundários e marcar como confirmado
-                  onChange({
-                    ...objectives,
-                    secondary: [],
-                    secondaryCustomIds: [],
-                    secondaryConfirmed: true,
-                  });
-                }}
-              >
-                <Checkbox
-                  checked={objectives.secondaryConfirmed && objectives.secondary.length === 0 && (!objectives.secondaryCustomIds || objectives.secondaryCustomIds.length === 0)}
-                  className="border-[hsl(var(--avivar-muted-foreground))] data-[state=checked]:bg-[hsl(var(--avivar-primary))] data-[state=checked]:border-[hsl(var(--avivar-primary))]"
-                />
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800">
-                  <Target className="h-5 w-5 text-slate-500" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))]">Nenhum</p>
-                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                    Não desejo objetivos secundários
-                  </p>
-                </div>
-              </div>
-
               {/* Objetivos padrão secundários */}
               {applicableObjectives
                 .filter(obj => obj.id !== objectives.primary)
@@ -518,6 +485,39 @@ export function StepObjectivesSimple({
                     />
                   );
                 })}
+
+              {/* Opção NENHUM - fixa no final */}
+              <div
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer",
+                  objectives.secondaryConfirmed && objectives.secondary.length === 0 && (!objectives.secondaryCustomIds || objectives.secondaryCustomIds.length === 0)
+                    ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.1)]"
+                    : "border-[hsl(var(--avivar-border))] hover:border-[hsl(var(--avivar-primary)/0.5)]"
+                )}
+                onClick={() => {
+                  // Limpar todos os secundários e marcar como confirmado
+                  onChange({
+                    ...objectives,
+                    secondary: [],
+                    secondaryCustomIds: [],
+                    secondaryConfirmed: true,
+                  });
+                }}
+              >
+                <Checkbox
+                  checked={objectives.secondaryConfirmed && objectives.secondary.length === 0 && (!objectives.secondaryCustomIds || objectives.secondaryCustomIds.length === 0)}
+                  className="border-[hsl(var(--avivar-muted-foreground))] data-[state=checked]:bg-[hsl(var(--avivar-primary))] data-[state=checked]:border-[hsl(var(--avivar-primary))]"
+                />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800">
+                  <Target className="h-5 w-5 text-slate-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))]">Nenhum</p>
+                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                    Não desejo objetivos secundários
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Aviso se não confirmou */}
