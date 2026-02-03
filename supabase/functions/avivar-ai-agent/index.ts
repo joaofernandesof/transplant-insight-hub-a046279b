@@ -1092,83 +1092,116 @@ async function sendImage(
 
   console.log(`[AI Agent] Selected image: ${selectedImage.url.substring(0, 50)}...`);
 
-  // Get WhatsApp instance to send the image
-  const { data: session } = await supabase
-    .from("avivar_whatsapp_sessions")
-    .select("instance_name, base_url, token")
+  // Get user's connected WhatsApp instance (UazAPI provisioning)
+  // NOTE: This project uses avivar_uazapi_instances for connected WhatsApp accounts.
+  // avivar_whatsapp_sessions is a legacy table and is not used for sending.
+  const uazapiUrl = Deno.env.get("UAZAPI_URL") || "";
+  let uazapiToken = Deno.env.get("UAZAPI_TOKEN") || "";
+
+  const { data: uazapiInstance, error: uazapiInstanceError } = await supabase
+    .from("avivar_uazapi_instances")
+    .select("instance_token, status")
     .eq("user_id", userId)
-    .eq("is_connected", true)
+    .eq("status", "connected")
     .limit(1)
     .maybeSingle();
 
-  if (!session) {
-    console.log("[AI Agent] No WhatsApp session, returning URL only");
-    return { 
-      success: true, 
-      message: `Aqui está a imagem: ${selectedImage.url}`,
-      imageUrl: selectedImage.url
+  if (uazapiInstanceError) {
+    console.error("[AI Agent] Error fetching UazAPI instance:", uazapiInstanceError);
+  }
+  if (uazapiInstance?.instance_token) {
+    uazapiToken = uazapiInstance.instance_token;
+  }
+
+  if (!uazapiUrl || !uazapiToken) {
+    console.log("[AI Agent] UazAPI not configured/connected; returning URL only");
+    return {
+      success: false,
+      message: `Não consegui enviar a imagem agora porque o WhatsApp não está conectado. Link: ${selectedImage.url}`,
+      imageUrl: selectedImage.url,
     };
   }
 
   // Send image via UazAPI
   try {
-    const cleanPhone = leadPhone.replace(/\D/g, "");
-    const apiUrl = `${session.base_url}/send/media`;
-    
-    console.log(`[AI Agent] Sending image to ${cleanPhone} via ${apiUrl}`);
+    let phone = leadPhone.replace(/\D/g, "");
+    if (!phone.startsWith("55") && phone.length <= 11) {
+      phone = `55${phone}`;
+    }
+
+    const apiUrl = `${uazapiUrl}/send/media`;
+    console.log(`[AI Agent] Sending image to ${phone} via ${apiUrl}`);
     console.log(`[AI Agent] Image URL: ${selectedImage.url}`);
-    
+
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "token": session.token
+        "token": uazapiToken,
       },
       body: JSON.stringify({
-        number: cleanPhone,
+        number: phone,
         type: "image",
-        file: selectedImage.url, // UazAPI uses 'file' not 'url'
-        text: selectedImage.caption || "" // Caption
-      })
+        file: selectedImage.url,
+        text: selectedImage.caption || " ",
+      }),
     });
-    
+
     const responseText = await response.text();
     console.log(`[AI Agent] UazAPI response (${response.status}): ${responseText}`);
 
     if (!response.ok) {
-      console.error("[AI Agent] Failed to send image:", responseText);
-      return { 
-        success: true, 
-        message: `Aqui está a imagem: ${selectedImage.url}`,
-        imageUrl: selectedImage.url
+      console.error("[AI Agent] Failed to send image, attempting link fallback:", responseText);
+
+      // Fallback: send the URL as a text message, so the lead receives something.
+      try {
+        const fallbackRes = await fetch(`${uazapiUrl}/send/text`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": uazapiToken,
+          },
+          body: JSON.stringify({
+            number: phone,
+            text: `${selectedImage.caption ? `${selectedImage.caption}\n\n` : ""}${selectedImage.url}`,
+          }),
+        });
+        const fallbackText = await fallbackRes.text();
+        console.log(`[AI Agent] Fallback /send/text (${fallbackRes.status}): ${fallbackText}`);
+      } catch (fallbackErr) {
+        console.error("[AI Agent] Fallback /send/text failed:", fallbackErr);
+      }
+
+      return {
+        success: false,
+        message: `Não consegui enviar a imagem como mídia. Enviei o link para o paciente: ${selectedImage.url}`,
+        imageUrl: selectedImage.url,
       };
     }
 
-    // Save message to CRM
+    // Save message to CRM (best-effort)
     await supabase.from("crm_messages").insert({
       conversation_id: conversationId,
-      sender_id: null,
-      sender_type: "ai",
+      direction: "outbound",
       content: selectedImage.caption || "[Imagem enviada]",
       media_url: selectedImage.url,
       media_type: "image",
-      direction: "outbound",
-      sent_at: new Date().toISOString()
+      sent_at: new Date().toISOString(),
+      is_ai_generated: true,
     });
 
     console.log("[AI Agent] ✅ Image sent successfully");
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: `Imagem enviada com sucesso!${selectedImage.caption ? ` (${selectedImage.caption})` : ""}`,
-      imageUrl: selectedImage.url
+      imageUrl: selectedImage.url,
     };
-    
   } catch (error) {
     console.error("[AI Agent] Error sending image:", error);
-    return { 
-      success: true, 
-      message: `Aqui está a imagem: ${selectedImage.url}`,
-      imageUrl: selectedImage.url
+    return {
+      success: false,
+      message: `Não consegui enviar a imagem agora. Link: ${selectedImage.url}`,
+      imageUrl: selectedImage.url,
     };
   }
 }
