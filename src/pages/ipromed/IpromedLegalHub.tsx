@@ -72,7 +72,7 @@ import AstreaClientPortal from "./components/AstreaClientPortal";
 import DocumentsManager from "./components/DocumentsManager";
 import CaseMovementsTimeline from "./components/CaseMovementsTimeline";
 import RealFinancialPage from "./components/RealFinancialPage";
-import EnhancedAgendaPage from "./components/EnhancedAgendaPage";
+import AstreaStyleAgenda from "./components/AstreaStyleAgenda";
 import IndicatorsDashboard from "./components/IndicatorsDashboard";
 import TimesheetManager from "./components/TimesheetManager";
 import AIDocumentGenerator from "./components/AIDocumentGenerator";
@@ -477,7 +477,7 @@ export default function IpromedLegalHub() {
             </TabsContent>
 
             <TabsContent value="agenda" className="mt-0">
-              <EnhancedAgendaPage />
+              <AstreaStyleAgenda />
             </TabsContent>
 
             <TabsContent value="meetings" className="mt-0">
