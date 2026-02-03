@@ -108,17 +108,36 @@ serve(async (req) => {
     const nichoName = NICHO_NAMES[nicho] || nicho;
     const subnichoName = SUBNICHO_NAMES[subnicho] || subnicho;
 
-    // Construir texto de serviços com preços
+    // Construir texto de serviços com preços (separando visíveis e ocultos)
     let servicesText = '';
+    let servicesWithPrice: string[] = [];
+    let servicesWithHiddenPrice: string[] = [];
+    
     if (services?.length > 0) {
-      const servicesList = services.map((s: { name: string; price?: number | null; showPrice?: boolean }) => {
+      services.forEach((s: { name: string; price?: number | null; showPrice?: boolean }) => {
         if (s.showPrice && s.price) {
-          return `${s.name} (R$ ${s.price.toFixed(2).replace('.', ',')})`;
+          // Formatar preço no padrão brasileiro (sem centavos se for inteiro)
+          const priceValue = s.price / 100; // convertendo de centavos
+          const hasDecimals = priceValue % 1 !== 0;
+          const formattedPrice = priceValue.toLocaleString('pt-BR', {
+            minimumFractionDigits: hasDecimals ? 2 : 0,
+            maximumFractionDigits: hasDecimals ? 2 : 0
+          });
+          servicesWithPrice.push(`${s.name} (R$ ${formattedPrice})`);
         } else {
-          return `${s.name} (valor sob consulta)`;
+          servicesWithHiddenPrice.push(s.name);
         }
       });
-      servicesText = `Os serviços oferecidos são: ${servicesList.join(', ')}.`;
+      
+      if (servicesWithPrice.length > 0) {
+        servicesText += `SERVIÇOS COM PREÇO DEFINIDO: ${servicesWithPrice.join(', ')}.\n`;
+        servicesText += `Para estes serviços, informe o valor exato quando perguntarem.\n\n`;
+      }
+      
+      if (servicesWithHiddenPrice.length > 0) {
+        servicesText += `SERVIÇOS COM VALOR SOB AVALIAÇÃO (não informar preço): ${servicesWithHiddenPrice.join(', ')}.\n`;
+        servicesText += `IMPORTANTE: Para estes serviços, NUNCA cite valores. Gere respostas persuasivas que destaquem a necessidade de avaliação personalizada.\n`;
+      }
     }
 
     // Construir texto de formas de pagamento
@@ -214,10 +233,25 @@ serve(async (req) => {
     const systemPrompt = `Você é um especialista em atendimento ao cliente e criação de FAQs para empresas brasileiras.
 Sua tarefa é gerar perguntas e respostas frequentes (FAQ) realistas e úteis para um negócio.
 As respostas devem ser naturais, informativas e adequadas para um chatbot de WhatsApp responder.
+
 IMPORTANTE: 
 - As perguntas devem estar alinhadas com os OBJETIVOS do negócio - ajudando a guiar o cliente em direção a esses objetivos.
 - Use os DADOS REAIS da empresa (nome, endereço, telefone, cidade, profissional) nas respostas quando apropriado.
 - NÃO invente dados. Se um dado não foi fornecido, não inclua na resposta.
+
+REGRAS CRÍTICAS SOBRE PREÇOS:
+1. SERVIÇOS COM PREÇO DEFINIDO: Quando o serviço tiver preço informado, cite o valor exato na resposta.
+   Exemplo: "O procedimento de Transplante Capilar tem investimento a partir de R$ 15.000"
+
+2. SERVIÇOS SEM PREÇO (Valor Oculto): NUNCA cite valores. Seja PERSUASIVO e destaque:
+   - A importância da avaliação personalizada
+   - Que cada caso é único e merece atenção especial
+   - Os benefícios de uma consulta presencial
+   - Crie urgência sutil para agendar a avaliação
+   
+   Exemplo de resposta persuasiva para valor oculto:
+   "Entendo sua curiosidade sobre os valores! 😊 Como cada caso é único, o investimento varia de acordo com diversos fatores como área a ser tratada, técnica mais indicada e quantidade de sessões. Para te dar um orçamento preciso e personalizado, o ideal é agendar uma avaliação gratuita com nosso especialista. Assim você conhece nossa estrutura e recebe um plano sob medida para suas necessidades. Posso agendar pra você?"
+
 Responda SEMPRE em português brasileiro.`;
 
     const userPrompt = `Gere exatamente 12 perguntas e respostas frequentes para um(a) ${subnichoName} no setor de ${nichoName}.
@@ -225,27 +259,29 @@ Responda SEMPRE em português brasileiro.`;
 === DADOS DA EMPRESA ===
 ${companyInfoText || 'Dados não fornecidos.'}
 
-=== SERVIÇOS ===
+=== SERVIÇOS E PREÇOS ===
 ${servicesText || 'Serviços não especificados.'}
 
 === OBJETIVOS ===
 ${objectivesText || 'Objetivos não definidos.'}
 
-IMPORTANTE: 
-- Priorize perguntas que ajudem o cliente a avançar em direção aos objetivos do negócio.
-- Use os DADOS REAIS da empresa nas respostas (nome, endereço, telefone, cidade, etc.).
-- NÃO invente dados que não foram fornecidos.
+INSTRUÇÕES ESPECÍFICAS:
+1. Para serviços COM preço definido: inclua o valor na resposta quando perguntarem.
+2. Para serviços SEM preço (valor sob avaliação): crie respostas persuasivas que incentivem o agendamento de avaliação presencial. Não invente valores!
+3. Priorize perguntas que ajudem o cliente a avançar em direção aos objetivos do negócio.
+4. Use os DADOS REAIS da empresa nas respostas.
 
 As perguntas devem cobrir temas como:
-- Dúvidas relacionadas ao objetivo principal (como agendar, como comprar, como funciona)
+- Valores e investimento dos procedimentos (respeitando as regras acima)
+- Dúvidas relacionadas ao objetivo principal
 - Horário de funcionamento
-- Formas de agendamento/pedido
-- Localização e como chegar (use o endereço real se fornecido)
-- Telefone para contato (use o telefone real se fornecido)
-- Preços e formas de pagamento
+- Formas de agendamento
+- Localização e como chegar
+- Telefone para contato
+- Formas de pagamento e parcelamento
 - Cancelamento e reagendamento
-- Dúvidas específicas sobre os serviços
-- Tempo de espera/duração
+- Dúvidas específicas sobre os serviços/procedimentos
+- Tempo de duração/espera
 - Preparações necessárias
 - Garantias e políticas
 
