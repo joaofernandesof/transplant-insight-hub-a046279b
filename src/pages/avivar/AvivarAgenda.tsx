@@ -473,6 +473,25 @@ export default function AvivarAgenda() {
               variant="compact"
             />
           )}
+          {/* View Toggle - Dia/Semana - always visible above calendar */}
+          {mainView === 'calendar' && (
+            <div className="flex border border-[hsl(var(--avivar-border))] rounded-lg p-1 bg-[hsl(var(--avivar-card))]">
+              <Button
+                variant={view === "day" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("day")}
+              >
+                Diário
+              </Button>
+              <Button
+                variant={view === "week" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("week")}
+              >
+                Semanal
+              </Button>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {/* View Toggle */}
@@ -558,24 +577,6 @@ export default function AvivarAgenda() {
                 />
               </CardContent>
             </Card>
-
-            {/* View Toggle */}
-            <div className="flex border border-[hsl(var(--avivar-border))] rounded-lg p-1 bg-[hsl(var(--avivar-card))]">
-              <Button
-                variant={view === "day" ? "secondary" : "ghost"}
-                className="flex-1"
-                onClick={() => setView("day")}
-              >
-                Dia
-              </Button>
-              <Button
-                variant={view === "week" ? "secondary" : "ghost"}
-                className="flex-1"
-                onClick={() => setView("week")}
-              >
-                Semana
-              </Button>
-            </div>
 
             {/* Quick Stats */}
             <Card className="border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))]">
