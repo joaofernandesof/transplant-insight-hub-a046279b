@@ -178,6 +178,17 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
     });
   };
 
+  const handleSendDocument = async (documentBase64: string, documentName: string, caption?: string) => {
+    if (!selectedConversation) return;
+    
+    sendMessage.mutate({
+      conversationId: selectedConversation,
+      documentBase64,
+      documentName,
+      caption,
+    });
+  };
+
   const handleStatusChange = (status: 'resolved' | 'archived') => {
     if (!selectedConversation) return;
     
@@ -347,6 +358,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
                 onSendAudio={handleSendAudio}
                 onSendImage={handleSendImage}
                 onSendVideo={handleSendVideo}
+                onSendDocument={handleSendDocument}
                 disabled={sendMessage.isPending}
                 placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
               />
