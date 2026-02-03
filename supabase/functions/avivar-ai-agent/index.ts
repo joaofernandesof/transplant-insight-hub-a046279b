@@ -1147,14 +1147,22 @@ async function getLeadStage(
   return { stage: lead?.stage || "novo_lead", kanbanId: null };
 }
 
+// Message content can be string or array for multimodal (images)
+type MessageContent = string | Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }>;
+
+interface ConversationMessage {
+  role: string;
+  content: MessageContent;
+}
+
 async function getConversationHistory(
   supabase: AnySupabaseClient,
   conversationId: string,
   limit = 25
-): Promise<Array<{ role: string; content: string }>> {
+): Promise<ConversationMessage[]> {
   const { data: messages } = await supabase
     .from("crm_messages")
-    .select("direction, content, sent_at")
+    .select("direction, content, media_url, media_type, sent_at")
     .eq("conversation_id", conversationId)
     .order("sent_at", { ascending: false })
     .limit(limit);
@@ -1164,10 +1172,27 @@ async function getConversationHistory(
   return messages
     .reverse()
     .filter((m: { content: string | null }) => m.content)
-    .map((m: { direction: string; content: string }) => ({
-      role: m.direction === "inbound" ? "user" : "assistant",
-      content: m.content,
-    }));
+    .map((m: { direction: string; content: string; media_url: string | null; media_type: string | null }) => {
+      const role = m.direction === "inbound" ? "user" : "assistant";
+      
+      // If message has image media, format as multimodal content
+      if (m.media_type === "image" && m.media_url && m.direction === "inbound") {
+        console.log(`[AI Agent] Including image in context: ${m.media_url.substring(0, 50)}...`);
+        return {
+          role,
+          content: [
+            { type: "text" as const, text: m.content || "Imagem enviada pelo usuário:" },
+            { type: "image_url" as const, image_url: { url: m.media_url } }
+          ]
+        };
+      }
+      
+      // Regular text message
+      return {
+        role,
+        content: m.content,
+      };
+    });
 }
 
 async function getLeadId(supabase: AnySupabaseClient, conversationId: string): Promise<string | null> {
@@ -1496,7 +1521,7 @@ function detectDesistencia(message: string): boolean {
 
 async function callAIWithTools(
   systemPrompt: string,
-  messages: Array<{ role: string; content: string }>,
+  messages: ConversationMessage[],
   tools: typeof TOOLS,
   maxRetries: number = 2
 ): Promise<{ content: string | null; toolCalls: Array<{ name: string; arguments: Record<string, unknown> }> }> {
