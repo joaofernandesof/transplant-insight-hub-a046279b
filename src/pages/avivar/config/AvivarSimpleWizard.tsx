@@ -75,6 +75,8 @@ export default function AvivarSimpleWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedFAQ, setGeneratedFAQ] = useState<FAQItem[]>([]);
   const [faqAddedToKnowledge, setFaqAddedToKnowledge] = useState(false);
+  const [isViewingSubnichos, setIsViewingSubnichos] = useState(false); // Para controlar navegação do step 0
+  const [forceNichosView, setForceNichosView] = useState(false); // Para forçar volta aos nichos
   const [config, setConfig] = useState<AgentConfig>(() => ({
     ...INITIAL_CONFIG,
     paymentMethods: [...PAYMENT_METHODS],
@@ -192,8 +194,22 @@ export default function AvivarSimpleWizard() {
   };
 
   const handlePrev = () => {
+    // No step 0, se estiver vendo subnichos, voltar para nichos
+    if (currentStep === 0 && isViewingSubnichos) {
+      setForceNichosView(true);
+      setIsViewingSubnichos(false);
+      return;
+    }
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  // Reset forceNichosView quando o componente notificar que está vendo subnichos novamente
+  const handleViewingSubnichos = (viewing: boolean) => {
+    setIsViewingSubnichos(viewing);
+    if (viewing) {
+      setForceNichosView(false);
     }
   };
 
@@ -331,6 +347,8 @@ export default function AvivarSimpleWizard() {
             selectedSubnicho={config.subnicho}
             selectedSubnichos={config.subnichos}
             onSelect={handleBusinessSelect}
+            onViewingSubnichos={handleViewingSubnichos}
+            forceShowNichos={forceNichosView}
           />
         );
       case 1:
@@ -455,7 +473,7 @@ export default function AvivarSimpleWizard() {
           <Button
             variant="outline"
             onClick={handlePrev}
-            disabled={currentStep === 0}
+            disabled={currentStep === 0 && !isViewingSubnichos}
             className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
