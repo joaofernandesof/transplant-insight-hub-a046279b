@@ -16,6 +16,7 @@ import {
   Bot, 
   Package, 
   Clock,
+  Image as ImageIcon,
   FileText,
   ChevronDown,
   ChevronUp,
@@ -48,6 +49,12 @@ export function StepReviewSimple({
 
   const enabledServices = config.services.filter(s => s.enabled);
   const enabledPayments = config.paymentMethods.filter(p => p.enabled);
+
+  const imagesCount =
+    (config.imageGallery?.before_after?.length || 0) +
+    (config.imageGallery?.catalog?.length || 0) +
+    (config.imageGallery?.location?.length || 0) +
+    (config.imageGallery?.general?.length || 0);
   
   const getEnabledDays = (schedule: WeekSchedule): string => {
     const days = Object.entries(schedule)
@@ -260,7 +267,32 @@ export function StepReviewSimple({
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => onEdit(4)}
+                onClick={() => onEdit(6)}
+                className="text-[hsl(var(--avivar-primary))]"
+              >
+                Editar
+              </Button>
+            </div>
+
+            <div className="border-t border-[hsl(var(--avivar-border))]" />
+
+            {/* Imagens */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <ImageIcon className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
+                <div>
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                    Galeria de Imagens
+                  </p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                    {imagesCount} imagem(ns) adicionada(s)
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(7)}
                 className="text-[hsl(var(--avivar-primary))]"
               >
                 Editar
