@@ -181,124 +181,47 @@ serve(async (req) => {
       // Some UazAPI deployments expect raw base64 (no data URI)
       const audioRawBase64 = audioData.includes(",") ? audioData.split(",")[1] : audioData;
 
-      const logAttempt = (endpoint: string, res: Response) => {
-        const allow = res.headers.get("allow");
-        console.log(
-          `[Avivar Send Message] Audio endpoint tried: ${endpoint} | status=${res.status}${allow ? ` | allow=${allow}` : ""}`
-        );
-      };
+       const logAttempt = async (label: string, res: Response) => {
+         const allow = res.headers.get("allow");
+         let bodyPreview = "";
+         try {
+           // Clone so we don't consume the body (we read it once at the end)
+           const txt = await res.clone().text();
+           bodyPreview = txt ? txt.slice(0, 200) : "";
+         } catch {
+           // ignore
+         }
 
-      // 1) Prefer /send/media for uazapiGO (same family as /send/text which works)
-      uazapiResponse = await fetch(`${uazapiUrl}/send/media`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "token": uazapiToken,
-        },
-        body: JSON.stringify({
-          number: phone,
-          // Try sending as PTT voice note
-          mediaType: "ptt",
-          file: audioRawBase64,
-        }),
-      });
-      logAttempt("/send/media", uazapiResponse);
+         console.log(
+           `[Avivar Send Message] Audio attempt: ${label} | status=${res.status}${allow ? ` | allow=${allow}` : ""}${bodyPreview ? ` | body=${bodyPreview}` : ""}`
+         );
+       };
 
-      // Check if we need to try a different endpoint (400, 404, 405, or 500 with 'missing text' error)
-      if (!uazapiResponse.ok) {
-        const firstBody = await uazapiResponse.text();
-        console.log("[Avivar Send Message] First attempt response:", firstBody);
-        
-        // 500 with "missing text" means this endpoint doesn't support audio
-        const needsFallback = uazapiResponse.status === 400 || 
-                              uazapiResponse.status === 404 || 
-                              uazapiResponse.status === 405 ||
-                              (uazapiResponse.status === 500 && firstBody.includes("missing text"));
-        
-        if (needsFallback) {
-          // Try /send/ptt which is specific for voice notes
-          console.log("[Avivar Send Message] Trying /send/ptt...");
-          uazapiResponse = await fetch(`${uazapiUrl}/send/ptt`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "token": uazapiToken,
-            },
-            body: JSON.stringify({
-              number: phone,
-              audio: audioRawBase64,
-            }),
-          });
-          logAttempt("/send/ptt", uazapiResponse);
-        }
-      }
-      
-      // 2) Fallback to /sendPTT (alternative casing)
-      if (!uazapiResponse.ok) {
-        try {
-          const body = await uazapiResponse.text();
-          console.log("[Avivar Send Message] /send/ptt response:", body);
-        } catch { /* ignore */ }
+       // UazAPI docs for /send/media expect: { number, type, file, text? }
+       // We keep a non-empty text fallback because some deployments require it.
+       const sendMedia = async (type: string) => {
+         const res = await fetch(`${uazapiUrl}/send/media`, {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+             "token": uazapiToken,
+           },
+           body: JSON.stringify({
+             number: phone,
+             type,
+             file: audioRawBase64,
+             mimetype: "audio/ogg",
+             text: " ",
+           }),
+         });
+         await logAttempt(`/send/media type=${type}`, res);
+         return res;
+       };
 
-        console.log("[Avivar Send Message] Trying /sendPTT...");
-        uazapiResponse = await fetch(`${uazapiUrl}/sendPTT`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "token": uazapiToken,
-          },
-          body: JSON.stringify({
-            phone,
-            audio: audioRawBase64,
-          }),
-        });
-        logAttempt("/sendPTT", uazapiResponse);
-      }
-      
-      // 3) Fallback to /send/audio
-      if (!uazapiResponse.ok) {
-        try {
-          const body = await uazapiResponse.text();
-          console.log("[Avivar Send Message] /sendPTT response:", body);
-        } catch { /* ignore */ }
-
-        console.log("[Avivar Send Message] Trying /send/audio...");
-        uazapiResponse = await fetch(`${uazapiUrl}/send/audio`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "token": uazapiToken,
-          },
-          body: JSON.stringify({
-            number: phone,
-            audio: audioRawBase64,
-            ptt: true,
-          }),
-        });
-        logAttempt("/send/audio", uazapiResponse);
-      }
-
-      // 4) Final fallback to /chat/send/audio (PascalCase)
-      if (!uazapiResponse.ok) {
-        try {
-          const body = await uazapiResponse.text();
-          console.log("[Avivar Send Message] /send/audio response:", body);
-        } catch { /* ignore */ }
-
-        console.log("[Avivar Send Message] Trying /chat/send/audio...");
-        uazapiResponse = await fetch(`${uazapiUrl}/chat/send/audio`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "token": uazapiToken,
-          },
-          body: JSON.stringify({
-            Phone: phone,
-            Audio: audioData,
-          }),
-        });
-        logAttempt("/chat/send/audio", uazapiResponse);
-      }
+       // Try voice-note types supported by the API docs (ptt, myaudio) then generic audio.
+       uazapiResponse = await sendMedia("ptt");
+       if (!uazapiResponse.ok) uazapiResponse = await sendMedia("myaudio");
+       if (!uazapiResponse.ok) uazapiResponse = await sendMedia("audio");
       
       messageContent = "🎤 Mensagem de voz";
     } else {
