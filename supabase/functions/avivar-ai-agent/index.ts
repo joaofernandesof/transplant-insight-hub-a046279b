@@ -1698,7 +1698,8 @@ Você TEM QUE usar "mover_lead_para_etapa" para atualizar o funil. NÃO É OPCIO
 function buildHybridSystemPrompt(
   agent: RoutedAgent, 
   leadStage: string,
-  dynamicMovementInstructions: string
+  dynamicMovementInstructions: string,
+  fluxoInstructions: string
 ): string {
   const today = new Date();
   const dateStr = today.toLocaleDateString("pt-BR", { 
@@ -1817,6 +1818,8 @@ Exemplo errado: "Olá! 😊 Tudo bem?"
 Exemplo correto: "Olá! Tudo bem?"
 </formatacao_obrigatoria>
 
+${fluxoInstructions}
+
 ${restrictions ? `<restricoes>\n${restrictions}\n</restricoes>` : ""}`;
 }
 
@@ -1841,6 +1844,56 @@ function getDefaultInstructions(): string {
 5. Use get_available_slots e create_appointment para agendar consultas
 6. Use transfer_to_human quando necessário (negociação, dúvidas muito técnicas)
 7. SEMPRE use mover_lead_para_etapa após cada interação significativa para manter o funil atualizado`;
+}
+
+// Gera instruções do fluxo de atendimento baseado nos passos configurados
+function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
+  if (!fluxo) return '';
+  
+  const passosCronologicos = (fluxo.passosCronologicos || []) as Array<{
+    ordem: number;
+    titulo: string;
+    descricao: string;
+    exemploMensagem?: string;
+  }>;
+  
+  const passosExtras = (fluxo.passosExtras || []) as Array<{
+    ordem: number;
+    titulo: string;
+    descricao: string;
+    exemploMensagem?: string;
+  }>;
+  
+  if (passosCronologicos.length === 0) return '';
+  
+  let instructions = `<fluxo_de_atendimento>
+## PASSOS DO ATENDIMENTO (siga na ordem):
+
+`;
+  
+  for (const passo of passosCronologicos) {
+    instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
+${passo.descricao}
+${passo.exemploMensagem ? `Exemplo: "${passo.exemploMensagem}"` : ''}
+
+`;
+  }
+  
+  if (passosExtras.length > 0) {
+    instructions += `## PASSOS EXTRAS (quando necessário):
+
+`;
+    for (const passo of passosExtras) {
+      instructions += `### ${passo.titulo.toUpperCase()}
+${passo.descricao}
+${passo.exemploMensagem ? `Exemplo: "${passo.exemploMensagem}"` : ''}
+
+`;
+    }
+  }
+  
+  instructions += `</fluxo_de_atendimento>`;
+  return instructions;
 }
 
 // ============================================
@@ -2100,8 +2153,11 @@ serve(async (req) => {
     const kanbanColumns = await getKanbanColumnsForUser(supabase, userId);
     const dynamicMovementInstructions = buildDynamicMovementInstructions(kanbanColumns);
 
-    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure)
-    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions);
+    // 3.5 Build fluxo de atendimento instructions from agent config
+    const fluxoInstructions = buildFluxoInstructions(routedAgent.fluxo_atendimento);
+
+    // 4. Build hybrid system prompt (agent personality + dynamic Kanban structure + custom flow)
+    const systemPrompt = buildHybridSystemPrompt(routedAgent, leadStage, dynamicMovementInstructions, fluxoInstructions);
 
     // 4. Get conversation history
     const conversationHistory = await getConversationHistory(supabase, conversationId);
