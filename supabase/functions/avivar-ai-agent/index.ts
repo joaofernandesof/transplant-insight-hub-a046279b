@@ -1082,11 +1082,16 @@ async function sendImage(
       // Pick random from matching
       selectedImage = matching[Math.floor(Math.random() * matching.length)];
     } else {
-      // No match, pick random from all
-      selectedImage = images[Math.floor(Math.random() * images.length)];
+      // CRITICAL: Do NOT send a random image if no match found
+      // This prevents sending wrong images (e.g., female when male was requested)
+      console.log(`[AI Agent] No images matching "${searchTerm}" in category ${galleryKey}`);
+      return { 
+        success: false, 
+        message: `Não encontrei fotos com as características "${searchTerm}" na galeria. Pergunte ao paciente se deseja ver outros tipos de resultados que temos disponíveis.` 
+      };
     }
   } else {
-    // Pick random image from category
+    // No search term - pick random image from category
     selectedImage = images[Math.floor(Math.random() * images.length)];
   }
 
