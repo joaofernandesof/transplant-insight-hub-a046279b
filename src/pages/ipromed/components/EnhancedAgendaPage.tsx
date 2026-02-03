@@ -29,6 +29,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Calendar,
   Plus,
   Clock,
@@ -46,6 +52,11 @@ import {
   LayoutGrid,
   ExternalLink,
   Download,
+  Tag,
+  UserPlus,
+  Mail,
+  Search,
+  HelpCircle,
 } from "lucide-react";
 import { 
   format, 
@@ -69,6 +80,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Appointment {
   id: string;
@@ -111,6 +123,38 @@ export default function EnhancedAgendaPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showGoogleCalendarInfo, setShowGoogleCalendarInfo] = useState(false);
+  
+  // New Task/Event dialogs
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  
+  // Task Form State
+  const [taskForm, setTaskForm] = useState({
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    task_list: '',
+    case_id: '',
+    responsible: '',
+    priority: 'low',
+  });
+  
+  // Event Form State
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    start_date: new Date().toISOString().split('T')[0],
+    end_date: new Date().toISOString().split('T')[0],
+    all_day: true,
+    location: '',
+    modality: '',
+    alert_days: 0,
+    alert_unit: 'days',
+    responsible: '',
+    additional_people: [] as string[],
+    external_emails: '',
+    observations: '',
+    case_id: '',
+  });
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -216,6 +260,75 @@ export default function EnhancedAgendaPage() {
     },
   });
 
+  // Create Task
+  const createTask = useMutation({
+    mutationFn: async () => {
+      const startDateTime = `${taskForm.date}T09:00:00`;
+      
+      const { error } = await supabase
+        .from('ipromed_appointments')
+        .insert([{
+          title: taskForm.description,
+          description: null,
+          appointment_type: 'tarefa',
+          start_datetime: startDateTime,
+          end_datetime: null,
+          all_day: true,
+          location: null,
+          is_virtual: false,
+          meeting_url: null,
+          case_id: taskForm.case_id && taskForm.case_id !== '__none__' ? taskForm.case_id : null,
+          priority: taskForm.priority,
+        }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments'] });
+      toast.success('Tarefa criada!');
+      setIsTaskDialogOpen(false);
+      resetTaskForm();
+    },
+    onError: (error) => {
+      toast.error('Erro: ' + error.message);
+    },
+  });
+
+  // Create Event
+  const createEvent = useMutation({
+    mutationFn: async () => {
+      const startDateTime = `${eventForm.start_date}T00:00:00`;
+      const endDateTime = `${eventForm.end_date}T23:59:59`;
+      
+      const { error } = await supabase
+        .from('ipromed_appointments')
+        .insert([{
+          title: eventForm.title,
+          description: eventForm.observations || null,
+          appointment_type: 'reuniao',
+          start_datetime: startDateTime,
+          end_datetime: endDateTime,
+          all_day: eventForm.all_day,
+          location: eventForm.location || null,
+          is_virtual: eventForm.modality === 'virtual',
+          meeting_url: null,
+          case_id: eventForm.case_id && eventForm.case_id !== '__none__' ? eventForm.case_id : null,
+          priority: 'normal',
+        }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments'] });
+      toast.success('Evento criado!');
+      setIsEventDialogOpen(false);
+      resetEventForm();
+    },
+    onError: (error) => {
+      toast.error('Erro: ' + error.message);
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -230,6 +343,35 @@ export default function EnhancedAgendaPage() {
       meeting_url: '',
       client_id: '',
       priority: 'normal',
+    });
+  };
+
+  const resetTaskForm = () => {
+    setTaskForm({
+      description: '',
+      date: new Date().toISOString().split('T')[0],
+      task_list: '',
+      case_id: '',
+      responsible: '',
+      priority: 'low',
+    });
+  };
+
+  const resetEventForm = () => {
+    setEventForm({
+      title: '',
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: new Date().toISOString().split('T')[0],
+      all_day: true,
+      location: '',
+      modality: '',
+      alert_days: 0,
+      alert_unit: 'days',
+      responsible: '',
+      additional_people: [],
+      external_emails: '',
+      observations: '',
+      case_id: '',
     });
   };
 
@@ -637,172 +779,321 @@ END:VCALENDAR`;
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogTrigger asChild>
+          {/* Dropdown + para Tarefa ou Evento */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button className="gap-2 bg-primary">
                 <Plus className="h-4 w-4" />
-                Novo Compromisso
               </Button>
-            </DialogTrigger>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsTaskDialogOpen(true)}>
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Tarefa
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsEventDialogOpen(true)}>
+                <Calendar className="h-4 w-4 mr-2" />
+                Evento
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Dialog Nova Tarefa */}
+          <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Novo Compromisso</DialogTitle>
+                <DialogTitle className="flex items-center justify-between">
+                  <span>Adicionar tarefa</span>
+                  <Tag className="h-5 w-5 text-muted-foreground" />
+                </DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
-                <div className="space-y-2">
-                  <Label>Título *</Label>
-                  <Input
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Título do compromisso"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+              <ScrollArea className="max-h-[70vh]">
+                <div className="space-y-4 py-4 pr-4">
+                  {/* Descrição da tarefa */}
                   <div className="space-y-2">
-                    <Label>Tipo</Label>
-                    <Select
-                      value={formData.appointment_type}
-                      onValueChange={(v) => setFormData(prev => ({ ...prev, appointment_type: v }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(typeConfig).map(([key, config]) => (
-                          <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Descrição da tarefa *</Label>
+                    <Textarea
+                      value={taskForm.description}
+                      onChange={(e) => setTaskForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Digite a descrição da tarefa"
+                      className="min-h-[80px]"
+                    />
                   </div>
+
+                  {/* Data + Lista de tarefas */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Data</Label>
+                      <Input
+                        type="date"
+                        value={taskForm.date}
+                        onChange={(e) => setTaskForm(prev => ({ ...prev, date: e.target.value }))}
+                      />
+                      <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                        + Adicionar recorrência
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Lista de tarefas *</Label>
+                      <Select
+                        value={taskForm.task_list}
+                        onValueChange={(v) => setTaskForm(prev => ({ ...prev, task_list: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="geral">Geral</SelectItem>
+                          <SelectItem value="juridico">Jurídico</SelectItem>
+                          <SelectItem value="administrativo">Administrativo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                        Criar nova lista
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Processo, caso ou atendimento */}
                   <div className="space-y-2">
-                    <Label>Prioridade</Label>
-                    <Select
-                      value={formData.priority}
-                      onValueChange={(v) => setFormData(prev => ({ ...prev, priority: v }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Baixa</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="urgent">Urgente</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Processo, caso ou atendimento</Label>
+                    <div className="relative">
+                      <Input
+                        placeholder="Encontre um processo, caso ou atendimento"
+                        value={taskForm.case_id}
+                        onChange={(e) => setTaskForm(prev => ({ ...prev, case_id: e.target.value }))}
+                      />
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+
+                  {/* Responsável + Prioridade */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Responsável *</Label>
+                      <div className="relative">
+                        <Input
+                          value={taskForm.responsible}
+                          onChange={(e) => setTaskForm(prev => ({ ...prev, responsible: e.target.value }))}
+                          placeholder="Nome do responsável"
+                        />
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                        Envolver mais pessoas
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Prioridade *</Label>
+                      <Select
+                        value={taskForm.priority}
+                        onValueChange={(v) => setTaskForm(prev => ({ ...prev, priority: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="urgent">Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
+              </ScrollArea>
+              <div className="flex justify-end gap-4 pt-4 border-t">
+                <Button variant="ghost" onClick={() => setIsTaskDialogOpen(false)}>
+                  CANCELAR
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="text-primary font-semibold"
+                  onClick={() => createTask.mutate()}
+                  disabled={!taskForm.description || createTask.isPending}
+                >
+                  {createTask.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  SALVAR
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={formData.all_day}
-                    onCheckedChange={(v) => setFormData(prev => ({ ...prev, all_day: !!v }))}
-                  />
-                  <Label>Dia inteiro</Label>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
+          {/* Dialog Novo Evento */}
+          <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Novo Evento</DialogTitle>
+              </DialogHeader>
+              <ScrollArea className="max-h-[70vh]">
+                <div className="space-y-4 py-4 pr-4">
+                  {/* Título do evento */}
                   <div className="space-y-2">
-                    <Label>Data *</Label>
+                    <Label>Título do evento *</Label>
+                    <Input
+                      value={eventForm.title}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Digite o título do evento"
+                    />
+                  </div>
+
+                  {/* De / Até */}
+                  <div className="space-y-2">
+                    <Label>De *</Label>
                     <Input
                       type="date"
-                      value={formData.start_date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                      value={eventForm.start_date}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, start_date: e.target.value }))}
                     />
                   </div>
-                  {!formData.all_day && (
-                    <>
-                      <div className="space-y-2">
-                        <Label>Início</Label>
-                        <Input
-                          type="time"
-                          value={formData.start_time}
-                          onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Fim</Label>
-                        <Input
-                          type="time"
-                          value={formData.end_time}
-                          onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Cliente</Label>
-                  <Select
-                    value={formData.client_id}
-                    onValueChange={(v) => setFormData(prev => ({ ...prev, client_id: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">Nenhum</SelectItem>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={formData.is_virtual}
-                    onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_virtual: !!v }))}
-                  />
-                  <Label>Reunião virtual</Label>
-                </div>
-
-                {formData.is_virtual ? (
                   <div className="space-y-2">
-                    <Label>Link da reunião</Label>
+                    <Label>Até *</Label>
                     <Input
-                      value={formData.meeting_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, meeting_url: e.target.value }))}
-                      placeholder="https://meet.google.com/..."
+                      type="date"
+                      value={eventForm.end_date}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, end_date: e.target.value }))}
                     />
                   </div>
-                ) : (
+
+                  {/* Dia inteiro + Recorrência */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={eventForm.all_day}
+                        onCheckedChange={(v) => setEventForm(prev => ({ ...prev, all_day: !!v }))}
+                      />
+                      <Label>Dia inteiro</Label>
+                    </div>
+                  </div>
+                  <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                    + Adicionar recorrência
+                  </Button>
+
+                  {/* Endereço + Modalidade */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Endereço ou local</Label>
+                      <Input
+                        value={eventForm.location}
+                        onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="Local do evento"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Modalidade</Label>
+                      <Select
+                        value={eventForm.modality}
+                        onValueChange={(v) => setEventForm(prev => ({ ...prev, modality: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="presencial">Presencial</SelectItem>
+                          <SelectItem value="virtual">Virtual</SelectItem>
+                          <SelectItem value="hibrido">Híbrido</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Alertas internos + Responsável */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-1">
+                        Alertas internos de antecedência
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={eventForm.alert_days}
+                          onChange={(e) => setEventForm(prev => ({ ...prev, alert_days: parseInt(e.target.value) || 0 }))}
+                          className="w-16"
+                        />
+                        <Select
+                          value={eventForm.alert_unit}
+                          onValueChange={(v) => setEventForm(prev => ({ ...prev, alert_unit: v }))}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="days">Dia(s) antes</SelectItem>
+                            <SelectItem value="hours">Hora(s) antes</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Responsável *</Label>
+                      <div className="relative">
+                        <Input
+                          value={eventForm.responsible}
+                          onChange={(e) => setEventForm(prev => ({ ...prev, responsible: e.target.value }))}
+                          placeholder="Nome do responsável"
+                        />
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <Button variant="link" className="p-0 h-auto text-primary text-sm">
+                        + Envolver mais pessoas
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Resumo para pessoas externas */}
                   <div className="space-y-2">
-                    <Label>Local</Label>
-                    <Input
-                      value={formData.location}
-                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="Endereço ou sala"
+                    <Label className="flex items-center gap-1">
+                      Resumo para pessoas externas
+                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                    </Label>
+                    <div className="text-sm text-muted-foreground">E-mails externos</div>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Mail className="h-4 w-4" />
+                      CONFIGURAR E-MAIL
+                    </Button>
+                  </div>
+
+                  {/* Observações */}
+                  <div className="space-y-2">
+                    <Label>Observações</Label>
+                    <Textarea
+                      value={eventForm.observations}
+                      onChange={(e) => setEventForm(prev => ({ ...prev, observations: e.target.value }))}
+                      placeholder="Digite observações sobre o evento"
+                      className="min-h-[80px]"
                     />
                   </div>
-                )}
 
-                <div className="space-y-2">
-                  <Label>Observações</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Detalhes..."
-                    rows={2}
-                  />
+                  {/* Processo, caso ou atendimento */}
+                  <div className="space-y-2">
+                    <Label>Processo, caso ou atendimento</Label>
+                    <div className="relative">
+                      <Input
+                        placeholder="Encontre um processo, caso ou atendimento"
+                        value={eventForm.case_id}
+                        onChange={(e) => setEventForm(prev => ({ ...prev, case_id: e.target.value }))}
+                      />
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
                 </div>
-
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setIsFormOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button 
-                    onClick={() => createAppointment.mutate()}
-                    disabled={!formData.title || createAppointment.isPending}
-                  >
-                    {createAppointment.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Criar
-                  </Button>
-                </div>
+              </ScrollArea>
+              <div className="flex justify-end gap-4 pt-4 border-t">
+                <Button variant="ghost" onClick={() => setIsEventDialogOpen(false)}>
+                  CANCELAR
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="text-primary font-semibold"
+                  onClick={() => createEvent.mutate()}
+                  disabled={!eventForm.title || createEvent.isPending}
+                >
+                  {createEvent.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  SALVAR
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
