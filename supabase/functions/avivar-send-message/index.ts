@@ -190,11 +190,16 @@ serve(async (req) => {
           Audio: audioData,
         }),
       });
-      
-      // If that fails, try alternative endpoints
-      if (!uazapiResponse.ok && uazapiResponse.status === 404) {
-        console.log("[Avivar Send Message] Trying alternative audio endpoint...");
-        // Try /sendPTT endpoint (whats2api-style)
+
+      // If that fails, try alternative endpoints (some UazAPI deployments expose different routes)
+      if (!uazapiResponse.ok && (uazapiResponse.status === 404 || uazapiResponse.status === 405)) {
+        console.log("[Avivar Send Message] Trying /sendPTT...");
+        try {
+          await uazapiResponse.text(); // consume body before retry
+        } catch {
+          // ignore
+        }
+
         uazapiResponse = await fetch(`${uazapiUrl}/sendPTT`, {
           method: "POST",
           headers: {
@@ -202,15 +207,43 @@ serve(async (req) => {
             "token": uazapiToken,
           },
           body: JSON.stringify({
-            phone: phone,
+            phone,
             audio: audioData,
           }),
         });
       }
-      
+
+      if (!uazapiResponse.ok && (uazapiResponse.status === 404 || uazapiResponse.status === 405)) {
+        console.log("[Avivar Send Message] Trying /send/ptt...");
+        try {
+          await uazapiResponse.text(); // consume body before retry
+        } catch {
+          // ignore
+        }
+
+        uazapiResponse = await fetch(`${uazapiUrl}/send/ptt`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": uazapiToken,
+          },
+          body: JSON.stringify({
+            number: phone,
+            audio: audioData,
+            ptt: true,
+          }),
+        });
+      }
+
       // If still failing, try /send/audio with different body format
       if (!uazapiResponse.ok && (uazapiResponse.status === 404 || uazapiResponse.status === 405)) {
         console.log("[Avivar Send Message] Trying /send/audio with alternative format...");
+        try {
+          await uazapiResponse.text(); // consume body before retry
+        } catch {
+          // ignore
+        }
+
         uazapiResponse = await fetch(`${uazapiUrl}/send/audio`, {
           method: "POST",
           headers: {
@@ -218,8 +251,8 @@ serve(async (req) => {
             "token": uazapiToken,
           },
           body: JSON.stringify({
-            phone: phone,
-            base64: audioData,
+            number: phone,
+            audio: audioData,
             ptt: true,
           }),
         });
