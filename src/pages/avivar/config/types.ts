@@ -170,6 +170,7 @@ export interface AgentObjectives {
   secondary: AgentObjective[];
   secondaryCustomIds?: string[]; // IDs dos objetivos customizados secundários
   customObjectives: CustomObjective[]; // Lista de objetivos personalizados
+  secondaryConfirmed?: boolean; // Se o usuário confirmou a seleção de objetivos secundários (ou NENHUM)
 }
 
 // Unidade/Filial do negócio
