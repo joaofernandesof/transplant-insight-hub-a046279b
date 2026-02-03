@@ -1143,7 +1143,7 @@ async function sendImage(
         number: phone,
         type: "image",
         file: selectedImage.url,
-        text: selectedImage.caption || " ",
+        text: " ", // Caption is for internal AI filtering only - never send to lead
       }),
     });
 
@@ -1163,7 +1163,7 @@ async function sendImage(
           },
           body: JSON.stringify({
             number: phone,
-            text: `${selectedImage.caption ? `${selectedImage.caption}\n\n` : ""}${selectedImage.url}`,
+            text: selectedImage.url, // Only send URL, caption is for internal AI filtering only
           }),
         });
         const fallbackText = await fallbackRes.text();
