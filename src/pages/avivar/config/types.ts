@@ -2,7 +2,7 @@
  * Tipos para o Sistema de Configuração de Agente de IA
  */
 
-// Grande Nicho
+// Grande Nicho (internos)
 export type NichoType = 
   | 'saude' 
   | 'estetica' 
@@ -11,6 +11,9 @@ export type NichoType =
   | 'alimentacao' 
   | 'servicos'
   | 'outros';
+
+// Nichos que estão bloqueados (em breve)
+export const BLOCKED_NICHOS: NichoType[] = ['vendas', 'imobiliario', 'alimentacao', 'servicos', 'outros'];
 
 // Subnichos por categoria
 export type SubnichoSaude = 
@@ -198,6 +201,7 @@ export interface AgentConfig {
   // Nicho e Subnicho
   nicho: NichoType | null;
   subnicho: SubnichoType | null;
+  subnichos?: SubnichoType[]; // Multi-seleção de subnichos
   
   // Template (legado - mantido para compatibilidade)
   template: TemplateType | null;
@@ -332,6 +336,170 @@ export const BRAZILIAN_STATES = [
 
 // ============= NICHOS E SUBNICHOS =============
 
+// Categorias unificadas para UI (Saúde + Estética em um só)
+export const NICHOS_CATEGORIES_UI: NichoCategory[] = [
+  {
+    id: 'saude', // Usado internamente como 'saude' ou 'estetica' baseado no subnicho
+    name: 'Saúde e Estética',
+    description: 'Clínicas médicas, estéticas e serviços de beleza',
+    icon: 'Stethoscope',
+    color: 'from-pink-500 to-rose-600',
+    subnichos: [
+      // Saúde
+      { id: 'clinica_medica', name: 'Clínica Médica', description: 'Consultórios e clínicas de especialidades' },
+      { id: 'hospital', name: 'Hospital', description: 'Hospitais e prontos-socorros' },
+      { id: 'dentista', name: 'Dentista', description: 'Consultórios odontológicos' },
+      { id: 'fisioterapia', name: 'Fisioterapia', description: 'Clínicas de fisioterapia e reabilitação' },
+      { id: 'psicologia', name: 'Psicologia', description: 'Psicólogos e terapeutas' },
+      { id: 'nutricao', name: 'Nutrição', description: 'Nutricionistas e dietistas' },
+      { id: 'laboratorio', name: 'Laboratório', description: 'Laboratórios de análises clínicas' },
+      { id: 'farmacia', name: 'Farmácia', description: 'Farmácias e drogarias' },
+      // Estética
+      { id: 'transplante_capilar', name: 'Transplante Capilar', description: 'Clínicas especializadas em transplante capilar, barba e sobrancelha' },
+      { id: 'clinica_estetica', name: 'Clínica de Estética', description: 'Tratamentos estéticos faciais e corporais' },
+      { id: 'salao_beleza', name: 'Salão de Beleza', description: 'Salões de cabeleireiro e beleza' },
+      { id: 'barbearia', name: 'Barbearia', description: 'Barbearias e cuidados masculinos' },
+      { id: 'spa', name: 'Spa', description: 'Spas e centros de bem-estar' },
+      { id: 'micropigmentacao', name: 'Micropigmentação', description: 'Micropigmentação e design de sobrancelhas' },
+      { id: 'depilacao', name: 'Depilação', description: 'Clínicas de depilação a laser' },
+    ]
+  },
+  {
+    id: 'vendas',
+    name: 'Venda de Produtos',
+    description: 'Lojas e e-commerce',
+    icon: 'ShoppingBag',
+    color: 'from-blue-500 to-cyan-600',
+    subnichos: [
+      { id: 'produtos_hospitalares', name: 'Produtos Hospitalares', description: 'Equipamentos e insumos médicos' },
+      { id: 'celulares_eletronicos', name: 'Celulares e Eletrônicos', description: 'Smartphones, acessórios e eletrônicos' },
+      { id: 'roupas_moda', name: 'Roupas e Moda', description: 'Vestuário e acessórios de moda' },
+      { id: 'joias_acessorios', name: 'Joias e Acessórios', description: 'Joalherias e bijuterias' },
+      { id: 'cosmeticos', name: 'Cosméticos', description: 'Produtos de beleza e skincare' },
+      { id: 'suplementos', name: 'Suplementos', description: 'Suplementos alimentares e fitness' },
+      { id: 'moveis_decoracao', name: 'Móveis e Decoração', description: 'Móveis e itens para casa' },
+    ]
+  },
+  {
+    id: 'imobiliario',
+    name: 'Imobiliário',
+    description: 'Imóveis e corretagem',
+    icon: 'Building2',
+    color: 'from-emerald-500 to-teal-600',
+    subnichos: [
+      { id: 'agente_imobiliario', name: 'Agente Imobiliário', description: 'Corretor de imóveis completo - venda, locação e avaliação' },
+      { id: 'imobiliaria', name: 'Imobiliária', description: 'Imobiliária com múltiplos corretores' },
+      { id: 'construtora', name: 'Construtora', description: 'Construtoras e incorporadoras' },
+      { id: 'administradora', name: 'Administradora', description: 'Administração de condomínios' },
+    ]
+  },
+  {
+    id: 'alimentacao',
+    name: 'Alimentação',
+    description: 'Restaurantes e delivery',
+    icon: 'UtensilsCrossed',
+    color: 'from-orange-500 to-amber-600',
+    subnichos: [
+      { id: 'restaurante', name: 'Restaurante', description: 'Restaurantes e bistrôs' },
+      { id: 'delivery', name: 'Delivery', description: 'Serviços de entrega de comida' },
+      { id: 'lanchonete', name: 'Lanchonete', description: 'Lanchonetes e fast food' },
+      { id: 'pizzaria', name: 'Pizzaria', description: 'Pizzarias e rodízios' },
+      { id: 'cafeteria', name: 'Cafeteria', description: 'Cafeterias e coffee shops' },
+      { id: 'confeitaria', name: 'Confeitaria', description: 'Confeitarias e docerias' },
+      { id: 'food_truck', name: 'Food Truck', description: 'Food trucks e eventos' },
+    ]
+  },
+  {
+    id: 'servicos',
+    name: 'Serviços',
+    description: 'Prestação de serviços diversos',
+    icon: 'Briefcase',
+    color: 'from-violet-500 to-indigo-600',
+    subnichos: [
+      { id: 'advocacia', name: 'Advocacia', description: 'Escritórios de advocacia e advogados' },
+      { id: 'contabilidade', name: 'Contabilidade', description: 'Escritórios contábeis' },
+      { id: 'consultoria', name: 'Consultoria', description: 'Consultorias empresariais' },
+      { id: 'academia_personal', name: 'Academia / Personal', description: 'Academias e personal trainers' },
+      { id: 'oficina_mecanica', name: 'Oficina Mecânica', description: 'Oficinas e auto centers' },
+      { id: 'pet_shop_veterinario', name: 'Pet Shop / Veterinário', description: 'Pet shops, clínicas veterinárias e banho e tosa' },
+      { id: 'limpeza_manutencao', name: 'Limpeza e Manutenção', description: 'Serviços de limpeza e reparos' },
+      { id: 'marketing_agencia', name: 'Marketing / Agência', description: 'Agências de marketing e publicidade' },
+      { id: 'cursos_educacao', name: 'Cursos / Educação', description: 'Escolas, cursos e treinamentos' },
+      { id: 'eventos', name: 'Eventos', description: 'Organização de eventos e festas' },
+      { id: 'fotografia', name: 'Fotografia', description: 'Fotógrafos e estúdios' },
+      { id: 'tecnologia_ti', name: 'Tecnologia / TI', description: 'Empresas de tecnologia e suporte' },
+    ]
+  },
+  {
+    id: 'outros',
+    name: 'Outros',
+    description: 'Segmentos personalizados',
+    icon: 'MoreHorizontal',
+    color: 'from-gray-500 to-slate-600',
+    subnichos: [
+      { id: 'personalizado', name: 'Personalizado', description: 'Configure um nicho personalizado para seu negócio' },
+    ]
+  }
+];
+
+// Mapear subnicho para nicho interno correto
+export const SUBNICHO_TO_NICHO: Record<SubnichoType, NichoType> = {
+  // Saúde
+  clinica_medica: 'saude',
+  hospital: 'saude',
+  dentista: 'saude',
+  fisioterapia: 'saude',
+  psicologia: 'saude',
+  nutricao: 'saude',
+  laboratorio: 'saude',
+  farmacia: 'saude',
+  // Estética
+  transplante_capilar: 'estetica',
+  clinica_estetica: 'estetica',
+  salao_beleza: 'estetica',
+  barbearia: 'estetica',
+  spa: 'estetica',
+  micropigmentacao: 'estetica',
+  depilacao: 'estetica',
+  // Vendas
+  produtos_hospitalares: 'vendas',
+  celulares_eletronicos: 'vendas',
+  roupas_moda: 'vendas',
+  joias_acessorios: 'vendas',
+  cosmeticos: 'vendas',
+  suplementos: 'vendas',
+  moveis_decoracao: 'vendas',
+  // Imobiliário
+  agente_imobiliario: 'imobiliario',
+  imobiliaria: 'imobiliario',
+  construtora: 'imobiliario',
+  administradora: 'imobiliario',
+  // Alimentação
+  restaurante: 'alimentacao',
+  delivery: 'alimentacao',
+  lanchonete: 'alimentacao',
+  pizzaria: 'alimentacao',
+  cafeteria: 'alimentacao',
+  confeitaria: 'alimentacao',
+  food_truck: 'alimentacao',
+  // Serviços
+  advocacia: 'servicos',
+  contabilidade: 'servicos',
+  consultoria: 'servicos',
+  academia_personal: 'servicos',
+  oficina_mecanica: 'servicos',
+  pet_shop_veterinario: 'servicos',
+  limpeza_manutencao: 'servicos',
+  marketing_agencia: 'servicos',
+  cursos_educacao: 'servicos',
+  eventos: 'servicos',
+  fotografia: 'servicos',
+  tecnologia_ti: 'servicos',
+  // Outros
+  personalizado: 'outros',
+};
+
+// Legado - mantido para compatibilidade
 export const NICHOS_CATEGORIES: NichoCategory[] = [
   {
     id: 'saude',

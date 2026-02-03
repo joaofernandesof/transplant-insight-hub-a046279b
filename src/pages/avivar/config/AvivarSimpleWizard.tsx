@@ -197,8 +197,13 @@ export default function AvivarSimpleWizard() {
     }
   };
 
-  const handleBusinessSelect = (nicho: NichoType, subnicho: SubnichoType) => {
-    updateConfig({ nicho, subnicho, template: subnicho });
+  const handleBusinessSelect = (nicho: NichoType, subnicho: SubnichoType, allSubnichos?: SubnichoType[]) => {
+    updateConfig({ 
+      nicho, 
+      subnicho, 
+      subnichos: allSubnichos || [subnicho],
+      template: subnicho 
+    });
   };
 
   const handleComplete = async (agentName: string) => {
@@ -324,6 +329,7 @@ export default function AvivarSimpleWizard() {
           <StepSelectBusiness
             selectedNicho={config.nicho}
             selectedSubnicho={config.subnicho}
+            selectedSubnichos={config.subnichos}
             onSelect={handleBusinessSelect}
           />
         );
