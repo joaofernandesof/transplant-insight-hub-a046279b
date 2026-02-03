@@ -98,13 +98,12 @@ export function MessageInput({ onSend, disabled, placeholder }: MessageInputProp
             )}
             rows={1}
           />
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute right-1 bottom-1 h-8 w-8 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
+          <button 
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] transition-colors"
           >
-            <Smile className="h-5 w-5" />
-          </Button>
+            <Smile className="h-6 w-6" strokeWidth={1.5} />
+          </button>
         </div>
 
         {/* Send / Record button */}
