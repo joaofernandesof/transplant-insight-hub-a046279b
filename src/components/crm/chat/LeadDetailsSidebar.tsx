@@ -65,7 +65,9 @@ import { useLeadKanbanInfo } from '@/hooks/useLeadKanbanInfo';
 import { useLeadChecklistFields } from '@/hooks/useLeadChecklistFields';
 import { FunnelColumnSelector } from './FunnelColumnSelector';
 import { LeadTagsDialog } from './LeadTagsDialog';
+import { LeadTagsInline } from './LeadTagsInline';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface LeadDetailsSidebarProps {
   conversation: CrmConversation;
@@ -101,9 +103,10 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
   const navigate = useNavigate();
 
   const lead = conversation.lead;
+  const queryClient = useQueryClient();
   
   // Buscar informações do Kanban/Coluna
-  const { data: kanbanInfo } = useLeadKanbanInfo(lead?.phone);
+  const { data: kanbanInfo, refetch: refetchKanbanInfo } = useLeadKanbanInfo(lead?.phone);
   
   // Buscar campos do checklist da coluna atual
   const { data: checklistFields = [] } = useLeadChecklistFields(kanbanInfo?.columnId, lead?.phone);
@@ -171,24 +174,12 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             >
               Lead #{lead.id.slice(0, 8)}
             </Badge>
-            {/* Tags do lead */}
-            {kanbanInfo?.tags && kanbanInfo.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {kanbanInfo.tags.slice(0, 3).map((tag, idx) => (
-                  <span 
-                    key={idx}
-                    className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]"
-                  >
-                    #{tag}{idx < Math.min(kanbanInfo.tags.length, 3) - 1 ? ',' : ''}
-                  </span>
-                ))}
-                {kanbanInfo.tags.length > 3 && (
-                  <span className="text-[10px] text-[hsl(var(--avivar-muted-foreground))]">
-                    +{kanbanInfo.tags.length - 3}
-                  </span>
-                )}
-              </div>
-            )}
+            {/* Tags do lead - inline */}
+            <LeadTagsInline
+              leadPhone={lead.phone || ''}
+              tags={kanbanInfo?.tags || []}
+              onTagsChanged={() => refetchKanbanInfo()}
+            />
           </div>
           
           <DropdownMenu>
