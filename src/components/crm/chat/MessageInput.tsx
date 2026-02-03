@@ -1,10 +1,10 @@
 /**
  * MessageInput - Campo de entrada de mensagem
- * Suporte a texto, anexos, emojis
+ * Suporte a texto, anexos, emojis e gravação de áudio
  */
 
 import { useState, useRef } from 'react';
-import { Send, Paperclip, Smile, Mic, Image, FileText, X } from 'lucide-react';
+import { Send, Paperclip, Smile, Mic, Image, FileText, X, Square, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,24 +20,43 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { EmojiPicker } from './EmojiPicker';
+import { useAudioRecorder, formatRecordingTime } from '@/hooks/useAudioRecorder';
 
 interface MessageInputProps {
   onSend: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video' | 'audio' | 'document') => void;
+  onSendAudio?: (audioBlob: Blob) => void;
   disabled?: boolean;
   placeholder?: string;
 }
 
-export function MessageInput({ onSend, disabled, placeholder }: MessageInputProps) {
+export function MessageInput({ onSend, onSendAudio, disabled, placeholder }: MessageInputProps) {
   const [message, setMessage] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const {
+    isRecording,
+    recordingTime,
+    audioBlob,
+    audioUrl,
+    startRecording,
+    stopRecording,
+    cancelRecording,
+    clearRecording,
+  } = useAudioRecorder();
 
   const handleSend = () => {
     if (!message.trim() || disabled) return;
     onSend(message.trim());
     setMessage('');
     textareaRef.current?.focus();
+  };
+
+  const handleSendAudio = () => {
+    if (audioBlob && onSendAudio) {
+      onSendAudio(audioBlob);
+      clearRecording();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -60,6 +79,110 @@ export function MessageInput({ onSend, disabled, placeholder }: MessageInputProp
     textareaRef.current?.focus();
   };
 
+  const handleMicClick = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  // Se tiver áudio gravado, mostrar interface de preview/envio
+  if (audioUrl && audioBlob) {
+    return (
+      <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
+        <div className="flex items-center gap-3">
+          {/* Botão cancelar */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => clearRecording()}
+            className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-10 w-10"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
+
+          {/* Player de áudio */}
+          <div className="flex-1 bg-[hsl(var(--avivar-muted))] rounded-lg p-2">
+            <audio 
+              src={audioUrl} 
+              controls 
+              className="w-full h-8"
+              style={{ 
+                filter: 'invert(1) hue-rotate(180deg)',
+              }}
+            />
+          </div>
+
+          {/* Botão enviar */}
+          <Button
+            onClick={handleSendAudio}
+            disabled={disabled}
+            size="icon"
+            className="shrink-0 rounded-full h-11 w-11 bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)] text-white"
+          >
+            <Send className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between mt-2 text-xs text-[hsl(var(--avivar-muted-foreground))]">
+          <span>Duração: {formatRecordingTime(recordingTime)}</span>
+          <span>Áudio pronto para envio</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Interface de gravação
+  if (isRecording) {
+    return (
+      <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
+        <div className="flex items-center gap-3">
+          {/* Botão cancelar */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={cancelRecording}
+            className="text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-500/10 h-10 w-10"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
+
+          {/* Indicador de gravação */}
+          <div className="flex-1 flex items-center gap-3 bg-[hsl(var(--avivar-muted))] rounded-lg px-4 py-3">
+            {/* Indicador pulsante */}
+            <div className="relative">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+              <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75" />
+            </div>
+            
+            <span className="text-[hsl(var(--avivar-foreground))] font-medium">
+              Gravando...
+            </span>
+            
+            <span className="text-[hsl(var(--avivar-muted-foreground))] font-mono">
+              {formatRecordingTime(recordingTime)}
+            </span>
+          </div>
+
+          {/* Botão parar e enviar */}
+          <Button
+            onClick={stopRecording}
+            size="icon"
+            className="shrink-0 rounded-full h-11 w-11 bg-red-500 hover:bg-red-600 text-white"
+          >
+            <Square className="h-4 w-4 fill-current" />
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-center mt-2 text-xs text-[hsl(var(--avivar-muted-foreground))]">
+          <span>Clique no quadrado para parar a gravação</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Interface normal de input
   return (
     <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
       <div className="flex items-end gap-2">
@@ -120,15 +243,11 @@ export function MessageInput({ onSend, disabled, placeholder }: MessageInputProp
           <Button
             variant="ghost"
             size="icon"
-            className={cn(
-              "h-10 w-10",
-              isRecording 
-                ? "bg-red-500 text-white animate-pulse hover:bg-red-600" 
-                : "text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))]"
-            )}
-            onClick={() => setIsRecording(!isRecording)}
+            className="text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))] h-10 w-10"
+            onClick={handleMicClick}
+            disabled={disabled}
           >
-            {isRecording ? <X className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            <Mic className="h-5 w-5" />
           </Button>
         </div>
 
