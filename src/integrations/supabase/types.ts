@@ -15840,25 +15840,49 @@ export type Database = {
         Returns: Json
       }
       delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
-      get_agent_for_lead_stage: {
-        Args: { p_lead_stage?: string; p_user_id: string }
-        Returns: {
-          agent_id: string
-          agent_name: string
-          ai_identity: string
-          ai_instructions: string
-          ai_objective: string
-          ai_restrictions: string
-          company_name: string
-          fluxo_atendimento: Json
-          personality: string
-          professional_name: string
-          services: Json
-          target_kanbans: string[]
-          target_stages: string[]
-          tone_of_voice: string
-        }[]
-      }
+      get_agent_for_lead_stage:
+        | {
+            Args: { p_lead_stage?: string; p_user_id: string }
+            Returns: {
+              agent_id: string
+              agent_name: string
+              ai_identity: string
+              ai_instructions: string
+              ai_objective: string
+              ai_restrictions: string
+              company_name: string
+              fluxo_atendimento: Json
+              personality: string
+              professional_name: string
+              services: Json
+              target_kanbans: string[]
+              target_stages: string[]
+              tone_of_voice: string
+            }[]
+          }
+        | {
+            Args: {
+              p_kanban_id?: string
+              p_lead_stage?: string
+              p_user_id: string
+            }
+            Returns: {
+              agent_id: string
+              agent_name: string
+              ai_identity: string
+              ai_instructions: string
+              ai_objective: string
+              ai_restrictions: string
+              company_name: string
+              fluxo_atendimento: Json
+              personality: string
+              professional_name: string
+              services: Json
+              target_kanbans: string[]
+              target_stages: string[]
+              tone_of_voice: string
+            }[]
+          }
       get_all_enrolled_user_ids: { Args: never; Returns: string[] }
       get_available_slots: {
         Args: { p_date: string; p_duration_minutes?: number; p_user_id: string }
