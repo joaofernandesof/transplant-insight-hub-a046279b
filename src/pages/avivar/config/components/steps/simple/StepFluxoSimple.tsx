@@ -223,7 +223,7 @@ export function StepFluxoSimple({
 
               {/* Exemplo de Mensagem */}
               {(step.exemploMensagem || (editing && editing.stepId === step.id && editing.field === 'exemploMensagem')) && (
-                <div className="bg-[hsl(var(--avivar-muted)/0.3)] rounded-lg p-3">
+                <div className="bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Lightbulb className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
                     <label className="text-xs font-medium text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wider">
@@ -236,7 +236,11 @@ export function StepFluxoSimple({
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         rows={3}
-                        className="resize-none !bg-[hsl(var(--avivar-card))] !text-[hsl(var(--avivar-foreground))] border-[hsl(var(--avivar-primary))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+                        className="resize-none border-[hsl(var(--avivar-primary))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+                        style={{
+                          backgroundColor: 'hsl(var(--avivar-muted))',
+                          color: 'hsl(var(--avivar-foreground))',
+                        }}
                         autoFocus
                       />
                       <div className="flex gap-2">
@@ -250,7 +254,7 @@ export function StepFluxoSimple({
                     </div>
                   ) : (
                     <div className="group">
-                      <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] italic">
+                      <p className="text-sm text-[hsl(var(--avivar-foreground))] italic opacity-90">
                         "{formatExampleMessage(step.exemploMensagem)}"
                       </p>
                       <Button
