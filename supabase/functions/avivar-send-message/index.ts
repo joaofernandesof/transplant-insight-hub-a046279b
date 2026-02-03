@@ -12,6 +12,8 @@ interface SendMessagePayload {
   mediaUrl?: string;
   mediaType?: 'image' | 'video' | 'audio' | 'document';
   audioBase64?: string; // Base64 encoded audio for voice messages
+  imageBase64?: string; // Base64 encoded image
+  caption?: string; // Caption for media messages
   isAIGenerated?: boolean;
 }
 
@@ -70,18 +72,20 @@ serve(async (req) => {
 
     // Parse payload
     const payload: SendMessagePayload = await req.json();
-    const { conversationId, content, mediaUrl, mediaType, audioBase64, isAIGenerated } = payload;
+    const { conversationId, content, mediaUrl, mediaType, audioBase64, imageBase64, caption, isAIGenerated } = payload;
 
-    // Validate: need either content or audioBase64
-    if (!conversationId || (!content && !audioBase64)) {
+    // Validate: need either content, audioBase64, or imageBase64
+    if (!conversationId || (!content && !audioBase64 && !imageBase64)) {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing conversationId or content/audio" }),
+        JSON.stringify({ success: false, error: "Missing conversationId or content/audio/image" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const isAudioMessage = !!audioBase64;
-    console.log("[Avivar Send Message] Conversation:", conversationId, isAudioMessage ? "Audio message" : `Content: ${content?.substring(0, 50)}`);
+    const isImageMessage = !!imageBase64;
+    const messageTypeLog = isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : `Content: ${content?.substring(0, 50)}`;
+    console.log("[Avivar Send Message] Conversation:", conversationId, messageTypeLog);
 
     // Get conversation with lead info and assigned_to (to find the user's instance)
     const { data: conversation, error: convError } = await adminClient
@@ -163,67 +167,95 @@ serve(async (req) => {
     console.log("[Avivar Send Message] UazAPI URL:", uazapiUrl);
     console.log("[Avivar Send Message] Phone:", phone);
 
-    // Send message via UazAPI - different endpoints for text vs audio
+    // Helper function for logging API attempts
+    const logAttempt = async (label: string, res: Response) => {
+      const allow = res.headers.get("allow");
+      let bodyPreview = "";
+      try {
+        const txt = await res.clone().text();
+        bodyPreview = txt ? txt.slice(0, 200) : "";
+      } catch {
+        // ignore
+      }
+      console.log(
+        `[Avivar Send Message] API attempt: ${label} | status=${res.status}${allow ? ` | allow=${allow}` : ""}${bodyPreview ? ` | body=${bodyPreview}` : ""}`
+      );
+    };
+
+    // Send message via UazAPI - different endpoints for text vs media
     let uazapiResponse: Response;
     let messageContent = content || "";
+    let savedMediaUrl: string | null = null;
     
     if (isAudioMessage && audioBase64) {
-      // Send audio message: POST /chat/send/audio (base64 with data URI)
+      // Send audio message
       console.log("[Avivar Send Message] Sending audio message via UazAPI");
       
-      // Ensure the audio has the proper data URI format
       let audioData = audioBase64;
       if (!audioBase64.startsWith('data:')) {
-        // Add data URI prefix if not present (assume ogg/opus for voice notes)
         audioData = `data:audio/ogg;base64,${audioBase64}`;
       }
-
-      // Some UazAPI deployments expect raw base64 (no data URI)
       const audioRawBase64 = audioData.includes(",") ? audioData.split(",")[1] : audioData;
 
-       const logAttempt = async (label: string, res: Response) => {
-         const allow = res.headers.get("allow");
-         let bodyPreview = "";
-         try {
-           // Clone so we don't consume the body (we read it once at the end)
-           const txt = await res.clone().text();
-           bodyPreview = txt ? txt.slice(0, 200) : "";
-         } catch {
-           // ignore
-         }
+      const sendAudioMedia = async (type: string) => {
+        const res = await fetch(`${uazapiUrl}/send/media`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": uazapiToken,
+          },
+          body: JSON.stringify({
+            number: phone,
+            type,
+            file: audioRawBase64,
+            mimetype: "audio/ogg",
+            text: " ",
+          }),
+        });
+        await logAttempt(`/send/media type=${type}`, res);
+        return res;
+      };
 
-         console.log(
-           `[Avivar Send Message] Audio attempt: ${label} | status=${res.status}${allow ? ` | allow=${allow}` : ""}${bodyPreview ? ` | body=${bodyPreview}` : ""}`
-         );
-       };
-
-       // UazAPI docs for /send/media expect: { number, type, file, text? }
-       // We keep a non-empty text fallback because some deployments require it.
-       const sendMedia = async (type: string) => {
-         const res = await fetch(`${uazapiUrl}/send/media`, {
-           method: "POST",
-           headers: {
-             "Content-Type": "application/json",
-             "token": uazapiToken,
-           },
-           body: JSON.stringify({
-             number: phone,
-             type,
-             file: audioRawBase64,
-             mimetype: "audio/ogg",
-             text: " ",
-           }),
-         });
-         await logAttempt(`/send/media type=${type}`, res);
-         return res;
-       };
-
-       // Try voice-note types supported by the API docs (ptt, myaudio) then generic audio.
-       uazapiResponse = await sendMedia("ptt");
-       if (!uazapiResponse.ok) uazapiResponse = await sendMedia("myaudio");
-       if (!uazapiResponse.ok) uazapiResponse = await sendMedia("audio");
+      // Try voice-note types supported by the API docs (ptt, myaudio) then generic audio.
+      uazapiResponse = await sendAudioMedia("ptt");
+      if (!uazapiResponse.ok) uazapiResponse = await sendAudioMedia("myaudio");
+      if (!uazapiResponse.ok) uazapiResponse = await sendAudioMedia("audio");
       
       messageContent = "🎤 Mensagem de voz";
+    } else if (isImageMessage && imageBase64) {
+      // Send image message
+      console.log("[Avivar Send Message] Sending image message via UazAPI");
+      
+      // Extract raw base64 if it has data URI prefix
+      const imageRawBase64 = imageBase64.includes(",") ? imageBase64.split(",")[1] : imageBase64;
+      
+      // Detect mimetype from data URI or default to jpeg
+      let mimetype = "image/jpeg";
+      if (imageBase64.startsWith("data:")) {
+        const mimeMatch = imageBase64.match(/data:([^;]+);/);
+        if (mimeMatch) mimetype = mimeMatch[1];
+      }
+
+      // Send image via /send/media with type: "image"
+      uazapiResponse = await fetch(`${uazapiUrl}/send/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "token": uazapiToken,
+        },
+        body: JSON.stringify({
+          number: phone,
+          type: "image",
+          file: imageRawBase64,
+          mimetype,
+          text: caption || " ",
+        }),
+      });
+      await logAttempt("/send/media type=image", uazapiResponse);
+      
+      messageContent = caption || "📷 Imagem";
+      // Store a placeholder - we could upload to storage for preview, but for now just mark as image
+      savedMediaUrl = `data:${mimetype};base64,${imageRawBase64.substring(0, 100)}...`; // Truncated for DB
     } else {
       // Send text message: POST /send/text
       uazapiResponse = await fetch(`${uazapiUrl}/send/text`, {
@@ -237,6 +269,7 @@ serve(async (req) => {
           text: content,
         }),
       });
+      await logAttempt("/send/text", uazapiResponse);
     }
 
     const uazapiResult = await uazapiResponse.text();
@@ -283,6 +316,10 @@ serve(async (req) => {
       }
     }
 
+    // Determine media type for storage
+    const finalMediaType = isAudioMessage ? "audio" : isImageMessage ? "image" : (mediaType || null);
+    const finalMediaUrl = savedMediaUrl || mediaUrl || null;
+
     // Save message to crm_messages
     const { data: savedMessage, error: saveError } = await adminClient
       .from("crm_messages")
@@ -290,8 +327,8 @@ serve(async (req) => {
         conversation_id: conversationId,
         direction: "outbound",
         content: messageContent,
-        media_url: isAudioMessage ? null : (mediaUrl || null), // For audio, UazAPI handles it
-        media_type: isAudioMessage ? "audio" : (mediaType || null),
+        media_url: finalMediaUrl,
+        media_type: finalMediaType,
         sender_name: senderName,
         sender_user_id: isAIGenerated ? null : (userId || null),
         sent_at: new Date().toISOString(),
@@ -324,13 +361,14 @@ serve(async (req) => {
         .maybeSingle();
 
       if (avivarConversa) {
+        const legacyMsgType = isAudioMessage ? "audio" : isImageMessage ? "image" : "text";
         await adminClient.from("avivar_mensagens").insert({
           conversa_id: avivarConversa.id,
           numero: phone,
           mensagem: messageContent,
           direcao: "saida",
           data_hora: new Date().toISOString(),
-          tipo_mensagem: isAudioMessage ? "audio" : "text",
+          tipo_mensagem: legacyMsgType,
           lida: true,
         });
       }

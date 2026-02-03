@@ -25,14 +25,18 @@ import { useAudioRecorder, formatRecordingTime } from '@/hooks/useAudioRecorder'
 interface MessageInputProps {
   onSend: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video' | 'audio' | 'document') => void;
   onSendAudio?: (audioBlob: Blob) => void;
+  onSendImage?: (imageBase64: string, caption?: string) => void;
   disabled?: boolean;
   placeholder?: string;
 }
 
-export function MessageInput({ onSend, onSendAudio, disabled, placeholder }: MessageInputProps) {
+export function MessageInput({ onSend, onSendAudio, onSendImage, disabled, placeholder }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ base64: string; preview: string } | null>(null);
+  const [imageCaption, setImageCaption] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const {
     isRecording,
@@ -57,6 +61,49 @@ export function MessageInput({ onSend, onSendAudio, disabled, placeholder }: Mes
       onSendAudio(audioBlob);
       clearRecording();
     }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setSelectedImage({
+        base64,
+        preview: base64,
+      });
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
+  };
+
+  const handleSendImage = () => {
+    if (selectedImage && onSendImage) {
+      onSendImage(selectedImage.base64, imageCaption || undefined);
+      setSelectedImage(null);
+      setImageCaption('');
+    }
+  };
+
+  const handleCancelImage = () => {
+    setSelectedImage(null);
+    setImageCaption('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -182,9 +229,72 @@ export function MessageInput({ onSend, onSendAudio, disabled, placeholder }: Mes
     );
   }
 
+  // Interface de preview de imagem
+  if (selectedImage) {
+    return (
+      <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
+        <div className="flex gap-3">
+          {/* Imagem preview */}
+          <div className="relative shrink-0">
+            <img 
+              src={selectedImage.preview} 
+              alt="Preview" 
+              className="h-24 w-24 object-cover rounded-lg"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCancelImage}
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))] hover:text-red-500 hover:bg-red-500/10"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+
+          {/* Caption input e botão enviar */}
+          <div className="flex-1 flex flex-col gap-2">
+            <Textarea
+              value={imageCaption}
+              onChange={(e) => setImageCaption(e.target.value)}
+              placeholder="Adicionar legenda (opcional)..."
+              disabled={disabled}
+              className={cn(
+                "min-h-[60px] max-h-[80px] resize-none",
+                "bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))]",
+                "text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]",
+                "focus:ring-[hsl(var(--avivar-primary))]"
+              )}
+              rows={2}
+            />
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSendImage}
+                disabled={disabled}
+                size="sm"
+                className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)] text-white"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Enviar Imagem
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Interface normal de input
   return (
     <div className="border-t border-[hsl(var(--avivar-border))] p-4 bg-[hsl(var(--avivar-card))]">
+      {/* Hidden image input */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageSelect}
+        className="hidden"
+      />
+
       <div className="flex items-end gap-2">
         {/* Left side buttons: Attachment, Emoji, Mic */}
         <div className="flex items-center gap-1 shrink-0">
@@ -203,17 +313,16 @@ export function MessageInput({ onSend, onSendAudio, disabled, placeholder }: Mes
               align="start" 
               className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
             >
-              <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
+              <DropdownMenuItem 
+                className="gap-2 text-[hsl(var(--avivar-foreground))] cursor-pointer"
+                onClick={() => imageInputRef.current?.click()}
+              >
                 <Image className="h-4 w-4 text-green-500" />
                 Imagem
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
+              <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))] opacity-50 cursor-not-allowed">
                 <FileText className="h-4 w-4 text-blue-500" />
-                Documento
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 text-[hsl(var(--avivar-foreground))]">
-                <Mic className="h-4 w-4 text-orange-500" />
-                Áudio
+                Documento (em breve)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
