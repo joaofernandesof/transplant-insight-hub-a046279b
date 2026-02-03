@@ -76,10 +76,37 @@ export function StepServicesOnly({
 
   const formatPrice = (cents: number | null | undefined): string => {
     if (cents === null || cents === undefined) return '';
-    // Formata para padrão brasileiro: 1.000,00
-    return (cents / 100).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+    const value = cents / 100;
+    const hasDecimals = value % 1 !== 0;
+    
+    // Se tem centavos, mostra com vírgula. Senão, só número inteiro com ponto de milhar
+    if (hasDecimals) {
+      return value.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+    return value.toLocaleString('pt-BR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+  };
+  
+  const formatInputValue = (value: string): string => {
+    const cleanValue = value.replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(cleanValue);
+    if (isNaN(num)) return '';
+    
+    const hasDecimals = value.includes(',');
+    if (hasDecimals) {
+      return num.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+    return num.toLocaleString('pt-BR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     });
   };
 
@@ -174,22 +201,14 @@ export function StepServicesOnly({
                                 defaultValue={formatPrice(service.price)}
                                 onBlur={(e) => {
                                   updatePrice(service.id, e.target.value);
-                                  // Formata o valor ao sair do campo
-                                  const cleanValue = e.target.value.replace(/\./g, '').replace(',', '.');
-                                  const num = parseFloat(cleanValue);
-                                  if (!isNaN(num)) {
-                                    e.target.value = num.toLocaleString('pt-BR', {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2
-                                    });
-                                  }
+                                  e.target.value = formatInputValue(e.target.value);
                                 }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     e.currentTarget.blur();
                                   }
                                 }}
-                                placeholder="0,00"
+                                placeholder="0"
                                 className="w-28 h-8 text-sm bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
                               />
                             </div>
