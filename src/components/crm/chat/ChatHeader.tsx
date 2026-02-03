@@ -88,20 +88,9 @@ export function ChatHeader({
 
 
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-[hsl(var(--avivar-foreground))] truncate">
-              {lead?.name || 'Lead'}
-            </h3>
-            <Badge 
-              variant="outline" 
-              className={cn("text-xs shrink-0", statusStyles[conversation.status])}
-            >
-              {statusLabels[conversation.status]}
-            </Badge>
-          </div>
-          <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] truncate">
-            {lead?.phone} • {lead?.procedure_interest || 'Sem interesse definido'}
-          </p>
+          <h3 className="font-semibold text-[hsl(var(--avivar-foreground))] truncate">
+            {lead?.name || 'Lead'}
+          </h3>
         </div>
       </div>
 
