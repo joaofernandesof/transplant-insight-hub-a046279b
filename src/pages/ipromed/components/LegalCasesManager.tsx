@@ -158,9 +158,9 @@ export default function LegalCasesManager() {
       const { data, error } = await supabase
         .from('ipromed_legal_clients')
         .select('id, name')
-        .order('full_name');
+        .order('name');
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
