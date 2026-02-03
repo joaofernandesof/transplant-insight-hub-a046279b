@@ -185,7 +185,7 @@ const AvivarAgentRoutingConfig = lazy(() => import("./pages/avivar/config/Avivar
 const AvivarContacts = lazy(() => import("./pages/avivar/AvivarContacts"));
 const AvivarTeamPage = lazy(() => import("./pages/avivar/AvivarTeamPage"));
 const PermissionsMatrix = lazy(() => import("./pages/avivar/PermissionsMatrix"));
-const ConversationTemplateEditor = lazy(() => import("./pages/avivar/config/components/ConversationTemplateEditor").then(m => ({ default: m.ConversationTemplateEditor })));
+
 // ====================================
 // Pages - Vision (Diagnóstico Capilar IA)
 // ====================================
@@ -597,7 +597,7 @@ function AvivarRoutes() {
               <Route path="agents/routing/:agentId" element={<AvivarAgentRoutingConfig />} />
               <Route path="team" element={<AvivarTeamPage />} />
               <Route path="team/permissions" element={<PermissionsMatrix />} />
-              <Route path="templates" element={<ConversationTemplateEditor />} />
+              
               <Route path="settings" element={<AvivarSettings />} />
               <Route path="profile" element={<Profile />} />
               <Route path="*" element={<Navigate to="/avivar" replace />} />
