@@ -72,3 +72,6 @@ verify_jwt = false
 
 [functions.avivar-debounce-processor]
 verify_jwt = false
+
+[functions.avivar-transcribe-audio]
+verify_jwt = false
