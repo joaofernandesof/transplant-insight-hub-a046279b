@@ -52,6 +52,7 @@ const menuItems = [
   { id: 'dashboards', label: 'Dashboards', icon: BarChart3, href: '/avivar/dashboards', isHighlight: true },
   { id: 'divider2', label: '', icon: null, href: '', isDivider: true },
   { id: 'config', label: 'Configurar IA', icon: Sparkles, href: '/avivar/config' },
+  { id: 'templates', label: 'Templates de Conversa', icon: MessageSquare, href: '/avivar/templates' },
   { id: 'tutorials', label: 'Tutoriais', icon: GraduationCap, href: '/avivar/tutorials' },
   { id: 'divider3', label: '', icon: null, href: '', isDivider: true },
   { id: 'team', label: 'Equipe', icon: Users, href: '/avivar/team', isHighlight: true },
