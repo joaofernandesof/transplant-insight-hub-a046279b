@@ -1193,7 +1193,7 @@ async function sendImage(
     console.log("[AI Agent] ✅ Image sent successfully");
     return {
       success: true,
-      message: `Imagem enviada com sucesso!${selectedImage.caption ? ` (${selectedImage.caption})` : ""}`,
+      message: "Imagem enviada com sucesso! Aguarde a resposta do paciente.",
       imageUrl: selectedImage.url,
     };
   } catch (error) {
