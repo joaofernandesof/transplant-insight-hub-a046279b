@@ -86,15 +86,6 @@ export function ConversationList({
             className="pl-10 bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
           />
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-          <Input
-            placeholder="Buscar por nome, telefone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
-          />
-        </div>
 
         {/* Filter tabs - Todas | Não lidas | Responsável */}
         <Tabs value={filterStatus} onValueChange={(v) => setFilterStatus(v as FilterStatus)}>
