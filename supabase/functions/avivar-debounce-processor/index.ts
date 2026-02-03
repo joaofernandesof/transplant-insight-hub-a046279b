@@ -96,10 +96,10 @@ serve(async (req) => {
       // Time to process!
       console.log(`[Debounce] Batch ${batchId} ready to process after ${iteration * 30}s`);
 
-      // Fetch all inbound messages for this conversation
+      // Fetch all inbound messages for this conversation (including media)
       const { data: allMessages, error: msgError } = await supabase
         .from("crm_messages")
-        .select("content, sent_at, direction")
+        .select("content, sent_at, direction, media_type, media_url")
         .eq("conversation_id", conversationId)
         .order("sent_at", { ascending: true });
 
@@ -132,10 +132,61 @@ serve(async (req) => {
         );
       }
 
-      // Combine all messages into one context
-      const combinedContent = newMessages.map(m => m.content).filter(Boolean).join("\n\n");
+      // Process messages: transcribe audio messages
+      const processedContents: string[] = [];
+      let audioTranscribed = 0;
 
-      console.log(`[Debounce] Processing ${newMessages.length} batched messages for conversation ${conversationId}`);
+      for (const msg of newMessages) {
+        // Check if this is an audio message that needs transcription
+        if (msg.media_type === "audio" && msg.media_url) {
+          console.log(`[Debounce] 🎤 Found audio message, transcribing...`);
+          try {
+            const transcribeResponse = await fetch(`${supabaseUrl}/functions/v1/avivar-transcribe-audio`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${supabaseServiceKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                audioUrl: msg.media_url,
+                language: "pt",
+              }),
+            });
+
+            const transcribeResult = await transcribeResponse.json();
+            
+            if (transcribeResult.success && transcribeResult.transcription) {
+              console.log(`[Debounce] ✅ Audio transcribed: "${transcribeResult.transcription.substring(0, 50)}..."`);
+              processedContents.push(`[Áudio transcrito]: ${transcribeResult.transcription}`);
+              audioTranscribed++;
+              
+              // Update the message content in database with transcription
+              await supabase
+                .from("crm_messages")
+                .update({ 
+                  content: `[Áudio transcrito]: ${transcribeResult.transcription}`,
+                })
+                .eq("conversation_id", conversationId)
+                .eq("media_url", msg.media_url)
+                .eq("direction", "inbound");
+            } else {
+              console.log(`[Debounce] ⚠️ Audio transcription failed: ${transcribeResult.error}`);
+              processedContents.push("[Mensagem de áudio - não foi possível transcrever]");
+            }
+          } catch (transcribeError) {
+            console.error(`[Debounce] Error transcribing audio:`, transcribeError);
+            processedContents.push("[Mensagem de áudio - erro na transcrição]");
+          }
+        } else if (msg.content) {
+          // Regular text message
+          processedContents.push(msg.content);
+        }
+      }
+
+      // Combine all processed messages into one context
+      const combinedContent = processedContents.filter(Boolean).join("\n\n");
+
+      console.log(`[Debounce] Processing ${newMessages.length} batched messages (${audioTranscribed} audio transcribed) for conversation ${conversationId}`);
       console.log(`[Debounce] Combined content: ${combinedContent.substring(0, 100)}...`);
 
       // Clear batch before calling AI (to prevent race conditions)
