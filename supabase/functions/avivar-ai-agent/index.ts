@@ -1017,13 +1017,16 @@ async function processToolCall(
 async function getRoutedAgent(
   supabase: AnySupabaseClient,
   userId: string,
-  leadStage: string
+  leadStage: string,
+  kanbanId: string | null
 ): Promise<RoutedAgent | null> {
-  console.log(`[AI Agent] Routing for stage: ${leadStage}`);
+  console.log(`[AI Agent] Routing for stage: ${leadStage}, kanban: ${kanbanId}`);
 
+  // Call RPC with kanban_id for precise matching
   const { data: agents, error } = await supabase.rpc("get_agent_for_lead_stage", {
     p_user_id: userId,
-    p_lead_stage: leadStage
+    p_lead_stage: leadStage,
+    p_kanban_id: kanbanId
   });
 
   if (error) {
@@ -1070,11 +1073,16 @@ async function getRoutedAgent(
   return null;
 }
 
+interface LeadStageInfo {
+  stage: string;
+  kanbanId: string | null;
+}
+
 async function getLeadStage(
   supabase: AnySupabaseClient, 
   conversationId: string,
   leadPhone: string
-): Promise<string> {
+): Promise<LeadStageInfo> {
   // PRIMARY: Check avivar_kanban_leads by phone to get current Kanban position
   // This is the source of truth for multi-funnel routing
   const { data: kanbanLead } = await supabase
@@ -1101,18 +1109,24 @@ async function getLeadStage(
     
     console.log(`[AI Agent] Lead position: ${kanbanName} > ${columnName} (index ${columnIndex})`);
     
-    // Map Kanban + Column to stage for agent routing
+    // Return kanban_id for precise agent routing
+    const kanbanId = kanbanLead.kanban_id;
+    
+    // Map Kanban + Column to stage for agent routing (fallback stage)
+    let stage = "qualificacao";
     if (kanbanName.includes("pós-venda") || kanbanName.includes("pos-venda") || kanbanName.includes("posvenda")) {
-      return "pos_procedimento";
+      stage = "pos_procedimento";
+    } else if (kanbanName.includes("reativação") || kanbanName.includes("reativacao")) {
+      stage = "inativo";
+    } else if (columnIndex === 0) {
+      stage = "novo_lead";
+    } else if (columnIndex === 1) {
+      stage = "qualificacao";
+    } else if (columnIndex >= 4) {
+      stage = "agendado";
     }
-    if (kanbanName.includes("reativação") || kanbanName.includes("reativacao")) {
-      return "inativo";
-    }
-    // For "Comercial" or default, map by column index
-    if (columnIndex === 0) return "novo_lead";
-    if (columnIndex === 1) return "qualificacao";
-    if (columnIndex >= 4) return "agendado"; // Columns 4+ are typically scheduled/converted
-    return "qualificacao";
+    
+    return { stage, kanbanId };
   }
 
   // FALLBACK: Check old leads table
@@ -1122,7 +1136,7 @@ async function getLeadStage(
     .eq("id", conversationId)
     .single();
 
-  if (!conv?.lead_id) return "novo_lead";
+  if (!conv?.lead_id) return { stage: "novo_lead", kanbanId: null };
 
   const { data: lead } = await supabase
     .from("leads")
@@ -1130,7 +1144,7 @@ async function getLeadStage(
     .eq("id", conv.lead_id)
     .single();
 
-  return lead?.stage || "novo_lead";
+  return { stage: lead?.stage || "novo_lead", kanbanId: null };
 }
 
 async function getConversationHistory(
@@ -1694,12 +1708,12 @@ serve(async (req) => {
 
     console.log(`[AI Agent] Processing: "${messageContent.substring(0, 50)}..."`);
 
-    // 1. Get lead stage for hybrid routing (based on Kanban position)
-    const leadStage = await getLeadStage(supabase, conversationId, leadPhone);
-    console.log(`[AI Agent] Lead stage: ${leadStage}`);
+    // 1. Get lead stage and kanban for hybrid routing (based on Kanban position)
+    const { stage: leadStage, kanbanId } = await getLeadStage(supabase, conversationId, leadPhone);
+    console.log(`[AI Agent] Lead stage: ${leadStage}, kanban: ${kanbanId}`);
 
-    // 2. Get routed agent based on stage (HYBRID ROUTING)
-    const routedAgent = await getRoutedAgent(supabase, userId, leadStage);
+    // 2. Get routed agent based on kanban ID + stage (HYBRID ROUTING)
+    const routedAgent = await getRoutedAgent(supabase, userId, leadStage, kanbanId);
     
     if (!routedAgent) {
       console.log("[AI Agent] No agent configured, skipping");
