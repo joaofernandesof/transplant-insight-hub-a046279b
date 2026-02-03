@@ -1,5 +1,6 @@
 /**
  * KanbanColumn - Componente visual da coluna do Kanban com leads
+ * Scroll interno (não página inteira) para telas menores
  */
 
 import { useDroppable } from '@dnd-kit/core';
@@ -13,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { LeadCard } from './LeadCard';
@@ -54,11 +54,11 @@ export function KanbanColumn({
   return (
     <Card
       className={cn(
-        "w-[280px] flex-shrink-0 border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))]",
+        "w-[280px] flex-shrink-0 border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] flex flex-col h-full max-h-[calc(100vh-200px)]",
         isDragging && "shadow-xl ring-2 ring-[hsl(var(--avivar-primary))]"
       )}
     >
-      <CardHeader className="p-0">
+      <CardHeader className="p-0 flex-shrink-0">
         <div className={cn(
           "px-4 py-3 rounded-t-lg bg-gradient-to-r text-white flex items-center gap-2",
           column.color
@@ -121,37 +121,57 @@ export function KanbanColumn({
       <CardContent 
         ref={setNodeRef}
         className={cn(
-          "p-3 min-h-[400px] bg-[hsl(var(--avivar-muted)/0.2)] transition-colors duration-200",
+          "p-3 flex-1 overflow-hidden bg-[hsl(var(--avivar-muted)/0.2)] transition-colors duration-200",
           isOver && "bg-[hsl(var(--avivar-primary)/0.1)] ring-2 ring-inset ring-[hsl(var(--avivar-primary)/0.3)]"
         )}
       >
         <SortableContext items={leadIds} strategy={verticalListSortingStrategy}>
-          <ScrollArea className="h-[400px]">
-            <div className="space-y-2 pr-2">
-              {leads.length > 0 ? (
-                leads.map((lead) => (
-                  <LeadCard
-                    key={lead.id}
-                    lead={lead}
-                    onDelete={onDeleteLead}
-                    onClick={onLeadClick}
-                  />
-                ))
-              ) : (
-                <div className={cn(
-                  "flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg transition-colors",
-                  isOver 
-                    ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.05)]" 
-                    : "border-[hsl(var(--avivar-border))]"
-                )}>
-                  <Users className="h-6 w-6 mb-2 text-[hsl(var(--avivar-muted-foreground))] opacity-50" />
-                  <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                    {isOver ? "Solte aqui" : "Arraste leads aqui"}
-                  </p>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+          {/* Custom scroll area for internal column scrolling */}
+          <div 
+            className="h-full overflow-y-auto pr-1 space-y-2"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(139, 92, 246, 0.3) transparent',
+            }}
+          >
+            <style>{`
+              .kanban-column-scroll::-webkit-scrollbar {
+                width: 4px;
+              }
+              .kanban-column-scroll::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              .kanban-column-scroll::-webkit-scrollbar-thumb {
+                background: rgba(139, 92, 246, 0.3);
+                border-radius: 4px;
+              }
+              .kanban-column-scroll::-webkit-scrollbar-thumb:hover {
+                background: rgba(139, 92, 246, 0.5);
+              }
+            `}</style>
+            {leads.length > 0 ? (
+              leads.map((lead) => (
+                <LeadCard
+                  key={lead.id}
+                  lead={lead}
+                  onDelete={onDeleteLead}
+                  onClick={onLeadClick}
+                />
+              ))
+            ) : (
+              <div className={cn(
+                "flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg transition-colors",
+                isOver 
+                  ? "border-[hsl(var(--avivar-primary))] bg-[hsl(var(--avivar-primary)/0.05)]" 
+                  : "border-[hsl(var(--avivar-border))]"
+              )}>
+                <Users className="h-6 w-6 mb-2 text-[hsl(var(--avivar-muted-foreground))] opacity-50" />
+                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                  {isOver ? "Solte aqui" : "Arraste leads aqui"}
+                </p>
+              </div>
+            )}
+          </div>
         </SortableContext>
       </CardContent>
     </Card>

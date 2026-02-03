@@ -1,9 +1,10 @@
 /**
  * AvivarKanbanPage - Página individual do Kanban com colunas customizáveis
  * Suporta drag-and-drop para reordenar colunas e leads
+ * Fixed header with search, filters, add lead button
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -24,28 +25,20 @@ import {
   sortableKeyboardCoordinates,
   arrayMove,
 } from '@dnd-kit/sortable';
-import {
-  Plus, ArrowLeft, Loader2,
-  Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid as LayoutGridIcon,
-  MoreHorizontal, Upload, Download, ListChecks
-} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SortableColumn } from './components/SortableColumn';
 import { ColumnDialog } from './components/ColumnDialog';
 import { KanbanColumn } from './components/KanbanColumn';
-import { ViewModeToggle, ViewMode } from './components/ViewModeToggle';
+import { ViewMode } from './components/ViewModeToggle';
 import { LeadsListView } from './components/LeadsListView';
 import { ImportLeadsDialog } from './components/ImportLeadsDialog';
 import { ExportLeadsDialog } from './components/ExportLeadsDialog';
 import { ColumnChecklistDialog } from './components/ColumnChecklistDialog';
+import { KanbanHeader } from './components/KanbanHeader';
+import { AddLeadDialog } from './components/AddLeadDialog';
 import { useKanbanLeads, KanbanLead } from './hooks/useKanbanLeads';
 import { LeadCard } from './components/LeadCard';
 
@@ -66,16 +59,6 @@ interface KanbanData {
   color: string;
 }
 
-const getIconComponent = (iconName: string) => {
-  switch (iconName) {
-    case 'heart-pulse': return HeartPulse;
-    case 'trending-up': return TrendingUp;
-    case 'users': return Users;
-    case 'layout-grid': return LayoutGridIcon;
-    default: return Briefcase;
-  }
-};
-
 export default function AvivarKanbanPage() {
   const { kanbanId } = useParams<{ kanbanId: string }>();
   const navigate = useNavigate();
@@ -87,10 +70,13 @@ export default function AvivarKanbanPage() {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isChecklistDialogOpen, setIsChecklistDialogOpen] = useState(false);
+  const [isAddLeadDialogOpen, setIsAddLeadDialogOpen] = useState(false);
   const [activeLead, setActiveLead] = useState<KanbanLead | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([]);
 
   // Fetch leads for this kanban
-  const { leadsByColumn, deleteLead, moveLead, isLoading: isLoadingLeads } = useKanbanLeads(kanbanId);
+  const { leads, leadsByColumn, deleteLead, moveLead, isLoading: isLoadingLeads, refetch } = useKanbanLeads(kanbanId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -124,11 +110,15 @@ export default function AvivarKanbanPage() {
         .order('order_index', { ascending: true });
       
       if (error) throw error;
-      return data as KanbanColumnData[];
+      // Initialize visible columns
+      const cols = data as KanbanColumnData[];
+      if (visibleColumns.length === 0 && cols.length > 0) {
+        setVisibleColumns(cols.map(c => c.id));
+      }
+      return cols;
     },
     enabled: !!kanbanId,
   });
-
   // Create column mutation
   const createColumn = useMutation({
     mutationFn: async (columnData: { name: string; color: string }) => {
@@ -280,7 +270,38 @@ export default function AvivarKanbanPage() {
     }
   };
 
-  const Icon = kanban ? getIconComponent(kanban.icon) : Briefcase;
+  // Filter leads based on search query
+  const filteredLeadsByColumn = useMemo(() => {
+    if (!searchQuery.trim()) return leadsByColumn;
+    
+    const query = searchQuery.toLowerCase();
+    const filtered: Record<string, KanbanLead[]> = {};
+    
+    Object.entries(leadsByColumn).forEach(([columnId, columnLeads]) => {
+      filtered[columnId] = columnLeads.filter(lead => 
+        lead.name.toLowerCase().includes(query) ||
+        lead.phone?.toLowerCase().includes(query) ||
+        lead.email?.toLowerCase().includes(query) ||
+        lead.tags?.some(tag => tag.toLowerCase().includes(query)) ||
+        lead.source?.toLowerCase().includes(query)
+      );
+    });
+    
+    return filtered;
+  }, [leadsByColumn, searchQuery]);
+
+  const filteredLeadsCount = useMemo(() => {
+    return Object.values(filteredLeadsByColumn).reduce((acc, l) => acc + l.length, 0);
+  }, [filteredLeadsByColumn]);
+
+  const toggleColumnVisibility = (columnId: string) => {
+    setVisibleColumns(prev => 
+      prev.includes(columnId) 
+        ? prev.filter(id => id !== columnId)
+        : [...prev, columnId]
+    );
+  };
+
   const isLoading = isLoadingKanban || isLoadingColumns || isLoadingLeads;
 
   if (isLoading) {
@@ -302,89 +323,32 @@ export default function AvivarKanbanPage() {
     );
   }
 
+  const displayColumns = columns.filter(c => visibleColumns.includes(c.id));
+
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-[hsl(var(--avivar-border))]">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/avivar/leads')}
-            className="hover:bg-[hsl(var(--avivar-primary)/0.1)]"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${kanban.color} flex items-center justify-center`}>
-              <Icon className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-[hsl(var(--avivar-foreground))]">
-                {kanban.name}
-              </h1>
-              {kanban.description && (
-                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                  {kanban.description}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-          
-          {viewMode === 'kanban' && (
-            <Button
-              onClick={() => {
-                setEditingColumn(null);
-                setIsColumnDialogOpen(true);
-              }}
-              className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Coluna
-            </Button>
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-[hsl(var(--avivar-primary)/0.1)]"
-              >
-                <MoreHorizontal className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem 
-                onClick={() => setIsChecklistDialogOpen(true)}
-                className="cursor-pointer"
-              >
-                <ListChecks className="h-4 w-4 mr-2" />
-                Checklists de Bloqueio
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setIsImportDialogOpen(true)}
-                className="cursor-pointer"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Importar Leads
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setIsExportDialogOpen(true)}
-                className="cursor-pointer"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Exportar Leads
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      {/* Fixed Header */}
+      <KanbanHeader
+        kanban={kanban}
+        columns={columns}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onAddColumn={() => {
+          setEditingColumn(null);
+          setIsColumnDialogOpen(true);
+        }}
+        onAddLead={() => setIsAddLeadDialogOpen(true)}
+        onImport={() => setIsImportDialogOpen(true)}
+        onExport={() => setIsExportDialogOpen(true)}
+        onChecklist={() => setIsChecklistDialogOpen(true)}
+        onRefresh={refetch}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        totalLeads={leads.length}
+        filteredLeads={filteredLeadsCount}
+        visibleColumns={visibleColumns}
+        onToggleColumnVisibility={toggleColumnVisibility}
+      />
 
       {/* Content Area */}
       {viewMode === 'kanban' ? (
@@ -410,7 +374,7 @@ export default function AvivarKanbanPage() {
             }
           `}</style>
           <div 
-            className="kanban-scroll-container absolute inset-0 overflow-x-auto overflow-y-auto p-4 pb-6"
+            className="kanban-scroll-container absolute inset-0 overflow-x-auto p-4 pb-6"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: 'rgba(139, 92, 246, 0.5) rgba(139, 92, 246, 0.15)',
@@ -423,15 +387,15 @@ export default function AvivarKanbanPage() {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={columns.map(c => c.id)}
+                items={displayColumns.map(c => c.id)}
                 strategy={horizontalListSortingStrategy}
               >
-                <div className="flex gap-4 min-h-[500px] w-max">
-                  {columns.map((column) => (
+                <div className="flex gap-4 h-full">
+                  {displayColumns.map((column) => (
                     <SortableColumn
                       key={column.id}
                       column={column}
-                      leads={leadsByColumn[column.id] ?? []}
+                      leads={filteredLeadsByColumn[column.id] ?? []}
                       onEdit={() => {
                         setEditingColumn(column);
                         setIsColumnDialogOpen(true);
@@ -439,7 +403,6 @@ export default function AvivarKanbanPage() {
                       onDelete={() => deleteColumn.mutate(column.id)}
                       onDeleteLead={deleteLead}
                       onLeadClick={(lead) => {
-                        // Navigate to inbox with lead's phone to open conversation
                         if (lead.phone) {
                           navigate(`/avivar/inbox?phone=${encodeURIComponent(lead.phone)}`);
                         } else {
@@ -449,7 +412,7 @@ export default function AvivarKanbanPage() {
                     />
                   ))}
 
-                  {columns.length === 0 && (
+                  {displayColumns.length === 0 && (
                     <div className="flex-1 min-w-[300px] flex items-center justify-center border-2 border-dashed border-[hsl(var(--avivar-border))] rounded-xl">
                       <div className="text-center p-8">
                         <p className="text-[hsl(var(--avivar-muted-foreground))] mb-4">
@@ -459,7 +422,6 @@ export default function AvivarKanbanPage() {
                           onClick={() => setIsColumnDialogOpen(true)}
                           className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
                         >
-                          <Plus className="h-4 w-4 mr-2" />
                           Criar Primeira Coluna
                         </Button>
                       </div>
@@ -474,12 +436,25 @@ export default function AvivarKanbanPage() {
                     <KanbanColumn column={activeColumn} isDragging />
                   </div>
                 )}
+                {activeLead && (
+                  <div className="opacity-80">
+                    <LeadCard lead={activeLead} />
+                  </div>
+                )}
               </DragOverlay>
             </DndContext>
           </div>
         </div>
       ) : (
-        <LeadsListView columns={columns} />
+        <LeadsListView 
+          columns={columns} 
+          leads={leads}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onAddLead={() => setIsAddLeadDialogOpen(true)}
+          onRefresh={refetch}
+          kanbanId={kanbanId || ''}
+        />
       )}
 
       {/* Column Dialog */}
@@ -490,6 +465,16 @@ export default function AvivarKanbanPage() {
         onSave={handleSaveColumn}
         isLoading={createColumn.isPending || updateColumn.isPending}
       />
+
+      {/* Add Lead Dialog */}
+      {kanbanId && (
+        <AddLeadDialog
+          open={isAddLeadDialogOpen}
+          onOpenChange={setIsAddLeadDialogOpen}
+          kanbanId={kanbanId}
+          columns={columns}
+        />
+      )}
 
       {/* Import Leads Dialog */}
       {kanbanId && (

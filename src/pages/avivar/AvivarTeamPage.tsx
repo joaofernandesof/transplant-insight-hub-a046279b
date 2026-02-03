@@ -219,7 +219,7 @@ export default function AvivarTeamPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success('Colaborador adicionado com sucesso!');
+      toast.success('Atendente adicionado com sucesso!');
       setIsAddDialogOpen(false);
       resetForm();
       setIsUploading(false);
@@ -229,7 +229,7 @@ export default function AvivarTeamPage() {
       if (error.message.includes('duplicate')) {
         toast.error('Este email já está cadastrado na equipe');
       } else {
-        toast.error('Erro ao adicionar colaborador');
+        toast.error('Erro ao adicionar atendente');
       }
     },
   });
@@ -250,12 +250,12 @@ export default function AvivarTeamPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success('Colaborador atualizado!');
+      toast.success('Atendente atualizado!');
       setIsEditDialogOpen(false);
       setSelectedMember(null);
     },
     onError: () => {
-      toast.error('Erro ao atualizar colaborador');
+      toast.error('Erro ao atualizar atendente');
     },
   });
 
@@ -271,7 +271,7 @@ export default function AvivarTeamPage() {
     },
     onSuccess: (_, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success(isActive ? 'Colaborador reativado!' : 'Colaborador desativado!');
+      toast.success(isActive ? 'Atendente reativado!' : 'Atendente desativado!');
     },
     onError: () => {
       toast.error('Erro ao alterar status');
@@ -290,12 +290,12 @@ export default function AvivarTeamPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success('Colaborador removido!');
+      toast.success('Atendente removido!');
       setIsDeleteDialogOpen(false);
       setSelectedMember(null);
     },
     onError: () => {
-      toast.error('Erro ao remover colaborador');
+      toast.error('Erro ao remover atendente');
     },
   });
 
@@ -348,7 +348,7 @@ export default function AvivarTeamPage() {
             Equipe
           </h1>
           <p className="text-[hsl(var(--avivar-muted-foreground))]">
-            Gerencie os colaboradores da sua empresa
+            Gerencie os atendentes da sua empresa
           </p>
         </div>
 
@@ -356,12 +356,12 @@ export default function AvivarTeamPage() {
           <DialogTrigger asChild>
             <Button className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]">
               <UserPlus className="h-4 w-4 mr-2" />
-              Adicionar Colaborador
+              Adicionar Atendente
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Novo Colaborador</DialogTitle>
+              <DialogTitle>Novo Atendente</DialogTitle>
               <DialogDescription>
                 Adicione um novo membro à sua equipe
               </DialogDescription>
@@ -474,7 +474,7 @@ export default function AvivarTeamPage() {
                 <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
                   {teamMembers.length}
                 </p>
-                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Total de colaboradores</p>
+                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Total de atendentes</p>
               </div>
             </div>
           </CardContent>
