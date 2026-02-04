@@ -549,7 +549,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("boas-vindas")}
                     >
@@ -720,7 +720,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("perfil")}
                     >
@@ -911,7 +911,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("comunicacao")}
                     >
@@ -1110,7 +1110,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("documentos")}
                     >
@@ -1311,7 +1311,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("prioridades")}
                     >
@@ -1418,7 +1418,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("prazos")}
                     >
@@ -1544,7 +1544,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("treinamento")}
                     >
@@ -1741,7 +1741,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("instagram")}
                     >
@@ -1899,7 +1899,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex justify-end mt-4">
                     <Button 
                       type="button" 
-                      variant="outline" 
+                      variant="default" 
                       size="sm"
                       onClick={() => markSectionComplete("contrato")}
                     >
