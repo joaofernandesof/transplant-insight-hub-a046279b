@@ -59,6 +59,8 @@ import {
   Download,
   Eye,
   Plus,
+  Trash2,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -88,6 +90,12 @@ const onboardingMeetingSchema = z.object({
   // 3. Comunicação
   whatsappPrincipal: z.string().optional(),
   responsavelOperacional: z.string().optional(),
+  contatosAdicionais: z.array(z.object({
+    nome: z.string().optional(),
+    email: z.string().optional(),
+    whatsapp: z.string().optional(),
+    funcao: z.string().optional(),
+  })).default([]),
   horarioPreferencial: z.string().optional(),
   regraUrgencia: z.string().optional(),
 
@@ -220,6 +228,7 @@ export default function OnboardingMeetingAgenda({
       procedimentosMaiorVolume: "",
       whatsappPrincipal: "",
       responsavelOperacional: "",
+      contatosAdicionais: [],
       horarioPreferencial: "",
       regraUrgencia: "",
       usaDocumentosHoje: false,
@@ -740,6 +749,114 @@ export default function OnboardingMeetingAgenda({
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  {/* Contatos Adicionais */}
+                  <div className="mt-6 pt-4 border-t">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <UserPlus className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-sm">Contatos Adicionais</span>
+                        <span className="text-xs text-muted-foreground">(outros e-mails, WhatsApps, responsáveis)</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const currentContatos = form.getValues("contatosAdicionais") || [];
+                          form.setValue("contatosAdicionais", [
+                            ...currentContatos,
+                            { nome: "", email: "", whatsapp: "", funcao: "" }
+                          ]);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Adicionar Contato
+                      </Button>
+                    </div>
+
+                    {form.watch("contatosAdicionais")?.map((_, index) => (
+                      <div key={index} className="p-3 border rounded-lg mb-3 bg-muted/30">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Contato {index + 1}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              const currentContatos = form.getValues("contatosAdicionais") || [];
+                              form.setValue(
+                                "contatosAdicionais",
+                                currentContatos.filter((_, i) => i !== index)
+                              );
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Remover
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name={`contatosAdicionais.${index}.nome`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">👤 Nome</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="João da Silva" {...field} className="h-9" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`contatosAdicionais.${index}.funcao`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">🧩 Função</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Secretária, Sócio, Financeiro..." {...field} className="h-9" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`contatosAdicionais.${index}.email`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">📧 E-mail</FormLabel>
+                                <FormControl>
+                                  <Input type="email" placeholder="email@exemplo.com" {...field} className="h-9" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`contatosAdicionais.${index}.whatsapp`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">📱 WhatsApp</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="+55 85 99999-9999" {...field} className="h-9" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    ))}
+
+                    {(!form.watch("contatosAdicionais") || form.watch("contatosAdicionais").length === 0) && (
+                      <p className="text-xs text-muted-foreground text-center py-4 border rounded-lg border-dashed">
+                        Nenhum contato adicional. Clique em "Adicionar Contato" para incluir outros responsáveis.
+                      </p>
+                    )}
                   </div>
                   <div className="flex justify-end mt-4">
                     <Button 
