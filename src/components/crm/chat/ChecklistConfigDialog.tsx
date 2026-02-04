@@ -3,7 +3,7 @@
  * Permite adicionar, editar e remover campos personalizados
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { Settings2, Plus, Trash2, Loader2, GripVertical, Pencil, X, Check } from
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { KanbanColumnSelector } from './KanbanColumnSelector';
 
 interface Props {
   open: boolean;
@@ -29,6 +30,7 @@ interface ChecklistField {
   field_label: string;
   field_type: string;
   is_required: boolean;
+  required_for_columns?: string[];
 }
 
 // Todos os tipos de campo disponíveis baseados nas imagens do usuário
@@ -56,14 +58,16 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
     field_key: '',
     field_label: '',
     field_type: 'text',
-    is_required: false
+    is_required: false,
+    required_for_columns: []
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editField, setEditField] = useState<ChecklistField>({
     field_key: '',
     field_label: '',
     field_type: 'text',
-    is_required: false
+    is_required: false,
+    required_for_columns: []
   });
 
   // Buscar checklists existentes
@@ -90,7 +94,11 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
         .from('avivar_column_checklists')
         .insert({
           column_id: columnId,
-          ...field,
+          field_key: field.field_key,
+          field_label: field.field_label,
+          field_type: field.field_type,
+          is_required: field.is_required,
+          required_for_columns: field.is_required ? field.required_for_columns : null,
           order_index: (checklists?.length || 0)
         });
       
@@ -99,10 +107,10 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
     onSuccess: () => {
       refetch();
       queryClient.invalidateQueries({ queryKey: ['lead-checklist-fields'] });
-      setNewField({ field_key: '', field_label: '', field_type: 'text', is_required: false });
+      setNewField({ field_key: '', field_label: '', field_type: 'text', is_required: false, required_for_columns: [] });
       toast.success('Campo adicionado!');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Erro: ' + error.message);
     }
   });
@@ -133,7 +141,8 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
           field_label: data.field_label,
           field_key: data.field_key,
           field_type: data.field_type,
-          is_required: data.is_required
+          is_required: data.is_required,
+          required_for_columns: data.is_required ? data.required_for_columns : null
         })
         .eq('id', fieldId);
       
@@ -145,7 +154,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
       setEditingId(null);
       toast.success('Campo atualizado!');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Erro: ' + error.message);
     }
   });
@@ -182,13 +191,14 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
     });
   };
 
-  const startEdit = (field: any) => {
-    setEditingId(field.id);
+  const startEdit = (field: Record<string, unknown>) => {
+    setEditingId(field.id as string);
     setEditField({
-      field_key: field.field_key,
-      field_label: field.field_label,
-      field_type: field.field_type,
-      is_required: field.is_required ?? false
+      field_key: field.field_key as string,
+      field_label: field.field_label as string,
+      field_type: field.field_type as string,
+      is_required: (field.is_required as boolean) ?? false,
+      required_for_columns: (field.required_for_columns as string[]) || []
     });
   };
 
@@ -264,12 +274,26 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                             <div className="flex items-center gap-2 pb-2">
                               <Switch
                                 checked={editField.is_required}
-                                onCheckedChange={(v) => setEditField({ ...editField, is_required: v })}
+                                onCheckedChange={(v) => setEditField({ ...editField, is_required: v, required_for_columns: v ? editField.required_for_columns : [] })}
                               />
                               <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Obrigatório</Label>
                             </div>
                           </div>
                         </div>
+
+                        {/* Seletor de Kanbans/Colunas quando obrigatório */}
+                        {editField.is_required && (
+                          <div className="space-y-2">
+                            <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                              Selecione as colunas onde este campo é obrigatório para mover o lead:
+                            </Label>
+                            <KanbanColumnSelector
+                              selectedColumnIds={editField.required_for_columns || []}
+                              onSelectionChange={(columnIds) => setEditField({ ...editField, required_for_columns: columnIds })}
+                            />
+                          </div>
+                        )}
+
                         <div className="flex gap-2 justify-end">
                           <Button
                             variant="ghost"
@@ -307,6 +331,11 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                             <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
                               {FIELD_TYPES.find(t => t.value === field.field_type)?.label || field.field_type}
                               {field.is_required && ' • Obrigatório'}
+                              {field.required_for_columns && (field.required_for_columns as string[]).length > 0 && (
+                                <span className="text-[hsl(var(--avivar-primary))]">
+                                  {' '}• {(field.required_for_columns as string[]).length} colunas
+                                </span>
+                              )}
                             </p>
                           </div>
                         </div>
@@ -378,12 +407,25 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                   <div className="flex items-center gap-2 pb-2">
                     <Switch
                       checked={newField.is_required}
-                      onCheckedChange={(v) => setNewField({ ...newField, is_required: v })}
+                      onCheckedChange={(v) => setNewField({ ...newField, is_required: v, required_for_columns: v ? newField.required_for_columns : [] })}
                     />
                     <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Obrigatório</Label>
                   </div>
                 </div>
               </div>
+
+              {/* Seletor de Kanbans/Colunas quando obrigatório */}
+              {newField.is_required && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                    Selecione as colunas onde este campo é obrigatório para mover o lead:
+                  </Label>
+                  <KanbanColumnSelector
+                    selectedColumnIds={newField.required_for_columns || []}
+                    onSelectionChange={(columnIds) => setNewField({ ...newField, required_for_columns: columnIds })}
+                  />
+                </div>
+              )}
 
               <Button
                 onClick={handleAddField}
