@@ -1,5 +1,5 @@
 /**
- * IPROMED Financial - Alertas e Rotina Financeira
+ * CPG Advocacia Médica Financial - Alertas e Rotina Financeira
  * Alertas de vencimento e rotina semanal
  */
 

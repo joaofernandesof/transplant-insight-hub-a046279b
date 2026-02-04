@@ -1,5 +1,5 @@
 /**
- * IPROMED - Agenda Estilo Astrea
+ * CPG Advocacia Médica - Agenda Estilo Astrea
  * Calendário mensal com sidebar de detalhes do dia selecionado
  */
 

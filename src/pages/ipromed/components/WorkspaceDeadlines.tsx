@@ -1,5 +1,5 @@
 /**
- * IPROMED - Workspace Deadlines
+ * CPG Advocacia Médica - Workspace Deadlines
  * Prazos próximos e vencidos do sistema
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED - Gestão de Etiquetas/Tags
+ * CPG Advocacia Médica - Gestão de Etiquetas/Tags
  * Organização por etiquetas coloridas
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED Financial - Integração Contábil
+ * CPG Advocacia Médica Financial - Integração Contábil
  * Exportação organizada para o contador
  */
 

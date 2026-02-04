@@ -1,5 +1,5 @@
 /**
- * IPROMED - Risk Score Card Component
+ * CPG Advocacia Médica - Risk Score Card Component
  * Exibe o score de risco de um cliente com breakdown por categoria
  */
 

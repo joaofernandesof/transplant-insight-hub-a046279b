@@ -1,5 +1,5 @@
 /**
- * Modal para criar novo contrato IPROMED com upload de arquivo
+ * Modal para criar novo contrato CPG Advocacia Médica com upload de arquivo
  */
 
 import { useState, useRef } from "react";

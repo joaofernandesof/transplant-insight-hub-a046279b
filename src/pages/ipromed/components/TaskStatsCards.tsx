@@ -1,5 +1,5 @@
 /**
- * IPROMED - Task Stats Cards
+ * CPG Advocacia Médica - Task Stats Cards
  * Visualização de estatísticas de tarefas com cards coloridos
  * Com filtro por responsável
  */

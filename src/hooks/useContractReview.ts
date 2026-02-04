@@ -373,7 +373,7 @@ export const AREAS_EMPRESA = [
   'Neo Hair Brasil',
   'Neo Care',
   'Academy',
-  'IPROMED',
+  'CPG Advocacia',
   'Avivar',
   'Administrativo',
   'Financeiro',

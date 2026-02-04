@@ -95,7 +95,7 @@ export const PROFILE_NAMES: Record<ProfileKey, string> = {
   aluno: 'Aluno',
   paciente: 'Paciente',
   cliente_avivar: 'Cliente Avivar',
-  ipromed: 'IPROMED',
+  ipromed: 'CPG Advocacia',
 };
 
 // Helpers

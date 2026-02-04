@@ -1,5 +1,5 @@
 /**
- * IPROMED - Modal de Cadastro/Edição de Cliente Jurídico
+ * CPG Advocacia Médica - Modal de Cadastro/Edição de Cliente Jurídico
  */
 
 import { useState } from "react";

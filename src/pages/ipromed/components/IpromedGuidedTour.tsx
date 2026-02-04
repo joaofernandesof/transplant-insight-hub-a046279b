@@ -1,5 +1,5 @@
 /**
- * IPROMED - Guided Tour Component
+ * CPG Advocacia Médica - Guided Tour Component
  * Tour interativo para novos usuários do portal jurídico
  */
 
@@ -44,7 +44,7 @@ interface TourStep {
 const tourSteps: TourStep[] = [
   {
     id: "welcome",
-    title: "Bem-vindo ao IPROMED! 🎉",
+    title: "Bem-vindo ao CPG Advocacia Médica! 🎉",
     message: "Este é seu portal jurídico completo. Vou te guiar pelas principais funcionalidades para você aproveitar ao máximo o sistema. Vamos começar!",
     icon: <Scale className="h-5 w-5" />,
     iconColor: "text-primary",
@@ -133,7 +133,7 @@ const tourSteps: TourStep[] = [
   },
   {
     id: "university",
-    title: "Universidade IPROMED",
+    title: "Universidade CPG",
     message: "Acesse cursos, capacitações e materiais exclusivos para aprimorar sua atuação jurídica. Evolua constantemente!",
     icon: <GraduationCap className="h-5 w-5" />,
     iconColor: "text-indigo-600",
@@ -144,7 +144,7 @@ const tourSteps: TourStep[] = [
   {
     id: "complete",
     title: "Tudo pronto! 🚀",
-    message: "Agora você conhece os principais recursos do IPROMED. Explore cada módulo, use a busca global (Ctrl+K) e aproveite todas as funcionalidades. Bom trabalho!",
+    message: "Agora você conhece os principais recursos do CPG Advocacia Médica. Explore cada módulo, use a busca global (Ctrl+K) e aproveite todas as funcionalidades. Bom trabalho!",
     icon: <Rocket className="h-5 w-5" />,
     iconColor: "text-emerald-600",
     bgColor: "bg-emerald-100",
@@ -281,7 +281,7 @@ export default function IpromedGuidedTour({ isOpen, onComplete }: IpromedGuidedT
   const handleComplete = () => {
     if (user?.id) {
       localStorage.setItem(`ipromed_tour_completed_${user.id}`, "true");
-      toast.success("Tour concluído! Bem-vindo ao IPROMED! 🎉");
+      toast.success("Tour concluído! Bem-vindo ao CPG Advocacia Médica! 🎉");
     }
     setCurrentStep(0);
     navigate("/ipromed");
@@ -396,7 +396,7 @@ export default function IpromedGuidedTour({ isOpen, onComplete }: IpromedGuidedT
             <Badge className="bg-primary text-primary-foreground text-xs font-bold">
               {currentStep + 1} de {tourSteps.length}
             </Badge>
-            <span className="text-sm font-medium text-muted-foreground">Tour IPROMED</span>
+            <span className="text-sm font-medium text-muted-foreground">Tour CPG</span>
           </div>
           <div className="flex items-center gap-1">
             <Button 

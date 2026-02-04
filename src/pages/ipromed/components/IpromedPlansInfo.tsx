@@ -1,6 +1,6 @@
 /**
- * IPROMED - Planos de Assessoria
- * Informações dos planos do IPROMED (fonte: ipromed.com.br)
+ * CPG Advocacia Médica - Planos de Assessoria
+ * Informações dos planos da CPG Advocacia Médica
  */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -30,7 +30,7 @@ export interface IpromedPlan {
   extras?: string[];
 }
 
-// Planos do IPROMED (fonte: site oficial)
+// Planos da CPG Advocacia Médica
 export const ipromedPlans: IpromedPlan[] = [
   {
     id: "essencial",

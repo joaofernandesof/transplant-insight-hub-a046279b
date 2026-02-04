@@ -1,5 +1,5 @@
 /**
- * IPROMED - Onboarding Form Component
+ * CPG Advocacia Médica - Onboarding Form Component
  * Captures client mapping data (specialty, risks, liabilities)
  */
 

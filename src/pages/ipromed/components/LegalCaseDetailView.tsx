@@ -1,5 +1,5 @@
 /**
- * IPROMED - Legal Case Detail View
+ * CPG Advocacia Médica - Legal Case Detail View
  * Visualização completa do processo inspirada no Astrea
  */
 

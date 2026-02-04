@@ -1,5 +1,5 @@
 /**
- * IPROMED - Workspace Task List
+ * CPG Advocacia Médica - Workspace Task List
  * Lista detalhada de tarefas do colaborador logado com dados reais
  */
 

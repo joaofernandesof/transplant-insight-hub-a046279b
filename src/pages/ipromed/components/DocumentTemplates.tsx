@@ -1,5 +1,5 @@
 /**
- * IPROMED - Templates de Documentos
+ * CPG Advocacia Médica - Templates de Documentos
  * Gestão de modelos para geração de documentos
  */
 

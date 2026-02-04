@@ -1,5 +1,5 @@
 /**
- * IPROMED - Financeiro Real (com banco de dados)
+ * CPG Advocacia Médica - Financeiro Real (com banco de dados)
  * Substituindo dados mockados por integração real
  */
 
