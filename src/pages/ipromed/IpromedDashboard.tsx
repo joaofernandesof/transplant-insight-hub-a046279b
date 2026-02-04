@@ -187,6 +187,7 @@ export default function IpromedDashboard() {
     bgColor,
     subtitle,
     trend,
+    onClick,
   }: { 
     title: string; 
     value: number | string; 
@@ -195,8 +196,12 @@ export default function IpromedDashboard() {
     bgColor: string;
     subtitle?: string;
     trend?: string;
+    onClick?: () => void;
   }) => (
-    <Card className="border-none shadow-md hover:shadow-lg transition-shadow min-w-[130px] sm:min-w-0">
+    <Card 
+      className={`border-none shadow-md hover:shadow-lg transition-all min-w-[130px] sm:min-w-0 ${onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''}`}
+      onClick={onClick}
+    >
       <CardContent className="p-3 sm:pt-6 sm:px-6">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -277,6 +282,7 @@ export default function IpromedDashboard() {
             bgColor="bg-blue-100 dark:bg-blue-900/30"
             subtitle="Médicos protegidos"
             trend="+2 este mês"
+            onClick={() => navigate('/ipromed/clients')}
           />
           <StatCard
             title="Contratos Ativos"
@@ -285,6 +291,7 @@ export default function IpromedDashboard() {
             color="text-emerald-600"
             bgColor="bg-emerald-100 dark:bg-emerald-900/30"
             subtitle="Em vigência"
+            onClick={() => navigate('/ipromed/contracts?status=active')}
           />
           <StatCard
             title="Aguard. Assinatura"
@@ -293,6 +300,7 @@ export default function IpromedDashboard() {
             color="text-purple-600"
             bgColor="bg-purple-100 dark:bg-purple-900/30"
             subtitle="Pendentes"
+            onClick={() => navigate('/ipromed/contracts?status=pending_signature')}
           />
           <StatCard
             title="Processos Ativos"
@@ -301,6 +309,7 @@ export default function IpromedDashboard() {
             color="text-rose-600"
             bgColor="bg-rose-100 dark:bg-rose-900/30"
             subtitle="Em andamento"
+            onClick={() => navigate('/ipromed/cases')}
           />
           <StatCard
             title="Vencendo 30d"
@@ -309,6 +318,7 @@ export default function IpromedDashboard() {
             color="text-amber-600"
             bgColor="bg-amber-100 dark:bg-amber-900/30"
             subtitle="Renovar"
+            onClick={() => navigate('/ipromed/contracts?expiring=true')}
           />
         </div>
       </div>
