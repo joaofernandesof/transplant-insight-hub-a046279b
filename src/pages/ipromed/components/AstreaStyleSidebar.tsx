@@ -248,19 +248,6 @@ export default function AstreaStyleSidebar({
 
         {/* Bottom Navigation */}
         <div className="border-t py-4 px-2 space-y-1">
-          <NavLink
-            to="/ipromed/support"
-            onClick={onMobileClose}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              isCollapsed && "justify-center px-2",
-              "text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <HelpCircle className="h-5 w-5 flex-shrink-0" />
-            {!isCollapsed && <span>Suporte</span>}
-          </NavLink>
-          
           <Separator className="my-2" />
           
           <Button
