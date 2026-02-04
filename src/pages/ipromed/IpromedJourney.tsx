@@ -484,7 +484,6 @@ export default function IpromedJourney() {
                       <div className={cn("w-3 h-3 rounded-full mx-auto mb-2", phase.color)} />
                       <p className="text-xs font-medium text-center px-1 leading-tight">{phase.label}</p>
                       <p className="text-lg font-bold mt-1">{clientsByPhase[phase.id]?.length || 0}</p>
-                      <p className="text-lg font-bold mt-1">{clientsByPhase[phase.id]?.length || 0}</p>
                     </CardContent>
                   </Card>
                 </TooltipTrigger>
@@ -560,23 +559,15 @@ export default function IpromedJourney() {
                               className="bg-card hover:shadow-md transition-shadow cursor-pointer border"
                               onClick={() => setSelectedClient(client)}
                             >
-                              <CardContent className="p-2.5">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Avatar className="h-7 w-7 flex-shrink-0">
-                                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-medium">
+                              <CardContent className="p-3">
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                    <AvatarFallback className={cn("text-xs font-medium text-white", phase.color)}>
                                       {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-xs leading-tight line-clamp-2">{client.name}</p>
-                                  </div>
+                                  <p className="font-medium text-sm leading-tight line-clamp-2 flex-1">{client.name}</p>
                                 </div>
-                                <Badge 
-                                  variant="secondary" 
-                                  className={cn("text-[9px] h-4 px-1.5", phase.color.replace('bg-', 'bg-opacity-20 text-').replace('-500', '-700').replace('-600', '-700'))}
-                                >
-                                  {phase.id}
-                                </Badge>
                               </CardContent>
                             </Card>
                           );
