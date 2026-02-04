@@ -5,7 +5,6 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
   DollarSign,
   ArrowDownLeft,
@@ -15,7 +14,6 @@ import {
   Receipt,
   Building2,
   BarChart3,
-  Bell,
   Wallet,
   Link2,
   Calculator,
@@ -34,8 +32,8 @@ import CostCenters from "./components/financial/CostCenters";
 import InvoicesModule from "./components/financial/InvoicesModule";
 import FinancialReports from "./components/financial/FinancialReports";
 import AccountingIntegration from "./components/financial/AccountingIntegration";
-import FinancialAlerts from "./components/financial/FinancialAlerts";
 import FinancialOverviewDashboard from "./components/financial/FinancialOverviewDashboard";
+import FinancialAlertsPopover from "./components/financial/FinancialAlertsPopover";
 
 const tabs = [
   { id: 'overview', label: 'Visão Geral', icon: PieChart },
@@ -49,11 +47,7 @@ const tabs = [
   { id: 'invoices', label: 'Notas Fiscais', icon: FileText },
   { id: 'reports', label: 'Relatórios', icon: BarChart3 },
   { id: 'accounting', label: 'Contabilidade', icon: Wallet },
-  { id: 'alerts', label: 'Alertas', icon: Bell },
 ];
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
 export default function IpromedFinancial() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -71,6 +65,9 @@ export default function IpromedFinancial() {
             Gestão financeira completa do escritório jurídico
           </p>
         </div>
+        
+        {/* Financial Alerts Bell */}
+        <FinancialAlertsPopover />
       </div>
 
       {/* Tabs Navigation */}
@@ -138,10 +135,6 @@ export default function IpromedFinancial() {
 
         <TabsContent value="accounting" className="mt-6">
           <AccountingIntegration />
-        </TabsContent>
-
-        <TabsContent value="alerts" className="mt-6">
-          <FinancialAlerts />
         </TabsContent>
       </Tabs>
     </div>
