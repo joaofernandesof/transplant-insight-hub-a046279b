@@ -142,153 +142,153 @@ export function GlobalDashboard() {
   })).filter(p => p.value > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header com refresh */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white">Visão Global do Ecossistema</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-lg font-bold text-white">Visão Global do Ecossistema</h2>
+          <p className="text-xs text-slate-400">
             Última atualização: {lastUpdated ? format(lastUpdated, "dd/MM 'às' HH:mm", { locale: ptBR }) : '-'}
           </p>
         </div>
-        <Button onClick={refresh} variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-700">
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <Button onClick={refresh} variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-700 h-7 text-xs">
+          <RefreshCw className="h-3 w-3 mr-1" />
           Atualizar
         </Button>
       </div>
 
-      {/* KPIs Globais */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* KPIs Globais - Compacto */}
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
         <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="h-5 w-5 text-blue-400" />
-              <Badge variant="secondary" className="text-[10px] bg-green-500/20 text-green-400">
-                <ArrowUpRight className="h-3 w-3 mr-1" />
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1">
+              <Users className="h-4 w-4 text-blue-400" />
+              <Badge variant="secondary" className="text-[9px] bg-green-500/20 text-green-400 px-1">
+                <ArrowUpRight className="h-2.5 w-2.5 mr-0.5" />
                 +12%
               </Badge>
             </div>
-            <p className="text-2xl font-bold text-white">{formatNumber(metrics.summary.totalUsers)}</p>
-            <p className="text-xs text-slate-400">Usuários Total</p>
+            <p className="text-xl font-bold text-white">{formatNumber(metrics.summary.totalUsers)}</p>
+            <p className="text-[10px] text-slate-400">Usuários Total</p>
           </CardContent>
         </Card>
 
         <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Activity className="h-5 w-5 text-green-400" />
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1">
+              <Activity className="h-4 w-4 text-green-400" />
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
             </div>
-            <p className="text-2xl font-bold text-white">{formatNumber(metrics.summary.activeUsers24h)}</p>
-            <p className="text-xs text-slate-400">Ativos 24h</p>
+            <p className="text-xl font-bold text-white">{formatNumber(metrics.summary.activeUsers24h)}</p>
+            <p className="text-[10px] text-slate-400">Ativos 24h</p>
           </CardContent>
         </Card>
 
         <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="h-5 w-5 text-emerald-400" />
-              <Badge variant="secondary" className="text-[10px] bg-emerald-500/20 text-emerald-400">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1">
+              <DollarSign className="h-4 w-4 text-emerald-400" />
+              <Badge variant="secondary" className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1">
                 VGV
               </Badge>
             </div>
-            <p className="text-2xl font-bold text-white">{formatCurrency(metrics.summary.totalRevenue)}</p>
-            <p className="text-xs text-slate-400">Receita Total</p>
+            <p className="text-xl font-bold text-white">{formatCurrency(metrics.summary.totalRevenue)}</p>
+            <p className="text-[10px] text-slate-400">Receita Total</p>
           </CardContent>
         </Card>
 
         <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Target className="h-5 w-5 text-purple-400" />
-              <Badge variant="secondary" className="text-[10px] bg-purple-500/20 text-purple-400">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1">
+              <Target className="h-4 w-4 text-purple-400" />
+              <Badge variant="secondary" className="text-[9px] bg-purple-500/20 text-purple-400 px-1">
                 Leads
               </Badge>
             </div>
-            <p className="text-2xl font-bold text-white">{formatNumber(metrics.summary.totalLeads)}</p>
-            <p className="text-xs text-slate-400">Total Leads</p>
+            <p className="text-xl font-bold text-white">{formatNumber(metrics.summary.totalLeads)}</p>
+            <p className="text-[10px] text-slate-400">Total Leads</p>
           </CardContent>
         </Card>
 
         <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Heart className="h-5 w-5 text-rose-400" />
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1">
+              <Heart className="h-4 w-4 text-rose-400" />
             </div>
-            <p className="text-2xl font-bold text-white">{formatNumber(metrics.summary.totalPatients)}</p>
-            <p className="text-xs text-slate-400">Pacientes</p>
+            <p className="text-xl font-bold text-white">{formatNumber(metrics.summary.totalPatients)}</p>
+            <p className="text-[10px] text-slate-400">Pacientes</p>
           </CardContent>
         </Card>
 
         <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="h-5 w-5 text-amber-400" />
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1">
+              <TrendingUp className="h-4 w-4 text-amber-400" />
             </div>
-            <p className="text-2xl font-bold text-white">{formatPercentage(metrics.summary.conversionRate)}</p>
-            <p className="text-xs text-slate-400">Conversão</p>
+            <p className="text-xl font-bold text-white">{formatPercentage(metrics.summary.conversionRate)}</p>
+            <p className="text-[10px] text-slate-400">Conversão</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabs de Visualização */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-slate-800/50 border border-slate-700/50 p-1">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+        <TabsList className="bg-slate-800/50 border border-slate-700/50 p-0.5 h-8">
+          <TabsTrigger value="overview" className="text-xs h-7 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="portals" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsTrigger value="portals" className="text-xs h-7 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             Por Portal
           </TabsTrigger>
-          <TabsTrigger value="trends" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsTrigger value="trends" className="text-xs h-7 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             Tendências
           </TabsTrigger>
-          <TabsTrigger value="health" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          <TabsTrigger value="health" className="text-xs h-7 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
             Saúde
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="mt-4 space-y-6">
-          <div className="grid lg:grid-cols-1 gap-6">
+        <TabsContent value="overview" className="mt-3 space-y-3">
+          <div className="grid lg:grid-cols-1 gap-3">
             {/* Cards de Portais */}
             <Card className="bg-slate-800/50 border-slate-700/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white flex items-center gap-2">
-                  <Activity className="h-4 w-4" />
+              <CardHeader className="py-2 px-4">
+                <CardTitle className="text-xs font-medium text-white flex items-center gap-2">
+                  <Activity className="h-3 w-3" />
                   Atividade por Portal
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="px-4 pb-3 pt-0 space-y-2">
                 {metrics.portals.map((portal) => {
                   const Icon = PORTAL_ICONS[portal.id] || Users;
                   return (
                     <div
                       key={portal.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 cursor-pointer transition-colors"
+                      className="flex items-center justify-between p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 cursor-pointer transition-colors"
                       onClick={() => navigate(PORTAL_PATHS[portal.id] || '/')}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <div
-                          className="p-2 rounded-lg"
+                          className="p-1.5 rounded-lg"
                           style={{ backgroundColor: `${PORTAL_COLORS[portal.id]}20` }}
                         >
-                          <Icon className="h-4 w-4" style={{ color: PORTAL_COLORS[portal.id] }} />
+                          <Icon className="h-3.5 w-3.5" style={{ color: PORTAL_COLORS[portal.id] }} />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-white">{portal.name}</p>
-                          <p className="text-xs text-slate-400">{formatNumber(portal.totalUsers)} usuários</p>
+                          <p className="text-xs font-medium text-white">{portal.name}</p>
+                          <p className="text-[10px] text-slate-400">{formatNumber(portal.totalUsers)} usuários</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <Badge
                           variant="secondary"
-                          className={`text-[10px] ${portal.trend > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}
+                          className={`text-[9px] px-1 ${portal.trend > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}
                         >
-                          {portal.trend > 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
+                          {portal.trend > 0 ? <ArrowUpRight className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDownRight className="h-2.5 w-2.5 mr-0.5" />}
                           {portal.trend}%
                         </Badge>
-                        <p className="text-xs text-slate-400 mt-1">{portal.recentActivity} ativ. recente</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{portal.recentActivity} ativ. recente</p>
                       </div>
                     </div>
                   );
@@ -298,15 +298,15 @@ export function GlobalDashboard() {
           </div>
 
           {/* Métricas Específicas */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-2">
             {/* Academy */}
             <Card className="bg-slate-800/50 border-slate-700/50 border-l-4 border-l-emerald-500">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <GraduationCap className="h-5 w-5 text-emerald-400" />
-                  <span className="font-medium text-white">Academy</span>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <GraduationCap className="h-4 w-4 text-emerald-400" />
+                  <span className="text-sm font-medium text-white">Academy</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <p className="text-slate-400">Alunos</p>
                     <p className="text-white font-bold">{metrics.academy.totalStudents}</p>
@@ -329,12 +329,12 @@ export function GlobalDashboard() {
 
             {/* Avivar */}
             <Card className="bg-slate-800/50 border-slate-700/50 border-l-4 border-l-purple-500">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Zap className="h-5 w-5 text-purple-400" />
-                  <span className="font-medium text-white">Avivar</span>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="h-4 w-4 text-purple-400" />
+                  <span className="text-sm font-medium text-white">Avivar</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <p className="text-slate-400">Leads Total</p>
                     <p className="text-white font-bold">{formatNumber(metrics.avivar.totalLeads)}</p>
@@ -357,12 +357,12 @@ export function GlobalDashboard() {
 
             {/* NeoCare */}
             <Card className="bg-slate-800/50 border-slate-700/50 border-l-4 border-l-rose-500">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Heart className="h-5 w-5 text-rose-400" />
-                  <span className="font-medium text-white">NeoCare</span>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Heart className="h-4 w-4 text-rose-400" />
+                  <span className="text-sm font-medium text-white">NeoCare</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <p className="text-slate-400">Pacientes</p>
                     <p className="text-white font-bold">{metrics.neocare.totalPatients}</p>
@@ -385,12 +385,12 @@ export function GlobalDashboard() {
 
             {/* IPROMED */}
             <Card className="bg-slate-800/50 border-slate-700/50 border-l-4 border-l-indigo-500">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Scale className="h-5 w-5 text-indigo-400" />
-                  <span className="font-medium text-white">IPROMED</span>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Scale className="h-4 w-4 text-indigo-400" />
+                  <span className="text-sm font-medium text-white">IPROMED</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <p className="text-slate-400">Casos Total</p>
                     <p className="text-white font-bold">{metrics.ipromed.totalCases}</p>
@@ -414,8 +414,8 @@ export function GlobalDashboard() {
         </TabsContent>
 
         {/* Portals Tab */}
-        <TabsContent value="portals" className="mt-4 space-y-4">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TabsContent value="portals" className="mt-3 space-y-3">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
             {metrics.portals.map((portal) => {
               const Icon = PORTAL_ICONS[portal.id] || Users;
               return (

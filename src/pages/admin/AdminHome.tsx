@@ -132,22 +132,22 @@ export default function AdminHome() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 p-4 lg:p-6 overflow-x-hidden w-full space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 p-3 lg:p-4 overflow-x-hidden w-full space-y-3">
       {/* Breadcrumb */}
       <GlobalBreadcrumb />
       
-      {/* Portal Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-800 via-slate-800/80 to-blue-900/30 border border-slate-700/50 p-6">
+      {/* Portal Banner - Compacto */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-800 via-slate-800/80 to-blue-900/30 border border-slate-700/50 p-4">
         <div className="absolute inset-0 bg-grid-white/[0.02]" />
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <Shield className="h-7 w-7 text-white" />
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Portal Administrativo</h1>
-              <p className="text-slate-400">Bem-vindo, {user?.name?.split(' ')[0] || 'Administrador'}</p>
+              <h1 className="text-xl font-bold text-white">Portal Administrativo</h1>
+              <p className="text-sm text-slate-400">Bem-vindo, {user?.name?.split(' ')[0] || 'Administrador'}</p>
             </div>
           </div>
           <Button
@@ -166,93 +166,90 @@ export default function AdminHome() {
         onOpenChange={setIsNotificationDialogOpen}
       />
 
-      {/* GlobalDashboard - todas as métricas consolidadas */}
-      <GlobalDashboard />
-
-      {/* Separador visual */}
-      <div className="border-t border-slate-700/50" />
-
-      {/* Portais do NeoHub */}
-      <div className="rounded-2xl bg-slate-800/50 border border-slate-700/50 p-5">
-        <div className="flex items-center gap-2 mb-4">
+      {/* Portais do NeoHub - PRIMEIRO após o banner */}
+      <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-3">
+        <div className="flex items-center gap-2 mb-2">
           <Eye className="h-4 w-4 text-blue-400" />
-          <h3 className="text-sm font-semibold text-white">Portais do NeoHub</h3>
+          <h3 className="text-xs font-semibold text-white uppercase tracking-wide">Portais do NeoHub</h3>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
           {portals.map((portal) => (
             <button
               key={portal.id}
               onClick={() => navigate(portal.path)}
-              className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
+              className="group flex flex-col items-center gap-1.5 p-2 rounded-lg border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-700/30 transition-all"
             >
-              <div className={`p-2.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
-                <portal.icon className="h-5 w-5" />
+              <div className={`p-2 rounded-lg bg-gradient-to-br ${portal.gradient} text-white shadow-md`}>
+                <portal.icon className="h-4 w-4" />
               </div>
-              <span className="text-xs font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
+              <span className="text-[10px] font-medium text-center leading-tight text-slate-300 group-hover:text-white">{portal.title}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Stats Row - Métricas do Sistema */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-blue-600 rounded-l-xl" />
+      {/* Stats Row - Métricas do Sistema - Compacto */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="rounded-lg bg-slate-800/50 border border-slate-700/50 p-3 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-blue-600 rounded-l-lg" />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-400">Total Usuários</p>
-              <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300 mt-1 inline-block">
+              <p className="text-[10px] text-slate-400">Total Usuários</p>
+              <p className="text-xl font-bold text-white">{stats.totalUsers}</p>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/50 text-slate-300 inline-block">
                 {stats.activeUsers} ativos
               </span>
             </div>
-            <Users className="h-8 w-8 text-blue-400 opacity-80" />
+            <Users className="h-6 w-6 text-blue-400 opacity-80" />
           </div>
         </div>
 
-        <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-green-600 rounded-l-xl" />
+        <div className="rounded-lg bg-slate-800/50 border border-slate-700/50 p-3 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-green-600 rounded-l-lg" />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-400">Online Agora</p>
-              <p className="text-2xl font-bold text-white">{stats.onlineUsers}</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 mt-1 inline-flex items-center gap-1">
-                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              <p className="text-[10px] text-slate-400">Online Agora</p>
+              <p className="text-xl font-bold text-white">{stats.onlineUsers}</p>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 inline-flex items-center gap-1">
+                <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" />
                 Ativos
               </span>
             </div>
-            <Activity className="h-8 w-8 text-green-400 opacity-80" />
+            <Activity className="h-6 w-6 text-green-400 opacity-80" />
           </div>
         </div>
 
-        <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-amber-600 rounded-l-xl" />
+        <div className="rounded-lg bg-slate-800/50 border border-slate-700/50 p-3 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-amber-600 rounded-l-lg" />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-400">Licenciados</p>
-              <p className="text-2xl font-bold text-white">{stats.totalLicensees}</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300 mt-1 inline-block">
+              <p className="text-[10px] text-slate-400">Licenciados</p>
+              <p className="text-xl font-bold text-white">{stats.totalLicensees}</p>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/50 text-slate-300 inline-block">
                 Ativos
               </span>
             </div>
-            <Award className="h-8 w-8 text-amber-400 opacity-80" />
+            <Award className="h-6 w-6 text-amber-400 opacity-80" />
           </div>
         </div>
 
-        <div className="rounded-xl bg-slate-800/50 border border-slate-700/50 p-4 relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-l-xl" />
+        <div className="rounded-lg bg-slate-800/50 border border-slate-700/50 p-3 relative overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-l-lg" />
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-400">Alunos</p>
-              <p className="text-2xl font-bold text-white">{stats.totalStudents}</p>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300 mt-1 inline-block">
+              <p className="text-[10px] text-slate-400">Alunos</p>
+              <p className="text-xl font-bold text-white">{stats.totalStudents}</p>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/50 text-slate-300 inline-block">
                 Matriculados
               </span>
             </div>
-            <GraduationCap className="h-8 w-8 text-indigo-400 opacity-80" />
+            <GraduationCap className="h-6 w-6 text-indigo-400 opacity-80" />
           </div>
         </div>
       </div>
+
+      {/* GlobalDashboard - todas as métricas consolidadas */}
+      <GlobalDashboard />
 
       {/* Gráficos de Tendência */}
       <AdminTrendCharts />
