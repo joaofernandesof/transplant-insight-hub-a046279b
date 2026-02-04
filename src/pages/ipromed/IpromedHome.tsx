@@ -83,18 +83,6 @@ export default function IpromedHome() {
       <PortalBanner
         portal="ipromed"
         icon={<Scale className="h-6 w-6 text-white" />}
-        rightContent={
-          <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={() => navigate('/ipromed/legal')}>
-              <Scale className="h-4 w-4 mr-2" />
-              Abrir Legal Hub
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => navigate('/ipromed/clients')}>
-              <Users className="h-4 w-4 mr-2" />
-              Gerenciar Clientes
-            </Button>
-          </div>
-        }
       />
 
       {/* Task Stats Cards - Resumo visual */}
