@@ -76,10 +76,23 @@ import { YesNoSelector } from "./YesNoSelector";
 import { WeeklyScheduleInput, defaultWeeklySchedule, type WeeklySchedule } from "./WeeklyScheduleInput";
 
 // Helper para destacar campos não preenchidos - aplicar no input/select
-const getInputHighlight = (value: string | number | boolean | undefined | null | unknown[]) => {
+const getInputHighlight = (value: string | number | boolean | undefined | null | unknown[], hasError?: boolean) => {
+  // Se tem erro explícito, destacar em vermelho
+  if (hasError) {
+    return "bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-500 ring-2 ring-red-500/30";
+  }
+  // Campos não preenchidos (aviso leve)
   if (value === undefined || value === null || value === "" || value === 0 || 
       (Array.isArray(value) && value.length === 0)) {
     return "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700";
+  }
+  return "";
+};
+
+// Helper para FormItem com erro
+const getFormItemError = (hasError?: boolean) => {
+  if (hasError) {
+    return "animate-pulse";
   }
   return "";
 };
@@ -267,7 +280,8 @@ const sections: SectionConfig[] = [
     emoji: "📲", 
     fields: ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "3.2.5", "3.2.6"],
     requiredFields: [
-      { name: "whatsappPrincipal", label: "WhatsApp principal" },
+      { name: "contatoPrincipal.nome" as keyof OnboardingMeetingData, label: "Nome do contato principal" },
+      { name: "contatoPrincipal.whatsapp" as keyof OnboardingMeetingData, label: "WhatsApp do contato principal" },
     ]
   },
   { 
@@ -412,6 +426,7 @@ export default function OnboardingMeetingAgenda({
     return savedCheckpoint?.completedSections ?? [];
   });
   const [isRestored, setIsRestored] = useState(false);
+  const [fieldsWithError, setFieldsWithError] = useState<string[]>([]);
   
   // Controlar qual seção está expandida (apenas a atual)
   const currentSection = sections[currentSectionIndex];
@@ -686,35 +701,70 @@ export default function OnboardingMeetingAgenda({
     if (!section) return;
 
     const formValues = form.getValues();
-    const missingFields: string[] = [];
+    const missingFields: { name: string; label: string }[] = [];
 
-    // Verificar campos obrigatórios
+    // Verificar campos obrigatórios (suporta campos aninhados como "contatoPrincipal.nome")
     for (const field of section.requiredFields) {
-      const value = formValues[field.name];
+      const fieldName = field.name as string;
+      let value: unknown;
+      
+      if (fieldName.includes('.')) {
+        // Campo aninhado
+        const parts = fieldName.split('.');
+        value = parts.reduce((obj: any, key) => obj?.[key], formValues);
+      } else {
+        value = formValues[field.name];
+      }
+      
       const isEmpty = value === undefined || value === null || value === "" || 
         (Array.isArray(value) && value.length === 0);
       
       if (isEmpty) {
-        missingFields.push(field.label);
+        missingFields.push({ name: fieldName, label: field.label });
       }
     }
 
     if (missingFields.length > 0) {
+      // Marcar campos com erro
+      const errorFieldNames = missingFields.map(f => f.name);
+      setFieldsWithError(errorFieldNames);
+
       toast.error("Preencha os campos obrigatórios", {
         description: (
           <div className="mt-2">
             <p className="font-medium mb-1">Campos faltando:</p>
             <ul className="list-disc list-inside text-sm">
               {missingFields.map((field, i) => (
-                <li key={i}>{field}</li>
+                <li key={i}>{field.label}</li>
               ))}
             </ul>
           </div>
         ),
         duration: 5000,
       });
+
+      // Scroll para o primeiro campo com erro
+      setTimeout(() => {
+        const firstErrorField = errorFieldNames[0];
+        // Tentar encontrar o campo pelo atributo data-field-name ou name
+        const fieldElement = document.querySelector(
+          `[data-field-name="${firstErrorField}"], [name="${firstErrorField}"], [id="${firstErrorField}"]`
+        );
+        
+        if (fieldElement) {
+          fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Focar no campo se for um input
+          if (fieldElement instanceof HTMLInputElement || fieldElement instanceof HTMLTextAreaElement) {
+            fieldElement.focus();
+          }
+        }
+      }, 100);
+
       return;
     }
+
+    // Limpar erros ao validar com sucesso
+    setFieldsWithError([]);
 
     // Marcar como concluída
     if (!completedSections.includes(sectionId)) {
@@ -982,16 +1032,20 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="nomeCompleto"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFormItemError(fieldsWithError.includes("nomeCompleto")))}>
                           <FormLabel>🪪 Nome completo do cliente <span className="text-destructive">*</span></FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="João da Silva Pereira" 
-                              className={cn(getInputHighlight(field.value))}
+                              data-field-name="nomeCompleto"
+                              className={cn(getInputHighlight(field.value, fieldsWithError.includes("nomeCompleto")))}
                               {...field} 
                             />
                           </FormControl>
                           <FormDescription className="text-xs">Conferir grafia</FormDescription>
+                          {fieldsWithError.includes("nomeCompleto") && (
+                            <p className="text-sm text-destructive font-medium">⚠️ Campo obrigatório</p>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1458,15 +1512,19 @@ export default function OnboardingMeetingAgenda({
                           control={form.control}
                           name="contatoPrincipal.nome"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">👤 Nome</FormLabel>
+                            <FormItem className={cn(getFormItemError(fieldsWithError.includes("contatoPrincipal.nome")))}>
+                              <FormLabel className="text-xs">👤 Nome <span className="text-destructive">*</span></FormLabel>
                               <FormControl>
                                 <Input 
                                   placeholder="João da Silva" 
+                                  data-field-name="contatoPrincipal.nome"
                                   {...field} 
-                                  className={cn("h-9", getInputHighlight(field.value))} 
+                                  className={cn("h-9", getInputHighlight(field.value, fieldsWithError.includes("contatoPrincipal.nome")))} 
                                 />
                               </FormControl>
+                              {fieldsWithError.includes("contatoPrincipal.nome") && (
+                                <p className="text-xs text-destructive font-medium">⚠️ Obrigatório</p>
+                              )}
                             </FormItem>
                           )}
                         />
@@ -1507,16 +1565,20 @@ export default function OnboardingMeetingAgenda({
                           control={form.control}
                           name="contatoPrincipal.whatsapp"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">📱 WhatsApp</FormLabel>
+                            <FormItem className={cn(getFormItemError(fieldsWithError.includes("contatoPrincipal.whatsapp")))}>
+                              <FormLabel className="text-xs">📱 WhatsApp <span className="text-destructive">*</span></FormLabel>
                               <FormControl>
                                 <PhoneInput 
                                   placeholder="(85) 99999-9999" 
+                                  data-field-name="contatoPrincipal.whatsapp"
                                   value={field.value}
                                   onChange={field.onChange}
-                                  className={cn("h-9", getInputHighlight(field.value))} 
+                                  className={cn("h-9", getInputHighlight(field.value, fieldsWithError.includes("contatoPrincipal.whatsapp")))} 
                                 />
                               </FormControl>
+                              {fieldsWithError.includes("contatoPrincipal.whatsapp") && (
+                                <p className="text-xs text-destructive font-medium">⚠️ Obrigatório</p>
+                              )}
                             </FormItem>
                           )}
                         />
