@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   Popover,
   PopoverContent,
@@ -42,7 +42,6 @@ import {
 import {
   X,
   Calendar as CalendarIcon,
-  Clock,
   MapPin,
   Video,
   Users,
@@ -50,13 +49,9 @@ import {
   FileText,
   ChevronDown,
   Plus,
-  Trash2,
   ClipboardList,
-  CheckCircle2,
   Loader2,
   ExternalLink,
-  Link as LinkIcon,
-  MoreHorizontal,
   Save,
 } from "lucide-react";
 import { format, parse } from "date-fns";
@@ -123,7 +118,6 @@ export function MeetingEditDialog({
   clientName,
 }: MeetingEditDialogProps) {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'details' | 'agenda'>('details');
   const [showOnboardingAgenda, setShowOnboardingAgenda] = useState(false);
   
   // Form state
@@ -136,8 +130,6 @@ export function MeetingEditDialog({
   const [location, setLocation] = useState('');
   const [meetingLink, setMeetingLink] = useState('');
   const [agendaType, setAgendaType] = useState('');
-  const [agendaTopics, setAgendaTopics] = useState<string[]>([]);
-  const [newTopic, setNewTopic] = useState('');
   const [participants, setParticipants] = useState<string[]>([]);
   const [newParticipant, setNewParticipant] = useState('');
   const [reminderMinutes, setReminderMinutes] = useState(30);
@@ -154,7 +146,6 @@ export function MeetingEditDialog({
       setLocation(meeting.location || '');
       setMeetingLink(meeting.meeting_link || '');
       setAgendaType(meeting.agenda_type || '');
-      setAgendaTopics(meeting.agenda_topics || []);
       setParticipants((meeting as any).participants || []);
     }
   }, [meeting]);
@@ -199,19 +190,7 @@ export function MeetingEditDialog({
       location: modality === 'presential' ? location : '',
       meeting_link: modality === 'virtual' ? meetingLink : '',
       agenda_type: agendaType,
-      agenda_topics: agendaTopics,
     } as any);
-  };
-
-  const handleAddTopic = () => {
-    if (newTopic.trim()) {
-      setAgendaTopics([...agendaTopics, newTopic.trim()]);
-      setNewTopic('');
-    }
-  };
-
-  const handleRemoveTopic = (index: number) => {
-    setAgendaTopics(agendaTopics.filter((_, i) => i !== index));
   };
 
   const handleAddParticipant = () => {
@@ -357,162 +336,155 @@ export function MeetingEditDialog({
 
             <Separator />
 
-            {/* Tabs: Detalhes | Pautas */}
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-              <TabsList className="mb-4">
-                <TabsTrigger value="details" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Detalhes do evento
-                </TabsTrigger>
-                <TabsTrigger value="agenda" className="gap-2">
-                  <ClipboardList className="h-4 w-4" />
-                  Pautas & Checklists
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Details Tab */}
-              <TabsContent value="details" className="space-y-4 mt-0">
-                {/* Meeting Link / Location */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "p-2 rounded-lg",
-                      modality === 'virtual' ? "bg-blue-100 text-blue-600" : "bg-amber-100 text-amber-600"
-                    )}>
-                      {modality === 'virtual' ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="flex gap-2">
-                        <Button
-                          variant={modality === 'virtual' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setModality('virtual')}
-                        >
-                          Virtual
-                        </Button>
-                        <Button
-                          variant={modality === 'presential' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setModality('presential')}
-                        >
-                          Presencial
-                        </Button>
-                      </div>
-                      {modality === 'virtual' ? (
-                        <Input
-                          placeholder="Link da reunião (Google Meet, Zoom, etc.)"
-                          value={meetingLink}
-                          onChange={(e) => setMeetingLink(e.target.value)}
-                          className="text-sm"
-                        />
-                      ) : (
-                        <Input
-                          placeholder="Endereço do local"
-                          value={location}
-                          onChange={(e) => setLocation(e.target.value)}
-                          className="text-sm"
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notification */}
+            {/* All Details in single view - no tabs */}
+            <div className="space-y-4">
+              {/* Meeting Link / Location */}
+              <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-muted">
-                    <Bell className="h-4 w-4 text-muted-foreground" />
+                  <div className={cn(
+                    "p-2 rounded-lg",
+                    modality === 'virtual' ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400" : "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-400"
+                  )}>
+                    {modality === 'virtual' ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Select value={reminderMinutes.toString()} onValueChange={(v) => setReminderMinutes(Number(v))}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10 minutos antes</SelectItem>
-                        <SelectItem value="30">30 minutos antes</SelectItem>
-                        <SelectItem value="60">1 hora antes</SelectItem>
-                        <SelectItem value="1440">1 dia antes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button variant="link" size="sm" className="text-primary">
-                      Adicionar notificação
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    Descrição
-                  </Label>
-                  <Textarea
-                    placeholder="Adicione uma descrição ou notas para a reunião..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-
-                {/* Participants */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    Participantes
-                  </Label>
-                  
-                  {/* Client as participant */}
-                  {clientName && (
-                    <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
-                        {clientName.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{clientName}</p>
-                        <p className="text-xs text-muted-foreground">Cliente</p>
-                      </div>
-                      <Badge variant="outline" className="text-xs">Organizador</Badge>
-                    </div>
-                  )}
-
-                  {/* Additional participants */}
-                  {participants.map((participant, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground text-sm font-medium">
-                        {participant.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="flex-1 text-sm">{participant}</span>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex gap-2">
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() => handleRemoveParticipant(index)}
+                        variant={modality === 'virtual' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setModality('virtual')}
                       >
-                        <X className="h-3 w-3" />
+                        Virtual
+                      </Button>
+                      <Button
+                        variant={modality === 'presential' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setModality('presential')}
+                      >
+                        Presencial
                       </Button>
                     </div>
-                  ))}
-
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Adicionar participante (email ou nome)"
-                      value={newParticipant}
-                      onChange={(e) => setNewParticipant(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddParticipant()}
-                      className="flex-1"
-                    />
-                    <Button size="sm" onClick={handleAddParticipant}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    {modality === 'virtual' ? (
+                      <Input
+                        placeholder="Link da reunião (Google Meet, Zoom, etc.)"
+                        value={meetingLink}
+                        onChange={(e) => setMeetingLink(e.target.value)}
+                        className="text-sm"
+                      />
+                    ) : (
+                      <Input
+                        placeholder="Endereço do local"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        className="text-sm"
+                      />
+                    )}
                   </div>
                 </div>
-              </TabsContent>
+              </div>
 
-              {/* Agenda/Checklist Tab */}
-              <TabsContent value="agenda" className="space-y-4 mt-0">
+              {/* Notification */}
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-muted">
+                  <Bell className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select value={reminderMinutes.toString()} onValueChange={(v) => setReminderMinutes(Number(v))}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 minutos antes</SelectItem>
+                      <SelectItem value="30">30 minutos antes</SelectItem>
+                      <SelectItem value="60">1 hora antes</SelectItem>
+                      <SelectItem value="1440">1 dia antes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="link" size="sm" className="text-primary">
+                    Adicionar notificação
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  Descrição
+                </Label>
+                <Textarea
+                  placeholder="Adicione uma descrição ou notas para a reunião..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+
+              {/* Participants */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  Participantes
+                </Label>
+                
+                {/* Client as participant */}
+                {clientName && (
+                  <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
+                      {clientName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{clientName}</p>
+                      <p className="text-xs text-muted-foreground">Cliente</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs">Organizador</Badge>
+                  </div>
+                )}
+
+                {/* Additional participants */}
+                {participants.map((participant, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground text-sm font-medium">
+                      {participant.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="flex-1 text-sm">{participant}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleRemoveParticipant(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Adicionar participante (email ou nome)"
+                    value={newParticipant}
+                    onChange={(e) => setNewParticipant(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddParticipant()}
+                    className="flex-1"
+                  />
+                  <Button size="sm" onClick={handleAddParticipant}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Checklists Section */}
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2 text-sm font-medium">
+                  <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                  Checklists da Reunião
+                </Label>
+
                 {/* Onboarding Checklist Card */}
                 {isOnboardingMeeting && (
                   <div 
@@ -541,60 +513,13 @@ export function MeetingEditDialog({
                   </div>
                 )}
 
-                {/* Custom Topics */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Tópicos de Pauta</Label>
-                  
-                  {agendaTopics.length > 0 && (
-                    <div className="space-y-2">
-                      {agendaTopics.map((topic, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30"
-                        >
-                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-sm flex items-center justify-center shrink-0">
-                            {index + 1}
-                          </span>
-                          <span className="flex-1 text-sm">{topic}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                            onClick={() => handleRemoveTopic(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Adicionar tópico de pauta..."
-                      value={newTopic}
-                      onChange={(e) => setNewTopic(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddTopic()}
-                    />
-                    <Button onClick={handleAddTopic}>
-                      <Plus className="h-4 w-4 mr-1" />
-                      Adicionar
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Additional Checklists */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Checklists Adicionais</Label>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar checklist de pauta
-                  </Button>
-                </div>
-              </TabsContent>
-            </Tabs>
+                {/* Option to add more checklists */}
+                <Button variant="outline" className="w-full justify-start">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar checklist
+                </Button>
+              </div>
+            </div>
           </div>
         </ScrollArea>
       </DialogContent>
