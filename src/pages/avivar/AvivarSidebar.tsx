@@ -163,6 +163,8 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
+  const isInboxRoute = location.pathname.startsWith('/avivar/inbox');
 
   if (isMobile) {
     return (
@@ -192,7 +194,13 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
             </Sheet>
           </div>
         </header>
-        <main className="flex-1 overflow-auto bg-[hsl(var(--avivar-background))]">
+        <main
+          className={cn(
+            'flex-1 bg-[hsl(var(--avivar-background))]',
+            // Inbox precisa ser "fixed" (sem scroll da página): scrolls ficam internos nas colunas
+            isInboxRoute ? 'overflow-hidden h-[calc(100vh-56px)]' : 'overflow-auto'
+          )}
+        >
           {children}
         </main>
       </div>
@@ -200,7 +208,13 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[hsl(var(--avivar-background))]">
+    <div
+      className={cn(
+        'flex bg-[hsl(var(--avivar-background))]',
+        // Inbox precisa ser "fixed" (sem scroll da página): scrolls ficam internos nas colunas
+        isInboxRoute ? 'h-screen overflow-hidden' : 'min-h-screen'
+      )}
+    >
       {/* Sidebar */}
       <aside className={cn(
         'fixed left-0 top-0 h-screen transition-all duration-300 z-40',
@@ -218,10 +232,14 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
       </aside>
 
       {/* Main Content */}
-      <main className={cn(
-        'flex-1 min-h-screen transition-all duration-300 bg-[hsl(var(--avivar-background))]',
-        collapsed ? 'ml-16' : 'ml-64'
-      )}>
+      <main
+        className={cn(
+          'flex-1 transition-all duration-300 bg-[hsl(var(--avivar-background))] min-w-0',
+          collapsed ? 'ml-16' : 'ml-64',
+          // Inbox precisa ser "fixed" (sem scroll da página): scrolls ficam internos nas colunas
+          isInboxRoute ? 'h-screen overflow-hidden' : 'min-h-screen'
+        )}
+      >
         {children}
       </main>
     </div>

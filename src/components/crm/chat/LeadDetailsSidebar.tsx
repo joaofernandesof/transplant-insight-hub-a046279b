@@ -160,7 +160,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
 
   return (
     <>
-    <div className="h-full flex flex-col bg-[hsl(var(--avivar-card))] border-l border-[hsl(var(--avivar-border))]">
+    <div className="h-full min-h-0 flex flex-col bg-[hsl(var(--avivar-card))] border-l border-[hsl(var(--avivar-border))]">
       {/* Header */}
       <div className="p-4 border-b border-[hsl(var(--avivar-border))]">
         <div className="flex items-center justify-between">
@@ -260,7 +260,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
       </AlertDialog>
 
       {/* Content with visible scrollbar */}
-      <div className="flex-1 overflow-y-scroll scrollbar-avivar">
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-avivar">
         <div className="p-4 space-y-4">
           {/* Contato */}
           <Collapsible open={isContactOpen} onOpenChange={setIsContactOpen}>

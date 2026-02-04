@@ -117,7 +117,7 @@ export function PatientJourneyDetailsSidebar({ journey, onJourneyUpdated }: Pati
   };
 
   return (
-    <div className="h-full flex flex-col bg-[hsl(var(--avivar-card))]">
+    <div className="h-full min-h-0 flex flex-col bg-[hsl(var(--avivar-card))]">
       {/* Header */}
       <div className="p-4 border-b border-[hsl(var(--avivar-border))]">
         <div className="flex items-start gap-3">
@@ -182,7 +182,7 @@ export function PatientJourneyDetailsSidebar({ journey, onJourneyUpdated }: Pati
         )}
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-4 space-y-4">
           {/* Contato */}
           <Collapsible open={isContactOpen} onOpenChange={setIsContactOpen}>

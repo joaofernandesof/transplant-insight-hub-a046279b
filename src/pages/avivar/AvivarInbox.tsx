@@ -29,8 +29,8 @@ export default function AvivarInbox() {
   }, []);
 
   return (
-    <div className="h-full overflow-hidden flex flex-col min-h-0">
-      <div className="flex-1 min-h-0 h-full [&_.bg-background]:bg-[hsl(var(--avivar-card))] [&_.bg-card]:bg-[hsl(var(--avivar-card))] [&_.border]:border-[hsl(var(--avivar-border))] [&_.text-foreground]:text-[hsl(var(--avivar-foreground))] [&_.text-muted-foreground]:text-[hsl(var(--avivar-muted-foreground))] [&_.text-card-foreground]:text-[hsl(var(--avivar-card-foreground))]">
+    <div className="h-full lg:h-screen overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 min-h-0 [&_.bg-background]:bg-[hsl(var(--avivar-card))] [&_.bg-card]:bg-[hsl(var(--avivar-card))] [&_.border]:border-[hsl(var(--avivar-border))] [&_.text-foreground]:text-[hsl(var(--avivar-foreground))] [&_.text-muted-foreground]:text-[hsl(var(--avivar-muted-foreground))] [&_.text-card-foreground]:text-[hsl(var(--avivar-card-foreground))]">
         <CrmInbox initialLeadId={leadId || undefined} initialPhone={phone || undefined} />
       </div>
     </div>
