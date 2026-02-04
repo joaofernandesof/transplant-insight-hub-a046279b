@@ -882,6 +882,37 @@ export default function OnboardingMeetingAgenda({
                       )}
                     />
 
+                    {form.watch("usaDocumentosHoje") && (
+                      <div className="md:col-span-2 p-3 border rounded-lg bg-muted/30">
+                        <FormLabel className="text-sm font-medium">📋 Documentos existentes</FormLabel>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                          {documentosOptions.map(doc => (
+                            <FormField
+                              key={doc}
+                              control={form.control}
+                              name="documentosExistentes"
+                              render={({ field }) => (
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(doc)}
+                                      onCheckedChange={(checked) => {
+                                        const newValue = checked
+                                          ? [...(field.value || []), doc]
+                                          : field.value?.filter((v: string) => v !== doc) || [];
+                                        field.onChange(newValue);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">{doc}</FormLabel>
+                                </FormItem>
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <FormField
                       control={form.control}
                       name="quemPreenche"
@@ -933,35 +964,6 @@ export default function OnboardingMeetingAgenda({
                         )}
                       />
                     )}
-
-                    <div className="md:col-span-2">
-                      <FormLabel className="text-sm font-medium">📋 Documentos existentes</FormLabel>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                        {documentosOptions.map(doc => (
-                          <FormField
-                            key={doc}
-                            control={form.control}
-                            name="documentosExistentes"
-                            render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(doc)}
-                                    onCheckedChange={(checked) => {
-                                      const newValue = checked
-                                        ? [...(field.value || []), doc]
-                                        : field.value?.filter((v: string) => v !== doc) || [];
-                                      field.onChange(newValue);
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-sm font-normal">{doc}</FormLabel>
-                              </FormItem>
-                            )}
-                          />
-                        ))}
-                      </div>
-                    </div>
                   </div>
                   <div className="flex justify-end mt-4">
                     <Button 
