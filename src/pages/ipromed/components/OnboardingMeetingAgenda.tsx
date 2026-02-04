@@ -1422,9 +1422,9 @@ export default function OnboardingMeetingAgenda({
                           name="dataSugeridaTreinamento"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>🗓️ Data sugerida</FormLabel>
+                              <FormLabel>🗓️ Data do treinamento</FormLabel>
                               <FormControl>
-                                <Input type="date" {...field} />
+                                <Input type="datetime-local" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
