@@ -1,5 +1,5 @@
 /**
- * IPROMED - Meeting Tool
+ * CPG Advocacia Médica - Meeting Tool
  * Ferramenta completa para reuniões com checklists jurídicos
  */
 
@@ -74,7 +74,7 @@ const legalMoments = [
     icon: Users,
     description: 'Primeira reunião e coleta de informações',
     checklist: [
-      'Apresentação da equipe e metodologia IPROMED',
+      'Apresentação da equipe e metodologia CPG Advocacia Médica',
       'Coleta de documentos pessoais e profissionais',
       'Mapeamento de exposição atual (clínicas, hospitais)',
       'Levantamento de processos existentes',

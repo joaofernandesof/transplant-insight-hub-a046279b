@@ -1,5 +1,5 @@
 /**
- * IPROMED - Gestão de Contratos
+ * CPG Advocacia Médica - Gestão de Contratos
  */
 
 import { useState } from "react";

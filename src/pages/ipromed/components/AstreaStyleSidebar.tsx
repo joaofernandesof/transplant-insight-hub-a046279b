@@ -1,5 +1,5 @@
 /**
- * IPROMED - Astrea-style Sidebar Navigation
+ * CPG Advocacia Médica - Astrea-style Sidebar Navigation
  * Navegação lateral inspirada no Astrea
  */
 
@@ -62,7 +62,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', isNew: true, tourId: 'sidebar-ai' },
 ];
 
-// IPROMED - Educacional
+// CPG Advocacia Médica - Educacional
 const ipromedNavItems: NavItem[] = [
   { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', isNew: true, tourId: 'sidebar-university' },
   { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
@@ -133,7 +133,7 @@ export default function AstreaStyleSidebar({
               <Scale className="h-5 w-5 text-primary-foreground" />
             </div>
             {!isCollapsed && (
-              <span className="font-bold text-lg text-primary">IPROMED</span>
+              <span className="font-bold text-lg text-primary">CPG</span>
             )}
           </div>
         </div>
@@ -199,11 +199,11 @@ export default function AstreaStyleSidebar({
               );
             })}
 
-            {/* IPROMED Section Header */}
+            {/* CPG Advocacia Médica Section Header */}
             {!isCollapsed && (
               <div className="px-3 pt-4 pb-2">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  IPROMED Educacional
+                  CPG Educacional
                 </p>
               </div>
             )}

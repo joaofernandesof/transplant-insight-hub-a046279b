@@ -1,5 +1,5 @@
 /**
- * IPROMED Leads - Gestão de Leads Jurídicos
+ * CPG Advocacia Médica Leads - Gestão de Leads Jurídicos
  */
 
 import { useState } from "react";

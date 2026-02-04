@@ -1,6 +1,5 @@
 /**
- * IPROMED Logo - Versão Vetorizada SVG
- * Instituto Jurídico de Proteção Médica
+ * CPG Advocacia Médica Logo - Versão Vetorizada SVG
  * Escudo com Caduceu
  */
 

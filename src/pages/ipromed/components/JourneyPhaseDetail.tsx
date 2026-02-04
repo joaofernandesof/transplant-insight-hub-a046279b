@@ -1,5 +1,5 @@
 /**
- * IPROMED - Journey Phase Detail Component
+ * CPG Advocacia Médica - Journey Phase Detail Component
  * Detalhes completos de cada fase da jornada do cliente jurídico
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED - Deadline Alerts Component
+ * CPG Advocacia Médica - Deadline Alerts Component
  * Shows upcoming and overdue deadlines for client journey steps
  */
 

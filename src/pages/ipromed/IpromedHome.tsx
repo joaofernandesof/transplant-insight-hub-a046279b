@@ -1,5 +1,5 @@
 /**
- * IPROMED - Home do Módulo Jurídico (Aba Início)
+ * CPG Advocacia Médica - Home do Módulo Jurídico (Aba Início)
  * Foco: Tarefas, agenda e operação do dia a dia das advogadas
  * Para visão geral do sistema, usar Dashboard
  */

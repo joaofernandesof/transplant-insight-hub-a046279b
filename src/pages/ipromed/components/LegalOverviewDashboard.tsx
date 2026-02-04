@@ -1,5 +1,5 @@
 /**
- * IPROMED Legal Hub - Overview Dashboard (Astrea Style)
+ * CPG Advocacia Médica Legal Hub - Overview Dashboard (Astrea Style)
  * Área de trabalho principal com layout inspirado no Astrea
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED - Módulo Financeiro Jurídico
+ * CPG Advocacia Médica - Módulo Financeiro Jurídico
  * Gestão financeira completa para escritório jurídico
  */
 

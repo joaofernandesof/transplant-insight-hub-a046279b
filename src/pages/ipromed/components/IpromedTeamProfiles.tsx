@@ -1,6 +1,6 @@
 /**
- * IPROMED - Team Profiles Component
- * Perfis das sócias do IPROMED baseado no site oficial
+ * CPG Advocacia Médica - Team Profiles Component
+ * Perfis das sócias do CPG Advocacia Médica
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +30,7 @@ interface TeamMember {
   color: string;
 }
 
-// Dados reais das sócias do IPROMED (fonte: ipromed.com.br)
+// Dados da equipe CPG Advocacia Médica
 export const ipromedTeam: TeamMember[] = [
   {
     id: "larissa-guerreiro",
@@ -39,12 +39,12 @@ export const ipromedTeam: TeamMember[] = [
     title: "Pós-graduação em Direito Médico",
     photo: "https://ipromed.com.br/assets/larissa-guerreiro-DDMW0ixB.jpeg",
     specialties: [
-      "Fundadora do IPROMED",
+      "Fundadora do CPG Advocacia Médica",
       "Consultora jurídica de clínicas capilares",
       "Criadora de método próprio de segurança jurídica",
       "Compliance, LGPD e prontuário",
     ],
-    email: "larissa@ipromed.com.br",
+    email: "larissa@cpgadvocacia.com.br",
     color: "bg-emerald-100 text-emerald-700",
   },
   {
@@ -59,7 +59,7 @@ export const ipromedTeam: TeamMember[] = [
       "Casos de maior complexidade",
       "Representação institucional e OAB",
     ],
-    email: "isabele@ipromed.com.br",
+    email: "isabele@cpgadvocacia.com.br",
     color: "bg-blue-100 text-blue-700",
   },
   {
@@ -74,7 +74,7 @@ export const ipromedTeam: TeamMember[] = [
       "Produção técnica e teses jurídicas",
       "Supervisão de qualidade das entregas",
     ],
-    email: "caroline@ipromed.com.br",
+    email: "caroline@cpgadvocacia.com.br",
     color: "bg-purple-100 text-purple-700",
   },
 ];
@@ -142,9 +142,9 @@ export function TeamListWidget({ showTitle = true }: TeamListWidgetProps) {
     <Card className="border shadow-sm">
       {showTitle && (
         <CardHeader className="py-3 px-4 bg-muted/50 border-b">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Equipe IPROMED
+            Equipe CPG Advocacia Médica
           </CardTitle>
         </CardHeader>
       )}
@@ -172,7 +172,7 @@ export function TeamProfilesSection() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold">Equipe IPROMED</h2>
+        <h2 className="text-2xl font-bold">Equipe CPG Advocacia Médica</h2>
         <p className="text-muted-foreground mt-1">
           Advogadas especialistas dedicadas exclusivamente ao direito médico
         </p>
@@ -187,7 +187,7 @@ export function TeamProfilesSection() {
       <Card className="border-none bg-gradient-to-r from-[#00629B]/10 to-[#00629B]/5">
         <CardContent className="p-6 text-center">
           <blockquote className="text-lg italic text-muted-foreground">
-            "O IPROMED nasceu para traduzir risco em processo simples, aplicável e escalável para a sua prática médica."
+            "O CPG Advocacia Médica nasceu para traduzir risco em processo simples, aplicável e escalável para a sua prática médica."
           </blockquote>
           <p className="mt-2 text-sm font-medium">— Larissa Guerreiro, Fundadora</p>
         </CardContent>

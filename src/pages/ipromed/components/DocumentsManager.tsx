@@ -1,5 +1,5 @@
 /**
- * IPROMED - Gestão de Documentos (GED)
+ * CPG Advocacia Médica - Gestão de Documentos (GED)
  * Upload, organização e versionamento de documentos jurídicos
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED Legal Hub - Main Portal Component
+ * CPG Advocacia Médica Legal Hub - Main Portal Component
  * Portal jurídico interno completo (Astrea Style)
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED - Jornada do Cliente Interativa
+ * CPG Advocacia Médica - Jornada do Cliente Interativa
  * Visualização por cliente com tracking real das etapas D0 a D+30
  * Com Kanban de clientes, detalhes de fase e checklists
  */

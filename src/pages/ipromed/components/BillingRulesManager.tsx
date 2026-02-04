@@ -1,5 +1,5 @@
 /**
- * IPROMED - Régua de Cobrança
+ * CPG Advocacia Médica - Régua de Cobrança
  * Configuração de lembretes e cobranças automáticas
  */
 

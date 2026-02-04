@@ -1,5 +1,5 @@
 /**
- * IPROMED Legal Hub - Gestão de Contratos
+ * CPG Advocacia Médica Legal Hub - Gestão de Contratos
  * Interface melhorada com cards visuais e ações rápidas
  */
 

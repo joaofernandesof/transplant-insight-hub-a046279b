@@ -1,5 +1,5 @@
 /**
- * IPROMED - Gestão de Clientes Jurídicos
+ * CPG Advocacia Médica - Gestão de Clientes Jurídicos
  * Controle de processos jurídicos dos clientes (conectado ao banco de dados)
  */
 

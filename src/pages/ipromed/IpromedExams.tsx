@@ -1,5 +1,5 @@
 /**
- * IPROMED Exams - Provas e Avaliações de Direito Médico
+ * CPG Advocacia Médica Exams - Provas e Avaliações de Direito Médico
  */
 
 import { useQuery } from "@tanstack/react-query";
