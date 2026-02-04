@@ -25,10 +25,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -53,7 +49,6 @@ import {
   Download,
   Copy,
   ClipboardList,
-  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -97,7 +92,6 @@ export function MeetingDetailSheet({
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
   const [topicsCompleted, setTopicsCompleted] = useState<Record<number, boolean>>({});
   const [meetingNotes, setMeetingNotes] = useState(meeting?.meeting_notes || "");
   const [minutesText, setMinutesText] = useState(meeting?.minutes || "");
@@ -302,73 +296,65 @@ Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
 
               <Separator />
 
-              {/* Onboarding Full Checklist Button */}
-              {isOnboardingMeeting && (
-                <>
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <ClipboardList className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-sm mb-1">Pauta Completa de Onboarding</h4>
-                        <p className="text-xs text-muted-foreground mb-3">
-                          Formulário completo com 10 seções: Boas-vindas, Perfil Profissional, Comunicação, 
-                          Documentos, Entregas, Prioridades, Prazos, Treinamento, Instagram e Contrato.
-                        </p>
-                        <Button 
-                          onClick={() => setOnboardingDialogOpen(true)}
-                          className="gap-2"
-                          size="sm"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          Abrir Checklist Completo
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  <Separator />
-                </>
-              )}
-
-              {/* Agenda Topics Checklist */}
-              {topics.length > 0 && (
+              {/* Onboarding Full Checklist - Embedded directly */}
+              {isOnboardingMeeting ? (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">Pauta Resumida</Label>
-                    <span className="text-xs text-muted-foreground">
-                      {completedCount}/{topics.length} concluídos
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-primary" />
+                    <Label className="text-base font-semibold">Checklist de Onboarding</Label>
                   </div>
-                  <div className="space-y-2">
-                    {topics.map((topic, index) => (
-                      <div
-                        key={index}
-                        className={cn(
-                          "flex items-start gap-3 p-3 rounded-lg border transition-colors",
-                          topicsCompleted[index] ? "bg-emerald-50 border-emerald-200" : "bg-muted/30"
-                        )}
-                      >
-                        <Checkbox
-                          id={`topic-${index}`}
-                          checked={topicsCompleted[index] || false}
-                          onCheckedChange={(checked) =>
-                            setTopicsCompleted({ ...topicsCompleted, [index]: !!checked })
-                          }
-                        />
-                        <label
-                          htmlFor={`topic-${index}`}
-                          className={cn(
-                            "text-sm cursor-pointer flex-1",
-                            topicsCompleted[index] && "line-through text-muted-foreground"
-                          )}
-                        >
-                          {topic}
-                        </label>
-                      </div>
-                    ))}
+                  <div className="border rounded-xl overflow-hidden">
+                    <OnboardingMeetingAgenda
+                      clientId={meeting?.client_id}
+                      clientName={clientName}
+                      embedded={true}
+                      onSubmit={(data) => {
+                        console.log('Onboarding data saved:', data);
+                        toast.success('Dados do onboarding salvos!');
+                      }}
+                    />
                   </div>
                 </div>
+              ) : (
+                /* Non-Onboarding Agenda Topics Checklist */
+                topics.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Pauta da Reunião</Label>
+                      <span className="text-xs text-muted-foreground">
+                        {completedCount}/{topics.length} concluídos
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {topics.map((topic, index) => (
+                        <div
+                          key={index}
+                          className={cn(
+                            "flex items-start gap-3 p-3 rounded-lg border transition-colors",
+                            topicsCompleted[index] ? "bg-emerald-50 border-emerald-200" : "bg-muted/30"
+                          )}
+                        >
+                          <Checkbox
+                            id={`topic-${index}`}
+                            checked={topicsCompleted[index] || false}
+                            onCheckedChange={(checked) =>
+                              setTopicsCompleted({ ...topicsCompleted, [index]: !!checked })
+                            }
+                          />
+                          <label
+                            htmlFor={`topic-${index}`}
+                            className={cn(
+                              "text-sm cursor-pointer flex-1",
+                              topicsCompleted[index] && "line-through text-muted-foreground"
+                            )}
+                          >
+                            {topic}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
               )}
 
               <Separator />
@@ -517,21 +503,6 @@ Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Onboarding Full Checklist Dialog */}
-      <Dialog open={onboardingDialogOpen} onOpenChange={setOnboardingDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[95vh] p-0 overflow-hidden">
-          <OnboardingMeetingAgenda
-            clientId={meeting?.client_id}
-            clientName={clientName}
-            onSubmit={(data) => {
-              console.log('Onboarding data saved:', data);
-              toast.success('Dados do onboarding salvos!');
-              setOnboardingDialogOpen(false);
-            }}
-            onClose={() => setOnboardingDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

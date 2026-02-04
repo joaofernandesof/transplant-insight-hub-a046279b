@@ -336,6 +336,8 @@ interface OnboardingMeetingAgendaProps {
   onSubmit?: (data: OnboardingMeetingData) => void;
   onClose?: () => void;
   initialData?: Partial<OnboardingMeetingData>;
+  /** Se true, exibe o componente de forma compacta sem header/footer externos */
+  embedded?: boolean;
 }
 
 // Gerar chave única para localStorage baseado no clientId
@@ -347,6 +349,7 @@ export default function OnboardingMeetingAgenda({
   onSubmit,
   onClose,
   initialData,
+  embedded = false,
 }: OnboardingMeetingAgendaProps) {
   // Buscar clientes cadastrados
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
@@ -652,34 +655,50 @@ export default function OnboardingMeetingAgenda({
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[90vh]">
-      {/* Header fixo */}
-      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <FileSignature className="h-5 w-5 text-primary" />
+    <div className={cn(
+      "flex flex-col",
+      embedded ? "h-auto max-h-[60vh]" : "h-full max-h-[90vh]"
+    )}>
+      {/* Header fixo - oculto no modo embedded */}
+      {!embedded && (
+        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <FileSignature className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Pauta de Reunião de Onboarding</h2>
+              <p className="text-sm text-muted-foreground">
+                IPROMED • {selectedClient?.name || "Selecione um cliente"}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">Pauta de Reunião de Onboarding</h2>
-            <p className="text-sm text-muted-foreground">
-              IPROMED • {selectedClient?.name || "Selecione um cliente"}
-            </p>
+          <div className="flex items-center gap-2">
+            <div className="text-right mr-4">
+              <p className="text-sm font-medium">{progress}% concluído</p>
+              <Progress value={progress} className="w-24 h-2" />
+            </div>
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Printer className="h-4 w-4 mr-1" />
+              Imprimir
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-right mr-4">
-            <p className="text-sm font-medium">{progress}% concluído</p>
-            <Progress value={progress} className="w-24 h-2" />
-          </div>
-          <Button variant="outline" size="sm" onClick={handlePrint}>
-            <Printer className="h-4 w-4 mr-1" />
-            Imprimir
-          </Button>
-        </div>
-      </div>
+      )}
 
-      {/* Seletor de Cliente - aparece se não houver cliente selecionado */}
-      {!selectedClientId && (
+      {/* Progress bar compacta para modo embedded */}
+      {embedded && (
+        <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">{progress}% concluído</span>
+          </div>
+          <Progress value={progress} className="w-32 h-2" />
+        </div>
+      )}
+
+      {/* Seletor de Cliente - aparece se não houver cliente selecionado (oculto no modo embedded) */}
+      {!selectedClientId && !embedded && (
         <div className="p-4 border-b bg-amber-50 dark:bg-amber-950/20">
           <div className="flex items-center gap-2 mb-3">
             <Users className="h-5 w-5 text-amber-600" />
@@ -755,8 +774,8 @@ export default function OnboardingMeetingAgenda({
         </div>
       )}
 
-      {/* Cliente selecionado - mostrar resumo */}
-      {selectedClientId && selectedClient && (
+      {/* Cliente selecionado - mostrar resumo (oculto no modo embedded) */}
+      {selectedClientId && selectedClient && !embedded && (
         <div className="p-3 border-b bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium">
@@ -783,11 +802,11 @@ export default function OnboardingMeetingAgenda({
         </div>
       )}
 
-      {/* Conteúdo scrollável - só mostra se tiver cliente selecionado */}
-      {selectedClientId && (
+      {/* Conteúdo scrollável - mostra se tiver cliente selecionado OU se está em modo embedded */}
+      {(selectedClientId || embedded) && (
         <ScrollArea className="flex-1">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4 space-y-4">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className={cn("space-y-4", embedded ? "p-3" : "p-4")}>
               <Accordion 
                 type="single"
               value={expandedSections[0] || ""}
@@ -3195,21 +3214,30 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
             </Accordion>
 
-            {/* Footer Actions */}
-            <div className="sticky bottom-0 bg-background border-t pt-4 mt-6 flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                {completedSections.length} de {sections.length} seções concluídas
-              </div>
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancelar
-                </Button>
-                <Button type="submit" className="gap-2">
+            {/* Footer Actions - simplificado no modo embedded */}
+            {embedded ? (
+              <div className="sticky bottom-0 bg-background border-t pt-3 mt-4 flex items-center justify-end">
+                <Button type="submit" size="sm" className="gap-2">
                   <Save className="h-4 w-4" />
-                  Salvar Pauta
+                  Salvar
                 </Button>
               </div>
-            </div>
+            ) : (
+              <div className="sticky bottom-0 bg-background border-t pt-4 mt-6 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {completedSections.length} de {sections.length} seções concluídas
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="gap-2">
+                    <Save className="h-4 w-4" />
+                    Salvar Pauta
+                  </Button>
+                </div>
+              </div>
+            )}
           </form>
         </Form>
       </ScrollArea>
