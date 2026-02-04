@@ -105,13 +105,8 @@ const onboardingMeetingSchema = z.object({
   usaAssinaturaDigital: z.boolean().default(false),
   ferramentaAssinatura: z.string().optional(),
 
-  // 5. Envio para análise
-  formaEnvio: z.string().optional(),
-  linkDrive: z.string().optional(),
-  dataPrometidaEnvio: z.string().optional(),
-  statusRecebimento: z.string().default("Pendente"),
 
-  // 6. Prioridades
+  // 5. Prioridades (renumerado)
   criterioPrioridade: z.string().optional(),
   prioridade1: z.string().optional(),
   prioridade2: z.string().optional(),
@@ -163,9 +158,8 @@ const sections: Section[] = [
   { id: "perfil", icon: Stethoscope, title: "Perfil profissional", emoji: "🩺", fields: ["2.2.1", "2.2.2", "2.2.3", "2.2.4", "2.2.5", "2.2.6", "2.2.7", "2.2.8", "2.2.9"] },
   { id: "comunicacao", icon: MessageSquare, title: "Comunicação", emoji: "📲", fields: ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "3.2.5", "3.2.6"] },
   { id: "documentos", icon: FileText, title: "Documentos atuais", emoji: "📄", fields: ["4.2.1", "4.2.2", "4.2.3", "4.2.4", "4.2.5", "4.2.6"] },
-  { id: "envio", icon: Upload, title: "Envio para análise", emoji: "📤", fields: ["5.2.1", "5.2.2", "5.2.3", "5.2.4"] },
-  { id: "prioridades", icon: Target, title: "Prioridades", emoji: "🎯", fields: ["6.2.1", "6.2.2", "6.2.3", "6.2.4", "6.2.5", "6.2.6"] },
-  { id: "prazos", icon: Calendar, title: "Prazos", emoji: "🗓️", fields: ["7.2.1", "7.2.2", "7.2.3", "7.2.4"] },
+  { id: "prioridades", icon: Target, title: "Prioridades", emoji: "🎯", fields: ["5.2.1", "5.2.2", "5.2.3", "5.2.4", "5.2.5", "5.2.6"] },
+  { id: "prazos", icon: Calendar, title: "Prazos", emoji: "🗓️", fields: ["6.2.1", "6.2.2", "6.2.3", "6.2.4"] },
   { id: "treinamento", icon: GraduationCap, title: "Treinamento", emoji: "🎓", fields: ["8.2.1", "8.2.2", "8.2.3", "8.2.4", "8.2.5"] },
   { id: "instagram", icon: Instagram, title: "Instagram", emoji: "📸", fields: ["9.2.1", "9.2.2", "9.2.3", "9.2.4", "9.2.5", "9.2.6", "9.2.7"] },
   { id: "contrato", icon: FileSignature, title: "Contrato", emoji: "📑", fields: ["10.2.1", "10.2.2", "10.2.3", "10.2.4"] },
@@ -177,8 +171,6 @@ const formatoAtendimentoOptions = ["Clínica própria", "Terceiros", "Hospital",
 const estruturaOptions = ["Clínica própria", "Consultório alugado", "Hospital", "Coworking médico"];
 const documentosOptions = ["TCLE", "Contrato de prestação", "Termo de imagem", "Anamnese", "Prontuário", "Política de agendamento"];
 const quemPreencheOptions = ["Secretária", "Médico", "Recepção", "Equipe administrativa"];
-const formaEnvioOptions = ["Google Drive", "OneDrive", "E-mail", "WeTransfer", "WhatsApp"];
-const statusRecebimentoOptions = ["Pendente", "Recebido parcial", "Recebido completo"];
 const criterioPrioridadeOptions = ["Risco jurídico", "Frequência de uso", "Urgência comercial", "Volume de atendimentos"];
 const cenarioClienteOptions = ["Tem documentos", "Sem documentos", "Documentos parciais"];
 const formatoTreinamentoOptions = ["Online", "Presencial", "Híbrido"];
@@ -231,10 +223,6 @@ export default function OnboardingMeetingAgenda({
       quemPreenche: "",
       usaAssinaturaDigital: false,
       ferramentaAssinatura: "",
-      formaEnvio: "",
-      linkDrive: "",
-      dataPrometidaEnvio: "",
-      statusRecebimento: "Pendente",
       criterioPrioridade: "",
       prioridade1: "",
       prioridade2: "",
@@ -1043,121 +1031,8 @@ export default function OnboardingMeetingAgenda({
                 </AccordionContent>
               </AccordionItem>
 
-              {/* 5. Envio para análise */}
-              <AccordionItem value="envio" className="border rounded-lg overflow-hidden">
-                <AccordionTrigger 
-                  className={cn(
-                    "px-4 py-3 hover:no-underline",
-                    completedSections.includes("envio") && "bg-emerald-50 dark:bg-emerald-950/20"
-                  )}
-                  onClick={() => toggleSection("envio")}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">📤</span>
-                    <div className="text-left">
-                      <p className="font-medium">5. Envio para análise</p>
-                      <p className="text-xs text-muted-foreground">4 campos • Recebimento de materiais</p>
-                    </div>
-                    {completedSections.includes("envio") && (
-                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Concluído
-                      </Badge>
-                    )}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <FormField
-                      control={form.control}
-                      name="formaEnvio"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>📬 Forma de envio</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {formaEnvioOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
-                    <FormField
-                      control={form.control}
-                      name="linkDrive"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>🔗 Link do drive</FormLabel>
-                          <FormControl>
-                            <Input placeholder="https://drive.google.com/..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="dataPrometidaEnvio"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>🗓️ Data prometida de envio</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormDescription className="text-xs">Gera tarefa de cobrança</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="statusRecebimento"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>✅ Status de recebimento</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {statusRecebimentoOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="flex justify-end mt-4">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => markSectionComplete("envio")}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                      Marcar como concluído
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* 6. Prioridades */}
+              {/* 5. Prioridades */}
               <AccordionItem value="prioridades" className="border rounded-lg overflow-hidden">
                 <AccordionTrigger 
                   className={cn(
