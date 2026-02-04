@@ -167,6 +167,8 @@ const onboardingMeetingSchema = z.object({
   documentosEntregues: z.array(z.string()).default([]),
   documentosAdicionaisEntregues: z.array(z.object({
     nome: z.string().optional(),
+    jaPossui: z.boolean().optional(), // Sim/Não - cliente já possui?
+    isPrioridade: z.boolean().optional(), // É prioritário?
   })).default([]),
 
   // 6. Prioridades (renumerado)
@@ -1847,7 +1849,8 @@ export default function OnboardingMeetingAgenda({
                                   🚨 Prioridade
                                 </span>
                               </th>
-                              <th className="p-3 text-center w-28">Prazo</th>
+                              <th className="p-3 text-center">Prazo</th>
+                              <th className="p-3 text-center w-12"></th>
                             </tr>
                           </thead>
                           <tbody className="divide-y">
@@ -1981,14 +1984,16 @@ export default function OnboardingMeetingAgenda({
                                       </span>
                                     )}
                                   </td>
+                                  {/* Célula vazia para documentos padrão (alinhamento com botão remover) */}
+                                  <td className="p-3 text-center"></td>
                                 </tr>
                               );
                             })}
                             
                             {/* Documentos adicionais como linhas da tabela */}
                             {(form.watch("documentosAdicionaisEntregues") || []).map((doc, index) => (
-                              <tr key={`adicional-${index}`} className="border-b hover:bg-muted/50 bg-blue-50/30 dark:bg-blue-950/10">
-                                <td className="p-3 font-medium text-sm text-center text-blue-600 dark:text-blue-400">
+                              <tr key={`adicional-${index}`} className="border-b hover:bg-muted/50 bg-violet-50/30 dark:bg-violet-950/10">
+                                <td className="p-3 font-medium text-sm text-center text-violet-600 dark:text-violet-400">
                                   +{index + 1}
                                 </td>
                                 <td className="p-3">
@@ -2008,17 +2013,110 @@ export default function OnboardingMeetingAgenda({
                                     )}
                                   />
                                 </td>
-                                <td className="p-3 text-center">
-                                  {/* Célula vazia para manter alinhamento */}
+                                {/* Coluna Sim/Não */}
+                                <td className="p-3">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant={form.watch(`documentosAdicionaisEntregues.${index}.jaPossui`) === true ? "default" : "outline"}
+                                      className={cn(
+                                        "h-7 px-2 text-xs",
+                                        form.watch(`documentosAdicionaisEntregues.${index}.jaPossui`) === true && "bg-primary text-primary-foreground"
+                                      )}
+                                      onClick={() => {
+                                        const current = form.getValues(`documentosAdicionaisEntregues.${index}`);
+                                        form.setValue(`documentosAdicionaisEntregues.${index}`, { ...current, jaPossui: true });
+                                      }}
+                                    >
+                                      Sim
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant={form.watch(`documentosAdicionaisEntregues.${index}.jaPossui`) === false ? "default" : "outline"}
+                                      className={cn(
+                                        "h-7 px-2 text-xs",
+                                        form.watch(`documentosAdicionaisEntregues.${index}.jaPossui`) === false && "bg-primary text-primary-foreground"
+                                      )}
+                                      onClick={() => {
+                                        const current = form.getValues(`documentosAdicionaisEntregues.${index}`);
+                                        form.setValue(`documentosAdicionaisEntregues.${index}`, { ...current, jaPossui: false });
+                                      }}
+                                    >
+                                      Não
+                                    </Button>
+                                  </div>
                                 </td>
+                                {/* Coluna Ação - Badge "Adicional" com cor diferente */}
                                 <td className="p-3 text-center">
-                                  <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200">
-                                    Adicional
-                                  </Badge>
+                                  {(() => {
+                                    const docJaPossui = form.watch(`documentosAdicionaisEntregues.${index}.jaPossui`);
+                                    if (docJaPossui === undefined) {
+                                      return <span className="text-xs text-muted-foreground">—</span>;
+                                    }
+                                    return (
+                                      <Badge 
+                                        variant="outline" 
+                                        className={cn(
+                                          "text-xs",
+                                          docJaPossui 
+                                            ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 border-violet-200"
+                                            : "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400 border-fuchsia-200"
+                                        )}
+                                      >
+                                        {docJaPossui ? "Revisão (Ad.)" : "Criação (Ad.)"}
+                                      </Badge>
+                                    );
+                                  })()}
                                 </td>
+                                {/* Coluna Prioridade */}
                                 <td className="p-3 text-center">
-                                  {/* Célula vazia para manter alinhamento */}
+                                  <Checkbox
+                                    checked={form.watch(`documentosAdicionaisEntregues.${index}.isPrioridade`) || false}
+                                    onCheckedChange={(checked) => {
+                                      const current = form.getValues(`documentosAdicionaisEntregues.${index}`);
+                                      form.setValue(`documentosAdicionaisEntregues.${index}`, { ...current, isPrioridade: !!checked });
+                                    }}
+                                    className={cn(
+                                      "h-5 w-5",
+                                      form.watch(`documentosAdicionaisEntregues.${index}.isPrioridade`) && "border-red-500 bg-red-500 text-white data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                                    )}
+                                  />
                                 </td>
+                                {/* Coluna Prazo */}
+                                <td className="p-3 text-center">
+                                  {(() => {
+                                    const docJaPossui = form.watch(`documentosAdicionaisEntregues.${index}.jaPossui`);
+                                    const docIsPrioridade = form.watch(`documentosAdicionaisEntregues.${index}.isPrioridade`);
+                                    
+                                    if (docJaPossui === undefined) {
+                                      return <span className="text-xs text-muted-foreground">—</span>;
+                                    }
+                                    
+                                    return (
+                                      <span className={cn(
+                                        "text-xs font-medium",
+                                        docIsPrioridade 
+                                          ? "text-red-600 dark:text-red-400 font-bold" 
+                                          : docJaPossui 
+                                            ? "text-violet-600 dark:text-violet-400" 
+                                            : "text-fuchsia-600 dark:text-fuchsia-400"
+                                      )}>
+                                        {docJaPossui ? (
+                                          docIsPrioridade 
+                                            ? "🚨 Até 10 dias úteis após recebimento"
+                                            : "Até 20 dias úteis após recebimento"
+                                        ) : (
+                                          docIsPrioridade 
+                                            ? "🚨 Até 10 dias úteis a partir de hoje"
+                                            : "Até 20 dias úteis a partir de hoje"
+                                        )}
+                                      </span>
+                                    );
+                                  })()}
+                                </td>
+                                {/* Botão Remover */}
                                 <td className="p-3 text-center">
                                   <Button
                                     type="button"
@@ -2038,7 +2136,7 @@ export default function OnboardingMeetingAgenda({
                             
                             {/* Linha para adicionar novo documento - destacada */}
                             <tr className="bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 transition-all">
-                              <td colSpan={6} className="p-3">
+                              <td colSpan={7} className="p-3">
                                 <Button
                                   type="button"
                                   variant="outline"
