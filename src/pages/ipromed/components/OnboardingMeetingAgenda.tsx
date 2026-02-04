@@ -12,6 +12,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -1416,7 +1417,7 @@ export default function OnboardingMeetingAgenda({
                         <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>📱 WhatsApp principal <span className="text-destructive">*</span></FormLabel>
                           <FormControl>
-                            <Input placeholder="+55 85 99999-9999" {...field} />
+                            <PhoneInput placeholder="(85) 99999-9999" value={field.value} onChange={field.onChange} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1524,9 +1525,10 @@ export default function OnboardingMeetingAgenda({
                             <FormItem>
                               <FormLabel className="text-xs">📱 WhatsApp</FormLabel>
                               <FormControl>
-                                <Input 
-                                  placeholder="+55 85 99999-9999" 
-                                  {...field} 
+                                <PhoneInput 
+                                  placeholder="(85) 99999-9999" 
+                                  value={field.value}
+                                  onChange={field.onChange}
                                   className={cn("h-9", getInputHighlight(field.value))} 
                                 />
                               </FormControl>
@@ -1629,7 +1631,7 @@ export default function OnboardingMeetingAgenda({
                               <FormItem>
                                 <FormLabel className="text-xs">📱 WhatsApp</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="+55 85 99999-9999" {...field} className="h-9" />
+                                  <PhoneInput placeholder="(85) 99999-9999" value={field.value} onChange={field.onChange} className="h-9" />
                                 </FormControl>
                               </FormItem>
                             )}
