@@ -1702,11 +1702,11 @@ export default function OnboardingMeetingAgenda({
                                       className={cn(
                                         "text-xs",
                                         jaPossui 
-                                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" 
-                                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200" 
+                                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200"
                                       )}
                                     >
-                                      {jaPossui ? "Revisar" : "Criar"}
+                                      {jaPossui ? "Revisão" : "Criação"}
                                     </Badge>
                                   </td>
                                   <td className="p-3 text-center">
