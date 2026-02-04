@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
@@ -70,6 +69,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SendForSignatureDialog } from "./components/contracts/SendForSignatureDialog";
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   draft: { label: 'Rascunho', color: 'bg-gray-500', icon: FileSignature },
@@ -122,6 +122,7 @@ export default function IpromedContractDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState('contract');
@@ -159,20 +160,35 @@ export default function IpromedContractDetail() {
     enabled: !!id,
   });
 
-  // Send for signature
+  // Send for signature mutation
   const sendForSignature = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (data: any) => {
       const { error } = await supabase
         .from('ipromed_contracts')
-        .update({ status: 'pending_signature', sent_at: new Date().toISOString() })
+        .update({ 
+          status: 'pending_signature', 
+          sent_at: new Date().toISOString(),
+          // Store signature request metadata
+        })
         .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ipromed-contract', id] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-contracts'] });
+      setSignatureDialogOpen(false);
       toast.success('Contrato enviado para assinatura!');
     },
   });
+
+  // Handle signature request from dialog
+  const handleSendForSignature = async (data: any) => {
+    if (documents.length === 0) {
+      toast.error('É necessário anexar pelo menos um documento antes de enviar para assinatura');
+      return;
+    }
+    await sendForSignature.mutateAsync(data);
+  };
 
   // Upload document
   const handleUpload = async () => {
@@ -301,12 +317,8 @@ export default function IpromedContractDetail() {
         </div>
         <div className="flex items-center gap-2">
           {contract.status === 'draft' && (
-            <Button onClick={() => sendForSignature.mutate()} disabled={sendForSignature.isPending}>
-              {sendForSignature.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
+            <Button onClick={() => setSignatureDialogOpen(true)}>
+              <Send className="h-4 w-4 mr-2" />
               Enviar para Assinatura
             </Button>
           )}
@@ -643,6 +655,18 @@ export default function IpromedContractDetail() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog de envio para assinatura */}
+      <SendForSignatureDialog
+        open={signatureDialogOpen}
+        onOpenChange={setSignatureDialogOpen}
+        contractTitle={contract.title}
+        clientName={contract.client?.name}
+        clientEmail={contract.client?.email}
+        documents={documents}
+        onSend={handleSendForSignature}
+        isPending={sendForSignature.isPending}
+      />
     </div>
   );
 }
