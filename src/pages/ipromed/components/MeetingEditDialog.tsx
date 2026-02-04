@@ -683,52 +683,204 @@ export function MeetingEditDialog({
       </AlertDialogContent>
     </AlertDialog>
 
-    {/* Dialog para adicionar checklist */}
+    {/* Dialog para adicionar checklist - com templates */}
     <Dialog open={showAddChecklist} onOpenChange={setShowAddChecklist}>
-      <DialogContent className="max-w-md z-[100]">
+      <DialogContent className="max-w-lg z-[100]">
         <DialogHeader>
           <DialogTitle>Adicionar Checklist de Pauta</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="checklist-title">Título do Checklist</Label>
-            <Input
-              id="checklist-title"
-              placeholder="Ex: Documentos a apresentar"
-              value={newChecklistTitle}
-              onChange={(e) => setNewChecklistTitle(e.target.value)}
-            />
+        <div className="space-y-5 py-4">
+          {/* Templates pré-definidos */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-muted-foreground">Modelos de Pauta</Label>
+            <div className="grid gap-2">
+              {/* Template: Reunião de Onboarding */}
+              <div 
+                className="p-3 border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group"
+                onClick={() => {
+                  setCustomChecklists(prev => [
+                    ...prev, 
+                    { 
+                      id: crypto.randomUUID(), 
+                      title: 'Checklist de Onboarding',
+                      items: [
+                        'Boas-vindas e apresentação da equipe',
+                        'Identificação do cliente (nome, cargo, clínica)',
+                        'Perfil profissional e especialidade',
+                        'Canais de comunicação preferenciais',
+                        'Documentos atuais existentes',
+                        'Apresentação dos 17 documentos contratuais',
+                        'Definição de prioridades documentais',
+                        'Cronograma de entregas',
+                        'Treinamento da equipe',
+                        'Análise do Instagram',
+                        'Revisão e aceite do contrato',
+                      ]
+                    }
+                  ]);
+                  setShowAddChecklist(false);
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg group-hover:scale-105 transition-transform">
+                    <ClipboardList className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">Reunião de Onboarding</p>
+                    <p className="text-xs text-muted-foreground">11 itens • Recepção de novos clientes</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">Recomendado</Badge>
+                </div>
+              </div>
+
+              {/* Template: Reunião de Acompanhamento */}
+              <div 
+                className="p-3 border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group"
+                onClick={() => {
+                  setCustomChecklists(prev => [
+                    ...prev, 
+                    { 
+                      id: crypto.randomUUID(), 
+                      title: 'Checklist de Acompanhamento',
+                      items: [
+                        'Revisão do status dos documentos',
+                        'Verificar pendências anteriores',
+                        'Atualização de prazos',
+                        'Análise de novas necessidades',
+                        'Questões sobre documentos entregues',
+                        'Planejamento próximos passos',
+                        'Definição de ações e responsáveis',
+                      ]
+                    }
+                  ]);
+                  setShowAddChecklist(false);
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg group-hover:scale-105 transition-transform">
+                    <ClipboardList className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">Reunião de Acompanhamento</p>
+                    <p className="text-xs text-muted-foreground">7 itens • Follow-up periódico</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Template: Apresentação de Pacote */}
+              <div 
+                className="p-3 border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group"
+                onClick={() => {
+                  setCustomChecklists(prev => [
+                    ...prev, 
+                    { 
+                      id: crypto.randomUUID(), 
+                      title: 'Checklist Apresentação do Pacote',
+                      items: [
+                        'Apresentação institucional IPROMED',
+                        'Explicar metodologia de trabalho',
+                        'Detalhamento dos documentos inclusos',
+                        'Apresentar cases de sucesso',
+                        'Tirar dúvidas sobre serviços',
+                        'Apresentar valores e condições',
+                        'Próximos passos para contratação',
+                      ]
+                    }
+                  ]);
+                  setShowAddChecklist(false);
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg group-hover:scale-105 transition-transform">
+                    <ClipboardList className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">Apresentação do Pacote</p>
+                    <p className="text-xs text-muted-foreground">7 itens • Prospecção de clientes</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Template: Negociação */}
+              <div 
+                className="p-3 border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group"
+                onClick={() => {
+                  setCustomChecklists(prev => [
+                    ...prev, 
+                    { 
+                      id: crypto.randomUUID(), 
+                      title: 'Checklist de Negociação',
+                      items: [
+                        'Revisar proposta enviada',
+                        'Esclarecer pontos de dúvida',
+                        'Discutir ajustes solicitados',
+                        'Negociar condições comerciais',
+                        'Definir forma de pagamento',
+                        'Alinhar expectativas de prazo',
+                        'Confirmar aceite ou objeções',
+                      ]
+                    }
+                  ]);
+                  setShowAddChecklist(false);
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg group-hover:scale-105 transition-transform">
+                    <ClipboardList className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">Reunião de Negociação</p>
+                    <p className="text-xs text-muted-foreground">7 itens • Fechamento comercial</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <div className="flex gap-2 pt-4">
+
+          <Separator />
+
+          {/* Criar do zero */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-muted-foreground">Ou crie uma pauta personalizada</Label>
+            <div className="space-y-2">
+              <Input
+                id="checklist-title"
+                placeholder="Nome da pauta personalizada..."
+                value={newChecklistTitle}
+                onChange={(e) => setNewChecklistTitle(e.target.value)}
+              />
+              <Button 
+                className="w-full"
+                variant="outline"
+                disabled={!newChecklistTitle.trim()}
+                onClick={() => {
+                  setCustomChecklists(prev => [
+                    ...prev, 
+                    { 
+                      id: crypto.randomUUID(), 
+                      title: newChecklistTitle.trim(),
+                      items: []
+                    }
+                  ]);
+                  setNewChecklistTitle('');
+                  setShowAddChecklist(false);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Pauta em Branco
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
             <Button 
-              variant="outline" 
-              className="flex-1"
+              variant="ghost" 
               onClick={() => {
                 setShowAddChecklist(false);
                 setNewChecklistTitle('');
               }}
             >
               Cancelar
-            </Button>
-            <Button 
-              className="flex-1"
-              disabled={!newChecklistTitle.trim()}
-              onClick={() => {
-                setCustomChecklists(prev => [
-                  ...prev, 
-                  { 
-                    id: crypto.randomUUID(), 
-                    title: newChecklistTitle.trim(),
-                    items: []
-                  }
-                ]);
-                setNewChecklistTitle('');
-                setShowAddChecklist(false);
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Checklist
             </Button>
           </div>
         </div>
