@@ -136,8 +136,11 @@ const onboardingMeetingSchema = z.object({
   fazAnuncios: z.boolean().default(false),
   
   riscosEncontrados: z.string().optional(),
+  riscosArquivos: z.array(z.object({
+    nome: z.string(),
+    tipo: z.string(),
+  })).default([]),
   orientacoesDadas: z.string().optional(),
-  acoesImediatas: z.string().optional(),
 
   // 10. Contrato
   leituraConcluida: z.boolean().default(false),
@@ -244,8 +247,8 @@ export default function OnboardingMeetingAgenda({
       fazAnuncios: false,
       
       riscosEncontrados: "",
+      riscosArquivos: [],
       orientacoesDadas: "",
-      acoesImediatas: "",
       leituraConcluida: false,
       duvidasRegistradas: "",
       ajustesSolicitados: "",
@@ -1542,24 +1545,93 @@ export default function OnboardingMeetingAgenda({
                     />
 
 
-                    <FormField
-                      control={form.control}
-                      name="riscosEncontrados"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>⚠️ Riscos encontrados</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Antes e depois, promessas..." 
-                              className="min-h-[60px]"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs">Preenchido pela advogada</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="md:col-span-2 space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="riscosEncontrados"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>⚠️ Riscos encontrados</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Descreva os riscos encontrados: antes e depois, promessas, etc..." 
+                                className="min-h-[80px]"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormDescription className="text-xs">Preenchido pela advogada</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <FormLabel className="text-sm font-medium">📎 Anexos (prints ou PDFs)</FormLabel>
+                          <label htmlFor="riscos-file-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="cursor-pointer"
+                              onClick={() => document.getElementById('riscos-file-upload')?.click()}
+                            >
+                              <Upload className="h-4 w-4 mr-1" />
+                              Adicionar arquivo
+                            </Button>
+                          </label>
+                          <input
+                            id="riscos-file-upload"
+                            type="file"
+                            accept="image/*,.pdf"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              const files = e.target.files;
+                              if (files) {
+                                const current = form.getValues("riscosArquivos") || [];
+                                const newFiles = Array.from(files).map(f => ({
+                                  nome: f.name,
+                                  tipo: f.type,
+                                }));
+                                form.setValue("riscosArquivos", [...current, ...newFiles]);
+                              }
+                              e.target.value = '';
+                            }}
+                          />
+                        </div>
+
+                        {(form.watch("riscosArquivos") || []).length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-3">
+                            Nenhum arquivo anexado. Adicione prints ou PDFs para ilustrar os riscos.
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            {(form.watch("riscosArquivos") || []).map((arquivo, index) => (
+                              <div key={index} className="flex items-center gap-2 p-2 bg-background rounded border">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm flex-1 truncate">{arquivo.nome}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {arquivo.tipo.includes('pdf') ? 'PDF' : 'Imagem'}
+                                </Badge>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                  onClick={() => {
+                                    const current = form.getValues("riscosArquivos") || [];
+                                    form.setValue("riscosArquivos", current.filter((_, i) => i !== index));
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
                     <FormField
                       control={form.control}
@@ -1575,25 +1647,6 @@ export default function OnboardingMeetingAgenda({
                             />
                           </FormControl>
                           <FormDescription className="text-xs">Preenchido pela advogada</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="acoesImediatas"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>📌 Ações imediatas</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Pausar anúncios até ajuste..." 
-                              className="min-h-[60px]"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs">Gerar tarefa interna</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
