@@ -69,7 +69,7 @@ import AstreaPublicationsPage from "./components/AstreaPublicationsPage";
 import AstreaClientPortal from "./components/AstreaClientPortal";
 
 // Novos componentes com dados reais
-import DocumentsManager from "./components/DocumentsManager";
+// DocumentsManager removido - documentos centralizados em contratos
 import CaseMovementsTimeline from "./components/CaseMovementsTimeline";
 import RealFinancialPage from "./components/RealFinancialPage";
 import AstreaStyleAgenda from "./components/AstreaStyleAgenda";
@@ -86,7 +86,7 @@ import SLADashboard from "./components/SLADashboard";
 
 const validTabs = [
   'overview', 'alerts', 'publications', 'agenda', 'meetings', 
-  'jurisprudencias', 'cases', 'movements', 'documents', 'templates',
+  'jurisprudencias', 'cases', 'movements', 'templates',
   'contracts', 'financial', 'billing', 'timesheet', 'ai', 'risk',
   'sla', 'portal', 'tags', 'requests', 'tasks', 'analytics'
 ];
@@ -100,7 +100,6 @@ const tabs = [
   { id: 'jurisprudencias', label: 'Jurisprudências', icon: Scale },
   { id: 'cases', label: 'Processos', icon: Gavel },
   { id: 'movements', label: 'Andamentos', icon: Clock },
-  { id: 'documents', label: 'Documentos', icon: FolderOpen },
   { id: 'templates', label: 'Templates', icon: FileText },
   { id: 'contracts', label: 'Contratos', icon: FileText },
   { id: 'financial', label: 'Financeiro', icon: BarChart3 },
@@ -149,8 +148,8 @@ export default function IpromedLegalHub() {
         toast.info('Navegando para agendar reunião');
         break;
       case 'document':
-        setActiveTab('documents');
-        toast.info('Navegando para novo documento');
+        setActiveTab('contracts');
+        toast.info('Navegando para novo documento/contrato');
         break;
     }
   };
@@ -496,9 +495,6 @@ export default function IpromedLegalHub() {
               <CaseMovementsTimeline showCaseSelector />
             </TabsContent>
 
-            <TabsContent value="documents" className="mt-0">
-              <DocumentsManager />
-            </TabsContent>
 
             <TabsContent value="templates" className="mt-0">
               <DocumentTemplates />
