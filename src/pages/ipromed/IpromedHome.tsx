@@ -1,7 +1,6 @@
 /**
  * CPG Advocacia Médica - Home do Módulo Jurídico (Aba Início)
- * Foco: Tarefas, agenda e operação do dia a dia das advogadas
- * Para visão geral do sistema, usar Dashboard
+ * Foco: Área de trabalho geral com tarefas, prazos, agenda e ações rápidas
  */
 
 import { useNavigate } from "react-router-dom";
@@ -9,6 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PortalBanner } from '@/components/shared/PortalBanner';
 import { TaskStatsCards } from './components/TaskStatsCards';
+import { WorkspaceTaskList } from './components/WorkspaceTaskList';
+import { WorkspaceDeadlines } from './components/WorkspaceDeadlines';
+import { WorkspaceAgenda } from './components/WorkspaceAgenda';
+import { WorkspaceQuickActions } from './components/WorkspaceQuickActions';
 
 import {
   Scale,
@@ -94,10 +97,28 @@ export default function IpromedHome() {
         }
       />
 
-      {/* Task Stats Cards - Foco operacional */}
+      {/* Task Stats Cards - Resumo visual */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Tarefas</h2>
+        <h2 className="text-xl font-semibold mb-4">Resumo de Tarefas</h2>
         <TaskStatsCards />
+      </div>
+
+      {/* Área de Trabalho Geral */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Área de Trabalho</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Coluna Principal - Tarefas */}
+          <div className="lg:col-span-2 space-y-6">
+            <WorkspaceTaskList />
+            <WorkspaceDeadlines />
+          </div>
+
+          {/* Coluna Lateral - Agenda e Ações */}
+          <div className="space-y-6">
+            <WorkspaceAgenda />
+            <WorkspaceQuickActions />
+          </div>
+        </div>
       </div>
 
       {/* Quick Access Modules */}
