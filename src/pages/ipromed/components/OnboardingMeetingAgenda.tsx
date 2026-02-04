@@ -134,7 +134,7 @@ const onboardingMeetingSchema = z.object({
   instagramHandle: z.string().optional(),
   responsavelPerfil: z.string().optional(),
   fazAnuncios: z.boolean().default(false),
-  canalPrincipalLeads: z.string().optional(),
+  
   riscosEncontrados: z.string().optional(),
   orientacoesDadas: z.string().optional(),
   acoesImediatas: z.string().optional(),
@@ -178,7 +178,7 @@ const quemPreencheOptions = ["Secretária", "Médico", "Recepção", "Equipe adm
 const cenarioClienteOptions = ["Já possui todos os documentos que vamos entregar", "Possui parcialmente os documentos", "Não possui documentos"];
 const formatoTreinamentoOptions = ["Online", "Presencial", "Híbrido"];
 const responsavelPerfilOptions = ["Equipe", "Cliente", "Agência", "Social media"];
-const canalLeadsOptions = ["WhatsApp", "Direct", "Link na bio", "Telefone"];
+
 
 interface OnboardingMeetingAgendaProps {
   clientId?: string;
@@ -242,7 +242,7 @@ export default function OnboardingMeetingAgenda({
       instagramHandle: "",
       responsavelPerfil: "",
       fazAnuncios: false,
-      canalPrincipalLeads: "",
+      
       riscosEncontrados: "",
       orientacoesDadas: "",
       acoesImediatas: "",
@@ -1541,28 +1541,6 @@ export default function OnboardingMeetingAgenda({
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="canalPrincipalLeads"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>📩 Canal principal de leads</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {canalLeadsOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <FormField
                       control={form.control}
