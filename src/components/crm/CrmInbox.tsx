@@ -250,9 +250,9 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   // Lead novo sem conversa - mostrar layout com painel de edição e chat vazio
   if (showLeadWithoutConversation && directJourney) {
     return (
-      <div className="h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
+      <div className="h-full max-h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
         {/* Coluna 1: Lista de Conversas - scroll independente */}
-        <div className="w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col min-h-0 overflow-hidden">
+        <div className="w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col min-h-0 max-h-full overflow-hidden">
           <ConversationList
             conversations={conversations}
             selectedId={null}
@@ -265,12 +265,12 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
         </div>
 
         {/* Coluna 2: Detalhes do Lead (Patient Journey) - scroll independente */}
-        <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col min-h-0 overflow-hidden">
+        <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col min-h-0 max-h-full overflow-hidden">
           <PatientJourneyDetailsSidebar journey={directJourney} />
         </div>
 
         {/* Coluna 3: Chat vazio - scroll independente */}
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-[hsl(var(--avivar-card))]">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 max-h-full overflow-hidden bg-[hsl(var(--avivar-card))]">
           {/* Header simples - fixo */}
           <div className="p-4 border-b border-[hsl(var(--avivar-border))] flex items-center gap-3 shrink-0">
             <div className="w-10 h-10 rounded-full bg-[hsl(var(--avivar-primary)/0.15)] flex items-center justify-center">
@@ -283,7 +283,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
           </div>
 
           {/* Área de chat vazia com mensagem UX - flex-1 para ocupar espaço disponível */}
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 min-h-0 overflow-hidden">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 min-h-0 overflow-auto">
             <div className="w-20 h-20 rounded-full bg-[hsl(var(--avivar-muted))] flex items-center justify-center mb-6">
               <MessageCircle className="h-10 w-10 text-[hsl(var(--avivar-muted-foreground))] opacity-50" />
             </div>
@@ -309,10 +309,10 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   }
 
   return (
-    <div className="h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
+    <div className="h-full max-h-full flex rounded-lg overflow-hidden border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))]">
       {/* Coluna 1: Lista de Conversas - scroll independente */}
       <div className={cn(
-        "w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col min-h-0 overflow-hidden",
+        "w-full md:w-[320px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex flex-col min-h-0 max-h-full overflow-hidden",
         selectedConversation && "hidden md:flex"
       )}>
         <ConversationList
@@ -326,12 +326,12 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
       {selectedConversation && currentConversation ? (
         <>
           {/* Coluna 2: Detalhes do Lead - scroll independente */}
-          <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col min-h-0 overflow-hidden">
+          <div className="hidden lg:flex w-[300px] shrink-0 border-r border-[hsl(var(--avivar-border))] flex-col min-h-0 max-h-full overflow-hidden">
             <LeadDetailsSidebar conversation={currentConversation} />
           </div>
 
           {/* Coluna 3: Chat - scroll independente */}
-          <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          <div className="flex-1 flex flex-col min-w-0 min-h-0 max-h-full overflow-hidden">
             {/* Header do chat - fixo */}
             <div className="shrink-0">
               <ChatHeader
