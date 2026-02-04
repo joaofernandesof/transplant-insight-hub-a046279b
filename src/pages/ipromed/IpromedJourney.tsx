@@ -577,13 +577,6 @@ export default function IpromedJourney() {
                                 >
                                   {phase.id}
                                 </Badge>
-                                <div className="mt-2">
-                                  <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
-                                    <span>Progresso</span>
-                                    <span>{progress}%</span>
-                                  </div>
-                                  <Progress value={progress} className="h-1" />
-                                </div>
                               </CardContent>
                             </Card>
                           );
