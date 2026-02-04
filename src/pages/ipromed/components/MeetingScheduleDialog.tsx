@@ -28,6 +28,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -37,14 +46,27 @@ import {
   Plus,
   Loader2,
   CheckCircle2,
+  Users,
+  X,
+  User,
+  Briefcase,
+  Scale,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { logClientActivity } from "./ClientActivityTimeline";
+
+// Interface para participantes
+interface Participant {
+  id: string;
+  name: string;
+  email?: string;
+  type: 'client' | 'team' | 'partner';
+}
 
 // Pautas pré-configuradas
 const predefinedAgendas = [
@@ -152,7 +174,82 @@ export function MeetingScheduleDialog({
     location: "",
     notes: "",
   });
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participantSearch, setParticipantSearch] = useState("");
+  const [isParticipantPopoverOpen, setIsParticipantPopoverOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Query para buscar clientes e colaboradores do sistema
+  const { data: availablePeople } = useQuery({
+    queryKey: ['meeting-available-people'],
+    queryFn: async () => {
+      // Buscar clientes
+      const { data: clients } = await supabase
+        .from('ipromed_legal_clients' as any)
+        .select('id, name, email')
+        .order('name');
+
+      // Buscar sócias/colaboradores da tabela profiles
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .order('full_name');
+
+      const people: (Participant & { searchText: string })[] = [];
+      
+      // Adicionar clientes
+      (clients || []).forEach((c: any) => {
+        people.push({
+          id: c.id,
+          name: c.name,
+          email: c.email,
+          type: 'client',
+          searchText: `${c.name} ${c.email || ''}`.toLowerCase(),
+        });
+      });
+
+      // Adicionar perfis (sócias/colaboradores)
+      (profiles || []).forEach((p: any) => {
+        if (p.full_name) {
+          people.push({
+            id: p.id,
+            name: p.full_name,
+            email: p.email,
+            type: 'team',
+            searchText: `${p.full_name} ${p.email || ''}`.toLowerCase(),
+          });
+        }
+      });
+
+      return people;
+    },
+    enabled: open,
+  });
+
+  // Filtrar pessoas pela busca
+  const filteredPeople = (availablePeople || []).filter(person => {
+    const matchesSearch = !participantSearch || 
+      person.searchText.includes(participantSearch.toLowerCase());
+    const notAlreadyAdded = !participants.some(p => p.id === person.id);
+    return matchesSearch && notAlreadyAdded;
+  });
+
+  const addParticipant = (person: Participant) => {
+    setParticipants(prev => [...prev, person]);
+    setParticipantSearch("");
+  };
+
+  const removeParticipant = (id: string) => {
+    setParticipants(prev => prev.filter(p => p.id !== id));
+  };
+
+  const getParticipantTypeLabel = (type: 'client' | 'team' | 'partner') => {
+    switch (type) {
+      case 'client': return { label: 'Cliente', icon: User, color: 'text-blue-600' };
+      case 'team': return { label: 'Equipe', icon: Briefcase, color: 'text-emerald-600' };
+      case 'partner': return { label: 'Sócio', icon: Scale, color: 'text-amber-600' };
+    }
+  };
 
   const selectedPredefinedAgenda = predefinedAgendas.find(a => a.id === selectedAgenda);
 
@@ -205,6 +302,7 @@ export function MeetingScheduleDialog({
           location: meetingDetails.location || null,
           meeting_notes: meetingDetails.notes || null,
           status: 'scheduled',
+          participants: participants.map(p => ({ id: p.id, name: p.name, email: p.email, type: p.type })),
         })
         .select()
         .single();
@@ -263,6 +361,8 @@ export function MeetingScheduleDialog({
       location: "",
       notes: "",
     });
+    setParticipants([]);
+    setParticipantSearch("");
   };
 
   return (
@@ -533,6 +633,127 @@ export function MeetingScheduleDialog({
                 />
               </div>
             )}
+
+            {/* Participantes */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Participantes
+              </Label>
+              
+              {/* Lista de participantes selecionados */}
+              {participants.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {participants.map(participant => {
+                    const typeInfo = getParticipantTypeLabel(participant.type);
+                    const TypeIcon = typeInfo.icon;
+                    return (
+                      <Badge 
+                        key={participant.id} 
+                        variant="secondary" 
+                        className="flex items-center gap-1 pr-1"
+                      >
+                        <TypeIcon className={cn("h-3 w-3", typeInfo.color)} />
+                        <span>{participant.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-4 w-4 ml-1 hover:bg-destructive/20"
+                          onClick={() => removeParticipant(participant.id)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Seletor de participantes */}
+              <Popover open={isParticipantPopoverOpen} onOpenChange={setIsParticipantPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-muted-foreground"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar participante...
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="start">
+                  <Command>
+                    <CommandInput 
+                      placeholder="Buscar cliente, sócio ou colaborador..." 
+                      value={participantSearch}
+                      onValueChange={setParticipantSearch}
+                    />
+                    <CommandList>
+                      <CommandEmpty>Nenhuma pessoa encontrada.</CommandEmpty>
+                      
+                      {/* Clientes */}
+                      {filteredPeople.filter(p => p.type === 'client').length > 0 && (
+                        <CommandGroup heading="Clientes">
+                          {filteredPeople.filter(p => p.type === 'client').slice(0, 5).map(person => (
+                            <CommandItem
+                              key={person.id}
+                              value={person.id}
+                              onSelect={() => {
+                                addParticipant(person);
+                                setIsParticipantPopoverOpen(false);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                                  {person.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{person.name}</p>
+                                {person.email && (
+                                  <p className="text-xs text-muted-foreground truncate">{person.email}</p>
+                                )}
+                              </div>
+                              <Badge variant="outline" className="text-xs">Cliente</Badge>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
+
+                      {/* Equipe */}
+                      {filteredPeople.filter(p => p.type === 'team').length > 0 && (
+                        <CommandGroup heading="Equipe">
+                          {filteredPeople.filter(p => p.type === 'team').slice(0, 5).map(person => (
+                            <CommandItem
+                              key={person.id}
+                              value={person.id}
+                              onSelect={() => {
+                                addParticipant(person);
+                                setIsParticipantPopoverOpen(false);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-xs bg-emerald-100 text-emerald-700">
+                                  {person.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{person.name}</p>
+                                {person.email && (
+                                  <p className="text-xs text-muted-foreground truncate">{person.email}</p>
+                                )}
+                              </div>
+                              <Badge variant="outline" className="text-xs">Equipe</Badge>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
 
             {/* Observações */}
             <div className="space-y-2">

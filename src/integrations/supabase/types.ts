@@ -6093,6 +6093,7 @@ export type Database = {
           minutes: string | null
           modality: string
           onboarding_data: Json | null
+          participants: Json | null
           scheduled_date: string
           scheduled_time: string
           started_at: string | null
@@ -6117,6 +6118,7 @@ export type Database = {
           minutes?: string | null
           modality?: string
           onboarding_data?: Json | null
+          participants?: Json | null
           scheduled_date: string
           scheduled_time: string
           started_at?: string | null
@@ -6141,6 +6143,7 @@ export type Database = {
           minutes?: string | null
           modality?: string
           onboarding_data?: Json | null
+          participants?: Json | null
           scheduled_date?: string
           scheduled_time?: string
           started_at?: string | null
