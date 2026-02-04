@@ -178,16 +178,16 @@ const mockClients: Client[] = [
     created_at: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(),
     metadata: { journey_phase: 'Andamento', journey_progress: 70, risk_level: 'baixo' }
   },
-  // Reunião de apresentação do Pacote Jurídico
+  // Reunião de Apresentação do Pacote Jurídico Agendada
   {
     id: 'mock-11',
     name: 'Patrícia Lima Santos',
     email: 'patricia.santos@email.com',
     phone: '(19) 99666-5555',
     status: 'ativo',
-    journey_stage: 'Apresentacao',
+    journey_stage: 'ReuniaoAgendada',
     created_at: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'Apresentacao', journey_progress: 85, risk_level: 'alto' }
+    metadata: { journey_phase: 'ReuniaoAgendada', journey_progress: 85, risk_level: 'alto' }
   },
   {
     id: 'mock-12',
@@ -195,9 +195,9 @@ const mockClients: Client[] = [
     email: 'juridico@santaclara.org.br',
     phone: '(51) 3344-5566',
     status: 'ativo',
-    journey_stage: 'Apresentacao',
+    journey_stage: 'ReuniaoAgendada',
     created_at: new Date(Date.now() - 32 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'Apresentacao', journey_progress: 90, risk_level: 'baixo' }
+    metadata: { journey_phase: 'ReuniaoAgendada', journey_progress: 90, risk_level: 'baixo' }
   },
   // Acompanhamento contínuo
   {
