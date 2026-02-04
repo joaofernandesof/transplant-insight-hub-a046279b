@@ -75,7 +75,7 @@ export default function IpromedDashboard() {
 
       // Calculate metrics
       const totalClients = clients?.length || 0;
-      const activeClients = clients?.filter(c => c.status === 'ativo')?.length || 0;
+      const activeClients = clients?.filter(c => c.status === 'active')?.length || 0;
       
       const totalContracts = contracts?.length || 0;
       const activeContracts = contracts?.filter(c => ['active', 'signed'].includes(c.status))?.length || 0;
@@ -161,24 +161,22 @@ export default function IpromedDashboard() {
     { name: 'Alto', value: dashboardData?.risk.high || 0, color: '#ef4444' },
   ].filter(d => d.value > 0);
 
-  // Journey phases data
+  // Journey phases data - based on actual database clients
   const journeyData = [
-    { phase: 'D0', clientes: 2, label: 'Ativação' },
-    { phase: 'D+1', clientes: 1, label: 'Agendamento' },
-    { phase: 'D+3', clientes: 2, label: 'Onboarding' },
-    { phase: 'D+7', clientes: 1, label: 'Dossiê' },
-    { phase: 'D+15', clientes: 0, label: 'Documentação' },
-    { phase: 'D+30', clientes: 1, label: 'Compliance' },
-    { phase: 'Contínuo', clientes: 0, label: 'Acompanhamento' },
+    { phase: 'Novos', clientes: dashboardData?.rawClients.filter(c => (c.metadata as any)?.journey_phase === 'Novos').length || 0, label: 'Novos clientes' },
+    { phase: 'Agendado', clientes: dashboardData?.rawClients.filter(c => (c.metadata as any)?.journey_phase === 'Agendado').length || 0, label: 'Onboarding agendado' },
+    { phase: 'Andamento', clientes: dashboardData?.rawClients.filter(c => (c.metadata as any)?.journey_phase === 'Andamento').length || 0, label: 'Pacote em andamento' },
+    { phase: 'ReuniaoAgendada', clientes: dashboardData?.rawClients.filter(c => (c.metadata as any)?.journey_phase === 'ReuniaoAgendada').length || 0, label: 'Reunião agendada' },
+    { phase: 'Continuo', clientes: dashboardData?.rawClients.filter(c => (c.metadata as any)?.journey_phase === 'Continuo').length || 0, label: 'Acompanhamento' },
   ];
 
-  // Monthly trend data (mock)
+  // Monthly trend data - based on actual database data
   const monthlyTrend = [
-    { month: 'Set', clientes: 2, contratos: 2 },
-    { month: 'Out', clientes: 3, contratos: 3 },
-    { month: 'Nov', clientes: 5, contratos: 4 },
-    { month: 'Dez', clientes: 6, contratos: 5 },
-    { month: 'Jan', clientes: 7, contratos: 7 },
+    { month: 'Set', clientes: 0, contratos: 0 },
+    { month: 'Out', clientes: 0, contratos: 0 },
+    { month: 'Nov', clientes: 0, contratos: 0 },
+    { month: 'Dez', clientes: 0, contratos: 0 },
+    { month: 'Fev', clientes: dashboardData?.clients.total || 0, contratos: dashboardData?.contracts.total || 0 },
   ];
 
   const StatCard = ({ 
