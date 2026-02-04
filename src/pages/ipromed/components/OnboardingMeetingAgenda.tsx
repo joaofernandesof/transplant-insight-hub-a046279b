@@ -68,13 +68,18 @@ import ProcedureSelector from "./ProcedureSelector";
 import { cn } from "@/lib/utils";
 import { ProcedureVolumeSelector } from "./ProcedureVolumeSelector";
 
-// Helper para destacar campos não preenchidos
-const getFieldHighlight = (value: string | number | boolean | undefined | null | unknown[]) => {
+// Helper para destacar campos não preenchidos - aplicar no input/select
+const getInputHighlight = (value: string | number | boolean | undefined | null | unknown[]) => {
   if (value === undefined || value === null || value === "" || value === 0 || 
       (Array.isArray(value) && value.length === 0)) {
-    return "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/50 rounded-lg p-3 -m-3";
+    return "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700";
   }
   return "";
+};
+
+// Alias antigo para compatibilidade (não usar mais)
+const getFieldHighlight = (_value: string | number | boolean | undefined | null | unknown[]) => {
+  return ""; // Desativado - usar getInputHighlight no input
 };
 
 // Schema de validação
@@ -518,10 +523,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="nomeCompleto"
                       render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
+                        <FormItem>
                           <FormLabel>🪪 Nome completo do cliente *</FormLabel>
                           <FormControl>
-                            <Input placeholder="João da Silva Pereira" {...field} />
+                            <Input 
+                              placeholder="João da Silva Pereira" 
+                              className={cn(getInputHighlight(field.value))}
+                              {...field} 
+                            />
                           </FormControl>
                           <FormDescription className="text-xs">Conferir grafia</FormDescription>
                           <FormMessage />
