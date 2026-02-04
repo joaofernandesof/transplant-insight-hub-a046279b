@@ -11,7 +11,6 @@ import {
   Phone,
   Mail,
   Calendar,
-  Tag,
   MessageSquare,
   ChevronDown,
   ChevronUp,
@@ -25,6 +24,7 @@ import {
   Clock,
   MoreVertical,
   Tags,
+  Settings2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -40,7 +40,6 @@ import { Button } from '@/components/ui/button';
 
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
   CollapsibleContent,
@@ -55,7 +54,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { CrmConversation } from '@/hooks/useCrmConversations';
 import { LeadEditDialog } from './LeadEditDialog';
@@ -66,6 +64,7 @@ import { useLeadChecklistFields } from '@/hooks/useLeadChecklistFields';
 import { FunnelColumnSelector } from './FunnelColumnSelector';
 import { LeadTagsDialog } from './LeadTagsDialog';
 import { LeadTagsInline } from './LeadTagsInline';
+import { ChecklistConfigDialog } from './ChecklistConfigDialog';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -95,6 +94,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
   const [notes, setNotes] = useState('');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
+  const [isChecklistConfigOpen, setIsChecklistConfigOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
@@ -369,64 +369,44 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
                 )}
               </button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-3 pt-2">
+            <CollapsibleContent className="space-y-2 pt-2">
               {checklistFields.length > 0 ? (
                 checklistFields.map((field) => (
-                  <div key={field.id} className="flex items-start gap-2 p-2 rounded-lg bg-[hsl(var(--avivar-muted)/0.3)]">
+                  <div key={field.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-[hsl(var(--avivar-muted)/0.3)]">
                     {/* Status Icon */}
                     {field.value ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-[hsl(var(--avivar-accent))] shrink-0" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))] mt-0.5 shrink-0" />
+                      <XCircle className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))] shrink-0" />
                     )}
                     
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs font-medium text-[hsl(var(--avivar-foreground))]">
-                          {field.field_label}
-                        </span>
-                        {field.is_required && (
-                          <span className="text-red-500 text-xs">*</span>
-                        )}
-                      </div>
-                      
-                      {/* Field Value Display */}
-                      {field.value ? (
-                        <div className="mt-1">
-                          {field.field_type === 'boolean' ? (
-                            <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
-                              Sim
-                            </Badge>
-                          ) : field.field_type === 'date' || field.field_type === 'datetime' ? (
-                            <div className="flex items-center gap-1 text-xs text-[hsl(var(--avivar-primary))]">
-                              <Clock className="h-3 w-3" />
-                              {typeof field.value === 'string' && (
-                                <span className="font-medium">
-                                  {field.field_type === 'datetime' 
-                                    ? format(new Date(field.value), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
-                                    : format(new Date(field.value), "dd/MM/yyyy", { locale: ptBR })
-                                  }
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-[hsl(var(--avivar-foreground))]">
-                              {String(field.value)}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-[hsl(var(--avivar-muted-foreground))] italic">
-                          Não preenchido
-                        </span>
-                      )}
-                    </div>
+                    {/* Apenas nome do campo */}
+                    <span className="text-xs text-[hsl(var(--avivar-foreground))] flex-1">
+                      {field.field_label}
+                    </span>
+                    
+                    {field.is_required && (
+                      <span className="text-[hsl(var(--avivar-primary))] text-xs">*</span>
+                    )}
                   </div>
                 ))
               ) : (
                 <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] text-center py-2">
-                  Nenhum campo de checklist configurado para esta coluna
+                  Nenhum campo configurado
                 </p>
+              )}
+              
+              {/* Botão de configuração */}
+              {kanbanInfo?.columnId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsChecklistConfigOpen(true)}
+                  className="w-full mt-2 text-xs gap-1 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
+                >
+                  <Settings2 className="h-3 w-3" />
+                  Configurar campos
+                </Button>
               )}
             </CollapsibleContent>
           </Collapsible>
@@ -485,6 +465,16 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
         onOpenChange={setIsTagsDialogOpen}
         onSaved={onLeadUpdated}
       />
+
+      {/* Dialog de Configuração do Checklist */}
+      {kanbanInfo?.columnId && (
+        <ChecklistConfigDialog
+          open={isChecklistConfigOpen}
+          onOpenChange={setIsChecklistConfigOpen}
+          columnId={kanbanInfo.columnId}
+          columnName={kanbanInfo.columnName}
+        />
+      )}
     </>
   );
 }
