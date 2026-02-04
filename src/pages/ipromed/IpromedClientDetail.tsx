@@ -340,15 +340,47 @@ export default function IpromedClientDetail() {
       <Card>
         <CardContent className="pt-4 pb-4">
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (client?.email) {
+                  window.location.href = `mailto:${client.email}`;
+                } else {
+                  toast.error("Email do cliente não cadastrado");
+                }
+              }}
+            >
               <Mail className="h-4 w-4 mr-2" />
               Enviar Email
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (client?.phone) {
+                  window.location.href = `tel:${client.phone}`;
+                } else {
+                  toast.error("Telefone do cliente não cadastrado");
+                }
+              }}
+            >
               <Phone className="h-4 w-4 mr-2" />
               Ligar
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (client?.phone) {
+                  // Remove caracteres especiais e formata para WhatsApp
+                  const phoneClean = client.phone.replace(/\D/g, '');
+                  window.open(`https://wa.me/${phoneClean}`, '_blank');
+                } else {
+                  toast.error("Telefone do cliente não cadastrado");
+                }
+              }}
+            >
               <MessageSquare className="h-4 w-4 mr-2" />
               WhatsApp
             </Button>
@@ -356,7 +388,13 @@ export default function IpromedClientDetail() {
               <Video className="h-4 w-4 mr-2" />
               Agendar Reunião
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                navigate(`/ipromed/legal?tab=tasks&new=1&clientId=${client?.id}&clientName=${encodeURIComponent(client?.name || '')}`);
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Nova Tarefa
             </Button>
