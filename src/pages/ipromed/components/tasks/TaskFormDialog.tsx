@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -76,6 +76,22 @@ export function TaskFormDialog({
     tags: [] as string[],
   });
   const [tagInput, setTagInput] = useState("");
+
+  // Buscar usuários com acesso ao portal jurídico (ipromed)
+  const { data: portalUsers = [] } = useQuery({
+    queryKey: ["ipromed-portal-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("neohub_users")
+        .select("id, full_name, email, allowed_portals")
+        .contains("allowed_portals", ["ipromed"])
+        .eq("is_active", true)
+        .order("full_name", { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   useEffect(() => {
     if (task) {
@@ -302,13 +318,22 @@ export function TaskFormDialog({
 
           {/* Assignee */}
           <div className="space-y-2">
-            <Label htmlFor="assignee">Responsável</Label>
-            <Input
-              id="assignee"
+            <Label>Responsável</Label>
+            <Select
               value={formData.assigned_to_name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, assigned_to_name: e.target.value }))}
-              placeholder="Nome do responsável"
-            />
+              onValueChange={(v) => setFormData((prev) => ({ ...prev, assigned_to_name: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar responsável..." />
+              </SelectTrigger>
+              <SelectContent>
+                {portalUsers.map((u) => (
+                  <SelectItem key={u.id} value={u.full_name || u.email}>
+                    {u.full_name || u.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Tags */}
