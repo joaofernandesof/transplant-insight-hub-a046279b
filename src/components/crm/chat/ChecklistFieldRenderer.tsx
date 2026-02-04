@@ -7,6 +7,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ChevronDown, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -34,11 +37,25 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
   const [boolValue, setBoolValue] = useState<boolean>(
     typeof field.value === 'boolean' ? field.value : false
   );
+  const [multiSelectValues, setMultiSelectValues] = useState<string[]>(() => {
+    if (typeof field.value === 'string' && field.value) {
+      try {
+        const parsed = JSON.parse(field.value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return field.value.split(',').map(v => v.trim()).filter(Boolean);
+      }
+    }
+    return [];
+  });
+  const [multiSelectSearch, setMultiSelectSearch] = useState('');
+  const [multiSelectOpen, setMultiSelectOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const isEditingRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const lastSavedValueRef = useRef<string>(localValue);
   const lastSavedBoolRef = useRef<boolean>(boolValue);
+  const lastSavedMultiRef = useRef<string[]>(multiSelectValues);
 
   // Only sync from props when NOT actively editing
   useEffect(() => {
@@ -47,6 +64,22 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
         const newBool = typeof field.value === 'boolean' ? field.value : false;
         setBoolValue(newBool);
         lastSavedBoolRef.current = newBool;
+      } else if (field.field_type === 'multiselect') {
+        if (typeof field.value === 'string' && field.value) {
+          try {
+            const parsed = JSON.parse(field.value);
+            const newValues = Array.isArray(parsed) ? parsed : [];
+            setMultiSelectValues(newValues);
+            lastSavedMultiRef.current = newValues;
+          } catch {
+            const newValues = field.value.split(',').map(v => v.trim()).filter(Boolean);
+            setMultiSelectValues(newValues);
+            lastSavedMultiRef.current = newValues;
+          }
+        } else {
+          setMultiSelectValues([]);
+          lastSavedMultiRef.current = [];
+        }
       } else {
         const newValue = typeof field.value === 'string' ? field.value : '';
         setLocalValue(newValue);
@@ -147,6 +180,32 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
     saveToDatabase(value);
   }, [saveToDatabase]);
 
+  const handleMultiSelectToggle = useCallback((option: string) => {
+    const newValues = multiSelectValues.includes(option)
+      ? multiSelectValues.filter(v => v !== option)
+      : [...multiSelectValues, option];
+    
+    setMultiSelectValues(newValues);
+    const jsonValue = JSON.stringify(newValues);
+    saveToDatabase(jsonValue);
+    lastSavedMultiRef.current = newValues;
+  }, [multiSelectValues, saveToDatabase]);
+
+  const handleSelectAll = useCallback(() => {
+    const availableOptions = (field.options || []).filter(opt => opt.trim());
+    const allSelected = availableOptions.every(opt => multiSelectValues.includes(opt));
+    
+    const newValues = allSelected ? [] : [...availableOptions];
+    setMultiSelectValues(newValues);
+    const jsonValue = JSON.stringify(newValues);
+    saveToDatabase(jsonValue);
+    lastSavedMultiRef.current = newValues;
+  }, [field.options, multiSelectValues, saveToDatabase]);
+
+  const filteredOptions = (field.options || []).filter(opt => 
+    opt.trim() && opt.toLowerCase().includes(multiSelectSearch.toLowerCase())
+  );
+
   // Renderização baseada no tipo
   switch (field.field_type) {
     case 'boolean':
@@ -198,6 +257,82 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
               ))}
             </SelectContent>
           </Select>
+        </div>
+      );
+
+    case 'multiselect':
+      const availableOptions = (field.options || []).filter(opt => opt.trim());
+      const allSelected = availableOptions.length > 0 && availableOptions.every(opt => multiSelectValues.includes(opt));
+      
+      return (
+        <div className="flex items-center gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
+            {field.field_label}
+            {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
+          </Label>
+          <Popover open={multiSelectOpen} onOpenChange={setMultiSelectOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={isSaving}
+                className="h-7 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] rounded-none px-0 text-[hsl(var(--avivar-foreground))] flex-1 flex items-center justify-between gap-2 text-left"
+              >
+                <span className="truncate text-[hsl(var(--avivar-muted-foreground)/0.7)]">
+                  {multiSelectValues.length > 0 
+                    ? `${multiSelectValues.length} selecionado(s)` 
+                    : 'Selecionar...'}
+                </span>
+                <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-0 bg-white border border-[hsl(var(--avivar-border))] shadow-lg" align="start">
+              {/* Search */}
+              <div className="flex items-center gap-2 px-3 py-2 border-b border-[hsl(var(--avivar-border))]">
+                <Search className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+                <input
+                  type="text"
+                  value={multiSelectSearch}
+                  onChange={(e) => setMultiSelectSearch(e.target.value)}
+                  placeholder="Buscar"
+                  className="flex-1 text-sm bg-transparent border-0 outline-none placeholder:text-[hsl(var(--avivar-muted-foreground)/0.5)]"
+                />
+              </div>
+              
+              {/* Select All */}
+              <div 
+                className="flex items-center gap-2 px-3 py-2 border-b border-[hsl(var(--avivar-border))] cursor-pointer hover:bg-[hsl(var(--avivar-muted)/0.3)]"
+                onClick={handleSelectAll}
+              >
+                <Checkbox 
+                  checked={allSelected}
+                  className="border-[hsl(var(--avivar-border))]"
+                />
+                <span className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Selecionar tudo</span>
+              </div>
+              
+              {/* Options */}
+              <div className="max-h-40 overflow-y-auto">
+                {filteredOptions.map((option, idx) => (
+                  <div 
+                    key={idx}
+                    className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[hsl(var(--avivar-muted)/0.3)]"
+                    onClick={() => handleMultiSelectToggle(option)}
+                  >
+                    <Checkbox 
+                      checked={multiSelectValues.includes(option)}
+                      className="border-[hsl(var(--avivar-border))]"
+                    />
+                    <span className="text-sm">{option}</span>
+                  </div>
+                ))}
+                {filteredOptions.length === 0 && (
+                  <div className="px-3 py-2 text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                    Nenhuma opção encontrada
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       );
 
