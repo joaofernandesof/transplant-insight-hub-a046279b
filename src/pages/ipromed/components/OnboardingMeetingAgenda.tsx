@@ -65,6 +65,15 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+// Helper para destacar campos não preenchidos
+const getFieldHighlight = (value: string | number | boolean | undefined | null | unknown[]) => {
+  if (value === undefined || value === null || value === "" || value === 0 || 
+      (Array.isArray(value) && value.length === 0)) {
+    return "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/50 rounded-lg p-3 -m-3";
+  }
+  return "";
+};
+
 // Schema de validação
 const onboardingMeetingSchema = z.object({
   // 1. Boas-vindas e abertura
@@ -360,7 +369,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="nomeCompleto"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🪪 Nome completo do cliente *</FormLabel>
                           <FormControl>
                             <Input placeholder="João da Silva Pereira" {...field} />
@@ -375,7 +384,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="nomePreferencia"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🙂 Nome de preferência</FormLabel>
                           <FormControl>
                             <Input placeholder="Dr. João" {...field} />
@@ -390,7 +399,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="cargoFuncao"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🧩 Cargo ou função</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
@@ -492,7 +501,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="cidadeEstado"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>📍 Cidade e estado</FormLabel>
                           <FormControl>
                             <Input placeholder="Fortaleza, CE" {...field} />
@@ -507,7 +516,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="emailPrincipal"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>📧 E-mail principal</FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="financeiro@clinica.com" {...field} />
@@ -521,7 +530,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="objetivoPrincipal"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🎯 Objetivo principal</FormLabel>
                           <FormControl>
                             <Textarea 
@@ -579,7 +588,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="areaAtuacao"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🧠 Área principal de atuação</FormLabel>
                           <FormControl>
                             <Input placeholder="Dermatologia" {...field} />
@@ -622,7 +631,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="tempoAtuacao"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>⏳ Tempo de atuação (anos)</FormLabel>
                           <FormControl>
                             <Input type="number" min="0" placeholder="7" {...field} />
@@ -636,7 +645,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="estruturaPrincipal"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🧱 Estrutura principal</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
@@ -659,7 +668,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="tamanhoEquipe"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>👥 Tamanho da equipe fixa</FormLabel>
                           <FormControl>
                             <Input type="number" min="0" placeholder="6" {...field} />
@@ -673,7 +682,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="procedimentosRealizados"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>⚙️ Procedimentos realizados</FormLabel>
                           <FormControl>
                             <Textarea 
@@ -692,7 +701,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="procedimentosMaiorVolume"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>📈 Procedimentos de maior volume</FormLabel>
                           <FormControl>
                             <Textarea 
@@ -751,7 +760,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="whatsappPrincipal"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>📱 WhatsApp principal</FormLabel>
                           <FormControl>
                             <Input placeholder="+55 85 99999-9999" {...field} />
@@ -765,7 +774,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="responsavelOperacional"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>👤 Responsável operacional</FormLabel>
                           <FormControl>
                             <Input placeholder="Maria, secretária" {...field} />
@@ -779,7 +788,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="horarioPreferencial"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🕒 Horário preferencial</FormLabel>
                           <FormControl>
                             <Input placeholder="14h às 18h" {...field} />
@@ -1341,7 +1350,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="cenarioCliente"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🧩 Cenário do cliente</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
@@ -1365,7 +1374,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="dataRecebimentoCompleto"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>📅 Data de recebimento completo</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
@@ -1380,7 +1389,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="prazoPadraoInformado"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>⏳ Prazo padrão (dias úteis)</FormLabel>
                           <FormControl>
                             <Input type="number" min="1" {...field} />
@@ -1394,7 +1403,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="dataPrevistaEntrega"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🗓️ Data prevista de entrega</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
@@ -1574,7 +1583,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="instagramHandle"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>📲 @ do Instagram</FormLabel>
                           <FormControl>
                             <Input placeholder="@drjoao" {...field} />
@@ -1588,7 +1597,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="responsavelPerfil"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>👤 Responsável pelo perfil</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
@@ -1626,7 +1635,7 @@ export default function OnboardingMeetingAgenda({
                         control={form.control}
                         name="riscosEncontrados"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className={cn(getFieldHighlight(field.value))}>
                             <FormLabel>⚠️ Riscos encontrados</FormLabel>
                             <FormControl>
                               <Textarea 
@@ -1713,7 +1722,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="orientacoesDadas"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>✅ Orientações dadas</FormLabel>
                           <FormControl>
                             <Textarea 
@@ -1871,7 +1880,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="ajustesSolicitados"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>🛠️ Ajustes solicitados</FormLabel>
                           <FormControl>
                             <Textarea 
