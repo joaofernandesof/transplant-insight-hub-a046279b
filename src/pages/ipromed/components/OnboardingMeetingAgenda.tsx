@@ -3,7 +3,7 @@
  * Formulário completo com 10 seções e 43 campos para registro de novos clientes
  */
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,6 +42,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertCircle,
   HandMetal,
   Stethoscope,
   MessageSquare,
@@ -168,24 +169,93 @@ const onboardingMeetingSchema = z.object({
 
 type OnboardingMeetingData = z.infer<typeof onboardingMeetingSchema>;
 
-interface Section {
+// Definição das seções com campos obrigatórios
+interface SectionConfig {
   id: string;
   icon: React.ElementType;
   title: string;
   emoji: string;
   fields: string[];
+  requiredFields: { name: keyof OnboardingMeetingData; label: string }[];
 }
 
-const sections: Section[] = [
-  { id: "boas-vindas", icon: HandMetal, title: "Boas-vindas e abertura", emoji: "👋", fields: ["1.2.1", "1.2.2", "1.2.3", "1.2.4", "1.2.5", "1.2.6"] },
-  { id: "perfil", icon: Stethoscope, title: "Perfil profissional", emoji: "🩺", fields: ["2.2.1", "2.2.2", "2.2.3", "2.2.4", "2.2.5", "2.2.6", "2.2.7", "2.2.8", "2.2.9"] },
-  { id: "comunicacao", icon: MessageSquare, title: "Comunicação", emoji: "📲", fields: ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "3.2.5", "3.2.6"] },
-  { id: "documentos", icon: FileText, title: "Documentos atuais", emoji: "📄", fields: ["4.2.1", "4.2.2", "4.2.3", "4.2.4", "4.2.5", "4.2.6"] },
-  { id: "prioridades", icon: Target, title: "Prioridades", emoji: "🎯", fields: ["5.2.1", "5.2.2", "5.2.3", "5.2.4", "5.2.5", "5.2.6"] },
-  { id: "prazos", icon: Calendar, title: "Prazos", emoji: "🗓️", fields: ["6.2.1", "6.2.2", "6.2.3", "6.2.4"] },
-  { id: "treinamento", icon: GraduationCap, title: "Treinamento", emoji: "🎓", fields: ["8.2.1", "8.2.2", "8.2.3", "8.2.4", "8.2.5"] },
-  { id: "instagram", icon: Instagram, title: "Instagram", emoji: "📸", fields: ["9.2.1", "9.2.2", "9.2.3", "9.2.4", "9.2.5", "9.2.6", "9.2.7"] },
-  { id: "contrato", icon: FileSignature, title: "Contrato", emoji: "📑", fields: ["10.2.1", "10.2.2", "10.2.3", "10.2.4"] },
+const sections: SectionConfig[] = [
+  { 
+    id: "boas-vindas", 
+    icon: HandMetal, 
+    title: "Boas-vindas e abertura", 
+    emoji: "👋", 
+    fields: ["1.2.1", "1.2.2", "1.2.3", "1.2.4", "1.2.5", "1.2.6"],
+    requiredFields: [
+      { name: "nomeCompleto", label: "Nome completo do cliente" },
+    ]
+  },
+  { 
+    id: "perfil", 
+    icon: Stethoscope, 
+    title: "Perfil profissional", 
+    emoji: "🩺", 
+    fields: ["2.2.1", "2.2.2", "2.2.3", "2.2.4", "2.2.5", "2.2.6", "2.2.7", "2.2.8", "2.2.9"],
+    requiredFields: []
+  },
+  { 
+    id: "comunicacao", 
+    icon: MessageSquare, 
+    title: "Comunicação", 
+    emoji: "📲", 
+    fields: ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "3.2.5", "3.2.6"],
+    requiredFields: [
+      { name: "whatsappPrincipal", label: "WhatsApp principal" },
+    ]
+  },
+  { 
+    id: "documentos", 
+    icon: FileText, 
+    title: "Documentos atuais", 
+    emoji: "📄", 
+    fields: ["4.2.1", "4.2.2", "4.2.3", "4.2.4", "4.2.5", "4.2.6"],
+    requiredFields: []
+  },
+  { 
+    id: "prioridades", 
+    icon: Target, 
+    title: "Prioridades", 
+    emoji: "🎯", 
+    fields: ["5.2.1", "5.2.2", "5.2.3", "5.2.4", "5.2.5", "5.2.6"],
+    requiredFields: []
+  },
+  { 
+    id: "prazos", 
+    icon: Calendar, 
+    title: "Prazos", 
+    emoji: "🗓️", 
+    fields: ["6.2.1", "6.2.2", "6.2.3", "6.2.4"],
+    requiredFields: []
+  },
+  { 
+    id: "treinamento", 
+    icon: GraduationCap, 
+    title: "Treinamento", 
+    emoji: "🎓", 
+    fields: ["8.2.1", "8.2.2", "8.2.3", "8.2.4", "8.2.5"],
+    requiredFields: []
+  },
+  { 
+    id: "instagram", 
+    icon: Instagram, 
+    title: "Instagram", 
+    emoji: "📸", 
+    fields: ["9.2.1", "9.2.2", "9.2.3", "9.2.4", "9.2.5", "9.2.6", "9.2.7"],
+    requiredFields: []
+  },
+  { 
+    id: "contrato", 
+    icon: FileSignature, 
+    title: "Contrato", 
+    emoji: "📑", 
+    fields: ["10.2.1", "10.2.2", "10.2.3", "10.2.4"],
+    requiredFields: []
+  },
 ];
 
 // Opções de listas suspensas
@@ -215,8 +285,12 @@ export default function OnboardingMeetingAgenda({
   onClose,
   initialData,
 }: OnboardingMeetingAgendaProps) {
-  const [expandedSections, setExpandedSections] = useState<string[]>(["boas-vindas"]);
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState<string[]>([]);
+  
+  // Controlar qual seção está expandida (apenas a atual)
+  const currentSection = sections[currentSectionIndex];
+  const expandedSections = currentSection ? [currentSection.id] : [];
 
   const form = useForm<OnboardingMeetingData>({
     resolver: zodResolver(onboardingMeetingSchema),
@@ -286,19 +360,80 @@ export default function OnboardingMeetingAgenda({
     onClose?.();
   };
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => 
-      prev.includes(sectionId) 
-        ? prev.filter(s => s !== sectionId)
-        : [...prev, sectionId]
-    );
-  };
+  // Verificar se uma seção está acessível (completada ou é a atual)
+  const isSectionAccessible = useCallback((sectionId: string) => {
+    const sectionIndex = sections.findIndex(s => s.id === sectionId);
+    return sectionIndex <= currentSectionIndex || completedSections.includes(sectionId);
+  }, [currentSectionIndex, completedSections]);
 
-  const markSectionComplete = (sectionId: string) => {
+  // Alternar seção (só permite se acessível)
+  const toggleSection = useCallback((sectionId: string) => {
+    if (isSectionAccessible(sectionId)) {
+      const sectionIndex = sections.findIndex(s => s.id === sectionId);
+      if (sectionIndex !== -1) {
+        setCurrentSectionIndex(sectionIndex);
+      }
+    } else {
+      toast.error("Complete a seção atual antes de avançar", {
+        description: "Preencha os campos obrigatórios e clique em 'Marcar como concluído'",
+      });
+    }
+  }, [isSectionAccessible]);
+
+  // Validar e marcar seção como concluída
+  const validateAndCompleteSection = useCallback((sectionId: string) => {
+    const section = sections.find(s => s.id === sectionId);
+    if (!section) return;
+
+    const formValues = form.getValues();
+    const missingFields: string[] = [];
+
+    // Verificar campos obrigatórios
+    for (const field of section.requiredFields) {
+      const value = formValues[field.name];
+      const isEmpty = value === undefined || value === null || value === "" || 
+        (Array.isArray(value) && value.length === 0);
+      
+      if (isEmpty) {
+        missingFields.push(field.label);
+      }
+    }
+
+    if (missingFields.length > 0) {
+      toast.error("Preencha os campos obrigatórios", {
+        description: (
+          <div className="mt-2">
+            <p className="font-medium mb-1">Campos faltando:</p>
+            <ul className="list-disc list-inside text-sm">
+              {missingFields.map((field, i) => (
+                <li key={i}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ),
+        duration: 5000,
+      });
+      return;
+    }
+
+    // Marcar como concluída
     if (!completedSections.includes(sectionId)) {
       setCompletedSections(prev => [...prev, sectionId]);
     }
-  };
+
+    // Avançar para próxima seção
+    const currentIndex = sections.findIndex(s => s.id === sectionId);
+    if (currentIndex < sections.length - 1) {
+      setCurrentSectionIndex(currentIndex + 1);
+      toast.success("Seção concluída!", {
+        description: `Avançando para: ${sections[currentIndex + 1].title}`,
+      });
+    } else {
+      toast.success("Todas as seções foram concluídas!", {
+        description: "Você pode salvar a pauta agora.",
+      });
+    }
+  }, [form, completedSections]);
 
   const progress = Math.round((completedSections.length / sections.length) * 100);
 
@@ -337,18 +472,24 @@ export default function OnboardingMeetingAgenda({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4 space-y-4">
             <Accordion 
-              type="multiple" 
-              value={expandedSections}
+              type="single" 
+              value={expandedSections[0] || ""}
               className="space-y-3"
             >
               {/* 1. Boas-vindas e abertura */}
-              <AccordionItem value="boas-vindas" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="boas-vindas" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("boas-vindas") && "opacity-50 pointer-events-none"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("boas-vindas") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("boas-vindas")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("boas-vindas");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">👋</span>
@@ -360,6 +501,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("boas-vindas") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -551,7 +698,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("boas-vindas")}
+                      onClick={() => validateAndCompleteSection("boas-vindas")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
@@ -561,13 +708,19 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 2. Perfil profissional */}
-              <AccordionItem value="perfil" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="perfil" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("perfil") && "opacity-50"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("perfil") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("perfil")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("perfil");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">🩺</span>
@@ -579,6 +732,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("perfil") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -722,7 +881,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("perfil")}
+                      onClick={() => validateAndCompleteSection("perfil")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
@@ -732,13 +891,19 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 3. Comunicação */}
-              <AccordionItem value="comunicacao" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="comunicacao" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("comunicacao") && "opacity-50"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("comunicacao") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("comunicacao")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("comunicacao");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📲</span>
@@ -750,6 +915,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("comunicacao") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -913,7 +1084,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("comunicacao")}
+                      onClick={() => validateAndCompleteSection("comunicacao")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
@@ -923,13 +1094,19 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 4. Documentos atuais */}
-              <AccordionItem value="documentos" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="documentos" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("documentos") && "opacity-50"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("documentos") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("documentos")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("documentos");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📄</span>
@@ -941,6 +1118,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("documentos") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -1112,7 +1295,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("documentos")}
+                      onClick={() => validateAndCompleteSection("documentos")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
@@ -1123,13 +1306,19 @@ export default function OnboardingMeetingAgenda({
 
 
               {/* 5. Prioridades */}
-              <AccordionItem value="prioridades" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="prioridades" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("prioridades") && "opacity-50"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("prioridades") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("prioridades")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("prioridades");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">🎯</span>
@@ -1141,6 +1330,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("prioridades") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -1313,7 +1508,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("prioridades")}
+                      onClick={() => validateAndCompleteSection("prioridades")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
@@ -1323,13 +1518,19 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 7. Prazos */}
-              <AccordionItem value="prazos" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="prazos" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("prazos") && "opacity-50"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("prazos") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("prazos")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("prazos");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">🗓️</span>
@@ -1341,6 +1542,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("prazos") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -1420,7 +1627,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("prazos")}
+                      onClick={() => validateAndCompleteSection("prazos")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
@@ -1430,13 +1637,19 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 8. Treinamento */}
-              <AccordionItem value="treinamento" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="treinamento" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("treinamento") && "opacity-50"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("treinamento") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("treinamento")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("treinamento");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">🎓</span>
@@ -1448,6 +1661,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("treinamento") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -1546,7 +1765,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("treinamento")}
+                      onClick={() => validateAndCompleteSection("treinamento")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
@@ -1556,13 +1775,19 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 9. Instagram */}
-              <AccordionItem value="instagram" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="instagram" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("instagram") && "opacity-50"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("instagram") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("instagram")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("instagram");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📸</span>
@@ -1574,6 +1799,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("instagram") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -1743,7 +1974,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("instagram")}
+                      onClick={() => validateAndCompleteSection("instagram")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
@@ -1753,13 +1984,19 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 10. Contrato */}
-              <AccordionItem value="contrato" className="border rounded-lg overflow-hidden">
+              <AccordionItem value="contrato" className={cn(
+                "border rounded-lg overflow-hidden transition-opacity",
+                !isSectionAccessible("contrato") && "opacity-50"
+              )}>
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
                     completedSections.includes("contrato") && "bg-emerald-50 dark:bg-emerald-950/20"
                   )}
-                  onClick={() => toggleSection("contrato")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("contrato");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📑</span>
@@ -1771,6 +2008,12 @@ export default function OnboardingMeetingAgenda({
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("contrato") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -1901,7 +2144,7 @@ export default function OnboardingMeetingAgenda({
                       type="button" 
                       variant="default" 
                       size="sm"
-                      onClick={() => markSectionComplete("contrato")}
+                      onClick={() => validateAndCompleteSection("contrato")}
                     >
                       <CheckCircle2 className="h-4 w-4 mr-1" />
                       Marcar como concluído
