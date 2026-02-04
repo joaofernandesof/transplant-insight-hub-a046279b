@@ -151,11 +151,14 @@ const onboardingMeetingSchema = z.object({
     descricao: z.string().optional(),
   })).default([]),
 
-  // 7. Prazos
-  cenarioCliente: z.string().optional(),
-  dataRecebimentoCompleto: z.string().optional(),
-  prazoPadraoInformado: z.coerce.number().default(20),
-  dataPrevistaEntrega: z.string().optional(),
+  // 7. Prazos - Documentos Atuais e Novos
+  dataOnboarding: z.string().optional(), // Data de hoje (onboarding)
+  dataRecebimentoDocsAtuais: z.string().optional(), // Data prevista de recebimento dos docs atuais
+  prazoPadraoRevisao: z.coerce.number().default(20), // Prazo padrão em dias úteis para revisão
+  prazoPadraoCriacao: z.coerce.number().default(20), // Prazo padrão em dias úteis para criação
+  dataPrevistaRevisao: z.string().optional(), // Calculada automaticamente
+  dataPrevistaCriacao: z.string().optional(), // Calculada automaticamente
+  documentosAtuaisStatus: z.record(z.boolean()).default({}), // Matriz de documentos atuais (tem/não tem)
 
   // 8. Treinamento
   necessitaTreinamento: z.boolean().default(false),
@@ -380,10 +383,13 @@ export default function OnboardingMeetingAgenda({
       documentosPrioritarios: [],
       jaTeveProblemAnterior: false,
       problemasAnteriores: [],
-      cenarioCliente: "",
-      dataRecebimentoCompleto: "",
-      prazoPadraoInformado: undefined,
-      dataPrevistaEntrega: "",
+      dataOnboarding: new Date().toISOString().split('T')[0],
+      dataRecebimentoDocsAtuais: "",
+      prazoPadraoRevisao: 20,
+      prazoPadraoCriacao: 20,
+      dataPrevistaRevisao: "",
+      dataPrevistaCriacao: "",
+      documentosAtuaisStatus: {},
       necessitaTreinamento: false,
       quemSeraTreinado: "",
       formatoTreinamento: "",
@@ -1941,57 +1947,252 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-5 pt-2 max-w-2xl">
+                  <div className="space-y-6 pt-2">
+                    {/* Seção: Datas Base */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
+                      <FormField
+                        control={form.control}
+                        name="dataOnboarding"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>📅 Data do Onboarding (hoje)</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} value={field.value ?? ""} />
+                            </FormControl>
+                            <FormDescription className="text-xs">Base para documentos novos</FormDescription>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dataRecebimentoDocsAtuais"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>📥 Data prevista de recebimento dos docs atuais</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} value={field.value ?? ""} />
+                            </FormControl>
+                            <FormDescription className="text-xs">Base para revisão de documentos</FormDescription>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                    <FormField
-                      control={form.control}
-                      name="dataRecebimentoCompleto"
-                      render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
-                          <FormLabel>📅 Data de recebimento completo</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormDescription className="text-xs">Prazo começa aqui</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Seção: Prazos Padrão */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
+                      <FormField
+                        control={form.control}
+                        name="prazoPadraoRevisao"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>⏳ Prazo para revisão (dias úteis)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="1" 
+                                placeholder="Ex: 20"
+                                value={field.value ?? 20}
+                                onChange={(e) => field.onChange(Number(e.target.value) || 20)}
+                              />
+                            </FormControl>
+                            <FormDescription className="text-xs">Documentos atuais enviados pelo cliente</FormDescription>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="prazoPadraoCriacao"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>⏳ Prazo para criação (dias úteis)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="1" 
+                                placeholder="Ex: 20"
+                                value={field.value ?? 20}
+                                onChange={(e) => field.onChange(Number(e.target.value) || 20)}
+                              />
+                            </FormControl>
+                            <FormDescription className="text-xs">Documentos novos do IPROMED</FormDescription>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                    <FormField
-                      control={form.control}
-                      name="prazoPadraoInformado"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>⏳ Prazo padrão (dias úteis)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min="1" 
-                              placeholder="Ex: 20"
-                              value={field.value ?? ""}
-                              onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Seção: Datas Calculadas */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-secondary/30">
+                      <FormField
+                        control={form.control}
+                        name="dataPrevistaRevisao"
+                        render={({ field }) => {
+                          // Cálculo automático: dataRecebimento + prazoPadraoRevisao dias úteis
+                          const dataRecebimento = form.watch("dataRecebimentoDocsAtuais");
+                          const prazo = form.watch("prazoPadraoRevisao") || 20;
+                          
+                          const calcularDataUtil = (dataInicio: string, diasUteis: number) => {
+                            if (!dataInicio) return "";
+                            const data = new Date(dataInicio);
+                            let diasAdicionados = 0;
+                            while (diasAdicionados < diasUteis) {
+                              data.setDate(data.getDate() + 1);
+                              const diaSemana = data.getDay();
+                              if (diaSemana !== 0 && diaSemana !== 6) {
+                                diasAdicionados++;
+                              }
+                            }
+                            return data.toISOString().split('T')[0];
+                          };
+                          
+                          const dataCalculada = calcularDataUtil(dataRecebimento || "", prazo);
+                          
+                          // Auto-preencher se vazio ou diferente
+                          if (dataCalculada && field.value !== dataCalculada) {
+                            setTimeout(() => field.onChange(dataCalculada), 0);
+                          }
+                          
+                          return (
+                            <FormItem>
+                              <FormLabel>🗓️ Data prevista de revisão</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="date" 
+                                  {...field} 
+                                  value={field.value ?? dataCalculada}
+                                  className="bg-background"
+                                />
+                              </FormControl>
+                              <FormDescription className="text-xs text-emerald-600 dark:text-emerald-400">
+                                Calculada: recebimento + {prazo} dias úteis
+                              </FormDescription>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dataPrevistaCriacao"
+                        render={({ field }) => {
+                          // Cálculo automático: dataOnboarding + prazoPadraoCriacao dias úteis
+                          const dataOnboarding = form.watch("dataOnboarding");
+                          const prazo = form.watch("prazoPadraoCriacao") || 20;
+                          
+                          const calcularDataUtil = (dataInicio: string, diasUteis: number) => {
+                            if (!dataInicio) return "";
+                            const data = new Date(dataInicio);
+                            let diasAdicionados = 0;
+                            while (diasAdicionados < diasUteis) {
+                              data.setDate(data.getDate() + 1);
+                              const diaSemana = data.getDay();
+                              if (diaSemana !== 0 && diaSemana !== 6) {
+                                diasAdicionados++;
+                              }
+                            }
+                            return data.toISOString().split('T')[0];
+                          };
+                          
+                          const dataCalculada = calcularDataUtil(dataOnboarding || "", prazo);
+                          
+                          // Auto-preencher se vazio ou diferente
+                          if (dataCalculada && field.value !== dataCalculada) {
+                            setTimeout(() => field.onChange(dataCalculada), 0);
+                          }
+                          
+                          return (
+                            <FormItem>
+                              <FormLabel>🗓️ Data prevista de criação</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="date" 
+                                  {...field} 
+                                  value={field.value ?? dataCalculada}
+                                  className="bg-background"
+                                />
+                              </FormControl>
+                              <FormDescription className="text-xs text-emerald-600 dark:text-emerald-400">
+                                Calculada: onboarding + {prazo} dias úteis
+                              </FormDescription>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    </div>
 
-                    <FormField
-                      control={form.control}
-                      name="dataPrevistaEntrega"
-                      render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
-                          <FormLabel>🗓️ Data prevista de entrega</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormDescription className="text-xs">Calculada com base em dias úteis</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Matriz de Documentos */}
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="bg-muted p-3 border-b">
+                        <h4 className="font-medium text-sm">📋 Matriz de Documentos e Prazos</h4>
+                        <p className="text-xs text-muted-foreground mt-1">Marque os documentos que o cliente já possui e veja os prazos automaticamente</p>
+                      </div>
+                      
+                      <div className="divide-y">
+                        {/* Cabeçalho */}
+                        <div className="grid grid-cols-12 gap-2 p-3 bg-muted/50 text-xs font-medium">
+                          <div className="col-span-6">Documento</div>
+                          <div className="col-span-2 text-center">Já possui?</div>
+                          <div className="col-span-2 text-center">Tipo</div>
+                          <div className="col-span-2 text-center">Prazo</div>
+                        </div>
+                        
+                        {/* Lista de documentos */}
+                        {documentosContratuais.map((doc, index) => {
+                          const documentoKey = doc.replace(/[^a-zA-Z0-9]/g, '_');
+                          const jaPossui = form.watch(`documentosAtuaisStatus.${documentoKey}`) || false;
+                          const dataPrevistaRevisao = form.watch("dataPrevistaRevisao");
+                          const dataPrevistaCriacao = form.watch("dataPrevistaCriacao");
+                          
+                          return (
+                            <div key={doc} className={cn(
+                              "grid grid-cols-12 gap-2 p-3 items-center text-sm",
+                              index % 2 === 0 ? "bg-background" : "bg-muted/20"
+                            )}>
+                              <div className="col-span-6 flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground w-5">{index + 1}.</span>
+                                <span className="text-sm">{doc}</span>
+                              </div>
+                              <div className="col-span-2 flex justify-center">
+                                <Checkbox
+                                  checked={jaPossui}
+                                  onCheckedChange={(checked) => {
+                                    const currentStatus = form.getValues("documentosAtuaisStatus") || {};
+                                    form.setValue("documentosAtuaisStatus", {
+                                      ...currentStatus,
+                                      [documentoKey]: checked === true
+                                    });
+                                  }}
+                                />
+                              </div>
+                              <div className="col-span-2 text-center">
+                                <Badge variant={jaPossui ? "secondary" : "outline"} className="text-xs">
+                                  {jaPossui ? "Revisão" : "Criação"}
+                                </Badge>
+                              </div>
+                              <div className="col-span-2 text-center">
+                                <span className={cn(
+                                  "text-xs font-medium",
+                                  jaPossui ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"
+                                )}>
+                                  {jaPossui 
+                                    ? (dataPrevistaRevisao ? new Date(dataPrevistaRevisao + 'T00:00:00').toLocaleDateString('pt-BR') : '-')
+                                    : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '-')
+                                  }
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Resumo */}
+                      <div className="bg-muted/50 p-3 border-t flex justify-between text-xs">
+                        <span>
+                          <strong>Documentos existentes:</strong> {Object.values(form.watch("documentosAtuaisStatus") || {}).filter(Boolean).length} (revisão)
+                        </span>
+                        <span>
+                          <strong>Documentos novos:</strong> {17 - Object.values(form.watch("documentosAtuaisStatus") || {}).filter(Boolean).length} (criação)
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex justify-end mt-4">
                     <Button 
