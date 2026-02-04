@@ -307,10 +307,12 @@ Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     <OnboardingMeetingAgenda
                       clientId={meeting?.client_id}
                       clientName={clientName}
+                      meetingId={meeting?.id}
                       embedded={true}
                       onSubmit={(data) => {
                         console.log('Onboarding data saved:', data);
-                        toast.success('Dados do onboarding salvos!');
+                        queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
+                        queryClient.invalidateQueries({ queryKey: ['ipromed-client-activities'] });
                       }}
                     />
                   </div>

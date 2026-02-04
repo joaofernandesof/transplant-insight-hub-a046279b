@@ -6092,6 +6092,7 @@ export type Database = {
           meeting_notes: string | null
           minutes: string | null
           modality: string
+          onboarding_data: Json | null
           scheduled_date: string
           scheduled_time: string
           started_at: string | null
@@ -6115,6 +6116,7 @@ export type Database = {
           meeting_notes?: string | null
           minutes?: string | null
           modality?: string
+          onboarding_data?: Json | null
           scheduled_date: string
           scheduled_time: string
           started_at?: string | null
@@ -6138,6 +6140,7 @@ export type Database = {
           meeting_notes?: string | null
           minutes?: string | null
           modality?: string
+          onboarding_data?: Json | null
           scheduled_date?: string
           scheduled_time?: string
           started_at?: string | null
@@ -6151,6 +6154,66 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_client_onboarding: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          completed_sections: Json | null
+          created_at: string
+          created_by: string | null
+          id: string
+          meeting_id: string | null
+          onboarding_data: Json
+          progress_percentage: number | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          completed_sections?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meeting_id?: string | null
+          onboarding_data?: Json
+          progress_percentage?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          completed_sections?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meeting_id?: string | null
+          onboarding_data?: Json
+          progress_percentage?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_client_onboarding_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_client_onboarding_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_client_meetings"
             referencedColumns: ["id"]
           },
         ]
@@ -7167,6 +7230,8 @@ export type Database = {
           metadata: Json | null
           name: string
           notes: string | null
+          onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
           partner_client_id: string | null
           phone: string | null
           responsible_lawyer_id: string | null
@@ -7191,6 +7256,8 @@ export type Database = {
           metadata?: Json | null
           name: string
           notes?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           partner_client_id?: string | null
           phone?: string | null
           responsible_lawyer_id?: string | null
@@ -7215,6 +7282,8 @@ export type Database = {
           metadata?: Json | null
           name?: string
           notes?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           partner_client_id?: string | null
           phone?: string | null
           responsible_lawyer_id?: string | null

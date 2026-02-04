@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -333,6 +333,7 @@ const responsavelPerfilOptions = ["Equipe", "Cliente", "Agência", "Social media
 interface OnboardingMeetingAgendaProps {
   clientId?: string;
   clientName?: string;
+  meetingId?: string;
   onSubmit?: (data: OnboardingMeetingData) => void;
   onClose?: () => void;
   initialData?: Partial<OnboardingMeetingData>;
@@ -346,11 +347,13 @@ const STORAGE_KEY_PREFIX = "ipromed_onboarding_";
 export default function OnboardingMeetingAgenda({
   clientId,
   clientName,
+  meetingId,
   onSubmit,
   onClose,
   initialData,
   embedded = false,
 }: OnboardingMeetingAgendaProps) {
+  const queryClient = useQueryClient();
   // Buscar clientes cadastrados
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ['ipromed-clients-onboarding'],
@@ -526,13 +529,125 @@ export default function OnboardingMeetingAgenda({
     }
   }, [storageKey]);
 
+  // Mutation para salvar no banco de dados
+  const saveOnboardingMutation = useMutation({
+    mutationFn: async (data: OnboardingMeetingData) => {
+      const clientIdToSave = selectedClientId || clientId;
+      if (!clientIdToSave) throw new Error("Cliente não selecionado");
+
+      const isComplete = completedSections.length === sections.length;
+      const progressPercent = Math.round((completedSections.length / sections.length) * 100);
+
+      // 1. Salvar/atualizar na tabela de onboarding
+      const { data: existingOnboarding } = await supabase
+        .from('ipromed_client_onboarding')
+        .select('id')
+        .eq('client_id', clientIdToSave)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingOnboarding?.id) {
+        // Atualizar existente
+        await supabase
+          .from('ipromed_client_onboarding')
+          .update({
+            onboarding_data: data,
+            progress_percentage: progressPercent,
+            completed_sections: completedSections,
+            status: isComplete ? 'completed' : 'in_progress',
+            completed_at: isComplete ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingOnboarding.id);
+      } else {
+        // Criar novo
+        await supabase
+          .from('ipromed_client_onboarding')
+          .insert({
+            client_id: clientIdToSave,
+            meeting_id: meetingId || null,
+            onboarding_data: data,
+            progress_percentage: progressPercent,
+            completed_sections: completedSections,
+            status: isComplete ? 'completed' : 'in_progress',
+            completed_at: isComplete ? new Date().toISOString() : null,
+          });
+      }
+
+      // 2. Atualizar a reunião com os dados do onboarding (se tiver meeting_id)
+      if (meetingId) {
+        await supabase
+          .from('ipromed_client_meetings')
+          .update({
+            onboarding_data: data,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', meetingId);
+      }
+
+      // 3. Atualizar o cliente como onboarding completo (se completo)
+      if (isComplete) {
+        await supabase
+          .from('ipromed_legal_clients')
+          .update({
+            onboarding_completed: true,
+            onboarding_completed_at: new Date().toISOString(),
+          })
+          .eq('id', clientIdToSave);
+      }
+
+      // 4. Registrar atividade no histórico do cliente
+      await supabase
+        .from('ipromed_client_activities')
+        .insert({
+          client_id: clientIdToSave,
+          action: isComplete ? 'complete' : 'update',
+          activity_type: isComplete ? 'onboarding_completed' : 'onboarding_updated',
+          title: isComplete ? 'Onboarding concluído' : 'Onboarding atualizado',
+          description: isComplete 
+            ? `Checklist de onboarding concluído com ${sections.length} seções preenchidas.`
+            : `Progresso do onboarding: ${progressPercent}% (${completedSections.length}/${sections.length} seções)`,
+          metadata: {
+            meeting_id: meetingId,
+            progress_percentage: progressPercent,
+            completed_sections: completedSections,
+          },
+        });
+
+      return { isComplete, progressPercent };
+    },
+    onSuccess: ({ isComplete, progressPercent }) => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-onboarding'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-activities'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-clients'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
+      
+      clearCheckpoint();
+      
+      if (isComplete) {
+        toast.success("🎉 Onboarding concluído e salvo!", {
+          description: "Todos os dados foram registrados no histórico do cliente.",
+        });
+      } else {
+        toast.success("Progresso salvo!", {
+          description: `${progressPercent}% do onboarding foi registrado.`,
+        });
+      }
+      
+      onSubmit?.(form.getValues());
+      onClose?.();
+    },
+    onError: (error) => {
+      console.error("Erro ao salvar onboarding:", error);
+      toast.error("Erro ao salvar onboarding", {
+        description: "Tente novamente ou contate o suporte.",
+      });
+    },
+  });
+
   const handleSubmit = (data: OnboardingMeetingData) => {
-    onSubmit?.(data);
-    clearCheckpoint(); // Limpar checkpoint após salvar com sucesso
-    toast.success("Pauta de onboarding salva com sucesso!", {
-      description: "Todos os dados da reunião foram registrados.",
-    });
-    onClose?.();
+    saveOnboardingMutation.mutate(data);
   };
 
   // Verificar se uma seção está acessível (completada ou é a atual)
