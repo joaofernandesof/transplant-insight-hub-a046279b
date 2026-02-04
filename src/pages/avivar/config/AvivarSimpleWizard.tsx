@@ -275,7 +275,11 @@ export default function AvivarSimpleWizard() {
         ai_objective: autoConfig.aiObjective,
         ai_instructions: autoConfig.aiInstructions,
         ai_restrictions: autoConfig.aiRestrictions,
-        fluxo_atendimento: autoConfig.fluxoAtendimento,
+        // Prioriza o fluxo editado pelo usuário no frontend (config.fluxoAtendimento)
+        // Fallback para o auto-gerado apenas se o usuário não editou
+        fluxo_atendimento: (config.fluxoAtendimento?.passosCronologicos?.length > 0) 
+          ? config.fluxoAtendimento 
+          : autoConfig.fluxoAtendimento,
         personality: autoConfig.aiIdentity,
         knowledge_files: config.knowledgeFiles || [],
         is_active: true,
