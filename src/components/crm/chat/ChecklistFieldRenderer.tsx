@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -16,6 +17,7 @@ interface ChecklistField {
   field_type: string;
   is_required: boolean;
   value: string | boolean | null;
+  options?: string[];
 }
 
 interface Props {
@@ -140,6 +142,11 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
     saveToDatabase(newValue);
   }, [boolValue, saveToDatabase]);
 
+  const handleSelectChange = useCallback((value: string) => {
+    setLocalValue(value);
+    saveToDatabase(value);
+  }, [saveToDatabase]);
+
   // Renderização baseada no tipo
   switch (field.field_type) {
     case 'boolean':
@@ -165,6 +172,32 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
               }`}
             />
           </button>
+        </div>
+      );
+
+    case 'select':
+      return (
+        <div className="flex items-center gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
+            {field.field_label}
+            {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
+          </Label>
+          <Select
+            value={localValue || ''}
+            onValueChange={handleSelectChange}
+            disabled={isSaving}
+          >
+            <SelectTrigger className="h-7 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] rounded-none px-0 focus:ring-0 text-[hsl(var(--avivar-foreground))] flex-1">
+              <SelectValue placeholder="Selecionar..." />
+            </SelectTrigger>
+            <SelectContent>
+              {(field.options || []).filter(opt => opt.trim()).map((option, idx) => (
+                <SelectItem key={idx} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       );
 

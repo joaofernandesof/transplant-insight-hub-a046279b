@@ -12,6 +12,7 @@ interface ChecklistFieldValue {
   field_type: string;
   is_required: boolean;
   value: string | boolean | null;
+  options?: string[];
 }
 
 export function useLeadChecklistFields(columnId: string | null | undefined, phone: string | null | undefined) {
@@ -55,6 +56,7 @@ export function useLeadChecklistFields(columnId: string | null | undefined, phon
         field_type: field.field_type,
         is_required: field.is_required ?? false,
         value: customFields[field.field_key] as string | boolean | null ?? null,
+        options: (field.options as string[]) || [],
       }));
     },
     enabled: !!columnId,
