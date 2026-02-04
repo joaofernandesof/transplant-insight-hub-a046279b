@@ -1,10 +1,10 @@
 /**
- * CPG Advocacia Médica - Meeting Tool
- * Ferramenta completa para reuniões com pautas jurídicas
+ * CPG Advocacia Médica - Meeting Tool Content
+ * Conteúdo da ferramenta de reuniões com pautas jurídicas (para uso dentro da Agenda)
  */
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -38,33 +37,16 @@ import {
   Users,
   ClipboardList,
   CheckCircle2,
-  Clock,
   Scale,
   FileText,
   Plus,
   Calendar,
-  Building,
-  User,
   AlertTriangle,
   Gavel,
-  Video,
-  Loader2,
   ChevronRight,
   BookOpen,
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-
-// Legal matters for medical professionals
-const legalMatters = [
-  { id: 'civel', label: 'Cível', color: 'bg-blue-100 text-blue-700' },
-  { id: 'penal', label: 'Criminal/Penal', color: 'bg-red-100 text-red-700' },
-  { id: 'trabalho', label: 'Trabalhista', color: 'bg-amber-100 text-amber-700' },
-  { id: 'consumidor', label: 'Consumidor', color: 'bg-green-100 text-green-700' },
-  { id: 'etico', label: 'Ético-Disciplinar', color: 'bg-purple-100 text-purple-700' },
-  { id: 'administrativo', label: 'Administrativo', color: 'bg-gray-100 text-gray-700' },
-];
 
 // Legal moments/milestones for medical professionals
 const legalMoments = [
@@ -236,7 +218,7 @@ interface CaseInfo {
   ultimaAtualizacao: string;
 }
 
-export default function MeetingToolPage() {
+export default function MeetingToolContent() {
   const [selectedMoment, setSelectedMoment] = useState('onboarding');
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [isCreatingMeeting, setIsCreatingMeeting] = useState(false);
@@ -258,8 +240,6 @@ export default function MeetingToolPage() {
     acaoFazer: '',
     ultimaAtualizacao: '',
   });
-
-  const queryClient = useQueryClient();
 
   // Fetch clients for dropdown
   const { data: clients = [] } = useQuery({
@@ -306,14 +286,14 @@ export default function MeetingToolPage() {
   };
 
   return (
-    <div className="space-y-6 px-4 lg:px-0">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2">
-            <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
             Ferramenta de Reuniões
-          </h1>
+          </h2>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Organize suas reuniões com pautas específicas para Direito Médico
           </p>
@@ -500,32 +480,38 @@ export default function MeetingToolPage() {
                   value={newAgendaItem}
                   onChange={(e) => setNewAgendaItem(e.target.value)}
                   placeholder="Adicionar item à pauta..."
-                  onKeyPress={(e) => e.key === 'Enter' && addAgendaItem()}
+                  onKeyDown={(e) => e.key === 'Enter' && addAgendaItem()}
                 />
                 <Button onClick={addAgendaItem} size="icon">
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-              {agendaItems.map(item => (
-                <label
-                  key={item.id}
-                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${
-                    item.completed ? 'bg-muted/50' : ''
-                  }`}
-                >
-                  <Checkbox
-                    checked={item.completed}
-                    onCheckedChange={() => toggleAgendaItem(item.id)}
-                  />
-                  <span className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                    {item.title}
-                  </span>
-                </label>
-              ))}
-              {agendaItems.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
+              
+              {agendaItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-2">
                   Nenhum item na pauta personalizada
                 </p>
+              ) : (
+                <div className="space-y-2">
+                  {agendaItems.map(item => (
+                    <label
+                      key={item.id}
+                      className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        item.completed 
+                          ? 'bg-primary/5 border-primary/30' 
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={item.completed}
+                        onCheckedChange={() => toggleAgendaItem(item.id)}
+                      />
+                      <span className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                        {item.title}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -533,7 +519,7 @@ export default function MeetingToolPage() {
 
         {/* Right Column - Case Info & Notes */}
         <div className="space-y-4">
-          {/* Case Information */}
+          {/* Case Info */}
           <Card className="border-0 shadow-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -541,150 +527,100 @@ export default function MeetingToolPage() {
                 Informações do Processo
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Accordion type="single" collapsible className="space-y-2">
-                <AccordionItem value="basic" className="border rounded-lg">
-                  <AccordionTrigger className="px-3">Dados Básicos</AccordionTrigger>
-                  <AccordionContent className="px-3 pb-3 space-y-3">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Matéria</Label>
-                      <Select 
-                        value={caseInfo.materia}
-                        onValueChange={(v) => setCaseInfo(prev => ({ ...prev, materia: v }))}
-                      >
-                        <SelectTrigger className="h-8">
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {legalMatters.map(m => (
-                            <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Assunto</Label>
-                      <Input 
-                        className="h-8" 
-                        value={caseInfo.assunto}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, assunto: e.target.value }))}
-                        placeholder="Ex: Erro médico"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Objeto</Label>
-                      <Input 
-                        className="h-8" 
-                        value={caseInfo.objeto}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, objeto: e.target.value }))}
-                        placeholder="Indenização por danos..."
-                      />
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="basic">
+                  <AccordionTrigger className="text-sm">Dados Básicos</AccordionTrigger>
+                  <AccordionContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Matéria</Label>
+                        <Select 
+                          value={caseInfo.materia} 
+                          onValueChange={(v) => setCaseInfo({...caseInfo, materia: v})}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="civel">Cível</SelectItem>
+                            <SelectItem value="penal">Criminal/Penal</SelectItem>
+                            <SelectItem value="trabalho">Trabalhista</SelectItem>
+                            <SelectItem value="etico">Ético-Disciplinar</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Nº Processo</Label>
+                        <Input 
+                          className="h-8"
+                          value={caseInfo.numeroProcesso}
+                          onChange={(e) => setCaseInfo({...caseInfo, numeroProcesso: e.target.value})}
+                          placeholder="0000000-00.0000"
+                        />
+                      </div>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-
-                <AccordionItem value="parties" className="border rounded-lg">
-                  <AccordionTrigger className="px-3">Partes</AccordionTrigger>
-                  <AccordionContent className="px-3 pb-3 space-y-3">
-                    <div className="space-y-2">
+                <AccordionItem value="partes">
+                  <AccordionTrigger className="text-sm">Partes</AccordionTrigger>
+                  <AccordionContent className="space-y-3">
+                    <div className="space-y-1">
                       <Label className="text-xs">Parte Autora</Label>
                       <Input 
-                        className="h-8" 
+                        className="h-8"
                         value={caseInfo.parteAutora}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, parteAutora: e.target.value }))}
+                        onChange={(e) => setCaseInfo({...caseInfo, parteAutora: e.target.value})}
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label className="text-xs">Parte Ré</Label>
                       <Input 
-                        className="h-8" 
+                        className="h-8"
                         value={caseInfo.parteRe}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, parteRe: e.target.value }))}
+                        onChange={(e) => setCaseInfo({...caseInfo, parteRe: e.target.value})}
                       />
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-
-                <AccordionItem value="process" className="border rounded-lg">
-                  <AccordionTrigger className="px-3">Processo</AccordionTrigger>
-                  <AccordionContent className="px-3 pb-3 space-y-3">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Número do Processo</Label>
+                <AccordionItem value="processo">
+                  <AccordionTrigger className="text-sm">Processo</AccordionTrigger>
+                  <AccordionContent className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Órgão/Vara</Label>
                       <Input 
-                        className="h-8 font-mono" 
-                        value={caseInfo.numeroProcesso}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, numeroProcesso: e.target.value }))}
-                        placeholder="0000000-00.0000.0.00.0000"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Órgão / Vara</Label>
-                      <Input 
-                        className="h-8" 
+                        className="h-8"
                         value={caseInfo.orgaoVara}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, orgaoVara: e.target.value }))}
-                        placeholder="Ex: 1ª Vara Cível"
+                        onChange={(e) => setCaseInfo({...caseInfo, orgaoVara: e.target.value})}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Sistema</Label>
-                      <Select 
-                        value={caseInfo.sistema}
-                        onValueChange={(v) => setCaseInfo(prev => ({ ...prev, sistema: v }))}
-                      >
-                        <SelectTrigger className="h-8">
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pje">PJe</SelectItem>
-                          <SelectItem value="esaj">e-SAJ</SelectItem>
-                          <SelectItem value="projudi">PROJUDI</SelectItem>
-                          <SelectItem value="eproc">e-Proc</SelectItem>
-                          <SelectItem value="sei">SEI</SelectItem>
-                          <SelectItem value="fisico">Físico</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Objeto</Label>
+                      <Textarea 
+                        className="min-h-[60px]"
+                        value={caseInfo.objeto}
+                        onChange={(e) => setCaseInfo({...caseInfo, objeto: e.target.value})}
+                      />
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-
-                <AccordionItem value="status" className="border rounded-lg">
-                  <AccordionTrigger className="px-3">Status e Ações</AccordionTrigger>
-                  <AccordionContent className="px-3 pb-3 space-y-3">
-                    <div className="space-y-2">
+                <AccordionItem value="status">
+                  <AccordionTrigger className="text-sm">Status e Ações</AccordionTrigger>
+                  <AccordionContent className="space-y-3">
+                    <div className="space-y-1">
                       <Label className="text-xs">Situação Atual</Label>
-                      <Input 
-                        className="h-8" 
-                        value={caseInfo.situacaoAtual}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, situacaoAtual: e.target.value }))}
-                        placeholder="Aguardando perícia..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Data do Prazo</Label>
-                      <Input 
-                        type="date"
-                        className="h-8" 
-                        value={caseInfo.dataPrazo}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, dataPrazo: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Ação a ser Feita</Label>
                       <Textarea 
-                        className="min-h-[60px]" 
-                        value={caseInfo.acaoFazer}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, acaoFazer: e.target.value }))}
-                        placeholder="Próximas providências..."
+                        className="min-h-[60px]"
+                        value={caseInfo.situacaoAtual}
+                        onChange={(e) => setCaseInfo({...caseInfo, situacaoAtual: e.target.value})}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">Última Atualização</Label>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Próxima Ação</Label>
                       <Input 
-                        type="date"
-                        className="h-8" 
-                        value={caseInfo.ultimaAtualizacao}
-                        onChange={(e) => setCaseInfo(prev => ({ ...prev, ultimaAtualizacao: e.target.value }))}
+                        className="h-8"
+                        value={caseInfo.acaoFazer}
+                        onChange={(e) => setCaseInfo({...caseInfo, acaoFazer: e.target.value})}
                       />
                     </div>
                   </AccordionContent>
@@ -706,7 +642,7 @@ export default function MeetingToolPage() {
                 value={meetingNotes}
                 onChange={(e) => setMeetingNotes(e.target.value)}
                 placeholder="Registre os pontos discutidos, decisões tomadas e próximos passos..."
-                className="min-h-[200px]"
+                className="min-h-[120px]"
               />
               <Button onClick={saveMeetingNotes} className="w-full">
                 Salvar Notas
