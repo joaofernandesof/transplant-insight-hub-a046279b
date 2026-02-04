@@ -190,6 +190,8 @@ html {
     width: 100%;
     min-width: 0;
     position: relative;
+    /* Padding para não sobrepor o badge do Lovable no preview */
+    padding-bottom: 60px;
   }
 
   #root {
