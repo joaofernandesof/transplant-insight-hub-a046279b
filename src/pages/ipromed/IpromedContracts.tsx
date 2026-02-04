@@ -658,7 +658,19 @@ export default function IpromedContracts() {
                                       )}
                                     </Button>
                                   )}
-                                  <Button variant="ghost" size="icon" title="Download">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    title="Download"
+                                    onClick={() => {
+                                      if (contract.document_url) {
+                                        // Abrir documento em nova aba
+                                        window.open(contract.document_url, '_blank');
+                                      } else {
+                                        toast.info('Este contrato ainda não possui arquivo anexado.');
+                                      }
+                                    }}
+                                  >
                                     <Download className="h-4 w-4" />
                                   </Button>
                                 </div>
