@@ -75,16 +75,16 @@ interface Client {
 
 // Mock clients for demonstration
 const mockClients: Client[] = [
-  // D0 - Ativação (hoje)
+  // Novos clientes
   {
     id: 'mock-1',
     name: 'Maria Fernanda Costa',
     email: 'maria.costa@empresa.com.br',
     phone: '(11) 99876-5432',
     status: 'ativo',
-    journey_stage: 'D0',
+    journey_stage: 'Novos',
     created_at: new Date().toISOString(),
-    metadata: { journey_phase: 'D0', journey_progress: 5, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Novos', journey_progress: 5, risk_level: 'baixo' }
   },
   {
     id: 'mock-2',
@@ -92,41 +92,40 @@ const mockClients: Client[] = [
     email: 'juridico@techsolutions.com.br',
     phone: '(11) 3456-7890',
     status: 'ativo',
-    journey_stage: 'D0',
+    journey_stage: 'Novos',
     created_at: new Date().toISOString(),
-    metadata: { journey_phase: 'D0', journey_progress: 8, risk_level: 'medio' }
+    metadata: { journey_phase: 'Novos', journey_progress: 8, risk_level: 'medio' }
   },
-  // D+1 - Agendamento
   {
     id: 'mock-3',
     name: 'Carlos Eduardo Silva',
     email: 'carlos.silva@gmail.com',
     phone: '(21) 98765-4321',
     status: 'ativo',
-    journey_stage: 'D+1',
+    journey_stage: 'Novos',
     created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+1', journey_progress: 15, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Novos', journey_progress: 10, risk_level: 'baixo' }
   },
+  // Onboarding agendado
   {
     id: 'mock-4',
     name: 'Indústria Metalúrgica ABC',
     email: 'contato@metalurgicaabc.com.br',
     phone: '(31) 3333-4444',
     status: 'ativo',
-    journey_stage: 'D+1',
+    journey_stage: 'Agendado',
     created_at: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+1', journey_progress: 18, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Agendado', journey_progress: 20, risk_level: 'baixo' }
   },
-  // D+3 - Onboarding
   {
     id: 'mock-5',
     name: 'Ana Paula Rodrigues',
     email: 'ana.rodrigues@clinica.com.br',
     phone: '(11) 97777-8888',
     status: 'ativo',
-    journey_stage: 'D+3',
+    journey_stage: 'Agendado',
     created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+3', journey_progress: 28, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Agendado', journey_progress: 25, risk_level: 'baixo' }
   },
   {
     id: 'mock-6',
@@ -134,30 +133,30 @@ const mockClients: Client[] = [
     email: 'juridico@nortesul.com.br',
     phone: '(41) 3030-4040',
     status: 'ativo',
-    journey_stage: 'D+3',
+    journey_stage: 'Agendado',
     created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+3', journey_progress: 35, risk_level: 'alto' }
+    metadata: { journey_phase: 'Agendado', journey_progress: 30, risk_level: 'alto' }
   },
+  // Pacote Jurídico em andamento
   {
     id: 'mock-7',
     name: 'Roberto Mendes Filho',
     email: 'roberto.mendes@hotmail.com',
     phone: '(85) 99999-1111',
     status: 'ativo',
-    journey_stage: 'D+3',
+    journey_stage: 'Andamento',
     created_at: new Date(Date.now() - 3.5 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+3', journey_progress: 30, risk_level: 'medio' }
+    metadata: { journey_phase: 'Andamento', journey_progress: 45, risk_level: 'medio' }
   },
-  // D+7 - Dossiê
   {
     id: 'mock-8',
     name: 'Farmácia Popular Express',
     email: 'gerencia@farmaciapopular.com.br',
     phone: '(71) 3222-5555',
     status: 'ativo',
-    journey_stage: 'D+7',
+    journey_stage: 'Andamento',
     created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+7', journey_progress: 45, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Andamento', journey_progress: 55, risk_level: 'baixo' }
   },
   {
     id: 'mock-9',
@@ -165,62 +164,61 @@ const mockClients: Client[] = [
     email: 'juliana.oliveira@advocacia.com.br',
     phone: '(61) 98888-2222',
     status: 'ativo',
-    journey_stage: 'D+7',
+    journey_stage: 'Andamento',
     created_at: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+7', journey_progress: 52, risk_level: 'medio' }
+    metadata: { journey_phase: 'Andamento', journey_progress: 60, risk_level: 'medio' }
   },
-  // D+15 - Documentação
   {
     id: 'mock-10',
     name: 'Grupo Empresarial Delta',
     email: 'legal@grupodelta.com.br',
     phone: '(11) 2222-3333',
     status: 'ativo',
-    journey_stage: 'D+15',
+    journey_stage: 'Andamento',
     created_at: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+15', journey_progress: 65, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Andamento', journey_progress: 70, risk_level: 'baixo' }
   },
+  // Reunião de apresentação do Pacote Jurídico
   {
     id: 'mock-11',
     name: 'Patrícia Lima Santos',
     email: 'patricia.santos@email.com',
     phone: '(19) 99666-5555',
     status: 'ativo',
-    journey_stage: 'D+15',
+    journey_stage: 'Apresentacao',
     created_at: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+15', journey_progress: 70, risk_level: 'alto' }
+    metadata: { journey_phase: 'Apresentacao', journey_progress: 85, risk_level: 'alto' }
   },
-  // D+30 - Compliance
   {
     id: 'mock-12',
     name: 'Hospital Santa Clara',
     email: 'juridico@santaclara.org.br',
     phone: '(51) 3344-5566',
     status: 'ativo',
-    journey_stage: 'D+30',
+    journey_stage: 'Apresentacao',
     created_at: new Date(Date.now() - 32 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+30', journey_progress: 88, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Apresentacao', journey_progress: 90, risk_level: 'baixo' }
   },
+  // Acompanhamento contínuo
   {
     id: 'mock-13',
     name: 'Fernando Gomes Almeida',
     email: 'fernando.almeida@empresa.com',
     phone: '(27) 99777-4444',
     status: 'ativo',
-    journey_stage: 'D+30',
+    journey_stage: 'Continuo',
     created_at: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'D+30', journey_progress: 92, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Continuo', journey_progress: 100, risk_level: 'baixo' }
   },
-  // Contínuo - Acompanhamento
   {
     id: 'mock-14',
     name: 'Supermercado Bom Preço',
     email: 'contabil@bompreco.com.br',
     phone: '(81) 3456-7890',
     status: 'ativo',
-    journey_stage: 'Contínuo',
+    journey_stage: 'Continuo',
     created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'Contínuo', journey_progress: 100, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Continuo', journey_progress: 100, risk_level: 'baixo' }
   },
   {
     id: 'mock-15',
@@ -228,9 +226,9 @@ const mockClients: Client[] = [
     email: 'admin@clinicasorriso.com.br',
     phone: '(47) 3333-2222',
     status: 'ativo',
-    journey_stage: 'Contínuo',
+    journey_stage: 'Continuo',
     created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'Contínuo', journey_progress: 100, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Continuo', journey_progress: 100, risk_level: 'baixo' }
   },
   {
     id: 'mock-16',
@@ -238,9 +236,9 @@ const mockClients: Client[] = [
     email: 'marcelo.costa@gmail.com',
     phone: '(11) 98765-1234',
     status: 'ativo',
-    journey_stage: 'Contínuo',
+    journey_stage: 'Continuo',
     created_at: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { journey_phase: 'Contínuo', journey_progress: 100, risk_level: 'baixo' }
+    metadata: { journey_phase: 'Continuo', journey_progress: 100, risk_level: 'baixo' }
   },
 ];
 
@@ -276,15 +274,15 @@ export default function IpromedJourney() {
     const meta = client.metadata as any;
     if (meta?.journey_phase) return meta.journey_phase;
     
+    // Fallback logic for clients without explicit phase
     const startDate = meta?.journey_start_date || client.created_at;
     const daysSinceStart = differenceInDays(new Date(), new Date(startDate));
     
-    if (daysSinceStart >= 30) return 'Contínuo';
-    if (daysSinceStart >= 15) return 'D+30';
-    if (daysSinceStart >= 7) return 'D+15';
-    if (daysSinceStart >= 3) return 'D+7';
-    if (daysSinceStart >= 1) return 'D+3';
-    return 'D0';
+    if (daysSinceStart >= 30) return 'Continuo';
+    if (daysSinceStart >= 20) return 'Apresentacao';
+    if (daysSinceStart >= 7) return 'Andamento';
+    if (daysSinceStart >= 2) return 'Agendado';
+    return 'Novos';
   };
 
   // Get phase color
@@ -314,13 +312,11 @@ export default function IpromedJourney() {
     const phase = getClientPhase(client);
     
     const daysMap: Record<string, number> = {
-      'D0': 0,
-      'D+1': 1,
-      'D+3': 3,
-      'D+7': 7,
-      'D+15': 15,
-      'D+30': 30,
-      'Contínuo': 90,
+      'Novos': 2,
+      'Agendado': 7,
+      'Andamento': 20,
+      'Apresentacao': 30,
+      'Continuo': 90,
     };
     
     return addDays(startDate, daysMap[phase] || 0);
@@ -329,7 +325,7 @@ export default function IpromedJourney() {
   // Check if client is overdue
   const isOverdue = (client: Client) => {
     const phase = getClientPhase(client);
-    if (phase === 'Contínuo') return false;
+    if (phase === 'Continuo') return false;
     const dueDate = getPhaseDueDate(client);
     return new Date() > dueDate;
   };
