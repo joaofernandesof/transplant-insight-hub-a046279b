@@ -444,8 +444,10 @@ export default function OnboardingMeetingAgenda({
   const [fieldsWithError, setFieldsWithError] = useState<string[]>([]);
   
   // Controlar qual seção está expandida (apenas a atual)
+  // Se todas as seções estiverem concluídas, não expandir nenhuma
+  const isFullyCompleted = completedSections.length === sections.length;
   const currentSection = sections[currentSectionIndex];
-  const expandedSections = currentSection ? [currentSection.id] : [];
+  const expandedSections = isFullyCompleted ? [] : (currentSection ? [currentSection.id] : []);
 
   const form = useForm<OnboardingMeetingData>({
     resolver: zodResolver(onboardingMeetingSchema),
@@ -1056,9 +1058,10 @@ export default function OnboardingMeetingAgenda({
             <form onSubmit={form.handleSubmit(handleSubmit)} className={cn("space-y-4", embedded ? "p-3" : "p-4")}>
               <Accordion 
                 type="single"
-              value={expandedSections[0] || ""}
-              className="space-y-3"
-            >
+                collapsible
+                value={expandedSections[0] || ""}
+                className="space-y-3"
+              >
               {/* 1. Boas-vindas e abertura */}
               <AccordionItem 
                 value="boas-vindas" 
