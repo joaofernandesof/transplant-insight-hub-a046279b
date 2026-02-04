@@ -97,7 +97,6 @@ const onboardingMeetingSchema = z.object({
     funcao: z.string().optional(),
   })).default([]),
   horarioPreferencial: z.string().optional(),
-  regraUrgencia: z.string().optional(),
 
   // 4. Documentos atuais
   usaDocumentosHoje: z.boolean().default(false),
@@ -177,7 +176,6 @@ const sections: Section[] = [
 const cargoOptions = ["Médico", "Gestor", "Sócio", "Outro"];
 const formatoAtendimentoOptions = ["Clínica própria", "Terceiros", "Hospital", "Consultório", "Teleconsulta"];
 const estruturaOptions = ["Clínica própria", "Consultório alugado", "Hospital", "Coworking médico"];
-const regraUrgenciaOptions = ["Ligar para sócias", "Enviar WhatsApp", "E-mail prioritário", "Aguardar horário comercial"];
 const documentosOptions = ["TCLE", "Contrato de prestação", "Termo de imagem", "Anamnese", "Prontuário", "Política de agendamento"];
 const armazenamentoOptions = ["Google Drive", "OneDrive", "Pasta local", "Sistema próprio", "Não possui"];
 const quemPreencheOptions = ["Secretária", "Médico", "Recepção", "Equipe administrativa"];
@@ -230,7 +228,6 @@ export default function OnboardingMeetingAgenda({
       responsavelOperacional: "",
       contatosAdicionais: [],
       horarioPreferencial: "",
-      regraUrgencia: "",
       usaDocumentosHoje: false,
       documentosExistentes: [],
       armazenamentoAtual: "",
@@ -727,28 +724,6 @@ export default function OnboardingMeetingAgenda({
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="regraUrgencia"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>🚨 Regra de urgência *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {regraUrgenciaOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
 
                   {/* Contatos Adicionais */}
