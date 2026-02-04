@@ -323,8 +323,8 @@ export default function IpromedContractDetail() {
           <CardContent className="py-12 text-center">
             <FileSignature className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium">Contrato não encontrado</h3>
-            <Button variant="outline" className="mt-4" onClick={() => navigate('/ipromed/contracts')}>
-              Voltar para Contratos
+            <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
+              Voltar
             </Button>
           </CardContent>
         </Card>
@@ -340,9 +340,9 @@ export default function IpromedContractDetail() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed/contracts')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-1" />
-            Contratos
+            Voltar
           </Button>
           <span className="text-muted-foreground">/</span>
           <span className="font-medium">{contract.contract_number || 'Detalhes'}</span>
