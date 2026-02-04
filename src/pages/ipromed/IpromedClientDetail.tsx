@@ -33,11 +33,13 @@ import {
   Plus,
   MessageSquare,
   History,
+  Video,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ClientFormModal } from "./components/ClientFormModal";
+import { MeetingScheduleDialog } from "./components/MeetingScheduleDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -66,6 +68,7 @@ export default function IpromedClientDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isMeetingOpen, setIsMeetingOpen] = useState(false);
 
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['ipromed-client', id],
@@ -368,8 +371,8 @@ export default function IpromedClientDetail() {
                   <MessageSquare className="h-4 w-4 mr-2" />
                   WhatsApp
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Calendar className="h-4 w-4 mr-2" />
+                <Button variant="outline" size="sm" onClick={() => setIsMeetingOpen(true)}>
+                  <Video className="h-4 w-4 mr-2" />
                   Agendar Reunião
                 </Button>
                 <Button variant="outline" size="sm">
@@ -477,6 +480,18 @@ export default function IpromedClientDetail() {
           notes: client.notes,
           address: address,
           metadata: metadata,
+        }}
+      />
+
+      {/* Meeting Schedule Dialog */}
+      <MeetingScheduleDialog
+        open={isMeetingOpen}
+        onOpenChange={setIsMeetingOpen}
+        clientId={client.id}
+        clientName={client.name}
+        onSchedule={(data) => {
+          console.log('Meeting scheduled:', data);
+          toast.success('Reunião agendada com sucesso!');
         }}
       />
     </div>
