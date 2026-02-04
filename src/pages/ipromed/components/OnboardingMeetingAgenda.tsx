@@ -66,6 +66,7 @@ import {
 import { toast } from "sonner";
 import ProcedureSelector from "./ProcedureSelector";
 import { cn } from "@/lib/utils";
+import { ProcedureVolumeSelector } from "./ProcedureVolumeSelector";
 
 // Helper para destacar campos não preenchidos
 const getFieldHighlight = (value: string | number | boolean | undefined | null | unknown[]) => {
@@ -100,7 +101,7 @@ const onboardingMeetingSchema = z.object({
   estruturaPrincipal: z.string().optional(),
   tamanhoEquipe: z.coerce.number().optional(),
   procedimentosRealizados: z.array(z.string()).default([]),
-  procedimentosMaiorVolume: z.string().optional(),
+  procedimentosMaiorVolume: z.array(z.string()).default([]),
 
   // 3. Comunicação
   whatsappPrincipal: z.string().optional(),
@@ -314,7 +315,7 @@ export default function OnboardingMeetingAgenda({
       estruturaPrincipal: "",
       tamanhoEquipe: 0,
       procedimentosRealizados: [],
-      procedimentosMaiorVolume: "",
+      procedimentosMaiorVolume: [],
       whatsappPrincipal: "",
       responsavelOperacional: "",
       contatosAdicionais: [],
@@ -864,10 +865,11 @@ export default function OnboardingMeetingAgenda({
                         <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>📈 Procedimentos de maior volume</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="1. Transplante capilar, 2. Consulta..." 
-                              className="min-h-[60px]"
-                              {...field} 
+                            <ProcedureVolumeSelector
+                              availableProcedures={form.watch("procedimentosRealizados") || []}
+                              value={field.value || []}
+                              onChange={field.onChange}
+                              placeholder="Selecionar e ordenar por volume..."
                             />
                           </FormControl>
                           <FormDescription className="text-xs">Ordem do maior para menor</FormDescription>
