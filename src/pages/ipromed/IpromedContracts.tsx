@@ -1,13 +1,12 @@
 /**
  * IPROMED - Sistema Gerenciador de Contratos e Documentos
- * Inspirado no ClickSign/Neofolic
+ * Fluxo completo: Upload → Vincular Cliente → Ações rápidas
  */
 
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,23 +30,12 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Plus,
   Search,
   FileSignature,
   Clock,
   CheckCircle,
   XCircle,
-  Eye,
-  Send,
-  Download,
   Filter,
   Loader2,
   FileText,
@@ -56,21 +44,22 @@ import {
   Home,
   FolderOpen,
   Trash2,
-  Settings,
-  Bell,
   HelpCircle,
   BarChart3,
   Calendar,
   MessageCircle,
-  Zap,
-  CreditCard,
   ExternalLink,
+  Bell,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import NewContractDialog from "./components/contracts/NewContractDialog";
+import { LinkClientDialog } from "./components/contracts/LinkClientDialog";
+import { ContractsTable } from "./components/contracts/ContractsTable";
+import { SendForSignatureDialog } from "./components/contracts/SendForSignatureDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -84,46 +73,54 @@ const documentsNav = [
   { label: "Em processo", id: "pending_signature", icon: Clock },
   { label: "Finalizados", id: "signed", icon: CheckCircle },
   { label: "Cancelados", id: "cancelled", icon: XCircle },
-  { label: "Baixados", id: "downloaded", icon: Download },
   { label: "Rascunhos", id: "draft", icon: FileText },
   { label: "Lixeira", id: "trash", icon: Trash2 },
 ];
 
-const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  draft: { label: 'Rascunho', color: 'bg-gray-500', icon: FileSignature },
-  pending_signature: { label: 'Em processo', color: 'bg-amber-500', icon: Clock },
-  signed: { label: 'Finalizado', color: 'bg-emerald-500', icon: CheckCircle },
-  cancelled: { label: 'Cancelado', color: 'bg-rose-500', icon: XCircle },
-  active: { label: 'Ativo', color: 'bg-emerald-500', icon: CheckCircle },
-};
-
 export default function IpromedContracts() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [activeSection, setActiveSection] = useState<string>('home');
+  const queryClient = useQueryClient();
+  
+  // State
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [activeSection, setActiveSection] = useState<string>("home");
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<string>('30');
+  const [dateRange, setDateRange] = useState<string>("30");
   const [documentsOpen, setDocumentsOpen] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [showFaqDialog, setShowFaqDialog] = useState(false);
-  const queryClient = useQueryClient();
+  
+  // Link client dialog state
+  const [linkClientDialog, setLinkClientDialog] = useState<{
+    open: boolean;
+    contractId: string;
+    contractTitle: string;
+  }>({ open: false, contractId: "", contractTitle: "" });
+  
+  // Send for signature dialog state
+  const [sendSignatureDialog, setSendSignatureDialog] = useState<{
+    open: boolean;
+    contract: any | null;
+  }>({ open: false, contract: null });
+  
+  const [sendingId, setSendingId] = useState<string | null>(null);
 
   // Fetch contracts
   const { data: contracts = [], isLoading } = useQuery({
-    queryKey: ['ipromed-contracts', searchTerm, statusFilter],
+    queryKey: ["ipromed-contracts", searchTerm, statusFilter],
     queryFn: async () => {
       let query = supabase
-        .from('ipromed_contracts')
+        .from("ipromed_contracts")
         .select(`
           *,
           client:ipromed_legal_clients!ipromed_contracts_client_id_fkey(id, name, email)
         `)
-        .order('created_at', { ascending: false });
+        .order("created_at", { ascending: false });
 
-      if (statusFilter !== 'all' && statusFilter !== 'trash' && statusFilter !== 'downloaded') {
-        query = query.eq('status', statusFilter as 'draft' | 'pending_signature' | 'signed' | 'cancelled' | 'pending_approval' | 'pending_review' | 'expired' | 'terminated' | 'active');
+      if (statusFilter !== "all" && statusFilter !== "trash") {
+        query = query.eq("status", statusFilter as any);
       }
 
       if (searchTerm) {
@@ -136,74 +133,93 @@ export default function IpromedContracts() {
     },
   });
 
+  // Fetch contract documents for signature dialog
+  const { data: contractDocuments = [] } = useQuery({
+    queryKey: ["contract-documents", sendSignatureDialog.contract?.id],
+    queryFn: async () => {
+      if (!sendSignatureDialog.contract?.id) return [];
+      const { data, error } = await supabase
+        .from("ipromed_contract_documents")
+        .select("*")
+        .eq("contract_id", sendSignatureDialog.contract.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!sendSignatureDialog.contract?.id,
+  });
+
   // Stats calculations
   const stats = {
-    inProcess: contracts.filter(c => c.status === 'pending_signature').length,
-    refused: contracts.filter(c => c.status === 'cancelled').length,
-    finalized: contracts.filter(c => c.status === 'signed' || c.status === 'active').length,
-    cancelled: contracts.filter(c => c.status === 'cancelled').length,
+    inProcess: contracts.filter((c) => c.status === "pending_signature").length,
+    refused: contracts.filter((c) => c.status === "cancelled").length,
+    finalized: contracts.filter((c) => c.status === "signed" || c.status === "active").length,
+    drafts: contracts.filter((c) => c.status === "draft").length,
     total: contracts.length,
-    drafts: contracts.filter(c => c.status === 'draft').length,
   };
 
-  // Plan usage (mock for now - can be connected to real data)
+  // Plan usage
   const planUsage = {
     used: contracts.length,
     total: 200,
     percentage: Math.min((contracts.length / 200) * 100, 100),
-    additionals: 0,
   };
 
-  // Send contract for signature
-  const sendForSignature = useMutation({
+  // Send contract for signature (quick action)
+  const sendForSignatureQuick = useMutation({
     mutationFn: async (contractId: string) => {
+      setSendingId(contractId);
       const { error } = await supabase
-        .from('ipromed_contracts')
-        .update({ status: 'pending_signature', sent_at: new Date().toISOString() })
-        .eq('id', contractId);
+        .from("ipromed_contracts")
+        .update({ status: "pending_signature", sent_at: new Date().toISOString() })
+        .eq("id", contractId);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-contracts'] });
-      toast.success('Contrato enviado para assinatura!');
+      queryClient.invalidateQueries({ queryKey: ["ipromed-contracts"] });
+      toast.success("Contrato enviado para assinatura!");
+      setSendingId(null);
+    },
+    onError: () => {
+      setSendingId(null);
     },
   });
 
-  // Handle file upload for new document
+  // Handle file upload - creates draft and opens link client dialog
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setUploading(true);
+    let lastContractId = "";
+    let lastContractTitle = "";
+
     try {
-      // For each file, upload to storage and create contract
       for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${file.name}`;
         const filePath = `contracts/${fileName}`;
 
         // Upload file
         const { error: uploadError } = await supabase.storage
-          .from('ipromed-documents')
+          .from("ipromed-documents")
           .upload(filePath, file);
 
         if (uploadError) {
-          console.error('Upload error:', uploadError);
+          console.error("Upload error:", uploadError);
           toast.error(`Erro ao enviar ${file.name}`);
           continue;
         }
 
         // Get public URL
         const { data: urlData } = supabase.storage
-          .from('ipromed-documents')
+          .from("ipromed-documents")
           .getPublicUrl(filePath);
 
-        // Create contract record
+        // Generate contract number
         const { data: lastContract } = await supabase
-          .from('ipromed_contracts')
-          .select('contract_number')
-          .like('contract_number', 'DOC_%')
-          .order('contract_number', { ascending: false })
+          .from("ipromed_contracts")
+          .select("contract_number")
+          .like("contract_number", "DOC_%")
+          .order("contract_number", { ascending: false })
           .limit(1);
 
         let nextNumber = 1;
@@ -211,77 +227,122 @@ export default function IpromedContracts() {
           const match = lastContract[0].contract_number.match(/DOC_(\d+)/);
           if (match) nextNumber = parseInt(match[1], 10) + 1;
         }
-        const contractNumber = `DOC_${nextNumber.toString().padStart(4, '0')}`;
+        const contractNumber = `DOC_${nextNumber.toString().padStart(4, "0")}`;
 
-        const { error: insertError } = await supabase
-          .from('ipromed_contracts')
+        const title = file.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
+
+        // Create contract record as draft
+        const { data: newContract, error: insertError } = await supabase
+          .from("ipromed_contracts")
           .insert({
-            title: file.name.replace(/\.[^/.]+$/, ''),
+            title,
             contract_number: contractNumber,
-            status: 'draft',
+            status: "draft",
             document_url: urlData.publicUrl,
-          });
+          })
+          .select()
+          .single();
 
         if (insertError) {
-          console.error('Insert error:', insertError);
+          console.error("Insert error:", insertError);
           toast.error(`Erro ao criar registro para ${file.name}`);
         } else {
+          // Also create document record
+          await supabase.from("ipromed_contract_documents").insert({
+            contract_id: newContract.id,
+            file_name: file.name,
+            file_path: urlData.publicUrl,
+            file_type: file.type || "application/pdf",
+            file_size: file.size,
+            document_type: "contract",
+          });
+
           toast.success(`${file.name} enviado com sucesso!`);
+          lastContractId = newContract.id;
+          lastContractTitle = title;
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ['ipromed-contracts'] });
+      await queryClient.invalidateQueries({ queryKey: ["ipromed-contracts"] });
+
+      // Open link client dialog for last uploaded file
+      if (lastContractId) {
+        setLinkClientDialog({
+          open: true,
+          contractId: lastContractId,
+          contractTitle: lastContractTitle,
+        });
+      }
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Erro ao enviar documento');
+      console.error("Upload error:", error);
+      toast.error("Erro ao enviar documento");
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
 
   const handleNavClick = (id: string) => {
     setActiveSection(id);
-    if (['all', 'pending_signature', 'signed', 'cancelled', 'downloaded', 'draft', 'trash'].includes(id)) {
-      setStatusFilter(id === 'all' ? 'all' : id);
+    if (["all", "pending_signature", "signed", "cancelled", "draft", "trash"].includes(id)) {
+      setStatusFilter(id === "all" ? "all" : id);
     }
+  };
+
+  const handleStatClick = (filter: string) => {
+    setStatusFilter(filter);
+    setActiveSection(filter);
   };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Bom dia';
-    if (hour < 18) return 'Boa tarde';
-    return 'Boa noite';
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
   };
 
   const handleOpenSupport = () => {
-    window.open('https://wa.me/5511999999999?text=Olá,%20preciso%20de%20suporte%20com%20o%20sistema%20de%20contratos', '_blank');
+    window.open("https://wa.me/5511999999999?text=Olá,%20preciso%20de%20suporte%20com%20o%20sistema%20de%20contratos", "_blank");
   };
 
-  const handleOpenCommercial = () => {
-    window.open('https://wa.me/5511999999999?text=Olá,%20gostaria%20de%20informações%20comerciais', '_blank');
+  const handleSendForSignature = async (data: any) => {
+    if (!sendSignatureDialog.contract) return;
+
+    try {
+      await supabase
+        .from("ipromed_contracts")
+        .update({
+          status: "pending_signature",
+          sent_at: new Date().toISOString(),
+        })
+        .eq("id", sendSignatureDialog.contract.id);
+
+      queryClient.invalidateQueries({ queryKey: ["ipromed-contracts"] });
+      toast.success("Contrato enviado para assinatura!");
+      setSendSignatureDialog({ open: false, contract: null });
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao enviar para assinatura");
+    }
   };
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-background">
       {/* Sidebar */}
       <div className="w-64 border-r bg-card flex flex-col">
-        {/* Logo/Brand */}
         <div className="p-4 border-b">
-          <Button 
+          <Button
             onClick={() => setIsNewDialogOpen(true)}
             className="w-full gap-2 bg-primary hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
-            Adicionar documentos
+            Novo Contrato
           </Button>
         </div>
 
         <ScrollArea className="flex-1">
           <div className="p-2">
-            {/* Main nav */}
             {sidebarNav.map((item) => (
               <Button
                 key={item.id}
@@ -294,7 +355,6 @@ export default function IpromedContracts() {
               </Button>
             ))}
 
-            {/* Documents section */}
             <Collapsible open={documentsOpen} onOpenChange={setDocumentsOpen} className="mt-2">
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full justify-between px-2">
@@ -309,7 +369,7 @@ export default function IpromedContracts() {
                 {documentsNav.map((item) => (
                   <Button
                     key={item.id}
-                    variant={statusFilter === item.id || (item.id === 'all' && statusFilter === 'all') ? "secondary" : "ghost"}
+                    variant={statusFilter === item.id || (item.id === "all" && statusFilter === "all") ? "secondary" : "ghost"}
                     size="sm"
                     className="w-full justify-start gap-2 text-sm"
                     onClick={() => handleNavClick(item.id)}
@@ -321,32 +381,17 @@ export default function IpromedContracts() {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Dashboard */}
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start gap-2 mt-4"
-              onClick={() => navigate('/ipromed/dashboard')}
-            >
+            <Button variant="ghost" className="w-full justify-start gap-2 mt-4" onClick={() => navigate("/ipromed/dashboard")}>
               <BarChart3 className="h-4 w-4" />
               Dashboard
             </Button>
 
-            {/* Clientes */}
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start gap-2"
-              onClick={() => navigate('/ipromed/clients')}
-            >
-              <FolderOpen className="h-4 w-4" />
+            <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => navigate("/ipromed/clients")}>
+              <Users className="h-4 w-4" />
               Clientes
             </Button>
 
-            {/* Agenda */}
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start gap-2"
-              onClick={() => navigate('/ipromed/agenda')}
-            >
+            <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => navigate("/ipromed/agenda")}>
               <Calendar className="h-4 w-4" />
               Agenda
             </Button>
@@ -362,52 +407,27 @@ export default function IpromedContracts() {
             <div className="relative flex-1 max-w-xl">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Busque por um documento"
+                placeholder="Buscar documento por título ou número..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Button variant="outline" size="sm" onClick={() => setStatusFilter('all')}>
+            <Button variant="outline" size="sm" onClick={() => { setStatusFilter("all"); setSearchTerm(""); }}>
               <Filter className="h-4 w-4 mr-2" />
-              Limpar filtros
+              Limpar
             </Button>
           </div>
         </div>
 
-        {/* Content Area */}
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-6">
-            {/* Greeting Header */}
+            {/* Header */}
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold">{getGreeting()}, IPROMED!</h1>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => navigate('/ipromed/legal')}>
-                  <FileSignature className="h-4 w-4 mr-2" />
-                  Hub Jurídico
-                </Button>
-              </div>
-            </div>
-
-            {/* Documents Section Header */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">Documentos</span>
-              </div>
-              <Button 
-                variant="link" 
-                className="text-primary p-0 h-auto"
-                onClick={() => setStatusFilter('all')}
-              >
-                Ver todos documentos
-              </Button>
-              <Button 
-                variant="link" 
-                className="text-primary p-0 h-auto"
-                onClick={() => navigate('/ipromed/dashboard')}
-              >
-                Ver relatório
+              <Button variant="outline" onClick={() => navigate("/ipromed/legal")}>
+                <FileSignature className="h-4 w-4 mr-2" />
+                Hub Jurídico
               </Button>
             </div>
 
@@ -416,9 +436,9 @@ export default function IpromedContracts() {
               {/* Upload Area */}
               <Card className="lg:col-span-2">
                 <CardContent className="pt-6">
-                  <div 
+                  <div
                     className={cn(
-                      "border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer",
+                      "border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer",
                       uploading ? "border-primary bg-primary/5" : "hover:border-primary/50"
                     )}
                     onClick={() => !uploading && fileInputRef.current?.click()}
@@ -442,10 +462,10 @@ export default function IpromedContracts() {
                       </div>
                       <div>
                         <p className="font-medium">
-                          {uploading ? 'Enviando documentos...' : 'Adicionar documentos'}
+                          {uploading ? "Enviando documentos..." : "Adicionar documentos"}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {uploading ? 'Aguarde o upload finalizar' : 'Clique aqui ou arraste documentos PDF'}
+                          {uploading ? "Aguarde o upload finalizar" : "Clique aqui ou arraste documentos PDF"}
                         </p>
                       </div>
                     </div>
@@ -453,13 +473,13 @@ export default function IpromedContracts() {
                 </CardContent>
               </Card>
 
-              {/* Stats Cards */}
+              {/* Stats Cards - Clicáveis */}
               <Card>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-medium">Neste momento</CardTitle>
                     <Select value={dateRange} onValueChange={setDateRange}>
-                      <SelectTrigger className="w-[140px] h-8 text-xs">
+                      <SelectTrigger className="w-[130px] h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -472,46 +492,58 @@ export default function IpromedContracts() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
-                    <div 
-                      className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-2 transition-colors"
-                      onClick={() => setStatusFilter('pending_signature')}
+                    <button
+                      onClick={() => handleStatClick("pending_signature")}
+                      className={cn(
+                        "text-center rounded-lg p-3 transition-all hover:scale-105",
+                        statusFilter === "pending_signature" ? "bg-amber-100 dark:bg-amber-900/30 ring-2 ring-amber-500" : "hover:bg-muted/50"
+                      )}
                     >
                       <p className="text-3xl font-bold">{stats.inProcess}</p>
                       <div className="flex items-center justify-center gap-1 text-xs text-amber-600">
                         <Clock className="h-3 w-3" />
                         Em processo
                       </div>
-                    </div>
-                    <div 
-                      className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-2 transition-colors"
-                      onClick={() => setStatusFilter('cancelled')}
+                    </button>
+                    <button
+                      onClick={() => handleStatClick("cancelled")}
+                      className={cn(
+                        "text-center rounded-lg p-3 transition-all hover:scale-105",
+                        statusFilter === "cancelled" ? "bg-red-100 dark:bg-red-900/30 ring-2 ring-red-500" : "hover:bg-muted/50"
+                      )}
                     >
                       <p className="text-3xl font-bold">{stats.refused}</p>
                       <div className="flex items-center justify-center gap-1 text-xs text-destructive">
                         <XCircle className="h-3 w-3" />
-                        Recusas
+                        Recusados
                       </div>
-                    </div>
-                    <div 
-                      className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-2 transition-colors"
-                      onClick={() => setStatusFilter('signed')}
+                    </button>
+                    <button
+                      onClick={() => handleStatClick("signed")}
+                      className={cn(
+                        "text-center rounded-lg p-3 transition-all hover:scale-105",
+                        statusFilter === "signed" ? "bg-emerald-100 dark:bg-emerald-900/30 ring-2 ring-emerald-500" : "hover:bg-muted/50"
+                      )}
                     >
                       <p className="text-3xl font-bold">{stats.finalized}</p>
                       <div className="flex items-center justify-center gap-1 text-xs text-emerald-600">
                         <CheckCircle className="h-3 w-3" />
                         Finalizados
                       </div>
-                    </div>
-                    <div 
-                      className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-2 transition-colors"
-                      onClick={() => setStatusFilter('draft')}
+                    </button>
+                    <button
+                      onClick={() => handleStatClick("draft")}
+                      className={cn(
+                        "text-center rounded-lg p-3 transition-all hover:scale-105",
+                        statusFilter === "draft" ? "bg-gray-200 dark:bg-gray-700 ring-2 ring-gray-500" : "hover:bg-muted/50"
+                      )}
                     >
                       <p className="text-3xl font-bold">{stats.drafts}</p>
                       <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
                         <FileText className="h-3 w-3" />
                         Rascunhos
                       </div>
-                    </div>
+                    </button>
                   </div>
                 </CardContent>
               </Card>
@@ -519,287 +551,148 @@ export default function IpromedContracts() {
 
             {/* Plan Usage */}
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Plano IPROMED</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <div className="space-y-2">
-                      <Progress value={planUsage.percentage} className="h-3" />
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">
-                          {planUsage.used}/{planUsage.total} documentos utilizados
-                        </span>
-                      </div>
+              <CardContent className="py-4">
+                <div className="flex items-center gap-6">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Plano IPROMED</span>
+                      <span className="text-sm text-muted-foreground">
+                        {planUsage.used}/{planUsage.total} documentos
+                      </span>
                     </div>
+                    <Progress value={planUsage.percentage} className="h-2" />
                   </div>
-                  <div className="flex gap-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{stats.finalized}</p>
-                      <p className="text-xs text-muted-foreground">finalizados</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{Math.max(0, planUsage.total - planUsage.used)}</p>
-                      <p className="text-xs text-muted-foreground">restantes</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{planUsage.additionals}</p>
-                      <p className="text-xs text-muted-foreground">Adicionais</p>
-                    </div>
+                  <div className="text-center px-4 border-l">
+                    <p className="text-xl font-bold">{Math.max(0, planUsage.total - planUsage.used)}</p>
+                    <p className="text-xs text-muted-foreground">restantes</p>
                   </div>
-                </div>
-                <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    {format(startOfMonth(new Date()), "dd/MM/yyyy")} a {format(endOfMonth(new Date()), "dd/MM/yyyy")}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Help Section */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4" />
-                  Precisa de ajuda?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Button 
-                    variant="link" 
-                    className="text-primary p-0 h-auto justify-start w-full"
-                    onClick={() => setShowFaqDialog(true)}
-                  >
-                    <HelpCircle className="h-4 w-4 mr-2" />
-                    Perguntas frequentes
-                  </Button>
-                  <Button 
-                    variant="link" 
-                    className="text-primary p-0 h-auto justify-start w-full"
-                    onClick={handleOpenSupport}
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Contato com o suporte
-                  </Button>
-                  <Button 
-                    variant="link" 
-                    className="text-primary p-0 h-auto justify-start w-full"
-                    onClick={handleOpenCommercial}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Contato com o comercial
-                  </Button>
                 </div>
               </CardContent>
             </Card>
 
             {/* Notifications */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Bell className="h-4 w-4" />
-                  Notificações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {stats.inProcess > 0 ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
-                      <Clock className="h-5 w-5 text-amber-500" />
-                      <div>
-                        <p className="text-sm font-medium">Documentos aguardando assinatura</p>
-                        <p className="text-xs text-muted-foreground">
-                          Você tem {stats.inProcess} documento{stats.inProcess > 1 ? 's' : ''} em processo
-                        </p>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="ml-auto"
-                        onClick={() => setStatusFilter('pending_signature')}
-                      >
-                        Ver
-                      </Button>
+            {stats.inProcess > 0 && (
+              <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                <CardContent className="py-4">
+                  <div className="flex items-center gap-3">
+                    <Bell className="h-5 w-5 text-amber-500" />
+                    <div className="flex-1">
+                      <p className="font-medium">Documentos aguardando assinatura</p>
+                      <p className="text-sm text-muted-foreground">
+                        Você tem {stats.inProcess} documento{stats.inProcess > 1 ? "s" : ""} em processo
+                      </p>
                     </div>
+                    <Button variant="outline" size="sm" onClick={() => handleStatClick("pending_signature")}>
+                      Ver
+                    </Button>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-2">👍</div>
-                    <p className="text-muted-foreground">Sem novidades por aqui hoje.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Documents List */}
-            {statusFilter !== 'home' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Lista de Documentos</CardTitle>
-                  <CardDescription>
-                    {statusFilter === 'all' 
-                      ? 'Todos os documentos e contratos' 
-                      : `Documentos com status: ${statusConfig[statusFilter]?.label || statusFilter}`}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                  ) : contracts.length === 0 ? (
-                    <div className="text-center py-12">
-                      <FileSignature className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Nenhum documento encontrado</h3>
-                      <p className="text-muted-foreground mb-4">Comece adicionando o primeiro documento</p>
-                      <Button onClick={() => fileInputRef.current?.click()}>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Enviar Documento
-                      </Button>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Número</TableHead>
-                          <TableHead>Título</TableHead>
-                          <TableHead>Cliente</TableHead>
-                          <TableHead>Tipo</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Data</TableHead>
-                          <TableHead className="text-right">Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {contracts.map((contract: any) => {
-                          const status = statusConfig[contract.status] || statusConfig.draft;
-                          const StatusIcon = status.icon;
-                          return (
-                            <TableRow 
-                              key={contract.id} 
-                              className="cursor-pointer hover:bg-muted/50"
-                              onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
-                            >
-                              <TableCell className="font-mono text-sm">
-                                {contract.contract_number || '-'}
-                              </TableCell>
-                              <TableCell className="font-medium">{contract.title}</TableCell>
-                              <TableCell>
-                                {contract.client?.name || '-'}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">{contract.contract_type || 'Documento'}</Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Badge className={`${status.color} text-white`}>
-                                  <StatusIcon className="h-3 w-3 mr-1" />
-                                  {status.label}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground">
-                                {format(new Date(contract.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    title="Ver" 
-                                    onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  {contract.status === 'draft' && (
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      title="Enviar para assinatura"
-                                      onClick={() => sendForSignature.mutate(contract.id)}
-                                      disabled={sendForSignature.isPending}
-                                    >
-                                      {sendForSignature.isPending ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Send className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                  )}
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    title="Download"
-                                    onClick={() => {
-                                      if (contract.document_url) {
-                                        window.open(contract.document_url, '_blank');
-                                      } else {
-                                        toast.info('Este contrato ainda não possui arquivo anexado.');
-                                      }
-                                    }}
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  )}
                 </CardContent>
               </Card>
             )}
+
+            {/* Documents List - Always visible */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Documentos</CardTitle>
+                    <CardDescription>
+                      {statusFilter === "all"
+                        ? `${contracts.length} documento${contracts.length !== 1 ? "s" : ""} no total`
+                        : `Filtro ativo: ${documentsNav.find((n) => n.id === statusFilter)?.label || statusFilter}`}
+                    </CardDescription>
+                  </div>
+                  {statusFilter !== "all" && (
+                    <Button variant="ghost" size="sm" onClick={() => handleStatClick("all")}>
+                      Ver todos
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ContractsTable
+                  contracts={contracts}
+                  isLoading={isLoading}
+                  onSendForSignature={(contract) => setSendSignatureDialog({ open: true, contract })}
+                  onLinkClient={(contractId, contractTitle) =>
+                    setLinkClientDialog({ open: true, contractId, contractTitle })
+                  }
+                  sendingId={sendingId}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Help Section */}
+            <Card>
+              <CardContent className="py-4">
+                <div className="flex items-center gap-4">
+                  <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Precisa de ajuda?</span>
+                  <Button variant="link" className="p-0 h-auto" onClick={() => setShowFaqDialog(true)}>
+                    Perguntas frequentes
+                  </Button>
+                  <Button variant="link" className="p-0 h-auto" onClick={handleOpenSupport}>
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    Suporte via WhatsApp
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </ScrollArea>
       </div>
 
+      {/* Dialogs */}
       <NewContractDialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen} />
+
+      <LinkClientDialog
+        open={linkClientDialog.open}
+        onOpenChange={(open) => setLinkClientDialog((prev) => ({ ...prev, open }))}
+        contractId={linkClientDialog.contractId}
+        contractTitle={linkClientDialog.contractTitle}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["ipromed-contracts"] })}
+      />
+
+      <SendForSignatureDialog
+        open={sendSignatureDialog.open}
+        onOpenChange={(open) => setSendSignatureDialog((prev) => ({ ...prev, open }))}
+        contractTitle={sendSignatureDialog.contract?.title || ""}
+        clientName={sendSignatureDialog.contract?.client?.name}
+        clientEmail={sendSignatureDialog.contract?.client?.email}
+        documents={contractDocuments}
+        onSend={handleSendForSignature}
+        isPending={false}
+      />
 
       {/* FAQ Dialog */}
       <Dialog open={showFaqDialog} onOpenChange={setShowFaqDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Perguntas Frequentes</DialogTitle>
-            <DialogDescription>
-              Dúvidas comuns sobre o sistema de contratos
-            </DialogDescription>
+            <DialogDescription>Dúvidas comuns sobre o sistema de contratos</DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh]">
             <div className="space-y-4 pr-4">
               <div className="border-b pb-4">
                 <h4 className="font-medium mb-2">Como enviar um documento para assinatura?</h4>
                 <p className="text-sm text-muted-foreground">
-                  Clique em "Adicionar documentos" ou arraste um arquivo PDF para a área de upload. 
-                  Depois, acesse o documento e clique no botão "Enviar para assinatura".
+                  Faça upload do arquivo, vincule um cliente e clique no botão "Enviar p/ Assinatura" nas ações do documento.
                 </p>
               </div>
               <div className="border-b pb-4">
-                <h4 className="font-medium mb-2">Quais formatos de arquivo são aceitos?</h4>
-                <p className="text-sm text-muted-foreground">
-                  Aceitamos arquivos PDF, DOC e DOCX. Recomendamos PDF para melhor compatibilidade.
-                </p>
+                <h4 className="font-medium mb-2">Quais formatos são aceitos?</h4>
+                <p className="text-sm text-muted-foreground">PDF, DOC e DOCX. Recomendamos PDF para melhor compatibilidade.</p>
               </div>
               <div className="border-b pb-4">
-                <h4 className="font-medium mb-2">Como vincular um documento a um cliente?</h4>
+                <h4 className="font-medium mb-2">Como vincular um cliente ao documento?</h4>
                 <p className="text-sm text-muted-foreground">
-                  Ao criar um novo contrato pelo botão "+ Adicionar documentos", você pode selecionar 
-                  o cliente na lista. Também é possível editar o documento depois e adicionar o cliente.
-                </p>
-              </div>
-              <div className="border-b pb-4">
-                <h4 className="font-medium mb-2">Como cancelar um documento em processo?</h4>
-                <p className="text-sm text-muted-foreground">
-                  Acesse o documento clicando nele na lista, e use a opção "Cancelar" disponível na 
-                  página de detalhes.
+                  Após o upload, você será automaticamente convidado a vincular um cliente. Também pode fazer depois pelo menu de ações.
                 </p>
               </div>
               <div className="pb-4">
-                <h4 className="font-medium mb-2">Como fazer download de um documento assinado?</h4>
+                <h4 className="font-medium mb-2">Como baixar um documento assinado?</h4>
                 <p className="text-sm text-muted-foreground">
-                  Clique no ícone de download na lista de documentos ou acesse os detalhes do 
-                  documento e use o botão "Baixar documento".
+                  Clique no ícone de visualizar PDF ou no menu de ações e selecione "Download".
                 </p>
               </div>
             </div>
