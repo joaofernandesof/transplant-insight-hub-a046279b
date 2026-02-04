@@ -1,6 +1,7 @@
 /**
  * Sheet para visualizar e editar detalhes de uma reunião
  * Permite preencher checklist, editar, excluir e gerar ATA
+ * Integra com o formulário completo de Onboarding quando aplicável
  */
 
 import { useState } from "react";
@@ -24,6 +25,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,11 +52,14 @@ import {
   Loader2,
   Download,
   Copy,
+  ClipboardList,
+  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import OnboardingMeetingAgenda from "./OnboardingMeetingAgenda";
 
 interface Meeting {
   id: string;
@@ -89,11 +97,16 @@ export function MeetingDetailSheet({
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
   const [topicsCompleted, setTopicsCompleted] = useState<Record<number, boolean>>({});
   const [meetingNotes, setMeetingNotes] = useState(meeting?.meeting_notes || "");
   const [minutesText, setMinutesText] = useState(meeting?.minutes || "");
   const [actionItems, setActionItems] = useState<string[]>(meeting?.action_items || []);
   const [newActionItem, setNewActionItem] = useState("");
+
+  // Detect if this is an onboarding meeting
+  const isOnboardingMeeting = meeting?.title?.toLowerCase().includes('onboarding') || 
+                              meeting?.agenda_type === 'onboarding';
 
   // Reset state when meeting changes
   useState(() => {
@@ -289,11 +302,40 @@ Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
 
               <Separator />
 
+              {/* Onboarding Full Checklist Button */}
+              {isOnboardingMeeting && (
+                <>
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <ClipboardList className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm mb-1">Pauta Completa de Onboarding</h4>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          Formulário completo com 10 seções: Boas-vindas, Perfil Profissional, Comunicação, 
+                          Documentos, Entregas, Prioridades, Prazos, Treinamento, Instagram e Contrato.
+                        </p>
+                        <Button 
+                          onClick={() => setOnboardingDialogOpen(true)}
+                          className="gap-2"
+                          size="sm"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Abrir Checklist Completo
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
               {/* Agenda Topics Checklist */}
               {topics.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">Pauta da Reunião</Label>
+                    <Label className="text-sm font-medium">Pauta Resumida</Label>
                     <span className="text-xs text-muted-foreground">
                       {completedCount}/{topics.length} concluídos
                     </span>
@@ -474,6 +516,22 @@ Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Onboarding Full Checklist Dialog */}
+      <Dialog open={onboardingDialogOpen} onOpenChange={setOnboardingDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[95vh] p-0 overflow-hidden">
+          <OnboardingMeetingAgenda
+            clientId={meeting?.client_id}
+            clientName={clientName}
+            onSubmit={(data) => {
+              console.log('Onboarding data saved:', data);
+              toast.success('Dados do onboarding salvos!');
+              setOnboardingDialogOpen(false);
+            }}
+            onClose={() => setOnboardingDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
