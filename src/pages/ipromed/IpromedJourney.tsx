@@ -14,6 +14,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -989,14 +997,267 @@ export default function IpromedJourney() {
         </DndContext>
       )}
 
-      {/* List View */}
+      {/* List View - Full Table */}
       {activeTab === "list" && (
-        <div className="flex-1 p-6 overflow-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredClients.map((client) => (
-              <ClientCard key={client.id} client={client} />
-            ))}
-          </div>
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <ScrollArea className="flex-1">
+            <div className="p-4">
+              <div className="border rounded-lg overflow-hidden bg-card">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableHead className="w-12">
+                        <div 
+                          className="flex-shrink-0 cursor-pointer"
+                          onClick={() => {
+                            const allIds = filteredClients.map(c => c.id);
+                            const allSelected = allIds.every(id => selectedClients.has(id));
+                            if (allSelected) {
+                              setSelectedClients(new Set());
+                            } else {
+                              setSelectedClients(new Set(allIds));
+                            }
+                          }}
+                        >
+                          <div className={cn(
+                            "h-4 w-4 rounded border-2 flex items-center justify-center transition-colors",
+                            filteredClients.length > 0 && filteredClients.every(c => selectedClients.has(c.id))
+                              ? "bg-primary border-primary" 
+                              : filteredClients.some(c => selectedClients.has(c.id))
+                                ? "bg-primary/50 border-primary"
+                                : "border-muted-foreground/40 hover:border-primary"
+                          )}>
+                            {filteredClients.every(c => selectedClients.has(c.id)) && filteredClients.length > 0 && (
+                              <CheckCircle2 className="h-3 w-3 text-white" />
+                            )}
+                          </div>
+                        </div>
+                      </TableHead>
+                      <TableHead className="min-w-[200px]">Cliente</TableHead>
+                      <TableHead className="min-w-[150px]">Email</TableHead>
+                      <TableHead className="min-w-[130px]">Telefone</TableHead>
+                      <TableHead className="min-w-[150px]">Fase Atual</TableHead>
+                      <TableHead className="min-w-[120px] text-center">Progresso</TableHead>
+                      <TableHead className="min-w-[100px]">Início</TableHead>
+                      <TableHead className="min-w-[100px]">Onboarding</TableHead>
+                      <TableHead className="min-w-[100px]">Contrato</TableHead>
+                      <TableHead className="min-w-[100px]">Reunião</TableHead>
+                      <TableHead className="min-w-[80px] text-center">Status</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredClients.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={12} className="h-32 text-center text-muted-foreground">
+                          <Users className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                          Nenhum cliente encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredClients.map((client) => {
+                        const phase = getClientPhase(client);
+                        const phaseInfo = journeyPhases.find(p => p.id === phase);
+                        const meta = client.metadata as any;
+                        const progress = meta?.journey_progress || Math.min(100, (differenceInDays(new Date(), new Date(client.created_at)) / 30) * 100);
+                        const overdue = isOverdue(client);
+                        const onboardingDate = meta?.onboarding_date;
+                        const contractDate = meta?.contract_signed_date;
+                        const meetingDate = meta?.presentation_meeting_date;
+                        
+                        return (
+                          <TableRow 
+                            key={client.id}
+                            className={cn(
+                              "group cursor-pointer",
+                              selectedClients.has(client.id) && "bg-primary/5",
+                              overdue && "bg-destructive/5"
+                            )}
+                            onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                          >
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <div 
+                                className="cursor-pointer"
+                                onClick={() => handleSelectClient(client.id, !selectedClients.has(client.id))}
+                              >
+                                <div className={cn(
+                                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-colors",
+                                  selectedClients.has(client.id)
+                                    ? "bg-primary border-primary" 
+                                    : "border-muted-foreground/40 hover:border-primary"
+                                )}>
+                                  {selectedClients.has(client.id) && (
+                                    <CheckCircle2 className="h-3 w-3 text-white" />
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8 flex-shrink-0">
+                                  <AvatarFallback className={cn("text-xs font-medium text-white", phaseInfo?.color || "bg-muted")}>
+                                    {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">{client.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {client.email || '—'}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {client.phone || '—'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={cn("text-white", phaseInfo?.color || "bg-muted")}>
+                                {phaseInfo?.label || phase}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress value={progress} className="h-2 flex-1" />
+                                <span className="text-xs text-muted-foreground w-10 text-right">
+                                  {Math.round(progress)}%
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {format(new Date(client.created_at), 'dd/MM/yy', { locale: ptBR })}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {onboardingDate ? (
+                                <span className="text-green-600 flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  {format(new Date(onboardingDate), 'dd/MM/yy', { locale: ptBR })}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">Pendente</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {contractDate ? (
+                                <span className="text-green-600 flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  {format(new Date(contractDate), 'dd/MM/yy', { locale: ptBR })}
+                                </span>
+                              ) : meta?.contract_signed ? (
+                                <span className="text-green-600 flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Assinado
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">Pendente</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {meetingDate ? (
+                                <span className="text-green-600 flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  {format(new Date(meetingDate), 'dd/MM/yy', { locale: ptBR })}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">Pendente</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {overdue ? (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Cliente precisa de atenção</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              ) : (
+                                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              )}
+                            </TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    Ver Detalhes
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => {
+                                    setMeetingClient(client);
+                                    setMeetingDialogOpen(true);
+                                  }}>
+                                    <Video className="h-4 w-4 mr-2" />
+                                    Agendar Reunião
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  {journeyPhases.map((phase) => (
+                                    <DropdownMenuItem
+                                      key={phase.id}
+                                      onClick={() => {
+                                        updateClientPhase.mutate({ clientId: client.id, newPhase: phase.id });
+                                      }}
+                                    >
+                                      <div className={cn("h-3 w-3 rounded-full mr-2", phase.color)} />
+                                      Mover para {phase.label}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </ScrollArea>
+          
+          {/* Bulk Actions Bar */}
+          {selectedClients.size > 0 && (
+            <div className="border-t bg-muted/50 p-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Badge variant="default">{selectedClients.size} selecionado(s)</Badge>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedClients(new Set())}>
+                  Limpar seleção
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-1">
+                      Mover para fase
+                      <ChevronRight className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {journeyPhases.map((phase) => (
+                      <DropdownMenuItem
+                        key={phase.id}
+                        onClick={() => {
+                          selectedClients.forEach(clientId => {
+                            updateClientPhase.mutate({ clientId, newPhase: phase.id });
+                          });
+                          toast.success(`${selectedClients.size} cliente(s) movido(s) para "${phase.label}"`);
+                          setSelectedClients(new Set());
+                        }}
+                      >
+                        <div className={cn("h-3 w-3 rounded-full mr-2", phase.color)} />
+                        {phase.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
