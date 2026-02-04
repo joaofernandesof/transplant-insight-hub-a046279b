@@ -34,7 +34,9 @@ import {
   MessageSquare,
   History,
   Video,
+  RefreshCw,
 } from "lucide-react";
+import { ClientActivityTimeline, logClientActivity } from "./components/ClientActivityTimeline";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -101,19 +103,18 @@ export default function IpromedClientDetail() {
     enabled: !!id,
   });
 
-  // Fetch activity log
-  const { data: activities = [] } = useQuery({
-    queryKey: ['ipromed-client-activities', id],
+  // Fetch upcoming meetings
+  const { data: meetings = [] } = useQuery({
+    queryKey: ['ipromed-client-meetings', id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ipromed_activity_log')
+        .from('ipromed_client_meetings' as any)
         .select('*')
-        .eq('entity_id', id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+        .eq('client_id', id)
+        .order('scheduled_date', { ascending: true });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!id,
   });
@@ -275,12 +276,12 @@ export default function IpromedClientDetail() {
         </CardContent>
       </Card>
 
-      {/* Content Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
+          <TabsTrigger value="meetings">Reuniões ({meetings.length})</TabsTrigger>
           <TabsTrigger value="contracts">Contratos ({contracts.length})</TabsTrigger>
-          <TabsTrigger value="history">Histórico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -384,6 +385,62 @@ export default function IpromedClientDetail() {
           </Card>
         </TabsContent>
 
+        {/* Timeline Tab */}
+        <TabsContent value="timeline">
+          <ClientActivityTimeline clientId={id!} />
+        </TabsContent>
+
+        {/* Meetings Tab */}
+        <TabsContent value="meetings" className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Reuniões</CardTitle>
+                <CardDescription>Histórico e agendamentos de reuniões</CardDescription>
+              </div>
+              <Button size="sm" onClick={() => setIsMeetingOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Agendar Reunião
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {meetings.length === 0 ? (
+                <div className="text-center py-8">
+                  <Video className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Nenhuma reunião agendada</p>
+                  <Button variant="link" className="mt-2" onClick={() => setIsMeetingOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Agendar primeira reunião
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {meetings.map((meeting: any) => (
+                    <div key={meeting.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <Video className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{meeting.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(meeting.scheduled_date), "dd/MM/yyyy", { locale: ptBR })} às {meeting.scheduled_time}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant={meeting.status === 'completed' ? 'default' : 'outline'}>
+                        {meeting.status === 'scheduled' ? 'Agendada' : 
+                         meeting.status === 'completed' ? 'Realizada' : 
+                         meeting.status === 'cancelled' ? 'Cancelada' : meeting.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="contracts" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -409,7 +466,11 @@ export default function IpromedClientDetail() {
               ) : (
                 <div className="space-y-3">
                   {contracts.map((contract: any) => (
-                    <div key={contract.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                    <div 
+                      key={contract.id} 
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                      onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
+                    >
                       <div>
                         <p className="font-medium">{contract.title}</p>
                         <p className="text-sm text-muted-foreground">{contract.contract_type}</p>
@@ -418,44 +479,6 @@ export default function IpromedClientDetail() {
                     </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="history" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
-                Histórico de Atividades
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {activities.length === 0 ? (
-                <div className="text-center py-8">
-                  <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhuma atividade registrada</p>
-                </div>
-              ) : (
-                <ScrollArea className="h-[400px]">
-                  <div className="space-y-4">
-                    {activities.map((activity: any) => (
-                      <div key={activity.id} className="flex gap-4 pb-4 border-b last:border-0">
-                        <div className="p-2 bg-muted rounded-full h-fit">
-                          <Clock className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{activity.action}</p>
-                          <p className="text-sm text-muted-foreground">{activity.description}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {format(new Date(activity.created_at), "dd/MM/yyyy 'às' HH:mm")}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
               )}
             </CardContent>
           </Card>

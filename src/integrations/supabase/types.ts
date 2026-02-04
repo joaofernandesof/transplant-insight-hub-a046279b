@@ -5971,6 +5971,56 @@ export type Database = {
           },
         ]
       }
+      ipromed_client_activities: {
+        Row: {
+          action: string
+          activity_type: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          title: string
+        }
+        Insert: {
+          action: string
+          activity_type: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title: string
+        }
+        Update: {
+          action?: string
+          activity_type?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_client_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_client_journey: {
         Row: {
           client_id: string
@@ -6021,6 +6071,86 @@ export type Database = {
             columns: ["deliverable_id"]
             isOneToOne: false
             referencedRelation: "ipromed_journey_deliverables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_client_meetings: {
+        Row: {
+          action_items: Json | null
+          agenda_topics: Json | null
+          agenda_type: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_minutes: number | null
+          ended_at: string | null
+          id: string
+          location: string | null
+          meeting_link: string | null
+          meeting_notes: string | null
+          minutes: string | null
+          modality: string
+          scheduled_date: string
+          scheduled_time: string
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action_items?: Json | null
+          agenda_topics?: Json | null
+          agenda_type?: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          location?: string | null
+          meeting_link?: string | null
+          meeting_notes?: string | null
+          minutes?: string | null
+          modality?: string
+          scheduled_date: string
+          scheduled_time: string
+          started_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action_items?: Json | null
+          agenda_topics?: Json | null
+          agenda_type?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          location?: string | null
+          meeting_link?: string | null
+          meeting_notes?: string | null
+          minutes?: string | null
+          modality?: string
+          scheduled_date?: string
+          scheduled_time?: string
+          started_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_client_meetings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
             referencedColumns: ["id"]
           },
         ]

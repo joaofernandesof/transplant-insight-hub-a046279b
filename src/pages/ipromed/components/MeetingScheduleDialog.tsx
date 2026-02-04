@@ -42,6 +42,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { logClientActivity } from "./ClientActivityTimeline";
 
 // Pautas pré-configuradas
 const predefinedAgendas = [
@@ -132,6 +135,7 @@ export function MeetingScheduleDialog({
   clientName,
   onSchedule,
 }: MeetingScheduleDialogProps) {
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<"agenda" | "details">("agenda");
   const [agendaType, setAgendaType] = useState<"predefined" | "custom">("predefined");
   const [selectedAgenda, setSelectedAgenda] = useState<string>("");
@@ -179,31 +183,68 @@ export function MeetingScheduleDialog({
       const agenda = agendaType === "predefined" 
         ? selectedPredefinedAgenda 
         : {
+            id: 'custom',
             name: customAgenda.name,
             description: customAgenda.description,
             topics: customAgenda.topics.split("\n").filter(t => t.trim()),
           };
 
-      const meetingData = {
-        clientId,
-        clientName,
-        agenda,
-        ...meetingDetails,
-      };
+      // Save to database
+      const { data: meetingData, error } = await supabase
+        .from('ipromed_client_meetings' as any)
+        .insert({
+          client_id: clientId,
+          title: agenda?.name || 'Reunião',
+          description: agenda?.description || '',
+          agenda_type: agendaType === "predefined" ? selectedAgenda : 'custom',
+          agenda_topics: agenda?.topics || [],
+          scheduled_date: format(meetingDetails.date, 'yyyy-MM-dd'),
+          scheduled_time: meetingDetails.time,
+          duration_minutes: meetingDetails.duration,
+          modality: meetingDetails.modality,
+          location: meetingDetails.location || null,
+          meeting_notes: meetingDetails.notes || null,
+          status: 'scheduled',
+        })
+        .select()
+        .single();
 
-      // TODO: Save to database
-      console.log("Meeting scheduled:", meetingData);
+      if (error) throw error;
+      
+      const meeting = meetingData as unknown as { id: string };
+
+      // Log activity
+      await logClientActivity(
+        clientId,
+        'meeting',
+        'scheduled',
+        `Reunião agendada: ${agenda?.name}`,
+        {
+          description: `${format(meetingDetails.date, "dd/MM/yyyy", { locale: ptBR })} às ${meetingDetails.time}`,
+          metadata: {
+            meeting_id: meeting?.id,
+            modality: meetingDetails.modality,
+            duration: meetingDetails.duration,
+          },
+          referenceType: 'meeting',
+          referenceId: meeting?.id,
+        }
+      );
+
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-activities', clientId] });
 
       if (onSchedule) {
-        onSchedule(meetingData);
+        onSchedule({ meeting, agenda });
       }
 
       toast.success("Reunião agendada com sucesso!");
       onOpenChange(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error scheduling meeting:", error);
-      toast.error("Erro ao agendar reunião");
+      toast.error("Erro ao agendar reunião: " + error.message);
     } finally {
       setIsSubmitting(false);
     }
