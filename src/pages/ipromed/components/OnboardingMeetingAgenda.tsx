@@ -2581,15 +2581,45 @@ export default function OnboardingMeetingAgenda({
                     <FormField
                       control={form.control}
                       name="instagramHandle"
-                      render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
-                          <FormLabel>📲 @ do Instagram</FormLabel>
-                          <FormControl>
-                            <Input placeholder="@drjoao" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        // Limpar @ do início se usuário digitar
+                        const handleValue = field.value?.replace(/^@/, '') || '';
+                        const instagramUrl = handleValue ? `https://www.instagram.com/${handleValue}` : '';
+                        
+                        return (
+                          <FormItem className={cn(getFieldHighlight(field.value))}>
+                            <FormLabel>📲 Link do Instagram</FormLabel>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground whitespace-nowrap">www.instagram.com/</span>
+                              <FormControl>
+                                <Input 
+                                  placeholder="drjoao" 
+                                  {...field} 
+                                  value={handleValue}
+                                  onChange={(e) => field.onChange(e.target.value.replace(/^@/, ''))}
+                                  className="flex-1"
+                                />
+                              </FormControl>
+                              {handleValue && (
+                                <a 
+                                  href={instagramUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-primary hover:underline whitespace-nowrap"
+                                >
+                                  Abrir ↗
+                                </a>
+                              )}
+                            </div>
+                            {handleValue && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Link completo: <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{instagramUrl}</a>
+                              </p>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
 
                     <FormField
