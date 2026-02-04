@@ -1,5 +1,5 @@
 /**
- * IPROMED Mentors - Avaliação das Mentoras Jurídicas
+ * CPG Advocacia Médica Mentors - Avaliação das Mentoras Jurídicas
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -142,7 +142,7 @@ export default function IpromedMentors() {
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')}>
           <ArrowLeft className="h-4 w-4 mr-1" />
-          IPROMED
+          CPG Advocacia
         </Button>
         <span className="text-muted-foreground">/</span>
         <div className="flex items-center gap-2">

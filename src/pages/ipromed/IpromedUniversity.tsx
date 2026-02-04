@@ -1,5 +1,5 @@
 /**
- * IPROMED University - Módulo de Aulas Gravadas
+ * CPG Advocacia Médica University - Módulo de Aulas Gravadas
  * Plataforma de educação continuada em Direito Médico
  */
 

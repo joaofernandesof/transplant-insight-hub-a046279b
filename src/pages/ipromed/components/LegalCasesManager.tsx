@@ -1,5 +1,5 @@
 /**
- * IPROMED Legal Hub - Gestão de Processos (Contencioso)
+ * CPG Advocacia Médica Legal Hub - Gestão de Processos (Contencioso)
  * Integrado com banco de dados real
  */
 

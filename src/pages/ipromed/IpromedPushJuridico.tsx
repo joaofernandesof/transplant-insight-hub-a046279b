@@ -1,5 +1,5 @@
 /**
- * IPROMED - Push Jurídico
+ * CPG Advocacia Médica - Push Jurídico
  * Módulo de monitoramento automatizado de publicações judiciais
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED Surveys - Pesquisas de Satisfação Jurídica
+ * CPG Advocacia Médica Surveys - Pesquisas de Satisfação Jurídica
  */
 
 import { useQuery } from "@tanstack/react-query";

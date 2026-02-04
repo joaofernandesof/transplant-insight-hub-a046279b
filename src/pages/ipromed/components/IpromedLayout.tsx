@@ -1,6 +1,6 @@
 /**
- * IPROMED Layout - Layout dedicado com Sidebar Astrea
- * Wrapper para todas as páginas do portal IPROMED
+ * CPG Advocacia Médica Layout - Layout dedicado com Sidebar Astrea
+ * Wrapper para todas as páginas do portal jurídico
  */
 
 import { ReactNode, useState, useEffect } from "react";
@@ -47,7 +47,7 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
               <Scale className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-white">IPROMED</span>
+            <span className="font-bold text-white">CPG Advocacia Médica</span>
           </div>
           
           <div className="flex items-center gap-2">

@@ -1,8 +1,8 @@
-# IPROMED - Instituto de Proteção Médica
+# CPG Advocacia Médica
 
 ## Visão Geral
 
-O **IPROMED** é um instituto especializado em **proteção jurídica preventiva para médicos**, oferecendo assessoria jurídica completa para profissionais e clínicas médicas. O foco principal é prevenir e defender médicos contra processos judiciais, éticos e administrativos.
+O **CPG Advocacia Médica** é um escritório especializado em **proteção jurídica preventiva para médicos**, oferecendo assessoria jurídica completa para profissionais e clínicas médicas. O foco principal é prevenir e defender médicos contra processos judiciais, éticos e administrativos.
 
 ---
 
@@ -153,7 +153,7 @@ O sistema calcula automaticamente scores de risco em três dimensões:
 
 ---
 
-## Diferenciais do Portal IPROMED no NeoHub
+## Diferenciais do Portal CPG Advocacia Médica no NeoHub
 
 1. **Gestão Integrada**: Clientes, contratos e processos em um só lugar
 2. **Jornada Automatizada**: Framework de 17 entregáveis com prazos controlados
@@ -168,7 +168,7 @@ O sistema calcula automaticamente scores de risco em três dimensões:
 
 ### Larissa Guerreiro - Sócia Fundadora
 - Pós-graduação em Direito Médico
-- Fundadora do IPROMED
+- Fundadora do CPG Advocacia Médica
 - Consultora jurídica de clínicas capilares
 - Criadora de método próprio de segurança jurídica
 - Especialista em Compliance, LGPD e prontuário
@@ -225,7 +225,7 @@ O sistema calcula automaticamente scores de risco em três dimensões:
 
 ---
 
-## KPIs do IPROMED
+## KPIs do CPG Advocacia Médica
 
 | Métrica | Valor |
 |---------|-------|
@@ -246,5 +246,4 @@ O sistema calcula automaticamente scores de risco em três dimensões:
 
 ---
 
-*Documento de contexto para o sistema IPROMED - Atualizado em Janeiro 2026*
-*Fonte: ipromed.com.br*
+*Documento de contexto para o sistema CPG Advocacia Médica - Atualizado em Fevereiro 2026*

@@ -1,6 +1,6 @@
 /**
- * IPROMED Dashboard - Dashboard Principal com KPIs e Métricas
- * Instituto de Proteção Médica - Visão Geral Operacional
+ * CPG Advocacia Médica Dashboard - Dashboard Principal com KPIs e Métricas
+ * Visão Geral Operacional
  */
 
 import { useNavigate } from "react-router-dom";
@@ -230,7 +230,7 @@ export default function IpromedDashboard() {
       <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
         <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')} className="shrink-0">
           <ArrowLeft className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">IPROMED</span>
+          <span className="hidden sm:inline">CPG Advocacia</span>
         </Button>
         <span className="text-muted-foreground hidden sm:inline">/</span>
         <div className="flex items-center gap-2 shrink-0">
@@ -242,13 +242,13 @@ export default function IpromedDashboard() {
       {/* Title */}
       <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-[#00629B] to-[#004d7a] rounded-lg">
-              <Scale className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-            </div>
-            Dashboard IPROMED
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">Visão geral operacional</p>
+        <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
+          <div className="p-1.5 sm:p-2 bg-gradient-to-br from-[#00629B] to-[#004d7a] rounded-lg">
+            <Scale className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+          </div>
+          Dashboard CPG Advocacia Médica
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">Visão geral operacional</p>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1">
           <Button variant="outline" size="sm" onClick={() => navigate('/ipromed/clients')} className="shrink-0">

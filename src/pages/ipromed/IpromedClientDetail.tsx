@@ -1,5 +1,5 @@
 /**
- * IPROMED - Página de Detalhes do Cliente Jurídico
+ * CPG Advocacia Médica - Página de Detalhes do Cliente Jurídico
  */
 
 import { useState } from "react";

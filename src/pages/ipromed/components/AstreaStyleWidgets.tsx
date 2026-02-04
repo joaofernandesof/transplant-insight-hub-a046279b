@@ -1,7 +1,6 @@
 /**
- * IPROMED - Astrea-style Right Sidebar Widgets
+ * CPG Advocacia Médica - Astrea-style Right Sidebar Widgets
  * Widgets laterais inspirados no Astrea (Minhas atividades, Processos, Estatísticas)
- * Dados atualizados do site oficial ipromed.com.br
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,7 +79,7 @@ const Widget = ({ title, collapsible = true, children, action, defaultCollapsed 
   );
 };
 
-// KPIs do IPROMED (fonte: ipromed.com.br)
+// KPIs do CPG Advocacia Médica
 export function IpromedKPIsWidget() {
   const kpis = [
     { label: "Médicos protegidos", value: "+500", icon: Users, color: "text-primary" },
@@ -89,7 +88,7 @@ export function IpromedKPIsWidget() {
   ];
 
   return (
-    <Widget title="IPROMED em números" collapsible={false}>
+    <Widget title="CPG em números" collapsible={false}>
       <div className="grid grid-cols-3 gap-2 text-center">
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
@@ -108,10 +107,10 @@ export function IpromedKPIsWidget() {
   );
 }
 
-// Widget da equipe IPROMED
+// Widget da equipe CPG Advocacia Médica
 export function TeamWidget() {
   return (
-    <Widget title="Equipe IPROMED">
+    <Widget title="Equipe CPG">
       <div className="space-y-3">
         <p className="text-xs text-muted-foreground">
           Advogadas especialistas em direito médico

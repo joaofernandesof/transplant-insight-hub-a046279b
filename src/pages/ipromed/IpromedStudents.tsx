@@ -1,5 +1,5 @@
 /**
- * IPROMED Students - Gestão de Alunos Jurídicos
+ * CPG Advocacia Médica Students - Gestão de Alunos Jurídicos
  */
 
 import { useState } from "react";

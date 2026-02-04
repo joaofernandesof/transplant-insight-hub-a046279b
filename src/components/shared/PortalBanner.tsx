@@ -60,7 +60,7 @@ export const PORTAL_CONFIGS: Record<PortalType, PortalConfig> = {
     gradient: 'from-violet-600 via-purple-500 to-violet-500',
   },
   ipromed: {
-    name: 'IPROMED',
+    name: 'CPG Advocacia Médica',
     subtitle: 'Jurídico',
     gradient: 'from-cyan-700 via-cyan-600 to-teal-500',
   },
