@@ -1,6 +1,6 @@
 /**
  * LeadDetailsSidebar - Painel lateral com detalhes do lead
- * Exibe: nome, responsável, funil, estágio, campos customizados (checklist), observações
+ * Exibe: nome, responsável, funil, estágio, campos customizados (checklist)
  */
 
 import { useState } from 'react';
@@ -11,11 +11,9 @@ import {
   Phone,
   Mail,
   Calendar,
-  MessageSquare,
   ChevronDown,
   ChevronUp,
   Edit2,
-  Bookmark,
   Trash2,
   Loader2,
   ListChecks,
@@ -36,7 +34,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Collapsible,
   CollapsibleContent,
@@ -87,9 +84,7 @@ const statusColors = {
 
 export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: LeadDetailsSidebarProps) {
   const [isContactOpen, setIsContactOpen] = useState(true);
-  const [isNotesOpen, setIsNotesOpen] = useState(true);
   const [isFieldsOpen, setIsFieldsOpen] = useState(true);
-  const [notes, setNotes] = useState('');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
   const [isChecklistConfigOpen, setIsChecklistConfigOpen] = useState(false);
@@ -400,39 +395,6 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
             </CollapsibleContent>
           </Collapsible>
 
-          <Separator className="bg-[hsl(var(--avivar-border))]" />
-
-          {/* Observações */}
-          <Collapsible open={isNotesOpen} onOpenChange={setIsNotesOpen}>
-            <CollapsibleTrigger asChild>
-              <button className="flex items-center justify-between w-full py-2 text-left">
-                <span className="flex items-center gap-2 text-sm font-semibold text-[hsl(var(--avivar-foreground))]">
-                  <MessageSquare className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
-                  Observações
-                </span>
-                {isNotesOpen ? (
-                  <ChevronUp className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
-                )}
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-2">
-              <Textarea
-                placeholder="Adicione observações sobre este lead..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="min-h-[100px] bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
-              />
-              <Button 
-                size="sm" 
-                className="mt-2 w-full bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)]"
-              >
-                <Bookmark className="h-4 w-4 mr-2" />
-                Salvar Observações
-              </Button>
-            </CollapsibleContent>
-          </Collapsible>
         </div>
       </div>
     </div>
