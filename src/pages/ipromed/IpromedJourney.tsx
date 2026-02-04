@@ -37,12 +37,14 @@ import {
   GripVertical,
   Plus,
   Eye,
+  FileSignature,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import ClientJourneyTracker from "./components/ClientJourneyTracker";
 import JourneyPhaseDetail, { journeyPhasesDetailed, PhaseDetail } from "./components/JourneyPhaseDetail";
+import { OnboardingMeetingDialog } from "./components/OnboardingMeetingAgenda";
 import { cn } from "@/lib/utils";
 
 // Journey phases with colors - mapped to detailed phases
@@ -438,6 +440,18 @@ export default function IpromedJourney() {
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
+          <OnboardingMeetingDialog
+            trigger={
+              <Button className="gap-2">
+                <FileSignature className="h-4 w-4" />
+                Pauta de Onboarding
+              </Button>
+            }
+            onSubmit={(data) => {
+              console.log('Onboarding data:', data);
+              toast.success('Pauta salva com sucesso!');
+            }}
+          />
         </div>
       </div>
 
