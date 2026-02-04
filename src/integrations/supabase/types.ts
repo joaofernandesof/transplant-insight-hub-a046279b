@@ -6434,6 +6434,87 @@ export type Database = {
           },
         ]
       }
+      ipromed_contract_installments: {
+        Row: {
+          amount: number
+          client_id: string
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount: number | null
+          due_date: string
+          id: string
+          installment_number: number
+          interest: number | null
+          late_fee: number | null
+          notes: string | null
+          paid_amount: number | null
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount?: number | null
+          due_date: string
+          id?: string
+          installment_number: number
+          interest?: number | null
+          late_fee?: number | null
+          notes?: string | null
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount?: number | null
+          due_date?: string
+          id?: string
+          installment_number?: number
+          interest?: number | null
+          late_fee?: number | null
+          notes?: string | null
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_contract_installments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_contract_installments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_contracts: {
         Row: {
           area: string | null
@@ -6449,12 +6530,15 @@ export type Database = {
           department: string | null
           description: string | null
           document_url: string | null
+          down_payment: number | null
           end_date: string | null
           id: string
+          installment_count: number | null
           metadata: Json | null
           notice_period_days: number | null
           partner1_client_id: string | null
           partner2_client_id: string | null
+          payment_due_day: number | null
           renewal_date: string | null
           responsible_id: string | null
           sent_at: string | null
@@ -6464,6 +6548,7 @@ export type Database = {
           status: Database["public"]["Enums"]["contract_status_type"] | null
           tags: string[] | null
           title: string
+          total_value: number | null
           updated_at: string | null
           value: number | null
         }
@@ -6481,12 +6566,15 @@ export type Database = {
           department?: string | null
           description?: string | null
           document_url?: string | null
+          down_payment?: number | null
           end_date?: string | null
           id?: string
+          installment_count?: number | null
           metadata?: Json | null
           notice_period_days?: number | null
           partner1_client_id?: string | null
           partner2_client_id?: string | null
+          payment_due_day?: number | null
           renewal_date?: string | null
           responsible_id?: string | null
           sent_at?: string | null
@@ -6496,6 +6584,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["contract_status_type"] | null
           tags?: string[] | null
           title: string
+          total_value?: number | null
           updated_at?: string | null
           value?: number | null
         }
@@ -6513,12 +6602,15 @@ export type Database = {
           department?: string | null
           description?: string | null
           document_url?: string | null
+          down_payment?: number | null
           end_date?: string | null
           id?: string
+          installment_count?: number | null
           metadata?: Json | null
           notice_period_days?: number | null
           partner1_client_id?: string | null
           partner2_client_id?: string | null
+          payment_due_day?: number | null
           renewal_date?: string | null
           responsible_id?: string | null
           sent_at?: string | null
@@ -6528,6 +6620,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["contract_status_type"] | null
           tags?: string[] | null
           title?: string
+          total_value?: number | null
           updated_at?: string | null
           value?: number | null
         }
@@ -7574,6 +7667,70 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      ipromed_payment_history: {
+        Row: {
+          amount: number
+          client_id: string
+          contract_id: string
+          created_at: string
+          id: string
+          installment_id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          reference: string | null
+          registered_by: string | null
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          contract_id: string
+          created_at?: string
+          id?: string
+          installment_id: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          reference?: string | null
+          registered_by?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          contract_id?: string
+          created_at?: string
+          id?: string
+          installment_id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          reference?: string | null
+          registered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_payment_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_payment_history_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_payment_history_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contract_installments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ipromed_publications: {
         Row: {
