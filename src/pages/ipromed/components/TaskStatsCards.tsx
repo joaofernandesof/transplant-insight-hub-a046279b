@@ -1,15 +1,26 @@
 /**
  * IPROMED - Task Stats Cards
  * Visualização de estatísticas de tarefas com cards coloridos
+ * Com filtro por responsável
  */
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ListTodo, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ListTodo, Clock, AlertCircle, CheckCircle2, Users, ChevronDown, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ipromedTeam } from "./IpromedTeamProfiles";
 
 interface TaskStats {
   total: number;
@@ -20,8 +31,11 @@ interface TaskStats {
 }
 
 export function TaskStatsCards() {
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['ipromed-task-stats'],
+    queryKey: ['ipromed-task-stats', selectedAssignees],
     queryFn: async () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -29,13 +43,27 @@ export function TaskStatsCards() {
       todayEnd.setHours(23, 59, 59, 999);
 
       // Get all tasks
-      const { data: tasks, error } = await supabase
+      let query = supabase
         .from('ipromed_legal_tasks')
-        .select('id, status, due_date');
+        .select('id, status, due_date, assigned_to_name');
+
+      const { data: tasks, error } = await query;
 
       if (error) throw error;
 
-      const allTasks = tasks || [];
+      let allTasks = tasks || [];
+
+      // Filter by selected assignees if any
+      if (selectedAssignees.length > 0) {
+        allTasks = allTasks.filter(t => {
+          if (!t.assigned_to_name) return false;
+          // Check if the task's assignee name contains any of the selected names
+          return selectedAssignees.some(name => 
+            t.assigned_to_name?.toLowerCase().includes(name.toLowerCase())
+          );
+        });
+      }
+
       const pendingTasks = allTasks.filter(t => t.status !== 'completed' && t.status !== 'cancelled');
       const completedTasks = allTasks.filter(t => t.status === 'completed');
       
@@ -67,6 +95,35 @@ export function TaskStatsCards() {
       } as TaskStats;
     },
   });
+
+  const toggleAssignee = (name: string) => {
+    setSelectedAssignees(prev => 
+      prev.includes(name) 
+        ? prev.filter(n => n !== name)
+        : [...prev, name]
+    );
+  };
+
+  const clearFilter = () => {
+    setSelectedAssignees([]);
+  };
+
+  const selectAll = () => {
+    setSelectedAssignees(ipromedTeam.map(m => m.name));
+  };
+
+  const getFilterLabel = () => {
+    if (selectedAssignees.length === 0) {
+      return "Todos";
+    }
+    if (selectedAssignees.length === 1) {
+      return selectedAssignees[0].split(' ')[0];
+    }
+    if (selectedAssignees.length === ipromedTeam.length) {
+      return "Toda equipe";
+    }
+    return `${selectedAssignees.length} selecionados`;
+  };
 
   const cards = [
     {
@@ -120,54 +177,132 @@ export function TaskStatsCards() {
     },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="border-l-4 border-l-slate-200">
-            <CardContent className="pt-4 pb-4">
-              <Skeleton className="h-4 w-20 mb-2" />
-              <Skeleton className="h-8 w-12" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((card, index) => (
-        <Card 
-          key={card.label} 
-          className={cn(
-            "border-l-4 border-none shadow-sm",
-            card.borderColor,
-            card.bgColor
-          )}
-        >
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-start justify-between">
-              <div className={cn("p-2 rounded-lg", card.iconBg)}>
-                <card.icon className={cn("h-5 w-5", card.iconColor)} />
-              </div>
-              {(card.showBadge !== false && (index === 2 || index === 3 || card.badge)) && (
-                <Badge className={cn("text-xs font-medium", card.badgeBg)}>
-                  {index === 0 || index === 1 ? card.badge : card.badge}
-                </Badge>
+    <div className="space-y-4">
+      {/* Header with Title and Filter */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Resumo de Tarefas</h2>
+        
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={cn(
+                "gap-2 h-9",
+                selectedAssignees.length > 0 && "border-primary text-primary"
               )}
+            >
+              <Filter className="h-4 w-4" />
+              <span className="hidden sm:inline">Responsável:</span>
+              <span className="font-medium">{getFilterLabel()}</span>
+              <ChevronDown className="h-3 w-3 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0" align="end">
+            <div className="p-3 border-b">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Filtrar por responsável</span>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={selectAll}>
+                    Todos
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearFilter}>
+                    Limpar
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div className="mt-3">
-              <p className={cn("text-3xl font-bold", card.textColor)}>
-                {card.value}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {card.label}
-              </p>
+            
+            <div className="p-2 space-y-1 max-h-64 overflow-auto">
+              {ipromedTeam.map((member) => (
+                <div
+                  key={member.id}
+                  className={cn(
+                    "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted transition-colors",
+                    selectedAssignees.includes(member.name) && "bg-primary/5"
+                  )}
+                  onClick={() => toggleAssignee(member.name)}
+                >
+                  <Checkbox 
+                    checked={selectedAssignees.includes(member.name)}
+                    className="pointer-events-none"
+                  />
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={member.photo} alt={member.name} className="object-cover" />
+                    <AvatarFallback className={member.color}>
+                      {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{member.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{member.role}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      ))}
+            
+            {selectedAssignees.length > 0 && (
+              <div className="p-2 border-t bg-muted/50">
+                <p className="text-xs text-muted-foreground text-center">
+                  {selectedAssignees.length === 1 
+                    ? `Exibindo tarefas de ${selectedAssignees[0].split(' ')[0]}`
+                    : `Exibindo tarefas de ${selectedAssignees.length} pessoas`
+                  }
+                </p>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Stats Cards */}
+      {isLoading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-l-4 border-l-slate-200">
+              <CardContent className="pt-4 pb-4">
+                <Skeleton className="h-4 w-20 mb-2" />
+                <Skeleton className="h-8 w-12" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {cards.map((card, index) => (
+            <Card 
+              key={card.label} 
+              className={cn(
+                "border-l-4 border-none shadow-sm",
+                card.borderColor,
+                card.bgColor
+              )}
+            >
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-start justify-between">
+                  <div className={cn("p-2 rounded-lg", card.iconBg)}>
+                    <card.icon className={cn("h-5 w-5", card.iconColor)} />
+                  </div>
+                  {(card.showBadge !== false && (index === 2 || index === 3 || card.badge)) && (
+                    <Badge className={cn("text-xs font-medium", card.badgeBg)}>
+                      {index === 0 || index === 1 ? card.badge : card.badge}
+                    </Badge>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <p className={cn("text-3xl font-bold", card.textColor)}>
+                    {card.value}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {card.label}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
