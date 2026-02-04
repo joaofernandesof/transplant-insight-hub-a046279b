@@ -1115,7 +1115,7 @@ export default function OnboardingMeetingAgenda({
                       name="whatsappPrincipal"
                       render={({ field }) => (
                         <FormItem className={cn(getFieldHighlight(field.value))}>
-                          <FormLabel>📱 WhatsApp principal</FormLabel>
+                          <FormLabel>📱 WhatsApp principal <span className="text-destructive">*</span></FormLabel>
                           <FormControl>
                             <Input placeholder="+55 85 99999-9999" {...field} />
                           </FormControl>
