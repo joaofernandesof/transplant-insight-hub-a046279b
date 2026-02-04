@@ -2098,6 +2098,70 @@ export default function OnboardingMeetingAgenda({
                                 </tr>
                               );
                             })}
+                            
+                            {/* Documentos adicionais como linhas da tabela */}
+                            {(form.watch("documentosAdicionaisEntregues") || []).map((doc, index) => (
+                              <tr key={`adicional-${index}`} className="border-b hover:bg-muted/50 bg-blue-50/30 dark:bg-blue-950/10">
+                                <td className="p-3 font-medium text-sm text-center text-blue-600 dark:text-blue-400">
+                                  +{index + 1}
+                                </td>
+                                <td className="p-3">
+                                  <FormField
+                                    control={form.control}
+                                    name={`documentosAdicionaisEntregues.${index}.nome`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <Input 
+                                            placeholder="Nome do documento adicional..." 
+                                            {...field} 
+                                            className="h-8 text-sm bg-transparent border-dashed" 
+                                          />
+                                        </FormControl>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </td>
+                                <td className="p-3 text-center">
+                                  <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200">
+                                    Adicional
+                                  </Badge>
+                                </td>
+                                <td className="p-3 text-center">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => {
+                                      const current = form.getValues("documentosAdicionaisEntregues") || [];
+                                      form.setValue("documentosAdicionaisEntregues", current.filter((_, i) => i !== index));
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                            
+                            {/* Linha para adicionar novo documento */}
+                            <tr className="bg-muted/30 hover:bg-muted/50">
+                              <td colSpan={4} className="p-2">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full h-9 text-muted-foreground hover:text-foreground border border-dashed border-muted-foreground/30 hover:border-primary/50"
+                                  onClick={() => {
+                                    const current = form.getValues("documentosAdicionaisEntregues") || [];
+                                    form.setValue("documentosAdicionaisEntregues", [...current, { nome: "" }]);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Adicionar documento extra
+                                </Button>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>
@@ -2129,65 +2193,6 @@ export default function OnboardingMeetingAgenda({
                           </span>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Documentos adicionais */}
-                    <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <FormLabel className="text-sm font-medium">📝 Documentos adicionais combinados</FormLabel>
-                          <FormDescription className="text-xs">Documentos extras além dos 17 padrão</FormDescription>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const current = form.getValues("documentosAdicionaisEntregues") || [];
-                            form.setValue("documentosAdicionaisEntregues", [...current, { nome: "" }]);
-                          }}
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Adicionar
-                        </Button>
-                      </div>
-                      
-                      {(form.watch("documentosAdicionaisEntregues") || []).length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-2">
-                          Nenhum documento adicional combinado
-                        </p>
-                      )}
-
-                      {(form.watch("documentosAdicionaisEntregues") || []).map((_, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-medium text-xs">
-                            +{index + 1}
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name={`documentosAdicionaisEntregues.${index}.nome`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormControl>
-                                  <Input placeholder="Nome do documento adicional..." {...field} className="h-9" />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                            onClick={() => {
-                              const current = form.getValues("documentosAdicionaisEntregues") || [];
-                              form.setValue("documentosAdicionaisEntregues", current.filter((_, i) => i !== index));
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
                     </div>
                   </div>
                   <div className="flex justify-end mt-4">
