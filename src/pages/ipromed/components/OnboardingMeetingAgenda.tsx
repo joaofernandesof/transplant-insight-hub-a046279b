@@ -1621,82 +1621,200 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-5 pt-2 max-w-2xl">
-                    <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
-                      <FormLabel className="text-sm font-medium">📄 Documentos contratuais do IPROMED</FormLabel>
-                      <FormDescription className="text-xs">Todos os documentos abaixo serão entregues (criados ou revisados)</FormDescription>
-                      
-                      {/* Lista fixa de documentos - todos serão entregues */}
-                      <div className="grid grid-cols-1 gap-1.5 mt-2">
-                        {documentosContratuais.map((doc, index) => (
-                          <div
-                            key={doc}
-                            className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-background/50"
-                          >
-                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                              {index + 1}
-                            </span>
-                            <span className="text-sm">{doc}</span>
-                          </div>
-                        ))}
+                  <div className="space-y-5 pt-2">
+                    {/* Matriz de Documentos Unificada */}
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="bg-muted p-3 border-b">
+                        <h4 className="font-medium text-sm">📋 Matriz de Documentos Contratuais IPROMED</h4>
+                        <p className="text-xs text-muted-foreground mt-1">Todos os 17 documentos serão entregues (criados ou revisados conforme situação)</p>
                       </div>
+                      
+                      {/* Tabela responsiva */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-muted/50 text-xs font-medium">
+                              <th className="p-3 text-left w-10">#</th>
+                              <th className="p-3 text-left">Documento</th>
+                              <th className="p-3 text-center w-28">Já possui?</th>
+                              <th className="p-3 text-center w-24">Ação</th>
+                              <th className="p-3 text-center w-28">Prazo</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {documentosContratuais.map((doc, index) => {
+                              const documentoKey = doc.replace(/[^a-zA-Z0-9]/g, '_');
+                              const jaPossui = form.watch(`documentosAtuaisStatus.${documentoKey}`) || false;
+                              const dataPrevistaRevisao = form.watch("dataPrevistaRevisao");
+                              const dataPrevistaCriacao = form.watch("dataPrevistaCriacao");
+                              
+                              return (
+                                <tr key={doc} className={cn(
+                                  "transition-colors",
+                                  index % 2 === 0 ? "bg-background" : "bg-muted/10",
+                                  jaPossui && "bg-amber-50/30 dark:bg-amber-950/10"
+                                )}>
+                                  <td className="p-3 text-muted-foreground font-medium">{index + 1}</td>
+                                  <td className="p-3">{doc}</td>
+                                  <td className="p-3 text-center">
+                                    <div className="flex justify-center gap-1">
+                                      <Button
+                                        type="button"
+                                        variant={jaPossui === true ? "default" : "outline"}
+                                        size="sm"
+                                        className={cn(
+                                          "h-7 text-xs px-2",
+                                          jaPossui === true && "bg-emerald-600 hover:bg-emerald-700"
+                                        )}
+                                        onClick={() => {
+                                          const currentStatus = form.getValues("documentosAtuaisStatus") || {};
+                                          form.setValue("documentosAtuaisStatus", {
+                                            ...currentStatus,
+                                            [documentoKey]: true
+                                          });
+                                        }}
+                                      >
+                                        Sim
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant={jaPossui === false ? "default" : "outline"}
+                                        size="sm"
+                                        className={cn(
+                                          "h-7 text-xs px-2",
+                                          jaPossui === false && "bg-slate-600 hover:bg-slate-700"
+                                        )}
+                                        onClick={() => {
+                                          const currentStatus = form.getValues("documentosAtuaisStatus") || {};
+                                          form.setValue("documentosAtuaisStatus", {
+                                            ...currentStatus,
+                                            [documentoKey]: false
+                                          });
+                                        }}
+                                      >
+                                        Não
+                                      </Button>
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-center">
+                                    <Badge 
+                                      variant={jaPossui ? "secondary" : "outline"} 
+                                      className={cn(
+                                        "text-xs",
+                                        jaPossui 
+                                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" 
+                                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                      )}
+                                    >
+                                      {jaPossui ? "Revisar" : "Criar"}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-3 text-center">
+                                    <span className={cn(
+                                      "text-xs font-medium",
+                                      jaPossui 
+                                        ? "text-amber-600 dark:text-amber-400" 
+                                        : "text-emerald-600 dark:text-emerald-400"
+                                    )}>
+                                      {jaPossui 
+                                        ? (dataPrevistaRevisao ? new Date(dataPrevistaRevisao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
+                                        : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
+                                      }
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      {/* Resumo */}
+                      <div className="bg-muted/50 p-3 border-t grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                        <div className="text-center">
+                          <span className="text-muted-foreground">A revisar:</span>
+                          <span className="font-bold text-amber-600 dark:text-amber-400 ml-1">
+                            {Object.values(form.watch("documentosAtuaisStatus") || {}).filter(Boolean).length}
+                          </span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-muted-foreground">A criar:</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400 ml-1">
+                            {17 - Object.values(form.watch("documentosAtuaisStatus") || {}).filter(Boolean).length}
+                          </span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-muted-foreground">Prazo revisão:</span>
+                          <span className="font-medium text-amber-600 dark:text-amber-400 ml-1">
+                            {form.watch("dataPrevistaRevisao") ? new Date(form.watch("dataPrevistaRevisao") + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                          </span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-muted-foreground">Prazo criação:</span>
+                          <span className="font-medium text-emerald-600 dark:text-emerald-400 ml-1">
+                            {form.watch("dataPrevistaCriacao") ? new Date(form.watch("dataPrevistaCriacao") + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
-
-                      {/* Documentos adicionais */}
-                      <div className="border-t pt-4 mt-4">
-                        <div className="flex items-center justify-between mb-3">
+                    {/* Documentos adicionais */}
+                    <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
                           <FormLabel className="text-sm font-medium">📝 Documentos adicionais combinados</FormLabel>
+                          <FormDescription className="text-xs">Documentos extras além dos 17 padrão</FormDescription>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const current = form.getValues("documentosAdicionaisEntregues") || [];
+                            form.setValue("documentosAdicionaisEntregues", [...current, { nome: "" }]);
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Adicionar
+                        </Button>
+                      </div>
+                      
+                      {(form.watch("documentosAdicionaisEntregues") || []).length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-2">
+                          Nenhum documento adicional combinado
+                        </p>
+                      )}
+
+                      {(form.watch("documentosAdicionaisEntregues") || []).map((_, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-medium text-xs">
+                            +{index + 1}
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name={`documentosAdicionaisEntregues.${index}.nome`}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormControl>
+                                  <Input placeholder="Nome do documento adicional..." {...field} className="h-9" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                             onClick={() => {
                               const current = form.getValues("documentosAdicionaisEntregues") || [];
-                              form.setValue("documentosAdicionaisEntregues", [...current, { nome: "" }]);
+                              form.setValue("documentosAdicionaisEntregues", current.filter((_, i) => i !== index));
                             }}
                           >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Adicionar documento
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        
-                        {(form.watch("documentosAdicionaisEntregues") || []).length === 0 && (
-                          <p className="text-sm text-muted-foreground text-center py-2">
-                            Clique em "Adicionar documento" para incluir documentos extras combinados
-                          </p>
-                        )}
-
-                        {(form.watch("documentosAdicionaisEntregues") || []).map((_, index) => (
-                          <div key={index} className="flex items-center gap-2 mb-2">
-                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-medium text-xs">
-                              +{index + 1}
-                            </div>
-                            <FormField
-                              control={form.control}
-                              name={`documentosAdicionaisEntregues.${index}.nome`}
-                              render={({ field }) => (
-                                <FormItem className="flex-1">
-                                  <FormControl>
-                                    <Input placeholder="Nome do documento adicional..." {...field} className="h-9" />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              onClick={() => {
-                                const current = form.getValues("documentosAdicionaisEntregues") || [];
-                                form.setValue("documentosAdicionaisEntregues", current.filter((_, i) => i !== index));
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
+                      ))}
                     </div>
                   </div>
                   <div className="flex justify-end mt-4">
