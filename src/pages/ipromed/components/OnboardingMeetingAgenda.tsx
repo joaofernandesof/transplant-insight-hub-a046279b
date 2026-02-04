@@ -778,16 +778,31 @@ export default function OnboardingMeetingAgenda({
     if (currentIndex < sections.length - 1) {
       setCurrentSectionIndex(currentIndex + 1);
       
-      // Scroll para o topo da próxima seção
+      // Scroll para o topo da próxima seção dentro do ScrollArea
       setTimeout(() => {
-        const accordionElement = document.querySelector(`[data-section-id="${sections[currentIndex + 1].id}"]`);
+        const nextSectionId = sections[currentIndex + 1].id;
+        const accordionElement = document.querySelector(`[data-section-id="${nextSectionId}"]`);
+        
         if (accordionElement) {
-          accordionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-          // Fallback: scroll para o topo do container
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          // Encontrar o container de scroll (ScrollArea viewport)
+          const scrollContainer = accordionElement.closest('[data-radix-scroll-area-viewport]');
+          
+          if (scrollContainer) {
+            // Calcular a posição relativa do elemento dentro do container
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const elementRect = accordionElement.getBoundingClientRect();
+            const scrollTop = scrollContainer.scrollTop + (elementRect.top - containerRect.top) - 20;
+            
+            scrollContainer.scrollTo({
+              top: scrollTop,
+              behavior: 'smooth'
+            });
+          } else {
+            // Fallback para scrollIntoView
+            accordionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
-      }, 100);
+      }, 150);
       
       toast.success("Seção concluída!", {
         description: `Avançando para: ${sections[currentIndex + 1].title}`,
