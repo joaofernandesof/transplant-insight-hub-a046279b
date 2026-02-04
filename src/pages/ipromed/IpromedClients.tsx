@@ -38,6 +38,7 @@ import {
   Eye,
   MoreHorizontal,
   Briefcase,
+  Trash2,
   Calendar,
   TrendingUp,
   FileSignature,
@@ -835,6 +836,32 @@ export default function IpromedClients() {
                                 }}>
                                   <FileSignature className="h-4 w-4 mr-2" />
                                   Ver Contratos
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (confirm(`Tem certeza que deseja excluir o cliente "${client.name}"? Esta ação não pode ser desfeita.`)) {
+                                      try {
+                                        const { error } = await supabase
+                                          .from('ipromed_legal_clients')
+                                          .delete()
+                                          .eq('id', client.id);
+                                        
+                                        if (error) throw error;
+                                        
+                                        toast.success('Cliente excluído com sucesso!');
+                                        queryClient.invalidateQueries({ queryKey: ['ipromed-clients'] });
+                                      } catch (error) {
+                                        console.error('Erro ao excluir:', error);
+                                        toast.error('Erro ao excluir cliente. Verifique se não há dados vinculados.');
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
