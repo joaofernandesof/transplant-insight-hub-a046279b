@@ -97,7 +97,6 @@ export function MeetingDetailSheet({
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
   const [topicsCompleted, setTopicsCompleted] = useState<Record<number, boolean>>({});
   const [meetingNotes, setMeetingNotes] = useState(meeting?.meeting_notes || "");
   const [minutesText, setMinutesText] = useState(meeting?.minutes || "");
@@ -117,6 +116,28 @@ export function MeetingDetailSheet({
       setTopicsCompleted({});
     }
   });
+
+  // For onboarding meetings, render Dialog directly instead of Sheet
+  if (isOnboardingMeeting && open && meeting) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[95vh] p-0 overflow-hidden">
+          <OnboardingMeetingAgenda
+            clientId={meeting.client_id}
+            clientName={clientName}
+            meetingId={meeting.id}
+            onSubmit={(data) => {
+              console.log('Onboarding data saved:', data);
+              queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
+              queryClient.invalidateQueries({ queryKey: ['ipromed-client-activities'] });
+              onOpenChange(false);
+            }}
+            onClose={() => onOpenChange(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   // Update meeting mutation
   const updateMeeting = useMutation({
@@ -319,31 +340,7 @@ Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
 
               <Separator />
 
-              {/* Onboarding Checklist Button - Opens centered dialog */}
-              {isOnboardingMeeting && (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <ClipboardList className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-sm mb-1">Checklist de Onboarding</h4>
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Formulário completo com 10 seções: Boas-vindas, Perfil, Comunicação, 
-                        Documentos, Entregas, Prioridades, Prazos, Treinamento, Instagram e Contrato.
-                      </p>
-                      <Button 
-                        onClick={() => setOnboardingDialogOpen(true)}
-                        className="gap-2"
-                        size="sm"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Abrir Checklist Completo
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Note: Onboarding meetings now open directly as centered Dialog via early return */}
 
               {/* Non-Onboarding Agenda Topics */}
               {!isOnboardingMeeting && topics.length > 0 && (
@@ -531,23 +528,7 @@ Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Onboarding Checklist Dialog - Centered */}
-      <Dialog open={onboardingDialogOpen} onOpenChange={setOnboardingDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[95vh] p-0 overflow-hidden">
-          <OnboardingMeetingAgenda
-            clientId={meeting?.client_id}
-            clientName={clientName}
-            meetingId={meeting?.id}
-            onSubmit={(data) => {
-              console.log('Onboarding data saved:', data);
-              queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
-              queryClient.invalidateQueries({ queryKey: ['ipromed-client-activities'] });
-              setOnboardingDialogOpen(false);
-            }}
-            onClose={() => setOnboardingDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Note: Onboarding Dialog handled via early return above */}
     </>
   );
 }
