@@ -46,7 +46,7 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
     { icon: FileSignature, label: "Novo Contrato", route: "/ipromed/contracts?new=1" },
     { icon: FolderPlus, label: "Novo Processo", route: "/ipromed/legal?tab=cases&new=1" },
     { icon: CheckSquare, label: "Nova Tarefa", route: "/ipromed/legal?tab=tasks&new=1" },
-    { icon: Calendar, label: "Agendar Reunião", route: "/ipromed/agenda?new=1" },
+    { icon: Calendar, label: "Agendar Reunião", route: "/ipromed/legal?tab=agenda&new=1" },
   ];
 
   // Close mobile menu on route change

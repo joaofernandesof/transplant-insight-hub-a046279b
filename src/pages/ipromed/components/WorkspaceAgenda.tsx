@@ -182,7 +182,7 @@ export function WorkspaceAgenda() {
           variant="outline" 
           size="sm" 
           className="gap-1"
-          onClick={() => navigate('/ipromed/agenda')}
+          onClick={() => navigate('/ipromed/legal?tab=agenda')}
         >
           Ver agenda
           <ChevronRight className="h-4 w-4" />
@@ -197,7 +197,7 @@ export function WorkspaceAgenda() {
               variant="outline" 
               size="sm" 
               className="mt-3 gap-1"
-              onClick={() => navigate('/ipromed/agenda')}
+              onClick={() => navigate('/ipromed/legal?tab=agenda')}
             >
               <Plus className="h-4 w-4" />
               Agendar
