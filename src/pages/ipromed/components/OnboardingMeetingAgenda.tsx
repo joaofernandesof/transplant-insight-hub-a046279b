@@ -75,6 +75,7 @@ const onboardingMeetingSchema = z.object({
   clinicaNome: z.string().optional(),
   clinicaEndereco: z.string().optional(),
   clinicaCNPJ: z.string().optional(),
+  clinicaCRM: z.string().optional(),
   cidadeEstado: z.string().optional(),
   emailPrincipal: z.string().email("Email inválido").optional().or(z.literal("")),
   objetivoPrincipal: z.string().optional(),
@@ -217,6 +218,7 @@ export default function OnboardingMeetingAgenda({
       clinicaNome: "",
       clinicaEndereco: "",
       clinicaCNPJ: "",
+      clinicaCRM: "",
       cidadeEstado: "",
       emailPrincipal: "",
       objetivoPrincipal: "",
@@ -464,6 +466,20 @@ export default function OnboardingMeetingAgenda({
                               <FormLabel>CNPJ da clínica</FormLabel>
                               <FormControl>
                                 <Input placeholder="00.000.000/0000-00" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="clinicaCRM"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Registro CRM da clínica</FormLabel>
+                              <FormControl>
+                                <Input placeholder="CRM-XX 00000" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
