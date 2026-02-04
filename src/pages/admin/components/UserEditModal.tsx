@@ -50,18 +50,23 @@ import {
   Users,
   AlertTriangle,
   Trash2,
+  CreditCard,
+  Settings,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 // Definição dos portais disponíveis
 const AVAILABLE_PORTALS = [
-  { id: 'neolicense', name: 'Licença ByNeoFolic', icon: Building2, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
-  { id: 'avivar', name: 'Avivar CRM', icon: TrendingUp, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300' },
-  { id: 'ipromed', name: 'IPROMED Jurídico', icon: Scale, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
-  { id: 'academy', name: 'IBRAMEC Academy', icon: GraduationCap, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' },
-  { id: 'neoteam', name: 'NeoTeam', icon: Users, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
-  { id: 'neocare', name: 'NeoCare Pacientes', icon: Heart, color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300' },
+  { id: 'admin', name: 'Portal do Administrador', icon: Crown, color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/50 dark:text-slate-300' },
+  { id: 'neolicense', name: 'Portal do Licenciado', icon: Building2, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
+  { id: 'avivar', name: 'Portal Avivar', icon: TrendingUp, color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300' },
+  { id: 'ipromed', name: 'Portal CPG Advocacia', icon: Scale, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
+  { id: 'academy', name: 'Portal Ibramec', icon: GraduationCap, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' },
+  { id: 'neoteam', name: 'Portal do Colaborador', icon: Users, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
+  { id: 'neocare', name: 'Portal do Paciente', icon: Heart, color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300' },
+  { id: 'vision', name: 'Portal Vision', icon: Eye, color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300' },
+  { id: 'neopay', name: 'Portal NeoPay', icon: CreditCard, color: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' },
 ];
 
 const ROLES = [
