@@ -133,6 +133,7 @@ export function MeetingEditDialog({
   const [showAddChecklist, setShowAddChecklist] = useState(false);
   const [customChecklists, setCustomChecklists] = useState<{id: string; title: string; items: string[]}[]>([]);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
+  const [showOnboardingChecklist, setShowOnboardingChecklist] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Form state
@@ -561,13 +562,15 @@ export function MeetingEditDialog({
                 </Label>
 
                 {/* Onboarding Checklist Card */}
-                {isOnboardingMeeting && (
+                {isOnboardingMeeting && showOnboardingChecklist && (
                   <div 
-                    className="p-4 border rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setShowOnboardingAgenda(true)}
+                    className="p-4 border rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div 
+                        className="flex items-center gap-3 flex-1 cursor-pointer"
+                        onClick={() => setShowOnboardingAgenda(true)}
+                      >
                         <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg">
                           <ClipboardList className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                         </div>
@@ -582,7 +585,21 @@ export function MeetingEditDialog({
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className="bg-emerald-500 text-white">Principal</Badge>
-                        <ExternalLink className="h-4 w-4 text-emerald-600" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-emerald-600 hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowOnboardingChecklist(false);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <ExternalLink 
+                          className="h-4 w-4 text-emerald-600 cursor-pointer" 
+                          onClick={() => setShowOnboardingAgenda(true)}
+                        />
                       </div>
                     </div>
                   </div>
