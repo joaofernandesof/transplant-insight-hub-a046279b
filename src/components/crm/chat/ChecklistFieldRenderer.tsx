@@ -285,7 +285,7 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
                 <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-56 p-0 bg-white border border-[hsl(var(--avivar-border))] shadow-lg" align="start">
+            <PopoverContent className="w-56 p-0 bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] shadow-lg" align="start">
               {/* Search */}
               <div className="flex items-center gap-2 px-3 py-2 border-b border-[hsl(var(--avivar-border))]">
                 <Search className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
@@ -294,7 +294,7 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
                   value={multiSelectSearch}
                   onChange={(e) => setMultiSelectSearch(e.target.value)}
                   placeholder="Buscar"
-                  className="flex-1 text-sm bg-transparent border-0 outline-none placeholder:text-[hsl(var(--avivar-muted-foreground)/0.5)]"
+                  className="flex-1 text-sm bg-transparent border-0 outline-none text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground)/0.5)]"
                 />
               </div>
               
@@ -305,7 +305,7 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
               >
                 <Checkbox 
                   checked={allSelected}
-                  className="border-[hsl(var(--avivar-border))]"
+                  className="border-[hsl(var(--avivar-muted-foreground))] data-[state=checked]:bg-[hsl(var(--avivar-primary))] data-[state=checked]:border-[hsl(var(--avivar-primary))]"
                 />
                 <span className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Selecionar tudo</span>
               </div>
@@ -320,9 +320,9 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
                   >
                     <Checkbox 
                       checked={multiSelectValues.includes(option)}
-                      className="border-[hsl(var(--avivar-border))]"
+                      className="border-[hsl(var(--avivar-muted-foreground))] data-[state=checked]:bg-[hsl(var(--avivar-primary))] data-[state=checked]:border-[hsl(var(--avivar-primary))]"
                     />
-                    <span className="text-sm">{option}</span>
+                    <span className="text-sm text-[hsl(var(--avivar-foreground))]">{option}</span>
                   </div>
                 ))}
                 {filteredOptions.length === 0 && (
