@@ -27,18 +27,18 @@ serve(async (req) => {
 
     const usersToCreate: UserToCreate[] = [
       { 
-        email: "larissa.guerreiro@ipromed.com.br", 
-        password: "Ipromed123@",
-        full_name: "Dra. Larissa Guerreiro"
-      },
-      { 
-        email: "caroline.parahyba@ipromed.com.br", 
-        password: "Ipromed123@",
+        email: "caroline.parahyba@cpgadvocacia.com.br", 
+        password: "Cpg2026@",
         full_name: "Dra. Caroline Parahyba"
       },
       { 
-        email: "isabele.cartaxo@ipromed.com.br", 
-        password: "Ipromed123@",
+        email: "larissa.guerreiro@cpgadvocacia.com.br", 
+        password: "Cpg2026@",
+        full_name: "Dra. Larissa Guerreiro"
+      },
+      { 
+        email: "isabele.cartaxo@cpgadvocacia.com.br", 
+        password: "Cpg2026@",
         full_name: "Isabele Cartaxo"
       },
     ];
