@@ -845,10 +845,23 @@ export default function OnboardingMeetingAgenda({
 
   const progress = Math.round((completedSections.length / sections.length) * 100);
 
-  const handlePrint = () => {
-    window.print();
-    toast.success("Preparando impressão...");
-  };
+  const handlePrint = useCallback(() => {
+    // Expandir todas as seções do accordion antes de imprimir
+    const accordionItems = document.querySelectorAll('[data-radix-accordion-item]');
+    accordionItems.forEach(item => {
+      const trigger = item.querySelector('[data-radix-accordion-trigger]') as HTMLElement;
+      const content = item.querySelector('[data-radix-accordion-content]');
+      if (trigger && content && content.getAttribute('data-state') === 'closed') {
+        trigger.click();
+      }
+    });
+
+    // Aguardar a expansão e então imprimir
+    setTimeout(() => {
+      window.print();
+      toast.success("Preparando impressão...");
+    }, 300);
+  }, []);
 
   // Filtrar clientes pela busca
   const filteredClients = useMemo(() => {
@@ -888,7 +901,7 @@ export default function OnboardingMeetingAgenda({
 
   return (
     <div className={cn(
-      "flex flex-col",
+      "flex flex-col onboarding-print-container",
       embedded ? "h-auto max-h-[60vh]" : "h-full max-h-[90vh]"
     )}>
       {/* Header fixo - oculto no modo embedded */}
