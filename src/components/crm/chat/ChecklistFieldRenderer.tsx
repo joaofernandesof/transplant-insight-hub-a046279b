@@ -80,16 +80,16 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
     case 'text':
     default:
       return (
-        <div className="space-y-1">
-          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide">
+        <div className="flex items-center gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
             {field.field_label}
             {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
           </Label>
           <Input
             value={localValue}
             onChange={(e) => handleChange(e.target.value)}
-            placeholder="usuário ou IA escreve aqui"
-            className="h-8 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-border))] rounded-none px-0 focus-visible:ring-0 focus-visible:border-[hsl(var(--avivar-primary))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+            placeholder="..."
+            className="h-6 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] rounded-none px-0 focus-visible:ring-0 focus-visible:border-[hsl(var(--avivar-primary))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground)/0.5)] flex-1"
           />
         </div>
       );
