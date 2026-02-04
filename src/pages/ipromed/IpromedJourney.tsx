@@ -48,6 +48,11 @@ import {
   MoreVertical,
   ExternalLink,
   Video,
+  Filter,
+  RefreshCw,
+  LayoutGrid,
+  List,
+  CheckSquare,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -263,273 +268,295 @@ export default function IpromedJourney() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')}>
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          IPROMED
-        </Button>
-        <span className="text-muted-foreground">/</span>
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-primary" />
-          <span className="font-medium">Jornada do Cliente</span>
-        </div>
-      </div>
-
-      {/* Title */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Jornada do Cliente Jurídico</h1>
-          <p className="text-muted-foreground">
-            {clients.length} clientes • 17 entregáveis • Plano Preventivo Integral
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => {
-            if (!clients || clients.length === 0) {
-              toast.error('Nenhum dado para exportar');
-              return;
-            }
-            const headers = ['Cliente', 'Email', 'Telefone', 'Fase Atual', 'Progresso', 'Data Início'];
-            const rows = clients.map(c => {
-              const phase = getClientPhase(c);
-              const meta = c.metadata as any;
-              const progress = meta?.journey_progress || Math.min(100, (differenceInDays(new Date(), new Date(c.created_at)) / 30) * 100);
-              return [
-                c.name,
-                c.email || '',
-                c.phone || '',
-                phase,
-                `${Math.round(progress)}%`,
-                format(new Date(c.created_at), 'dd/MM/yyyy', { locale: ptBR }),
-              ];
-            });
-            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `jornada-clientes-${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-            URL.revokeObjectURL(url);
-            toast.success('Jornada exportada com sucesso!');
-          }}>
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <OnboardingMeetingDialog
-            trigger={
-              <Button className="gap-2">
-                <FileSignature className="h-4 w-4" />
-                Pauta de Onboarding
-              </Button>
-            }
-            onSubmit={(data) => {
-              console.log('Onboarding data:', data);
-              toast.success('Pauta salva com sucesso!');
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Phase Overview with Details */}
-      <div className="grid grid-cols-6 gap-2">
-        {journeyPhases.map((phase) => {
-          const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
-          return (
-            <TooltipProvider key={phase.id}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Card 
-                    className={cn(
-                      "border-none shadow-sm cursor-pointer transition-all hover:shadow-md",
-                      selectedPhase === phase.id && 'ring-2 ring-primary'
-                    )}
-                    onClick={() => setSelectedPhase(selectedPhase === phase.id ? null : phase.id)}
-                  >
-                    <CardContent className="p-3 text-center relative">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-1 right-1 h-6 w-6 opacity-60 hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (phaseDetail) {
-                            setSelectedPhaseDetail(phaseDetail);
-                            setPhaseDetailOpen(true);
-                          }
-                        }}
-                      >
-                        <Info className="h-3 w-3" />
-                      </Button>
-                      <div className={cn("w-3 h-3 rounded-full mx-auto mb-2", phase.color)} />
-                      <p className="text-xs font-medium text-center px-1 leading-tight">{phase.label}</p>
-                      <p className="text-lg font-bold mt-1">{clientsByPhase[phase.id]?.length || 0}</p>
-                    </CardContent>
-                  </Card>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs">
-                  <p className="font-semibold">{phase.fullLabel}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{phase.description}</p>
-                  <p className="text-xs mt-2">
-                    <span className="font-medium">{phase.deliverables}</span> entregáveis nesta fase
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          );
-        })}
-      </div>
-
-      {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center justify-between gap-4">
-          <TabsList>
-            <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-            <TabsTrigger value="list">Lista</TabsTrigger>
-            <TabsTrigger value="tracker">Tracker</TabsTrigger>
-          </TabsList>
-          <div className="flex gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar cliente..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
-              />
+    <div className="h-full flex flex-col">
+      {/* Header - Avivar Style */}
+      <div className="border-b bg-background px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/ipromed')}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">Jornada do Cliente</h1>
+                <p className="text-sm text-muted-foreground">
+                  Acompanhamento de clientes jurídicos
+                </p>
+              </div>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* View Toggle */}
+            <div className="flex items-center border rounded-lg p-1">
+              <Button
+                variant={activeTab === "pipeline" ? "default" : "ghost"}
+                size="sm"
+                className="h-8 gap-2"
+                onClick={() => setActiveTab("pipeline")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+                Kanban
+              </Button>
+              <Button
+                variant={activeTab === "list" ? "default" : "ghost"}
+                size="sm"
+                className="h-8 gap-2"
+                onClick={() => setActiveTab("list")}
+              >
+                <List className="h-4 w-4" />
+                Lista
+              </Button>
+            </div>
+            
+            <OnboardingMeetingDialog
+              trigger={
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Adicionar Cliente
+                </Button>
+              }
+              onSubmit={(data) => {
+                console.log('Onboarding data:', data);
+                toast.success('Cliente adicionado!');
+              }}
+            />
+            
+            <Button variant="outline" className="gap-2">
+              <CheckSquare className="h-4 w-4" />
+              Checklist
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {
+                  if (!clients || clients.length === 0) {
+                    toast.error('Nenhum dado para exportar');
+                    return;
+                  }
+                  const headers = ['Cliente', 'Email', 'Telefone', 'Fase Atual', 'Progresso', 'Data Início'];
+                  const rows = clients.map(c => {
+                    const phase = getClientPhase(c);
+                    const meta = c.metadata as any;
+                    const progress = meta?.journey_progress || Math.min(100, (differenceInDays(new Date(), new Date(c.created_at)) / 30) * 100);
+                    return [
+                      c.name,
+                      c.email || '',
+                      c.phone || '',
+                      phase,
+                      `${Math.round(progress)}%`,
+                      format(new Date(c.created_at), 'dd/MM/yyyy', { locale: ptBR }),
+                    ];
+                  });
+                  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `jornada-clientes-${new Date().toISOString().split('T')[0]}.csv`;
+                  link.click();
+                  URL.revokeObjectURL(url);
+                  toast.success('Jornada exportada com sucesso!');
+                }}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("tracker")}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Ver Tracker
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        {/* Pipeline View - Enhanced Kanban with horizontal scroll */}
-        <TabsContent value="pipeline" className="mt-4">
-          <div className="overflow-x-auto pb-4">
-            <div className="flex gap-3 min-w-max">
-              {journeyPhases.map((phase) => {
-                const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
-                const phaseClients = clientsByPhase[phase.id] || [];
-                return (
-                  <div key={phase.id} className="flex flex-col w-[200px] flex-shrink-0">
-                    {/* Column Header */}
-                    <div className={cn("text-white text-center rounded-t-lg relative group h-[72px] flex items-center justify-center", phase.color)}>
-                      <p className="font-bold text-sm px-6 leading-tight">{phase.label}</p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 text-white hover:bg-white/20"
-                        onClick={() => {
-                          if (phaseDetail) {
-                            setSelectedPhaseDetail(phaseDetail);
-                            setPhaseDetailOpen(true);
-                          }
-                        }}
-                      >
-                        <Eye className="h-3 w-3" />
-                      </Button>
+        {/* Search and Filters Bar */}
+        <div className="flex items-center gap-4 mt-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome, telefone, tags..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button variant="outline" className="gap-2">
+            <Filter className="h-4 w-4" />
+            Filtros
+          </Button>
+          <Button variant="ghost" size="icon">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Total: <span className="font-medium text-foreground">{clients.length}</span> clientes
+          </span>
+        </div>
+      </div>
+
+      {/* Kanban Content - Avivar Style */}
+      {activeTab === "pipeline" && (
+        <div className="flex-1 overflow-x-auto p-4">
+          <div className="flex gap-3 h-full min-w-max">
+            {journeyPhases.map((phase) => {
+              const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
+              const phaseClients = (clientsByPhase[phase.id] || []).filter(c => 
+                c.name.toLowerCase().includes(searchTerm.toLowerCase())
+              );
+              
+              return (
+                <div key={phase.id} className="flex flex-col w-[240px] flex-shrink-0">
+                  {/* Column Header - Avivar Style */}
+                  <div className={cn(
+                    "rounded-lg px-3 py-2.5 flex items-center justify-between group",
+                    phase.color
+                  )}>
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="h-4 w-4 text-white/70" />
+                      <span className="font-semibold text-white text-sm">{phase.label}</span>
                     </div>
-                    
-                    {/* Column Content */}
-                    <ScrollArea className="bg-muted/30 rounded-b-lg min-h-[400px] max-h-[450px] flex-1">
-                      <div className="space-y-2 p-2">
-                        {phaseClients.map((client) => {
-                          const progress = (client.metadata as any)?.journey_progress || 0;
-                          return (
-                            <Card 
-                              key={client.id} 
-                              className="bg-card hover:shadow-md transition-shadow cursor-pointer border group/card"
-                            >
-                              <CardContent className="p-3">
-                                <div className="flex items-center gap-2">
-                                  <Avatar 
-                                    className="h-8 w-8 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary"
-                                    onClick={() => navigate(`/ipromed/clients/${client.id}`)}
-                                  >
-                                    <AvatarFallback className={cn("text-xs font-medium text-white", phase.color)}>
-                                      {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <p 
-                                    className="font-medium text-sm leading-tight line-clamp-2 flex-1 hover:text-primary cursor-pointer"
-                                    onClick={() => navigate(`/ipromed/clients/${client.id}`)}
-                                  >
-                                    {client.name}
-                                  </p>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-6 w-6 opacity-0 group-hover/card:opacity-100"
-                                      >
-                                        <MoreVertical className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
-                                        <ExternalLink className="h-4 w-4 mr-2" />
-                                        Ver Detalhes
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem onClick={() => {
-                                        setMeetingClient(client);
-                                        setMeetingDialogOpen(true);
-                                      }}>
-                                        <Video className="h-4 w-4 mr-2" />
-                                        Agendar Reunião
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                        {phaseClients.length === 0 && (
-                          <div className="text-center text-muted-foreground text-xs py-12 space-y-2">
-                            <Users className="h-8 w-8 mx-auto opacity-20" />
-                            <p>Nenhum cliente</p>
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
-                    
-                    {/* Column Footer */}
-                    <div className="bg-muted/20 px-2 py-1.5 border-t flex items-center justify-between">
-                      <span className="text-[9px] text-muted-foreground">{phase.deliverables} entregáveis</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-5 text-[9px] px-1.5 hover:text-primary"
-                        onClick={() => {
-                          if (phaseDetail) {
-                            setSelectedPhaseDetail(phaseDetail);
-                            setPhaseDetailOpen(true);
-                          }
-                        }}
-                      >
-                        Detalhes
-                      </Button>
+                    <div className="flex items-center gap-1">
+                      {phaseClients.length > 0 && (
+                        <Badge variant="secondary" className="h-5 px-1.5 text-xs bg-white/20 text-white border-0">
+                          {phaseClients.length}
+                        </Badge>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 text-white hover:bg-white/20"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            if (phaseDetail) {
+                              setSelectedPhaseDetail(phaseDetail);
+                              setPhaseDetailOpen(true);
+                            }
+                          }}>
+                            <Info className="h-4 w-4 mr-2" />
+                            Ver Detalhes da Fase
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <CheckSquare className="h-4 w-4 mr-2" />
+                            Configurar Checklist
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                  
+                  {/* Column Content */}
+                  <div className="flex-1 mt-2 space-y-2 min-h-[500px] bg-muted/20 rounded-lg p-2 border border-dashed border-muted-foreground/20">
+                    {phaseClients.map((client) => (
+                      <Card 
+                        key={client.id} 
+                        className="bg-card hover:shadow-md transition-all cursor-pointer border group/card"
+                      >
+                        <CardContent className="p-3 space-y-2">
+                          {/* Client Header Row */}
+                          <div className="flex items-center gap-2">
+                            <Avatar 
+                              className="h-8 w-8 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary"
+                              onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                            >
+                              <AvatarFallback className={cn("text-xs font-medium text-white", phase.color)}>
+                                {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p 
+                                className="font-medium text-sm truncate hover:text-primary cursor-pointer"
+                                onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                              >
+                                {client.name}
+                              </p>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                              {format(new Date(client.created_at), 'dd.MM.yyyy')}
+                            </span>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6 opacity-0 group-hover/card:opacity-100 flex-shrink-0"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Ver Detalhes
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => {
+                                  setMeetingClient(client);
+                                  setMeetingDialogOpen(true);
+                                }}>
+                                  <Video className="h-4 w-4 mr-2" />
+                                  Agendar Reunião
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                          
+                          {/* Tags */}
+                          {(client.metadata as any)?.tags && (
+                            <div className="flex flex-wrap gap-1">
+                              {((client.metadata as any).tags as string[]).slice(0, 2).map((tag, i) => (
+                                <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0 h-5 text-primary">
+                                  #{tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                    {/* Empty State */}
+                    {phaseClients.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                        <Users className="h-10 w-10 opacity-20 mb-2" />
+                        <p className="text-xs">Arraste clientes aqui</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* List View */}
-        <TabsContent value="list" className="mt-4">
+      {/* List View */}
+      {activeTab === "list" && (
+        <div className="flex-1 p-6 overflow-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredClients.map((client) => (
               <ClientCard key={client.id} client={client} />
             ))}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Tracker View */}
-        <TabsContent value="tracker" className="mt-4">
+      {/* Tracker View */}
+      {activeTab === "tracker" && (
+        <div className="flex-1 p-6 overflow-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Client List */}
             <div>
@@ -539,18 +566,19 @@ export default function IpromedJourney() {
                   {filteredClients.map((client) => (
                     <Card 
                       key={client.id}
-                      className={`cursor-pointer transition-all ${
+                      className={cn(
+                        "cursor-pointer transition-all",
                         selectedClient?.id === client.id 
                           ? 'ring-2 ring-primary bg-primary/5' 
                           : 'hover:bg-muted/50'
-                      }`}
+                      )}
                       onClick={() => setSelectedClient(client)}
                     >
                       <CardContent className="p-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarFallback className={`${getPhaseColor(getClientPhase(client))} text-white text-xs`}>
+                              <AvatarFallback className={cn(getPhaseColor(getClientPhase(client)), "text-white text-xs")}>
                                 {client.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                               </AvatarFallback>
                             </Avatar>
@@ -579,7 +607,6 @@ export default function IpromedJourney() {
                   startDate={(selectedClient.metadata as any)?.journey_start_date || selectedClient.created_at}
                   onStepComplete={(stepCode, completed) => {
                     console.log('Step completed:', stepCode, completed);
-                    // TODO: Save to database
                   }}
                 />
               ) : (
@@ -592,35 +619,30 @@ export default function IpromedJourney() {
               )}
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
 
-      {/* Alerts */}
+      {/* Alerts - Fixed Position */}
       {clients.some(c => isOverdue(c)) && (
-        <Card className="border-rose-200 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-900">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-rose-100 dark:bg-rose-900/50 rounded-xl">
-                <AlertTriangle className="h-6 w-6 text-rose-600" />
+        <div className="fixed bottom-6 right-6 z-50">
+          <Card className="border-destructive/30 bg-destructive/10 shadow-lg max-w-sm">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-destructive/20 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-destructive text-sm">
+                    Clientes Atrasados
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {clients.filter(c => isOverdue(c)).length} cliente(s) precisam de atenção
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-rose-800 dark:text-rose-200">
-                  Clientes com Jornada Atrasada
-                </h3>
-                <p className="text-sm text-rose-700 dark:text-rose-300">
-                  {clients.filter(c => isOverdue(c)).length} cliente(s) precisam de atenção imediata.
-                </p>
-              </div>
-              <Button 
-                variant="outline" 
-                className="border-rose-300 text-rose-700 hover:bg-rose-100"
-                onClick={() => setSelectedPhase(null)}
-              >
-                Ver Todos
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Phase Detail Modal */}
