@@ -1,5 +1,5 @@
 /**
- * IPROMED - Timesheet / Controle de Tempo
+ * CPG Advocacia Médica - Timesheet / Controle de Tempo
  * Cronômetro, registro de horas e produtividade
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED - Global Search Component
+ * CPG Advocacia Médica - Global Search Component
  * Busca unificada de processos, clientes, tarefas e documentos
  */
 

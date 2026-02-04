@@ -1,5 +1,5 @@
 /**
- * IPROMED - Dashboard de Indicadores Completo
+ * CPG Advocacia Médica - Dashboard de Indicadores Completo
  * Indicadores pessoais, por cliente, processos e estratégicos
  */
 

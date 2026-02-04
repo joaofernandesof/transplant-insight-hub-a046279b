@@ -88,7 +88,7 @@ const modules = [
   },
   { 
     id: 'ipromed', 
-    name: 'IPROMED', 
+    name: 'CPG Advocacia Médica', 
     icon: Scale, 
     gradient: 'from-cyan-500 to-cyan-600',
     description: 'Proteção Médico-Legal',

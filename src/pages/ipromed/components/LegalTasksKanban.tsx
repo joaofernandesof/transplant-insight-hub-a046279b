@@ -1,5 +1,5 @@
 /**
- * IPROMED Legal Hub - Atividades e Times (Kanban)
+ * CPG Advocacia Médica Legal Hub - Atividades e Times (Kanban)
  */
 
 import { useState } from "react";

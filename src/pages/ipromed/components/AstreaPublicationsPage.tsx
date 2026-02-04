@@ -1,5 +1,5 @@
 /**
- * IPROMED - Astrea-style Publications Page
+ * CPG Advocacia Médica - Astrea-style Publications Page
  * Página completa de publicações inspirada no Astrea
  */
 

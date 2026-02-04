@@ -1,5 +1,5 @@
 /**
- * IPROMED - AI Legal Intelligence Component (Fase 3)
+ * CPG Advocacia Médica - AI Legal Intelligence Component (Fase 3)
  * AI-powered document generation and risk analysis
  * Connected to real Lovable AI via edge functions
  */

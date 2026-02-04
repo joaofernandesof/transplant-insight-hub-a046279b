@@ -1,5 +1,5 @@
 /**
- * IPROMED - Workspace Agenda
+ * CPG Advocacia Médica - Workspace Agenda
  * Resumo da agenda do dia do colaborador logado
  */
 

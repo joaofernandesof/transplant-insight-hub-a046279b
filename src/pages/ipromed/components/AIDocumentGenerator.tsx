@@ -1,5 +1,5 @@
 /**
- * IPROMED - Gerador de Peças com IA
+ * CPG Advocacia Médica - Gerador de Peças com IA
  * Criação de documentos jurídicos assistida por IA
  */
 

@@ -1,5 +1,5 @@
 /**
- * IPROMED - Risk Scoring Card
+ * CPG Advocacia Médica - Risk Scoring Card
  * Componente para exibir e calcular scoring de risco jurídico
  * Pesos: CRM 40%, Cível 35%, Criminal 25%
  */

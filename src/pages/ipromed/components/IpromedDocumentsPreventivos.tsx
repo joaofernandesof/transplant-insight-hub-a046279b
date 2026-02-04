@@ -1,6 +1,6 @@
 /**
- * IPROMED - Documentos Jurídicos Preventivos
- * Lista de documentos oferecidos pelo IPROMED (fonte: ipromed.com.br)
+ * CPG Advocacia Médica - Documentos Jurídicos Preventivos
+ * Lista de documentos oferecidos pela CPG Advocacia Médica
  */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,7 +22,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-// Documentos preventivos do IPROMED (fonte: site oficial)
+// Documentos preventivos da CPG Advocacia Médica
 export interface PreventiveDocument {
   id: string;
   name: string;

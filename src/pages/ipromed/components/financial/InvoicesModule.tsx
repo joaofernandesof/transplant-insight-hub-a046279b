@@ -1,5 +1,5 @@
 /**
- * IPROMED Financial - Notas Fiscais
+ * CPG Advocacia Médica Financial - Notas Fiscais
  * Emissão de NFS-e para honorários e serviços
  */
 

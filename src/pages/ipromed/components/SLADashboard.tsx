@@ -1,5 +1,5 @@
 /**
- * IPROMED - SLA Dashboard
+ * CPG Advocacia Médica - SLA Dashboard
  * Dashboard de produtividade e métricas de SLA por advogada
  */
 

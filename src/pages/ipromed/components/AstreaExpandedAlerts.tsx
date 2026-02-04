@@ -1,5 +1,5 @@
 /**
- * IPROMED - Astrea-style Expanded Alerts
+ * CPG Advocacia Médica - Astrea-style Expanded Alerts
  * Alertas expandidos com andamentos importantes e badges de IA
  */
 

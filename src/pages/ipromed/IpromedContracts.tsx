@@ -1,5 +1,5 @@
 /**
- * IPROMED - Sistema Gerenciador de Contratos e Documentos
+ * CPG Advocacia Médica - Sistema Gerenciador de Contratos e Documentos
  * Layout limpo com filtros em abas no topo
  */
 

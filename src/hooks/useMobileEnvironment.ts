@@ -88,7 +88,7 @@ export const BLOCKED_MOBILE_MODULES = [
   // Marketplace e pós-venda
   'marketplace',
   'postvenda',
-  // IPROMED - módulo jurídico interno
+  // CPG Advocacia Médica - módulo jurídico interno
   'ipromed',
   'ipromed_requests',
   'ipromed_documents',

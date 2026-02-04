@@ -1,5 +1,5 @@
 /**
- * IPROMED - Workspace Quick Actions
+ * CPG Advocacia Médica - Workspace Quick Actions
  * Ações rápidas para acessar funcionalidades frequentes
  */
 

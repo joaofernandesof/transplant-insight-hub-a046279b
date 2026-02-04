@@ -1,5 +1,5 @@
 /**
- * IPROMED - AI Legal Assistant Component
+ * CPG Advocacia Médica - AI Legal Assistant Component
  * Interface para assistente de IA jurídica com geração de documentos
  */
 
