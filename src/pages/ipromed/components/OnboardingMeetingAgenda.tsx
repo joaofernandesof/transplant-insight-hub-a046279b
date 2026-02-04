@@ -89,7 +89,7 @@ const onboardingMeetingSchema = z.object({
   nomeCompleto: z.string().min(1, "Nome completo é obrigatório"),
   nomePreferencia: z.string().optional(),
   cargoFuncao: z.string().optional(),
-  possuiClinica: z.boolean().default(false),
+  possuiClinica: z.boolean().optional(),
   clinicaNome: z.string().optional(),
   clinicaEndereco: z.string().optional(),
   clinicaCNPJ: z.string().optional(),
@@ -100,7 +100,7 @@ const onboardingMeetingSchema = z.object({
 
   // 2. Perfil profissional
   areaAtuacao: z.string().optional(),
-  possuiRQE: z.boolean().default(false),
+  possuiRQE: z.boolean().optional(),
   numeroRQE: z.string().optional(),
   tempoAtuacao: z.coerce.number().optional(),
   formatoAtendimento: z.array(z.string()).default([]),
@@ -127,10 +127,10 @@ const onboardingMeetingSchema = z.object({
   horarioPreferencial: z.string().optional(),
 
   // 4. Documentos atuais
-  usaDocumentosHoje: z.boolean().default(false),
+  usaDocumentosHoje: z.boolean().optional(),
   documentosExistentes: z.array(z.string()).default([]),
   quemPreenche: z.string().optional(),
-  usaAssinaturaDigital: z.boolean().default(false),
+  usaAssinaturaDigital: z.boolean().optional(),
   ferramentaAssinatura: z.string().optional(),
 
   // 5. Documentos que serão entregues
@@ -140,12 +140,12 @@ const onboardingMeetingSchema = z.object({
   })).default([]),
 
   // 6. Prioridades (renumerado)
-  possuiPrioridade: z.boolean().default(false),
+  possuiPrioridade: z.boolean().optional(),
   documentosPrioritariosSelecionados: z.array(z.string()).default([]),
   documentosPrioritarios: z.array(z.object({
     nome: z.string().optional(),
   })).default([]),
-  jaTeveProblemAnterior: z.boolean().default(false),
+  jaTeveProblemAnterior: z.boolean().optional(),
   problemasAnteriores: z.array(z.object({
     titulo: z.string().optional(),
     descricao: z.string().optional(),
@@ -161,7 +161,7 @@ const onboardingMeetingSchema = z.object({
   documentosAtuaisStatus: z.record(z.boolean()).default({}), // Matriz de documentos atuais (tem/não tem)
 
   // 8. Treinamento
-  necessitaTreinamento: z.boolean().default(false),
+  necessitaTreinamento: z.boolean().optional(),
   quemSeraTreinado: z.string().optional(),
   formatoTreinamento: z.string().optional(),
   dataSugeridaTreinamento: z.string().optional(),
@@ -170,7 +170,7 @@ const onboardingMeetingSchema = z.object({
   // 9. Instagram
   instagramHandle: z.string().optional(),
   responsavelPerfil: z.string().optional(),
-  fazAnuncios: z.boolean().default(false),
+  fazAnuncios: z.boolean().optional(),
   
   riscosEncontrados: z.string().optional(),
   riscosArquivos: z.array(z.object({
@@ -180,13 +180,13 @@ const onboardingMeetingSchema = z.object({
   orientacoesDadas: z.string().optional(),
 
   // 10. Contrato
-  leituraConcluida: z.boolean().default(false),
+  leituraConcluida: z.boolean().optional(),
   duvidasRespostas: z.array(z.object({
     duvida: z.string().optional(),
     resposta: z.string().optional(),
   })).default([]),
   ajustesSolicitados: z.string().optional(),
-  aceiteContrato: z.boolean().default(false),
+  aceiteContrato: z.boolean().optional(),
 });
 
 type OnboardingMeetingData = z.infer<typeof onboardingMeetingSchema>;
@@ -375,7 +375,7 @@ export default function OnboardingMeetingAgenda({
       nomeCompleto: savedCheckpoint?.formData?.nomeCompleto ?? clientName ?? "",
       nomePreferencia: savedCheckpoint?.formData?.nomePreferencia ?? "",
       cargoFuncao: savedCheckpoint?.formData?.cargoFuncao ?? "",
-      possuiClinica: savedCheckpoint?.formData?.possuiClinica ?? false,
+      possuiClinica: savedCheckpoint?.formData?.possuiClinica ?? undefined,
       clinicaNome: savedCheckpoint?.formData?.clinicaNome ?? "",
       clinicaEndereco: savedCheckpoint?.formData?.clinicaEndereco ?? "",
       clinicaCNPJ: savedCheckpoint?.formData?.clinicaCNPJ ?? "",
@@ -384,7 +384,7 @@ export default function OnboardingMeetingAgenda({
       emailPrincipal: savedCheckpoint?.formData?.emailPrincipal ?? "",
       objetivoPrincipal: savedCheckpoint?.formData?.objetivoPrincipal ?? "",
       areaAtuacao: savedCheckpoint?.formData?.areaAtuacao ?? "",
-      possuiRQE: savedCheckpoint?.formData?.possuiRQE ?? false,
+      possuiRQE: savedCheckpoint?.formData?.possuiRQE ?? undefined,
       numeroRQE: savedCheckpoint?.formData?.numeroRQE ?? "",
       tempoAtuacao: savedCheckpoint?.formData?.tempoAtuacao ?? undefined,
       formatoAtendimento: savedCheckpoint?.formData?.formatoAtendimento ?? [],
@@ -397,17 +397,17 @@ export default function OnboardingMeetingAgenda({
       contatoPrincipal: savedCheckpoint?.formData?.contatoPrincipal ?? { nome: "", email: "", whatsapp: "", funcao: "" },
       contatosAdicionais: savedCheckpoint?.formData?.contatosAdicionais ?? [],
       horarioPreferencial: savedCheckpoint?.formData?.horarioPreferencial ?? "",
-      usaDocumentosHoje: savedCheckpoint?.formData?.usaDocumentosHoje ?? false,
+      usaDocumentosHoje: savedCheckpoint?.formData?.usaDocumentosHoje ?? undefined,
       documentosExistentes: savedCheckpoint?.formData?.documentosExistentes ?? [],
       quemPreenche: savedCheckpoint?.formData?.quemPreenche ?? "",
-      usaAssinaturaDigital: savedCheckpoint?.formData?.usaAssinaturaDigital ?? false,
+      usaAssinaturaDigital: savedCheckpoint?.formData?.usaAssinaturaDigital ?? undefined,
       ferramentaAssinatura: savedCheckpoint?.formData?.ferramentaAssinatura ?? "",
       documentosEntregues: savedCheckpoint?.formData?.documentosEntregues ?? [],
       documentosAdicionaisEntregues: savedCheckpoint?.formData?.documentosAdicionaisEntregues ?? [],
-      possuiPrioridade: savedCheckpoint?.formData?.possuiPrioridade ?? false,
+      possuiPrioridade: savedCheckpoint?.formData?.possuiPrioridade ?? undefined,
       documentosPrioritariosSelecionados: savedCheckpoint?.formData?.documentosPrioritariosSelecionados ?? [],
       documentosPrioritarios: savedCheckpoint?.formData?.documentosPrioritarios ?? [],
-      jaTeveProblemAnterior: savedCheckpoint?.formData?.jaTeveProblemAnterior ?? false,
+      jaTeveProblemAnterior: savedCheckpoint?.formData?.jaTeveProblemAnterior ?? undefined,
       problemasAnteriores: savedCheckpoint?.formData?.problemasAnteriores ?? [],
       dataOnboarding: savedCheckpoint?.formData?.dataOnboarding ?? new Date().toISOString().split('T')[0],
       dataRecebimentoDocsAtuais: savedCheckpoint?.formData?.dataRecebimentoDocsAtuais ?? "",
@@ -416,22 +416,22 @@ export default function OnboardingMeetingAgenda({
       dataPrevistaRevisao: savedCheckpoint?.formData?.dataPrevistaRevisao ?? "",
       dataPrevistaCriacao: savedCheckpoint?.formData?.dataPrevistaCriacao ?? "",
       documentosAtuaisStatus: savedCheckpoint?.formData?.documentosAtuaisStatus ?? {},
-      necessitaTreinamento: savedCheckpoint?.formData?.necessitaTreinamento ?? false,
+      necessitaTreinamento: savedCheckpoint?.formData?.necessitaTreinamento ?? undefined,
       quemSeraTreinado: savedCheckpoint?.formData?.quemSeraTreinado ?? "",
       formatoTreinamento: savedCheckpoint?.formData?.formatoTreinamento ?? "",
       dataSugeridaTreinamento: savedCheckpoint?.formData?.dataSugeridaTreinamento ?? "",
       duvidasPrincipais: savedCheckpoint?.formData?.duvidasPrincipais ?? "",
       instagramHandle: savedCheckpoint?.formData?.instagramHandle ?? "",
       responsavelPerfil: savedCheckpoint?.formData?.responsavelPerfil ?? "",
-      fazAnuncios: savedCheckpoint?.formData?.fazAnuncios ?? false,
+      fazAnuncios: savedCheckpoint?.formData?.fazAnuncios ?? undefined,
       
       riscosEncontrados: savedCheckpoint?.formData?.riscosEncontrados ?? "",
       riscosArquivos: savedCheckpoint?.formData?.riscosArquivos ?? [],
       orientacoesDadas: savedCheckpoint?.formData?.orientacoesDadas ?? "",
-      leituraConcluida: savedCheckpoint?.formData?.leituraConcluida ?? false,
+      leituraConcluida: savedCheckpoint?.formData?.leituraConcluida ?? undefined,
       duvidasRespostas: savedCheckpoint?.formData?.duvidasRespostas ?? [],
       ajustesSolicitados: savedCheckpoint?.formData?.ajustesSolicitados ?? "",
-      aceiteContrato: savedCheckpoint?.formData?.aceiteContrato ?? false,
+      aceiteContrato: savedCheckpoint?.formData?.aceiteContrato ?? undefined,
       ...initialData,
     },
   });
