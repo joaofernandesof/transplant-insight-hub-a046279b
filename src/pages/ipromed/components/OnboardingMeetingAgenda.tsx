@@ -175,7 +175,7 @@ const estruturaOptions = ["Clínica própria", "Consultório alugado", "Hospital
 const documentosOptions = ["TCLE", "Contrato de prestação", "Termo de imagem", "Anamnese", "Prontuário", "Política de agendamento"];
 const quemPreencheOptions = ["Secretária", "Médico", "Recepção", "Equipe administrativa"];
 
-const cenarioClienteOptions = ["Tem documentos", "Sem documentos", "Documentos parciais"];
+const cenarioClienteOptions = ["Já possui todos os documentos que vamos entregar", "Possui parcialmente os documentos", "Não possui documentos"];
 const formatoTreinamentoOptions = ["Online", "Presencial", "Híbrido"];
 const responsavelPerfilOptions = ["Equipe", "Cliente", "Agência", "Social media"];
 const canalLeadsOptions = ["WhatsApp", "Direct", "Link na bio", "Telefone"];
