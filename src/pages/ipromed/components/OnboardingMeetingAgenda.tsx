@@ -71,7 +71,10 @@ const onboardingMeetingSchema = z.object({
   nomeCompleto: z.string().min(1, "Nome completo é obrigatório"),
   nomePreferencia: z.string().optional(),
   cargoFuncao: z.string().optional(),
-  clinicaEmpresa: z.string().optional(),
+  possuiClinica: z.boolean().default(false),
+  clinicaNome: z.string().optional(),
+  clinicaEndereco: z.string().optional(),
+  clinicaCNPJ: z.string().optional(),
   cidadeEstado: z.string().optional(),
   emailPrincipal: z.string().email("Email inválido").optional().or(z.literal("")),
   objetivoPrincipal: z.string().optional(),
@@ -210,7 +213,10 @@ export default function OnboardingMeetingAgenda({
       nomeCompleto: clientName || "",
       nomePreferencia: "",
       cargoFuncao: "",
-      clinicaEmpresa: "",
+      possuiClinica: false,
+      clinicaNome: "",
+      clinicaEndereco: "",
+      clinicaCNPJ: "",
       cidadeEstado: "",
       emailPrincipal: "",
       objetivoPrincipal: "",
@@ -403,17 +409,68 @@ export default function OnboardingMeetingAgenda({
 
                     <FormField
                       control={form.control}
-                      name="clinicaEmpresa"
+                      name="possuiClinica"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>🏥 Clínica ou empresa</FormLabel>
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
-                            <Input placeholder="Clínica X" {...field} />
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
-                          <FormMessage />
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>🏥 Possui clínica?</FormLabel>
+                            <FormDescription className="text-xs">Marque se o cliente possui clínica própria</FormDescription>
+                          </div>
                         </FormItem>
                       )}
                     />
+
+                    {form.watch("possuiClinica") && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="clinicaNome"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome da clínica</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Clínica Exemplo" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="clinicaEndereco"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Endereço da clínica</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Rua Exemplo, 123" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="clinicaCNPJ"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>CNPJ da clínica</FormLabel>
+                              <FormControl>
+                                <Input placeholder="00.000.000/0000-00" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
 
                     <FormField
                       control={form.control}
