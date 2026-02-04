@@ -120,12 +120,16 @@ function DraggableClientCard({
   navigate, 
   onScheduleMeeting,
   isDragging,
+  isSelected,
+  onSelect,
 }: { 
   client: Client; 
   phase: typeof journeyPhases[0]; 
   navigate: (path: string) => void;
   onScheduleMeeting: (client: Client) => void;
   isDragging?: boolean;
+  isSelected?: boolean;
+  onSelect?: (clientId: string, selected: boolean) => void;
 }) {
   const {
     attributes,
@@ -148,14 +152,35 @@ function DraggableClientCard({
       style={style}
       className={cn(
         "bg-card hover:shadow-md transition-all cursor-grab active:cursor-grabbing border group/card",
-        isDragging && "shadow-lg ring-2 ring-primary"
+        isDragging && "shadow-lg ring-2 ring-primary",
+        isSelected && "ring-2 ring-primary bg-primary/5"
       )}
       {...attributes}
       {...listeners}
     >
       <CardContent className="p-3 space-y-2">
-        {/* Client Header Row */}
+        {/* Client Header Row with Checkbox */}
         <div className="flex items-center gap-2">
+          {/* Selection Checkbox */}
+          <div 
+            className="flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect?.(client.id, !isSelected);
+            }}
+          >
+            <div className={cn(
+              "h-4 w-4 rounded border-2 flex items-center justify-center cursor-pointer transition-colors",
+              isSelected 
+                ? "bg-primary border-primary" 
+                : "border-muted-foreground/40 hover:border-primary"
+            )}>
+              {isSelected && (
+                <CheckCircle2 className="h-3 w-3 text-white" />
+              )}
+            </div>
+          </div>
+          
           <Avatar 
             className="h-8 w-8 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary"
             onClick={(e) => {
@@ -203,6 +228,22 @@ function DraggableClientCard({
           </DropdownMenu>
         </div>
         
+        {/* Contact Info - Phone & Email */}
+        <div className="space-y-1 text-xs text-muted-foreground">
+          {client.phone && (
+            <div className="flex items-center gap-1.5 truncate">
+              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">📱</span>
+              <span className="truncate">{client.phone}</span>
+            </div>
+          )}
+          {client.email && (
+            <div className="flex items-center gap-1.5 truncate">
+              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">✉️</span>
+              <span className="truncate">{client.email}</span>
+            </div>
+          )}
+        </div>
+        
         {/* Tags */}
         {(client.metadata as any)?.tags && (
           <div className="flex flex-wrap gap-1">
@@ -218,6 +259,9 @@ function DraggableClientCard({
   );
 }
 
+// Sort options
+type SortOption = 'name-asc' | 'name-desc' | 'date-asc' | 'date-desc';
+
 // Droppable Column Component
 function DroppableColumn({ 
   phase, 
@@ -228,6 +272,11 @@ function DroppableColumn({
   onViewPhaseDetail,
   isOver,
   activeId,
+  selectedClients,
+  onSelectClient,
+  onSelectAll,
+  sortOption,
+  onSortChange,
 }: { 
   phase: typeof journeyPhases[0]; 
   clients: Client[]; 
@@ -237,30 +286,75 @@ function DroppableColumn({
   onViewPhaseDetail: (phase: PhaseDetail) => void;
   isOver: boolean;
   activeId: string | null;
+  selectedClients: Set<string>;
+  onSelectClient: (clientId: string, selected: boolean) => void;
+  onSelectAll: (phaseId: string, clientIds: string[], selectAll: boolean) => void;
+  sortOption: SortOption;
+  onSortChange: (phaseId: string, option: SortOption) => void;
 }) {
   const { setNodeRef } = useDroppable({ id: phase.id });
   
   const filteredClients = clients.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Apply sorting
+  const sortedClients = [...filteredClients].sort((a, b) => {
+    switch (sortOption) {
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
+      case 'date-asc':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'date-desc':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      default:
+        return 0;
+    }
+  });
+
   const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
+  const allSelected = sortedClients.length > 0 && sortedClients.every(c => selectedClients.has(c.id));
+  const someSelected = sortedClients.some(c => selectedClients.has(c.id));
 
   return (
-    <div className="flex flex-col w-[240px] flex-shrink-0">
+    <div className="flex flex-col flex-1 min-w-[220px]">
       {/* Column Header - Avivar Style */}
       <div className={cn(
         "rounded-lg px-3 py-2.5 flex items-center justify-between group",
         phase.color
       )}>
         <div className="flex items-center gap-2">
-          <GripVertical className="h-4 w-4 text-white/70" />
-          <span className="font-semibold text-white text-sm">{phase.label}</span>
+          {/* Select All Checkbox */}
+          <div 
+            className="flex-shrink-0 cursor-pointer"
+            onClick={() => onSelectAll(phase.id, sortedClients.map(c => c.id), !allSelected)}
+          >
+            <div className={cn(
+              "h-4 w-4 rounded border-2 flex items-center justify-center transition-colors",
+              allSelected 
+                ? "bg-white border-white" 
+                : someSelected
+                  ? "bg-white/50 border-white"
+                  : "border-white/50 hover:border-white"
+            )}>
+              {allSelected && (
+                <CheckCircle2 className="h-3 w-3 text-primary" />
+              )}
+              {someSelected && !allSelected && (
+                <div className="h-2 w-2 bg-primary rounded-sm" />
+              )}
+            </div>
+          </div>
+          <span className="font-semibold text-white text-sm truncate">{phase.label}</span>
         </div>
         <div className="flex items-center gap-1">
-          {filteredClients.length > 0 && (
+          {sortedClients.length > 0 && (
             <Badge variant="secondary" className="h-5 px-1.5 text-xs bg-white/20 text-white border-0">
-              {filteredClients.length}
+              {sortedClients.length}
             </Badge>
           )}
           <DropdownMenu>
@@ -282,9 +376,30 @@ function DroppableColumn({
                 <Info className="h-4 w-4 mr-2" />
                 Ver Detalhes da Fase
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CheckSquare className="h-4 w-4 mr-2" />
-                Configurar Checklist
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => onSortChange(phase.id, 'name-asc')}
+                className={sortOption === 'name-asc' ? 'bg-muted' : ''}
+              >
+                Ordenar: Nome (A-Z)
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onSortChange(phase.id, 'name-desc')}
+                className={sortOption === 'name-desc' ? 'bg-muted' : ''}
+              >
+                Ordenar: Nome (Z-A)
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onSortChange(phase.id, 'date-asc')}
+                className={sortOption === 'date-asc' ? 'bg-muted' : ''}
+              >
+                Ordenar: Data (Mais antigo)
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onSortChange(phase.id, 'date-desc')}
+                className={sortOption === 'date-desc' ? 'bg-muted' : ''}
+              >
+                Ordenar: Data (Mais recente)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -295,17 +410,17 @@ function DroppableColumn({
       <div 
         ref={setNodeRef}
         className={cn(
-          "flex-1 mt-2 space-y-2 min-h-[500px] rounded-lg p-2 border border-dashed transition-colors",
+          "flex-1 mt-2 space-y-2 min-h-[500px] rounded-lg p-2 border border-dashed transition-colors overflow-y-auto",
           isOver 
             ? "bg-primary/10 border-primary ring-2 ring-primary/30" 
             : "bg-muted/20 border-muted-foreground/20"
         )}
       >
         <SortableContext 
-          items={filteredClients.map(c => c.id)}
+          items={sortedClients.map(c => c.id)}
           strategy={verticalListSortingStrategy}
         >
-          {filteredClients.map((client) => (
+          {sortedClients.map((client) => (
             <DraggableClientCard
               key={client.id}
               client={client}
@@ -313,12 +428,14 @@ function DroppableColumn({
               navigate={navigate}
               onScheduleMeeting={onScheduleMeeting}
               isDragging={activeId === client.id}
+              isSelected={selectedClients.has(client.id)}
+              onSelect={onSelectClient}
             />
           ))}
         </SortableContext>
         
         {/* Empty State */}
-        {filteredClients.length === 0 && (
+        {sortedClients.length === 0 && (
           <div className={cn(
             "flex flex-col items-center justify-center py-16 text-muted-foreground transition-colors",
             isOver && "text-primary"
@@ -344,10 +461,49 @@ export default function IpromedJourney() {
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
   const [meetingClient, setMeetingClient] = useState<Client | null>(null);
   
+  // Selection state
+  const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
+  
+  // Sort state per column
+  const [columnSortOptions, setColumnSortOptions] = useState<Record<string, SortOption>>({});
   
   // DnD state
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+
+  // Selection handlers
+  const handleSelectClient = (clientId: string, selected: boolean) => {
+    setSelectedClients(prev => {
+      const next = new Set(prev);
+      if (selected) {
+        next.add(clientId);
+      } else {
+        next.delete(clientId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = (phaseId: string, clientIds: string[], selectAll: boolean) => {
+    setSelectedClients(prev => {
+      const next = new Set(prev);
+      clientIds.forEach(id => {
+        if (selectAll) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+      });
+      return next;
+    });
+  };
+
+  const handleSortChange = (phaseId: string, option: SortOption) => {
+    setColumnSortOptions(prev => ({
+      ...prev,
+      [phaseId]: option,
+    }));
+  };
 
   // DnD sensors
   const sensors = useSensors(
@@ -726,6 +882,47 @@ export default function IpromedJourney() {
           <span className="text-sm text-muted-foreground">
             Total: <span className="font-medium text-foreground">{clients.length}</span> clientes
           </span>
+          
+          {/* Selected count */}
+          {selectedClients.size > 0 && (
+            <div className="flex items-center gap-2 ml-4 pl-4 border-l">
+              <Badge variant="default" className="gap-1">
+                {selectedClients.size} selecionado(s)
+              </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setSelectedClients(new Set())}
+              >
+                Limpar
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    Ações em Massa
+                    <ChevronRight className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {journeyPhases.map((phase) => (
+                    <DropdownMenuItem
+                      key={phase.id}
+                      onClick={() => {
+                        selectedClients.forEach(clientId => {
+                          updateClientPhase.mutate({ clientId, newPhase: phase.id });
+                        });
+                        toast.success(`${selectedClients.size} cliente(s) movido(s) para "${phase.label}"`);
+                        setSelectedClients(new Set());
+                      }}
+                    >
+                      <div className={cn("h-3 w-3 rounded-full mr-2", phase.color)} />
+                      Mover para {phase.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
       </div>
 
@@ -739,8 +936,8 @@ export default function IpromedJourney() {
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >
-          <div className="flex-1 overflow-x-auto p-4">
-            <div className="flex gap-3 h-full min-w-max">
+          <div className="flex-1 overflow-hidden px-4 py-4">
+            <div className="flex gap-4 h-full">
               {journeyPhases.map((phase) => (
                 <DroppableColumn
                   key={phase.id}
@@ -758,6 +955,11 @@ export default function IpromedJourney() {
                   }}
                   isOver={overId === phase.id}
                   activeId={activeId}
+                  selectedClients={selectedClients}
+                  onSelectClient={handleSelectClient}
+                  onSelectAll={handleSelectAll}
+                  sortOption={columnSortOptions[phase.id] || 'date-desc'}
+                  onSortChange={handleSortChange}
                 />
               ))}
             </div>
