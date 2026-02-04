@@ -251,9 +251,9 @@ export default function IpromedClients() {
       <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">IPROMED</span>
+            <span className="hidden sm:inline">Voltar</span>
           </Button>
           <span className="text-muted-foreground hidden sm:inline">/</span>
           <div className="flex items-center gap-2">

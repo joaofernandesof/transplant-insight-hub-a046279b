@@ -210,9 +210,9 @@ export default function IpromedClientDetail() {
             <AlertTriangle className="h-12 w-12 mx-auto text-amber-500 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Cliente não encontrado</h2>
             <p className="text-muted-foreground mb-4">O cliente solicitado não existe ou foi removido.</p>
-            <Button onClick={() => navigate('/ipromed/clients')}>
+            <Button onClick={() => navigate(-1)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para Clientes
+              Voltar
             </Button>
           </CardContent>
         </Card>
@@ -249,9 +249,9 @@ export default function IpromedClientDetail() {
     <div className="container mx-auto p-6 space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed/clients')}>
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Clientes
+          Voltar
         </Button>
         <span className="text-muted-foreground">/</span>
         <span className="font-medium truncate max-w-[200px]">{client.name}</span>

@@ -140,9 +140,9 @@ export default function IpromedMentors() {
     <div className="container mx-auto p-6 space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')}>
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-1" />
-          CPG Advocacia
+          Voltar
         </Button>
         <span className="text-muted-foreground">/</span>
         <div className="flex items-center gap-2">

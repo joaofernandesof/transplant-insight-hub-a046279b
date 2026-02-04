@@ -233,9 +233,9 @@ export default function IpromedDashboard() {
     <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/ipromed')} className="shrink-0">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="shrink-0">
           <ArrowLeft className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">CPG Advocacia</span>
+          <span className="hidden sm:inline">Voltar</span>
         </Button>
         <span className="text-muted-foreground hidden sm:inline">/</span>
         <div className="flex items-center gap-2 shrink-0">
