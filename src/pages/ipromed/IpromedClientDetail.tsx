@@ -35,7 +35,26 @@ import {
   History,
   Video,
   RefreshCw,
+  Eye,
+  MoreHorizontal,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ClientActivityTimeline, logClientActivity } from "./components/ClientActivityTimeline";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -73,6 +92,7 @@ export default function IpromedClientDetail() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMeetingOpen, setIsMeetingOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<any>(null);
+  const [meetingToDelete, setMeetingToDelete] = useState<any>(null);
 
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['ipromed-client', id],
@@ -120,6 +140,24 @@ export default function IpromedClientDetail() {
     },
     enabled: !!id,
   });
+
+  // Delete meeting handler
+  const handleDeleteMeeting = async (meeting: any) => {
+    try {
+      const { error } = await supabase
+        .from('ipromed_client_meetings' as any)
+        .delete()
+        .eq('id', meeting.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings', id] });
+      toast.success('Reunião excluída com sucesso!');
+      setMeetingToDelete(null);
+    } catch (error: any) {
+      toast.error('Erro ao excluir reunião: ' + error.message);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -420,26 +458,70 @@ export default function IpromedClientDetail() {
                   {meetings.map((meeting: any) => (
                     <div 
                       key={meeting.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => setSelectedMeeting(meeting)}
+                      className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <Video className="h-4 w-4 text-primary" />
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="p-2.5 bg-primary/10 rounded-xl">
+                          <Video className="h-5 w-5 text-primary" />
                         </div>
-                        <div>
-                          <p className="font-medium">{meeting.title}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{meeting.title}</p>
                           <p className="text-sm text-muted-foreground">
                             {format(new Date(meeting.scheduled_date), "dd/MM/yyyy", { locale: ptBR })} às {meeting.scheduled_time}
                           </p>
                         </div>
                       </div>
-                      <Badge variant={meeting.status === 'completed' ? 'default' : 'outline'}>
-                        {meeting.status === 'scheduled' ? 'Agendada' : 
-                         meeting.status === 'completed' ? 'Realizada' : 
-                         meeting.status === 'in_progress' ? 'Em andamento' :
-                         meeting.status === 'cancelled' ? 'Cancelada' : meeting.status}
-                      </Badge>
+
+                      <div className="flex items-center gap-2">
+                        <Badge variant={meeting.status === 'completed' ? 'default' : 'outline'}>
+                          {meeting.status === 'scheduled' ? 'Agendada' : 
+                           meeting.status === 'completed' ? 'Realizada' : 
+                           meeting.status === 'in_progress' ? 'Em andamento' :
+                           meeting.status === 'cancelled' ? 'Cancelada' : meeting.status}
+                        </Badge>
+
+                        {/* Quick Actions */}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMeeting(meeting);
+                            }}
+                            title="Visualizar"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Visualizar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setMeetingToDelete(meeting)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -532,6 +614,28 @@ export default function IpromedClientDetail() {
         onOpenChange={(open) => !open && setSelectedMeeting(null)}
         clientName={client.name}
       />
+
+      {/* Delete Meeting Confirmation */}
+      <AlertDialog open={!!meetingToDelete} onOpenChange={(open) => !open && setMeetingToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir reunião?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a reunião "{meetingToDelete?.title}"? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => handleDeleteMeeting(meetingToDelete)}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
