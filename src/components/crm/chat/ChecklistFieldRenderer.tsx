@@ -41,7 +41,7 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
   // Only sync from props when NOT actively editing
   useEffect(() => {
     if (!isEditingRef.current) {
-      if (field.field_type === 'interruptor') {
+      if (field.field_type === 'boolean') {
         const newBool = typeof field.value === 'boolean' ? field.value : false;
         setBoolValue(newBool);
         lastSavedBoolRef.current = newBool;
@@ -142,7 +142,7 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
 
   // Renderização baseada no tipo
   switch (field.field_type) {
-    case 'interruptor':
+    case 'boolean':
       return (
         <div className="flex items-center justify-between gap-3">
           <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap">
