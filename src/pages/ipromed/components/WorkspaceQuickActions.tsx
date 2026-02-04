@@ -42,7 +42,7 @@ const quickActions = [
     id: 'new-appointment',
     label: 'Agendar',
     icon: CalendarPlus,
-    route: '/ipromed/agenda',
+    route: '/ipromed/legal?tab=agenda',
     color: 'bg-purple-600 hover:bg-purple-700 text-white',
   },
   {

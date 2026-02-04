@@ -155,7 +155,7 @@ export function WorkspaceDeadlines() {
           dueDate: apt.start_datetime,
           type: 'case',
           status,
-          navigateTo: '/ipromed/agenda',
+          navigateTo: '/ipromed/legal?tab=agenda',
         });
       });
 
@@ -211,7 +211,7 @@ export function WorkspaceDeadlines() {
           variant="outline" 
           size="sm" 
           className="gap-1"
-          onClick={() => navigate('/ipromed/agenda')}
+          onClick={() => navigate('/ipromed/legal?tab=agenda')}
         >
           Agenda
           <ChevronRight className="h-4 w-4" />
