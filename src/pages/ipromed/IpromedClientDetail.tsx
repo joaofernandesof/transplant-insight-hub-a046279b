@@ -77,13 +77,6 @@ const riskConfig: Record<string, { label: string; color: string; icon: React.Ele
   high: { label: 'Alto', color: 'bg-rose-100 text-rose-700', icon: AlertTriangle },
 };
 
-const journeyStages = [
-  { key: 'prospect', label: 'Prospecto', color: 'bg-blue-500' },
-  { key: 'onboarding', label: 'Onboarding', color: 'bg-purple-500' },
-  { key: 'retention', label: 'Retenção', color: 'bg-emerald-500' },
-  { key: 'expansion', label: 'Expansão', color: 'bg-amber-500' },
-  { key: 'advocacy', label: 'Advocacia', color: 'bg-rose-500' },
-];
 
 export default function IpromedClientDetail() {
   const { id } = useParams();
@@ -192,7 +185,6 @@ export default function IpromedClientDetail() {
   const status = statusConfig[client.status] || statusConfig.prospect;
   const risk = riskConfig[client.risk_level] || riskConfig.low;
   const RiskIcon = risk.icon;
-  const currentStageIndex = journeyStages.findIndex(s => s.key === client.journey_stage);
 
   const address = client.address as {
     street?: string;
@@ -302,28 +294,6 @@ export default function IpromedClientDetail() {
             </div>
           </div>
 
-          {/* Journey Progress */}
-          <div className="mt-6 pt-6 border-t">
-            <p className="text-sm font-medium mb-3">Jornada do Cliente</p>
-            <div className="flex items-center gap-2">
-              {journeyStages.map((stage, index) => (
-                <div key={stage.key} className="flex items-center">
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${
-                    index <= currentStageIndex 
-                      ? `${stage.color} text-white` 
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
-                    <span className="text-xs font-medium">{stage.label}</span>
-                  </div>
-                  {index < journeyStages.length - 1 && (
-                    <div className={`w-8 h-0.5 mx-1 ${
-                      index < currentStageIndex ? 'bg-primary' : 'bg-muted'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         </CardContent>
       </Card>
 
