@@ -674,7 +674,7 @@ export default function OnboardingMeetingAgenda({
                       name="nomeCompleto"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>🪪 Nome completo do cliente *</FormLabel>
+                          <FormLabel>🪪 Nome completo do cliente <span className="text-destructive">*</span></FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="João da Silva Pereira" 
