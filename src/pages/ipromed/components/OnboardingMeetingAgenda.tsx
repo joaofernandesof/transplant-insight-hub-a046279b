@@ -67,6 +67,7 @@ import { toast } from "sonner";
 import ProcedureSelector from "./ProcedureSelector";
 import { cn } from "@/lib/utils";
 import { ProcedureVolumeSelector } from "./ProcedureVolumeSelector";
+import { YesNoSelector } from "./YesNoSelector";
 
 // Helper para destacar campos não preenchidos - aplicar no input/select
 const getInputHighlight = (value: string | number | boolean | undefined | null | unknown[]) => {
@@ -603,17 +604,15 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="possuiClinica"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="🏥 Possui clínica?"
                             />
                           </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>🏥 Possui clínica?</FormLabel>
-                            <FormDescription className="text-xs">Marque se o cliente possui clínica própria</FormDescription>
-                          </div>
+                          <FormDescription className="text-xs ml-1">Marque se o cliente possui clínica própria</FormDescription>
                         </FormItem>
                       )}
                     />
@@ -799,11 +798,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="possuiRQE"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="🏷️ Possui RQE"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal">🏷️ Possui RQE</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -1276,11 +1278,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="usaDocumentosHoje"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="🧩 Usa documentos próprios hoje"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal">🧩 Usa documentos próprios hoje</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -1407,11 +1412,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="usaAssinaturaDigital"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="🔒 Usa assinatura digital"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal">🔒 Usa assinatura digital</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -1492,11 +1500,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="possuiPrioridade"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="📌 Possui prioridade em algum ou alguns documentos?"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal">📌 Possui prioridade em algum ou alguns documentos?</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -1562,11 +1573,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="jaTeveProblemAnterior"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="🧨 Já teve problema anterior"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal">🧨 Já teve problema anterior</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -1837,11 +1851,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="necessitaTreinamento"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="❓ Necessita treinamento"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal">❓ Necessita treinamento</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -2016,11 +2033,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="fazAnuncios"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="📣 Faz anúncios"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal">📣 Faz anúncios</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -2192,11 +2212,14 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="leituraConcluida"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="✅ Leitura do contrato concluída"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal">✅ Leitura do contrato concluída</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -2205,11 +2228,15 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="aceiteContrato"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 bg-primary/5">
+                        <FormItem>
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <YesNoSelector
+                              value={field.value}
+                              onChange={field.onChange}
+                              label="🤝 Aceite do contrato"
+                              className="bg-primary/5"
+                            />
                           </FormControl>
-                          <FormLabel className="font-normal font-medium">🤝 Aceite do contrato</FormLabel>
                         </FormItem>
                       )}
                     />
