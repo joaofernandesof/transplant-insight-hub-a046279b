@@ -1967,12 +1967,17 @@ export default function OnboardingMeetingAgenda({
                                             ? "text-blue-600 dark:text-blue-400" 
                                             : "text-emerald-600 dark:text-emerald-400"
                                       )}>
-                                        {isPrioridade 
-                                          ? "🚨 10 dias úteis"
-                                          : jaPossui 
-                                            ? "20 dias úteis"
-                                            : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
-                                        }
+                                        {jaPossui ? (
+                                          // Cliente JÁ POSSUI o documento → Revisão → "após recebimento"
+                                          isPrioridade 
+                                            ? "🚨 Até 10 dias úteis após recebimento"
+                                            : "Até 20 dias úteis após recebimento"
+                                        ) : (
+                                          // Cliente NÃO POSSUI o documento → Criação → "a partir de hoje"
+                                          isPrioridade 
+                                            ? "🚨 Até 10 dias úteis a partir de hoje"
+                                            : "Até 20 dias úteis a partir de hoje"
+                                        )}
                                       </span>
                                     )}
                                   </td>
