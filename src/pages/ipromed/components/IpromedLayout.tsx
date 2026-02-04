@@ -4,12 +4,21 @@
  */
 
 import { ReactNode, useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AstreaStyleSidebar from "./AstreaStyleSidebar";
 import IpromedGlobalSearch from "./IpromedGlobalSearch";
 import IpromedGuidedTour from "./IpromedGuidedTour";
 import { Button } from "@/components/ui/button";
-import { Menu, Scale, HelpCircle } from "lucide-react";
+import { 
+  Menu, 
+  Scale, 
+  HelpCircle, 
+  UserPlus, 
+  FileSignature, 
+  CheckSquare,
+  Calendar,
+  FolderPlus
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIpromedOnboarding } from "@/hooks/useIpromedOnboarding";
@@ -28,7 +37,17 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { showTour, completeTour, startTour } = useIpromedOnboarding();
+
+  // Quick actions for header
+  const quickActions = [
+    { icon: UserPlus, label: "Novo Cliente", route: "/ipromed/clients?new=1" },
+    { icon: FileSignature, label: "Novo Contrato", route: "/ipromed/contracts?new=1" },
+    { icon: FolderPlus, label: "Novo Processo", route: "/ipromed/legal?tab=cases&new=1" },
+    { icon: CheckSquare, label: "Nova Tarefa", route: "/ipromed/legal?tab=tasks&new=1" },
+    { icon: Calendar, label: "Agendar Reunião", route: "/ipromed/agenda?new=1" },
+  ];
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -96,14 +115,57 @@ export default function IpromedLayout({ children }: IpromedLayoutProps) {
         "flex-1 flex flex-col transition-all duration-300",
         isCollapsed ? "lg:ml-16" : "lg:ml-60"
       )}>
-        {/* Top Bar with Global Search */}
+        {/* Top Bar with Global Search and Quick Actions */}
         <header className="sticky top-0 z-40 h-14 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-          <div className="flex items-center justify-between h-full px-4">
+          <div className="flex items-center justify-between h-full px-4 gap-4">
+            {/* Search */}
             <div data-tour="global-search" className="flex-1 max-w-md">
               <IpromedGlobalSearch />
             </div>
             
-            <div className="flex items-center gap-2">
+            {/* Quick Actions */}
+            <div className="hidden md:flex items-center gap-1">
+              <TooltipProvider delayDuration={200}>
+                {quickActions.map((action) => (
+                  <Tooltip key={action.label}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(action.route)}
+                        className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                      >
+                        <action.icon className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{action.label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+                
+                <div className="w-px h-6 bg-border mx-1" />
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={startTour}
+                      className="text-muted-foreground hover:text-primary"
+                    >
+                      <HelpCircle className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Iniciar tour guiado</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
+            {/* Mobile: only help */}
+            <div className="flex md:hidden items-center">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
