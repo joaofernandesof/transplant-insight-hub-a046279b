@@ -46,29 +46,92 @@ import {
   Line,
 } from "recharts";
 
-// DRE Data
+// DRE Data - Formato Contábil Correto
 const dreData = {
-  receitas: {
+  // RECEITA BRUTA
+  receitaBruta: {
     honorarios: 85000,
     consultas: 12500,
     pareceres: 8000,
     mensalidades: 35000,
     total: 140500,
   },
-  despesas: {
-    pessoal: 45000,
-    prolabore: 25000,
-    aluguel: 4500,
-    software: 2500,
+  // (-) DEDUÇÕES DA RECEITA
+  deducoes: {
+    impostosSobreServicos: 7025, // ISS ~5%
+    pis: 912, // 0.65%
+    cofins: 4215, // 3%
+    total: 12152,
+  },
+  // (=) RECEITA LÍQUIDA
+  receitaLiquida: 128348,
+  
+  // (-) CUSTO DOS SERVIÇOS PRESTADOS (CSP)
+  custoServicos: {
     correspondentes: 8500,
     peritos: 12000,
     custas: 5500,
-    marketing: 3500,
-    outros: 4000,
-    total: 110500,
+    total: 26000,
   },
-  resultado: 30000,
-  margem: 21.4,
+  // (=) LUCRO BRUTO
+  lucroBruto: 102348,
+  margemBruta: 72.8, // (lucro bruto / receita bruta) * 100
+  
+  // (-) DESPESAS OPERACIONAIS
+  despesasOperacionais: {
+    administrativas: {
+      pessoal: 45000,
+      aluguel: 4500,
+      software: 2500,
+      telefone: 800,
+      total: 52800,
+    },
+    comerciais: {
+      marketing: 3500,
+      comissoes: 2800,
+      total: 6300,
+    },
+    gerais: {
+      outros: 4000,
+      total: 4000,
+    },
+    total: 63100,
+  },
+  
+  // (=) EBITDA
+  ebitda: 39248,
+  margemEbitda: 27.9,
+  
+  // (-) DEPRECIAÇÃO E AMORTIZAÇÃO
+  depreciacaoAmortizacao: 2500,
+  
+  // (=) EBIT (Lucro Operacional)
+  ebit: 36748,
+  margemOperacional: 26.1,
+  
+  // (+/-) RESULTADO FINANCEIRO
+  resultadoFinanceiro: {
+    receitasFinanceiras: 1200,
+    despesasFinanceiras: 3200,
+    resultado: -2000,
+  },
+  
+  // (=) RESULTADO ANTES DOS IMPOSTOS (LAIR)
+  resultadoAntesImpostos: 34748,
+  
+  // (-) IMPOSTOS SOBRE O LUCRO
+  impostosLucro: {
+    irpj: 5212, // ~15%
+    csll: 3127, // ~9%
+    total: 8339,
+  },
+  
+  // (=) LUCRO LÍQUIDO
+  lucroLiquido: 26409,
+  margemLiquida: 18.8,
+  
+  // PRO-LABORE (informativo)
+  proLabore: 25000,
 };
 
 // Aging data
@@ -150,84 +213,272 @@ export default function FinancialReports() {
 
         {/* DRE Tab */}
         <TabsContent value="dre" className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-emerald-200 bg-emerald-50">
+          {/* DRE Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-emerald-700">Receita Bruta</p>
-                    <p className="text-2xl font-bold text-emerald-800">{formatCurrency(dreData.receitas.total)}</p>
-                  </div>
-                  <TrendingUp className="h-8 w-8 text-emerald-500" />
-                </div>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">Receita Bruta</p>
+                <p className="text-xl font-bold text-emerald-800 dark:text-emerald-200">{formatCurrency(dreData.receitaBruta.total)}</p>
               </CardContent>
             </Card>
-            <Card className="border-rose-200 bg-rose-50">
+            <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-rose-700">Despesas</p>
-                    <p className="text-2xl font-bold text-rose-800">{formatCurrency(dreData.despesas.total)}</p>
-                  </div>
-                  <TrendingDown className="h-8 w-8 text-rose-500" />
-                </div>
+                <p className="text-xs text-blue-700 dark:text-blue-300">EBITDA</p>
+                <p className="text-xl font-bold text-blue-800 dark:text-blue-200">{formatCurrency(dreData.ebitda)}</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">Margem: {dreData.margemEbitda}%</p>
               </CardContent>
             </Card>
-            <Card className="border-blue-200 bg-blue-50">
+            <Card className="border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-blue-700">Resultado (Lucro)</p>
-                    <p className="text-2xl font-bold text-blue-800">{formatCurrency(dreData.resultado)}</p>
-                    <p className="text-xs text-blue-600">Margem: {dreData.margem}%</p>
-                  </div>
-                  <DollarSign className="h-8 w-8 text-blue-500" />
-                </div>
+                <p className="text-xs text-purple-700 dark:text-purple-300">EBIT</p>
+                <p className="text-xl font-bold text-purple-800 dark:text-purple-200">{formatCurrency(dreData.ebit)}</p>
+                <p className="text-xs text-purple-600 dark:text-purple-400">Margem: {dreData.margemOperacional}%</p>
+              </CardContent>
+            </Card>
+            <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30">
+              <CardContent className="p-4">
+                <p className="text-xs text-amber-700 dark:text-amber-300">Lucro Líquido</p>
+                <p className="text-xl font-bold text-amber-800 dark:text-amber-200">{formatCurrency(dreData.lucroLiquido)}</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">Margem: {dreData.margemLiquida}%</p>
               </CardContent>
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base text-emerald-700">Receitas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {Object.entries(dreData.receitas).filter(([k]) => k !== 'total').map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center">
-                      <span className="capitalize text-sm">{key}</span>
-                      <span className="font-medium">{formatCurrency(value)}</span>
-                    </div>
-                  ))}
-                  <div className="border-t pt-2 flex justify-between items-center font-bold">
-                    <span>Total</span>
-                    <span className="text-emerald-600">{formatCurrency(dreData.receitas.total)}</span>
-                  </div>
+          {/* DRE Full Statement */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Demonstração do Resultado do Exercício (DRE)
+              </CardTitle>
+              <CardDescription>Período: Janeiro/2026</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {/* RECEITA BRUTA */}
+                    <tr className="bg-emerald-50 dark:bg-emerald-950/30 font-semibold">
+                      <td className="px-4 py-2">RECEITA BRUTA DE SERVIÇOS</td>
+                      <td className="px-4 py-2 text-right">{formatCurrency(dreData.receitaBruta.total)}</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">100%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Honorários Advocatícios</td>
+                      <td className="px-4 py-1.5 text-right">{formatCurrency(dreData.receitaBruta.honorarios)}</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">60.5%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Consultas</td>
+                      <td className="px-4 py-1.5 text-right">{formatCurrency(dreData.receitaBruta.consultas)}</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">8.9%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Pareceres</td>
+                      <td className="px-4 py-1.5 text-right">{formatCurrency(dreData.receitaBruta.pareceres)}</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">5.7%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Mensalidades Jurídicas</td>
+                      <td className="px-4 py-1.5 text-right">{formatCurrency(dreData.receitaBruta.mensalidades)}</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">24.9%</td>
+                    </tr>
+                    
+                    {/* DEDUÇÕES */}
+                    <tr className="border-t bg-rose-50/50 dark:bg-rose-950/20">
+                      <td className="px-4 py-2 font-medium text-rose-700 dark:text-rose-300">(-) DEDUÇÕES DA RECEITA</td>
+                      <td className="px-4 py-2 text-right text-rose-600">({formatCurrency(dreData.deducoes.total)})</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">-8.6%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">ISS sobre Serviços</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.deducoes.impostosSobreServicos)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-5.0%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">PIS</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.deducoes.pis)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-0.65%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">COFINS</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.deducoes.cofins)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-3.0%</td>
+                    </tr>
+                    
+                    {/* RECEITA LÍQUIDA */}
+                    <tr className="border-t bg-emerald-100/50 dark:bg-emerald-950/40 font-semibold">
+                      <td className="px-4 py-2">(=) RECEITA LÍQUIDA</td>
+                      <td className="px-4 py-2 text-right text-emerald-700 dark:text-emerald-300">{formatCurrency(dreData.receitaLiquida)}</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">91.4%</td>
+                    </tr>
+                    
+                    {/* CSP */}
+                    <tr className="border-t bg-rose-50/50 dark:bg-rose-950/20">
+                      <td className="px-4 py-2 font-medium text-rose-700 dark:text-rose-300">(-) CUSTO DOS SERVIÇOS PRESTADOS</td>
+                      <td className="px-4 py-2 text-right text-rose-600">({formatCurrency(dreData.custoServicos.total)})</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">-18.5%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Correspondentes</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.custoServicos.correspondentes)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-6.0%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Honorários Periciais</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.custoServicos.peritos)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-8.5%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Custas Processuais</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.custoServicos.custas)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-3.9%</td>
+                    </tr>
+                    
+                    {/* LUCRO BRUTO */}
+                    <tr className="border-t bg-emerald-100 dark:bg-emerald-950/50 font-bold">
+                      <td className="px-4 py-2">(=) LUCRO BRUTO</td>
+                      <td className="px-4 py-2 text-right text-emerald-700 dark:text-emerald-300">{formatCurrency(dreData.lucroBruto)}</td>
+                      <td className="px-4 py-2 text-right">{dreData.margemBruta}%</td>
+                    </tr>
+                    
+                    {/* DESPESAS OPERACIONAIS */}
+                    <tr className="border-t bg-rose-50/50 dark:bg-rose-950/20">
+                      <td className="px-4 py-2 font-medium text-rose-700 dark:text-rose-300">(-) DESPESAS OPERACIONAIS</td>
+                      <td className="px-4 py-2 text-right text-rose-600">({formatCurrency(dreData.despesasOperacionais.total)})</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">-44.9%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Despesas Administrativas</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.despesasOperacionais.administrativas.total)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-37.6%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-12 text-xs text-muted-foreground">Pessoal e Encargos</td>
+                      <td className="px-4 py-1.5 text-right text-rose-500 text-xs">({formatCurrency(dreData.despesasOperacionais.administrativas.pessoal)})</td>
+                      <td className="px-4 py-1.5"></td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-12 text-xs text-muted-foreground">Aluguel e Condomínio</td>
+                      <td className="px-4 py-1.5 text-right text-rose-500 text-xs">({formatCurrency(dreData.despesasOperacionais.administrativas.aluguel)})</td>
+                      <td className="px-4 py-1.5"></td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-12 text-xs text-muted-foreground">Software e Tecnologia</td>
+                      <td className="px-4 py-1.5 text-right text-rose-500 text-xs">({formatCurrency(dreData.despesasOperacionais.administrativas.software)})</td>
+                      <td className="px-4 py-1.5"></td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Despesas Comerciais</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.despesasOperacionais.comerciais.total)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-4.5%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">Despesas Gerais</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.despesasOperacionais.gerais.total)})</td>
+                      <td className="px-4 py-1.5 text-right text-muted-foreground">-2.8%</td>
+                    </tr>
+                    
+                    {/* EBITDA */}
+                    <tr className="border-t bg-blue-100 dark:bg-blue-950/50 font-bold">
+                      <td className="px-4 py-2">(=) EBITDA</td>
+                      <td className="px-4 py-2 text-right text-blue-700 dark:text-blue-300">{formatCurrency(dreData.ebitda)}</td>
+                      <td className="px-4 py-2 text-right">{dreData.margemEbitda}%</td>
+                    </tr>
+                    
+                    {/* D&A */}
+                    <tr className="border-t">
+                      <td className="px-4 py-2 text-muted-foreground">(-) Depreciação e Amortização</td>
+                      <td className="px-4 py-2 text-right text-rose-600">({formatCurrency(dreData.depreciacaoAmortizacao)})</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">-1.8%</td>
+                    </tr>
+                    
+                    {/* EBIT */}
+                    <tr className="border-t bg-purple-100 dark:bg-purple-950/50 font-bold">
+                      <td className="px-4 py-2">(=) EBIT (Lucro Operacional)</td>
+                      <td className="px-4 py-2 text-right text-purple-700 dark:text-purple-300">{formatCurrency(dreData.ebit)}</td>
+                      <td className="px-4 py-2 text-right">{dreData.margemOperacional}%</td>
+                    </tr>
+                    
+                    {/* RESULTADO FINANCEIRO */}
+                    <tr className="border-t">
+                      <td className="px-4 py-2 text-muted-foreground">(+) Receitas Financeiras</td>
+                      <td className="px-4 py-2 text-right text-emerald-600">{formatCurrency(dreData.resultadoFinanceiro.receitasFinanceiras)}</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">0.9%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-2 text-muted-foreground">(-) Despesas Financeiras</td>
+                      <td className="px-4 py-2 text-right text-rose-600">({formatCurrency(dreData.resultadoFinanceiro.despesasFinanceiras)})</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">-2.3%</td>
+                    </tr>
+                    <tr className="border-t bg-muted/50">
+                      <td className="px-4 py-2 font-medium">(=) Resultado Financeiro Líquido</td>
+                      <td className="px-4 py-2 text-right text-rose-600">({formatCurrency(Math.abs(dreData.resultadoFinanceiro.resultado))})</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">-1.4%</td>
+                    </tr>
+                    
+                    {/* LAIR */}
+                    <tr className="border-t bg-muted">
+                      <td className="px-4 py-2 font-semibold">(=) RESULTADO ANTES DOS IMPOSTOS (LAIR)</td>
+                      <td className="px-4 py-2 text-right font-semibold">{formatCurrency(dreData.resultadoAntesImpostos)}</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">24.7%</td>
+                    </tr>
+                    
+                    {/* IMPOSTOS */}
+                    <tr className="border-t bg-rose-50/50 dark:bg-rose-950/20">
+                      <td className="px-4 py-2 font-medium text-rose-700 dark:text-rose-300">(-) IMPOSTOS SOBRE O LUCRO</td>
+                      <td className="px-4 py-2 text-right text-rose-600">({formatCurrency(dreData.impostosLucro.total)})</td>
+                      <td className="px-4 py-2 text-right text-muted-foreground">-5.9%</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">IRPJ</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.impostosLucro.irpj)})</td>
+                      <td className="px-4 py-1.5"></td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-1.5 pl-8 text-muted-foreground">CSLL</td>
+                      <td className="px-4 py-1.5 text-right text-rose-600">({formatCurrency(dreData.impostosLucro.csll)})</td>
+                      <td className="px-4 py-1.5"></td>
+                    </tr>
+                    
+                    {/* LUCRO LÍQUIDO */}
+                    <tr className="border-t bg-amber-100 dark:bg-amber-950/50 font-bold text-lg">
+                      <td className="px-4 py-3">(=) LUCRO LÍQUIDO DO PERÍODO</td>
+                      <td className="px-4 py-3 text-right text-amber-700 dark:text-amber-300">{formatCurrency(dreData.lucroLiquido)}</td>
+                      <td className="px-4 py-3 text-right">{dreData.margemLiquida}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Margins Summary */}
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 rounded-lg border bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Margem Bruta</p>
+                  <p className="text-lg font-bold text-emerald-600">{dreData.margemBruta}%</p>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base text-rose-700">Despesas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {Object.entries(dreData.despesas).filter(([k]) => k !== 'total').map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center">
-                      <span className="capitalize text-sm">{key}</span>
-                      <span className="font-medium">{formatCurrency(value)}</span>
-                    </div>
-                  ))}
-                  <div className="border-t pt-2 flex justify-between items-center font-bold">
-                    <span>Total</span>
-                    <span className="text-rose-600">{formatCurrency(dreData.despesas.total)}</span>
-                  </div>
+                <div className="p-3 rounded-lg border bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Margem EBITDA</p>
+                  <p className="text-lg font-bold text-blue-600">{dreData.margemEbitda}%</p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <div className="p-3 rounded-lg border bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Margem Operacional</p>
+                  <p className="text-lg font-bold text-purple-600">{dreData.margemOperacional}%</p>
+                </div>
+                <div className="p-3 rounded-lg border bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Margem Líquida</p>
+                  <p className="text-lg font-bold text-amber-600">{dreData.margemLiquida}%</p>
+                </div>
+              </div>
+              
+              {/* Pro-Labore Info */}
+              <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>Nota:</strong> Pró-labore dos sócios: {formatCurrency(dreData.proLabore)} (incluído nas Despesas Administrativas - Pessoal)
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Aging Tab */}
