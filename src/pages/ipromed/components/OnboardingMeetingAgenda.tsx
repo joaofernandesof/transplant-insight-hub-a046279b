@@ -136,6 +136,7 @@ const onboardingMeetingSchema = z.object({
 
   // 5. Prioridades (renumerado)
   possuiPrioridade: z.boolean().default(false),
+  documentosPrioritariosSelecionados: z.array(z.string()).default([]),
   documentosPrioritarios: z.array(z.object({
     nome: z.string().optional(),
   })).default([]),
@@ -181,6 +182,27 @@ const onboardingMeetingSchema = z.object({
 });
 
 type OnboardingMeetingData = z.infer<typeof onboardingMeetingSchema>;
+
+// Lista de documentos contratuais do IPROMED
+const documentosContratuais = [
+  "Formulário de Pré-Anamnese Guiado",
+  "Política de Agendamento de Consulta",
+  "Política de Prontuário Médico",
+  "Contrato de Prestação de Serviços de Transplante Capilar FUE",
+  "Distrato ao Contrato de Transplante Capilar FUE",
+  "Contrato de Prestação de Serviço de Mesoterapia",
+  "Contrato de Prestação de Serviço de Equipe de Instrumentação Cirúrgica",
+  "Termo de Cessão de Uso de Imagem do Paciente",
+  "Termo de Sigilo Médico-Paciente",
+  "Termo de Validação de Tricotomia",
+  "TCLE para Teleconsulta",
+  "Termo de Recusa de Tratamento",
+  "Notificação de Renúncia de Médico",
+  "Orientações Pré-Procedimento de Transplante Capilar FUE",
+  "Orientações Pós-Procedimento de Transplante Capilar FUE",
+  "TCLE Específicos para Transplante Capilar FUE",
+  "Manual de Publicidade Médica",
+];
 
 // Definição das seções com campos obrigatórios
 interface SectionConfig {
@@ -339,6 +361,7 @@ export default function OnboardingMeetingAgenda({
       usaAssinaturaDigital: false,
       ferramentaAssinatura: "",
       possuiPrioridade: false,
+      documentosPrioritariosSelecionados: [],
       documentosPrioritarios: [],
       jaTeveProblemAnterior: false,
       problemasAnteriores: [],
@@ -1514,58 +1537,96 @@ export default function OnboardingMeetingAgenda({
 
                     {form.watch("possuiPrioridade") && (
                       <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <FormLabel className="text-sm font-medium">📄 Documentos prioritários</FormLabel>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const current = form.getValues("documentosPrioritarios") || [];
-                              form.setValue("documentosPrioritarios", [...current, { nome: "" }]);
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Adicionar documento
-                          </Button>
-                        </div>
+                        <FormLabel className="text-sm font-medium">📄 Documentos contratuais prioritários</FormLabel>
+                        <FormDescription className="text-xs">Selecione os documentos que são prioridade para este cliente</FormDescription>
                         
-                        {(form.watch("documentosPrioritarios") || []).length === 0 && (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            Clique em "Adicionar documento" para registrar um documento prioritário
-                          </p>
-                        )}
+                        <FormField
+                          control={form.control}
+                          name="documentosPrioritariosSelecionados"
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="grid grid-cols-1 gap-2 mt-2">
+                                {documentosContratuais.map((doc, index) => (
+                                  <div
+                                    key={doc}
+                                    className="flex items-center space-x-2 space-y-0"
+                                  >
+                                    <Checkbox
+                                      checked={field.value?.includes(doc)}
+                                      onCheckedChange={(checked) => {
+                                        const current = field.value || [];
+                                        if (checked) {
+                                          field.onChange([...current, doc]);
+                                        } else {
+                                          field.onChange(current.filter((d: string) => d !== doc));
+                                        }
+                                      }}
+                                    />
+                                    <label className="text-sm font-normal cursor-pointer">
+                                      {index + 1}. {doc}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                            </FormItem>
+                          )}
+                        />
 
-                        {(form.watch("documentosPrioritarios") || []).map((_, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-medium text-sm">
-                              {index + 1}
-                            </div>
-                            <FormField
-                              control={form.control}
-                              name={`documentosPrioritarios.${index}.nome`}
-                              render={({ field }) => (
-                                <FormItem className="flex-1">
-                                  <FormControl>
-                                    <Input placeholder="Nome do documento prioritário..." {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
+                        {/* Documentos adicionais personalizados */}
+                        <div className="border-t pt-4 mt-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <FormLabel className="text-sm font-medium">📝 Documentos adicionais</FormLabel>
                             <Button
                               type="button"
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                               onClick={() => {
                                 const current = form.getValues("documentosPrioritarios") || [];
-                                form.setValue("documentosPrioritarios", current.filter((_, i) => i !== index));
+                                form.setValue("documentosPrioritarios", [...current, { nome: "" }]);
                               }}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Plus className="h-4 w-4 mr-1" />
+                              Adicionar documento
                             </Button>
                           </div>
-                        ))}
+                          
+                          {(form.watch("documentosPrioritarios") || []).length === 0 && (
+                            <p className="text-sm text-muted-foreground text-center py-2">
+                              Clique em "Adicionar documento" para registrar documentos fora do escopo padrão
+                            </p>
+                          )}
+
+                          {(form.watch("documentosPrioritarios") || []).map((_, index) => (
+                            <div key={index} className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-medium text-xs">
+                                +{index + 1}
+                              </div>
+                              <FormField
+                                control={form.control}
+                                name={`documentosPrioritarios.${index}.nome`}
+                                render={({ field }) => (
+                                  <FormItem className="flex-1">
+                                    <FormControl>
+                                      <Input placeholder="Nome do documento adicional..." {...field} className="h-9" />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  const current = form.getValues("documentosPrioritarios") || [];
+                                  form.setValue("documentosPrioritarios", current.filter((_, i) => i !== index));
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
 
