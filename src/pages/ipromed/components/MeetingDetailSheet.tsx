@@ -107,14 +107,59 @@ export function MeetingDetailSheet({
   const isOnboardingMeeting = meeting?.title?.toLowerCase().includes('onboarding') || 
                               meeting?.agenda_type === 'onboarding';
 
-  // Reset state when meeting changes
-  useState(() => {
-    if (meeting) {
-      setMeetingNotes(meeting.meeting_notes || "");
-      setMinutesText(meeting.minutes || "");
-      setActionItems(meeting.action_items || []);
-      setTopicsCompleted({});
-    }
+  // Update meeting mutation - MUST be before any early returns
+  const updateMeeting = useMutation({
+    mutationFn: async (updates: Partial<Meeting>) => {
+      const { error } = await supabase
+        .from('ipromed_client_meetings' as any)
+        .update(updates)
+        .eq('id', meeting?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
+      toast.success("Reunião atualizada!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao atualizar: " + error.message);
+    },
+  });
+
+  // Delete meeting mutation - MUST be before any early returns
+  const deleteMeeting = useMutation({
+    mutationFn: async () => {
+      if (!meeting?.id) {
+        throw new Error('Reunião inválida');
+      }
+
+      const { data, error } = await supabase
+        .from('ipromed_client_meetings' as any)
+        .delete()
+        .eq('id', meeting.id)
+        .select('id');
+
+      if (error) throw error;
+
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        throw new Error('Não foi possível excluir. A reunião pode não existir mais ou você não tem permissão.');
+      }
+    },
+    onSuccess: () => {
+      if (meeting?.client_id) {
+        queryClient.setQueryData<any[]>(['ipromed-client-meetings', meeting.client_id], (old) =>
+          (old || []).filter((m) => m?.id !== meeting.id)
+        );
+      }
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
+      toast.success("Reunião excluída!");
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao excluir: " + error.message);
+    },
   });
 
   // For onboarding meetings, render Dialog directly instead of Sheet
@@ -139,64 +184,7 @@ export function MeetingDetailSheet({
     );
   }
 
-  // Update meeting mutation
-  const updateMeeting = useMutation({
-    mutationFn: async (updates: Partial<Meeting>) => {
-      const { error } = await supabase
-        .from('ipromed_client_meetings' as any)
-        .update(updates)
-        .eq('id', meeting?.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
-      toast.success("Reunião atualizada!");
-    },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar: " + error.message);
-    },
-  });
-
-  // Delete meeting mutation
-  const deleteMeeting = useMutation({
-    mutationFn: async () => {
-      if (!meeting?.id) {
-        throw new Error('Reunião inválida');
-      }
-
-      // delete() não retorna erro quando 0 linhas são afetadas;
-      // usamos .select() para confirmar exclusão.
-      const { data, error } = await supabase
-        .from('ipromed_client_meetings' as any)
-        .delete()
-        .eq('id', meeting.id)
-        .select('id');
-
-      if (error) throw error;
-
-      if (!data || (Array.isArray(data) && data.length === 0)) {
-        throw new Error('Não foi possível excluir. A reunião pode não existir mais ou você não tem permissão.');
-      }
-    },
-    onSuccess: () => {
-      // Atualiza cache para remover imediatamente da lista do cliente
-      if (meeting?.client_id) {
-        queryClient.setQueryData<any[]>(['ipromed-client-meetings', meeting.client_id], (old) =>
-          (old || []).filter((m) => m?.id !== meeting.id)
-        );
-      }
-      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
-      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
-      toast.success("Reunião excluída!");
-      onOpenChange(false);
-    },
-    onError: (error: any) => {
-      toast.error("Erro ao excluir: " + error.message);
-    },
-  });
-
+  // Early return for no meeting
   if (!meeting) return null;
 
   const topics = meeting.agenda_topics || [];
