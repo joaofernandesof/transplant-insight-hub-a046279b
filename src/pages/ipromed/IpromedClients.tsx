@@ -268,7 +268,7 @@ export default function IpromedClients() {
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 lg:px-6 max-w-full">
         {/* Header */}
         <div className="flex items-center gap-2 sm:gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
@@ -432,12 +432,12 @@ export default function IpromedClients() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
+              <div className="w-full">
+                <Table className="w-full table-fixed">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      {/* Nome */}
-                      <TableHead className="min-w-[180px]">
+                      {/* Nome - 18% */}
+                      <TableHead className="w-[18%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
@@ -456,8 +456,8 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Status */}
-                      <TableHead className="min-w-[100px]">
+                      {/* Status - 7% */}
+                      <TableHead className="w-[7%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className={cn(
@@ -486,8 +486,8 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Código */}
-                      <TableHead className="min-w-[100px]">
+                      {/* Código - 9% */}
+                      <TableHead className="w-[9%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
@@ -506,8 +506,8 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Telefone */}
-                      <TableHead className="min-w-[130px]">
+                      {/* Telefone - 10% */}
+                      <TableHead className="w-[10%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
@@ -526,8 +526,8 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Email */}
-                      <TableHead className="min-w-[180px]">
+                      {/* Email - 14% */}
+                      <TableHead className="w-[14%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
@@ -546,8 +546,8 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Jornada */}
-                      <TableHead className="min-w-[120px]">
+                      {/* Jornada - 8% */}
+                      <TableHead className="w-[8%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className={cn(
@@ -579,8 +579,8 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Pagamento */}
-                      <TableHead className="min-w-[110px]">
+                      {/* Pagamento - 8% */}
+                      <TableHead className="w-[8%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className={cn(
@@ -606,8 +606,8 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Contrato */}
-                      <TableHead className="min-w-[130px]">
+                      {/* Contrato - 8% */}
+                      <TableHead className="w-[8%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className={cn(
@@ -632,19 +632,12 @@ export default function IpromedClients() {
                             <DropdownMenuItem onClick={() => setContractFilter('signed')}>
                               Assinado {contractFilter === 'signed' && '✓'}
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => { setSortField('contract_status'); setSortOrder('asc'); }}>
-                              Ordenar A → Z {sortField === 'contract_status' && sortOrder === 'asc' && '✓'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => { setSortField('contract_status'); setSortOrder('desc'); }}>
-                              Ordenar Z → A {sortField === 'contract_status' && sortOrder === 'desc' && '✓'}
-                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Risco */}
-                      <TableHead className="min-w-[90px]">
+                      {/* Risco - 6% */}
+                      <TableHead className="w-[6%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className={cn(
@@ -673,12 +666,12 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Cadastro */}
-                      <TableHead className="min-w-[100px]">
+                      {/* Cadastro - 6% */}
+                      <TableHead className="w-[6%]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
-                              Cadastro
+                              Cada
                               <ArrowUpDown className="h-3 w-3" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -693,8 +686,8 @@ export default function IpromedClients() {
                         </DropdownMenu>
                       </TableHead>
 
-                      {/* Ações */}
-                      <TableHead className="text-right min-w-[60px]">Ações</TableHead>
+                      {/* Ações - 4% */}
+                      <TableHead className="text-right w-[4%]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
