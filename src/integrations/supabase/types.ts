@@ -265,134 +265,6 @@ export type Database = {
         }
         Relationships: []
       }
-      avivar_agent_configs: {
-        Row: {
-          address: string | null
-          approved_at: string | null
-          attendant_name: string
-          before_after_images: Json | null
-          calendar_connected: boolean | null
-          calendar_email: string | null
-          city: string | null
-          company_name: string
-          consultation_duration: number | null
-          consultation_type: Json | null
-          created_at: string
-          crm: string | null
-          id: string
-          instagram: string | null
-          is_approved: boolean | null
-          is_complete: boolean | null
-          openai_api_key_hash: string | null
-          payment_methods: Json | null
-          professional_name: string
-          schedule: Json
-          services: Json | null
-          state: string | null
-          template: string
-          tone_of_voice: string | null
-          transfer_message: string | null
-          updated_at: string
-          user_id: string
-          welcome_message: string | null
-        }
-        Insert: {
-          address?: string | null
-          approved_at?: string | null
-          attendant_name: string
-          before_after_images?: Json | null
-          calendar_connected?: boolean | null
-          calendar_email?: string | null
-          city?: string | null
-          company_name: string
-          consultation_duration?: number | null
-          consultation_type?: Json | null
-          created_at?: string
-          crm?: string | null
-          id?: string
-          instagram?: string | null
-          is_approved?: boolean | null
-          is_complete?: boolean | null
-          openai_api_key_hash?: string | null
-          payment_methods?: Json | null
-          professional_name: string
-          schedule: Json
-          services?: Json | null
-          state?: string | null
-          template: string
-          tone_of_voice?: string | null
-          transfer_message?: string | null
-          updated_at?: string
-          user_id: string
-          welcome_message?: string | null
-        }
-        Update: {
-          address?: string | null
-          approved_at?: string | null
-          attendant_name?: string
-          before_after_images?: Json | null
-          calendar_connected?: boolean | null
-          calendar_email?: string | null
-          city?: string | null
-          company_name?: string
-          consultation_duration?: number | null
-          consultation_type?: Json | null
-          created_at?: string
-          crm?: string | null
-          id?: string
-          instagram?: string | null
-          is_approved?: boolean | null
-          is_complete?: boolean | null
-          openai_api_key_hash?: string | null
-          payment_methods?: Json | null
-          professional_name?: string
-          schedule?: Json
-          services?: Json | null
-          state?: string | null
-          template?: string
-          tone_of_voice?: string | null
-          transfer_message?: string | null
-          updated_at?: string
-          user_id?: string
-          welcome_message?: string | null
-        }
-        Relationships: []
-      }
-      avivar_agent_prompts: {
-        Row: {
-          agent_config_id: string
-          created_at: string
-          id: string
-          is_active: boolean | null
-          prompt_content: string
-          version: number | null
-        }
-        Insert: {
-          agent_config_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean | null
-          prompt_content: string
-          version?: number | null
-        }
-        Update: {
-          agent_config_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean | null
-          prompt_content?: string
-          version?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "avivar_agent_prompts_agent_config_id_fkey"
-            columns: ["agent_config_id"]
-            isOneToOne: false
-            referencedRelation: "avivar_agent_configs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       avivar_agents: {
         Row: {
           address: string | null
@@ -600,41 +472,6 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      avivar_briefing_interactions: {
-        Row: {
-          action: string
-          briefing_id: string
-          created_at: string | null
-          id: string
-          metadata: Json | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          briefing_id: string
-          created_at?: string | null
-          id?: string
-          metadata?: Json | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          briefing_id?: string
-          created_at?: string | null
-          id?: string
-          metadata?: Json | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "avivar_briefing_interactions_briefing_id_fkey"
-            columns: ["briefing_id"]
-            isOneToOne: false
-            referencedRelation: "avivar_lead_briefings"
             referencedColumns: ["id"]
           },
         ]
@@ -985,60 +822,6 @@ export type Database = {
         }
         Relationships: []
       }
-      avivar_detetive_settings: {
-        Row: {
-          apify_enabled: boolean | null
-          created_at: string | null
-          custom_prompt: string | null
-          default_language: string | null
-          elevenlabs_enabled: boolean | null
-          firecrawl_enabled: boolean | null
-          id: string
-          include_audio: boolean | null
-          include_instagram: boolean | null
-          include_linkedin: boolean | null
-          perplexity_enabled: boolean | null
-          updated_at: string | null
-          user_id: string
-          voice_id: string | null
-          voice_speed: number | null
-        }
-        Insert: {
-          apify_enabled?: boolean | null
-          created_at?: string | null
-          custom_prompt?: string | null
-          default_language?: string | null
-          elevenlabs_enabled?: boolean | null
-          firecrawl_enabled?: boolean | null
-          id?: string
-          include_audio?: boolean | null
-          include_instagram?: boolean | null
-          include_linkedin?: boolean | null
-          perplexity_enabled?: boolean | null
-          updated_at?: string | null
-          user_id: string
-          voice_id?: string | null
-          voice_speed?: number | null
-        }
-        Update: {
-          apify_enabled?: boolean | null
-          created_at?: string | null
-          custom_prompt?: string | null
-          default_language?: string | null
-          elevenlabs_enabled?: boolean | null
-          firecrawl_enabled?: boolean | null
-          id?: string
-          include_audio?: boolean | null
-          include_instagram?: boolean | null
-          include_linkedin?: boolean | null
-          perplexity_enabled?: boolean | null
-          updated_at?: string | null
-          user_id?: string
-          voice_id?: string | null
-          voice_speed?: number | null
-        }
-        Relationships: []
-      }
       avivar_kanban_columns: {
         Row: {
           ai_instruction: string | null
@@ -1282,78 +1065,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      avivar_lead_briefings: {
-        Row: {
-          ai_model_used: string | null
-          audio_duration_seconds: number | null
-          audio_url: string | null
-          briefing_data: Json | null
-          company_name: string | null
-          company_url: string
-          completed_at: string | null
-          created_at: string | null
-          error_message: string | null
-          generation_time_ms: number | null
-          id: string
-          instagram_data: Json | null
-          instagram_username: string | null
-          linkedin_data: Json | null
-          linkedin_url: string | null
-          news_data: Json | null
-          processing_step: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string
-          website_data: Json | null
-        }
-        Insert: {
-          ai_model_used?: string | null
-          audio_duration_seconds?: number | null
-          audio_url?: string | null
-          briefing_data?: Json | null
-          company_name?: string | null
-          company_url: string
-          completed_at?: string | null
-          created_at?: string | null
-          error_message?: string | null
-          generation_time_ms?: number | null
-          id?: string
-          instagram_data?: Json | null
-          instagram_username?: string | null
-          linkedin_data?: Json | null
-          linkedin_url?: string | null
-          news_data?: Json | null
-          processing_step?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id: string
-          website_data?: Json | null
-        }
-        Update: {
-          ai_model_used?: string | null
-          audio_duration_seconds?: number | null
-          audio_url?: string | null
-          briefing_data?: Json | null
-          company_name?: string | null
-          company_url?: string
-          completed_at?: string | null
-          created_at?: string | null
-          error_message?: string | null
-          generation_time_ms?: number | null
-          id?: string
-          instagram_data?: Json | null
-          instagram_username?: string | null
-          linkedin_data?: Json | null
-          linkedin_url?: string | null
-          news_data?: Json | null
-          processing_step?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string
-          website_data?: Json | null
-        }
-        Relationships: []
       }
       avivar_mensagens: {
         Row: {
@@ -1786,44 +1497,6 @@ export type Database = {
           },
         ]
       }
-      avivar_stage_history: {
-        Row: {
-          blocked_reason: string | null
-          changed_by: string | null
-          created_at: string | null
-          from_stage: Database["public"]["Enums"]["avivar_stage"] | null
-          id: string
-          journey_id: string | null
-          to_stage: Database["public"]["Enums"]["avivar_stage"]
-        }
-        Insert: {
-          blocked_reason?: string | null
-          changed_by?: string | null
-          created_at?: string | null
-          from_stage?: Database["public"]["Enums"]["avivar_stage"] | null
-          id?: string
-          journey_id?: string | null
-          to_stage: Database["public"]["Enums"]["avivar_stage"]
-        }
-        Update: {
-          blocked_reason?: string | null
-          changed_by?: string | null
-          created_at?: string | null
-          from_stage?: Database["public"]["Enums"]["avivar_stage"] | null
-          id?: string
-          journey_id?: string | null
-          to_stage?: Database["public"]["Enums"]["avivar_stage"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "avivar_stage_history_journey_id_fkey"
-            columns: ["journey_id"]
-            isOneToOne: false
-            referencedRelation: "avivar_patient_journeys"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       avivar_team_members: {
         Row: {
           accepted_at: string | null
@@ -1871,44 +1544,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      avivar_test_conversations: {
-        Row: {
-          agent_config_id: string
-          created_at: string
-          id: string
-          messages: Json | null
-          status: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          agent_config_id: string
-          created_at?: string
-          id?: string
-          messages?: Json | null
-          status?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          agent_config_id?: string
-          created_at?: string
-          id?: string
-          messages?: Json | null
-          status?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "avivar_test_conversations_agent_config_id_fkey"
-            columns: ["agent_config_id"]
-            isOneToOne: false
-            referencedRelation: "avivar_agent_configs"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       avivar_tutorials: {
         Row: {
