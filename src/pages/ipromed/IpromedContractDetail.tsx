@@ -123,6 +123,10 @@ export default function IpromedContractDetail() {
   const queryClient = useQueryClient();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+  const [previewFileType, setPreviewFileType] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState('contract');
@@ -231,8 +235,8 @@ export default function IpromedContractDetail() {
     }
   };
 
-  // Download document
-  const handleDownloadDoc = async (doc: ContractDocument) => {
+  // Preview document in modal
+  const handlePreviewDoc = async (doc: ContractDocument) => {
     try {
       const { data, error } = await supabase.storage
         .from('ipromed-contracts')
@@ -240,7 +244,35 @@ export default function IpromedContractDetail() {
 
       if (error) throw error;
       if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank');
+        setPreviewUrl(data.signedUrl);
+        setPreviewFileName(doc.file_name);
+        setPreviewFileType(doc.file_type);
+        setPreviewDialogOpen(true);
+      }
+    } catch (error: any) {
+      toast.error('Erro ao visualizar documento: ' + error.message);
+    }
+  };
+
+  // Download document directly
+  const handleDownloadDoc = async (doc: ContractDocument) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('ipromed-contracts')
+        .download(doc.file_path);
+
+      if (error) throw error;
+      if (data) {
+        // Create download link
+        const url = URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('Download iniciado!');
       }
     } catch (error: any) {
       toast.error('Erro ao baixar documento: ' + error.message);
@@ -593,7 +625,7 @@ export default function IpromedContractDetail() {
                                 variant="ghost"
                                 size="icon"
                                 title="Visualizar"
-                                onClick={() => handleDownloadDoc(doc)}
+                                onClick={() => handlePreviewDoc(doc)}
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -667,6 +699,51 @@ export default function IpromedContractDetail() {
         onSend={handleSendForSignature}
         isPending={sendForSignature.isPending}
       />
+
+      {/* Dialog de preview do documento */}
+      <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {previewFileName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-[70vh] bg-muted/30">
+            {previewUrl && (
+              previewFileType.includes('pdf') ? (
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-[70vh] border-0"
+                  title={previewFileName}
+                />
+              ) : previewFileType.includes('image') ? (
+                <div className="flex items-center justify-center h-[70vh] p-4">
+                  <img 
+                    src={previewUrl} 
+                    alt={previewFileName}
+                    className="max-w-full max-h-full object-contain rounded-lg"
+                  />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
+                  <File className="h-16 w-16 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    Visualização não disponível para este tipo de arquivo
+                  </p>
+                  <Button onClick={() => {
+                    window.open(previewUrl, '_blank');
+                    setPreviewDialogOpen(false);
+                  }}>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Abrir em nova aba
+                  </Button>
+                </div>
+              )
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
