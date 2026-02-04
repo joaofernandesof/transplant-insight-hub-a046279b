@@ -448,7 +448,12 @@ export default function IpromedContracts() {
           <div className="p-6 space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold">{getGreeting()}, IPROMED!</h1>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold">Gestão de Documentos</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Controle de contratos e arquivos
+                </p>
+              </div>
               <Button variant="outline" onClick={() => navigate("/ipromed/legal")}>
                 <FileSignature className="h-4 w-4 mr-2" />
                 Hub Jurídico
