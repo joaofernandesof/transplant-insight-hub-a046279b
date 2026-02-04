@@ -42,6 +42,10 @@ import {
   ArrowRight,
   BadgePercent,
   Target,
+  Scale,
+  Building,
+  Briefcase,
+  Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, startOfWeek, endOfWeek, parseISO, differenceInDays } from "date-fns";
@@ -806,6 +810,219 @@ export default function FinancialOverviewDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Cost Centers Section */}
+      <CostCentersSection />
     </div>
+  );
+}
+
+// ===== Cost Centers Section (embedded) =====
+
+interface CostCenter {
+  id: string;
+  name: string;
+  type: 'area' | 'partner' | 'unit' | 'service';
+  revenue: number;
+  expenses: number;
+  margin: number;
+  cases: number;
+}
+
+const mockCostCenters: CostCenter[] = [
+  { id: '1', name: 'Consultivo', type: 'area', revenue: 45000, expenses: 12000, margin: 73, cases: 15 },
+  { id: '2', name: 'Contencioso', type: 'area', revenue: 35000, expenses: 18000, margin: 49, cases: 8 },
+  { id: '3', name: 'Audiências', type: 'service', revenue: 12000, expenses: 4500, margin: 62, cases: 24 },
+  { id: '4', name: 'Perícias', type: 'service', revenue: 8000, expenses: 5000, margin: 37, cases: 6 },
+  { id: '5', name: 'Correspondentes', type: 'service', revenue: 0, expenses: 8500, margin: -100, cases: 12 },
+  { id: '6', name: 'Dra. Larissa', type: 'partner', revenue: 52000, expenses: 15000, margin: 71, cases: 18 },
+  { id: '7', name: 'Dra. Caroline', type: 'partner', revenue: 38000, expenses: 12000, margin: 68, cases: 14 },
+  { id: '8', name: 'Unidade SP', type: 'unit', revenue: 65000, expenses: 22000, margin: 66, cases: 25 },
+];
+
+const typeConfig = {
+  area: { label: 'Área do Direito', icon: Scale, color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+  partner: { label: 'Sócio', icon: Users, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
+  unit: { label: 'Unidade', icon: Building, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+  service: { label: 'Serviço', icon: Briefcase, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
+};
+
+const COST_CENTER_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4'];
+
+function CostCentersSection() {
+  const [selectedType, setSelectedType] = useState<string>('all');
+
+  const filteredCenters = mockCostCenters.filter(c =>
+    selectedType === 'all' || c.type === selectedType
+  );
+
+  const stats = {
+    totalRevenue: mockCostCenters.reduce((sum, c) => sum + c.revenue, 0),
+    totalExpenses: mockCostCenters.reduce((sum, c) => sum + c.expenses, 0),
+    avgMargin: Math.round(mockCostCenters.reduce((sum, c) => sum + c.margin, 0) / mockCostCenters.length),
+  };
+
+  const pieData = mockCostCenters
+    .filter(c => c.type === 'area' && c.revenue > 0)
+    .map(c => ({ name: c.name, value: c.revenue }));
+
+  const barData = mockCostCenters
+    .filter(c => c.type === 'partner')
+    .map(c => ({ name: c.name, receita: c.revenue, despesa: c.expenses }));
+
+  return (
+    <Card>
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calculator className="h-4 w-4 text-indigo-600" />
+              Centros de Resultado
+            </CardTitle>
+            <CardDescription>Análise por área, sócio e tipo de serviço</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Mini Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">Receita Total</p>
+                <p className="text-lg font-bold text-emerald-800 dark:text-emerald-200">{formatCurrency(stats.totalRevenue)}</p>
+              </div>
+              <TrendingUp className="h-5 w-5 text-emerald-500" />
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-rose-700 dark:text-rose-300">Despesa Total</p>
+                <p className="text-lg font-bold text-rose-800 dark:text-rose-200">{formatCurrency(stats.totalExpenses)}</p>
+              </div>
+              <TrendingDown className="h-5 w-5 text-rose-500" />
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-blue-700 dark:text-blue-300">Margem Média</p>
+                <p className="text-lg font-bold text-blue-800 dark:text-blue-200">{stats.avgMargin}%</p>
+              </div>
+              <Target className="h-5 w-5 text-blue-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg border bg-muted/20">
+            <p className="text-sm font-medium mb-3">Receita por Área</p>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={60}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COST_CENTER_COLORS[index % COST_CENTER_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip formatter={(value: number) => formatCurrency(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-lg border bg-muted/20">
+            <p className="text-sm font-medium mb-3">Performance por Sócio</p>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} className="text-xs" />
+                  <YAxis type="category" dataKey="name" width={80} className="text-xs" />
+                  <RechartsTooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Bar dataKey="receita" name="Receita" fill="#10b981" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="despesa" name="Despesa" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter & List */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant={selectedType === 'all' ? 'default' : 'outline'} 
+              size="sm"
+              onClick={() => setSelectedType('all')}
+              className="h-7 text-xs"
+            >
+              Todos
+            </Button>
+            {Object.entries(typeConfig).map(([key, config]) => (
+              <Button
+                key={key}
+                variant={selectedType === key ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1 h-7 text-xs"
+                onClick={() => setSelectedType(key)}
+              >
+                <config.icon className="h-3 w-3" />
+                {config.label}
+              </Button>
+            ))}
+          </div>
+
+          <div className="rounded-lg border overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left px-3 py-2 font-medium">Centro</th>
+                  <th className="text-left px-3 py-2 font-medium">Tipo</th>
+                  <th className="text-right px-3 py-2 font-medium">Receita</th>
+                  <th className="text-right px-3 py-2 font-medium">Despesa</th>
+                  <th className="text-right px-3 py-2 font-medium">Margem</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCenters.slice(0, 6).map(center => {
+                  const type = typeConfig[center.type];
+                  return (
+                    <tr key={center.id} className="border-t hover:bg-muted/30">
+                      <td className="px-3 py-2 font-medium">{center.name}</td>
+                      <td className="px-3 py-2">
+                        <Badge className={cn("text-xs", type.color)}>{type.label}</Badge>
+                      </td>
+                      <td className="px-3 py-2 text-right text-emerald-600 font-medium">
+                        {formatCurrency(center.revenue)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-rose-600 font-medium">
+                        {formatCurrency(center.expenses)}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <span className={cn("font-bold", center.margin >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
+                          {center.margin}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

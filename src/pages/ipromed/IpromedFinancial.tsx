@@ -16,7 +16,6 @@ import {
   BarChart3,
   Wallet,
   Link2,
-  Calculator,
   PieChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,7 +27,6 @@ import CashFlow from "./components/financial/CashFlow";
 import BankReconciliation from "./components/financial/BankReconciliation";
 import BankIntegration from "./components/financial/BankIntegration";
 import BillingModule from "./components/financial/BillingModule";
-import CostCenters from "./components/financial/CostCenters";
 import InvoicesModule from "./components/financial/InvoicesModule";
 import FinancialReports from "./components/financial/FinancialReports";
 import AccountingIntegration from "./components/financial/AccountingIntegration";
@@ -43,7 +41,6 @@ const tabs = [
   { id: 'reconciliation', label: 'Conciliação', icon: Link2 },
   { id: 'bank', label: 'Integração Bancária', icon: Building2 },
   { id: 'billing', label: 'Cobranças', icon: Receipt },
-  { id: 'centers', label: 'Centros de Resultado', icon: Calculator },
   { id: 'invoices', label: 'Notas Fiscais', icon: FileText },
   { id: 'reports', label: 'Relatórios', icon: BarChart3 },
   { id: 'accounting', label: 'Contabilidade', icon: Wallet },
@@ -119,10 +116,6 @@ export default function IpromedFinancial() {
 
         <TabsContent value="billing" className="mt-6">
           <BillingModule />
-        </TabsContent>
-
-        <TabsContent value="centers" className="mt-6">
-          <CostCenters />
         </TabsContent>
 
         <TabsContent value="invoices" className="mt-6">
