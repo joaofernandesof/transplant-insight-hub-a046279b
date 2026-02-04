@@ -275,7 +275,11 @@ export default function IpromedContracts() {
                   const status = statusConfig[contract.status] || statusConfig.draft;
                   const StatusIcon = status.icon;
                   return (
-                    <TableRow key={contract.id}>
+                    <TableRow 
+                      key={contract.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
+                    >
                       <TableCell className="font-mono text-sm">
                         {contract.contract_number || '-'}
                       </TableCell>
@@ -296,8 +300,8 @@ export default function IpromedContracts() {
                         {format(new Date(contract.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" title="Ver" onClick={() => handleView(contract)}>
+                        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" title="Ver" onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                           {contract.status === 'draft' && (
@@ -315,11 +319,9 @@ export default function IpromedContracts() {
                               )}
                             </Button>
                           )}
-                          {contract.status === 'signed' && (
-                            <Button variant="ghost" size="icon" title="Download" onClick={() => handleDownload(contract)}>
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button variant="ghost" size="icon" title="Download" onClick={() => handleDownload(contract)}>
+                            <Download className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
