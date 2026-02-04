@@ -1869,12 +1869,19 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
   let instructions = `<fluxo_de_atendimento>
 ## PASSOS DO ATENDIMENTO (siga na ordem):
 
+**IMPORTANTE sobre exemplos de mensagem:**
+Os exemplos fornecidos são REFERÊNCIAS, não textos fixos. Você deve:
+- Manter o mesmo sentido e contexto da mensagem
+- Fazer pequenas variações naturais (sinônimos, expressões equivalentes)
+- Adaptar levemente ao tom da conversa mantendo a essência
+- NÃO copiar literalmente - humanize com variações sutis
+
 `;
   
   for (const passo of passosCronologicos) {
     instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
 ${passo.descricao}
-${passo.exemploMensagem ? `Exemplo: "${passo.exemploMensagem}"` : ''}
+${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemploMensagem}"` : ''}
 
 `;
   }
@@ -1886,7 +1893,7 @@ ${passo.exemploMensagem ? `Exemplo: "${passo.exemploMensagem}"` : ''}
     for (const passo of passosExtras) {
       instructions += `### ${passo.titulo.toUpperCase()}
 ${passo.descricao}
-${passo.exemploMensagem ? `Exemplo: "${passo.exemploMensagem}"` : ''}
+${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemploMensagem}"` : ''}
 
 `;
     }
