@@ -107,10 +107,10 @@ const onboardingMeetingSchema = z.object({
 
 
   // 5. Prioridades (renumerado)
-  criterioPrioridade: z.string().optional(),
-  prioridade1: z.string().optional(),
-  prioridade2: z.string().optional(),
-  prioridade3: z.string().optional(),
+  possuiPrioridade: z.boolean().default(false),
+  documentosPrioritarios: z.array(z.object({
+    nome: z.string().optional(),
+  })).default([]),
   jaTeveProblemAnterior: z.boolean().default(false),
   problemasAnteriores: z.array(z.object({
     titulo: z.string().optional(),
@@ -174,7 +174,7 @@ const formatoAtendimentoOptions = ["Clínica própria", "Terceiros", "Hospital",
 const estruturaOptions = ["Clínica própria", "Consultório alugado", "Hospital", "Coworking médico"];
 const documentosOptions = ["TCLE", "Contrato de prestação", "Termo de imagem", "Anamnese", "Prontuário", "Política de agendamento"];
 const quemPreencheOptions = ["Secretária", "Médico", "Recepção", "Equipe administrativa"];
-const criterioPrioridadeOptions = ["Risco jurídico", "Frequência de uso", "Urgência comercial", "Volume de atendimentos"];
+
 const cenarioClienteOptions = ["Tem documentos", "Sem documentos", "Documentos parciais"];
 const formatoTreinamentoOptions = ["Online", "Presencial", "Híbrido"];
 const responsavelPerfilOptions = ["Equipe", "Cliente", "Agência", "Social media"];
@@ -226,10 +226,8 @@ export default function OnboardingMeetingAgenda({
       quemPreenche: "",
       usaAssinaturaDigital: false,
       ferramentaAssinatura: "",
-      criterioPrioridade: "",
-      prioridade1: "",
-      prioridade2: "",
-      prioridade3: "",
+      possuiPrioridade: false,
+      documentosPrioritarios: [],
       jaTeveProblemAnterior: false,
       problemasAnteriores: [],
       cenarioCliente: "",
@@ -1062,71 +1060,73 @@ export default function OnboardingMeetingAgenda({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <FormField
                       control={form.control}
-                      name="criterioPrioridade"
+                      name="possuiPrioridade"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>⚠️ Critério de prioridade</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {criterioPrioridadeOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div /> {/* Spacer */}
-
-                    <FormField
-                      control={form.control}
-                      name="prioridade1"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>🥇 Prioridade 1</FormLabel>
+                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 md:col-span-2">
                           <FormControl>
-                            <Input placeholder="TCLE transplante capilar" {...field} />
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
-                          <FormMessage />
+                          <FormLabel className="font-normal">📌 Possui prioridade em algum ou alguns documentos?</FormLabel>
                         </FormItem>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="prioridade2"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>🥈 Prioridade 2</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Termo de imagem" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {form.watch("possuiPrioridade") && (
+                      <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <FormLabel className="text-sm font-medium">📄 Documentos prioritários</FormLabel>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const current = form.getValues("documentosPrioritarios") || [];
+                              form.setValue("documentosPrioritarios", [...current, { nome: "" }]);
+                            }}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Adicionar documento
+                          </Button>
+                        </div>
+                        
+                        {(form.watch("documentosPrioritarios") || []).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Clique em "Adicionar documento" para registrar um documento prioritário
+                          </p>
+                        )}
 
-                    <FormField
-                      control={form.control}
-                      name="prioridade3"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>🥉 Prioridade 3</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Contrato de prestação" {...field} />
-                          </FormControl>
-                          <FormDescription className="text-xs">Opcional</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        {(form.watch("documentosPrioritarios") || []).map((_, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-medium text-sm">
+                              {index + 1}
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name={`documentosPrioritarios.${index}.nome`}
+                              render={({ field }) => (
+                                <FormItem className="flex-1">
+                                  <FormControl>
+                                    <Input placeholder="Nome do documento prioritário..." {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => {
+                                const current = form.getValues("documentosPrioritarios") || [];
+                                form.setValue("documentosPrioritarios", current.filter((_, i) => i !== index));
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     <FormField
                       control={form.control}
