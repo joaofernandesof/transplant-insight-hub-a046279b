@@ -34,7 +34,7 @@ interface ChecklistField {
   options?: string[];
 }
 
-// Todos os tipos de campo disponíveis baseados nas imagens do usuário
+// Todos os tipos de campo disponíveis
 const FIELD_TYPES = [
   { value: 'text', label: 'Texto curto' },
   { value: 'number', label: 'Numérico' },
@@ -42,13 +42,8 @@ const FIELD_TYPES = [
   { value: 'select', label: 'Selecionar' },
   { value: 'multiselect', label: 'Seleção múltipla' },
   { value: 'date', label: 'Data' },
-  { value: 'url', label: 'Url' },
   { value: 'textarea', label: 'Texto longo' },
-  { value: 'radio', label: 'Botão de opção' },
-  { value: 'short_address', label: 'Endereço curto' },
   { value: 'address', label: 'Endereço' },
-  { value: 'birthdate', label: 'Data de nascimento' },
-  { value: 'cpf', label: 'CPF' },
   { value: 'datetime', label: 'Data e hora' },
   { value: 'file', label: 'Arquivo' },
 ];
