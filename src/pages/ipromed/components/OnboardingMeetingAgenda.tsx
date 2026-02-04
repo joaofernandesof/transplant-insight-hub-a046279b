@@ -112,7 +112,10 @@ const onboardingMeetingSchema = z.object({
   prioridade2: z.string().optional(),
   prioridade3: z.string().optional(),
   jaTeveProblemAnterior: z.boolean().default(false),
-  descricaoProblema: z.string().optional(),
+  problemasAnteriores: z.array(z.object({
+    titulo: z.string().optional(),
+    descricao: z.string().optional(),
+  })).default([]),
 
   // 7. Prazos
   cenarioCliente: z.string().optional(),
@@ -228,7 +231,7 @@ export default function OnboardingMeetingAgenda({
       prioridade2: "",
       prioridade3: "",
       jaTeveProblemAnterior: false,
-      descricaoProblema: "",
+      problemasAnteriores: [],
       cenarioCliente: "",
       dataRecebimentoCompleto: "",
       prazoPadraoInformado: 20,
@@ -1139,24 +1142,81 @@ export default function OnboardingMeetingAgenda({
                     />
 
                     {form.watch("jaTeveProblemAnterior") && (
-                      <FormField
-                        control={form.control}
-                        name="descricaoProblema"
-                        render={({ field }) => (
-                          <FormItem className="md:col-span-2">
-                            <FormLabel>📝 Descrição do problema</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Reclamação por foto antes e depois..." 
-                                className="min-h-[80px]"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormDescription className="text-xs">Sem dados sensíveis desnecessários</FormDescription>
-                            <FormMessage />
-                          </FormItem>
+                      <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <FormLabel className="text-sm font-medium">📝 Problemas anteriores</FormLabel>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const current = form.getValues("problemasAnteriores") || [];
+                              form.setValue("problemasAnteriores", [...current, { titulo: "", descricao: "" }]);
+                            }}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Adicionar problema
+                          </Button>
+                        </div>
+                        
+                        {(form.watch("problemasAnteriores") || []).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Clique em "Adicionar problema" para registrar um problema anterior
+                          </p>
                         )}
-                      />
+
+                        {(form.watch("problemasAnteriores") || []).map((_, index) => (
+                          <div key={index} className="p-3 border rounded-lg bg-background space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Problema {index + 1}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  const current = form.getValues("problemasAnteriores") || [];
+                                  form.setValue("problemasAnteriores", current.filter((_, i) => i !== index));
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            
+                            <FormField
+                              control={form.control}
+                              name={`problemasAnteriores.${index}.titulo`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Título do problema</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Ex: Reclamação de paciente" {...field} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`problemasAnteriores.${index}.descricao`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Descrição</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      placeholder="Descreva o problema sem dados sensíveis..." 
+                                      className="min-h-[60px]"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        ))}
+                        
+                        <p className="text-xs text-muted-foreground">Sem dados sensíveis desnecessários</p>
+                      </div>
                     )}
                   </div>
                   <div className="flex justify-end mt-4">
