@@ -42,6 +42,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ClientFormModal } from "./components/ClientFormModal";
 import { MeetingScheduleDialog } from "./components/MeetingScheduleDialog";
+import { MeetingDetailSheet } from "./components/MeetingDetailSheet";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -71,6 +72,7 @@ export default function IpromedClientDetail() {
   const queryClient = useQueryClient();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMeetingOpen, setIsMeetingOpen] = useState(false);
+  const [selectedMeeting, setSelectedMeeting] = useState<any>(null);
 
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['ipromed-client', id],
@@ -416,7 +418,11 @@ export default function IpromedClientDetail() {
               ) : (
                 <div className="space-y-3">
                   {meetings.map((meeting: any) => (
-                    <div key={meeting.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                    <div 
+                      key={meeting.id} 
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => setSelectedMeeting(meeting)}
+                    >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-lg">
                           <Video className="h-4 w-4 text-primary" />
@@ -431,6 +437,7 @@ export default function IpromedClientDetail() {
                       <Badge variant={meeting.status === 'completed' ? 'default' : 'outline'}>
                         {meeting.status === 'scheduled' ? 'Agendada' : 
                          meeting.status === 'completed' ? 'Realizada' : 
+                         meeting.status === 'in_progress' ? 'Em andamento' :
                          meeting.status === 'cancelled' ? 'Cancelada' : meeting.status}
                       </Badge>
                     </div>
@@ -516,6 +523,14 @@ export default function IpromedClientDetail() {
           console.log('Meeting scheduled:', data);
           toast.success('Reunião agendada com sucesso!');
         }}
+      />
+
+      {/* Meeting Detail Sheet */}
+      <MeetingDetailSheet
+        meeting={selectedMeeting}
+        open={!!selectedMeeting}
+        onOpenChange={(open) => !open && setSelectedMeeting(null)}
+        clientName={client.name}
       />
     </div>
   );
