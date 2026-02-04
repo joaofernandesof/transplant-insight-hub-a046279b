@@ -19,7 +19,8 @@ import {
   Scale,
   Eye,
   CreditCard,
-  Flame
+  Flame,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -30,6 +31,7 @@ import {
 
 // Lista de portais disponíveis
 const portals = [
+  { id: 'admin', label: 'Administrador', icon: Shield, href: '/admin-portal', gradient: 'from-slate-800 to-slate-900' },
   { id: 'academy', label: 'Aluno', icon: GraduationCap, href: '/academy', gradient: 'from-emerald-500 to-green-600' },
   { id: 'license', label: 'Licenciado', icon: Award, href: '/neolicense', gradient: 'from-amber-400 to-yellow-500' },
   { id: 'patient', label: 'Paciente', icon: Heart, href: '/neocare', gradient: 'from-rose-500 to-pink-600' },
