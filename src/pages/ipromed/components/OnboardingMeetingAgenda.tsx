@@ -3,7 +3,8 @@
  * Formulário completo com 10 seções e 43 campos para registro de novos clientes
  */
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -442,6 +443,8 @@ export default function OnboardingMeetingAgenda({
   });
   const [isRestored, setIsRestored] = useState(false);
   const [fieldsWithError, setFieldsWithError] = useState<string[]>([]);
+  const printRef = useRef<HTMLDivElement>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
   
   // Controlar qual seção está expandida
   // Se todas as seções estiverem concluídas, iniciar todas fechadas mas permitir abrir manualmente
@@ -874,23 +877,25 @@ export default function OnboardingMeetingAgenda({
 
   const progress = Math.round((completedSections.length / sections.length) * 100);
 
-  const handlePrint = useCallback(() => {
-    // Expandir todas as seções do accordion antes de imprimir
-    const accordionItems = document.querySelectorAll('[data-radix-accordion-item]');
-    accordionItems.forEach(item => {
-      const trigger = item.querySelector('[data-radix-accordion-trigger]') as HTMLElement;
-      const content = item.querySelector('[data-radix-accordion-content]');
-      if (trigger && content && content.getAttribute('data-state') === 'closed') {
-        trigger.click();
-      }
-    });
+  // Função para imprimir usando react-to-print
+  const reactToPrintFn = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Pauta Onboarding - ${selectedClient?.name || 'Cliente'}`,
+    onBeforePrint: async () => {
+      setIsPrinting(true);
+      // Pequeno delay para garantir que o estado isPrinting seja aplicado
+      return new Promise(resolve => setTimeout(resolve, 100));
+    },
+    onAfterPrint: () => {
+      setIsPrinting(false);
+    },
+  });
 
-    // Aguardar a expansão e então imprimir
-    setTimeout(() => {
-      window.print();
-      toast.success("Preparando impressão...");
-    }, 300);
-  }, []);
+  const handlePrint = useCallback(() => {
+    toast.success("Preparando impressão...");
+    // O estado isPrinting vai expandir automaticamente as seções via CSS/lógica
+    reactToPrintFn();
+  }, [reactToPrintFn]);
 
   // Filtrar clientes pela busca
   const filteredClients = useMemo(() => {
@@ -929,10 +934,55 @@ export default function OnboardingMeetingAgenda({
   }
 
   return (
-    <div className={cn(
-      "flex flex-col onboarding-print-container",
-      embedded ? "h-auto max-h-[60vh]" : "h-full max-h-[90vh]"
-    )}>
+    <div 
+      ref={printRef}
+      className={cn(
+        "flex flex-col onboarding-print-container bg-background",
+        embedded ? "h-auto max-h-[60vh]" : "h-full max-h-[90vh]",
+        isPrinting && "print-mode"
+      )}
+    >
+      {/* Estilos de impressão */}
+      <style>{`
+        @media print {
+          .print-mode {
+            max-height: none !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+          .print-mode .no-print,
+          .print-mode button:not(.print-keep),
+          .print-mode [data-radix-scroll-area-scrollbar],
+          .print-mode .animate-spin {
+            display: none !important;
+          }
+          .print-mode [data-radix-scroll-area-viewport] {
+            overflow: visible !important;
+            max-height: none !important;
+            height: auto !important;
+          }
+          /* Expandir todas as seções do accordion */
+          .print-mode [data-state="closed"] > [data-radix-collapsible-content],
+          .print-mode [data-radix-accordion-content][data-state="closed"] {
+            display: block !important;
+            height: auto !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            animation: none !important;
+          }
+          .print-mode [data-radix-accordion-item] {
+            page-break-inside: avoid;
+          }
+          .print-mode .print-section {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          @page {
+            size: A4;
+            margin: 15mm;
+          }
+        }
+      `}</style>
       {/* Header fixo - oculto no modo embedded */}
       {!embedded && (
         <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -947,7 +997,7 @@ export default function OnboardingMeetingAgenda({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 no-print">
             <div className="text-right mr-4">
               <p className="text-sm font-medium">{progress}% concluído</p>
               <Progress value={progress} className="w-24 h-2" />
@@ -2878,14 +2928,14 @@ export default function OnboardingMeetingAgenda({
 
             {/* Footer Actions - simplificado no modo embedded */}
             {embedded ? (
-              <div className="sticky bottom-0 bg-background border-t pt-3 mt-4 flex items-center justify-end">
+              <div className="sticky bottom-0 bg-background border-t pt-3 mt-4 flex items-center justify-end no-print">
                 <Button type="submit" size="sm" className="gap-2">
                   <Save className="h-4 w-4" />
                   Salvar
                 </Button>
               </div>
             ) : (
-              <div className="sticky bottom-0 bg-background border-t pt-4 mt-6 flex items-center justify-between">
+              <div className="sticky bottom-0 bg-background border-t pt-4 mt-6 flex items-center justify-between no-print">
                 <div className="text-sm text-muted-foreground">
                   {completedSections.length} de {sections.length} seções concluídas
                 </div>
