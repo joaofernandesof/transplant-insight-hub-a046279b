@@ -37,6 +37,7 @@ import {
   RefreshCw,
   Eye,
   MoreHorizontal,
+  ClipboardList,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -62,6 +63,7 @@ import { toast } from "sonner";
 import { ClientFormModal } from "./components/ClientFormModal";
 import { MeetingScheduleDialog } from "./components/MeetingScheduleDialog";
 import { MeetingDetailSheet } from "./components/MeetingDetailSheet";
+import { OnboardingMeetingDialog } from "./components/OnboardingMeetingAgenda";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -86,6 +88,7 @@ export default function IpromedClientDetail() {
   const [isMeetingOpen, setIsMeetingOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<any>(null);
   const [meetingToDelete, setMeetingToDelete] = useState<any>(null);
+  const [onboardingMeetingToView, setOnboardingMeetingToView] = useState<any>(null);
 
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['ipromed-client', id],
@@ -561,6 +564,16 @@ export default function IpromedClientDetail() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            {/* Mostrar "Ver Pauta" apenas para reuniões de Onboarding */}
+                            {meeting.title?.toLowerCase().includes('onboarding') && (
+                              <>
+                                <DropdownMenuItem onClick={() => setOnboardingMeetingToView(meeting)}>
+                                  <ClipboardList className="h-4 w-4 mr-2" />
+                                  Ver Pauta
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
                             <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
                               <Eye className="h-4 w-4 mr-2" />
                               Visualizar
@@ -659,6 +672,15 @@ export default function IpromedClientDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Onboarding Meeting Agenda Dialog */}
+      <OnboardingMeetingDialog
+        open={!!onboardingMeetingToView}
+        onOpenChange={(open) => !open && setOnboardingMeetingToView(null)}
+        meetingId={onboardingMeetingToView?.id}
+        clientId={client?.id}
+        clientName={client?.name || ""}
+      />
     </div>
   );
 }

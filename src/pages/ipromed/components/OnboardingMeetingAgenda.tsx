@@ -2706,28 +2706,44 @@ export function OnboardingMeetingDialog({
   clientId,
   clientName,
   onSubmit,
+  open: controlledOpen,
+  onOpenChange,
+  meetingId,
+  readOnly = false,
 }: {
   trigger?: React.ReactNode;
   clientId?: string;
   clientName?: string;
   onSubmit?: (data: OnboardingMeetingData) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  meetingId?: string;
+  readOnly?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use controlled state if provided, otherwise use internal state
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nova Reunião de Onboarding
-          </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={setOpen}>
+      {/* Only render trigger if not controlled externally */}
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="outline" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nova Reunião de Onboarding
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-4xl max-h-[95vh] p-0">
         <OnboardingMeetingAgenda
           clientId={clientId}
           clientName={clientName}
+          meetingId={meetingId}
           onSubmit={(data) => {
             onSubmit?.(data);
             setOpen(false);
