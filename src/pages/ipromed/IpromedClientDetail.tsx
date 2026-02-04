@@ -612,20 +612,19 @@ export default function IpromedClientDetail() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            {/* Mostrar "Ver Pauta" apenas para reuniões de Onboarding */}
-                            {meeting.title?.toLowerCase().includes('onboarding') && (
-                              <>
-                                <DropdownMenuItem onClick={() => setOnboardingMeetingToView(meeting)}>
-                                  <ClipboardList className="h-4 w-4 mr-2" />
-                                  Ver Pauta
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
+                            {/* Reuniões de Onboarding: Ver Pauta (específico) */}
+                            {meeting.title?.toLowerCase().includes('onboarding') ? (
+                              <DropdownMenuItem onClick={() => setOnboardingMeetingToView(meeting)}>
+                                <ClipboardList className="h-4 w-4 mr-2" />
+                                Ver Pauta
+                              </DropdownMenuItem>
+                            ) : (
+                              /* Outras reuniões: Visualizar detalhes */
+                              <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Visualizar
+                              </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Visualizar
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setMeetingToEdit(meeting)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Editar
