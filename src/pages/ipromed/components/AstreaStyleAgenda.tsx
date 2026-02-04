@@ -186,6 +186,8 @@ export default function AstreaStyleAgenda() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -324,6 +326,52 @@ export default function AstreaStyleAgenda() {
     },
   });
 
+  // Update appointment
+  const updateAppointment = useMutation({
+    mutationFn: async () => {
+      if (!editingAppointmentId) throw new Error('Nenhum compromisso selecionado');
+
+      const startDateTime = formData.all_day
+        ? `${formData.start_date}T00:00:00`
+        : `${formData.start_date}T${formData.start_time}:00`;
+
+      const endDateTime = formData.all_day
+        ? null
+        : `${formData.start_date}T${formData.end_time}:00`;
+
+      const { error } = await supabase
+        .from('ipromed_appointments')
+        .update({
+          title: formData.title,
+          description: formData.description || null,
+          appointment_type: formData.appointment_type,
+          start_datetime: startDateTime,
+          end_datetime: endDateTime,
+          all_day: formData.all_day,
+          location: formData.location || null,
+          is_virtual: formData.is_virtual,
+          meeting_url: formData.is_virtual ? formData.meeting_url : null,
+          client_id: formData.client_id && formData.client_id !== '__none__' ? formData.client_id : null,
+          priority: formData.priority,
+        })
+        .eq('id', editingAppointmentId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-agenda-unified'] });
+      toast.success('Compromisso atualizado!');
+      setIsFormOpen(false);
+      setIsEditMode(false);
+      setEditingAppointmentId(null);
+      resetForm();
+    },
+    onError: (error) => {
+      toast.error('Erro: ' + error.message);
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -339,6 +387,34 @@ export default function AstreaStyleAgenda() {
       client_id: '',
       priority: 'normal',
     });
+    setIsEditMode(false);
+    setEditingAppointmentId(null);
+  };
+
+  // Open edit mode with appointment data
+  const openEditForm = (apt: Appointment) => {
+    const startDate = parseISO(apt.start_datetime);
+    const endDate = apt.end_datetime ? parseISO(apt.end_datetime) : null;
+
+    setFormData({
+      title: apt.title,
+      description: apt.description || '',
+      appointment_type: apt.appointment_type,
+      start_date: format(startDate, 'yyyy-MM-dd'),
+      start_time: format(startDate, 'HH:mm'),
+      end_time: endDate ? format(endDate, 'HH:mm') : '10:00',
+      all_day: apt.all_day,
+      location: apt.location || '',
+      is_virtual: apt.is_virtual,
+      meeting_url: apt.meeting_url || '',
+      client_id: apt.client_id || '',
+      priority: apt.priority,
+    });
+
+    setEditingAppointmentId(apt.id);
+    setIsEditMode(true);
+    setIsDetailOpen(false);
+    setIsFormOpen(true);
   };
 
   // Get appointments for a specific day
@@ -703,11 +779,16 @@ export default function AstreaStyleAgenda() {
         </div>
       </div>
 
-      {/* New Event Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      {/* New/Edit Event Dialog */}
+      <Dialog open={isFormOpen} onOpenChange={(open) => {
+        setIsFormOpen(open);
+        if (!open) {
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Novo Compromisso</DialogTitle>
+            <DialogTitle>{isEditMode ? 'Editar Compromisso' : 'Novo Compromisso'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -836,13 +917,13 @@ export default function AstreaStyleAgenda() {
               </Button>
               <Button
                 className="flex-1"
-                onClick={() => createAppointment.mutate()}
-                disabled={!formData.title || createAppointment.isPending}
+                onClick={() => isEditMode ? updateAppointment.mutate() : createAppointment.mutate()}
+                disabled={!formData.title || createAppointment.isPending || updateAppointment.isPending}
               >
-                {createAppointment.isPending ? (
+                {(createAppointment.isPending || updateAppointment.isPending) ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'Salvar'
+                  isEditMode ? 'Atualizar' : 'Salvar'
                 )}
               </Button>
             </div>
@@ -962,7 +1043,10 @@ export default function AstreaStyleAgenda() {
                   <Button variant="outline" className="flex-1" onClick={() => setIsDetailOpen(false)}>
                     Fechar
                   </Button>
-                  <Button className="flex-1">
+                  <Button 
+                    className="flex-1" 
+                    onClick={() => openEditForm(selectedAppointment)}
+                  >
                     Editar
                   </Button>
                 </div>
