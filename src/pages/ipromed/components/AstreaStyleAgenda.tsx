@@ -184,6 +184,8 @@ export default function AstreaStyleAgenda() {
   const [assigneeFilter, setAssigneeFilter] = useState('mine');
   const [activityFilter, setActivityFilter] = useState('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -384,6 +386,12 @@ export default function AstreaStyleAgenda() {
     setIsFormOpen(true);
   };
 
+  const openEventDetail = (apt: Appointment, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedAppointment(apt);
+    setIsDetailOpen(true);
+  };
+
   // Render event in calendar cell - with friendly rounded cards
   const renderCalendarEvent = (apt: Appointment) => {
     const config = typeConfig[apt.appointment_type] || typeConfig.reuniao;
@@ -394,6 +402,7 @@ export default function AstreaStyleAgenda() {
         key={apt.id}
         className={`text-[11px] px-2 py-1 rounded-lg truncate mb-1 border-l-3 ${config.calendarBg} ${config.borderColor} cursor-pointer hover:shadow-sm hover:scale-[1.02] transition-all duration-150`}
         title={apt.title}
+        onClick={(e) => openEventDetail(apt, e)}
       >
         <div className="flex items-center gap-1">
           {time && <span className={`font-semibold ${config.calendarText}`}>{time}</span>}
@@ -413,6 +422,7 @@ export default function AstreaStyleAgenda() {
       <div 
         key={apt.id} 
         className={`border-l-4 ${config.borderColor} ${config.bgColor} rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
+        onClick={(e) => openEventDetail(apt, e)}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -837,6 +847,128 @@ export default function AstreaStyleAgenda() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Detail Dialog */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-lg">
+          {selectedAppointment && (() => {
+            const config = typeConfig[selectedAppointment.appointment_type] || typeConfig.reuniao;
+            const IconComponent = config.icon;
+            
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-3 rounded-lg ${config.bgColor} border ${config.borderColor.replace('border-l-', 'border-')}`}>
+                      <IconComponent className={`h-5 w-5 ${config.color}`} />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-lg">{selectedAppointment.title}</DialogTitle>
+                      <p className={`text-sm font-medium ${config.color}`}>{config.label}</p>
+                    </div>
+                  </div>
+                </DialogHeader>
+                
+                <div className="space-y-4 pt-4">
+                  {/* Date & Time */}
+                  <div className="flex items-center gap-3 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">
+                        {format(parseISO(selectedAppointment.start_datetime), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      </p>
+                      {!selectedAppointment.all_day && (
+                        <p className="text-muted-foreground">
+                          {format(parseISO(selectedAppointment.start_datetime), 'HH:mm')}
+                          {selectedAppointment.end_datetime && ` às ${format(parseISO(selectedAppointment.end_datetime), 'HH:mm')}`}
+                        </p>
+                      )}
+                      {selectedAppointment.all_day && (
+                        <p className="text-muted-foreground">Dia inteiro</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Client */}
+                  {selectedAppointment.ipromed_legal_clients?.name && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Cliente</p>
+                        <p className="text-muted-foreground">{selectedAppointment.ipromed_legal_clients.name}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Location */}
+                  {selectedAppointment.location && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Local</p>
+                        <p className="text-muted-foreground">{selectedAppointment.location}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Virtual Meeting URL */}
+                  {selectedAppointment.is_virtual && selectedAppointment.meeting_url && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Link da reunião</p>
+                        <a 
+                          href={selectedAppointment.meeting_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {selectedAppointment.meeting_url}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {selectedAppointment.description && (
+                    <div className="pt-2 border-t">
+                      <p className="text-sm font-medium mb-1">Descrição</p>
+                      <p className="text-sm text-muted-foreground">{selectedAppointment.description}</p>
+                    </div>
+                  )}
+
+                  {/* Status */}
+                  <div className="flex items-center justify-between pt-3 border-t">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Status:</span>
+                      <Badge variant={selectedAppointment.status === 'completed' ? 'default' : 'secondary'}>
+                        {selectedAppointment.status === 'completed' ? 'Concluído' : 
+                         selectedAppointment.status === 'cancelled' ? 'Cancelado' : 
+                         selectedAppointment.status === 'scheduled' ? 'Agendado' : 'Pendente'}
+                      </Badge>
+                    </div>
+                    {selectedAppointment.priority === 'urgent' && (
+                      <Badge variant="destructive">Urgente</Badge>
+                    )}
+                    {selectedAppointment.priority === 'high' && (
+                      <Badge variant="outline" className="border-amber-500 text-amber-700">Alta</Badge>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" className="flex-1" onClick={() => setIsDetailOpen(false)}>
+                    Fechar
+                  </Button>
+                  <Button className="flex-1">
+                    Editar
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
