@@ -73,7 +73,7 @@ export function ConversationList({
   }
 
   return (
-    <div className="h-full flex flex-col bg-[hsl(var(--avivar-card))]">
+    <div className="h-full min-h-0 flex flex-col bg-[hsl(var(--avivar-card))]">
       {/* Header */}
       <div className="p-4 border-b border-[hsl(var(--avivar-border))] space-y-4">
         {/* Search */}
@@ -104,7 +104,7 @@ export function ConversationList({
       </div>
 
       {/* Conversation list with visible scrollbar */}
-      <div className="flex-1 overflow-y-scroll scrollbar-avivar">
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-avivar">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <MessageCircle className="h-12 w-12 text-[hsl(var(--avivar-muted-foreground))] mb-4 opacity-50" />
