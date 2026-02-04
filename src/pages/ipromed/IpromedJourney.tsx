@@ -364,8 +364,8 @@ export default function IpromedJourney() {
                 return (
                   <div key={phase.id} className="flex flex-col w-[200px] flex-shrink-0">
                     {/* Column Header */}
-                    <div className={cn("text-white text-center py-3 rounded-t-lg relative group", phase.color)}>
-                      <p className="font-bold text-sm px-2 leading-tight">{phase.label}</p>
+                    <div className={cn("text-white text-center rounded-t-lg relative group h-[72px] flex items-center justify-center", phase.color)}>
+                      <p className="font-bold text-sm px-6 leading-tight">{phase.label}</p>
                       <Button
                         variant="ghost"
                         size="icon"
