@@ -365,89 +365,17 @@ export default function IpromedClients() {
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Search Only */}
         <Card>
           <CardContent className="py-4">
-            <div className="flex flex-col gap-4">
-              {/* Search and Filters Row */}
-              <div className="flex flex-col lg:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por nome, email, telefone, CPF/CNPJ ou código..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full lg:w-[140px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos Status</SelectItem>
-                    <SelectItem value="active">Ativos</SelectItem>
-                    <SelectItem value="prospect">Prospectos</SelectItem>
-                    <SelectItem value="churned">Cancelados</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={journeyFilter} onValueChange={setJourneyFilter}>
-                  <SelectTrigger className="w-full lg:w-[140px]">
-                    <SelectValue placeholder="Jornada" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Toda Jornada</SelectItem>
-                    <SelectItem value="prospect">Prospecto</SelectItem>
-                    <SelectItem value="onboarding">Onboarding</SelectItem>
-                    <SelectItem value="retention">Retenção</SelectItem>
-                    <SelectItem value="expansion">Expansão</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                  <SelectTrigger className="w-full lg:w-[140px]">
-                    <SelectValue placeholder="Pagamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todo Pagamento</SelectItem>
-                    <SelectItem value="paid">Pagos</SelectItem>
-                    <SelectItem value="pending">Pendentes</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={riskFilter} onValueChange={setRiskFilter}>
-                  <SelectTrigger className="w-full lg:w-[130px]">
-                    <SelectValue placeholder="Risco" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todo Risco</SelectItem>
-                    <SelectItem value="low">Baixo</SelectItem>
-                    <SelectItem value="medium">Médio</SelectItem>
-                    <SelectItem value="high">Alto</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={onboardingFilter} onValueChange={setOnboardingFilter}>
-                  <SelectTrigger className="w-full lg:w-[150px]">
-                    <SelectValue placeholder="Onboarding" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todo Onboarding</SelectItem>
-                    <SelectItem value="completed">Completo</SelectItem>
-                    <SelectItem value="pending">Pendente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Active Filters and Sort Info */}
-              {activeFiltersCount > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Filter className="h-3 w-3" />
-                    {activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''} ativo{activeFiltersCount > 1 ? 's' : ''}
-                  </span>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearFilters}>
-                    Limpar filtros
-                  </Button>
-                </div>
-              )}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, email, telefone, CPF/CNPJ ou código..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 max-w-lg"
+              />
             </div>
           </CardContent>
         </Card>
@@ -460,38 +388,12 @@ export default function IpromedClients() {
                 <Users className="h-5 w-5" />
                 Clientes ({filteredClients.length})
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Ordenar:</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1.5">
-                      <ArrowUpDown className="h-3.5 w-3.5" />
-                      {sortField === 'name' && 'Nome'}
-                      {sortField === 'created_at' && 'Data'}
-                      {sortField === 'status' && 'Status'}
-                      {sortField === 'risk_level' && 'Risco'}
-                      {sortField === 'journey_stage' && 'Jornada'}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => toggleSort('name')}>
-                      Nome {sortField === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toggleSort('created_at')}>
-                      Data de Cadastro {sortField === 'created_at' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toggleSort('status')}>
-                      Status {sortField === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toggleSort('risk_level')}>
-                      Nível de Risco {sortField === 'risk_level' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toggleSort('journey_stage')}>
-                      Etapa da Jornada {sortField === 'journey_stage' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              {activeFiltersCount > 0 && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearFilters}>
+                  <Filter className="h-3 w-3 mr-1" />
+                  Limpar {activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''}
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -513,16 +415,181 @@ export default function IpromedClients() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[250px]">Cliente</TableHead>
+                    <TableRow className="hover:bg-transparent">
+                      {/* Nome */}
+                      <TableHead className="min-w-[180px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
+                              Nome
+                              <ArrowUpDown className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => { setSortField('name'); setSortOrder('asc'); }}>
+                              A → Z {sortField === 'name' && sortOrder === 'asc' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSortField('name'); setSortOrder('desc'); }}>
+                              Z → A {sortField === 'name' && sortOrder === 'desc' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
+
+                      {/* Status */}
+                      <TableHead className="min-w-[100px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className={cn(
+                              "h-8 -ml-3 font-medium hover:bg-muted gap-1",
+                              statusFilter !== 'all' && "text-primary"
+                            )}>
+                              Status
+                              <Filter className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+                              Todos {statusFilter === 'all' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setStatusFilter('active')}>
+                              Ativos {statusFilter === 'active' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setStatusFilter('prospect')}>
+                              Prospectos {statusFilter === 'prospect' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setStatusFilter('churned')}>
+                              Cancelados {statusFilter === 'churned' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
+
+                      {/* Código */}
                       <TableHead className="min-w-[100px]">Código</TableHead>
-                      <TableHead className="min-w-[140px]">Contato</TableHead>
-                      <TableHead className="min-w-[120px]">Jornada</TableHead>
-                      <TableHead className="min-w-[100px]">Pagamento</TableHead>
+
+                      {/* Telefone */}
+                      <TableHead className="min-w-[130px]">Telefone</TableHead>
+
+                      {/* Email */}
+                      <TableHead className="min-w-[180px]">Email</TableHead>
+
+                      {/* Jornada */}
+                      <TableHead className="min-w-[120px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className={cn(
+                              "h-8 -ml-3 font-medium hover:bg-muted gap-1",
+                              journeyFilter !== 'all' && "text-primary"
+                            )}>
+                              Jornada
+                              <Filter className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => setJourneyFilter('all')}>
+                              Todos {journeyFilter === 'all' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setJourneyFilter('prospect')}>
+                              Prospecto {journeyFilter === 'prospect' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setJourneyFilter('onboarding')}>
+                              Onboarding {journeyFilter === 'onboarding' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setJourneyFilter('retention')}>
+                              Retenção {journeyFilter === 'retention' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setJourneyFilter('expansion')}>
+                              Expansão {journeyFilter === 'expansion' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
+
+                      {/* Pagamento */}
+                      <TableHead className="min-w-[110px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className={cn(
+                              "h-8 -ml-3 font-medium hover:bg-muted gap-1",
+                              paymentFilter !== 'all' && "text-primary"
+                            )}>
+                              Pagamento
+                              <Filter className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => setPaymentFilter('all')}>
+                              Todos {paymentFilter === 'all' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setPaymentFilter('paid')}>
+                              Pagos {paymentFilter === 'paid' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setPaymentFilter('pending')}>
+                              Pendentes {paymentFilter === 'pending' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
+
+                      {/* Contrato */}
                       <TableHead className="min-w-[110px]">Contrato</TableHead>
-                      <TableHead className="min-w-[90px]">Risco</TableHead>
-                      <TableHead className="min-w-[100px]">Cadastro</TableHead>
-                      <TableHead className="text-right min-w-[80px]">Ações</TableHead>
+
+                      {/* Risco */}
+                      <TableHead className="min-w-[90px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className={cn(
+                              "h-8 -ml-3 font-medium hover:bg-muted gap-1",
+                              riskFilter !== 'all' && "text-primary"
+                            )}>
+                              Risco
+                              <Filter className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => setRiskFilter('all')}>
+                              Todos {riskFilter === 'all' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setRiskFilter('low')}>
+                              Baixo {riskFilter === 'low' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setRiskFilter('medium')}>
+                              Médio {riskFilter === 'medium' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setRiskFilter('high')}>
+                              Alto {riskFilter === 'high' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
+
+                      {/* Cadastro */}
+                      <TableHead className="min-w-[100px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
+                              Cadastro
+                              <ArrowUpDown className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => { setSortField('created_at'); setSortOrder('desc'); }}>
+                              Mais recente {sortField === 'created_at' && sortOrder === 'desc' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSortField('created_at'); setSortOrder('asc'); }}>
+                              Mais antigo {sortField === 'created_at' && sortOrder === 'asc' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
+
+                      {/* Ações */}
+                      <TableHead className="text-right min-w-[60px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -534,9 +601,6 @@ export default function IpromedClients() {
                       const paymentStatus = paymentStatusConfig[client.metadata?.payment_status || 'pending'];
                       const PaymentIcon = paymentStatus?.icon || Clock;
                       const contractStatus = contractStatusConfig[client.metadata?.contract_status || 'draft'];
-                      const location = client.address?.city && client.address?.state 
-                        ? `${client.address.city}/${client.address.state}` 
-                        : null;
 
                       return (
                         <TableRow 
@@ -544,104 +608,84 @@ export default function IpromedClients() {
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => navigate(`/ipromed/clients/${client.id}`)}
                         >
+                          {/* Nome */}
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10">
+                              <Avatar className="h-9 w-9">
                                 <AvatarFallback className="bg-primary/10 text-primary text-sm">
                                   {getInitials(client.name)}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="min-w-0">
-                                <p className="font-medium text-sm truncate max-w-[180px]">{client.name}</p>
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <Badge className={cn(status.color, "text-white text-[10px] px-1.5 py-0")}>
-                                    {status.label}
-                                  </Badge>
-                                  {client.metadata?.partner && (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                                      Sócio
-                                    </Badge>
-                                  )}
-                                  {client.onboarding_completed && (
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <FileCheck className="h-3.5 w-3.5 text-purple-500" />
-                                      </TooltipTrigger>
-                                      <TooltipContent>Onboarding Completo</TooltipContent>
-                                    </Tooltip>
-                                  )}
-                                </div>
-                              </div>
+                              <span className="font-medium text-sm truncate max-w-[150px]">{client.name}</span>
                             </div>
                           </TableCell>
+
+                          {/* Status */}
+                          <TableCell>
+                            <Badge className={cn(status.color, "text-white text-xs")}>
+                              {status.label}
+                            </Badge>
+                          </TableCell>
+
+                          {/* Código */}
                           <TableCell>
                             <span className="text-xs font-mono text-muted-foreground">
                               {client.client_number || '-'}
                             </span>
                           </TableCell>
+
+                          {/* Telefone */}
                           <TableCell>
-                            <div className="space-y-1">
-                              {client.phone && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Phone className="h-3 w-3" />
-                                  <span className="truncate max-w-[100px]">{client.phone}</span>
-                                </div>
-                              )}
-                              {client.email && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Mail className="h-3 w-3" />
-                                  <span className="truncate max-w-[100px]">{client.email}</span>
-                                </div>
-                              )}
-                              {location && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <MapPin className="h-3 w-3" />
-                                  <span>{location}</span>
-                                </div>
-                              )}
-                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {client.phone || '-'}
+                            </span>
                           </TableCell>
+
+                          {/* Email */}
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground truncate max-w-[160px] block">
+                              {client.email || '-'}
+                            </span>
+                          </TableCell>
+
+                          {/* Jornada */}
                           <TableCell>
                             <Badge variant="outline" className={cn(journey.color, "text-xs")}>
                               {journey.label}
                             </Badge>
                           </TableCell>
+
+                          {/* Pagamento */}
                           <TableCell>
-                            <div className="space-y-1">
-                              <Badge className={cn(paymentStatus?.color || 'bg-gray-100 text-gray-700', "text-xs")}>
-                                <PaymentIcon className="h-3 w-3 mr-1" />
-                                {paymentStatus?.label || 'Pendente'}
-                              </Badge>
-                              {client.metadata?.payment_amount && (
-                                <p className="text-[10px] text-muted-foreground">
-                                  R$ {client.metadata.payment_amount.toLocaleString('pt-BR')}
-                                </p>
-                              )}
-                            </div>
+                            <Badge className={cn(paymentStatus?.color || 'bg-gray-100 text-gray-700', "text-xs")}>
+                              <PaymentIcon className="h-3 w-3 mr-1" />
+                              {paymentStatus?.label || 'Pendente'}
+                            </Badge>
                           </TableCell>
+
+                          {/* Contrato */}
                           <TableCell>
                             <Badge variant="outline" className={cn(contractStatus?.color || '', "text-xs")}>
                               {contractStatus?.label || 'Rascunho'}
                             </Badge>
                           </TableCell>
+
+                          {/* Risco */}
                           <TableCell>
                             <Badge variant="outline" className={cn(risk.color, "text-xs")}>
                               <RiskIcon className="h-3 w-3 mr-1" />
                               {risk.label}
                             </Badge>
                           </TableCell>
+
+                          {/* Cadastro */}
                           <TableCell>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="text-xs text-muted-foreground">
-                                  {format(new Date(client.created_at), "dd/MM/yy", { locale: ptBR })}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {format(new Date(client.created_at), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
-                              </TooltipContent>
-                            </Tooltip>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(client.created_at), "dd/MM/yy", { locale: ptBR })}
+                            </span>
                           </TableCell>
+
+                          {/* Ações */}
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -649,7 +693,7 @@ export default function IpromedClients() {
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                              <DropdownMenuContent align="end" className="bg-background">
                                 <DropdownMenuItem onClick={(e) => { 
                                   e.stopPropagation(); 
                                   navigate(`/ipromed/clients/${client.id}`);
