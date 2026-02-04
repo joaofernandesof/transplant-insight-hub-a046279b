@@ -38,19 +38,30 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
   const visibleMessages = messages.slice(-visibleCount);
   const hasMoreMessages = messages.length > visibleCount;
 
+  // Scroll to bottom within container only (not affecting page)
+  const scrollToBottomInternal = (behavior: ScrollBehavior = 'auto') => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     // Only auto-scroll if new messages were added
     if (messages.length > prevMessagesLengthRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      scrollToBottomInternal('smooth');
     }
     prevMessagesLengthRef.current = messages.length;
   }, [messages.length]);
 
-  // Initial scroll to bottom
+  // Initial scroll to bottom (only affects container, not page)
   useEffect(() => {
     if (!isLoading && messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      // Small delay to ensure content is rendered
+      requestAnimationFrame(() => {
+        scrollToBottomInternal('auto');
+      });
     }
   }, [isLoading]);
 
@@ -74,7 +85,7 @@ export function MessageThread({ messages, isLoading }: MessageThreadProps) {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    scrollToBottomInternal('smooth');
   };
 
   if (isLoading) {
