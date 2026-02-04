@@ -412,7 +412,7 @@ export default function IpromedClientDetail() {
           {/* Client Info Card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
                 <User className="h-4 w-4" />
                 Informações do Cliente
               </CardTitle>
@@ -496,7 +496,7 @@ export default function IpromedClientDetail() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
                   <FileSignature className="h-4 w-4" />
                   Contratos ({contracts.length})
                 </CardTitle>
@@ -555,7 +555,7 @@ export default function IpromedClientDetail() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
                   <Video className="h-4 w-4" />
                   Reuniões ({meetings.length})
                 </CardTitle>

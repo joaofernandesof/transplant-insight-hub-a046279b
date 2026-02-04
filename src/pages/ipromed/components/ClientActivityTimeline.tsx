@@ -151,8 +151,8 @@ export function ClientActivityTimeline({
       <Card>
         {showHeader && (
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="h-5 w-5" />
+            <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
+              <History className="h-4 w-4" />
               Linha do Tempo
             </CardTitle>
           </CardHeader>
@@ -179,8 +179,8 @@ export function ClientActivityTimeline({
       {showHeader && (
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <History className="h-5 w-5" />
+            <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
+              <History className="h-4 w-4" />
               Linha do Tempo
             </CardTitle>
             <CardDescription>
