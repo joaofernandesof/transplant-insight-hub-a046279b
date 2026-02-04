@@ -452,7 +452,7 @@ export default function IpromedJourney() {
       </div>
 
       {/* Phase Overview with Details */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-6 gap-2">
         {journeyPhases.map((phase) => {
           const phaseDetail = journeyPhasesDetailed.find(p => p.id === phase.id);
           return (
