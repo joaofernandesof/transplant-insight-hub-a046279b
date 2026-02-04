@@ -14,7 +14,8 @@ import {
   TrendingUp, 
   Stethoscope,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Shield
 } from 'lucide-react';
 import { VisionIcon } from '@/components/icons/VisionIcon';
 import iconeNeofolic from '@/assets/icone-neofolic.png';
@@ -30,6 +31,15 @@ const PORTAL_CONFIG: Record<string, {
   profiles: ProfileKey[];
   route: string;
 }> = {
+  admin: {
+    title: 'Administrador',
+    description: 'Gestão do ecossistema NeoHub',
+    icon: Shield,
+    gradient: 'from-slate-800 to-slate-900',
+    bgColor: 'bg-slate-100 dark:bg-slate-900/50',
+    profiles: ['administrador'],
+    route: '/admin-portal',
+  },
   academy: {
     title: 'Portal do Aluno',
     description: 'Cursos, certificados e materiais educacionais',
@@ -100,12 +110,8 @@ export default function PortalSelector() {
   const { user, isLoading, setActiveProfile, logout } = useUnifiedAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Redirect admins to admin portal
-  useEffect(() => {
-    if (!isLoading && user?.isAdmin) {
-      navigate('/admin-portal');
-    }
-  }, [user, isLoading, navigate]);
+  // Admins também veem o portal selector para escolher qual portal acessar
+  // (O portal Admin agora está incluído na lista de portais)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -132,16 +138,27 @@ export default function PortalSelector() {
   const getAvailablePortals = () => {
     if (!user?.profiles) return [];
     
-    return Object.entries(PORTAL_CONFIG)
-      .filter(([_, config]) => 
-        config.profiles.some(profile => user.profiles.includes(profile))
-      )
+    // Para admins, incluir o portal Admin + todos os outros que tiverem perfil
+    const portals = Object.entries(PORTAL_CONFIG)
+      .filter(([key, config]) => {
+        // Admin vê o portal Admin se for isAdmin
+        if (key === 'admin' && user.isAdmin) return true;
+        // Outros portais baseados nos perfis do usuário
+        return config.profiles.some(profile => user.profiles.includes(profile));
+      })
       .map(([key, config]) => ({
         key,
         ...config,
         // Get the first matching profile for this portal
         matchingProfile: config.profiles.find(p => user.profiles.includes(p)) || config.profiles[0],
       }));
+    
+    // Ordenar para que Admin apareça primeiro
+    return portals.sort((a, b) => {
+      if (a.key === 'admin') return -1;
+      if (b.key === 'admin') return 1;
+      return 0;
+    });
   };
 
   if (isLoading || isRedirecting) {
