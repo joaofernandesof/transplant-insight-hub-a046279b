@@ -1942,29 +1942,6 @@ export default function OnboardingMeetingAgenda({
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <div className="space-y-5 pt-2 max-w-2xl">
-                    <FormField
-                      control={form.control}
-                      name="cenarioCliente"
-                      render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
-                          <FormLabel>🧩 Cenário do cliente</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {cenarioClienteOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription className="text-xs">Define contagem de prazo</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <FormField
                       control={form.control}
