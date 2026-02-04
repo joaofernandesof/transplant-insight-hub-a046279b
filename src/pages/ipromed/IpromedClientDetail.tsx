@@ -119,7 +119,7 @@ export default function IpromedClientDetail() {
   });
 
   // Fetch upcoming meetings
-  const { data: meetings = [] } = useQuery({
+  const { data: meetings = [], refetch: refetchMeetings } = useQuery({
     queryKey: ['ipromed-client-meetings', id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -144,7 +144,9 @@ export default function IpromedClientDetail() {
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings', id] });
+      // Refetch meetings immediately after deletion
+      await refetchMeetings();
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
       toast.success('Reunião excluída com sucesso!');
       setMeetingToDelete(null);
     } catch (error: any) {
