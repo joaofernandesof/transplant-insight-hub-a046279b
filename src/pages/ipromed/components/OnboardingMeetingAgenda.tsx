@@ -431,6 +431,18 @@ export default function OnboardingMeetingAgenda({
     const currentIndex = sections.findIndex(s => s.id === sectionId);
     if (currentIndex < sections.length - 1) {
       setCurrentSectionIndex(currentIndex + 1);
+      
+      // Scroll para o topo da próxima seção
+      setTimeout(() => {
+        const accordionElement = document.querySelector(`[data-section-id="${sections[currentIndex + 1].id}"]`);
+        if (accordionElement) {
+          accordionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          // Fallback: scroll para o topo do container
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 100);
+      
       toast.success("Seção concluída!", {
         description: `Avançando para: ${sections[currentIndex + 1].title}`,
       });
@@ -483,10 +495,14 @@ export default function OnboardingMeetingAgenda({
               className="space-y-3"
             >
               {/* 1. Boas-vindas e abertura */}
-              <AccordionItem value="boas-vindas" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("boas-vindas") && "opacity-50 pointer-events-none"
-              )}>
+              <AccordionItem 
+                value="boas-vindas" 
+                data-section-id="boas-vindas"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("boas-vindas") && "opacity-50 pointer-events-none"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
@@ -718,10 +734,14 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 2. Perfil profissional */}
-              <AccordionItem value="perfil" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("perfil") && "opacity-50"
-              )}>
+              <AccordionItem 
+                value="perfil" 
+                data-section-id="perfil"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("perfil") && "opacity-50"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
@@ -914,10 +934,14 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 3. Comunicação */}
-              <AccordionItem value="comunicacao" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("comunicacao") && "opacity-50"
-              )}>
+              <AccordionItem 
+                value="comunicacao" 
+                data-section-id="comunicacao"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("comunicacao") && "opacity-50"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
@@ -1117,10 +1141,14 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 4. Documentos atuais */}
-              <AccordionItem value="documentos" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("documentos") && "opacity-50"
-              )}>
+              <AccordionItem 
+                value="documentos" 
+                data-section-id="documentos"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("documentos") && "opacity-50"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
@@ -1329,10 +1357,14 @@ export default function OnboardingMeetingAgenda({
 
 
               {/* 5. Prioridades */}
-              <AccordionItem value="prioridades" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("prioridades") && "opacity-50"
-              )}>
+              <AccordionItem 
+                value="prioridades" 
+                data-section-id="prioridades"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("prioridades") && "opacity-50"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
@@ -1541,10 +1573,14 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 7. Prazos */}
-              <AccordionItem value="prazos" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("prazos") && "opacity-50"
-              )}>
+              <AccordionItem 
+                value="prazos" 
+                data-section-id="prazos"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("prazos") && "opacity-50"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
@@ -1666,10 +1702,14 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 8. Treinamento */}
-              <AccordionItem value="treinamento" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("treinamento") && "opacity-50"
-              )}>
+              <AccordionItem 
+                value="treinamento" 
+                data-section-id="treinamento"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("treinamento") && "opacity-50"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
@@ -1804,10 +1844,14 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 9. Instagram */}
-              <AccordionItem value="instagram" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("instagram") && "opacity-50"
-              )}>
+              <AccordionItem 
+                value="instagram" 
+                data-section-id="instagram"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("instagram") && "opacity-50"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
@@ -2013,10 +2057,14 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
               {/* 10. Contrato */}
-              <AccordionItem value="contrato" className={cn(
-                "border rounded-lg overflow-hidden transition-opacity",
-                !isSectionAccessible("contrato") && "opacity-50"
-              )}>
+              <AccordionItem 
+                value="contrato" 
+                data-section-id="contrato"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("contrato") && "opacity-50"
+                )}
+              >
                 <AccordionTrigger 
                   className={cn(
                     "px-4 py-3 hover:no-underline",
