@@ -245,8 +245,7 @@ export default function IpromedDashboard() {
       </div>
 
       {/* Title */}
-      <div className="flex flex-col gap-3 sm:gap-4">
-        <div>
+      <div>
         <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 bg-gradient-to-br from-[#00629B] to-[#004d7a] rounded-lg">
             <Scale className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
@@ -254,21 +253,6 @@ export default function IpromedDashboard() {
           Dashboard CPG Advocacia Médica
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground">Visão geral operacional</p>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          <Button variant="outline" size="sm" onClick={() => navigate('/ipromed/clients')} className="shrink-0">
-            <Users className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Clientes</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate('/ipromed/contracts')} className="shrink-0">
-            <FileSignature className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Contratos</span>
-          </Button>
-          <Button size="sm" onClick={() => navigate('/ipromed/journey')} className="shrink-0">
-            <TrendingUp className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Jornada</span>
-          </Button>
-        </div>
       </div>
 
       {/* KPI Cards - Scroll horizontal no mobile */}
