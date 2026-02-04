@@ -64,6 +64,7 @@ import { toast } from "sonner";
 import { ClientFormModal } from "./components/ClientFormModal";
 import { MeetingScheduleDialog } from "./components/MeetingScheduleDialog";
 import { MeetingDetailSheet } from "./components/MeetingDetailSheet";
+import { MeetingEditDialog } from "./components/MeetingEditDialog";
 import { OnboardingMeetingDialog } from "./components/OnboardingMeetingAgenda";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -88,6 +89,7 @@ export default function IpromedClientDetail() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMeetingOpen, setIsMeetingOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<any>(null);
+  const [meetingToEdit, setMeetingToEdit] = useState<any>(null);
   const [meetingToDelete, setMeetingToDelete] = useState<any>(null);
   const [onboardingMeetingToView, setOnboardingMeetingToView] = useState<any>(null);
 
@@ -620,7 +622,7 @@ export default function IpromedClientDetail() {
                               <Eye className="h-4 w-4 mr-2" />
                               Visualizar
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
+                            <DropdownMenuItem onClick={() => setMeetingToEdit(meeting)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Editar
                             </DropdownMenuItem>
@@ -685,11 +687,19 @@ export default function IpromedClientDetail() {
         }}
       />
 
-      {/* Meeting Detail Sheet */}
+      {/* Meeting Detail Sheet (View) */}
       <MeetingDetailSheet
         meeting={selectedMeeting}
         open={!!selectedMeeting}
         onOpenChange={(open) => !open && setSelectedMeeting(null)}
+        clientName={client.name}
+      />
+
+      {/* Meeting Edit Dialog (Edit) */}
+      <MeetingEditDialog
+        meeting={meetingToEdit}
+        open={!!meetingToEdit}
+        onOpenChange={(open) => !open && setMeetingToEdit(null)}
         clientName={client.name}
       />
 
