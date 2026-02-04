@@ -93,7 +93,8 @@ export function VisionSidebar({ onOpenPlans, onStartAnalysis }: VisionSidebarPro
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1">
         {/* Portal Switcher - Always first */}
-        <PortalSwitcherButton isCollapsed={collapsed} variant="light" />
+        <PortalSwitcherButton isCollapsed={collapsed} variant="light" label="Acessar Portal" />
+        
         {menuItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);

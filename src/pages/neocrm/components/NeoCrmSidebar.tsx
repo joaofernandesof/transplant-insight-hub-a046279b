@@ -60,7 +60,8 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="space-y-1">
           {/* Portal Switcher - Always first */}
-          <PortalSwitcherButton isCollapsed={collapsed} variant="light" />
+          <PortalSwitcherButton isCollapsed={collapsed} variant="light" label="Acessar Portal" onNavigate={onCollapse} />
+          
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href || 
