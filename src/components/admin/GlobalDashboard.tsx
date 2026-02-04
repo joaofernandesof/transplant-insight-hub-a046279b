@@ -250,40 +250,7 @@ export function GlobalDashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-4 space-y-6">
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Distribuição por Portal */}
-            <Card className="bg-slate-800/50 border-slate-700/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-white flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Distribuição de Usuários por Portal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={portalDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {portalDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend 
-                      formatter={(value) => <span className="text-slate-300 text-xs">{value}</span>}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
+          <div className="grid lg:grid-cols-1 gap-6">
             {/* Cards de Portais */}
             <Card className="bg-slate-800/50 border-slate-700/50">
               <CardHeader className="pb-2">
