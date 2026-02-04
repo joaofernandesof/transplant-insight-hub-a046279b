@@ -101,7 +101,6 @@ const onboardingMeetingSchema = z.object({
   // 4. Documentos atuais
   usaDocumentosHoje: z.boolean().default(false),
   documentosExistentes: z.array(z.string()).default([]),
-  armazenamentoAtual: z.string().optional(),
   quemPreenche: z.string().optional(),
   usaAssinaturaDigital: z.boolean().default(false),
   ferramentaAssinatura: z.string().optional(),
@@ -177,7 +176,6 @@ const cargoOptions = ["Médico", "Gestor", "Sócio", "Outro"];
 const formatoAtendimentoOptions = ["Clínica própria", "Terceiros", "Hospital", "Consultório", "Teleconsulta"];
 const estruturaOptions = ["Clínica própria", "Consultório alugado", "Hospital", "Coworking médico"];
 const documentosOptions = ["TCLE", "Contrato de prestação", "Termo de imagem", "Anamnese", "Prontuário", "Política de agendamento"];
-const armazenamentoOptions = ["Google Drive", "OneDrive", "Pasta local", "Sistema próprio", "Não possui"];
 const quemPreencheOptions = ["Secretária", "Médico", "Recepção", "Equipe administrativa"];
 const formaEnvioOptions = ["Google Drive", "OneDrive", "E-mail", "WeTransfer", "WhatsApp"];
 const statusRecebimentoOptions = ["Pendente", "Recebido parcial", "Recebido completo"];
@@ -230,7 +228,6 @@ export default function OnboardingMeetingAgenda({
       horarioPreferencial: "",
       usaDocumentosHoje: false,
       documentosExistentes: [],
-      armazenamentoAtual: "",
       quemPreenche: "",
       usaAssinaturaDigital: false,
       ferramentaAssinatura: "",
@@ -881,29 +878,6 @@ export default function OnboardingMeetingAgenda({
                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
                           <FormLabel className="font-normal">🧩 Usa documentos próprios hoje</FormLabel>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="armazenamentoAtual"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>📍 Armazenamento atual</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {armazenamentoOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
