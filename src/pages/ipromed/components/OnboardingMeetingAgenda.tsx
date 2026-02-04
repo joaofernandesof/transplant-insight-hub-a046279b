@@ -1940,20 +1940,20 @@ export default function OnboardingMeetingAgenda({
                               </tr>
                             ))}
                             
-                            {/* Linha para adicionar novo documento */}
-                            <tr className="bg-muted/30 hover:bg-muted/50">
-                              <td colSpan={6} className="p-2">
+                            {/* Linha para adicionar novo documento - destacada */}
+                            <tr className="bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 transition-all">
+                              <td colSpan={6} className="p-3">
                                 <Button
                                   type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="w-full h-9 text-muted-foreground hover:text-foreground border border-dashed border-muted-foreground/30 hover:border-primary/50"
+                                  variant="outline"
+                                  size="default"
+                                  className="w-full h-12 text-primary font-medium border-2 border-dashed border-primary/40 hover:border-primary hover:bg-primary/10 transition-all shadow-sm"
                                   onClick={() => {
                                     const current = form.getValues("documentosAdicionaisEntregues") || [];
                                     form.setValue("documentosAdicionaisEntregues", [...current, { nome: "" }]);
                                   }}
                                 >
-                                  <Plus className="h-4 w-4 mr-2" />
+                                  <Plus className="h-5 w-5 mr-2" />
                                   Adicionar documento extra
                                 </Button>
                               </td>
