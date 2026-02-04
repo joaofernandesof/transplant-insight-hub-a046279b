@@ -30,6 +30,7 @@ import {
   X,
   GraduationCap,
   Radar,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -58,8 +59,9 @@ const cpgNavItems: NavItem[] = [
   { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda', tourId: 'sidebar-agenda' },
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases', tourId: 'sidebar-cases' },
-  { id: 'contracts', label: 'Contratos', icon: FileBox, href: '/ipromed/legal?tab=contracts' },
+  { id: 'contracts-hub', label: 'Contratos', icon: FileBox, href: '/ipromed/legal?tab=contracts' },
   { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', tourId: 'sidebar-ai' },
+  { id: 'activity-logs', label: 'Log de Ações', icon: Activity, href: '/ipromed/logs' },
 ];
 
 // CPG Advocacia Médica - Educacional
