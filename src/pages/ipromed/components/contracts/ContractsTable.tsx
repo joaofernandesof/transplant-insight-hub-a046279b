@@ -44,6 +44,7 @@ interface Contract {
   contract_type?: string;
   status: string;
   document_url?: string | null;
+  document_count?: number;
   client_id?: string | null;
   client?: { id: string; name: string; email?: string } | null;
   created_at: string;
@@ -118,7 +119,8 @@ export function ContractsTable({
             const status = statusConfig[contract.status] || statusConfig.draft;
             const StatusIcon = status.icon;
             const isDraft = contract.status === "draft";
-            const hasDocument = !!contract.document_url;
+            // Verifica se tem documentos: pela contagem OU pelo document_url legado
+            const hasDocument = (contract.document_count && contract.document_count > 0) || !!contract.document_url;
             const isSending = sendingId === contract.id;
 
             return (
