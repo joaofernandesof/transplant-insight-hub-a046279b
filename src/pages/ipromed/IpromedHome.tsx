@@ -85,11 +85,8 @@ export default function IpromedHome() {
         icon={<Scale className="h-6 w-6 text-white" />}
       />
 
-      {/* Task Stats Cards - Resumo visual */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Resumo de Tarefas</h2>
-        <TaskStatsCards />
-      </div>
+      {/* Task Stats Cards - Resumo visual com filtro de responsável */}
+      <TaskStatsCards />
 
       {/* Área de Trabalho Geral */}
       <div>
