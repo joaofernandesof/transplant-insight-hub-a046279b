@@ -3,7 +3,9 @@
  * Formulário completo com 10 seções e 43 campos para registro de novos clientes
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -62,6 +64,8 @@ import {
   Plus,
   Trash2,
   UserPlus,
+  Users,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import ProcedureSelector from "./ProcedureSelector";
@@ -85,6 +89,9 @@ const getFieldHighlight = (_value: string | number | boolean | undefined | null 
 
 // Schema de validação
 const onboardingMeetingSchema = z.object({
+  // Cliente vinculado (obrigatório)
+  clienteId: z.string().min(1, "Selecione um cliente"),
+  
   // 1. Boas-vindas e abertura
   nomeCompleto: z.string().min(1, "Nome completo é obrigatório"),
   nomePreferencia: z.string().optional(),
@@ -341,8 +348,31 @@ export default function OnboardingMeetingAgenda({
   onClose,
   initialData,
 }: OnboardingMeetingAgendaProps) {
+  // Buscar clientes cadastrados
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
+    queryKey: ['ipromed-clients-onboarding'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ipromed_legal_clients')
+        .select('id, name, email, phone, cpf_cnpj, journey_stage')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Estado do cliente selecionado
+  const [selectedClientId, setSelectedClientId] = useState<string>(clientId || "");
+  const [clientSearchTerm, setClientSearchTerm] = useState("");
+  
+  // Cliente selecionado
+  const selectedClient = useMemo(() => {
+    return clients.find(c => c.id === selectedClientId);
+  }, [clients, selectedClientId]);
+
   // Chave única para este cliente/sessão
-  const storageKey = `${STORAGE_KEY_PREFIX}${clientId || 'new'}`;
+  const storageKey = `${STORAGE_KEY_PREFIX}${selectedClientId || 'new'}`;
   
   // Tentar carregar dados salvos do localStorage
   const getSavedData = useCallback(() => {
@@ -374,6 +404,7 @@ export default function OnboardingMeetingAgenda({
   const form = useForm<OnboardingMeetingData>({
     resolver: zodResolver(onboardingMeetingSchema),
     defaultValues: {
+      clienteId: savedCheckpoint?.formData?.clienteId ?? clientId ?? "",
       nomeCompleto: savedCheckpoint?.formData?.nomeCompleto ?? clientName ?? "",
       nomePreferencia: savedCheckpoint?.formData?.nomePreferencia ?? "",
       cargoFuncao: savedCheckpoint?.formData?.cargoFuncao ?? "",
@@ -597,6 +628,29 @@ export default function OnboardingMeetingAgenda({
     toast.success("Preparando impressão...");
   };
 
+  // Filtrar clientes pela busca
+  const filteredClients = useMemo(() => {
+    if (!clientSearchTerm) return clients;
+    const term = clientSearchTerm.toLowerCase();
+    return clients.filter(c => 
+      c.name.toLowerCase().includes(term) ||
+      c.email?.toLowerCase().includes(term) ||
+      c.cpf_cnpj?.includes(term)
+    );
+  }, [clients, clientSearchTerm]);
+
+  // Quando selecionar um cliente, preencher o nome
+  const handleClientSelect = (clientId: string) => {
+    setSelectedClientId(clientId);
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      form.setValue("clienteId", clientId);
+      form.setValue("nomeCompleto", client.name);
+      form.setValue("emailPrincipal", client.email || "");
+      toast.success(`Cliente "${client.name}" selecionado`);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full max-h-[90vh]">
       {/* Header fixo */}
@@ -607,7 +661,9 @@ export default function OnboardingMeetingAgenda({
           </div>
           <div>
             <h2 className="text-lg font-semibold">Pauta de Reunião de Onboarding</h2>
-            <p className="text-sm text-muted-foreground">IPROMED • {clientName}</p>
+            <p className="text-sm text-muted-foreground">
+              IPROMED • {selectedClient?.name || "Selecione um cliente"}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -622,12 +678,118 @@ export default function OnboardingMeetingAgenda({
         </div>
       </div>
 
-      {/* Conteúdo scrollável */}
-      <ScrollArea className="flex-1">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4 space-y-4">
-            <Accordion 
-              type="single" 
+      {/* Seletor de Cliente - aparece se não houver cliente selecionado */}
+      {!selectedClientId && (
+        <div className="p-4 border-b bg-amber-50 dark:bg-amber-950/20">
+          <div className="flex items-center gap-2 mb-3">
+            <Users className="h-5 w-5 text-amber-600" />
+            <h3 className="font-semibold text-amber-800 dark:text-amber-200">
+              Selecione o cliente para iniciar o onboarding
+            </h3>
+          </div>
+          
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar cliente por nome, email ou CPF/CNPJ..."
+              value={clientSearchTerm}
+              onChange={(e) => setClientSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+
+          {isLoadingClients ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full mr-2" />
+              Carregando clientes...
+            </div>
+          ) : clients.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                <Users className="h-12 w-12 text-muted-foreground mb-3" />
+                <p className="font-medium">Nenhum cliente cadastrado</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Cadastre clientes na seção "Clientes" antes de iniciar o onboarding.
+                </p>
+                <Button variant="outline" onClick={onClose}>
+                  Ir para Clientes
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-2 max-h-60 overflow-y-auto">
+              {filteredClients.map((client) => (
+                <Card 
+                  key={client.id}
+                  className={cn(
+                    "cursor-pointer transition-all hover:border-primary hover:shadow-sm",
+                    selectedClientId === client.id && "border-primary bg-primary/5"
+                  )}
+                  onClick={() => handleClientSelect(client.id)}
+                >
+                  <CardContent className="flex items-center gap-3 p-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
+                      {client.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{client.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {client.email || client.cpf_cnpj || "Sem email"}
+                      </p>
+                    </div>
+                    {client.journey_stage && (
+                      <Badge variant="secondary" className="text-xs">
+                        {client.journey_stage}
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+              {filteredClients.length === 0 && clientSearchTerm && (
+                <p className="text-center text-muted-foreground py-4">
+                  Nenhum cliente encontrado para "{clientSearchTerm}"
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Cliente selecionado - mostrar resumo */}
+      {selectedClientId && selectedClient && (
+        <div className="p-3 border-b bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium">
+              {selectedClient.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+            </div>
+            <div>
+              <p className="font-medium text-emerald-800 dark:text-emerald-200">{selectedClient.name}</p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                {selectedClient.email || selectedClient.cpf_cnpj}
+              </p>
+            </div>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => {
+              setSelectedClientId("");
+              form.setValue("clienteId", "");
+            }}
+            className="text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100"
+          >
+            Trocar cliente
+          </Button>
+        </div>
+      )}
+
+      {/* Conteúdo scrollável - só mostra se tiver cliente selecionado */}
+      {selectedClientId && (
+        <ScrollArea className="flex-1">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4 space-y-4">
+              <Accordion 
+                type="single"
               value={expandedSections[0] || ""}
               className="space-y-3"
             >
@@ -3051,6 +3213,7 @@ export default function OnboardingMeetingAgenda({
           </form>
         </Form>
       </ScrollArea>
+      )}
     </div>
   );
 }
