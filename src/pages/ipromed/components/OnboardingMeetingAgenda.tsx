@@ -3,7 +3,7 @@
  * Formulário completo com 10 seções e 43 campos para registro de novos clientes
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -329,6 +329,9 @@ interface OnboardingMeetingAgendaProps {
   initialData?: Partial<OnboardingMeetingData>;
 }
 
+// Gerar chave única para localStorage baseado no clientId
+const STORAGE_KEY_PREFIX = "ipromed_onboarding_";
+
 export default function OnboardingMeetingAgenda({
   clientId,
   clientName,
@@ -336,8 +339,31 @@ export default function OnboardingMeetingAgenda({
   onClose,
   initialData,
 }: OnboardingMeetingAgendaProps) {
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-  const [completedSections, setCompletedSections] = useState<string[]>([]);
+  // Chave única para este cliente/sessão
+  const storageKey = `${STORAGE_KEY_PREFIX}${clientId || 'new'}`;
+  
+  // Tentar carregar dados salvos do localStorage
+  const getSavedData = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar checkpoint:", e);
+    }
+    return null;
+  }, [storageKey]);
+
+  const savedCheckpoint = getSavedData();
+  
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(() => {
+    return savedCheckpoint?.currentSectionIndex ?? 0;
+  });
+  const [completedSections, setCompletedSections] = useState<string[]>(() => {
+    return savedCheckpoint?.completedSections ?? [];
+  });
+  const [isRestored, setIsRestored] = useState(false);
   
   // Controlar qual seção está expandida (apenas a atual)
   const currentSection = sections[currentSectionIndex];
@@ -346,72 +372,128 @@ export default function OnboardingMeetingAgenda({
   const form = useForm<OnboardingMeetingData>({
     resolver: zodResolver(onboardingMeetingSchema),
     defaultValues: {
-      nomeCompleto: clientName ?? "",
-      nomePreferencia: "",
-      cargoFuncao: "",
-      possuiClinica: false,
-      clinicaNome: "",
-      clinicaEndereco: "",
-      clinicaCNPJ: "",
-      clinicaCRM: "",
-      cidadeEstado: "",
-      emailPrincipal: "",
-      objetivoPrincipal: "",
-      areaAtuacao: "",
-      possuiRQE: false,
-      numeroRQE: "",
-      tempoAtuacao: undefined,
-      formatoAtendimento: [],
-      estruturaPrincipal: "",
-      tamanhoEquipe: undefined,
-      procedimentosRealizados: [],
-      procedimentosMaiorVolume: [],
-      whatsappPrincipal: "",
-      responsavelOperacional: "",
-      contatoPrincipal: { nome: "", email: "", whatsapp: "", funcao: "" },
-      contatosAdicionais: [],
-      horarioPreferencial: "",
-      usaDocumentosHoje: false,
-      documentosExistentes: [],
-      quemPreenche: "",
-      usaAssinaturaDigital: false,
-      ferramentaAssinatura: "",
-      documentosEntregues: [],
-      documentosAdicionaisEntregues: [],
-      possuiPrioridade: false,
-      documentosPrioritariosSelecionados: [],
-      documentosPrioritarios: [],
-      jaTeveProblemAnterior: false,
-      problemasAnteriores: [],
-      dataOnboarding: new Date().toISOString().split('T')[0],
-      dataRecebimentoDocsAtuais: "",
-      prazoPadraoRevisao: 20,
-      prazoPadraoCriacao: 20,
-      dataPrevistaRevisao: "",
-      dataPrevistaCriacao: "",
-      documentosAtuaisStatus: {},
-      necessitaTreinamento: false,
-      quemSeraTreinado: "",
-      formatoTreinamento: "",
-      dataSugeridaTreinamento: "",
-      duvidasPrincipais: "",
-      instagramHandle: "",
-      responsavelPerfil: "",
-      fazAnuncios: false,
+      nomeCompleto: savedCheckpoint?.formData?.nomeCompleto ?? clientName ?? "",
+      nomePreferencia: savedCheckpoint?.formData?.nomePreferencia ?? "",
+      cargoFuncao: savedCheckpoint?.formData?.cargoFuncao ?? "",
+      possuiClinica: savedCheckpoint?.formData?.possuiClinica ?? false,
+      clinicaNome: savedCheckpoint?.formData?.clinicaNome ?? "",
+      clinicaEndereco: savedCheckpoint?.formData?.clinicaEndereco ?? "",
+      clinicaCNPJ: savedCheckpoint?.formData?.clinicaCNPJ ?? "",
+      clinicaCRM: savedCheckpoint?.formData?.clinicaCRM ?? "",
+      cidadeEstado: savedCheckpoint?.formData?.cidadeEstado ?? "",
+      emailPrincipal: savedCheckpoint?.formData?.emailPrincipal ?? "",
+      objetivoPrincipal: savedCheckpoint?.formData?.objetivoPrincipal ?? "",
+      areaAtuacao: savedCheckpoint?.formData?.areaAtuacao ?? "",
+      possuiRQE: savedCheckpoint?.formData?.possuiRQE ?? false,
+      numeroRQE: savedCheckpoint?.formData?.numeroRQE ?? "",
+      tempoAtuacao: savedCheckpoint?.formData?.tempoAtuacao ?? undefined,
+      formatoAtendimento: savedCheckpoint?.formData?.formatoAtendimento ?? [],
+      estruturaPrincipal: savedCheckpoint?.formData?.estruturaPrincipal ?? "",
+      tamanhoEquipe: savedCheckpoint?.formData?.tamanhoEquipe ?? undefined,
+      procedimentosRealizados: savedCheckpoint?.formData?.procedimentosRealizados ?? [],
+      procedimentosMaiorVolume: savedCheckpoint?.formData?.procedimentosMaiorVolume ?? [],
+      whatsappPrincipal: savedCheckpoint?.formData?.whatsappPrincipal ?? "",
+      responsavelOperacional: savedCheckpoint?.formData?.responsavelOperacional ?? "",
+      contatoPrincipal: savedCheckpoint?.formData?.contatoPrincipal ?? { nome: "", email: "", whatsapp: "", funcao: "" },
+      contatosAdicionais: savedCheckpoint?.formData?.contatosAdicionais ?? [],
+      horarioPreferencial: savedCheckpoint?.formData?.horarioPreferencial ?? "",
+      usaDocumentosHoje: savedCheckpoint?.formData?.usaDocumentosHoje ?? false,
+      documentosExistentes: savedCheckpoint?.formData?.documentosExistentes ?? [],
+      quemPreenche: savedCheckpoint?.formData?.quemPreenche ?? "",
+      usaAssinaturaDigital: savedCheckpoint?.formData?.usaAssinaturaDigital ?? false,
+      ferramentaAssinatura: savedCheckpoint?.formData?.ferramentaAssinatura ?? "",
+      documentosEntregues: savedCheckpoint?.formData?.documentosEntregues ?? [],
+      documentosAdicionaisEntregues: savedCheckpoint?.formData?.documentosAdicionaisEntregues ?? [],
+      possuiPrioridade: savedCheckpoint?.formData?.possuiPrioridade ?? false,
+      documentosPrioritariosSelecionados: savedCheckpoint?.formData?.documentosPrioritariosSelecionados ?? [],
+      documentosPrioritarios: savedCheckpoint?.formData?.documentosPrioritarios ?? [],
+      jaTeveProblemAnterior: savedCheckpoint?.formData?.jaTeveProblemAnterior ?? false,
+      problemasAnteriores: savedCheckpoint?.formData?.problemasAnteriores ?? [],
+      dataOnboarding: savedCheckpoint?.formData?.dataOnboarding ?? new Date().toISOString().split('T')[0],
+      dataRecebimentoDocsAtuais: savedCheckpoint?.formData?.dataRecebimentoDocsAtuais ?? "",
+      prazoPadraoRevisao: savedCheckpoint?.formData?.prazoPadraoRevisao ?? 20,
+      prazoPadraoCriacao: savedCheckpoint?.formData?.prazoPadraoCriacao ?? 20,
+      dataPrevistaRevisao: savedCheckpoint?.formData?.dataPrevistaRevisao ?? "",
+      dataPrevistaCriacao: savedCheckpoint?.formData?.dataPrevistaCriacao ?? "",
+      documentosAtuaisStatus: savedCheckpoint?.formData?.documentosAtuaisStatus ?? {},
+      necessitaTreinamento: savedCheckpoint?.formData?.necessitaTreinamento ?? false,
+      quemSeraTreinado: savedCheckpoint?.formData?.quemSeraTreinado ?? "",
+      formatoTreinamento: savedCheckpoint?.formData?.formatoTreinamento ?? "",
+      dataSugeridaTreinamento: savedCheckpoint?.formData?.dataSugeridaTreinamento ?? "",
+      duvidasPrincipais: savedCheckpoint?.formData?.duvidasPrincipais ?? "",
+      instagramHandle: savedCheckpoint?.formData?.instagramHandle ?? "",
+      responsavelPerfil: savedCheckpoint?.formData?.responsavelPerfil ?? "",
+      fazAnuncios: savedCheckpoint?.formData?.fazAnuncios ?? false,
       
-      riscosEncontrados: "",
-      riscosArquivos: [],
-      orientacoesDadas: "",
-      leituraConcluida: false,
-      duvidasRespostas: [],
-      ajustesSolicitados: "",
-      aceiteContrato: false,
+      riscosEncontrados: savedCheckpoint?.formData?.riscosEncontrados ?? "",
+      riscosArquivos: savedCheckpoint?.formData?.riscosArquivos ?? [],
+      orientacoesDadas: savedCheckpoint?.formData?.orientacoesDadas ?? "",
+      leituraConcluida: savedCheckpoint?.formData?.leituraConcluida ?? false,
+      duvidasRespostas: savedCheckpoint?.formData?.duvidasRespostas ?? [],
+      ajustesSolicitados: savedCheckpoint?.formData?.ajustesSolicitados ?? "",
+      aceiteContrato: savedCheckpoint?.formData?.aceiteContrato ?? false,
       ...initialData,
     },
   });
 
+  // Salvar checkpoint no localStorage quando o formulário muda
+  const saveCheckpoint = useCallback(() => {
+    try {
+      const checkpoint = {
+        formData: form.getValues(),
+        currentSectionIndex,
+        completedSections,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(storageKey, JSON.stringify(checkpoint));
+    } catch (e) {
+      console.error("Erro ao salvar checkpoint:", e);
+    }
+  }, [form, currentSectionIndex, completedSections, storageKey]);
+
+  // Auto-save quando dados mudam (debounced)
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      // Debounce para não salvar a cada keystroke
+      const timeoutId = setTimeout(() => {
+        saveCheckpoint();
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, saveCheckpoint]);
+
+  // Salvar quando seções mudam
+  useEffect(() => {
+    saveCheckpoint();
+  }, [currentSectionIndex, completedSections, saveCheckpoint]);
+
+  // Mostrar notificação de restauração
+  useEffect(() => {
+    if (savedCheckpoint && !isRestored) {
+      setIsRestored(true);
+      const savedDate = savedCheckpoint.savedAt 
+        ? new Date(savedCheckpoint.savedAt).toLocaleString('pt-BR')
+        : 'desconhecida';
+      toast.info("Progresso restaurado!", {
+        description: `Voltando para onde você parou. Último checkpoint: ${savedDate}`,
+        duration: 4000,
+      });
+    }
+  }, [savedCheckpoint, isRestored]);
+
+  // Limpar checkpoint quando o formulário é submetido com sucesso
+  const clearCheckpoint = useCallback(() => {
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (e) {
+      console.error("Erro ao limpar checkpoint:", e);
+    }
+  }, [storageKey]);
+
   const handleSubmit = (data: OnboardingMeetingData) => {
     onSubmit?.(data);
+    clearCheckpoint(); // Limpar checkpoint após salvar com sucesso
     toast.success("Pauta de onboarding salva com sucesso!", {
       description: "Todos os dados da reunião foram registrados.",
     });
