@@ -3606,6 +3606,161 @@ export type Database = {
         }
         Relationships: []
       }
+      cpg_sales_funnel_stages: {
+        Row: {
+          checklist: Json | null
+          color: string | null
+          created_at: string
+          description: string | null
+          funnel_id: string
+          id: string
+          name: string
+          order_index: number | null
+          updated_at: string
+        }
+        Insert: {
+          checklist?: Json | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          funnel_id: string
+          id?: string
+          name: string
+          order_index?: number | null
+          updated_at?: string
+        }
+        Update: {
+          checklist?: Json | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          funnel_id?: string
+          id?: string
+          name?: string
+          order_index?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cpg_sales_funnel_stages_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "cpg_sales_funnels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cpg_sales_funnels: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          order_index: number | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          order_index?: number | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          order_index?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cpg_sales_leads: {
+        Row: {
+          assigned_to: string | null
+          client_id: string | null
+          company_name: string | null
+          created_at: string
+          custom_fields: Json | null
+          email: string | null
+          funnel_id: string
+          id: string
+          metadata: Json | null
+          name: string
+          notes: string | null
+          order_index: number | null
+          phone: string | null
+          source: string | null
+          specialty: string | null
+          stage_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id?: string | null
+          company_name?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          funnel_id: string
+          id?: string
+          metadata?: Json | null
+          name: string
+          notes?: string | null
+          order_index?: number | null
+          phone?: string | null
+          source?: string | null
+          specialty?: string | null
+          stage_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string | null
+          company_name?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          funnel_id?: string
+          id?: string
+          metadata?: Json | null
+          name?: string
+          notes?: string | null
+          order_index?: number | null
+          phone?: string | null
+          source?: string | null
+          specialty?: string | null
+          stage_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cpg_sales_leads_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "cpg_sales_funnels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cpg_sales_leads_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "cpg_sales_funnel_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_conversations: {
         Row: {
           agent_mode: string | null
