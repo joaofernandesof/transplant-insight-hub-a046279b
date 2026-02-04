@@ -6194,6 +6194,53 @@ export type Database = {
           },
         ]
       }
+      ipromed_contract_documents: {
+        Row: {
+          contract_id: string
+          created_at: string
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          document_type?: string
+          file_name: string
+          file_path: string
+          file_size?: number
+          file_type: string
+          id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_contract_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_contracts: {
         Row: {
           area: string | null
@@ -6217,6 +6264,7 @@ export type Database = {
           partner2_client_id: string | null
           renewal_date: string | null
           responsible_id: string | null
+          sent_at: string | null
           signed_at: string | null
           signers: Json | null
           start_date: string | null
@@ -6248,6 +6296,7 @@ export type Database = {
           partner2_client_id?: string | null
           renewal_date?: string | null
           responsible_id?: string | null
+          sent_at?: string | null
           signed_at?: string | null
           signers?: Json | null
           start_date?: string | null
@@ -6279,6 +6328,7 @@ export type Database = {
           partner2_client_id?: string | null
           renewal_date?: string | null
           responsible_id?: string | null
+          sent_at?: string | null
           signed_at?: string | null
           signers?: Json | null
           start_date?: string | null
