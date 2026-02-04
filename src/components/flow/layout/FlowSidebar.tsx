@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Zap
 } from "lucide-react";
+import { PortalSwitcherButton } from "@/components/shared/PortalSwitcherButton";
 
 interface FlowSidebarProps {
   collapsed: boolean;
@@ -94,6 +95,8 @@ export function FlowSidebar({ collapsed, onToggleCollapse }: FlowSidebarProps) {
       {/* Menu */}
       <ScrollArea className="flex-1 py-4">
         <nav className="space-y-1 px-2">
+          {/* Portal Switcher - Always first */}
+          <PortalSwitcherButton isCollapsed={collapsed} variant="default" />
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path || 
               (item.path !== "/flow" && location.pathname.startsWith(item.path));

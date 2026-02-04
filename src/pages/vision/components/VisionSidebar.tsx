@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { VisionIcon } from "@/components/icons/VisionIcon";
 import { useState } from "react";
+import { PortalSwitcherButton } from "@/components/shared/PortalSwitcherButton";
 
 interface VisionSidebarProps {
   onOpenPlans?: () => void;
@@ -91,6 +92,8 @@ export function VisionSidebar({ onOpenPlans, onStartAnalysis }: VisionSidebarPro
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1">
+        {/* Portal Switcher - Always first */}
+        <PortalSwitcherButton isCollapsed={collapsed} variant="light" />
         {menuItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);

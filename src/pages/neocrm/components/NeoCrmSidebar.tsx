@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PortalSwitcherButton } from '@/components/shared/PortalSwitcherButton';
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/neocrm' },
@@ -58,6 +59,8 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="space-y-1">
+          {/* Portal Switcher - Always first */}
+          <PortalSwitcherButton isCollapsed={collapsed} variant="light" />
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href || 

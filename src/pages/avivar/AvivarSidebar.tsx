@@ -29,6 +29,7 @@ import {
   CalendarDays,
   Link2,
   PhoneCall,
+  Kanban,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -36,8 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
-
-import { Kanban } from 'lucide-react';
+import { PortalSwitcherButton } from '@/components/shared/PortalSwitcherButton';
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/avivar' },
@@ -92,6 +92,8 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-4 relative z-10">
         <nav className="space-y-1">
+          {/* Portal Switcher - Always first */}
+          <PortalSwitcherButton isCollapsed={collapsed} variant="avivar" />
           {menuItems.map((item) => {
             if (item.isDivider) {
               return (
