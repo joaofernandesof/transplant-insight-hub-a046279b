@@ -52,7 +52,7 @@ const portals = [
 
 // Menu principal enxuto
 const mainMenu = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin-portal' },
+  { id: 'dashboard', label: 'Início', icon: Home, href: '/admin-portal' },
   { id: 'metrics', label: 'Métricas', icon: BarChart3, href: '/system-metrics' },
 ];
 
