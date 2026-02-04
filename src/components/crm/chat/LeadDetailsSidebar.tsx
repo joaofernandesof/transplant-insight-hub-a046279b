@@ -60,6 +60,7 @@ import { LeadTagsDialog } from './LeadTagsDialog';
 import { LeadTagsInline } from './LeadTagsInline';
 import { ChecklistFieldRenderer } from './ChecklistFieldRenderer';
 import { ChecklistConfigDialog } from './ChecklistConfigDialog';
+import { ResponsibleSelector } from './ResponsibleSelector';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -325,19 +326,11 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
               </div>
             )}
 
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Responsável</label>
-              <div className="flex items-center gap-2">
-                <Avatar className="h-5 w-5">
-                  <AvatarFallback className="text-[10px] bg-[hsl(var(--avivar-muted))]">
-                    OP
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-xs text-[hsl(var(--avivar-foreground))]">
-                  {conversation.assigned_to ? 'Operador' : 'Não atribuído'}
-                </span>
-              </div>
-            </div>
+            <ResponsibleSelector
+              conversationId={conversation.id}
+              currentAssignedTo={conversation.assigned_to || null}
+              onAssigned={onLeadUpdated}
+            />
           </div>
 
           <Separator className="bg-[hsl(var(--avivar-border))]" />
