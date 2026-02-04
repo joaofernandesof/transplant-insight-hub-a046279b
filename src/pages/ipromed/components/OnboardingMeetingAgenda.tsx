@@ -469,6 +469,8 @@ export default function OnboardingMeetingAgenda({
   const [fieldsWithError, setFieldsWithError] = useState<string[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
   const [isPrinting, setIsPrinting] = useState(false);
+  // Estado para forçar todas as seções abertas durante impressão
+  const [printExpandedSections, setPrintExpandedSections] = useState<string[]>([]);
   
   // Controlar qual seção está expandida
   // Se todas as seções estiverem concluídas, iniciar todas fechadas mas permitir abrir manualmente
@@ -912,23 +914,31 @@ export default function OnboardingMeetingAgenda({
 
   const progress = Math.round((completedSections.length / sections.length) * 100);
 
+  // Referência para a seção expandida antes de imprimir
+  const previousExpandedRef = useRef<string>("");
+
   // Função para imprimir usando react-to-print
   const reactToPrintFn = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Pauta Onboarding - ${selectedClient?.name || 'Cliente'}`,
     onBeforePrint: async () => {
+      // Salvar seção atual e expandir todas
+      previousExpandedRef.current = manualExpandedSection;
       setIsPrinting(true);
-      // Pequeno delay para garantir que o estado isPrinting seja aplicado
-      return new Promise(resolve => setTimeout(resolve, 100));
+      setPrintExpandedSections(sections.map(s => s.id));
+      // Delay maior para garantir que todas as seções sejam renderizadas
+      return new Promise(resolve => setTimeout(resolve, 300));
     },
     onAfterPrint: () => {
       setIsPrinting(false);
+      setPrintExpandedSections([]);
+      // Restaurar seção expandida anterior
+      setManualExpandedSection(previousExpandedRef.current);
     },
   });
 
   const handlePrint = useCallback(() => {
     toast.success("Preparando impressão...");
-    // O estado isPrinting vai expandir automaticamente as seções via CSS/lógica
     reactToPrintFn();
   }, [reactToPrintFn]);
 
@@ -974,7 +984,7 @@ export default function OnboardingMeetingAgenda({
       className={cn(
         "flex flex-col onboarding-print-container bg-background",
         embedded ? "h-auto max-h-[60vh]" : "h-full max-h-[90vh]",
-        isPrinting && "print-mode"
+        isPrinting && "print-mode print-force-expand"
       )}
     >
       {/* Estilos de impressão */}
@@ -996,15 +1006,6 @@ export default function OnboardingMeetingAgenda({
             max-height: none !important;
             height: auto !important;
           }
-          /* Expandir todas as seções do accordion */
-          .print-mode [data-state="closed"] > [data-radix-collapsible-content],
-          .print-mode [data-radix-accordion-content][data-state="closed"] {
-            display: block !important;
-            height: auto !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            animation: none !important;
-          }
           .print-mode [data-radix-accordion-item] {
             page-break-inside: avoid;
           }
@@ -1016,6 +1017,20 @@ export default function OnboardingMeetingAgenda({
             size: A4;
             margin: 15mm;
           }
+        }
+        /* Quando isPrinting, forçar todos os AccordionContent a aparecer */
+        .print-force-expand [data-radix-accordion-content] {
+          display: block !important;
+          height: auto !important;
+          overflow: visible !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          animation: none !important;
+          --radix-accordion-content-height: auto !important;
+        }
+        .print-force-expand [data-radix-accordion-content][data-state="closed"] {
+          display: block !important;
+          height: auto !important;
         }
       `}</style>
       {/* Header fixo - oculto no modo embedded */}
@@ -1167,10 +1182,10 @@ export default function OnboardingMeetingAgenda({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className={cn("space-y-4", embedded ? "p-3" : "p-4")}>
               <Accordion 
-                type="single"
-                collapsible
-                value={manualExpandedSection}
-                onValueChange={(value) => setManualExpandedSection(value || "")}
+                {...(isPrinting 
+                  ? { type: "multiple" as const, value: printExpandedSections }
+                  : { type: "single" as const, collapsible: true, value: manualExpandedSection, onValueChange: (value: string) => setManualExpandedSection(value || "") }
+                )}
                 className="space-y-3"
               >
               {/* 1. Boas-vindas e abertura */}
