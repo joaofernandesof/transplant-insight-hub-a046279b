@@ -115,7 +115,10 @@ export default function IpromedFinancial() {
         <TabsContent value="overview" className="mt-6 space-y-6">
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+            <Card 
+              className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab('receivables')}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -129,7 +132,10 @@ export default function IpromedFinancial() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+            <Card 
+              className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab('receivables')}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -143,7 +149,10 @@ export default function IpromedFinancial() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-rose-50 to-rose-100 border-rose-200">
+            <Card 
+              className="bg-gradient-to-br from-rose-50 to-rose-100 border-rose-200 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab('alerts')}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -157,7 +166,10 @@ export default function IpromedFinancial() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <Card 
+              className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab('cashflow')}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
