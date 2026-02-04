@@ -6155,6 +6155,45 @@ export type Database = {
           },
         ]
       }
+      ipromed_contract_clients: {
+        Row: {
+          client_id: string
+          contract_id: string
+          created_at: string | null
+          id: string
+          role: string | null
+        }
+        Insert: {
+          client_id: string
+          contract_id: string
+          created_at?: string | null
+          id?: string
+          role?: string | null
+        }
+        Update: {
+          client_id?: string
+          contract_id?: string
+          created_at?: string | null
+          id?: string
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_contract_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_contract_clients_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_contracts: {
         Row: {
           area: string | null
