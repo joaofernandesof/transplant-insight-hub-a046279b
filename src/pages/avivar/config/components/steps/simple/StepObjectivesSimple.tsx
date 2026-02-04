@@ -40,7 +40,7 @@ const AVAILABLE_OBJECTIVES: Array<{
   },
   {
     id: 'agendar_online',
-    name: 'Agendar Reunião Online',
+    name: 'Agendar Consulta Online',
     description: 'Marcar sessões por videoconferência',
     icon: <Video className="h-5 w-5" />,
   },
