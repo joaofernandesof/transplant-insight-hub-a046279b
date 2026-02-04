@@ -141,14 +141,31 @@ export function MeetingDetailSheet({
   // Delete meeting mutation
   const deleteMeeting = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      if (!meeting?.id) {
+        throw new Error('Reunião inválida');
+      }
+
+      // delete() não retorna erro quando 0 linhas são afetadas;
+      // usamos .select() para confirmar exclusão.
+      const { data, error } = await supabase
         .from('ipromed_client_meetings' as any)
         .delete()
-        .eq('id', meeting?.id);
+        .eq('id', meeting.id)
+        .select('id');
 
       if (error) throw error;
+
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        throw new Error('Não foi possível excluir. A reunião pode não existir mais ou você não tem permissão.');
+      }
     },
     onSuccess: () => {
+      // Atualiza cache para remover imediatamente da lista do cliente
+      if (meeting?.client_id) {
+        queryClient.setQueryData<any[]>(['ipromed-client-meetings', meeting.client_id], (old) =>
+          (old || []).filter((m) => m?.id !== meeting.id)
+        );
+      }
       queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
       queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
       toast.success("Reunião excluída!");

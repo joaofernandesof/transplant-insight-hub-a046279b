@@ -137,12 +137,30 @@ export default function IpromedClientDetail() {
   // Delete meeting handler
   const handleDeleteMeeting = async (meeting: any) => {
     try {
-      const { error } = await supabase
+      if (!meeting?.id) {
+        throw new Error('Reunião inválida');
+      }
+
+      // IMPORTANT: delete() não retorna erro quando 0 linhas são afetadas.
+      // Usamos .select() para confirmar que houve exclusão.
+      const { data, error } = await supabase
         .from('ipromed_client_meetings' as any)
         .delete()
-        .eq('id', meeting.id);
+        .eq('id', meeting.id)
+        .select('id');
 
       if (error) throw error;
+
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        throw new Error('Não foi possível excluir. A reunião pode não existir mais ou você não tem permissão.');
+      }
+
+      // Atualiza cache imediatamente para refletir no UI
+      if (id) {
+        queryClient.setQueryData<any[]>(['ipromed-client-meetings', id], (old) =>
+          (old || []).filter((m) => m?.id !== meeting.id)
+        );
+      }
 
       // Refetch meetings immediately after deletion
       await refetchMeetings();
