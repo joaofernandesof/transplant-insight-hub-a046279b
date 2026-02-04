@@ -29,19 +29,29 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
   const [localValue, setLocalValue] = useState<string>(
     typeof field.value === 'string' ? field.value : ''
   );
+  const [boolValue, setBoolValue] = useState<boolean>(
+    typeof field.value === 'boolean' ? field.value : false
+  );
   const [isSaving, setIsSaving] = useState(false);
   const isEditingRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const lastSavedValueRef = useRef<string>(localValue);
+  const lastSavedBoolRef = useRef<boolean>(boolValue);
 
   // Only sync from props when NOT actively editing
   useEffect(() => {
     if (!isEditingRef.current) {
-      const newValue = typeof field.value === 'string' ? field.value : '';
-      setLocalValue(newValue);
-      lastSavedValueRef.current = newValue;
+      if (field.field_type === 'interruptor') {
+        const newBool = typeof field.value === 'boolean' ? field.value : false;
+        setBoolValue(newBool);
+        lastSavedBoolRef.current = newBool;
+      } else {
+        const newValue = typeof field.value === 'string' ? field.value : '';
+        setLocalValue(newValue);
+        lastSavedValueRef.current = newValue;
+      }
     }
-  }, [field.value]);
+  }, [field.value, field.field_type]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -52,13 +62,15 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
     };
   }, []);
 
-  const saveToDatabase = useCallback(async (value: string) => {
+  const saveToDatabase = useCallback(async (value: string | boolean) => {
     if (!leadPhone || !columnId) return;
-    if (value === lastSavedValueRef.current) return; // Skip if value unchanged
+
+    const isBoolean = typeof value === 'boolean';
+    if (isBoolean && value === lastSavedBoolRef.current) return;
+    if (!isBoolean && value === lastSavedValueRef.current) return;
 
     setIsSaving(true);
     try {
-      // Buscar o lead atual
       const { data: lead, error: fetchError } = await supabase
         .from('avivar_kanban_leads')
         .select('id, custom_fields')
@@ -69,11 +81,10 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
       if (fetchError) throw fetchError;
       if (!lead) return;
 
-      // Atualizar custom_fields
       const currentFields = (lead.custom_fields as Record<string, string | boolean | null>) || {};
       const updatedFields: Record<string, string | boolean | null> = {
         ...currentFields,
-        [field.field_key]: value || null
+        [field.field_key]: isBoolean ? value : (value || null)
       };
 
       const { error: updateError } = await supabase
@@ -83,7 +94,11 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
 
       if (updateError) throw updateError;
 
-      lastSavedValueRef.current = value;
+      if (isBoolean) {
+        lastSavedBoolRef.current = value;
+      } else {
+        lastSavedValueRef.current = value as string;
+      }
       onUpdate?.();
     } catch (error) {
       console.error('Erro ao salvar campo:', error);
@@ -99,19 +114,16 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
     isEditingRef.current = true;
     setLocalValue(value);
 
-    // Clear previous timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Debounce save
     saveTimeoutRef.current = setTimeout(() => {
       saveToDatabase(value);
     }, 800);
   }, [saveToDatabase]);
 
   const handleBlur = useCallback(() => {
-    // Save immediately on blur if there's pending changes
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
@@ -122,8 +134,40 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
     }
   }, [localValue, saveToDatabase]);
 
+  const handleToggle = useCallback(() => {
+    const newValue = !boolValue;
+    setBoolValue(newValue);
+    saveToDatabase(newValue);
+  }, [boolValue, saveToDatabase]);
+
   // Renderização baseada no tipo
   switch (field.field_type) {
+    case 'interruptor':
+      return (
+        <div className="flex items-center justify-between gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap">
+            {field.field_label}
+            {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
+          </Label>
+          <button
+            type="button"
+            onClick={handleToggle}
+            disabled={isSaving}
+            className={`relative w-10 h-5 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--avivar-primary))] ${
+              boolValue 
+                ? 'bg-[hsl(var(--avivar-primary))]' 
+                : 'bg-[hsl(var(--avivar-muted))]'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+                boolValue ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+      );
+
     case 'text':
     default:
       return (
