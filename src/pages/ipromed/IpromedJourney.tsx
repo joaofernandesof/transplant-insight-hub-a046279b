@@ -17,6 +17,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -38,6 +45,9 @@ import {
   Plus,
   Eye,
   FileSignature,
+  MoreVertical,
+  ExternalLink,
+  Video,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -45,6 +55,7 @@ import { toast } from "sonner";
 import ClientJourneyTracker from "./components/ClientJourneyTracker";
 import JourneyPhaseDetail, { journeyPhasesDetailed, PhaseDetail } from "./components/JourneyPhaseDetail";
 import { OnboardingMeetingDialog } from "./components/OnboardingMeetingAgenda";
+import { MeetingScheduleDialog } from "./components/MeetingScheduleDialog";
 import { cn } from "@/lib/utils";
 
 // Journey phases with colors - mapped to detailed phases
@@ -83,6 +94,8 @@ export default function IpromedJourney() {
   const [activeTab, setActiveTab] = useState("pipeline");
   const [phaseDetailOpen, setPhaseDetailOpen] = useState(false);
   const [selectedPhaseDetail, setSelectedPhaseDetail] = useState<PhaseDetail | null>(null);
+  const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
+  const [meetingClient, setMeetingClient] = useState<Client | null>(null);
 
   // Fetch clients with journey data from database
   const { data: dbClients = [], isLoading } = useQuery({
@@ -172,27 +185,63 @@ export default function IpromedJourney() {
 
     return (
       <Card 
-        className={`border-none shadow-sm hover:shadow-md transition-all cursor-pointer ${
-          overdue ? 'ring-2 ring-rose-200 dark:ring-rose-900' : ''
-        } ${selectedClient?.id === client.id ? 'ring-2 ring-primary' : ''}`}
-        onClick={() => setSelectedClient(client)}
+        className={cn(
+          "border-none shadow-sm hover:shadow-md transition-all group/card",
+          overdue && 'ring-2 ring-destructive/30',
+          selectedClient?.id === client.id && 'ring-2 ring-primary'
+        )}
       >
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className={`${getPhaseColor(phase)} text-white`}>
+            <Avatar 
+              className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary"
+              onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+            >
+              <AvatarFallback className={cn(getPhaseColor(phase), "text-white")}>
                 {client.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm truncate">{client.name}</h4>
-                {overdue && (
-                  <AlertTriangle className="h-4 w-4 text-rose-500 flex-shrink-0" />
-                )}
+                <h4 
+                  className="font-medium text-sm truncate cursor-pointer hover:text-primary"
+                  onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                >
+                  {client.name}
+                </h4>
+                <div className="flex items-center gap-1">
+                  {overdue && (
+                    <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 opacity-0 group-hover/card:opacity-100"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Ver Detalhes
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => {
+                        setMeetingClient(client);
+                        setMeetingDialogOpen(true);
+                      }}>
+                        <Video className="h-4 w-4 mr-2" />
+                        Agendar Reunião
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <Badge className={`text-xs ${getPhaseColor(phase)} text-white`}>
+                <Badge className={cn("text-xs text-white", getPhaseColor(phase))}>
                   {phase}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
@@ -389,17 +438,49 @@ export default function IpromedJourney() {
                           return (
                             <Card 
                               key={client.id} 
-                              className="bg-card hover:shadow-md transition-shadow cursor-pointer border"
-                              onClick={() => setSelectedClient(client)}
+                              className="bg-card hover:shadow-md transition-shadow cursor-pointer border group/card"
                             >
                               <CardContent className="p-3">
                                 <div className="flex items-center gap-2">
-                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                  <Avatar 
+                                    className="h-8 w-8 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary"
+                                    onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                                  >
                                     <AvatarFallback className={cn("text-xs font-medium text-white", phase.color)}>
                                       {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <p className="font-medium text-sm leading-tight line-clamp-2 flex-1">{client.name}</p>
+                                  <p 
+                                    className="font-medium text-sm leading-tight line-clamp-2 flex-1 hover:text-primary cursor-pointer"
+                                    onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                                  >
+                                    {client.name}
+                                  </p>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6 opacity-0 group-hover/card:opacity-100"
+                                      >
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => navigate(`/ipromed/clients/${client.id}`)}>
+                                        <ExternalLink className="h-4 w-4 mr-2" />
+                                        Ver Detalhes
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => {
+                                        setMeetingClient(client);
+                                        setMeetingDialogOpen(true);
+                                      }}>
+                                        <Video className="h-4 w-4 mr-2" />
+                                        Agendar Reunião
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </CardContent>
                             </Card>
@@ -549,6 +630,20 @@ export default function IpromedJourney() {
         onClose={() => setPhaseDetailOpen(false)}
         clientName={selectedClient?.name}
       />
+
+      {/* Meeting Schedule Dialog */}
+      {meetingClient && (
+        <MeetingScheduleDialog
+          open={meetingDialogOpen}
+          onOpenChange={setMeetingDialogOpen}
+          clientId={meetingClient.id}
+          clientName={meetingClient.name}
+          onSchedule={(data) => {
+            console.log('Meeting scheduled:', data);
+            toast.success('Reunião agendada com sucesso!');
+          }}
+        />
+      )}
     </div>
   );
 }
