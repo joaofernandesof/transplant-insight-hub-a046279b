@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, Search, Calendar as CalendarIcon, FileText } from 'lucide-react';
+import { ChevronDown, Search, Calendar as CalendarIcon, FileText, Upload, X, ExternalLink, Loader2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,12 +30,13 @@ interface ChecklistField {
 
 interface Props {
   field: ChecklistField;
+  leadId?: string | null;
   leadPhone?: string | null;
   columnId?: string | null;
   onUpdate?: () => void;
 }
 
-export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }: Props) {
+export function ChecklistFieldRenderer({ field, leadId, leadPhone, columnId, onUpdate }: Props) {
   const [localValue, setLocalValue] = useState<string>(
     typeof field.value === 'string' ? field.value : ''
   );
@@ -86,6 +87,10 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
     }
     return '';
   });
+  
+  // File upload state
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const isEditingRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -654,6 +659,145 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
                 </div>
               </PopoverContent>
             </Popover>
+          )}
+        </div>
+      );
+
+    case 'file':
+      const handleFileClick = () => {
+        fileInputRef.current?.click();
+      };
+
+      const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error('Arquivo muito grande. Máximo 10MB.');
+          return;
+        }
+
+        setIsUploading(true);
+        try {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${leadId}/${field.field_key}_${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('avivar-media')
+            .upload(fileName, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from('avivar-media')
+            .getPublicUrl(fileName);
+
+          const fileUrl = urlData.publicUrl;
+          setLocalValue(fileUrl);
+          saveToDatabase(fileUrl);
+          toast.success('Arquivo enviado com sucesso!');
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          toast.error('Erro ao enviar arquivo');
+        } finally {
+          setIsUploading(false);
+          // Reset input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }
+      };
+
+      const handleRemoveFile = async () => {
+        if (localValue) {
+          try {
+            // Extract file path from URL
+            const url = new URL(localValue);
+            const pathParts = url.pathname.split('/avivar-media/');
+            if (pathParts.length > 1) {
+              await supabase.storage
+                .from('avivar-media')
+                .remove([decodeURIComponent(pathParts[1])]);
+            }
+          } catch (error) {
+            console.error('Error removing file:', error);
+          }
+        }
+        setLocalValue('');
+        saveToDatabase('');
+      };
+
+      const getFileName = (url: string) => {
+        try {
+          const decoded = decodeURIComponent(url);
+          const parts = decoded.split('/');
+          const fullName = parts[parts.length - 1];
+          // Remove timestamp prefix
+          const nameMatch = fullName.match(/_\d+\.(.+)$/);
+          if (nameMatch) {
+            return `arquivo.${nameMatch[1]}`;
+          }
+          return fullName.length > 20 ? fullName.substring(0, 17) + '...' : fullName;
+        } catch {
+          return 'arquivo';
+        }
+      };
+
+      return (
+        <div className="flex items-center gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
+            {field.field_label}
+            {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
+          </Label>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileChange}
+            className="hidden"
+            accept="*/*"
+          />
+          
+          {localValue ? (
+            <div className="flex items-center gap-2 flex-1">
+              <a
+                href={localValue}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-[hsl(var(--avivar-primary))] hover:underline flex items-center gap-1 truncate"
+              >
+                {getFileName(localValue)}
+                <ExternalLink className="h-3 w-3 shrink-0" />
+              </a>
+              <button
+                type="button"
+                onClick={handleRemoveFile}
+                disabled={isSaving}
+                className="p-0.5 hover:bg-[hsl(var(--avivar-muted)/0.3)] rounded transition-colors"
+              >
+                <X className="h-3 w-3 text-[hsl(var(--avivar-muted-foreground))]" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleFileClick}
+              disabled={isUploading || isSaving}
+              className="h-6 flex items-center gap-1 text-sm text-[hsl(var(--avivar-primary))] hover:underline focus:outline-none disabled:opacity-50"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Enviando...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-3 w-3" />
+                  <span>Fazer upload</span>
+                </>
+              )}
+            </button>
           )}
         </div>
       );
