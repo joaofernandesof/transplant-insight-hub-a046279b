@@ -130,6 +130,9 @@ export function MeetingEditDialog({
 }: MeetingEditDialogProps) {
   const queryClient = useQueryClient();
   const [showOnboardingAgenda, setShowOnboardingAgenda] = useState(false);
+  const [showAddChecklist, setShowAddChecklist] = useState(false);
+  const [customChecklists, setCustomChecklists] = useState<{id: string; title: string; items: string[]}[]>([]);
+  const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Form state
@@ -585,10 +588,44 @@ export function MeetingEditDialog({
                   </div>
                 )}
 
+                {/* Custom checklists added */}
+                {customChecklists.map((checklist) => (
+                  <div 
+                    key={checklist.id}
+                    className="p-4 border rounded-lg bg-muted/30 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <ClipboardList className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{checklist.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {checklist.items.length} itens
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => setCustomChecklists(prev => prev.filter(c => c.id !== checklist.id))}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
                 {/* Option to add more checklists */}
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setShowAddChecklist(true)}
+                >
                   <Plus className="h-4 w-4 mr-2" />
-                  Adicionar checklist
+                  Adicionar checklist de pauta
                 </Button>
               </div>
             </div>
@@ -623,6 +660,58 @@ export function MeetingEditDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    {/* Dialog para adicionar checklist */}
+    <Dialog open={showAddChecklist} onOpenChange={setShowAddChecklist}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Adicionar Checklist de Pauta</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="checklist-title">Título do Checklist</Label>
+            <Input
+              id="checklist-title"
+              placeholder="Ex: Documentos a apresentar"
+              value={newChecklistTitle}
+              onChange={(e) => setNewChecklistTitle(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex gap-2 pt-4">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => {
+                setShowAddChecklist(false);
+                setNewChecklistTitle('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              className="flex-1"
+              disabled={!newChecklistTitle.trim()}
+              onClick={() => {
+                setCustomChecklists(prev => [
+                  ...prev, 
+                  { 
+                    id: crypto.randomUUID(), 
+                    title: newChecklistTitle.trim(),
+                    items: []
+                  }
+                ]);
+                setNewChecklistTitle('');
+                setShowAddChecklist(false);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Criar Checklist
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }
