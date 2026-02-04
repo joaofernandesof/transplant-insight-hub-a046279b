@@ -19,9 +19,6 @@ import {
   Trash2,
   Loader2,
   ListChecks,
-  CheckCircle2,
-  XCircle,
-  Clock,
   MoreVertical,
   Tags,
   Settings2,
@@ -64,6 +61,7 @@ import { useLeadChecklistFields } from '@/hooks/useLeadChecklistFields';
 import { FunnelColumnSelector } from './FunnelColumnSelector';
 import { LeadTagsDialog } from './LeadTagsDialog';
 import { LeadTagsInline } from './LeadTagsInline';
+import { ChecklistFieldRenderer } from './ChecklistFieldRenderer';
 import { ChecklistConfigDialog } from './ChecklistConfigDialog';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -369,26 +367,16 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
                 )}
               </button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 pt-2">
+            <CollapsibleContent className="space-y-3 pt-2">
               {checklistFields.length > 0 ? (
                 checklistFields.map((field) => (
-                  <div key={field.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-[hsl(var(--avivar-muted)/0.3)]">
-                    {/* Status Icon */}
-                    {field.value ? (
-                      <CheckCircle2 className="h-4 w-4 text-[hsl(var(--avivar-accent))] shrink-0" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))] shrink-0" />
-                    )}
-                    
-                    {/* Apenas nome do campo */}
-                    <span className="text-xs text-[hsl(var(--avivar-foreground))] flex-1">
-                      {field.field_label}
-                    </span>
-                    
-                    {field.is_required && (
-                      <span className="text-[hsl(var(--avivar-primary))] text-xs">*</span>
-                    )}
-                  </div>
+                  <ChecklistFieldRenderer 
+                    key={field.id} 
+                    field={field}
+                    leadPhone={lead.phone}
+                    columnId={kanbanInfo?.columnId}
+                    onUpdate={() => queryClient.invalidateQueries({ queryKey: ['lead-checklist-fields'] })}
+                  />
                 ))
               ) : (
                 <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] text-center py-2">
