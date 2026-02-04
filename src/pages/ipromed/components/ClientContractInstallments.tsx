@@ -429,11 +429,11 @@ export function ClientContractInstallments({ clientId, clientName }: ClientContr
       >
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-primary" />
-              Gestão Financeira do Contrato
+            <CardTitle className="text-base font-semibold flex items-center gap-2 text-primary">
+              <CreditCard className="h-4 w-4" />
+              Resumo Financeiro
             </CardTitle>
-            <CardDescription>Parcelas, pagamentos e histórico</CardDescription>
+            <CardDescription>Honorários e pagamentos</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {summary.overdueCount > 0 && (
