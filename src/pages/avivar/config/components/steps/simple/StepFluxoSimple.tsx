@@ -140,10 +140,11 @@ interface SortableStepItemProps {
   step: FluxoStep;
   type: 'passosCronologicos' | 'passosExtras';
   displayOrder: number;
+  isEditing: boolean;
   renderStep: (step: FluxoStep, type: 'passosCronologicos' | 'passosExtras', displayOrder: number) => React.ReactNode;
 }
 
-function SortableStepItem({ step, type, displayOrder, renderStep }: SortableStepItemProps) {
+function SortableStepItem({ step, type, displayOrder, isEditing, renderStep }: SortableStepItemProps) {
   const {
     attributes,
     listeners,
@@ -151,7 +152,10 @@ function SortableStepItem({ step, type, displayOrder, renderStep }: SortableStep
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: step.id });
+  } = useSortable({ 
+    id: step.id,
+    disabled: isEditing, // Desabilita drag enquanto edita
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -160,8 +164,11 @@ function SortableStepItem({ step, type, displayOrder, renderStep }: SortableStep
     zIndex: isDragging ? 50 : 'auto',
   };
 
+  // Não aplica listeners se estiver editando
+  const dragListeners = isEditing ? {} : listeners;
+
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...dragListeners}>
       {renderStep(step, type, displayOrder)}
     </div>
   );
@@ -627,6 +634,7 @@ export function StepFluxoSimple({
                   step={step} 
                   type="passosCronologicos"
                   displayOrder={index + 1}
+                  isEditing={editing?.stepId === step.id}
                   renderStep={renderStep}
                 />
               ))}
@@ -681,6 +689,7 @@ export function StepFluxoSimple({
                     step={step} 
                     type="passosExtras"
                     displayOrder={index + 1}
+                    isEditing={editing?.stepId === step.id}
                     renderStep={renderStep}
                   />
                 ))}
