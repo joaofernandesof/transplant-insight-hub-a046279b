@@ -122,15 +122,60 @@ export default function AstreaStyleAgenda() {
       const startRange = subMonths(monthStart, 1);
       const endRange = addMonths(monthEnd, 1);
 
-      const { data, error } = await supabase
+      // Fetch regular appointments
+      const { data: regularAppointments, error: regularError } = await supabase
         .from('ipromed_appointments')
         .select(`*, ipromed_legal_clients(name)`)
         .gte('start_datetime', startRange.toISOString())
         .lt('start_datetime', endRange.toISOString())
         .order('start_datetime');
 
-      if (error) throw error;
-      return data as Appointment[];
+      if (regularError) throw regularError;
+
+      // Also fetch client meetings (from MeetingScheduleDialog)
+      const { data: clientMeetings, error: meetingsError } = await supabase
+        .from('ipromed_client_meetings')
+        .select(`*, ipromed_legal_clients(name)`)
+        .gte('scheduled_date', startRange.toISOString().split('T')[0])
+        .lte('scheduled_date', endRange.toISOString().split('T')[0])
+        .order('scheduled_date');
+
+      if (meetingsError) throw meetingsError;
+
+      // Transform client meetings to match appointment format
+      const transformedMeetings: Appointment[] = ((clientMeetings as any[]) || []).map((meeting: any) => ({
+        id: meeting.id,
+        client_id: meeting.client_id,
+        case_id: null,
+        title: meeting.title || 'Reunião',
+        description: meeting.description,
+        appointment_type: 'reuniao',
+        start_datetime: `${meeting.scheduled_date}T${meeting.scheduled_time || '09:00'}:00`,
+        end_datetime: meeting.duration_minutes 
+          ? (() => {
+              const [hours, minutes] = (meeting.scheduled_time || '09:00').split(':').map(Number);
+              const endDate = new Date(`${meeting.scheduled_date}T${meeting.scheduled_time || '09:00'}:00`);
+              endDate.setMinutes(endDate.getMinutes() + meeting.duration_minutes);
+              return endDate.toISOString();
+            })()
+          : null,
+        all_day: false,
+        location: meeting.location,
+        is_virtual: meeting.modality === 'virtual',
+        meeting_url: meeting.meeting_link,
+        status: meeting.status === 'scheduled' ? 'scheduled' : meeting.status,
+        priority: 'normal',
+        created_at: meeting.created_at,
+        ipromed_legal_clients: meeting.ipromed_legal_clients,
+      }));
+
+      // Combine and sort all appointments
+      const allAppointments = [...(regularAppointments || []), ...transformedMeetings];
+      allAppointments.sort((a, b) => 
+        new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()
+      );
+
+      return allAppointments as Appointment[];
     },
   });
 
