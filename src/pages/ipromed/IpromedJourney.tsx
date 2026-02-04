@@ -62,6 +62,7 @@ import ClientJourneyTracker from "./components/ClientJourneyTracker";
 import JourneyPhaseDetail, { journeyPhasesDetailed, PhaseDetail } from "./components/JourneyPhaseDetail";
 import { OnboardingMeetingDialog } from "./components/OnboardingMeetingAgenda";
 import { MeetingScheduleDialog } from "./components/MeetingScheduleDialog";
+import { JourneyChecklistSheet } from "./components/JourneyChecklistSheet";
 import { cn } from "@/lib/utils";
 
 // DnD Kit imports
@@ -343,6 +344,7 @@ export default function IpromedJourney() {
   const [selectedPhaseDetail, setSelectedPhaseDetail] = useState<PhaseDetail | null>(null);
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
   const [meetingClient, setMeetingClient] = useState<Client | null>(null);
+  const [checklistSheetOpen, setChecklistSheetOpen] = useState(false);
   
   // DnD state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -655,7 +657,7 @@ export default function IpromedJourney() {
               Adicionar Cliente
             </Button>
             
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setChecklistSheetOpen(true)}>
               <CheckSquare className="h-4 w-4" />
               Checklist
             </Button>
@@ -913,6 +915,12 @@ export default function IpromedJourney() {
           }}
         />
       )}
+
+      {/* Journey Checklist Sheet */}
+      <JourneyChecklistSheet
+        open={checklistSheetOpen}
+        onOpenChange={setChecklistSheetOpen}
+      />
     </div>
   );
 }
