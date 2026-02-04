@@ -443,11 +443,20 @@ export default function OnboardingMeetingAgenda({
   const [isRestored, setIsRestored] = useState(false);
   const [fieldsWithError, setFieldsWithError] = useState<string[]>([]);
   
-  // Controlar qual seção está expandida (apenas a atual)
-  // Se todas as seções estiverem concluídas, não expandir nenhuma
+  // Controlar qual seção está expandida
+  // Se todas as seções estiverem concluídas, iniciar todas fechadas mas permitir abrir manualmente
   const isFullyCompleted = completedSections.length === sections.length;
   const currentSection = sections[currentSectionIndex];
-  const expandedSections = isFullyCompleted ? [] : (currentSection ? [currentSection.id] : []);
+  const [manualExpandedSection, setManualExpandedSection] = useState<string>("");
+  
+  // Sincronizar a seção expandida quando o índice muda (para pautas em progresso)
+  useEffect(() => {
+    if (!isFullyCompleted && currentSection) {
+      setManualExpandedSection(currentSection.id);
+    } else if (isFullyCompleted) {
+      setManualExpandedSection("");
+    }
+  }, [currentSectionIndex, isFullyCompleted, currentSection]);
 
   const form = useForm<OnboardingMeetingData>({
     resolver: zodResolver(onboardingMeetingSchema),
@@ -1059,7 +1068,8 @@ export default function OnboardingMeetingAgenda({
               <Accordion 
                 type="single"
                 collapsible
-                value={expandedSections[0] || ""}
+                value={manualExpandedSection}
+                onValueChange={(value) => setManualExpandedSection(value || "")}
                 className="space-y-3"
               >
               {/* 1. Boas-vindas e abertura */}
