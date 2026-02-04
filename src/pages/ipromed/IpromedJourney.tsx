@@ -729,9 +729,11 @@ export default function IpromedJourney() {
       const client = clients.find(c => c.id === clientId);
       const currentPhase = client ? getClientPhase(client) : null;
       
+      // Permite mover para qualquer fase (incluindo voltar)
       if (currentPhase !== targetPhaseId) {
         const targetPhase = journeyPhases.find(p => p.id === targetPhaseId);
-        toast.success(`Cliente movido para "${targetPhase?.label}"`);
+        const currentPhaseInfo = journeyPhases.find(p => p.id === currentPhase);
+        toast.success(`Cliente movido de "${currentPhaseInfo?.label}" para "${targetPhase?.label}"`);
         updateClientPhase.mutate({ clientId, newPhase: targetPhaseId });
       }
     }
