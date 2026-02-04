@@ -7,48 +7,19 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard,
   Users,
-  GraduationCap,
-  Award,
-  Heart,
-  Stethoscope,
   Shield,
   Activity,
   BarChart3,
   Settings,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
-  Zap,
-  Scale,
-  CreditCard,
-  Eye,
-  Layers,
-  Server,
   Bell,
   Home,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-
-// Portais disponíveis (menu expansível)
-const portals = [
-  { id: 'academy', label: 'Aluno', icon: GraduationCap, href: '/academy', gradient: 'from-emerald-500 to-green-600' },
-  { id: 'license', label: 'Licenciado', icon: Award, href: '/neolicense', gradient: 'from-amber-400 to-yellow-500' },
-  { id: 'patient', label: 'Paciente', icon: Heart, href: '/neocare', gradient: 'from-rose-500 to-pink-600' },
-  { id: 'staff', label: 'Colaborador', icon: Users, href: '/neoteam', gradient: 'from-blue-500 to-cyan-600' },
-  { id: 'doctor', label: 'Médico', icon: Stethoscope, href: '/neoteam/doctor-view', gradient: 'from-teal-500 to-cyan-600' },
-  { id: 'avivar', label: 'Avivar', icon: Zap, href: '/avivar', gradient: 'from-purple-500 to-violet-600' },
-  { id: 'ipromed', label: 'IPROMED', icon: Scale, href: '/ipromed', gradient: 'from-blue-600 to-indigo-700' },
-  { id: 'vision', label: 'Vision', icon: Eye, href: '/vision', gradient: 'from-pink-500 to-rose-500' },
-  { id: 'neopay', label: 'NeoPay', icon: CreditCard, href: '/neopay', gradient: 'from-green-500 to-emerald-600' },
-];
+import { PortalSwitcherButton } from '@/components/shared/PortalSwitcherButton';
 
 // Menu principal enxuto
 const mainMenu = [
@@ -78,14 +49,13 @@ interface AdminSidebarProps {
 function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onCollapse?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [portalsOpen, setPortalsOpen] = useState(false);
 
   const handleNavigate = (href: string) => {
     navigate(href);
     onCollapse?.();
   };
 
-  const isActive = (href: string) => 
+  const isActive = (href: string) =>
     location.pathname === href || 
     (href !== '/admin-portal' && location.pathname.startsWith(href));
 
@@ -137,59 +107,17 @@ function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onColla
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="space-y-1">
+          {/* Portal Switcher - Sempre primeiro */}
+          <PortalSwitcherButton 
+            isCollapsed={collapsed} 
+            variant="light" 
+            onNavigate={onCollapse}
+          />
+
           {/* Menu principal */}
           {mainMenu.map((item) => (
             <MenuItem key={item.id} item={item} />
           ))}
-
-          {/* Portais - Collapsible */}
-          <Collapsible open={portalsOpen} onOpenChange={setPortalsOpen}>
-            <CollapsibleTrigger asChild>
-              <button
-                className={cn(
-                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
-                  'text-slate-400 hover:bg-slate-800/50 hover:text-white',
-                  portalsOpen && 'bg-slate-800/30 text-white'
-                )}
-              >
-                <Layers className="h-5 w-5 text-slate-500" />
-                {!collapsed && (
-                  <>
-                    <span className="flex-1 text-sm font-medium text-left">Acessar Portal</span>
-                    <ChevronDown className={cn(
-                      'h-4 w-4 text-slate-500 transition-transform duration-200',
-                      portalsOpen && 'rotate-180'
-                    )} />
-                  </>
-                )}
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-1 space-y-1 pl-2">
-              {portals.map((portal) => {
-                const Icon = portal.icon;
-                return (
-                  <button
-                    key={portal.id}
-                    onClick={() => handleNavigate(portal.href)}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:bg-slate-800/50 hover:text-white group"
-                  >
-                    <div className={cn(
-                      'p-1.5 rounded-md bg-gradient-to-br',
-                      portal.gradient
-                    )}>
-                      <Icon className="h-3.5 w-3.5 text-white" />
-                    </div>
-                    {!collapsed && (
-                      <>
-                        <span className="text-sm">{portal.label}</span>
-                        <ChevronRight className="h-3.5 w-3.5 ml-auto text-slate-600 group-hover:text-slate-400" />
-                      </>
-                    )}
-                  </button>
-                );
-              })}
-            </CollapsibleContent>
-          </Collapsible>
 
           {/* Gestão */}
           {managementMenu.map((item) => (
