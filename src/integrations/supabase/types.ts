@@ -6973,6 +6973,7 @@ export type Database = {
       ipromed_legal_clients: {
         Row: {
           address: Json | null
+          client_number: string | null
           client_type: string | null
           cpf_cnpj: string | null
           created_at: string | null
@@ -6996,6 +6997,7 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          client_number?: string | null
           client_type?: string | null
           cpf_cnpj?: string | null
           created_at?: string | null
@@ -7019,6 +7021,7 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          client_number?: string | null
           client_type?: string | null
           cpf_cnpj?: string | null
           created_at?: string | null
