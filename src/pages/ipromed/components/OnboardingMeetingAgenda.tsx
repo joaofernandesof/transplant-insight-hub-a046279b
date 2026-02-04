@@ -73,6 +73,7 @@ import ProcedureSelector from "./ProcedureSelector";
 import { cn } from "@/lib/utils";
 import { ProcedureVolumeSelector } from "./ProcedureVolumeSelector";
 import { YesNoSelector } from "./YesNoSelector";
+import { WeeklyScheduleInput, defaultWeeklySchedule, type WeeklySchedule } from "./WeeklyScheduleInput";
 
 // Helper para destacar campos não preenchidos - aplicar no input/select
 const getInputHighlight = (value: string | number | boolean | undefined | null | unknown[]) => {
@@ -132,7 +133,15 @@ const onboardingMeetingSchema = z.object({
     whatsapp: z.string().optional(),
     funcao: z.string().optional(),
   })).default([]),
-  horarioPreferencial: z.string().optional(),
+  horarioSemanal: z.object({
+    segunda: z.object({ enabled: z.boolean(), start: z.string(), end: z.string() }),
+    terca: z.object({ enabled: z.boolean(), start: z.string(), end: z.string() }),
+    quarta: z.object({ enabled: z.boolean(), start: z.string(), end: z.string() }),
+    quinta: z.object({ enabled: z.boolean(), start: z.string(), end: z.string() }),
+    sexta: z.object({ enabled: z.boolean(), start: z.string(), end: z.string() }),
+    sabado: z.object({ enabled: z.boolean(), start: z.string(), end: z.string() }),
+    domingo: z.object({ enabled: z.boolean(), start: z.string(), end: z.string() }),
+  }).optional(),
 
   // 4. Documentos atuais
   usaDocumentosHoje: z.boolean().optional(),
@@ -436,7 +445,7 @@ export default function OnboardingMeetingAgenda({
       responsavelOperacional: savedCheckpoint?.formData?.responsavelOperacional ?? "",
       contatoPrincipal: savedCheckpoint?.formData?.contatoPrincipal ?? { nome: "", email: "", whatsapp: "", funcao: "" },
       contatosAdicionais: savedCheckpoint?.formData?.contatosAdicionais ?? [],
-      horarioPreferencial: savedCheckpoint?.formData?.horarioPreferencial ?? "",
+      horarioSemanal: savedCheckpoint?.formData?.horarioSemanal ?? defaultWeeklySchedule,
       usaDocumentosHoje: savedCheckpoint?.formData?.usaDocumentosHoje ?? undefined,
       documentosExistentes: savedCheckpoint?.formData?.documentosExistentes ?? [],
       quemPreenche: savedCheckpoint?.formData?.quemPreenche ?? "",
@@ -1408,7 +1417,26 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-5 pt-2 max-w-2xl">
+                  <div className="space-y-5 pt-2">
+                    {/* Horário Preferencial Semanal - Primeiro campo */}
+                    <FormField
+                      control={form.control}
+                      name="horarioSemanal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>🕒 Horário preferencial de contato</FormLabel>
+                          <FormControl>
+                            <WeeklyScheduleInput 
+                              value={field.value as WeeklySchedule} 
+                              onChange={field.onChange} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Separator />
 
                     <FormField
                       control={form.control}
@@ -1432,20 +1460,6 @@ export default function OnboardingMeetingAgenda({
                           <FormLabel>👤 Responsável operacional</FormLabel>
                           <FormControl>
                             <Input placeholder="Maria, secretária" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="horarioPreferencial"
-                      render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
-                          <FormLabel>🕒 Horário preferencial</FormLabel>
-                          <FormControl>
-                            <Input placeholder="14h às 18h" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
