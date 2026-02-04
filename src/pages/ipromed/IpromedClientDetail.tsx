@@ -264,7 +264,18 @@ export default function IpromedClientDetail() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {client.onboarding_completed ? (
+                    <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Onboarding Concluído
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Onboarding Pendente
+                    </Badge>
+                  )}
                   <Badge variant="outline" className={risk.color}>
                     <RiskIcon className="h-3 w-3 mr-1" />
                     Risco {risk.label}
