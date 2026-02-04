@@ -63,6 +63,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
+import ProcedureSelector from "./ProcedureSelector";
 import { cn } from "@/lib/utils";
 
 // Helper para destacar campos não preenchidos
@@ -97,7 +98,7 @@ const onboardingMeetingSchema = z.object({
   formatoAtendimento: z.array(z.string()).default([]),
   estruturaPrincipal: z.string().optional(),
   tamanhoEquipe: z.coerce.number().optional(),
-  procedimentosRealizados: z.string().optional(),
+  procedimentosRealizados: z.array(z.string()).default([]),
   procedimentosMaiorVolume: z.string().optional(),
 
   // 3. Comunicação
@@ -238,7 +239,7 @@ export default function OnboardingMeetingAgenda({
       formatoAtendimento: [],
       estruturaPrincipal: "",
       tamanhoEquipe: 0,
-      procedimentosRealizados: "",
+      procedimentosRealizados: [],
       procedimentosMaiorVolume: "",
       whatsappPrincipal: "",
       responsavelOperacional: "",
@@ -685,13 +686,13 @@ export default function OnboardingMeetingAgenda({
                         <FormItem className={cn(getFieldHighlight(field.value))}>
                           <FormLabel>⚙️ Procedimentos realizados</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Transplante capilar, Botox, Preenchimento..." 
-                              className="min-h-[60px]"
-                              {...field} 
+                            <ProcedureSelector
+                              value={field.value || []}
+                              onChange={field.onChange}
+                              placeholder="Buscar ou adicionar procedimento..."
                             />
                           </FormControl>
-                          <FormDescription className="text-xs">Lista separada por vírgula</FormDescription>
+                          <FormDescription className="text-xs">Selecione da lista ou adicione manualmente</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
