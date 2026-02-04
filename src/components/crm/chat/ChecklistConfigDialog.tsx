@@ -264,8 +264,8 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] max-w-lg max-h-[85vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             <Settings2 className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
             Configurar Checklist
@@ -277,7 +277,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
+        <ScrollArea className="flex-1 min-h-0 pr-4">
           <div className="space-y-4 py-2">
             {/* Lista de campos existentes */}
             {isLoading ? (
