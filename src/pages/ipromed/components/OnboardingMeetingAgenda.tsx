@@ -357,6 +357,25 @@ export default function OnboardingMeetingAgenda({
   embedded = false,
 }: OnboardingMeetingAgendaProps) {
   const queryClient = useQueryClient();
+
+  // Buscar dados salvos da reunião quando meetingId é passado
+  const { data: meetingData, isLoading: isLoadingMeetingData } = useQuery({
+    queryKey: ['ipromed-meeting-onboarding-data', meetingId],
+    queryFn: async () => {
+      if (!meetingId) return null;
+      
+      const { data, error } = await supabase
+        .from('ipromed_client_meetings')
+        .select('id, client_id, onboarding_data')
+        .eq('id', meetingId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!meetingId,
+  });
+
   // Buscar clientes cadastrados
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ['ipromed-clients-onboarding'],
@@ -396,7 +415,22 @@ export default function OnboardingMeetingAgenda({
     return null;
   }, [storageKey]);
 
-  const savedCheckpoint = getSavedData();
+  // Priorizar dados do banco (meetingData) sobre localStorage quando meetingId é passado
+  const savedCheckpoint = useMemo(() => {
+    // Se temos dados do banco de dados (via meetingId), usar eles
+    if (meetingId && meetingData?.onboarding_data) {
+      const dbData = meetingData.onboarding_data as OnboardingMeetingData;
+      return {
+        formData: dbData,
+        currentSectionIndex: 0,
+        completedSections: sections.map(s => s.id), // Todas as seções se veio do banco
+        savedAt: null,
+        fromDatabase: true,
+      };
+    }
+    // Caso contrário, usar localStorage
+    return getSavedData();
+  }, [meetingId, meetingData, getSavedData]);
   
   const [currentSectionIndex, setCurrentSectionIndex] = useState(() => {
     return savedCheckpoint?.currentSectionIndex ?? 0;
@@ -505,14 +539,30 @@ export default function OnboardingMeetingAgenda({
     return () => subscription.unsubscribe();
   }, [form, saveCheckpoint]);
 
-  // Salvar quando seções mudam
+  // Salvar quando seções mudam (apenas se NÃO veio do banco - não sobrescrever localStorage)
   useEffect(() => {
-    saveCheckpoint();
-  }, [currentSectionIndex, completedSections, saveCheckpoint]);
+    if (!savedCheckpoint?.fromDatabase) {
+      saveCheckpoint();
+    }
+  }, [currentSectionIndex, completedSections, saveCheckpoint, savedCheckpoint?.fromDatabase]);
 
-  // Mostrar notificação de restauração
+  // Carregar dados do banco quando meetingData é carregado (após a query)
   useEffect(() => {
-    if (savedCheckpoint && !isRestored) {
+    if (meetingData?.onboarding_data && !isRestored) {
+      const dbData = meetingData.onboarding_data as OnboardingMeetingData;
+      form.reset(dbData);
+      setCompletedSections(sections.map(s => s.id));
+      setIsRestored(true);
+      toast.info("Pauta carregada!", {
+        description: "Os dados preenchidos anteriormente foram carregados.",
+        duration: 3000,
+      });
+    }
+  }, [meetingData, form, isRestored]);
+
+  // Mostrar notificação de restauração do localStorage (apenas se NÃO veio do banco)
+  useEffect(() => {
+    if (savedCheckpoint && !isRestored && !savedCheckpoint.fromDatabase) {
       setIsRestored(true);
       const savedDate = savedCheckpoint.savedAt 
         ? new Date(savedCheckpoint.savedAt).toLocaleString('pt-BR')
@@ -822,6 +872,19 @@ export default function OnboardingMeetingAgenda({
       toast.success(`Cliente "${client.name}" selecionado`);
     }
   };
+
+  // Loading enquanto carrega dados da reunião do banco
+  if (meetingId && isLoadingMeetingData) {
+    return (
+      <div className={cn(
+        "flex flex-col items-center justify-center gap-4 p-8",
+        embedded ? "h-auto" : "h-full min-h-[400px]"
+      )}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground">Carregando dados da pauta...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={cn(
