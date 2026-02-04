@@ -57,6 +57,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ClientActivityTimeline, logClientActivity } from "./components/ClientActivityTimeline";
+import { ClientFinancialSummary } from "./components/ClientFinancialSummary";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -541,6 +542,9 @@ export default function IpromedClientDetail() {
               )}
             </CardContent>
           </Card>
+
+          {/* Financial Summary */}
+          <ClientFinancialSummary clientId={client.id} clientName={client.name} />
         </div>
 
         {/* Right Column */}
