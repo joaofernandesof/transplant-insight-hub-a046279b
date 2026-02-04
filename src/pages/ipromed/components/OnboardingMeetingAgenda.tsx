@@ -1713,11 +1713,11 @@ export default function OnboardingMeetingAgenda({
                                     <span className={cn(
                                       "text-xs font-medium",
                                       jaPossui 
-                                        ? "text-amber-600 dark:text-amber-400" 
+                                        ? "text-destructive" 
                                         : "text-emerald-600 dark:text-emerald-400"
                                     )}>
                                       {jaPossui 
-                                        ? (dataPrevistaRevisao ? new Date(dataPrevistaRevisao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
+                                        ? "Até 20 dias úteis após o recebimento"
                                         : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
                                       }
                                     </span>
