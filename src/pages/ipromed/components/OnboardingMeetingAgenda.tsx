@@ -447,16 +447,20 @@ export default function OnboardingMeetingAgenda({
   // Se todas as seções estiverem concluídas, iniciar todas fechadas mas permitir abrir manualmente
   const isFullyCompleted = completedSections.length === sections.length;
   const currentSection = sections[currentSectionIndex];
-  const [manualExpandedSection, setManualExpandedSection] = useState<string>("");
+  const [manualExpandedSection, setManualExpandedSection] = useState<string>(() => {
+    // Se já estiver 100% concluído ao abrir (visualização de pauta antiga), inicia tudo fechado.
+    // Em pautas em progresso, abre a seção atual.
+    return isFullyCompleted ? "" : (currentSection?.id ?? "");
+  });
   
-  // Sincronizar a seção expandida quando o índice muda (para pautas em progresso)
+  // Sincronizar a seção expandida quando o índice muda (apenas para pautas em progresso)
   useEffect(() => {
     if (!isFullyCompleted && currentSection) {
       setManualExpandedSection(currentSection.id);
-    } else if (isFullyCompleted) {
-      setManualExpandedSection("");
     }
-  }, [currentSectionIndex, isFullyCompleted, currentSection]);
+    // IMPORTANTE: não force fechar quando estiver concluído,
+    // senão o usuário não consegue expandir manualmente para visualizar.
+  }, [currentSectionIndex, isFullyCompleted, currentSection?.id]);
 
   const form = useForm<OnboardingMeetingData>({
     resolver: zodResolver(onboardingMeetingSchema),
@@ -565,6 +569,10 @@ export default function OnboardingMeetingAgenda({
       const dbData = meetingData.onboarding_data as OnboardingMeetingData;
       form.reset(dbData);
       setCompletedSections(sections.map(s => s.id));
+      // Pauta antiga (vinda do banco): iniciar com todas as seções recolhidas,
+      // mas permitir o usuário expandir manualmente para visualizar.
+      setManualExpandedSection("");
+      setCurrentSectionIndex(-1);
       setIsRestored(true);
       toast.info("Pauta carregada!", {
         description: "Os dados preenchidos anteriormente foram carregados.",
@@ -723,19 +731,27 @@ export default function OnboardingMeetingAgenda({
     return sectionIndex <= currentSectionIndex || completedSections.includes(sectionId);
   }, [currentSectionIndex, completedSections]);
 
-  // Alternar seção (só permite se acessível)
+  // Alternar seção (pautas em progresso respeitam bloqueio; pauta concluída permite visualizar qualquer seção)
   const toggleSection = useCallback((sectionId: string) => {
+    // Em pauta concluída: apenas alterna abrir/fechar para visualização.
+    if (isFullyCompleted) {
+      setManualExpandedSection((prev) => (prev === sectionId ? "" : sectionId));
+      return;
+    }
+
+    // Em pauta em progresso: só permite navegar se acessível.
     if (isSectionAccessible(sectionId)) {
       const sectionIndex = sections.findIndex(s => s.id === sectionId);
       if (sectionIndex !== -1) {
         setCurrentSectionIndex(sectionIndex);
+        setManualExpandedSection(sectionId);
       }
     } else {
       toast.error("Complete a seção atual antes de avançar", {
         description: "Preencha os campos obrigatórios e clique em 'Marcar como concluído'",
       });
     }
-  }, [isSectionAccessible]);
+  }, [isFullyCompleted, isSectionAccessible]);
 
   // Validar e marcar seção como concluída
   const validateAndCompleteSection = useCallback((sectionId: string) => {
