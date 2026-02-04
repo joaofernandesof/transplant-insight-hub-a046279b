@@ -250,51 +250,43 @@ export function GlobalDashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-3 space-y-3">
-          <div className="grid lg:grid-cols-1 gap-3">
-            {/* Cards de Portais */}
-            <Card className="bg-slate-800/50 border-slate-700/50">
-              <CardHeader className="py-2 px-4">
-                <CardTitle className="text-xs font-medium text-white flex items-center gap-2">
-                  <Activity className="h-3 w-3" />
-                  Atividade por Portal
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-3 pt-0 space-y-2">
-                {metrics.portals.map((portal) => {
-                  const Icon = PORTAL_ICONS[portal.id] || Users;
-                  return (
-                    <div
-                      key={portal.id}
-                      className="flex items-center justify-between p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 cursor-pointer transition-colors"
-                      onClick={() => navigate(PORTAL_PATHS[portal.id] || '/')}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="p-1.5 rounded-lg"
-                          style={{ backgroundColor: `${PORTAL_COLORS[portal.id]}20` }}
-                        >
-                          <Icon className="h-3.5 w-3.5" style={{ color: PORTAL_COLORS[portal.id] }} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium text-white">{portal.name}</p>
-                          <p className="text-[10px] text-slate-400">{formatNumber(portal.totalUsers)} usuários</p>
-                        </div>
+          {/* Atividade por Portal - Grid de Cards */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="h-3 w-3 text-blue-400" />
+              <span className="text-xs font-medium text-white">Atividade por Portal</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+              {metrics.portals.map((portal) => {
+                const Icon = PORTAL_ICONS[portal.id] || Users;
+                return (
+                  <div
+                    key={portal.id}
+                    className="p-2.5 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-slate-600 cursor-pointer transition-all"
+                    onClick={() => navigate(PORTAL_PATHS[portal.id] || '/')}
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div
+                        className="p-1.5 rounded-md"
+                        style={{ backgroundColor: `${PORTAL_COLORS[portal.id]}20` }}
+                      >
+                        <Icon className="h-3 w-3" style={{ color: PORTAL_COLORS[portal.id] }} />
                       </div>
-                      <div className="text-right">
-                        <Badge
-                          variant="secondary"
-                          className={`text-[9px] px-1 ${portal.trend > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}
-                        >
-                          {portal.trend > 0 ? <ArrowUpRight className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDownRight className="h-2.5 w-2.5 mr-0.5" />}
-                          {portal.trend}%
-                        </Badge>
-                        <p className="text-[10px] text-slate-400 mt-0.5">{portal.recentActivity} ativ. recente</p>
-                      </div>
+                      <span className="text-xs font-medium text-white truncate">{portal.name}</span>
                     </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-slate-400">{formatNumber(portal.totalUsers)} usuários</span>
+                      <Badge
+                        variant="secondary"
+                        className={`text-[8px] px-1 py-0 h-4 ${portal.trend > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}
+                      >
+                        {portal.trend > 0 ? '+' : ''}{portal.trend}%
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Métricas Específicas */}
