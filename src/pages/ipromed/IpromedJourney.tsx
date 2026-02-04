@@ -482,8 +482,8 @@ export default function IpromedJourney() {
                         <Info className="h-3 w-3" />
                       </Button>
                       <div className={cn("w-3 h-3 rounded-full mx-auto mb-2", phase.color)} />
-                      <p className="text-xs font-medium">{phase.id}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{phase.label}</p>
+                      <p className="text-xs font-medium text-center px-1 leading-tight">{phase.label}</p>
+                      <p className="text-lg font-bold mt-1">{clientsByPhase[phase.id]?.length || 0}</p>
                       <p className="text-lg font-bold mt-1">{clientsByPhase[phase.id]?.length || 0}</p>
                     </CardContent>
                   </Card>
@@ -532,9 +532,8 @@ export default function IpromedJourney() {
                 return (
                   <div key={phase.id} className="flex flex-col w-[200px] flex-shrink-0">
                     {/* Column Header */}
-                    <div className={cn("text-white text-center py-2.5 rounded-t-lg relative group", phase.color)}>
-                      <p className="font-bold text-sm">{phase.id}</p>
-                      <p className="text-[11px] opacity-90">{phase.label}</p>
+                    <div className={cn("text-white text-center py-3 rounded-t-lg relative group", phase.color)}>
+                      <p className="font-bold text-sm px-2 leading-tight">{phase.label}</p>
                       <Button
                         variant="ghost"
                         size="icon"
