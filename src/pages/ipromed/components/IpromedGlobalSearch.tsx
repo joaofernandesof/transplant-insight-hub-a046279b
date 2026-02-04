@@ -63,9 +63,9 @@ const mockSearchData: Omit<SearchResult, 'highlight'>[] = [
   { id: '9', type: 'task', title: 'Preparar recurso', subtitle: 'João Santos • Prazo: 20/02/2026', status: 'Pendente', statusColor: 'bg-amber-500', route: '/ipromed/legal?tab=tasks', icon: CheckCircle },
   { id: '10', type: 'task', title: 'Audiência de instrução', subtitle: 'Ana Oliveira • 10/02/2026 às 14h', status: 'Agendada', statusColor: 'bg-blue-500', route: '/ipromed/legal?tab=agenda', icon: Calendar },
   
-  // Documentos
-  { id: '11', type: 'document', title: 'Procuração Maria Silva', subtitle: 'Documento • Atualizado em 01/02/2026', route: '/ipromed/legal?tab=documents', icon: FileText },
-  { id: '12', type: 'document', title: 'Laudo Médico João Santos', subtitle: 'Anexo processual • 28/01/2026', route: '/ipromed/legal?tab=documents', icon: FileText },
+  // Documentos (agora centralizados em contratos)
+  { id: '11', type: 'document', title: 'Procuração Maria Silva', subtitle: 'Documento • Atualizado em 01/02/2026', route: '/ipromed/legal?tab=contracts', icon: FileText },
+  { id: '12', type: 'document', title: 'Laudo Médico João Santos', subtitle: 'Anexo processual • 28/01/2026', route: '/ipromed/legal?tab=contracts', icon: FileText },
   
   // Contratos
   { id: '13', type: 'contract', title: 'Contrato de Honorários #001', subtitle: 'Maria Silva • Assinado em 05/01/2026', status: 'Ativo', statusColor: 'bg-emerald-500', route: '/ipromed/contracts', icon: Scale },
