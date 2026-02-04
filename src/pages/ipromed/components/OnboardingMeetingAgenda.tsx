@@ -1436,50 +1436,21 @@ export default function OnboardingMeetingAgenda({
                       )}
                     />
 
-                    <Separator />
-
-                    <FormField
-                      control={form.control}
-                      name="whatsappPrincipal"
-                      render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
-                          <FormLabel>📱 WhatsApp principal <span className="text-destructive">*</span></FormLabel>
-                          <FormControl>
-                            <PhoneInput placeholder="(85) 99999-9999" value={field.value} onChange={field.onChange} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="responsavelOperacional"
-                      render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
-                          <FormLabel>👤 Responsável operacional</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Maria, secretária" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
                   </div>
 
-                  {/* Contato Principal (Fixo) */}
+                  {/* Contato Principal (Obrigatório) */}
                   <div className="mt-6 pt-4 border-t">
                     <div className="flex items-center gap-2 mb-3">
-                      <UserPlus className="h-4 w-4 text-muted-foreground" />
+                      <UserPlus className="h-4 w-4 text-primary" />
                       <span className="font-medium text-sm">Contato Principal</span>
-                      <span className="text-xs text-muted-foreground">(contato principal do cliente)</span>
+                      <span className="text-destructive">*</span>
+                      <span className="text-xs text-muted-foreground">(obrigatório)</span>
                     </div>
 
-                    <div className="p-3 border rounded-lg mb-3 bg-muted/30">
+                    <div className="p-3 border border-primary/30 rounded-lg mb-3 bg-primary/5">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-muted-foreground">
-                          Contato 1 (Fixo)
+                        <span className="text-sm font-medium text-primary">
+                          Contato 1 (Obrigatório)
                         </span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
