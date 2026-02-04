@@ -28,6 +28,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Plus,
   Clock,
   Users,
@@ -42,6 +54,8 @@ import {
   RefreshCw,
   MoreVertical,
   Check,
+  Palette,
+  Settings2,
 } from "lucide-react";
 import {
   format,
@@ -79,12 +93,88 @@ interface Appointment {
   ipromed_legal_clients?: { name: string } | null;
 }
 
-const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string; bgColor: string; borderColor: string }> = {
-  reuniao: { label: 'EVENTO', icon: Users, color: 'text-blue-700', bgColor: 'bg-blue-50', borderColor: 'border-l-blue-500' },
-  audiencia: { label: 'EVENTO', icon: Gavel, color: 'text-purple-700', bgColor: 'bg-purple-50', borderColor: 'border-l-purple-500' },
-  prazo: { label: 'TAREFA', icon: Clock, color: 'text-rose-700', bgColor: 'bg-rose-50', borderColor: 'border-l-rose-500' },
-  lembrete: { label: 'TAREFA', icon: Bell, color: 'text-amber-700', bgColor: 'bg-amber-50', borderColor: 'border-l-amber-500' },
-  tarefa: { label: 'TAREFA', icon: CheckCircle2, color: 'text-emerald-700', bgColor: 'bg-emerald-50', borderColor: 'border-l-emerald-500' },
+// Meeting type configurations with friendly colors
+const typeConfig: Record<string, { 
+  label: string; 
+  icon: React.ElementType; 
+  color: string; 
+  bgColor: string; 
+  borderColor: string;
+  calendarBg: string;
+  calendarText: string;
+}> = {
+  reuniao: { 
+    label: 'EVENTO', 
+    icon: Users, 
+    color: 'text-sky-700', 
+    bgColor: 'bg-sky-50', 
+    borderColor: 'border-l-sky-500',
+    calendarBg: 'bg-sky-100/80',
+    calendarText: 'text-sky-700',
+  },
+  audiencia: { 
+    label: 'EVENTO', 
+    icon: Gavel, 
+    color: 'text-violet-700', 
+    bgColor: 'bg-violet-50', 
+    borderColor: 'border-l-violet-500',
+    calendarBg: 'bg-violet-100/80',
+    calendarText: 'text-violet-700',
+  },
+  prazo: { 
+    label: 'TAREFA', 
+    icon: Clock, 
+    color: 'text-rose-700', 
+    bgColor: 'bg-rose-50', 
+    borderColor: 'border-l-rose-500',
+    calendarBg: 'bg-rose-100/80',
+    calendarText: 'text-rose-700',
+  },
+  lembrete: { 
+    label: 'TAREFA', 
+    icon: Bell, 
+    color: 'text-amber-700', 
+    bgColor: 'bg-amber-50', 
+    borderColor: 'border-l-amber-500',
+    calendarBg: 'bg-amber-100/80',
+    calendarText: 'text-amber-700',
+  },
+  tarefa: { 
+    label: 'TAREFA', 
+    icon: CheckCircle2, 
+    color: 'text-emerald-700', 
+    bgColor: 'bg-emerald-50', 
+    borderColor: 'border-l-emerald-500',
+    calendarBg: 'bg-emerald-100/80',
+    calendarText: 'text-emerald-700',
+  },
+  onboarding: { 
+    label: 'ONBOARDING', 
+    icon: Users, 
+    color: 'text-teal-700', 
+    bgColor: 'bg-teal-50', 
+    borderColor: 'border-l-teal-500',
+    calendarBg: 'bg-teal-100/80',
+    calendarText: 'text-teal-700',
+  },
+  apresentacao: { 
+    label: 'APRESENTAÇÃO', 
+    icon: Users, 
+    color: 'text-indigo-700', 
+    bgColor: 'bg-indigo-50', 
+    borderColor: 'border-l-indigo-500',
+    calendarBg: 'bg-indigo-100/80',
+    calendarText: 'text-indigo-700',
+  },
+  acompanhamento: { 
+    label: 'ACOMPANHAMENTO', 
+    icon: Users, 
+    color: 'text-cyan-700', 
+    bgColor: 'bg-cyan-50', 
+    borderColor: 'border-l-cyan-500',
+    calendarBg: 'bg-cyan-100/80',
+    calendarText: 'text-cyan-700',
+  },
 };
 
 export default function AstreaStyleAgenda() {
@@ -294,7 +384,7 @@ export default function AstreaStyleAgenda() {
     setIsFormOpen(true);
   };
 
-  // Render event in calendar cell
+  // Render event in calendar cell - with friendly rounded cards
   const renderCalendarEvent = (apt: Appointment) => {
     const config = typeConfig[apt.appointment_type] || typeConfig.reuniao;
     const time = !apt.all_day ? format(parseISO(apt.start_datetime), 'HH:mm') : null;
@@ -302,71 +392,77 @@ export default function AstreaStyleAgenda() {
     return (
       <div
         key={apt.id}
-        className={`text-[10px] px-1.5 py-0.5 rounded truncate mb-0.5 border-l-2 ${config.bgColor} ${config.borderColor} cursor-pointer hover:opacity-80`}
+        className={`text-[11px] px-2 py-1 rounded-lg truncate mb-1 border-l-3 ${config.calendarBg} ${config.borderColor} cursor-pointer hover:shadow-sm hover:scale-[1.02] transition-all duration-150`}
         title={apt.title}
       >
-        {time && <span className="font-medium text-rose-600 mr-1">{time}</span>}
-        <span className="truncate">{apt.title}</span>
+        <div className="flex items-center gap-1">
+          {time && <span className={`font-semibold ${config.calendarText}`}>{time}</span>}
+          <span className={`truncate font-medium ${config.calendarText}`}>{apt.title}</span>
+        </div>
       </div>
     );
   };
 
-  // Render sidebar event card
+  // Render sidebar event card - with friendly rounded design
   const renderSidebarEvent = (apt: Appointment) => {
     const config = typeConfig[apt.appointment_type] || typeConfig.reuniao;
     const isCompleted = apt.status === 'completed';
+    const IconComponent = config.icon;
 
     return (
-      <div key={apt.id} className={`border-l-4 ${config.borderColor} bg-card rounded-lg p-4 shadow-sm`}>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              {isCompleted && (
-                <Check className="h-4 w-4 text-emerald-600" />
-              )}
-              <span className={`text-xs font-medium ${config.color}`}>
-                {config.label}
-                {apt.priority === 'urgent' && (
-                  <span className="ml-1 text-rose-600">●</span>
-                )}
-              </span>
+      <div 
+        key={apt.id} 
+        className={`border-l-4 ${config.borderColor} ${config.bgColor} rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            {/* Icon Badge */}
+            <div className={`p-2 rounded-lg ${config.bgColor} border ${config.borderColor.replace('border-l-', 'border-')}`}>
+              <IconComponent className={`h-4 w-4 ${config.color}`} />
             </div>
-            <h4 className="font-medium text-sm mb-1">{apt.title}</h4>
-            {!apt.all_day && (
-              <p className="text-xs text-muted-foreground">
-                {format(parseISO(apt.start_datetime), 'HH:mm')}
-                {apt.end_datetime && ` às ${format(parseISO(apt.end_datetime), 'HH:mm')}`}
-              </p>
-            )}
-            {apt.ipromed_legal_clients?.name && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {apt.ipromed_legal_clients.name}
-              </p>
-            )}
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                {isCompleted && (
+                  <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                )}
+                <span className={`text-xs font-semibold uppercase tracking-wide ${config.color}`}>
+                  {config.label}
+                </span>
+                {apt.priority === 'urgent' && (
+                  <Badge className="bg-rose-500 text-white text-[10px] px-1.5 py-0 h-4">
+                    Urgente
+                  </Badge>
+                )}
+              </div>
+              <h4 className="font-semibold text-sm text-foreground mb-1 line-clamp-2">{apt.title}</h4>
+              {!apt.all_day && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {format(parseISO(apt.start_datetime), 'HH:mm')}
+                  {apt.end_datetime && ` às ${format(parseISO(apt.end_datetime), 'HH:mm')}`}
+                </p>
+              )}
+              {apt.ipromed_legal_clients?.name && (
+                <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  {apt.ipromed_legal_clients.name}
+                </p>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+          
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 rounded-full">
               IS
             </Badge>
             {apt.ipromed_legal_clients && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 rounded-full">
                 +2
               </Badge>
             )}
           </div>
         </div>
-
-        {/* Tags for tasks */}
-        {apt.appointment_type === 'tarefa' && (
-          <div className="flex gap-1 mt-2 flex-wrap">
-            <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 hover:bg-red-600">
-              P/PROTOCOLAR ×
-            </Badge>
-            <Badge className="bg-rose-400 text-white text-[10px] px-1.5 py-0.5 hover:bg-rose-500">
-              RECEBIDA ×
-            </Badge>
-          </div>
-        )}
       </div>
     );
   };
@@ -432,6 +528,47 @@ export default function AstreaStyleAgenda() {
             <SelectItem value="tarefa">Tarefas</SelectItem>
           </SelectContent>
         </Select>
+
+        {/* Color Legend Popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Palette className="h-4 w-4" />
+              Cores
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72" align="start">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-sm">Legenda de Cores</h4>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <Settings2 className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {Object.entries(typeConfig).map(([key, config]) => (
+                  <div 
+                    key={key} 
+                    className={`flex items-center gap-3 p-2 rounded-lg ${config.bgColor}`}
+                  >
+                    <div className={`w-3 h-3 rounded-full ${config.borderColor.replace('border-l-', 'bg-')}`} />
+                    <config.icon className={`h-4 w-4 ${config.color}`} />
+                    <span className={`text-sm font-medium capitalize ${config.color}`}>
+                      {key === 'reuniao' ? 'Reunião' :
+                       key === 'audiencia' ? 'Audiência' :
+                       key === 'prazo' ? 'Prazo' :
+                       key === 'lembrete' ? 'Lembrete' :
+                       key === 'tarefa' ? 'Tarefa' :
+                       key === 'onboarding' ? 'Onboarding' :
+                       key === 'apresentacao' ? 'Apresentação' :
+                       key === 'acompanhamento' ? 'Acompanhamento' : key}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <Button variant="outline" size="icon">
           <Tag className="h-4 w-4" />
