@@ -49,7 +49,7 @@ import { VisionIcon } from '@/components/icons/VisionIcon';
 import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SystemAlertsWidget } from '@/components/admin/SystemAlertsWidget';
-import { AdminTrendCharts } from '@/components/admin/AdminTrendCharts';
+
 import { PortalBanner } from '@/components/shared/PortalBanner';
 
 // Hierarchical module structure with individual colors per module
@@ -343,64 +343,45 @@ export default function AdminDashboard() {
           onOpenChange={setIsNotificationDialogOpen}
         />
 
-        {/* Portals Quick Access Widget */}
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Eye className="h-4 w-4 text-primary" />
-              Portais do NeoHub
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-10 gap-2">
-              {[
-                { id: 'academy', title: 'Aluno', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
-                { id: 'license', title: 'Licenciado', icon: Award, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
-                { id: 'patient', title: 'Paciente', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
-                { id: 'staff', title: 'Colaborador', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
-                { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
-                { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
-                { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed' },
-                { id: 'vision', title: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', path: '/vision' },
-                { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
-                { id: 'neocrm', title: 'NeoCRM', icon: Target, gradient: 'from-orange-500 to-red-500', path: '/neocrm' },
-              ].map((portal) => (
-                <button
-                  key={portal.id}
-                  onClick={() => navigate(portal.path)}
-                  className="group flex flex-col items-center gap-2 p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-background/50 transition-all"
-                >
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
-                    <portal.icon className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{portal.title}</span>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Visão Global do Ecossistema - Portais */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Eye className="h-5 w-5 text-primary" />
+            Visão Global do Ecossistema
+          </h2>
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+            {[
+              { id: 'academy', title: 'Aluno', icon: GraduationCap, gradient: 'from-emerald-500 to-green-600', path: '/academy' },
+              { id: 'license', title: 'Licenciado', icon: Award, gradient: 'from-amber-400 to-yellow-500', path: '/neolicense' },
+              { id: 'patient', title: 'Paciente', icon: Heart, gradient: 'from-rose-500 to-pink-600', path: '/neocare' },
+              { id: 'staff', title: 'Colaborador', icon: Users, gradient: 'from-blue-500 to-cyan-600', path: '/neoteam' },
+              { id: 'doctor', title: 'Médico', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600', path: '/neoteam/doctor-view' },
+              { id: 'avivar', title: 'Avivar', icon: Zap, gradient: 'from-purple-500 to-violet-600', path: '/avivar' },
+              { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed' },
+              { id: 'vision', title: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', path: '/vision' },
+              { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
+              { id: 'neocrm', title: 'NeoCRM', icon: Target, gradient: 'from-orange-500 to-red-500', path: '/neocrm' },
+            ].map((portal) => (
+              <button
+                key={portal.id}
+                onClick={() => navigate(portal.path)}
+                className="group flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-border hover:border-primary/40 hover:bg-primary/5 transition-all"
+              >
+                <div className={`p-2.5 rounded-xl bg-gradient-to-br ${portal.gradient} text-white shadow-lg`}>
+                  <portal.icon className="h-5 w-5" />
+                </div>
+                <span className="text-[11px] font-medium text-center leading-tight group-hover:text-primary">{portal.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {/* Quick Access Grid - All modules as buttons */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-              {moduleCategories.flatMap((cat) => 
-                cat.modules.map((mod) => (
-                  <button
-                    key={`${cat.id}-${mod.id}`}
-                    onClick={() => navigate(mod.path)}
-                    className="group flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all bg-muted/30"
-                  >
-                    <div className={`p-3.5 rounded-xl ${mod.color} text-white shadow-md`}>
-                      <mod.icon className="h-7 w-7" />
-                    </div>
-                    <span className="text-xs font-medium text-center leading-tight group-hover:text-primary">{mod.title}</span>
-                  </button>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Métricas Principais */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Métricas Principais
+          </h2>
 
 
         {/* Stats Row */}
@@ -530,8 +511,14 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+        </div>
 
-        {/* Profile Distribution & Online Users */}
+        {/* Distribuição & Atividade */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            Distribuição & Atividade
+          </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Profile Distribution */}
           <Card>
@@ -640,9 +627,35 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+        </div>
 
-        {/* Trend Charts */}
-        <AdminTrendCharts />
+        {/* Módulos Rápidos */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Settings className="h-5 w-5 text-primary" />
+            Módulos Administrativos
+          </h2>
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                {moduleCategories.flatMap((cat) => 
+                  cat.modules.map((mod) => (
+                    <button
+                      key={`${cat.id}-${mod.id}`}
+                      onClick={() => navigate(mod.path)}
+                      className="group flex flex-col items-center gap-1.5 p-2.5 rounded-lg border border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all"
+                    >
+                      <div className={`p-2.5 rounded-lg ${mod.color} text-white shadow-sm`}>
+                        <mod.icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-[10px] font-medium text-center leading-tight group-hover:text-primary line-clamp-2">{mod.title}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Alerts Widget */}
         <SystemAlertsWidget />
