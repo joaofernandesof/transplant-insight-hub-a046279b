@@ -31,6 +31,7 @@ interface ChecklistField {
   field_type: string;
   is_required: boolean;
   required_for_columns?: string[];
+  options?: string[];
 }
 
 // Todos os tipos de campo disponíveis baseados nas imagens do usuário
@@ -59,7 +60,8 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
     field_label: '',
     field_type: 'text',
     is_required: false,
-    required_for_columns: []
+    required_for_columns: [],
+    options: []
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editField, setEditField] = useState<ChecklistField>({
@@ -67,7 +69,8 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
     field_label: '',
     field_type: 'text',
     is_required: false,
-    required_for_columns: []
+    required_for_columns: [],
+    options: []
   });
 
   // Buscar checklists existentes
@@ -99,6 +102,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
           field_type: field.field_type,
           is_required: field.is_required,
           required_for_columns: field.is_required ? field.required_for_columns : null,
+          options: (field.field_type === 'select' || field.field_type === 'multiselect') ? field.options : null,
           order_index: (checklists?.length || 0)
         });
       
@@ -107,7 +111,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
     onSuccess: () => {
       refetch();
       queryClient.invalidateQueries({ queryKey: ['lead-checklist-fields'] });
-      setNewField({ field_key: '', field_label: '', field_type: 'text', is_required: false, required_for_columns: [] });
+      setNewField({ field_key: '', field_label: '', field_type: 'text', is_required: false, required_for_columns: [], options: [] });
       toast.success('Campo adicionado!');
     },
     onError: (error: Error) => {
@@ -142,7 +146,8 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
           field_key: data.field_key,
           field_type: data.field_type,
           is_required: data.is_required,
-          required_for_columns: data.is_required ? data.required_for_columns : null
+          required_for_columns: data.is_required ? data.required_for_columns : null,
+          options: (data.field_type === 'select' || data.field_type === 'multiselect') ? data.options : null
         })
         .eq('id', fieldId);
       
@@ -193,12 +198,14 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
 
   const startEdit = (field: Record<string, unknown>) => {
     setEditingId(field.id as string);
+    const fieldOptions = field.options as string[] | null;
     setEditField({
       field_key: field.field_key as string,
       field_label: field.field_label as string,
       field_type: field.field_type as string,
       is_required: (field.is_required as boolean) ?? false,
-      required_for_columns: (field.required_for_columns as string[]) || []
+      required_for_columns: (field.required_for_columns as string[]) || [],
+      options: fieldOptions || []
     });
   };
 
@@ -209,6 +216,55 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
 
   const cancelEdit = () => {
     setEditingId(null);
+  };
+
+  // Helpers para gerenciar opções
+  const addOption = (isEdit: boolean) => {
+    if (isEdit) {
+      setEditField({ ...editField, options: [...(editField.options || []), ''] });
+    } else {
+      setNewField({ ...newField, options: [...(newField.options || []), ''] });
+    }
+  };
+
+  const updateOption = (index: number, value: string, isEdit: boolean) => {
+    if (isEdit) {
+      const newOptions = [...(editField.options || [])];
+      newOptions[index] = value;
+      setEditField({ ...editField, options: newOptions });
+    } else {
+      const newOptions = [...(newField.options || [])];
+      newOptions[index] = value;
+      setNewField({ ...newField, options: newOptions });
+    }
+  };
+
+  const removeOption = (index: number, isEdit: boolean) => {
+    if (isEdit) {
+      const newOptions = (editField.options || []).filter((_, i) => i !== index);
+      setEditField({ ...editField, options: newOptions });
+    } else {
+      const newOptions = (newField.options || []).filter((_, i) => i !== index);
+      setNewField({ ...newField, options: newOptions });
+    }
+  };
+
+  const handleTypeChange = (type: string, isEdit: boolean) => {
+    if (isEdit) {
+      const needsOptions = type === 'select' || type === 'multiselect';
+      setEditField({ 
+        ...editField, 
+        field_type: type,
+        options: needsOptions && (!editField.options || editField.options.length === 0) ? [''] : editField.options
+      });
+    } else {
+      const needsOptions = type === 'select' || type === 'multiselect';
+      setNewField({ 
+        ...newField, 
+        field_type: type,
+        options: needsOptions && (!newField.options || newField.options.length === 0) ? [''] : newField.options
+      });
+    }
   };
 
   return (
@@ -256,7 +312,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                             <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tipo</Label>
                             <Select 
                               value={editField.field_type} 
-                              onValueChange={(v) => setEditField({ ...editField, field_type: v })}
+                              onValueChange={(v) => handleTypeChange(v, true)}
                             >
                               <SelectTrigger className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
                                 <SelectValue />
@@ -280,6 +336,40 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                             </div>
                           </div>
                         </div>
+
+                        {/* Editor de opções para select/multiselect */}
+                        {(editField.field_type === 'select' || editField.field_type === 'multiselect') && (
+                          <div className="space-y-2">
+                            <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Opções</Label>
+                            <div className="space-y-2">
+                              {(editField.options || []).map((option, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <Input
+                                    value={option}
+                                    onChange={(e) => updateOption(index, e.target.value, true)}
+                                    placeholder="Opção"
+                                    className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] flex-1"
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeOption(index, true)}
+                                    className="h-8 w-8 shrink-0 text-destructive hover:text-destructive/80"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => addOption(true)}
+                              className="text-sm text-[hsl(var(--avivar-primary))] hover:underline"
+                            >
+                              Adicionar opção
+                            </button>
+                          </div>
+                        )}
 
                         {/* Seletor de Kanbans/Colunas quando obrigatório */}
                         {editField.is_required && (
@@ -388,7 +478,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                   <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tipo do campo</Label>
                   <Select 
                     value={newField.field_type} 
-                    onValueChange={(v) => setNewField({ ...newField, field_type: v })}
+                    onValueChange={(v) => handleTypeChange(v, false)}
                   >
                     <SelectTrigger className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
                       <SelectValue />
@@ -413,6 +503,40 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                   </div>
                 </div>
               </div>
+
+              {/* Editor de opções para select/multiselect */}
+              {(newField.field_type === 'select' || newField.field_type === 'multiselect') && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Opções</Label>
+                  <div className="space-y-2">
+                    {(newField.options || []).map((option, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={option}
+                          onChange={(e) => updateOption(index, e.target.value, false)}
+                          placeholder="Opção"
+                          className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] flex-1"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeOption(index, false)}
+                          className="h-8 w-8 shrink-0 text-destructive hover:text-destructive/80"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addOption(false)}
+                    className="text-sm text-[hsl(var(--avivar-primary))] hover:underline"
+                  >
+                    Adicionar opção
+                  </button>
+                </div>
+              )}
 
               {/* Seletor de Kanbans/Colunas quando obrigatório */}
               {newField.is_required && (
