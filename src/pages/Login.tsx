@@ -148,30 +148,9 @@ export default function Login() {
         }
         
         // Nova arquitetura de redirecionamento:
-        // - Admin → direto para /admin-dashboard
-        // - Outros → /portal-selector para escolher o portal
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-          // Check if user is admin via user_roles table
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', authUser.id)
-            .eq('role', 'admin')
-            .single();
-          
-          const isAdmin = !!roleData;
-          
-          if (isAdmin) {
-            // Admin vai direto para o Dashboard Administrativo
-            navigate('/admin-dashboard');
-          } else {
-            // Todos os outros perfis vão para o seletor de portal
-            navigate('/portal-selector');
-          }
-        } else {
-          navigate('/portal-selector');
-        }
+        // - Todos os usuários → /portal-selector para escolher o portal
+        // - Admins verão o portal Admin na lista de opções
+        navigate('/portal-selector');
       } else {
         setError(loginError || 'Email ou senha incorretos');
       }
