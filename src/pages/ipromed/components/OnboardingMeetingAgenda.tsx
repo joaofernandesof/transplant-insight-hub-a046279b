@@ -85,7 +85,6 @@ const onboardingMeetingSchema = z.object({
   procedimentosMaiorVolume: z.string().optional(),
 
   // 3. Comunicação
-  canalOficial: z.string().optional(),
   emailPrincipal: z.string().email("Email inválido").optional().or(z.literal("")),
   whatsappPrincipal: z.string().optional(),
   responsavelOperacional: z.string().optional(),
@@ -170,7 +169,6 @@ const sections: Section[] = [
 const cargoOptions = ["Médico", "Gestor", "Sócio", "Outro"];
 const formatoAtendimentoOptions = ["Clínica própria", "Terceiros", "Hospital", "Consultório", "Teleconsulta"];
 const estruturaOptions = ["Clínica própria", "Consultório alugado", "Hospital", "Coworking médico"];
-const canalOficialOptions = ["WhatsApp", "E-mail", "Telefone", "Telegram"];
 const regraUrgenciaOptions = ["Ligar para sócias", "Enviar WhatsApp", "E-mail prioritário", "Aguardar horário comercial"];
 const documentosOptions = ["TCLE", "Contrato de prestação", "Termo de imagem", "Anamnese", "Prontuário", "Política de agendamento"];
 const armazenamentoOptions = ["Google Drive", "OneDrive", "Pasta local", "Sistema próprio", "Não possui"];
@@ -219,7 +217,6 @@ export default function OnboardingMeetingAgenda({
       tamanhoEquipe: 0,
       procedimentosRealizados: "",
       procedimentosMaiorVolume: "",
-      canalOficial: "",
       emailPrincipal: "",
       whatsappPrincipal: "",
       responsavelOperacional: "",
@@ -664,29 +661,6 @@ export default function OnboardingMeetingAgenda({
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <FormField
-                      control={form.control}
-                      name="canalOficial"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>💬 Canal oficial</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {canalOficialOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
                     <FormField
                       control={form.control}
                       name="emailPrincipal"
