@@ -9575,6 +9575,7 @@ export type Database = {
           address_number: string | null
           address_state: string | null
           address_street: string | null
+          allowed_portals: string[] | null
           avatar_url: string | null
           bio: string | null
           birth_date: string | null
@@ -9615,6 +9616,7 @@ export type Database = {
           address_number?: string | null
           address_state?: string | null
           address_street?: string | null
+          allowed_portals?: string[] | null
           avatar_url?: string | null
           bio?: string | null
           birth_date?: string | null
@@ -9655,6 +9657,7 @@ export type Database = {
           address_number?: string | null
           address_state?: string | null
           address_street?: string | null
+          allowed_portals?: string[] | null
           avatar_url?: string | null
           bio?: string | null
           birth_date?: string | null

@@ -66,6 +66,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { PORTAL_MODULES, PORTAL_NAMES, Portal } from '@/neohub/lib/permissions';
+import { UserEditModal } from './admin/components/UserEditModal';
 
 interface PageVisibility {
   university: boolean;
@@ -85,15 +86,22 @@ interface UserProfile {
   id: string;
   user_id: string;
   name: string;
+  full_name?: string;
   email: string;
   clinic_name: string | null;
   city: string | null;
+  address_city?: string | null;
   state: string | null;
+  address_state?: string | null;
   status: string;
   tier: string | null;
   avatar_url: string | null;
   phone: string | null;
   created_at: string;
+  is_active?: boolean;
+  allowed_portals?: string[];
+  crm?: string | null;
+  rqe?: string | null;
 }
 
 type AppRole = 'admin' | 'licensee' | 'colaborador' | 'aluno' | 'paciente';
@@ -246,15 +254,32 @@ export default function AdminPanel() {
 
   const fetchUsers = async () => {
     try {
-      const [profilesRes, rolesRes] = await Promise.all([
+      // Fetch from both tables to get complete user data
+      const [profilesRes, neohubUsersRes, rolesRes] = await Promise.all([
         supabase.from('profiles').select('*').order('name'),
+        supabase.from('neohub_users').select('id, user_id, full_name, email, phone, clinic_name, address_city, address_state, avatar_url, is_active, allowed_portals, tier, crm, rqe, created_at'),
         supabase.from('user_roles').select('*')
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
       if (rolesRes.error) throw rolesRes.error;
 
-      setUsers(profilesRes.data || []);
+      // Merge data from both tables, prioritizing neohub_users for newer fields
+      const mergedUsers = (profilesRes.data || []).map(profile => {
+        const neohubUser = neohubUsersRes.data?.find(nu => nu.user_id === profile.user_id);
+        return {
+          ...profile,
+          full_name: neohubUser?.full_name || profile.name,
+          address_city: neohubUser?.address_city || profile.city,
+          address_state: neohubUser?.address_state || profile.state,
+          is_active: neohubUser?.is_active ?? true,
+          allowed_portals: neohubUser?.allowed_portals || [],
+          crm: neohubUser?.crm,
+          rqe: neohubUser?.rqe,
+        };
+      });
+
+      setUsers(mergedUsers);
       setUserRoles(rolesRes.data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -937,98 +962,33 @@ export default function AdminPanel() {
           </TabsContent>
         </Tabs>
 
-        {/* Edit User Dialog */}
-        <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Editar Usuário</DialogTitle>
-              <DialogDescription>
-                Atualize os dados do usuário
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Nome</Label>
-                <Input
-                  id="edit-name"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-email">Email</Label>
-                <Input
-                  id="edit-email"
-                  value={editForm.email}
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-xs text-muted-foreground">Email não pode ser alterado</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-clinic">Nome da Clínica</Label>
-                <Input
-                  id="edit-clinic"
-                  value={editForm.clinic_name}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, clinic_name: e.target.value }))}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-city">Cidade</Label>
-                  <Input
-                    id="edit-city"
-                    value={editForm.city}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, city: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-state">Estado</Label>
-                  <Input
-                    id="edit-state"
-                    value={editForm.state}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, state: e.target.value }))}
-                    maxLength={2}
-                    placeholder="SP"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-phone">Telefone</Label>
-                <Input
-                  id="edit-phone"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditingUser(null)}>
-                Cancelar
-              </Button>
-              <Button onClick={saveUserEdit} disabled={isSavingUser}>
-                {isSavingUser ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Salvar
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Edit User Modal - New Complete Version */}
+        <UserEditModal
+          user={editingUser ? {
+            id: editingUser.id,
+            user_id: editingUser.user_id,
+            full_name: editingUser.full_name || editingUser.name,
+            email: editingUser.email,
+            phone: editingUser.phone || undefined,
+            clinic_name: editingUser.clinic_name || undefined,
+            address_city: editingUser.address_city || editingUser.city || undefined,
+            address_state: editingUser.address_state || editingUser.state || undefined,
+            avatar_url: editingUser.avatar_url || undefined,
+            is_active: editingUser.is_active ?? true,
+            allowed_portals: editingUser.allowed_portals || [],
+            tier: editingUser.tier || undefined,
+            crm: editingUser.crm || undefined,
+            rqe: editingUser.rqe || undefined,
+            created_at: editingUser.created_at,
+          } : null}
+          userRole={editingUser ? getUserRole(editingUser.user_id) : 'licensee'}
+          open={!!editingUser}
+          onOpenChange={(open) => !open && setEditingUser(null)}
+          onUserUpdated={() => {
+            fetchUsers();
+            setEditingUser(null);
+          }}
+        />
       </div>
   );
 }
