@@ -582,7 +582,9 @@ export default function OnboardingMeetingAgenda({
         description: `Avançando para: ${sections[currentIndex + 1].title}`,
       });
     } else {
-      toast.success("Todas as seções foram concluídas!", {
+      // Última seção - definir índice para -1 para fechar todas as seções
+      setCurrentSectionIndex(-1);
+      toast.success("Todas as seções foram concluídas! 🎉", {
         description: "Você pode salvar a pauta agora.",
       });
     }
