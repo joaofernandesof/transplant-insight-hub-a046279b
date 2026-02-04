@@ -312,18 +312,10 @@ export default function IpromedJourney() {
               </Button>
             </div>
             
-            <OnboardingMeetingDialog
-              trigger={
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Adicionar Cliente
-                </Button>
-              }
-              onSubmit={(data) => {
-                console.log('Onboarding data:', data);
-                toast.success('Cliente adicionado!');
-              }}
-            />
+            <Button className="gap-2" onClick={() => navigate('/ipromed/clients')}>
+              <Plus className="h-4 w-4" />
+              Adicionar Cliente
+            </Button>
             
             <Button variant="outline" className="gap-2">
               <CheckSquare className="h-4 w-4" />
