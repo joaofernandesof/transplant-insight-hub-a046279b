@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/select";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { ModuleSwitcher } from "@/components/shared/ModuleSwitcher";
+import { PortalSwitcherButton } from "@/components/shared/PortalSwitcherButton";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { 
   Collapsible,
@@ -401,6 +402,8 @@ function UnifiedSidebarLayout({ children }: UnifiedSidebarProps) {
         {/* Navigation */}
         <ScrollArea className="flex-1 py-2">
           <nav className="px-2 space-y-1">
+            {/* Portal Switcher - Always first */}
+            <PortalSwitcherButton isCollapsed={isCollapsed} variant="default" />
             {/* Admin shortcut when in a portal (not main/admin) */}
             {isAdmin && currentPortal !== 'main' && currentPortal !== 'admin' && (
               <>
