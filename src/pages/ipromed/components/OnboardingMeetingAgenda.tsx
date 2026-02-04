@@ -281,7 +281,7 @@ interface OnboardingMeetingAgendaProps {
 
 export default function OnboardingMeetingAgenda({
   clientId,
-  clientName = "Novo Cliente",
+  clientName,
   onSubmit,
   onClose,
   initialData,
@@ -296,7 +296,7 @@ export default function OnboardingMeetingAgenda({
   const form = useForm<OnboardingMeetingData>({
     resolver: zodResolver(onboardingMeetingSchema),
     defaultValues: {
-      nomeCompleto: clientName || "",
+      nomeCompleto: clientName ?? "",
       nomePreferencia: "",
       cargoFuncao: "",
       possuiClinica: false,
