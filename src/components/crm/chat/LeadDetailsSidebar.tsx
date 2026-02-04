@@ -373,6 +373,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
                   <ChecklistFieldRenderer 
                     key={field.id} 
                     field={field}
+                    leadId={lead.id}
                     leadPhone={lead.phone}
                     columnId={kanbanInfo?.columnId}
                     onUpdate={() => queryClient.invalidateQueries({ queryKey: ['lead-checklist-fields'] })}
