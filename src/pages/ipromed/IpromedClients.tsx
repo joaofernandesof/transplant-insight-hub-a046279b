@@ -137,7 +137,7 @@ const contractStatusConfig: Record<string, { label: string; color: string }> = {
   signed: { label: 'Assinado', color: 'bg-emerald-100 text-emerald-700' },
 };
 
-type SortField = 'name' | 'created_at' | 'status' | 'risk_level' | 'journey_stage';
+type SortField = 'name' | 'created_at' | 'status' | 'risk_level' | 'journey_stage' | 'client_number' | 'phone' | 'email' | 'payment_status' | 'contract_status';
 type SortOrder = 'asc' | 'desc';
 
 export default function IpromedClients() {
@@ -149,6 +149,7 @@ export default function IpromedClients() {
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [riskFilter, setRiskFilter] = useState<string>('all');
   const [onboardingFilter, setOnboardingFilter] = useState<string>('all');
+  const [contractFilter, setContractFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -176,15 +177,18 @@ export default function IpromedClients() {
         (client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
         (client.phone?.includes(searchTerm) ?? false) ||
         (client.cpf_cnpj?.includes(searchTerm) ?? false) ||
-        (client.client_number?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+        (client.client_number?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+        (client.address?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+        (client.address?.state?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
       const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
       const matchesJourney = journeyFilter === 'all' || client.journey_stage === journeyFilter;
       const matchesPayment = paymentFilter === 'all' || client.metadata?.payment_status === paymentFilter;
       const matchesRisk = riskFilter === 'all' || client.risk_level === riskFilter;
+      const matchesContract = contractFilter === 'all' || client.metadata?.contract_status === contractFilter;
       const matchesOnboarding = onboardingFilter === 'all' || 
         (onboardingFilter === 'completed' && client.onboarding_completed) ||
         (onboardingFilter === 'pending' && !client.onboarding_completed);
-      return matchesSearch && matchesStatus && matchesJourney && matchesPayment && matchesRisk && matchesOnboarding;
+      return matchesSearch && matchesStatus && matchesJourney && matchesPayment && matchesRisk && matchesContract && matchesOnboarding;
     })
     .sort((a, b) => {
       let comparison = 0;
@@ -204,6 +208,21 @@ export default function IpromedClients() {
           break;
         case 'journey_stage':
           comparison = a.journey_stage.localeCompare(b.journey_stage);
+          break;
+        case 'client_number':
+          comparison = (a.client_number || '').localeCompare(b.client_number || '');
+          break;
+        case 'phone':
+          comparison = (a.phone || '').localeCompare(b.phone || '');
+          break;
+        case 'email':
+          comparison = (a.email || '').localeCompare(b.email || '');
+          break;
+        case 'payment_status':
+          comparison = (a.metadata?.payment_status || '').localeCompare(b.metadata?.payment_status || '');
+          break;
+        case 'contract_status':
+          comparison = (a.metadata?.contract_status || '').localeCompare(b.metadata?.contract_status || '');
           break;
       }
       return sortOrder === 'asc' ? comparison : -comparison;
@@ -231,7 +250,7 @@ export default function IpromedClients() {
     onboardingCompleted: clients.filter(c => c.onboarding_completed).length,
   };
 
-  const activeFiltersCount = [statusFilter, journeyFilter, paymentFilter, riskFilter, onboardingFilter]
+  const activeFiltersCount = [statusFilter, journeyFilter, paymentFilter, riskFilter, onboardingFilter, contractFilter]
     .filter(f => f !== 'all').length;
 
   const clearFilters = () => {
@@ -240,6 +259,7 @@ export default function IpromedClients() {
     setPaymentFilter('all');
     setRiskFilter('all');
     setOnboardingFilter('all');
+    setContractFilter('all');
   };
 
   if (error) {
@@ -467,13 +487,64 @@ export default function IpromedClients() {
                       </TableHead>
 
                       {/* Código */}
-                      <TableHead className="min-w-[100px]">Código</TableHead>
+                      <TableHead className="min-w-[100px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
+                              Código
+                              <ArrowUpDown className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => { setSortField('client_number'); setSortOrder('asc'); }}>
+                              A → Z {sortField === 'client_number' && sortOrder === 'asc' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSortField('client_number'); setSortOrder('desc'); }}>
+                              Z → A {sortField === 'client_number' && sortOrder === 'desc' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
 
                       {/* Telefone */}
-                      <TableHead className="min-w-[130px]">Telefone</TableHead>
+                      <TableHead className="min-w-[130px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
+                              Telefone
+                              <ArrowUpDown className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => { setSortField('phone'); setSortOrder('asc'); }}>
+                              A → Z {sortField === 'phone' && sortOrder === 'asc' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSortField('phone'); setSortOrder('desc'); }}>
+                              Z → A {sortField === 'phone' && sortOrder === 'desc' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
 
                       {/* Email */}
-                      <TableHead className="min-w-[180px]">Email</TableHead>
+                      <TableHead className="min-w-[180px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 -ml-3 font-medium hover:bg-muted gap-1">
+                              Email
+                              <ArrowUpDown className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => { setSortField('email'); setSortOrder('asc'); }}>
+                              A → Z {sortField === 'email' && sortOrder === 'asc' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSortField('email'); setSortOrder('desc'); }}>
+                              Z → A {sortField === 'email' && sortOrder === 'desc' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
 
                       {/* Jornada */}
                       <TableHead className="min-w-[120px]">
@@ -536,7 +607,41 @@ export default function IpromedClients() {
                       </TableHead>
 
                       {/* Contrato */}
-                      <TableHead className="min-w-[110px]">Contrato</TableHead>
+                      <TableHead className="min-w-[130px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className={cn(
+                              "h-8 -ml-3 font-medium hover:bg-muted gap-1",
+                              contractFilter !== 'all' && "text-primary"
+                            )}>
+                              Contrato
+                              <Filter className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-background">
+                            <DropdownMenuItem onClick={() => setContractFilter('all')}>
+                              Todos {contractFilter === 'all' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setContractFilter('draft')}>
+                              Rascunho {contractFilter === 'draft' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setContractFilter('pending_signature')}>
+                              Aguard. Assinatura {contractFilter === 'pending_signature' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setContractFilter('signed')}>
+                              Assinado {contractFilter === 'signed' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => { setSortField('contract_status'); setSortOrder('asc'); }}>
+                              Ordenar A → Z {sortField === 'contract_status' && sortOrder === 'asc' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSortField('contract_status'); setSortOrder('desc'); }}>
+                              Ordenar Z → A {sortField === 'contract_status' && sortOrder === 'desc' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
 
                       {/* Risco */}
                       <TableHead className="min-w-[90px]">
