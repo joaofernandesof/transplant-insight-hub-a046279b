@@ -446,8 +446,13 @@ export function MeetingScheduleDialog({
                       mode="single"
                       selected={meetingDetails.date}
                       onSelect={(date) => setMeetingDetails({ ...meetingDetails, date })}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
                       initialFocus
+                      className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
                 </Popover>
