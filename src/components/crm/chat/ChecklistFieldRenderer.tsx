@@ -744,6 +744,12 @@ export function ChecklistFieldRenderer({ field, leadId, leadPhone, columnId, onU
         }
       };
 
+      // Check if localValue is a valid URL (http/https)
+      const isValidFileUrl = localValue && (
+        localValue.startsWith('http://') || 
+        localValue.startsWith('https://')
+      );
+
       return (
         <div className="flex items-center gap-3">
           <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
@@ -759,7 +765,7 @@ export function ChecklistFieldRenderer({ field, leadId, leadPhone, columnId, onU
             accept="*/*"
           />
           
-          {localValue ? (
+          {isValidFileUrl ? (
             <div className="flex items-center gap-2 flex-1">
               <a
                 href={localValue}
