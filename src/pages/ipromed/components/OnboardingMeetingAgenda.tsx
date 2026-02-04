@@ -302,14 +302,7 @@ const sections: SectionConfig[] = [
     fields: ["5.2.1", "5.2.2"],
     requiredFields: []
   },
-  { 
-    id: "prioridades", 
-    icon: Target, 
-    title: "Prioridades", 
-    emoji: "🎯", 
-    fields: ["6.2.1", "6.2.2", "6.2.3", "6.2.4", "6.2.5", "6.2.6"],
-    requiredFields: []
-  },
+  // Seção de Prioridades removida - integrada na tabela de documentos
   { 
     id: "prazos", 
     icon: Calendar, 
@@ -1999,7 +1992,7 @@ export default function OnboardingMeetingAgenda({
                     <div className="border rounded-lg overflow-hidden">
                       <div className="bg-muted p-3 border-b">
                         <h4 className="font-medium text-sm">📋 Matriz de Documentos Contratuais IPROMED</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Todos os 17 documentos serão entregues (criados ou revisados conforme situação)</p>
+                        <p className="text-xs text-muted-foreground mt-1">Todos os 17 documentos serão entregues (criados ou revisados conforme situação). Marque prioridade para prazo reduzido (10 dias).</p>
                       </div>
                       
                       {/* Tabela responsiva */}
@@ -2011,6 +2004,11 @@ export default function OnboardingMeetingAgenda({
                               <th className="p-3 text-left">Documento</th>
                               <th className="p-3 text-center w-28">Já possui?</th>
                               <th className="p-3 text-center w-24">Ação</th>
+                              <th className="p-3 text-center w-20">
+                                <span className="flex items-center justify-center gap-1">
+                                  🚨 Prio
+                                </span>
+                              </th>
                               <th className="p-3 text-center w-28">Prazo</th>
                             </tr>
                           </thead>
@@ -2018,17 +2016,26 @@ export default function OnboardingMeetingAgenda({
                             {documentosContratuais.map((doc, index) => {
                               const documentoKey = doc.replace(/[^a-zA-Z0-9]/g, '_');
                               const jaPossui = form.watch(`documentosAtuaisStatus.${documentoKey}`) || false;
+                              const isPrioridade = (form.watch("documentosPrioritariosSelecionados") || []).includes(doc);
                               const dataPrevistaRevisao = form.watch("dataPrevistaRevisao");
                               const dataPrevistaCriacao = form.watch("dataPrevistaCriacao");
                               
                               return (
                                 <tr key={doc} className={cn(
                                   "transition-colors",
-                                  index % 2 === 0 ? "bg-background" : "bg-muted/10",
-                                  jaPossui && "bg-amber-50/30 dark:bg-amber-950/10"
+                                  isPrioridade 
+                                    ? "bg-red-50 dark:bg-red-950/20 border-l-4 border-l-red-500" 
+                                    : index % 2 === 0 ? "bg-background" : "bg-muted/10",
+                                  jaPossui && !isPrioridade && "bg-amber-50/30 dark:bg-amber-950/10"
                                 )}>
-                                  <td className="p-3 text-muted-foreground font-medium">{index + 1}</td>
-                                  <td className="p-3">{doc}</td>
+                                  <td className={cn(
+                                    "p-3 font-medium",
+                                    isPrioridade ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+                                  )}>{index + 1}</td>
+                                  <td className={cn(
+                                    "p-3",
+                                    isPrioridade && "font-medium text-red-700 dark:text-red-300"
+                                  )}>{doc}</td>
                                   <td className="p-3 text-center">
                                     <div className="flex justify-center gap-1">
                                       <Button
@@ -2083,15 +2090,36 @@ export default function OnboardingMeetingAgenda({
                                     </Badge>
                                   </td>
                                   <td className="p-3 text-center">
+                                    <Checkbox
+                                      checked={isPrioridade}
+                                      onCheckedChange={(checked) => {
+                                        const current = form.getValues("documentosPrioritariosSelecionados") || [];
+                                        if (checked) {
+                                          form.setValue("documentosPrioritariosSelecionados", [...current, doc]);
+                                        } else {
+                                          form.setValue("documentosPrioritariosSelecionados", current.filter((d: string) => d !== doc));
+                                        }
+                                      }}
+                                      className={cn(
+                                        "h-5 w-5",
+                                        isPrioridade && "border-red-500 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                                      )}
+                                    />
+                                  </td>
+                                  <td className="p-3 text-center">
                                     <span className={cn(
                                       "text-xs font-medium",
-                                      jaPossui 
-                                        ? "text-destructive" 
-                                        : "text-emerald-600 dark:text-emerald-400"
+                                      isPrioridade 
+                                        ? "text-red-600 dark:text-red-400 font-bold" 
+                                        : jaPossui 
+                                          ? "text-blue-600 dark:text-blue-400" 
+                                          : "text-emerald-600 dark:text-emerald-400"
                                     )}>
-                                      {jaPossui 
-                                        ? "Até 20 dias úteis após o recebimento"
-                                        : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
+                                      {isPrioridade 
+                                        ? "🚨 10 dias úteis"
+                                        : jaPossui 
+                                          ? "20 dias úteis"
+                                          : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
                                       }
                                     </span>
                                   </td>
@@ -2123,9 +2151,15 @@ export default function OnboardingMeetingAgenda({
                                   />
                                 </td>
                                 <td className="p-3 text-center">
+                                  {/* Célula vazia para manter alinhamento */}
+                                </td>
+                                <td className="p-3 text-center">
                                   <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200">
                                     Adicional
                                   </Badge>
+                                </td>
+                                <td className="p-3 text-center">
+                                  {/* Célula vazia para manter alinhamento */}
                                 </td>
                                 <td className="p-3 text-center">
                                   <Button
@@ -2146,7 +2180,7 @@ export default function OnboardingMeetingAgenda({
                             
                             {/* Linha para adicionar novo documento */}
                             <tr className="bg-muted/30 hover:bg-muted/50">
-                              <td colSpan={4} className="p-2">
+                              <td colSpan={6} className="p-2">
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -2167,10 +2201,10 @@ export default function OnboardingMeetingAgenda({
                       </div>
                       
                       {/* Resumo */}
-                      <div className="bg-muted/50 p-3 border-t grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                      <div className="bg-muted/50 p-3 border-t grid grid-cols-2 md:grid-cols-5 gap-4 text-xs">
                         <div className="text-center">
                           <span className="text-muted-foreground">A revisar:</span>
-                          <span className="font-bold text-amber-600 dark:text-amber-400 ml-1">
+                          <span className="font-bold text-blue-600 dark:text-blue-400 ml-1">
                             {Object.values(form.watch("documentosAtuaisStatus") || {}).filter(Boolean).length}
                           </span>
                         </div>
@@ -2181,15 +2215,21 @@ export default function OnboardingMeetingAgenda({
                           </span>
                         </div>
                         <div className="text-center">
-                          <span className="text-muted-foreground">Prazo revisão:</span>
-                          <span className="font-medium text-amber-600 dark:text-amber-400 ml-1">
-                            {form.watch("dataPrevistaRevisao") ? new Date(form.watch("dataPrevistaRevisao") + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                          <span className="text-muted-foreground">🚨 Prioritários:</span>
+                          <span className="font-bold text-red-600 dark:text-red-400 ml-1">
+                            {(form.watch("documentosPrioritariosSelecionados") || []).length}
                           </span>
                         </div>
                         <div className="text-center">
-                          <span className="text-muted-foreground">Prazo criação:</span>
+                          <span className="text-muted-foreground">Prazo normal:</span>
                           <span className="font-medium text-emerald-600 dark:text-emerald-400 ml-1">
-                            {form.watch("dataPrevistaCriacao") ? new Date(form.watch("dataPrevistaCriacao") + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                            20 dias
+                          </span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-muted-foreground">Prazo prioritário:</span>
+                          <span className="font-bold text-red-600 dark:text-red-400 ml-1">
+                            10 dias
                           </span>
                         </div>
                       </div>
@@ -2209,267 +2249,9 @@ export default function OnboardingMeetingAgenda({
                 </AccordionContent>
               </AccordionItem>
 
-              {/* 6. Prioridades */}
-              <AccordionItem 
-                value="prioridades" 
-                data-section-id="prioridades"
-                className={cn(
-                  "border rounded-lg overflow-hidden transition-opacity",
-                  !isSectionAccessible("prioridades") && "opacity-50"
-                )}
-              >
-                <AccordionTrigger 
-                  className={cn(
-                    "px-4 py-3 hover:no-underline",
-                    completedSections.includes("prioridades") && "bg-emerald-50 dark:bg-emerald-950/20"
-                  )}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggleSection("prioridades");
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">🎯</span>
-                    <div className="text-left">
-                      <p className="font-medium">6. Prioridades</p>
-                      <p className="text-xs text-muted-foreground">6 campos • Foco e histórico</p>
-                    </div>
-                    {completedSections.includes("prioridades") && (
-                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Concluído
-                      </Badge>
-                    )}
-                    {!isSectionAccessible("prioridades") && (
-                      <Badge variant="outline" className="ml-2">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Bloqueado
-                      </Badge>
-                    )}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-5 pt-2 max-w-2xl">
-                    <FormField
-                      control={form.control}
-                      name="possuiPrioridade"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <YesNoSelector
-                              value={field.value}
-                              onChange={field.onChange}
-                              label="📌 Possui prioridade em algum ou alguns documentos?"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+              {/* Seção de Prioridades removida - integrada na tabela de documentos */}
 
-                    {form.watch("possuiPrioridade") && (
-                      <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
-                        <FormLabel className="text-sm font-medium">📄 Documentos contratuais prioritários</FormLabel>
-                        <FormDescription className="text-xs">Selecione os documentos que são prioridade para este cliente</FormDescription>
-                        
-                        <FormField
-                          control={form.control}
-                          name="documentosPrioritariosSelecionados"
-                          render={({ field }) => (
-                            <FormItem>
-                              <div className="grid grid-cols-1 gap-2 mt-2">
-                                {documentosContratuais.map((doc, index) => (
-                                  <div
-                                    key={doc}
-                                    className="flex items-center space-x-2 space-y-0"
-                                  >
-                                    <Checkbox
-                                      checked={field.value?.includes(doc)}
-                                      onCheckedChange={(checked) => {
-                                        const current = field.value || [];
-                                        if (checked) {
-                                          field.onChange([...current, doc]);
-                                        } else {
-                                          field.onChange(current.filter((d: string) => d !== doc));
-                                        }
-                                      }}
-                                    />
-                                    <label className="text-sm font-normal cursor-pointer">
-                                      {index + 1}. {doc}
-                                    </label>
-                                  </div>
-                                ))}
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* Documentos adicionais personalizados */}
-                        <div className="border-t pt-4 mt-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <FormLabel className="text-sm font-medium">📝 Documentos adicionais</FormLabel>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const current = form.getValues("documentosPrioritarios") || [];
-                                form.setValue("documentosPrioritarios", [...current, { nome: "" }]);
-                              }}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Adicionar documento
-                            </Button>
-                          </div>
-                          
-                          {(form.watch("documentosPrioritarios") || []).length === 0 && (
-                            <p className="text-sm text-muted-foreground text-center py-2">
-                              Clique em "Adicionar documento" para registrar documentos fora do escopo padrão
-                            </p>
-                          )}
-
-                          {(form.watch("documentosPrioritarios") || []).map((_, index) => (
-                            <div key={index} className="flex items-center gap-2 mb-2">
-                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-medium text-xs">
-                                +{index + 1}
-                              </div>
-                              <FormField
-                                control={form.control}
-                                name={`documentosPrioritarios.${index}.nome`}
-                                render={({ field }) => (
-                                  <FormItem className="flex-1">
-                                    <FormControl>
-                                      <Input placeholder="Nome do documento adicional..." {...field} className="h-9" />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                onClick={() => {
-                                  const current = form.getValues("documentosPrioritarios") || [];
-                                  form.setValue("documentosPrioritarios", current.filter((_, i) => i !== index));
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <FormField
-                      control={form.control}
-                      name="jaTeveProblemAnterior"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <YesNoSelector
-                              value={field.value}
-                              onChange={field.onChange}
-                              label="🧨 Já teve problema anterior"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    {form.watch("jaTeveProblemAnterior") && (
-                      <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <FormLabel className="text-sm font-medium">📝 Problemas anteriores</FormLabel>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const current = form.getValues("problemasAnteriores") || [];
-                              form.setValue("problemasAnteriores", [...current, { titulo: "", descricao: "" }]);
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Adicionar problema
-                          </Button>
-                        </div>
-                        
-                        {(form.watch("problemasAnteriores") || []).length === 0 && (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            Clique em "Adicionar problema" para registrar um problema anterior
-                          </p>
-                        )}
-
-                        {(form.watch("problemasAnteriores") || []).map((_, index) => (
-                          <div key={index} className="p-3 border rounded-lg bg-background space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">Problema {index + 1}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                onClick={() => {
-                                  const current = form.getValues("problemasAnteriores") || [];
-                                  form.setValue("problemasAnteriores", current.filter((_, i) => i !== index));
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            
-                            <FormField
-                              control={form.control}
-                              name={`problemasAnteriores.${index}.titulo`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs">Título do problema</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Ex: Reclamação de paciente" {...field} />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name={`problemasAnteriores.${index}.descricao`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs">Descrição</FormLabel>
-                                  <FormControl>
-                                    <Textarea 
-                                      placeholder="Descreva o problema sem dados sensíveis..." 
-                                      className="min-h-[60px]"
-                                      {...field} 
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        ))}
-                        
-                        <p className="text-xs text-muted-foreground">Sem dados sensíveis desnecessários</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex justify-end mt-4">
-                    <Button 
-                      type="button" 
-                      variant="default" 
-                      size="sm"
-                      onClick={() => validateAndCompleteSection("prioridades")}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                      Marcar como concluído
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* 7. Prazos */}
+              {/* 6. Prazos */}
               <AccordionItem 
                 value="prazos" 
                 data-section-id="prazos"
@@ -2491,7 +2273,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex items-center gap-3">
                     <span className="text-xl">🗓️</span>
                     <div className="text-left">
-                      <p className="font-medium">7. Prazos</p>
+                      <p className="font-medium">6. Prazos</p>
                       <p className="text-xs text-muted-foreground">4 campos • Cronograma de entregas</p>
                     </div>
                     {completedSections.includes("prazos") && (
@@ -2792,7 +2574,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex items-center gap-3">
                     <span className="text-xl">🎓</span>
                     <div className="text-left">
-                      <p className="font-medium">8. Treinamento</p>
+                      <p className="font-medium">7. Treinamento</p>
                       <p className="text-xs text-muted-foreground">5 campos • Capacitação da equipe</p>
                     </div>
                     {completedSections.includes("treinamento") && (
@@ -2937,7 +2719,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📸</span>
                     <div className="text-left">
-                      <p className="font-medium">9. Instagram</p>
+                      <p className="font-medium">8. Instagram</p>
                       <p className="text-xs text-muted-foreground">7 campos • Análise de perfil</p>
                     </div>
                     {completedSections.includes("instagram") && (
@@ -3248,7 +3030,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📑</span>
                     <div className="text-left">
-                      <p className="font-medium">10. Contrato</p>
+                      <p className="font-medium">9. Contrato</p>
                       <p className="text-xs text-muted-foreground">4 campos • Aceite e dúvidas</p>
                     </div>
                     {completedSections.includes("contrato") && (
