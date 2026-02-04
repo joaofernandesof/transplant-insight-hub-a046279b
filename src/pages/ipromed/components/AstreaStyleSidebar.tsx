@@ -58,7 +58,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'tasks', label: 'Tarefas', icon: CheckSquare, href: '/ipromed/tasks' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', tourId: 'sidebar-financial' },
   { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico' },
-  { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
+  
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda', tourId: 'sidebar-agenda' },
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases', tourId: 'sidebar-cases' },
   { id: 'contracts-hub', label: 'Contratos', icon: FileBox, href: '/ipromed/legal?tab=contracts' },
