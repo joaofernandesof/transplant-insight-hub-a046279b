@@ -3,12 +3,11 @@
  * Suporta: text, number, boolean, select, date, url, textarea, etc.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 
 interface ChecklistField {
   id: string;
@@ -30,25 +29,44 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
   const [localValue, setLocalValue] = useState<string>(
     typeof field.value === 'string' ? field.value : ''
   );
+  const [isSaving, setIsSaving] = useState(false);
+  const isEditingRef = useRef(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const lastSavedValueRef = useRef<string>(localValue);
 
-  // Update local value when field changes
+  // Only sync from props when NOT actively editing
   useEffect(() => {
-    setLocalValue(typeof field.value === 'string' ? field.value : '');
+    if (!isEditingRef.current) {
+      const newValue = typeof field.value === 'string' ? field.value : '';
+      setLocalValue(newValue);
+      lastSavedValueRef.current = newValue;
+    }
   }, [field.value]);
 
-  // Debounced save to database
-  const debouncedSave = useDebouncedCallback(async (value: string) => {
-    if (!leadPhone || !columnId) return;
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
+  const saveToDatabase = useCallback(async (value: string) => {
+    if (!leadPhone || !columnId) return;
+    if (value === lastSavedValueRef.current) return; // Skip if value unchanged
+
+    setIsSaving(true);
     try {
       // Buscar o lead atual
-      const { data: lead } = await supabase
+      const { data: lead, error: fetchError } = await supabase
         .from('avivar_kanban_leads')
         .select('id, custom_fields')
         .eq('phone', leadPhone)
         .eq('column_id', columnId)
         .maybeSingle();
 
+      if (fetchError) throw fetchError;
       if (!lead) return;
 
       // Atualizar custom_fields
@@ -58,22 +76,51 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
         [field.field_key]: value || null
       };
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('avivar_kanban_leads')
         .update({ custom_fields: updatedFields as unknown as Record<string, never> })
         .eq('id', lead.id);
 
+      if (updateError) throw updateError;
+
+      lastSavedValueRef.current = value;
       onUpdate?.();
     } catch (error) {
       console.error('Erro ao salvar campo:', error);
       toast.error('Erro ao salvar');
+    } finally {
+      setIsSaving(false);
+      isEditingRef.current = false;
     }
-  }, 500);
+  }, [leadPhone, columnId, field.field_key, onUpdate]);
 
-  const handleChange = (value: string) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    isEditingRef.current = true;
     setLocalValue(value);
-    debouncedSave(value);
-  };
+
+    // Clear previous timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Debounce save
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToDatabase(value);
+    }, 800);
+  }, [saveToDatabase]);
+
+  const handleBlur = useCallback(() => {
+    // Save immediately on blur if there's pending changes
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    if (localValue !== lastSavedValueRef.current) {
+      saveToDatabase(localValue);
+    } else {
+      isEditingRef.current = false;
+    }
+  }, [localValue, saveToDatabase]);
 
   // Renderização baseada no tipo
   switch (field.field_type) {
@@ -87,8 +134,10 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
           </Label>
           <Input
             value={localValue}
-            onChange={(e) => handleChange(e.target.value)}
+            onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="..."
+            disabled={isSaving}
             className="h-6 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] rounded-none px-0 focus-visible:ring-0 focus-visible:border-[hsl(var(--avivar-primary))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground)/0.5)] flex-1"
           />
         </div>
