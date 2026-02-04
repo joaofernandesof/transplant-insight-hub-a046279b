@@ -132,7 +132,7 @@ export function MeetingEditDialog({
   const [agendaType, setAgendaType] = useState('');
   const [participants, setParticipants] = useState<string[]>([]);
   const [newParticipant, setNewParticipant] = useState('');
-  const [reminderMinutes, setReminderMinutes] = useState(30);
+  const [reminders, setReminders] = useState<number[]>([30]);
 
   // Initialize form when meeting changes
   useEffect(() => {
@@ -383,24 +383,56 @@ export function MeetingEditDialog({
                 </div>
               </div>
 
-              {/* Notification */}
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted">
-                  <Bell className="h-4 w-4 text-muted-foreground" />
+              {/* Notifications */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-muted">
+                    <Bell className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm font-medium">Notificações</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Select value={reminderMinutes.toString()} onValueChange={(v) => setReminderMinutes(Number(v))}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10 minutos antes</SelectItem>
-                      <SelectItem value="30">30 minutos antes</SelectItem>
-                      <SelectItem value="60">1 hora antes</SelectItem>
-                      <SelectItem value="1440">1 dia antes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button variant="link" size="sm" className="text-primary">
+                
+                <div className="ml-11 space-y-2">
+                  {reminders.map((reminder, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Select 
+                        value={reminder.toString()} 
+                        onValueChange={(v) => {
+                          const newReminders = [...reminders];
+                          newReminders[index] = Number(v);
+                          setReminders(newReminders);
+                        }}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10 minutos antes</SelectItem>
+                          <SelectItem value="30">30 minutos antes</SelectItem>
+                          <SelectItem value="60">1 hora antes</SelectItem>
+                          <SelectItem value="1440">1 dia antes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {reminders.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setReminders(reminders.filter((_, i) => i !== index))}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-primary gap-1"
+                    onClick={() => setReminders([...reminders, 30])}
+                  >
+                    <Plus className="h-4 w-4" />
                     Adicionar notificação
                   </Button>
                 </div>
