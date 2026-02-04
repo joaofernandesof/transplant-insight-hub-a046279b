@@ -1777,7 +1777,10 @@ export default function OnboardingMeetingAgenda({
                           <tbody className="divide-y">
                             {documentosContratuais.map((doc, index) => {
                               const documentoKey = doc.replace(/[^a-zA-Z0-9]/g, '_');
-                              const jaPossui = form.watch(`documentosAtuaisStatus.${documentoKey}`) || false;
+                              const statusValue = form.watch(`documentosAtuaisStatus.${documentoKey}`);
+                              const jaPossui = statusValue === true;
+                              const naoTemDoc = statusValue === false;
+                              const naoDefinido = statusValue === undefined;
                               const isPrioridade = (form.watch("documentosPrioritariosSelecionados") || []).includes(doc);
                               const dataPrevistaRevisao = form.watch("dataPrevistaRevisao");
                               const dataPrevistaCriacao = form.watch("dataPrevistaCriacao");
@@ -1787,7 +1790,9 @@ export default function OnboardingMeetingAgenda({
                                   "transition-colors",
                                   isPrioridade 
                                     ? "bg-red-50 dark:bg-red-950/20 border-l-4 border-l-red-500" 
-                                    : index % 2 === 0 ? "bg-background" : "bg-muted/10",
+                                    : naoDefinido 
+                                      ? "bg-muted/20"
+                                      : index % 2 === 0 ? "bg-background" : "bg-muted/10",
                                   jaPossui && !isPrioridade && "bg-amber-50/30 dark:bg-amber-950/10"
                                 )}>
                                   <td className={cn(
@@ -1802,11 +1807,11 @@ export default function OnboardingMeetingAgenda({
                                     <div className="flex justify-center gap-1">
                                       <Button
                                         type="button"
-                                        variant={jaPossui === true ? "default" : "outline"}
+                                        variant={jaPossui ? "default" : "outline"}
                                         size="sm"
                                         className={cn(
                                           "h-7 text-xs px-2",
-                                          jaPossui === true && "bg-emerald-600 hover:bg-emerald-700"
+                                          jaPossui && "bg-emerald-600 hover:bg-emerald-700"
                                         )}
                                         onClick={() => {
                                           const currentStatus = form.getValues("documentosAtuaisStatus") || {};
@@ -1820,11 +1825,11 @@ export default function OnboardingMeetingAgenda({
                                       </Button>
                                       <Button
                                         type="button"
-                                        variant={jaPossui === false ? "default" : "outline"}
+                                        variant={naoTemDoc ? "default" : "outline"}
                                         size="sm"
                                         className={cn(
                                           "h-7 text-xs px-2",
-                                          jaPossui === false && "bg-slate-600 hover:bg-slate-700"
+                                          naoTemDoc && "bg-slate-600 hover:bg-slate-700"
                                         )}
                                         onClick={() => {
                                           const currentStatus = form.getValues("documentosAtuaisStatus") || {};
@@ -1839,17 +1844,23 @@ export default function OnboardingMeetingAgenda({
                                     </div>
                                   </td>
                                   <td className="p-3 text-center">
-                                    <Badge 
-                                      variant={jaPossui ? "secondary" : "outline"} 
-                                      className={cn(
-                                        "text-xs",
-                                        jaPossui 
-                                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200" 
-                                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200"
-                                      )}
-                                    >
-                                      {jaPossui ? "Revisão" : "Criação"}
-                                    </Badge>
+                                    {naoDefinido ? (
+                                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                                        —
+                                      </Badge>
+                                    ) : (
+                                      <Badge 
+                                        variant={jaPossui ? "secondary" : "outline"} 
+                                        className={cn(
+                                          "text-xs",
+                                          jaPossui 
+                                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200" 
+                                            : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200"
+                                        )}
+                                      >
+                                        {jaPossui ? "Revisão" : "Criação"}
+                                      </Badge>
+                                    )}
                                   </td>
                                   <td className="p-3 text-center">
                                     <Checkbox
@@ -1869,21 +1880,25 @@ export default function OnboardingMeetingAgenda({
                                     />
                                   </td>
                                   <td className="p-3 text-center">
-                                    <span className={cn(
-                                      "text-xs font-medium",
-                                      isPrioridade 
-                                        ? "text-red-600 dark:text-red-400 font-bold" 
-                                        : jaPossui 
-                                          ? "text-blue-600 dark:text-blue-400" 
-                                          : "text-emerald-600 dark:text-emerald-400"
-                                    )}>
-                                      {isPrioridade 
-                                        ? "🚨 10 dias úteis"
-                                        : jaPossui 
-                                          ? "20 dias úteis"
-                                          : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
-                                      }
-                                    </span>
+                                    {naoDefinido ? (
+                                      <span className="text-xs text-muted-foreground">—</span>
+                                    ) : (
+                                      <span className={cn(
+                                        "text-xs font-medium",
+                                        isPrioridade 
+                                          ? "text-red-600 dark:text-red-400 font-bold" 
+                                          : jaPossui 
+                                            ? "text-blue-600 dark:text-blue-400" 
+                                            : "text-emerald-600 dark:text-emerald-400"
+                                      )}>
+                                        {isPrioridade 
+                                          ? "🚨 10 dias úteis"
+                                          : jaPossui 
+                                            ? "20 dias úteis"
+                                            : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—')
+                                        }
+                                      </span>
+                                    )}
                                   </td>
                                 </tr>
                               );
