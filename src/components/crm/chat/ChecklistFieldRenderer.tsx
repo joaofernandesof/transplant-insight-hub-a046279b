@@ -58,6 +58,35 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
   const [isSaving, setIsSaving] = useState(false);
   const [textareaOpen, setTextareaOpen] = useState(false);
   const [textareaValue, setTextareaValue] = useState(localValue);
+  
+  // Datetime field states
+  const [datetimeOpen, setDatetimeOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
+    if (field.field_type === 'datetime' && field.value) {
+      const parsed = new Date(field.value as string);
+      return isNaN(parsed.getTime()) ? undefined : parsed;
+    }
+    return undefined;
+  });
+  const [selectedTime, setSelectedTime] = useState<string>(() => {
+    if (field.field_type === 'datetime' && field.value) {
+      const parsed = new Date(field.value as string);
+      if (!isNaN(parsed.getTime())) {
+        return format(parsed, 'HH:mm');
+      }
+    }
+    return '';
+  });
+  const [editableValue, setEditableValue] = useState<string>(() => {
+    if (field.field_type === 'datetime' && field.value) {
+      const parsed = new Date(field.value as string);
+      if (!isNaN(parsed.getTime())) {
+        return format(parsed, 'dd.MM.yyyy HH:mm');
+      }
+    }
+    return '';
+  });
+  
   const isEditingRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const lastSavedValueRef = useRef<string>(localValue);
@@ -454,6 +483,178 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
               </div>
             </DialogContent>
           </Dialog>
+        </div>
+      );
+
+    case 'datetime':
+      // Generate time slots from 00:00 to 23:30 (30 min intervals)
+      const timeSlots = Array.from({ length: 48 }, (_, i) => {
+        const hours = Math.floor(i / 2);
+        const minutes = (i % 2) * 30;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      });
+
+      const handleDatetimeSelect = (date: Date | undefined) => {
+        setSelectedDate(date);
+        if (date && selectedTime) {
+          const [hours, minutes] = selectedTime.split(':').map(Number);
+          const combined = new Date(date);
+          combined.setHours(hours, minutes, 0, 0);
+          const isoValue = combined.toISOString();
+          setLocalValue(isoValue);
+          setEditableValue(format(combined, 'dd.MM.yyyy HH:mm'));
+          saveToDatabase(isoValue);
+          setDatetimeOpen(false);
+        }
+      };
+
+      const handleTimeSelect = (time: string) => {
+        setSelectedTime(time);
+        if (selectedDate) {
+          const [hours, minutes] = time.split(':').map(Number);
+          const combined = new Date(selectedDate);
+          combined.setHours(hours, minutes, 0, 0);
+          const isoValue = combined.toISOString();
+          setLocalValue(isoValue);
+          setEditableValue(format(combined, 'dd.MM.yyyy HH:mm'));
+          saveToDatabase(isoValue);
+          setDatetimeOpen(false);
+        }
+      };
+
+      const handleEditableChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setEditableValue(e.target.value);
+      };
+
+      const handleEditableBlur = () => {
+        // Parse editable value: dd.MM.yyyy HH:mm
+        const match = editableValue.match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/);
+        if (match) {
+          const [, day, month, year, hours, minutes] = match;
+          const parsed = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day),
+            parseInt(hours),
+            parseInt(minutes)
+          );
+          if (!isNaN(parsed.getTime())) {
+            const isoValue = parsed.toISOString();
+            setLocalValue(isoValue);
+            setSelectedDate(parsed);
+            setSelectedTime(format(parsed, 'HH:mm'));
+            saveToDatabase(isoValue);
+            return;
+          }
+        }
+        // If invalid, reset to last valid value
+        if (localValue) {
+          const parsed = new Date(localValue);
+          if (!isNaN(parsed.getTime())) {
+            setEditableValue(format(parsed, 'dd.MM.yyyy HH:mm'));
+          }
+        }
+      };
+
+      const hasValue = localValue && editableValue;
+
+      return (
+        <div className="flex items-center gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
+            {field.field_label}
+            {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
+          </Label>
+          
+          {hasValue ? (
+            <div className="flex items-center gap-2 flex-1">
+              <Input
+                value={editableValue}
+                onChange={handleEditableChange}
+                onBlur={handleEditableBlur}
+                placeholder="dd.MM.yyyy HH:mm"
+                disabled={isSaving}
+                className="h-6 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] rounded-none px-0 focus-visible:ring-0 text-[hsl(var(--avivar-foreground))] w-32"
+              />
+              <Popover open={datetimeOpen} onOpenChange={setDatetimeOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    className="p-1 hover:opacity-70 transition-opacity"
+                  >
+                    <CalendarIcon className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-auto p-0 bg-background border border-border shadow-lg flex" 
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleDatetimeSelect}
+                    initialFocus
+                    locale={ptBR}
+                    className="p-3 pointer-events-auto"
+                  />
+                  <div className="border-l border-border w-20 max-h-[300px] overflow-y-auto">
+                    {timeSlots.map((time) => (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => handleTimeSelect(time)}
+                        className={`w-full px-3 py-1.5 text-sm text-left hover:bg-accent transition-colors ${
+                          selectedTime === time ? 'bg-primary text-primary-foreground' : ''
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          ) : (
+            <Popover open={datetimeOpen} onOpenChange={setDatetimeOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  disabled={isSaving}
+                  className="h-6 flex items-center gap-2 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] px-0 focus:outline-none hover:opacity-80 transition-opacity"
+                >
+                  <span className="text-[hsl(var(--avivar-muted-foreground)/0.5)]">...</span>
+                  <CalendarIcon className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-auto p-0 bg-background border border-border shadow-lg flex" 
+                align="start"
+              >
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDatetimeSelect}
+                  initialFocus
+                  locale={ptBR}
+                  className="p-3 pointer-events-auto"
+                />
+                <div className="border-l border-border w-20 max-h-[300px] overflow-y-auto">
+                  {timeSlots.map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => handleTimeSelect(time)}
+                      className={`w-full px-3 py-1.5 text-sm text-left hover:bg-accent transition-colors ${
+                        selectedTime === time ? 'bg-primary text-primary-foreground' : ''
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       );
 
