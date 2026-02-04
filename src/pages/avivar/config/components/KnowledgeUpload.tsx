@@ -28,7 +28,8 @@ interface KnowledgeUploadProps {
 const ACCEPTED_TYPES = {
   'text/plain': ['.txt'],
   'text/markdown': ['.md'],
-  'application/pdf': ['.pdf']
+  'application/pdf': ['.pdf'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
 };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -44,14 +45,14 @@ export function KnowledgeUpload({ onFileProcessed, isProcessing }: KnowledgeUplo
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
-    const validTypes = ['text/plain', 'text/markdown', 'application/pdf'];
-    const validExtensions = ['.txt', '.md', '.pdf'];
+    const validTypes = ['text/plain', 'text/markdown', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const validExtensions = ['.txt', '.md', '.pdf', '.docx'];
     
     const extension = '.' + file.name.split('.').pop()?.toLowerCase();
     const isValidType = validTypes.includes(file.type) || validExtensions.includes(extension);
     
     if (!isValidType) {
-      return 'Formato inválido. Use .txt, .md ou .pdf';
+      return 'Formato inválido. Use .txt, .md, .pdf ou .docx';
     }
     
     if (file.size > MAX_FILE_SIZE) {
@@ -122,6 +123,41 @@ export function KnowledgeUpload({ onFileProcessed, isProcessing }: KnowledgeUplo
     });
   };
 
+  const extractDOCXText = async (file: File): Promise<string> => {
+    setExtractProgress(10);
+    
+    try {
+      // Usando mammoth.js via CDN
+      let mammoth = (window as any).mammoth;
+      
+      if (!mammoth) {
+        // Carregar dinamicamente se não estiver disponível
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Falha ao carregar mammoth.js'));
+          document.head.appendChild(script);
+        });
+        mammoth = (window as any).mammoth;
+      }
+      
+      setExtractProgress(30);
+      
+      const arrayBuffer = await file.arrayBuffer();
+      setExtractProgress(50);
+      
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      setExtractProgress(100);
+      
+      return result.value.trim();
+      
+    } catch (error) {
+      console.error('Erro ao extrair texto do DOCX:', error);
+      throw new Error('Erro ao processar DOCX. Tente outro arquivo.');
+    }
+  };
+
   const processFile = async (selectedFile: File) => {
     const validationError = validateFile(selectedFile);
     if (validationError) {
@@ -140,6 +176,8 @@ export function KnowledgeUpload({ onFileProcessed, isProcessing }: KnowledgeUplo
       
       if (selectedFile.type === 'application/pdf' || extension === '.pdf') {
         text = await extractPDFText(selectedFile);
+      } else if (selectedFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || extension === '.docx') {
+        text = await extractDOCXText(selectedFile);
       } else {
         setExtractProgress(50);
         text = await readTextFile(selectedFile);
@@ -222,7 +260,7 @@ export function KnowledgeUpload({ onFileProcessed, isProcessing }: KnowledgeUplo
         <input
           ref={fileInputRef}
           type="file"
-          accept=".txt,.md,.pdf,text/plain,text/markdown,application/pdf"
+          accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -268,7 +306,7 @@ export function KnowledgeUpload({ onFileProcessed, isProcessing }: KnowledgeUplo
                     Arraste o arquivo aqui ou clique para selecionar
                   </p>
                   <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] mt-1">
-                    Formatos aceitos: .txt, .md, .pdf
+                    Formatos aceitos: .txt, .md, .pdf, .docx
                   </p>
                   <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
                     Tamanho máximo: 10MB
@@ -326,6 +364,10 @@ export function KnowledgeUpload({ onFileProcessed, isProcessing }: KnowledgeUplo
         <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))]">
           <File className="h-3 w-3 mr-1" />
           .pdf
+        </Badge>
+        <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))]">
+          <File className="h-3 w-3 mr-1" />
+          .docx
         </Badge>
       </div>
     </div>
