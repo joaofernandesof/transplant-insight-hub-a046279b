@@ -637,9 +637,14 @@ export function MeetingEditDialog({
 
                 {/* Option to add more checklists */}
                 <Button 
+                  type="button"
                   variant="outline" 
                   className="w-full justify-start"
-                  onClick={() => setShowAddChecklist(true)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowAddChecklist(true);
+                  }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar checklist de pauta
@@ -680,7 +685,7 @@ export function MeetingEditDialog({
 
     {/* Dialog para adicionar checklist */}
     <Dialog open={showAddChecklist} onOpenChange={setShowAddChecklist}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md z-[100]">
         <DialogHeader>
           <DialogTitle>Adicionar Checklist de Pauta</DialogTitle>
         </DialogHeader>
