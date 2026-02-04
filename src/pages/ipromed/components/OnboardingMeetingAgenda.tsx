@@ -133,8 +133,13 @@ const onboardingMeetingSchema = z.object({
   usaAssinaturaDigital: z.boolean().default(false),
   ferramentaAssinatura: z.string().optional(),
 
+  // 5. Documentos que serão entregues
+  documentosEntregues: z.array(z.string()).default([]),
+  documentosAdicionaisEntregues: z.array(z.object({
+    nome: z.string().optional(),
+  })).default([]),
 
-  // 5. Prioridades (renumerado)
+  // 6. Prioridades (renumerado)
   possuiPrioridade: z.boolean().default(false),
   documentosPrioritariosSelecionados: z.array(z.string()).default([]),
   documentosPrioritarios: z.array(z.object({
@@ -252,11 +257,19 @@ const sections: SectionConfig[] = [
     requiredFields: []
   },
   { 
+    id: "entregas", 
+    icon: Upload, 
+    title: "Documentos que serão entregues", 
+    emoji: "📦", 
+    fields: ["5.2.1", "5.2.2"],
+    requiredFields: []
+  },
+  { 
     id: "prioridades", 
     icon: Target, 
     title: "Prioridades", 
     emoji: "🎯", 
-    fields: ["5.2.1", "5.2.2", "5.2.3", "5.2.4", "5.2.5", "5.2.6"],
+    fields: ["6.2.1", "6.2.2", "6.2.3", "6.2.4", "6.2.5", "6.2.6"],
     requiredFields: []
   },
   { 
@@ -360,6 +373,8 @@ export default function OnboardingMeetingAgenda({
       quemPreenche: "",
       usaAssinaturaDigital: false,
       ferramentaAssinatura: "",
+      documentosEntregues: [],
+      documentosAdicionaisEntregues: [],
       possuiPrioridade: false,
       documentosPrioritariosSelecionados: [],
       documentosPrioritarios: [],
@@ -1478,7 +1493,155 @@ export default function OnboardingMeetingAgenda({
               </AccordionItem>
 
 
-              {/* 5. Prioridades */}
+              {/* 5. Documentos que serão entregues */}
+              <AccordionItem 
+                value="entregas" 
+                data-section-id="entregas"
+                className={cn(
+                  "border rounded-lg overflow-hidden transition-opacity",
+                  !isSectionAccessible("entregas") && "opacity-50"
+                )}
+              >
+                <AccordionTrigger 
+                  className={cn(
+                    "px-4 py-3 hover:no-underline",
+                    completedSections.includes("entregas") && "bg-emerald-50 dark:bg-emerald-950/20"
+                  )}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleSection("entregas");
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📦</span>
+                    <div className="text-left">
+                      <p className="font-medium">5. Documentos que serão entregues</p>
+                      <p className="text-xs text-muted-foreground">17 documentos contratuais + adicionais</p>
+                    </div>
+                    {completedSections.includes("entregas") && (
+                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Concluído
+                      </Badge>
+                    )}
+                    {!isSectionAccessible("entregas") && (
+                      <Badge variant="outline" className="ml-2">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Bloqueado
+                      </Badge>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="space-y-5 pt-2 max-w-2xl">
+                    <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
+                      <FormLabel className="text-sm font-medium">📄 Documentos contratuais do IPROMED</FormLabel>
+                      <FormDescription className="text-xs">Selecione os documentos que serão entregues ao cliente</FormDescription>
+                      
+                      <FormField
+                        control={form.control}
+                        name="documentosEntregues"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="grid grid-cols-1 gap-2 mt-2">
+                              {documentosContratuais.map((doc, index) => (
+                                <div
+                                  key={doc}
+                                  className="flex items-center space-x-2 space-y-0"
+                                >
+                                  <Checkbox
+                                    checked={field.value?.includes(doc)}
+                                    onCheckedChange={(checked) => {
+                                      const current = field.value || [];
+                                      if (checked) {
+                                        field.onChange([...current, doc]);
+                                      } else {
+                                        field.onChange(current.filter((d: string) => d !== doc));
+                                      }
+                                    }}
+                                  />
+                                  <label className="text-sm font-normal cursor-pointer">
+                                    {index + 1}. {doc}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Documentos adicionais */}
+                      <div className="border-t pt-4 mt-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <FormLabel className="text-sm font-medium">📝 Documentos adicionais combinados</FormLabel>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const current = form.getValues("documentosAdicionaisEntregues") || [];
+                              form.setValue("documentosAdicionaisEntregues", [...current, { nome: "" }]);
+                            }}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Adicionar documento
+                          </Button>
+                        </div>
+                        
+                        {(form.watch("documentosAdicionaisEntregues") || []).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-2">
+                            Clique em "Adicionar documento" para incluir documentos extras combinados
+                          </p>
+                        )}
+
+                        {(form.watch("documentosAdicionaisEntregues") || []).map((_, index) => (
+                          <div key={index} className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-secondary-foreground font-medium text-xs">
+                              +{index + 1}
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name={`documentosAdicionaisEntregues.${index}.nome`}
+                              render={({ field }) => (
+                                <FormItem className="flex-1">
+                                  <FormControl>
+                                    <Input placeholder="Nome do documento adicional..." {...field} className="h-9" />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => {
+                                const current = form.getValues("documentosAdicionaisEntregues") || [];
+                                form.setValue("documentosAdicionaisEntregues", current.filter((_, i) => i !== index));
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-4">
+                    <Button 
+                      type="button" 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => validateAndCompleteSection("entregas")}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Marcar como concluído
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* 6. Prioridades */}
               <AccordionItem 
                 value="prioridades" 
                 data-section-id="prioridades"
