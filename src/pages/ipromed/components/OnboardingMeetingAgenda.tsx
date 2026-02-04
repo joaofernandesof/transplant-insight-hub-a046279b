@@ -286,29 +286,13 @@ const sections: SectionConfig[] = [
       { name: "contatoPrincipal.whatsapp" as keyof OnboardingMeetingData, label: "WhatsApp do contato principal" },
     ]
   },
-  { 
-    id: "documentos", 
-    icon: FileText, 
-    title: "Documentos atuais", 
-    emoji: "📄", 
-    fields: ["4.2.1", "4.2.2", "4.2.3", "4.2.4", "4.2.5", "4.2.6"],
-    requiredFields: []
-  },
+  // Seções "Documentos atuais" e "Prazos" removidas - integradas na seção "Documentos que serão entregues"
   { 
     id: "entregas", 
     icon: Upload, 
     title: "Documentos que serão entregues", 
     emoji: "📦", 
-    fields: ["5.2.1", "5.2.2"],
-    requiredFields: []
-  },
-  // Seção de Prioridades removida - integrada na tabela de documentos
-  { 
-    id: "prazos", 
-    icon: Calendar, 
-    title: "Prazos", 
-    emoji: "🗓️", 
-    fields: ["6.2.1", "6.2.2", "6.2.3", "6.2.4"],
+    fields: ["4.2.1", "4.2.2"],
     requiredFields: []
   },
   { 
@@ -316,7 +300,7 @@ const sections: SectionConfig[] = [
     icon: GraduationCap, 
     title: "Treinamento", 
     emoji: "🎓", 
-    fields: ["8.2.1", "8.2.2", "8.2.3", "8.2.4", "8.2.5"],
+    fields: ["5.2.1", "5.2.2", "5.2.3", "5.2.4", "5.2.5"],
     requiredFields: []
   },
   { 
@@ -324,7 +308,7 @@ const sections: SectionConfig[] = [
     icon: Instagram, 
     title: "Instagram", 
     emoji: "📸", 
-    fields: ["9.2.1", "9.2.2", "9.2.3", "9.2.4", "9.2.5", "9.2.6", "9.2.7"],
+    fields: ["6.2.1", "6.2.2", "6.2.3", "6.2.4", "6.2.5", "6.2.6", "6.2.7"],
     requiredFields: []
   },
   { 
@@ -332,7 +316,7 @@ const sections: SectionConfig[] = [
     icon: FileSignature, 
     title: "Contrato", 
     emoji: "📑", 
-    fields: ["10.2.1", "10.2.2", "10.2.3", "10.2.4"],
+    fields: ["7.2.1", "7.2.2", "7.2.3", "7.2.4"],
     requiredFields: []
   },
 ];
@@ -1725,229 +1709,7 @@ export default function OnboardingMeetingAgenda({
                 </AccordionContent>
               </AccordionItem>
 
-              {/* 4. Documentos atuais */}
-              <AccordionItem 
-                value="documentos" 
-                data-section-id="documentos"
-                className={cn(
-                  "border rounded-lg overflow-hidden transition-opacity",
-                  !isSectionAccessible("documentos") && "opacity-50"
-                )}
-              >
-                <AccordionTrigger 
-                  className={cn(
-                    "px-4 py-3 hover:no-underline",
-                    completedSections.includes("documentos") && "bg-emerald-50 dark:bg-emerald-950/20"
-                  )}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggleSection("documentos");
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">📄</span>
-                    <div className="text-left">
-                      <p className="font-medium">4. Documentos atuais</p>
-                      <p className="text-xs text-muted-foreground">6 campos • Situação documental</p>
-                    </div>
-                    {completedSections.includes("documentos") && (
-                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Concluído
-                      </Badge>
-                    )}
-                    {!isSectionAccessible("documentos") && (
-                      <Badge variant="outline" className="ml-2">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Bloqueado
-                      </Badge>
-                    )}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-5 pt-2 max-w-2xl">
-                    <FormField
-                      control={form.control}
-                      name="usaDocumentosHoje"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <YesNoSelector
-                              value={field.value}
-                              onChange={field.onChange}
-                              label="🧩 Usa documentos próprios hoje"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    {form.watch("usaDocumentosHoje") && (
-                      <div className="p-3 border rounded-lg bg-muted/30">
-                        <FormLabel className="text-sm font-medium">📋 Documentos existentes</FormLabel>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                          {documentosOptions.map(doc => (
-                            <FormField
-                              key={doc}
-                              control={form.control}
-                              name="documentosExistentes"
-                              render={({ field }) => (
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(doc)}
-                                      onCheckedChange={(checked) => {
-                                        const newValue = checked
-                                          ? [...(field.value || []), doc]
-                                          : field.value?.filter((v: string) => v !== doc) || [];
-                                        field.onChange(newValue);
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-sm font-normal">{doc}</FormLabel>
-                                </FormItem>
-                              )}
-                            />
-                          ))}
-                        </div>
-                        
-                        {/* Documentos adicionais personalizados */}
-                        <div className="mt-3 pt-3 border-t border-border/50">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs text-muted-foreground">Outros documentos:</span>
-                          </div>
-                          {form.watch("documentosExistentes")?.filter((d: string) => !documentosOptions.includes(d)).map((customDoc: string, idx: number) => (
-                            <div key={idx} className="flex items-center gap-2 mb-2">
-                              <Badge variant="secondary" className="gap-1">
-                                {customDoc}
-                                <button
-                                  type="button"
-                                  className="ml-1 hover:text-destructive"
-                                  onClick={() => {
-                                    const current = form.getValues("documentosExistentes") || [];
-                                    form.setValue("documentosExistentes", current.filter((d: string) => d !== customDoc));
-                                  }}
-                                >
-                                  ×
-                                </button>
-                              </Badge>
-                            </div>
-                          ))}
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="Digite o nome do documento..."
-                              className="h-8 text-sm flex-1"
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  const input = e.currentTarget;
-                                  const value = input.value.trim();
-                                  if (value) {
-                                    const current = form.getValues("documentosExistentes") || [];
-                                    if (!current.includes(value)) {
-                                      form.setValue("documentosExistentes", [...current, value]);
-                                    }
-                                    input.value = "";
-                                  }
-                                }
-                              }}
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-8"
-                              onClick={(e) => {
-                                const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                                const value = input?.value.trim();
-                                if (value) {
-                                  const current = form.getValues("documentosExistentes") || [];
-                                  if (!current.includes(value)) {
-                                    form.setValue("documentosExistentes", [...current, value]);
-                                  }
-                                  input.value = "";
-                                }
-                              }}
-                            >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Adicionar
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <FormField
-                      control={form.control}
-                      name="quemPreenche"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>👤 Quem preenche</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {quemPreencheOptions.map(opt => (
-                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="usaAssinaturaDigital"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <YesNoSelector
-                              value={field.value}
-                              onChange={field.onChange}
-                              label="🔒 Usa assinatura digital"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    {form.watch("usaAssinaturaDigital") && (
-                      <FormField
-                        control={form.control}
-                        name="ferramentaAssinatura"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>🧾 Ferramenta de assinatura</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Clicksign, DocuSign..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </div>
-                  <div className="flex justify-end mt-4">
-                    <Button 
-                      type="button" 
-                      variant="default" 
-                      size="sm"
-                      onClick={() => validateAndCompleteSection("documentos")}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                      Marcar como concluído
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-
-              {/* 5. Documentos que serão entregues */}
+              {/* 4. Documentos que serão entregues */}
               <AccordionItem 
                 value="entregas" 
                 data-section-id="entregas"
@@ -1969,7 +1731,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📦</span>
                     <div className="text-left">
-                      <p className="font-medium">5. Documentos que serão entregues</p>
+                      <p className="font-medium">4. Documentos que serão entregues</p>
                       <p className="text-xs text-muted-foreground">17 documentos contratuais + adicionais</p>
                     </div>
                     {completedSections.includes("entregas") && (
@@ -2251,308 +2013,9 @@ export default function OnboardingMeetingAgenda({
 
               {/* Seção de Prioridades removida - integrada na tabela de documentos */}
 
-              {/* 6. Prazos */}
-              <AccordionItem 
-                value="prazos" 
-                data-section-id="prazos"
-                className={cn(
-                  "border rounded-lg overflow-hidden transition-opacity",
-                  !isSectionAccessible("prazos") && "opacity-50"
-                )}
-              >
-                <AccordionTrigger 
-                  className={cn(
-                    "px-4 py-3 hover:no-underline",
-                    completedSections.includes("prazos") && "bg-emerald-50 dark:bg-emerald-950/20"
-                  )}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggleSection("prazos");
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">🗓️</span>
-                    <div className="text-left">
-                      <p className="font-medium">6. Prazos</p>
-                      <p className="text-xs text-muted-foreground">4 campos • Cronograma de entregas</p>
-                    </div>
-                    {completedSections.includes("prazos") && (
-                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 ml-2">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Concluído
-                      </Badge>
-                    )}
-                    {!isSectionAccessible("prazos") && (
-                      <Badge variant="outline" className="ml-2">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Bloqueado
-                      </Badge>
-                    )}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-6 pt-2">
-                    {/* Seção: Datas Base */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
-                      <FormField
-                        control={form.control}
-                        name="dataOnboarding"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>📅 Data do Onboarding (hoje)</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} value={field.value ?? ""} />
-                            </FormControl>
-                            <FormDescription className="text-xs">Base para documentos novos</FormDescription>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="dataRecebimentoDocsAtuais"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>📥 Data prevista de recebimento dos docs atuais</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} value={field.value ?? ""} />
-                            </FormControl>
-                            <FormDescription className="text-xs">Base para revisão de documentos</FormDescription>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+              {/* Seção de Prazos removida - integrada na seção "Documentos que serão entregues" */}
 
-                    {/* Seção: Prazos Padrão */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
-                      <FormField
-                        control={form.control}
-                        name="prazoPadraoRevisao"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>⏳ Prazo para revisão (dias úteis)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                min="1" 
-                                placeholder="Ex: 20"
-                                value={field.value ?? 20}
-                                onChange={(e) => field.onChange(Number(e.target.value) || 20)}
-                              />
-                            </FormControl>
-                            <FormDescription className="text-xs">Documentos atuais enviados pelo cliente</FormDescription>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="prazoPadraoCriacao"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>⏳ Prazo para criação (dias úteis)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                min="1" 
-                                placeholder="Ex: 20"
-                                value={field.value ?? 20}
-                                onChange={(e) => field.onChange(Number(e.target.value) || 20)}
-                              />
-                            </FormControl>
-                            <FormDescription className="text-xs">Documentos novos do IPROMED</FormDescription>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Seção: Datas Calculadas */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-secondary/30">
-                      <FormField
-                        control={form.control}
-                        name="dataPrevistaRevisao"
-                        render={({ field }) => {
-                          // Cálculo automático: dataRecebimento + prazoPadraoRevisao dias úteis
-                          const dataRecebimento = form.watch("dataRecebimentoDocsAtuais");
-                          const prazo = form.watch("prazoPadraoRevisao") || 20;
-                          
-                          const calcularDataUtil = (dataInicio: string, diasUteis: number) => {
-                            if (!dataInicio) return "";
-                            const data = new Date(dataInicio);
-                            let diasAdicionados = 0;
-                            while (diasAdicionados < diasUteis) {
-                              data.setDate(data.getDate() + 1);
-                              const diaSemana = data.getDay();
-                              if (diaSemana !== 0 && diaSemana !== 6) {
-                                diasAdicionados++;
-                              }
-                            }
-                            return data.toISOString().split('T')[0];
-                          };
-                          
-                          const dataCalculada = calcularDataUtil(dataRecebimento || "", prazo);
-                          
-                          // Auto-preencher se vazio ou diferente
-                          if (dataCalculada && field.value !== dataCalculada) {
-                            setTimeout(() => field.onChange(dataCalculada), 0);
-                          }
-                          
-                          return (
-                            <FormItem>
-                              <FormLabel>🗓️ Data prevista de revisão</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="date" 
-                                  {...field} 
-                                  value={field.value ?? dataCalculada}
-                                  className="bg-background"
-                                />
-                              </FormControl>
-                              <FormDescription className="text-xs text-emerald-600 dark:text-emerald-400">
-                                Calculada: recebimento + {prazo} dias úteis
-                              </FormDescription>
-                            </FormItem>
-                          );
-                        }}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="dataPrevistaCriacao"
-                        render={({ field }) => {
-                          // Cálculo automático: dataOnboarding + prazoPadraoCriacao dias úteis
-                          const dataOnboarding = form.watch("dataOnboarding");
-                          const prazo = form.watch("prazoPadraoCriacao") || 20;
-                          
-                          const calcularDataUtil = (dataInicio: string, diasUteis: number) => {
-                            if (!dataInicio) return "";
-                            const data = new Date(dataInicio);
-                            let diasAdicionados = 0;
-                            while (diasAdicionados < diasUteis) {
-                              data.setDate(data.getDate() + 1);
-                              const diaSemana = data.getDay();
-                              if (diaSemana !== 0 && diaSemana !== 6) {
-                                diasAdicionados++;
-                              }
-                            }
-                            return data.toISOString().split('T')[0];
-                          };
-                          
-                          const dataCalculada = calcularDataUtil(dataOnboarding || "", prazo);
-                          
-                          // Auto-preencher se vazio ou diferente
-                          if (dataCalculada && field.value !== dataCalculada) {
-                            setTimeout(() => field.onChange(dataCalculada), 0);
-                          }
-                          
-                          return (
-                            <FormItem>
-                              <FormLabel>🗓️ Data prevista de criação</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="date" 
-                                  {...field} 
-                                  value={field.value ?? dataCalculada}
-                                  className="bg-background"
-                                />
-                              </FormControl>
-                              <FormDescription className="text-xs text-emerald-600 dark:text-emerald-400">
-                                Calculada: onboarding + {prazo} dias úteis
-                              </FormDescription>
-                            </FormItem>
-                          );
-                        }}
-                      />
-                    </div>
-
-                    {/* Matriz de Documentos */}
-                    <div className="border rounded-lg overflow-hidden">
-                      <div className="bg-muted p-3 border-b">
-                        <h4 className="font-medium text-sm">📋 Matriz de Documentos e Prazos</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Marque os documentos que o cliente já possui e veja os prazos automaticamente</p>
-                      </div>
-                      
-                      <div className="divide-y">
-                        {/* Cabeçalho */}
-                        <div className="grid grid-cols-12 gap-2 p-3 bg-muted/50 text-xs font-medium">
-                          <div className="col-span-6">Documento</div>
-                          <div className="col-span-2 text-center">Já possui?</div>
-                          <div className="col-span-2 text-center">Tipo</div>
-                          <div className="col-span-2 text-center">Prazo</div>
-                        </div>
-                        
-                        {/* Lista de documentos */}
-                        {documentosContratuais.map((doc, index) => {
-                          const documentoKey = doc.replace(/[^a-zA-Z0-9]/g, '_');
-                          const jaPossui = form.watch(`documentosAtuaisStatus.${documentoKey}`) || false;
-                          const dataPrevistaRevisao = form.watch("dataPrevistaRevisao");
-                          const dataPrevistaCriacao = form.watch("dataPrevistaCriacao");
-                          
-                          return (
-                            <div key={doc} className={cn(
-                              "grid grid-cols-12 gap-2 p-3 items-center text-sm",
-                              index % 2 === 0 ? "bg-background" : "bg-muted/20"
-                            )}>
-                              <div className="col-span-6 flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground w-5">{index + 1}.</span>
-                                <span className="text-sm">{doc}</span>
-                              </div>
-                              <div className="col-span-2 flex justify-center">
-                                <Checkbox
-                                  checked={jaPossui}
-                                  onCheckedChange={(checked) => {
-                                    const currentStatus = form.getValues("documentosAtuaisStatus") || {};
-                                    form.setValue("documentosAtuaisStatus", {
-                                      ...currentStatus,
-                                      [documentoKey]: checked === true
-                                    });
-                                  }}
-                                />
-                              </div>
-                              <div className="col-span-2 text-center">
-                                <Badge variant={jaPossui ? "secondary" : "outline"} className="text-xs">
-                                  {jaPossui ? "Revisão" : "Criação"}
-                                </Badge>
-                              </div>
-                              <div className="col-span-2 text-center">
-                                <span className={cn(
-                                  "text-xs font-medium",
-                                  jaPossui ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"
-                                )}>
-                                  {jaPossui 
-                                    ? (dataPrevistaRevisao ? new Date(dataPrevistaRevisao + 'T00:00:00').toLocaleDateString('pt-BR') : '-')
-                                    : (dataPrevistaCriacao ? new Date(dataPrevistaCriacao + 'T00:00:00').toLocaleDateString('pt-BR') : '-')
-                                  }
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      {/* Resumo */}
-                      <div className="bg-muted/50 p-3 border-t flex justify-between text-xs">
-                        <span>
-                          <strong>Documentos existentes:</strong> {Object.values(form.watch("documentosAtuaisStatus") || {}).filter(Boolean).length} (revisão)
-                        </span>
-                        <span>
-                          <strong>Documentos novos:</strong> {17 - Object.values(form.watch("documentosAtuaisStatus") || {}).filter(Boolean).length} (criação)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex justify-end mt-4">
-                    <Button 
-                      type="button" 
-                      variant="default" 
-                      size="sm"
-                      onClick={() => validateAndCompleteSection("prazos")}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                      Marcar como concluído
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* 8. Treinamento */}
+              {/* 5. Treinamento */}
               <AccordionItem 
                 value="treinamento" 
                 data-section-id="treinamento"
@@ -2574,7 +2037,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex items-center gap-3">
                     <span className="text-xl">🎓</span>
                     <div className="text-left">
-                      <p className="font-medium">7. Treinamento</p>
+                      <p className="font-medium">5. Treinamento</p>
                       <p className="text-xs text-muted-foreground">5 campos • Capacitação da equipe</p>
                     </div>
                     {completedSections.includes("treinamento") && (
@@ -2697,7 +2160,7 @@ export default function OnboardingMeetingAgenda({
                 </AccordionContent>
               </AccordionItem>
 
-              {/* 9. Instagram */}
+              {/* 6. Instagram */}
               <AccordionItem 
                 value="instagram" 
                 data-section-id="instagram"
@@ -2719,7 +2182,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📸</span>
                     <div className="text-left">
-                      <p className="font-medium">8. Instagram</p>
+                      <p className="font-medium">6. Instagram</p>
                       <p className="text-xs text-muted-foreground">7 campos • Análise de perfil</p>
                     </div>
                     {completedSections.includes("instagram") && (
@@ -3008,7 +2471,7 @@ export default function OnboardingMeetingAgenda({
                 </AccordionContent>
               </AccordionItem>
 
-              {/* 10. Contrato */}
+              {/* 7. Contrato */}
               <AccordionItem 
                 value="contrato" 
                 data-section-id="contrato"
@@ -3030,7 +2493,7 @@ export default function OnboardingMeetingAgenda({
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📑</span>
                     <div className="text-left">
-                      <p className="font-medium">9. Contrato</p>
+                      <p className="font-medium">7. Contrato</p>
                       <p className="text-xs text-muted-foreground">4 campos • Aceite e dúvidas</p>
                     </div>
                     {completedSections.includes("contrato") && (
