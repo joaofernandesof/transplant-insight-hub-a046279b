@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -299,263 +299,253 @@ export default function IpromedClientDetail() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
-          <TabsTrigger value="meetings">Reuniões ({meetings.length})</TabsTrigger>
-          <TabsTrigger value="contracts">Contratos ({contracts.length})</TabsTrigger>
-        </TabsList>
+      {/* Client Info, Address, Notes */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Informações do Cliente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Tipo</p>
+              <p className="font-medium">{client.client_type === 'pj' ? 'Pessoa Jurídica' : 'Pessoa Física'}</p>
+            </div>
+            {client.cpf_cnpj && (
+              <div>
+                <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
+                <p className="font-medium">{client.cpf_cnpj}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs text-muted-foreground">Cadastrado em</p>
+              <p className="font-medium">
+                {format(new Date(client.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Info Cards */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Informações do Cliente
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground">Tipo</p>
-                  <p className="font-medium">{client.client_type === 'pj' ? 'Pessoa Jurídica' : 'Pessoa Física'}</p>
-                </div>
-                {client.cpf_cnpj && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
-                    <p className="font-medium">{client.cpf_cnpj}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs text-muted-foreground">Cadastrado em</p>
-                  <p className="font-medium">
-                    {format(new Date(client.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Endereço
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {address?.street ? (
-                  <div className="space-y-1">
-                    <p className="font-medium">{address.street}, {address.number}</p>
-                    {address.complement && <p className="text-sm text-muted-foreground">{address.complement}</p>}
-                    <p className="text-sm text-muted-foreground">
-                      {address.neighborhood && `${address.neighborhood} - `}
-                      {address.city}/{address.state}
-                    </p>
-                    {address.zip_code && <p className="text-sm text-muted-foreground">CEP: {address.zip_code}</p>}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-sm">Endereço não cadastrado</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Observações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Endereço
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {address?.street ? (
+              <div className="space-y-1">
+                <p className="font-medium">{address.street}, {address.number}</p>
+                {address.complement && <p className="text-sm text-muted-foreground">{address.complement}</p>}
                 <p className="text-sm text-muted-foreground">
-                  {client.notes || "Nenhuma observação registrada"}
+                  {address.neighborhood && `${address.neighborhood} - `}
+                  {address.city}/{address.state}
                 </p>
-              </CardContent>
-            </Card>
+                {address.zip_code && <p className="text-sm text-muted-foreground">CEP: {address.zip_code}</p>}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">Endereço não cadastrado</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Observações
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              {client.notes || "Nenhuma observação registrada"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Ações Rápidas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm">
+              <Mail className="h-4 w-4 mr-2" />
+              Enviar Email
+            </Button>
+            <Button variant="outline" size="sm">
+              <Phone className="h-4 w-4 mr-2" />
+              Ligar
+            </Button>
+            <Button variant="outline" size="sm">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              WhatsApp
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsMeetingOpen(true)}>
+              <Video className="h-4 w-4 mr-2" />
+              Agendar Reunião
+            </Button>
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Tarefa
+            </Button>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Ações Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Enviar Email
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Ligar
-                </Button>
-                <Button variant="outline" size="sm">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  WhatsApp
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setIsMeetingOpen(true)}>
-                  <Video className="h-4 w-4 mr-2" />
-                  Agendar Reunião
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Tarefa
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* Activity Timeline */}
+      <ClientActivityTimeline clientId={id!} />
 
-        {/* Timeline Tab */}
-        <TabsContent value="timeline">
-          <ClientActivityTimeline clientId={id!} />
-        </TabsContent>
-
-        {/* Meetings Tab */}
-        <TabsContent value="meetings" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Reuniões</CardTitle>
-                <CardDescription>Histórico e agendamentos de reuniões</CardDescription>
-              </div>
-              <Button size="sm" onClick={() => setIsMeetingOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Agendar Reunião
+      {/* Meetings Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              Reuniões ({meetings.length})
+            </CardTitle>
+            <CardDescription>Histórico e agendamentos de reuniões</CardDescription>
+          </div>
+          <Button size="sm" onClick={() => setIsMeetingOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Agendar Reunião
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {meetings.length === 0 ? (
+            <div className="text-center py-8">
+              <Video className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Nenhuma reunião agendada</p>
+              <Button variant="link" className="mt-2" onClick={() => setIsMeetingOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Agendar primeira reunião
               </Button>
-            </CardHeader>
-            <CardContent>
-              {meetings.length === 0 ? (
-                <div className="text-center py-8">
-                  <Video className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhuma reunião agendada</p>
-                  <Button variant="link" className="mt-2" onClick={() => setIsMeetingOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Agendar primeira reunião
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {meetings.map((meeting: any) => (
-                    <div 
-                      key={meeting.id} 
-                      className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group"
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="p-2.5 bg-primary/10 rounded-xl">
-                          <Video className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{meeting.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(meeting.scheduled_date), "dd/MM/yyyy", { locale: ptBR })} às {meeting.scheduled_time}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Badge variant={meeting.status === 'completed' ? 'default' : 'outline'}>
-                          {meeting.status === 'scheduled' ? 'Agendada' : 
-                           meeting.status === 'completed' ? 'Realizada' : 
-                           meeting.status === 'in_progress' ? 'Em andamento' :
-                           meeting.status === 'cancelled' ? 'Cancelada' : meeting.status}
-                        </Badge>
-
-                        {/* Quick Actions */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedMeeting(meeting);
-                            }}
-                            title="Visualizar"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Visualizar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => setMeetingToDelete(meeting)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {meetings.map((meeting: any) => (
+                <div 
+                  key={meeting.id} 
+                  className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="p-2.5 bg-primary/10 rounded-xl">
+                      <Video className="h-5 w-5 text-primary" />
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{meeting.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(meeting.scheduled_date), "dd/MM/yyyy", { locale: ptBR })} às {meeting.scheduled_time}
+                      </p>
+                    </div>
+                  </div>
 
-        <TabsContent value="contracts" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Contratos</CardTitle>
-                <CardDescription>Contratos vinculados a este cliente</CardDescription>
-              </div>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Contrato
+                  <div className="flex items-center gap-2">
+                    <Badge variant={meeting.status === 'completed' ? 'default' : 'outline'}>
+                      {meeting.status === 'scheduled' ? 'Agendada' : 
+                       meeting.status === 'completed' ? 'Realizada' : 
+                       meeting.status === 'in_progress' ? 'Em andamento' :
+                       meeting.status === 'cancelled' ? 'Cancelada' : meeting.status}
+                    </Badge>
+
+                    {/* Quick Actions */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMeeting(meeting);
+                        }}
+                        title="Visualizar"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Visualizar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setMeetingToDelete(meeting)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Contracts Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileSignature className="h-4 w-4" />
+              Contratos ({contracts.length})
+            </CardTitle>
+            <CardDescription>Contratos vinculados a este cliente</CardDescription>
+          </div>
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Contrato
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {contracts.length === 0 ? (
+            <div className="text-center py-8">
+              <FileSignature className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Nenhum contrato cadastrado</p>
+              <Button variant="link" className="mt-2">
+                <Plus className="h-4 w-4 mr-1" />
+                Criar primeiro contrato
               </Button>
-            </CardHeader>
-            <CardContent>
-              {contracts.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileSignature className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhum contrato cadastrado</p>
-                  <Button variant="link" className="mt-2">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Criar primeiro contrato
-                  </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {contracts.map((contract: any) => (
+                <div 
+                  key={contract.id} 
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                  onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
+                >
+                  <div>
+                    <p className="font-medium">{contract.title}</p>
+                    <p className="text-sm text-muted-foreground">{contract.contract_type}</p>
+                  </div>
+                  <Badge variant="outline">{contract.status}</Badge>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {contracts.map((contract: any) => (
-                    <div 
-                      key={contract.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                      onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
-                    >
-                      <div>
-                        <p className="font-medium">{contract.title}</p>
-                        <p className="text-sm text-muted-foreground">{contract.contract_type}</p>
-                      </div>
-                      <Badge variant="outline">{contract.status}</Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Edit Modal */}
       <ClientFormModal
