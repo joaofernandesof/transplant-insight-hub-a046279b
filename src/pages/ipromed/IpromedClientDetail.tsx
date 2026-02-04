@@ -333,80 +333,9 @@ export default function IpromedClientDetail() {
         </CardContent>
       </Card>
 
-      {/* Client Info, Address, Notes */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Informações do Cliente
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <p className="text-xs text-muted-foreground">Tipo</p>
-              <p className="font-medium">{client.client_type === 'pj' ? 'Pessoa Jurídica' : 'Pessoa Física'}</p>
-            </div>
-            {client.cpf_cnpj && (
-              <div>
-                <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
-                <p className="font-medium">{client.cpf_cnpj}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-xs text-muted-foreground">Cadastrado em</p>
-              <p className="font-medium">
-                {format(new Date(client.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Endereço
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {address?.street ? (
-              <div className="space-y-1">
-                <p className="font-medium">{address.street}, {address.number}</p>
-                {address.complement && <p className="text-sm text-muted-foreground">{address.complement}</p>}
-                <p className="text-sm text-muted-foreground">
-                  {address.neighborhood && `${address.neighborhood} - `}
-                  {address.city}/{address.state}
-                </p>
-                {address.zip_code && <p className="text-sm text-muted-foreground">CEP: {address.zip_code}</p>}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">Endereço não cadastrado</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Observações
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              {client.notes || "Nenhuma observação registrada"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Quick Actions */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Ações Rápidas</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4 pb-4">
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm">
               <Mail className="h-4 w-4 mr-2" />
@@ -432,167 +361,241 @@ export default function IpromedClientDetail() {
         </CardContent>
       </Card>
 
-      {/* Activity Timeline */}
-      <ClientActivityTimeline clientId={id!} />
-
-      {/* Meetings Section */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Video className="h-4 w-4" />
-              Reuniões ({meetings.length})
-            </CardTitle>
-            <CardDescription>Histórico e agendamentos de reuniões</CardDescription>
-          </div>
-          <Button size="sm" onClick={() => setIsMeetingOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Agendar Reunião
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {meetings.length === 0 ? (
-            <div className="text-center py-8">
-              <Video className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Nenhuma reunião agendada</p>
-              <Button variant="link" className="mt-2" onClick={() => setIsMeetingOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" />
-                Agendar primeira reunião
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {meetings.map((meeting: any) => (
-                <div 
-                  key={meeting.id} 
-                  className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors group"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="p-2.5 bg-primary/10 rounded-xl">
-                      <Video className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{meeting.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(meeting.scheduled_date), "dd/MM/yyyy", { locale: ptBR })} às {meeting.scheduled_time}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Badge variant={meeting.status === 'completed' ? 'default' : 'outline'}>
-                      {meeting.status === 'scheduled' ? 'Agendada' : 
-                       meeting.status === 'completed' ? 'Realizada' : 
-                       meeting.status === 'in_progress' ? 'Em andamento' :
-                       meeting.status === 'cancelled' ? 'Cancelada' : meeting.status}
-                    </Badge>
-
-                    {/* Quick Actions */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedMeeting(meeting);
-                        }}
-                        title="Visualizar"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Visualizar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => setMeetingToDelete(meeting)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+      {/* Main Content Grid - 2 columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column */}
+        <div className="space-y-6">
+          {/* Client Info Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Informações do Cliente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Tipo</p>
+                  <p className="font-medium">{client.client_type === 'pj' ? 'Pessoa Jurídica' : 'Pessoa Física'}</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                {client.cpf_cnpj && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">CPF/CNPJ</p>
+                    <p className="font-medium">{client.cpf_cnpj}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-muted-foreground">Cadastrado em</p>
+                  <p className="font-medium">
+                    {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  <Badge className={`${status.color} text-white`}>{status.label}</Badge>
+                </div>
+              </div>
 
-      {/* Contracts Section */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileSignature className="h-4 w-4" />
-              Contratos ({contracts.length})
-            </CardTitle>
-            <CardDescription>Contratos com documentos vinculados</CardDescription>
-          </div>
-          <Button size="sm" onClick={() => navigate('/ipromed/contracts')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Contrato
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {contracts.length === 0 ? (
-            <div className="text-center py-8">
-              <FileSignature className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <p className="font-medium text-foreground">Nenhum contrato disponível</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Este cliente não possui contratos com documentos anexados.
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Para criar um contrato, anexe o documento PDF assinado.
-              </p>
-              <Button variant="outline" className="mt-4" onClick={() => navigate('/ipromed/contracts')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Ir para Contratos
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {contracts.map((contract: any) => (
-                <div 
-                  key={contract.id} 
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                  onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <FileSignature className="h-5 w-5 text-primary" />
-                    </div>
+              {/* Address within same card */}
+              <Separator className="my-4" />
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-sm">Endereço</span>
+              </div>
+              {address?.street ? (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Logradouro</p>
+                    <p className="font-medium">{address.street}, {address.number}</p>
+                  </div>
+                  {address.complement && (
                     <div>
-                      <p className="font-medium">{contract.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {contract.contract_type} • {contract.document_count} documento{contract.document_count !== 1 ? 's' : ''}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Complemento</p>
+                      <p className="font-medium">{address.complement}</p>
                     </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-muted-foreground">Bairro</p>
+                    <p className="font-medium">{address.neighborhood || '-'}</p>
                   </div>
-                  <Badge variant="outline">{contract.status}</Badge>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Cidade/UF</p>
+                    <p className="font-medium">{address.city}/{address.state}</p>
+                  </div>
+                  {address.zip_code && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">CEP</p>
+                      <p className="font-medium">{address.zip_code}</p>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              ) : (
+                <p className="text-muted-foreground text-sm">Endereço não cadastrado</p>
+              )}
+
+              {/* Notes within same card */}
+              {client.notes && (
+                <>
+                  <Separator className="my-4" />
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">Observações</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{client.notes}</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Contracts Section */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileSignature className="h-4 w-4" />
+                  Contratos ({contracts.length})
+                </CardTitle>
+                <CardDescription>Documentos vinculados</CardDescription>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => navigate('/ipromed/contracts')}>
+                <Plus className="h-4 w-4 mr-1" />
+                Novo
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {contracts.length === 0 ? (
+                <div className="text-center py-6">
+                  <FileSignature className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum contrato com documentos anexados
+                  </p>
+                  <Button variant="link" size="sm" className="mt-1" onClick={() => navigate('/ipromed/contracts')}>
+                    Ir para Contratos
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {contracts.map((contract: any) => (
+                    <div 
+                      key={contract.id} 
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                      onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                          <FileSignature className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{contract.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {contract.document_count} doc{contract.document_count !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-xs shrink-0">{contract.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Meetings Section */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Video className="h-4 w-4" />
+                  Reuniões ({meetings.length})
+                </CardTitle>
+                <CardDescription>Agendamentos</CardDescription>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => setIsMeetingOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Agendar
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {meetings.length === 0 ? (
+                <div className="text-center py-6">
+                  <Video className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-sm text-muted-foreground">Nenhuma reunião agendada</p>
+                  <Button variant="link" size="sm" className="mt-1" onClick={() => setIsMeetingOpen(true)}>
+                    Agendar primeira reunião
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {meetings.slice(0, 5).map((meeting: any) => (
+                    <div 
+                      key={meeting.id} 
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors group"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                          <Video className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{meeting.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(meeting.scheduled_date), "dd/MM", { locale: ptBR })} às {meeting.scheduled_time}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <Badge variant={meeting.status === 'completed' ? 'default' : 'outline'} className="text-xs">
+                          {meeting.status === 'scheduled' ? 'Agendada' : 
+                           meeting.status === 'completed' ? 'Realizada' : 
+                           meeting.status === 'cancelled' ? 'Cancelada' : meeting.status}
+                        </Badge>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Visualizar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSelectedMeeting(meeting)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setMeetingToDelete(meeting)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  ))}
+                  {meetings.length > 5 && (
+                    <Button variant="link" size="sm" className="w-full">
+                      Ver todas ({meetings.length})
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Activity Timeline */}
+          <ClientActivityTimeline clientId={id!} />
+        </div>
+      </div>
 
       {/* Edit Modal */}
       <ClientFormModal
