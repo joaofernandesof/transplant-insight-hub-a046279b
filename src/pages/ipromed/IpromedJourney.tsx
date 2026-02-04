@@ -535,22 +535,41 @@ export default function IpromedJourney() {
     })
   );
 
-  // Custom collision detection - mais permissiva para facilitar drops
+  // IDs das fases (colunas) para filtrar colisões
+  const phaseIds = useMemo(() => journeyPhases.map(p => p.id), []);
+
+  // Custom collision detection - FOCA APENAS NAS COLUNAS, ignora cards
   const customCollisionDetection: CollisionDetection = (args) => {
-    // Primeiro tenta pointerWithin para detecção mais precisa
-    const pointerCollisions = pointerWithin(args);
+    // Filtra droppableContainers para incluir APENAS as colunas (phases), não os cards
+    const columnContainers = args.droppableContainers.filter(
+      container => phaseIds.includes(container.id as string)
+    );
+    
+    // Se não há colunas no alcance, retorna vazio
+    if (columnContainers.length === 0) {
+      return [];
+    }
+
+    // Cria novo args apenas com as colunas
+    const columnsOnlyArgs = {
+      ...args,
+      droppableContainers: columnContainers,
+    };
+
+    // Usa pointerWithin para detecção precisa apenas em colunas
+    const pointerCollisions = pointerWithin(columnsOnlyArgs);
     if (pointerCollisions.length > 0) {
       return pointerCollisions;
     }
     
-    // Fallback para rectIntersection que é mais permissivo
-    const rectCollisions = rectIntersection(args);
+    // Fallback para rectIntersection apenas em colunas
+    const rectCollisions = rectIntersection(columnsOnlyArgs);
     if (rectCollisions.length > 0) {
       return rectCollisions;
     }
     
-    // Último fallback para closestCenter
-    return closestCenter(args);
+    // Último fallback para closestCenter apenas em colunas
+    return closestCenter(columnsOnlyArgs);
   };
 
   // Fetch clients with journey data from database
