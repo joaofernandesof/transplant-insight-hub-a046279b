@@ -1624,39 +1624,23 @@ export default function OnboardingMeetingAgenda({
                   <div className="space-y-5 pt-2 max-w-2xl">
                     <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
                       <FormLabel className="text-sm font-medium">📄 Documentos contratuais do IPROMED</FormLabel>
-                      <FormDescription className="text-xs">Selecione os documentos que serão entregues ao cliente</FormDescription>
+                      <FormDescription className="text-xs">Todos os documentos abaixo serão entregues (criados ou revisados)</FormDescription>
                       
-                      <FormField
-                        control={form.control}
-                        name="documentosEntregues"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="grid grid-cols-1 gap-2 mt-2">
-                              {documentosContratuais.map((doc, index) => (
-                                <div
-                                  key={doc}
-                                  className="flex items-center space-x-2 space-y-0"
-                                >
-                                  <Checkbox
-                                    checked={field.value?.includes(doc)}
-                                    onCheckedChange={(checked) => {
-                                      const current = field.value || [];
-                                      if (checked) {
-                                        field.onChange([...current, doc]);
-                                      } else {
-                                        field.onChange(current.filter((d: string) => d !== doc));
-                                      }
-                                    }}
-                                  />
-                                  <label className="text-sm font-normal cursor-pointer">
-                                    {index + 1}. {doc}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          </FormItem>
-                        )}
-                      />
+                      {/* Lista fixa de documentos - todos serão entregues */}
+                      <div className="grid grid-cols-1 gap-1.5 mt-2">
+                        {documentosContratuais.map((doc, index) => (
+                          <div
+                            key={doc}
+                            className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-background/50"
+                          >
+                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                              {index + 1}
+                            </span>
+                            <span className="text-sm">{doc}</span>
+                          </div>
+                        ))}
+                      </div>
+
 
                       {/* Documentos adicionais */}
                       <div className="border-t pt-4 mt-4">
