@@ -379,6 +379,24 @@ export default function OnboardingMeetingAgenda({
     enabled: !!meetingId,
   });
 
+  // Buscar completed_sections da tabela ipromed_client_onboarding
+  const { data: onboardingProgress } = useQuery({
+    queryKey: ['ipromed-onboarding-progress', meetingData?.client_id],
+    queryFn: async () => {
+      if (!meetingData?.client_id) return null;
+      
+      const { data, error } = await supabase
+        .from('ipromed_client_onboarding')
+        .select('completed_sections, progress_percentage, status')
+        .eq('client_id', meetingData.client_id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!meetingData?.client_id,
+  });
+
   // Buscar clientes cadastrados
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ['ipromed-clients-onboarding'],
@@ -423,17 +441,23 @@ export default function OnboardingMeetingAgenda({
     // Se temos dados do banco de dados (via meetingId), usar eles
     if (meetingId && meetingData?.onboarding_data) {
       const dbData = meetingData.onboarding_data as OnboardingMeetingData;
+      
+      // Usar completed_sections do banco de dados se disponível, senão array vazio
+      const dbCompletedSections = onboardingProgress?.completed_sections as string[] || [];
+      
       return {
         formData: dbData,
-        currentSectionIndex: 0,
-        completedSections: sections.map(s => s.id), // Todas as seções se veio do banco
+        currentSectionIndex: dbCompletedSections.length > 0 
+          ? Math.min(dbCompletedSections.length, sections.length - 1) 
+          : 0,
+        completedSections: dbCompletedSections,
         savedAt: null,
         fromDatabase: true,
       };
     }
     // Caso contrário, usar localStorage
     return getSavedData();
-  }, [meetingId, meetingData, getSavedData]);
+  }, [meetingId, meetingData, onboardingProgress, getSavedData]);
   
   const [currentSectionIndex, setCurrentSectionIndex] = useState(() => {
     return savedCheckpoint?.currentSectionIndex ?? 0;
@@ -456,6 +480,17 @@ export default function OnboardingMeetingAgenda({
     return isFullyCompleted ? "" : (currentSection?.id ?? "");
   });
   
+  // Sincronizar completed sections quando dados do banco são carregados
+  useEffect(() => {
+    if (onboardingProgress?.completed_sections && meetingId) {
+      const dbSections = onboardingProgress.completed_sections as string[];
+      setCompletedSections(dbSections);
+      // Ajustar o índice para a próxima seção não concluída
+      const nextIndex = Math.min(dbSections.length, sections.length - 1);
+      setCurrentSectionIndex(nextIndex);
+    }
+  }, [onboardingProgress?.completed_sections, meetingId]);
+
   // Sincronizar a seção expandida quando o índice muda (apenas para pautas em progresso)
   useEffect(() => {
     if (!isFullyCompleted && currentSection) {
