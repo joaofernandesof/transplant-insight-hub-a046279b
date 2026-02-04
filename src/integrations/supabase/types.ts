@@ -853,6 +853,7 @@ export type Database = {
           is_required: boolean | null
           options: Json | null
           order_index: number | null
+          required_for_columns: string[] | null
         }
         Insert: {
           column_id: string
@@ -864,6 +865,7 @@ export type Database = {
           is_required?: boolean | null
           options?: Json | null
           order_index?: number | null
+          required_for_columns?: string[] | null
         }
         Update: {
           column_id?: string
@@ -875,6 +877,7 @@ export type Database = {
           is_required?: boolean | null
           options?: Json | null
           order_index?: number | null
+          required_for_columns?: string[] | null
         }
         Relationships: [
           {
