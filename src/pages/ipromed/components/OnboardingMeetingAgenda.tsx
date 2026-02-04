@@ -71,6 +71,7 @@ const onboardingMeetingSchema = z.object({
   cargoFuncao: z.string().optional(),
   clinicaEmpresa: z.string().optional(),
   cidadeEstado: z.string().optional(),
+  emailPrincipal: z.string().email("Email inválido").optional().or(z.literal("")),
   objetivoPrincipal: z.string().optional(),
 
   // 2. Perfil profissional
@@ -85,7 +86,6 @@ const onboardingMeetingSchema = z.object({
   procedimentosMaiorVolume: z.string().optional(),
 
   // 3. Comunicação
-  emailPrincipal: z.string().email("Email inválido").optional().or(z.literal("")),
   whatsappPrincipal: z.string().optional(),
   responsavelOperacional: z.string().optional(),
   horarioPreferencial: z.string().optional(),
@@ -207,6 +207,7 @@ export default function OnboardingMeetingAgenda({
       cargoFuncao: "",
       clinicaEmpresa: "",
       cidadeEstado: "",
+      emailPrincipal: "",
       objetivoPrincipal: "",
       areaAtuacao: "",
       possuiRQE: false,
@@ -217,7 +218,6 @@ export default function OnboardingMeetingAgenda({
       tamanhoEquipe: 0,
       procedimentosRealizados: "",
       procedimentosMaiorVolume: "",
-      emailPrincipal: "",
       whatsappPrincipal: "",
       responsavelOperacional: "",
       horarioPreferencial: "",
@@ -427,6 +427,20 @@ export default function OnboardingMeetingAgenda({
                             <Input placeholder="Fortaleza, CE" {...field} />
                           </FormControl>
                           <FormDescription className="text-xs">Importante para contexto regulatório</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="emailPrincipal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>📧 E-mail principal</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="financeiro@clinica.com" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -661,19 +675,6 @@ export default function OnboardingMeetingAgenda({
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <FormField
-                      control={form.control}
-                      name="emailPrincipal"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>📧 E-mail principal</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="financeiro@clinica.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <FormField
                       control={form.control}
