@@ -111,6 +111,12 @@ const onboardingMeetingSchema = z.object({
   // 3. Comunicação
   whatsappPrincipal: z.string().optional(),
   responsavelOperacional: z.string().optional(),
+  contatoPrincipal: z.object({
+    nome: z.string().optional(),
+    email: z.string().optional(),
+    whatsapp: z.string().optional(),
+    funcao: z.string().optional(),
+  }).default({ nome: "", email: "", whatsapp: "", funcao: "" }),
   contatosAdicionais: z.array(z.object({
     nome: z.string().optional(),
     email: z.string().optional(),
@@ -323,6 +329,7 @@ export default function OnboardingMeetingAgenda({
       procedimentosMaiorVolume: [],
       whatsappPrincipal: "",
       responsavelOperacional: "",
+      contatoPrincipal: { nome: "", email: "", whatsapp: "", funcao: "" },
       contatosAdicionais: [],
       horarioPreferencial: "",
       usaDocumentosHoje: false,
@@ -1019,8 +1026,92 @@ export default function OnboardingMeetingAgenda({
 
                   </div>
 
-                  {/* Contatos Adicionais */}
+                  {/* Contato Principal (Fixo) */}
                   <div className="mt-6 pt-4 border-t">
+                    <div className="flex items-center gap-2 mb-3">
+                      <UserPlus className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-sm">Contato Principal</span>
+                      <span className="text-xs text-muted-foreground">(contato principal do cliente)</span>
+                    </div>
+
+                    <div className="p-3 border rounded-lg mb-3 bg-muted/30">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Contato 1 (Fixo)
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <FormField
+                          control={form.control}
+                          name="contatoPrincipal.nome"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">👤 Nome</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="João da Silva" 
+                                  {...field} 
+                                  className={cn("h-9", getInputHighlight(field.value))} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="contatoPrincipal.funcao"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">🧩 Função</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="Secretária, Sócio, Financeiro..." 
+                                  {...field} 
+                                  className={cn("h-9", getInputHighlight(field.value))} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="contatoPrincipal.email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">📧 E-mail</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="email" 
+                                  placeholder="email@exemplo.com" 
+                                  {...field} 
+                                  className={cn("h-9", getInputHighlight(field.value))} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="contatoPrincipal.whatsapp"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">📱 WhatsApp</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="+55 85 99999-9999" 
+                                  {...field} 
+                                  className={cn("h-9", getInputHighlight(field.value))} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contatos Adicionais */}
+                  <div className="mt-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <UserPlus className="h-4 w-4 text-muted-foreground" />
@@ -1048,7 +1139,7 @@ export default function OnboardingMeetingAgenda({
                       <div key={index} className="p-3 border rounded-lg mb-3 bg-muted/30">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-sm font-medium text-muted-foreground">
-                            Contato {index + 1}
+                            Contato {index + 2}
                           </span>
                           <Button
                             type="button"
