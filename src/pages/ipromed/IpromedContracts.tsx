@@ -107,7 +107,7 @@ export default function IpromedContracts() {
   
   const [sendingId, setSendingId] = useState<string | null>(null);
 
-  // Fetch contracts
+  // Fetch contracts with document count
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ["ipromed-contracts", searchTerm, statusFilter],
     queryFn: async () => {
@@ -129,7 +129,31 @@ export default function IpromedContracts() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      
+      // Buscar contagem de documentos para cada contrato
+      if (data && data.length > 0) {
+        const contractIds = data.map(c => c.id);
+        const { data: docCounts, error: countError } = await supabase
+          .from("ipromed_contract_documents")
+          .select("contract_id")
+          .in("contract_id", contractIds);
+        
+        if (!countError && docCounts) {
+          // Contar documentos por contrato
+          const countMap: Record<string, number> = {};
+          docCounts.forEach(doc => {
+            countMap[doc.contract_id] = (countMap[doc.contract_id] || 0) + 1;
+          });
+          
+          // Adicionar contagem aos contratos
+          return data.map(contract => ({
+            ...contract,
+            document_count: countMap[contract.id] || 0
+          }));
+        }
+      }
+      
+      return data?.map(c => ({ ...c, document_count: 0 })) || [];
     },
   });
 
