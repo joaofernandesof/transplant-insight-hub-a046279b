@@ -6,10 +6,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, Search, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronDown, Search, Calendar as CalendarIcon, FileText } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -54,6 +56,8 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
   const [multiSelectSearch, setMultiSelectSearch] = useState('');
   const [multiSelectOpen, setMultiSelectOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [textareaOpen, setTextareaOpen] = useState(false);
+  const [textareaValue, setTextareaValue] = useState(localValue);
   const isEditingRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const lastSavedValueRef = useRef<string>(localValue);
@@ -382,6 +386,74 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
               </div>
             </PopoverContent>
           </Popover>
+        </div>
+      );
+
+    case 'textarea':
+      const textPreview = localValue ? (localValue.length > 30 ? localValue.substring(0, 30) + '...' : localValue) : '';
+      
+      const handleTextareaSave = () => {
+        setLocalValue(textareaValue);
+        saveToDatabase(textareaValue);
+        setTextareaOpen(false);
+      };
+
+      const handleTextareaOpen = (open: boolean) => {
+        if (open) {
+          setTextareaValue(localValue);
+        }
+        setTextareaOpen(open);
+      };
+      
+      return (
+        <div className="flex items-center gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
+            {field.field_label}
+            {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
+          </Label>
+          <Dialog open={textareaOpen} onOpenChange={handleTextareaOpen}>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                className="h-6 flex-1 flex items-center gap-2 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] px-0 text-left focus:outline-none hover:opacity-80 transition-opacity"
+              >
+                <span className={`truncate ${localValue ? 'text-[hsl(var(--avivar-foreground))]' : 'text-[hsl(var(--avivar-muted-foreground)/0.5)]'}`}>
+                  {textPreview || '...'}
+                </span>
+                <FileText className="h-3 w-3 shrink-0 text-[hsl(var(--avivar-muted-foreground))]" />
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+              <DialogHeader>
+                <DialogTitle className="text-[hsl(var(--avivar-foreground))]">{field.field_label}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Textarea
+                  value={textareaValue}
+                  onChange={(e) => setTextareaValue(e.target.value)}
+                  placeholder="Digite o texto..."
+                  className="min-h-[200px] bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground)/0.5)] resize-none"
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTextareaOpen(false)}
+                    className="px-3 py-1.5 text-sm text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))] transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleTextareaSave}
+                    disabled={isSaving}
+                    className="px-3 py-1.5 text-sm bg-[hsl(var(--avivar-primary))] text-white rounded-md hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       );
 
