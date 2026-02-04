@@ -2986,10 +2986,142 @@ export default function OnboardingMeetingAgenda({
               </div>
             ) : (
               <div className="sticky bottom-0 bg-background border-t pt-4 mt-6 flex items-center justify-between no-print">
-                <div className="text-sm text-muted-foreground">
-                  {completedSections.length} de {sections.length} seções concluídas
+                <div className="flex items-center gap-4">
+                  <div className="text-sm text-muted-foreground">
+                    {completedSections.length} de {sections.length} seções concluídas
+                  </div>
+                  {/* Mostrar botão de excluir apenas se pauta está 100% concluída e é uma pauta existente */}
+                  {progress === 100 && meetingId && (
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                      onClick={async () => {
+                        if (window.confirm('Tem certeza que deseja excluir os dados desta pauta? A reunião será mantida, mas os dados do onboarding serão apagados.')) {
+                          try {
+                            // Limpar dados da pauta na reunião
+                            const { error } = await supabase
+                              .from('ipromed_client_meetings' as any)
+                              .update({ onboarding_data: null })
+                              .eq('id', meetingId);
+                            
+                            if (error) throw error;
+
+                            // Limpar progresso de onboarding do cliente
+                            if (meetingData?.client_id) {
+                              await supabase
+                                .from('ipromed_client_onboarding')
+                                .update({ 
+                                  completed_sections: [],
+                                  progress_percentage: 0,
+                                  status: 'pendente'
+                                })
+                                .eq('client_id', meetingData.client_id);
+                            }
+
+                            // Limpar localStorage
+                            localStorage.removeItem(storageKey);
+
+                            queryClient.invalidateQueries({ queryKey: ['ipromed-meeting-onboarding-data'] });
+                            queryClient.invalidateQueries({ queryKey: ['ipromed-onboarding-progress'] });
+                            queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
+                            
+                            toast.success('Dados da pauta excluídos!');
+                            onClose?.();
+                          } catch (err: any) {
+                            toast.error('Erro ao excluir: ' + err.message);
+                          }
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Excluir Dados
+                    </Button>
+                  )}
                 </div>
                 <div className="flex gap-2">
+                  {/* Botão para criar nova pauta (limpar e começar do zero) */}
+                  {progress === 100 && meetingId && (
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => {
+                        if (window.confirm('Deseja iniciar uma nova pauta? Os dados atuais serão mantidos no histórico.')) {
+                          // Limpar estado local para nova pauta
+                          setCompletedSections([]);
+                          setCurrentSectionIndex(0);
+                          setManualExpandedSection('boas-vindas');
+                          form.reset({
+                            clienteId: selectedClientId,
+                            nomeCompleto: '',
+                            nomePreferencia: '',
+                            cargoFuncao: '',
+                            possuiClinica: false,
+                            clinicaNome: '',
+                            clinicaEndereco: '',
+                            clinicaCNPJ: '',
+                            clinicaCRM: '',
+                            cidadeEstado: '',
+                            emailPrincipal: '',
+                            objetivoPrincipal: '',
+                            areaAtuacao: '',
+                            possuiRQE: false,
+                            numeroRQE: '',
+                            tempoAtuacao: 0,
+                            formatoAtendimento: [],
+                            estruturaPrincipal: '',
+                            tamanhoEquipe: 0,
+                            procedimentosRealizados: [],
+                            procedimentosMaiorVolume: [],
+                            whatsappPrincipal: '',
+                            responsavelOperacional: '',
+                            contatoPrincipal: { nome: '', email: '', whatsapp: '', funcao: '' },
+                            contatosAdicionais: [],
+                            horarioSemanal: defaultWeeklySchedule,
+                            usaDocumentosHoje: false,
+                            documentosExistentes: [],
+                            quemPreenche: '',
+                            usaAssinaturaDigital: false,
+                            ferramentaAssinatura: '',
+                            documentosEntregues: [],
+                            documentosAdicionaisEntregues: [],
+                            possuiPrioridade: false,
+                            documentosPrioritariosSelecionados: [],
+                            documentosPrioritarios: [],
+                            jaTeveProblemAnterior: false,
+                            problemasAnteriores: [],
+                            dataOnboarding: new Date().toISOString().split('T')[0],
+                            dataRecebimentoDocsAtuais: '',
+                            prazoPadraoRevisao: 20,
+                            prazoPadraoCriacao: 20,
+                            dataPrevistaRevisao: '',
+                            dataPrevistaCriacao: '',
+                            documentosAtuaisStatus: {},
+                            necessitaTreinamento: false,
+                            quemSeraTreinado: '',
+                            formatoTreinamento: '',
+                            dataSugeridaTreinamento: '',
+                            duvidasPrincipais: '',
+                            instagramHandle: '',
+                            responsavelPerfil: '',
+                            fazAnuncios: false,
+                            riscosInstagram: [],
+                            orientacoesDadas: '',
+                            leituraConcluida: false,
+                            duvidasRespostas: [],
+                            ajustesSolicitados: '',
+                            aceiteContrato: false,
+                          });
+                          localStorage.removeItem(storageKey);
+                          toast.info('Nova pauta iniciada. Preencha os campos e salve.');
+                        }
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Nova Pauta
+                    </Button>
+                  )}
                   <Button type="button" variant="outline" onClick={onClose}>
                     Cancelar
                   </Button>
