@@ -910,6 +910,70 @@ export default function OnboardingMeetingAgenda({
                             />
                           ))}
                         </div>
+                        
+                        {/* Documentos adicionais personalizados */}
+                        <div className="mt-3 pt-3 border-t border-border/50">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs text-muted-foreground">Outros documentos:</span>
+                          </div>
+                          {form.watch("documentosExistentes")?.filter((d: string) => !documentosOptions.includes(d)).map((customDoc: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 mb-2">
+                              <Badge variant="secondary" className="gap-1">
+                                {customDoc}
+                                <button
+                                  type="button"
+                                  className="ml-1 hover:text-destructive"
+                                  onClick={() => {
+                                    const current = form.getValues("documentosExistentes") || [];
+                                    form.setValue("documentosExistentes", current.filter((d: string) => d !== customDoc));
+                                  }}
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            </div>
+                          ))}
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Digite o nome do documento..."
+                              className="h-8 text-sm flex-1"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const input = e.currentTarget;
+                                  const value = input.value.trim();
+                                  if (value) {
+                                    const current = form.getValues("documentosExistentes") || [];
+                                    if (!current.includes(value)) {
+                                      form.setValue("documentosExistentes", [...current, value]);
+                                    }
+                                    input.value = "";
+                                  }
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8"
+                              onClick={(e) => {
+                                const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                                const value = input?.value.trim();
+                                if (value) {
+                                  const current = form.getValues("documentosExistentes") || [];
+                                  if (!current.includes(value)) {
+                                    form.setValue("documentosExistentes", [...current, value]);
+                                  }
+                                  input.value = "";
+                                }
+                              }}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Adicionar
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     )}
 
