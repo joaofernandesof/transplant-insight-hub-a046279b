@@ -76,7 +76,8 @@ import { cn } from "@/lib/utils";
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
+  rectIntersection,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -86,12 +87,15 @@ import {
   DragOverEvent,
   useDroppable,
   useDraggable,
+  CollisionDetection,
+  closestCenter,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable,
+  arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -414,14 +418,16 @@ function DroppableColumn({
         </div>
       </div>
       
-      {/* Column Content */}
+      {/* Column Content - Área de drop expandida e mais responsiva */}
       <div 
         ref={setNodeRef}
         className={cn(
-          "flex-1 mt-2 space-y-2 min-h-[500px] rounded-lg p-2 border border-dashed transition-colors overflow-y-auto",
+          "flex-1 mt-2 space-y-2 min-h-[500px] rounded-lg p-3 border-2 border-dashed transition-all duration-200 overflow-y-auto",
           isOver 
-            ? "bg-primary/10 border-primary ring-2 ring-primary/30" 
-            : "bg-muted/20 border-muted-foreground/20"
+            ? "bg-primary/15 border-primary ring-2 ring-primary/40 scale-[1.01]" 
+            : activeId 
+              ? "bg-muted/30 border-primary/30 hover:bg-primary/5 hover:border-primary/50"
+              : "bg-muted/20 border-muted-foreground/20"
         )}
       >
         <SortableContext 
@@ -442,14 +448,18 @@ function DroppableColumn({
           ))}
         </SortableContext>
         
-        {/* Empty State */}
+        {/* Empty State - mostra área de drop visível durante arraste */}
         {sortedClients.length === 0 && (
           <div className={cn(
-            "flex flex-col items-center justify-center py-16 text-muted-foreground transition-colors",
-            isOver && "text-primary"
+            "flex flex-col items-center justify-center py-16 text-muted-foreground transition-all duration-200",
+            isOver && "text-primary scale-105",
+            activeId && !isOver && "text-muted-foreground/60"
           )}>
-            <Users className={cn("h-10 w-10 opacity-20 mb-2", isOver && "opacity-50")} />
-            <p className="text-xs">{isOver ? "Solte aqui" : "Arraste clientes aqui"}</p>
+            <Users className={cn(
+              "h-10 w-10 mb-2 transition-all duration-200",
+              isOver ? "opacity-80 text-primary" : "opacity-20"
+            )} />
+            <p className="text-xs font-medium">{isOver ? "✓ Solte aqui" : "Arraste clientes aqui"}</p>
           </div>
         )}
       </div>
@@ -513,17 +523,35 @@ export default function IpromedJourney() {
     }));
   };
 
-  // DnD sensors
+  // DnD sensors - mais sensível para facilitar o arraste
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8px movement before drag starts
+        distance: 3, // Reduzido de 8px para 3px - inicia drag mais rápido
       },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Custom collision detection - mais permissiva para facilitar drops
+  const customCollisionDetection: CollisionDetection = (args) => {
+    // Primeiro tenta pointerWithin para detecção mais precisa
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    
+    // Fallback para rectIntersection que é mais permissivo
+    const rectCollisions = rectIntersection(args);
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
+    }
+    
+    // Último fallback para closestCenter
+    return closestCenter(args);
+  };
 
   // Fetch clients with journey data from database
   const { data: dbClients = [], isLoading } = useQuery({
@@ -540,7 +568,7 @@ export default function IpromedJourney() {
     },
   });
 
-  // Update client phase mutation
+  // Update client phase mutation com atualização otimista
   const updateClientPhase = useMutation({
     mutationFn: async ({ clientId, newPhase }: { clientId: string; newPhase: string }) => {
       // Get current metadata
@@ -564,12 +592,46 @@ export default function IpromedJourney() {
         .eq('id', clientId);
         
       if (updateError) throw updateError;
+      
+      return { clientId, newPhase };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ipromed-journey-clients'] });
+    // Atualização otimista - move o card IMEDIATAMENTE sem esperar o servidor
+    onMutate: async ({ clientId, newPhase }) => {
+      // Cancela queries pendentes para evitar sobrescrita
+      await queryClient.cancelQueries({ queryKey: ['ipromed-journey-clients'] });
+      
+      // Salva estado anterior para rollback
+      const previousClients = queryClient.getQueryData<Client[]>(['ipromed-journey-clients']);
+      
+      // Atualiza cache imediatamente (otimista)
+      queryClient.setQueryData<Client[]>(['ipromed-journey-clients'], (old) => {
+        if (!old) return old;
+        return old.map(client => {
+          if (client.id === clientId) {
+            return {
+              ...client,
+              metadata: {
+                ...(client.metadata as any),
+                journey_phase: newPhase,
+              }
+            };
+          }
+          return client;
+        });
+      });
+      
+      return { previousClients };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback em caso de erro
+      if (context?.previousClients) {
+        queryClient.setQueryData(['ipromed-journey-clients'], context.previousClients);
+      }
       toast.error('Erro ao mover cliente: ' + error.message);
+    },
+    onSettled: () => {
+      // Revalida os dados após mutação (sucesso ou erro)
+      queryClient.invalidateQueries({ queryKey: ['ipromed-journey-clients'] });
     },
   });
 
@@ -938,7 +1000,7 @@ export default function IpromedJourney() {
       {activeTab === "pipeline" && (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={customCollisionDetection}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
