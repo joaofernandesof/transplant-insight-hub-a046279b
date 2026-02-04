@@ -54,17 +54,17 @@ const cpgNavItems: NavItem[] = [
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts', tourId: 'sidebar-contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', tourId: 'sidebar-financial' },
-  { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico', isNew: true },
+  { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico' },
   { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
   { id: 'agenda', label: 'Agenda', icon: Calendar, href: '/ipromed/legal?tab=agenda', tourId: 'sidebar-agenda' },
   { id: 'cases', label: 'Processos', icon: FolderOpen, href: '/ipromed/legal?tab=cases', tourId: 'sidebar-cases' },
   { id: 'contracts', label: 'Contratos', icon: FileBox, href: '/ipromed/legal?tab=contracts' },
-  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', isNew: true, tourId: 'sidebar-ai' },
+  { id: 'ai', label: 'IA Jurídica', icon: Sparkles, href: '/ipromed/legal?tab=ai', tourId: 'sidebar-ai' },
 ];
 
 // CPG Advocacia Médica - Educacional
 const ipromedNavItems: NavItem[] = [
-  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', isNew: true, tourId: 'sidebar-university' },
+  { id: 'university', label: 'Universidade', icon: GraduationCap, href: '/ipromed/university', tourId: 'sidebar-university' },
   { id: 'students', label: 'Alunos', icon: FolderOpen, href: '/ipromed/students' },
 ];
 
@@ -181,13 +181,6 @@ export default function AstreaStyleSidebar({
                     <>
                       <span className="flex-1">{item.label}</span>
                       
-                      {item.isNew && (
-                        <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
-                          <Sparkles className="h-3 w-3 mr-0.5" />
-                          IA
-                        </Badge>
-                      )}
-                      
                       {item.badge && (
                         <Badge className={cn("text-white text-xs px-1.5 min-w-[20px] justify-center", item.badgeColor)}>
                           {item.badge > 99 ? '99+' : item.badge}
@@ -235,13 +228,6 @@ export default function AstreaStyleSidebar({
                   {!isCollapsed && (
                     <>
                       <span className="flex-1">{item.label}</span>
-                      
-                      {item.isNew && (
-                        <Badge className="bg-accent text-accent-foreground text-[10px] px-1.5">
-                          <Sparkles className="h-3 w-3 mr-0.5" />
-                          IA
-                        </Badge>
-                      )}
                       
                       {item.badge && (
                         <Badge className={cn("text-white text-xs px-1.5 min-w-[20px] justify-center", item.badgeColor)}>
