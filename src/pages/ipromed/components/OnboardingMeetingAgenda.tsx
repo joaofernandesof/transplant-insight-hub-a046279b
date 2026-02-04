@@ -281,6 +281,8 @@ const sections: SectionConfig[] = [
     fields: ["3.2.1", "3.2.2", "3.2.3", "3.2.4", "3.2.5", "3.2.6"],
     requiredFields: [
       { name: "contatoPrincipal.nome" as keyof OnboardingMeetingData, label: "Nome do contato principal" },
+      { name: "contatoPrincipal.funcao" as keyof OnboardingMeetingData, label: "Função do contato principal" },
+      { name: "contatoPrincipal.email" as keyof OnboardingMeetingData, label: "E-mail do contato principal" },
       { name: "contatoPrincipal.whatsapp" as keyof OnboardingMeetingData, label: "WhatsApp do contato principal" },
     ]
   },
@@ -1532,15 +1534,19 @@ export default function OnboardingMeetingAgenda({
                           control={form.control}
                           name="contatoPrincipal.funcao"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">🧩 Função</FormLabel>
+                            <FormItem className={cn(getFormItemError(fieldsWithError.includes("contatoPrincipal.funcao")))}>
+                              <FormLabel className="text-xs">🧩 Função <span className="text-destructive">*</span></FormLabel>
                               <FormControl>
                                 <Input 
                                   placeholder="Secretária, Sócio, Financeiro..." 
+                                  data-field-name="contatoPrincipal.funcao"
                                   {...field} 
-                                  className={cn("h-9", getInputHighlight(field.value))} 
+                                  className={cn("h-9", getInputHighlight(field.value, fieldsWithError.includes("contatoPrincipal.funcao")))} 
                                 />
                               </FormControl>
+                              {fieldsWithError.includes("contatoPrincipal.funcao") && (
+                                <p className="text-xs text-destructive font-medium">⚠️ Obrigatório</p>
+                              )}
                             </FormItem>
                           )}
                         />
@@ -1548,16 +1554,20 @@ export default function OnboardingMeetingAgenda({
                           control={form.control}
                           name="contatoPrincipal.email"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">📧 E-mail</FormLabel>
+                            <FormItem className={cn(getFormItemError(fieldsWithError.includes("contatoPrincipal.email")))}>
+                              <FormLabel className="text-xs">📧 E-mail <span className="text-destructive">*</span></FormLabel>
                               <FormControl>
                                 <Input 
                                   type="email" 
                                   placeholder="email@exemplo.com" 
+                                  data-field-name="contatoPrincipal.email"
                                   {...field} 
-                                  className={cn("h-9", getInputHighlight(field.value))} 
+                                  className={cn("h-9", getInputHighlight(field.value, fieldsWithError.includes("contatoPrincipal.email")))} 
                                 />
                               </FormControl>
+                              {fieldsWithError.includes("contatoPrincipal.email") && (
+                                <p className="text-xs text-destructive font-medium">⚠️ Obrigatório</p>
+                              )}
                             </FormItem>
                           )}
                         />
