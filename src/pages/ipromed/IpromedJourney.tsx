@@ -62,6 +62,8 @@ import {
   LayoutGrid,
   List,
   CheckSquare,
+  Phone,
+  Mail,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -244,13 +246,13 @@ function DraggableClientCard({
         <div className="space-y-1 text-xs text-muted-foreground">
           {client.phone && (
             <div className="flex items-center gap-1.5 truncate">
-              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">📱</span>
+              <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
               <span className="truncate">{client.phone}</span>
             </div>
           )}
           {client.email && (
             <div className="flex items-center gap-1.5 truncate">
-              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">✉️</span>
+              <Mail className="h-3 w-3 text-muted-foreground shrink-0" />
               <span className="truncate">{client.email}</span>
             </div>
           )}
