@@ -315,10 +315,10 @@ export default function OnboardingMeetingAgenda({
       areaAtuacao: "",
       possuiRQE: false,
       numeroRQE: "",
-      tempoAtuacao: 0,
+      tempoAtuacao: undefined,
       formatoAtendimento: [],
       estruturaPrincipal: "",
-      tamanhoEquipe: 0,
+      tamanhoEquipe: undefined,
       procedimentosRealizados: [],
       procedimentosMaiorVolume: [],
       whatsappPrincipal: "",
@@ -336,7 +336,7 @@ export default function OnboardingMeetingAgenda({
       problemasAnteriores: [],
       cenarioCliente: "",
       dataRecebimentoCompleto: "",
-      prazoPadraoInformado: 20,
+      prazoPadraoInformado: undefined,
       dataPrevistaEntrega: "",
       necessitaTreinamento: false,
       quemSeraTreinado: "",
@@ -801,10 +801,16 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="tempoAtuacao"
                       render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
+                        <FormItem>
                           <FormLabel>⏳ Tempo de atuação (anos)</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" placeholder="7" {...field} />
+                            <Input 
+                              type="number" 
+                              min="0" 
+                              placeholder="Ex: 7"
+                              value={field.value ?? ""}
+                              onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -838,10 +844,16 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="tamanhoEquipe"
                       render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
+                        <FormItem>
                           <FormLabel>👥 Tamanho da equipe fixa</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" placeholder="6" {...field} />
+                            <Input 
+                              type="number" 
+                              min="0" 
+                              placeholder="Ex: 6"
+                              value={field.value ?? ""}
+                              onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1608,10 +1620,16 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="prazoPadraoInformado"
                       render={({ field }) => (
-                        <FormItem className={cn(getFieldHighlight(field.value))}>
+                        <FormItem>
                           <FormLabel>⏳ Prazo padrão (dias úteis)</FormLabel>
                           <FormControl>
-                            <Input type="number" min="1" {...field} />
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              placeholder="Ex: 20"
+                              value={field.value ?? ""}
+                              onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
