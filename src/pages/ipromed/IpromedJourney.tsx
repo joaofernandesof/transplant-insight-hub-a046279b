@@ -178,9 +178,6 @@ function DraggableClientCard({
               {client.name}
             </p>
           </div>
-          <span className="text-[10px] text-muted-foreground flex-shrink-0">
-            {format(new Date(client.created_at), 'dd.MM.yyyy')}
-          </span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -785,9 +782,6 @@ export default function IpromedJourney() {
                         {activeClient.name}
                       </p>
                     </div>
-                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                      {format(new Date(activeClient.created_at), 'dd.MM.yyyy')}
-                    </span>
                   </div>
                 </CardContent>
               </Card>
