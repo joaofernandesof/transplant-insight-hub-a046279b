@@ -355,7 +355,7 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
                     <FormField
                       control={form.control}
                       name="nomeCompleto"
@@ -521,7 +521,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="objetivoPrincipal"
                       render={({ field }) => (
-                        <FormItem className="md:col-span-2">
+                        <FormItem>
                           <FormLabel>🎯 Objetivo principal</FormLabel>
                           <FormControl>
                             <Textarea 
@@ -574,7 +574,7 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
                     <FormField
                       control={form.control}
                       name="areaAtuacao"
@@ -673,7 +673,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="procedimentosRealizados"
                       render={({ field }) => (
-                        <FormItem className="md:col-span-2 lg:col-span-3">
+                        <FormItem>
                           <FormLabel>⚙️ Procedimentos realizados</FormLabel>
                           <FormControl>
                             <Textarea 
@@ -692,7 +692,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="procedimentosMaiorVolume"
                       render={({ field }) => (
-                        <FormItem className="md:col-span-2 lg:col-span-3">
+                        <FormItem>
                           <FormLabel>📈 Procedimentos de maior volume</FormLabel>
                           <FormControl>
                             <Textarea 
@@ -745,7 +745,7 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
 
                     <FormField
                       control={form.control}
@@ -839,7 +839,7 @@ export default function OnboardingMeetingAgenda({
                             Remover
                           </Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <FormField
                             control={form.control}
                             name={`contatosAdicionais.${index}.nome`}
@@ -936,7 +936,7 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
                     <FormField
                       control={form.control}
                       name="usaDocumentosHoje"
@@ -951,7 +951,7 @@ export default function OnboardingMeetingAgenda({
                     />
 
                     {form.watch("usaDocumentosHoje") && (
-                      <div className="md:col-span-2 p-3 border rounded-lg bg-muted/30">
+                      <div className="p-3 border rounded-lg bg-muted/30">
                         <FormLabel className="text-sm font-medium">📋 Documentos existentes</FormLabel>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                           {documentosOptions.map(doc => (
@@ -1136,12 +1136,12 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
                     <FormField
                       control={form.control}
                       name="possuiPrioridade"
                       render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3 md:col-span-2">
+                        <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
                           <FormControl>
                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
@@ -1151,7 +1151,7 @@ export default function OnboardingMeetingAgenda({
                     />
 
                     {form.watch("possuiPrioridade") && (
-                      <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-4">
+                      <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
                         <div className="flex items-center justify-between">
                           <FormLabel className="text-sm font-medium">📄 Documentos prioritários</FormLabel>
                           <Button
@@ -1221,7 +1221,7 @@ export default function OnboardingMeetingAgenda({
                     />
 
                     {form.watch("jaTeveProblemAnterior") && (
-                      <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-4">
+                      <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
                         <div className="flex items-center justify-between">
                           <FormLabel className="text-sm font-medium">📝 Problemas anteriores</FormLabel>
                           <Button
@@ -1336,7 +1336,7 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
                     <FormField
                       control={form.control}
                       name="cenarioCliente"
@@ -1443,7 +1443,7 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
                     <FormField
                       control={form.control}
                       name="necessitaTreinamento"
@@ -1514,7 +1514,7 @@ export default function OnboardingMeetingAgenda({
                           control={form.control}
                           name="duvidasPrincipais"
                           render={({ field }) => (
-                            <FormItem className="md:col-span-2">
+                            <FormItem>
                               <FormLabel>📝 Dúvidas principais</FormLabel>
                               <FormControl>
                                 <Textarea 
@@ -1569,7 +1569,7 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
                     <FormField
                       control={form.control}
                       name="instagramHandle"
@@ -1621,7 +1621,7 @@ export default function OnboardingMeetingAgenda({
                     />
 
 
-                    <div className="md:col-span-2 space-y-4">
+                    <div className="space-y-4">
                       <FormField
                         control={form.control}
                         name="riscosEncontrados"
@@ -1713,7 +1713,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="orientacoesDadas"
                       render={({ field }) => (
-                        <FormItem className="md:col-span-2">
+                        <FormItem>
                           <FormLabel>✅ Orientações dadas</FormLabel>
                           <FormControl>
                             <Textarea 
@@ -1766,7 +1766,7 @@ export default function OnboardingMeetingAgenda({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-5 pt-2 max-w-2xl">
                     <FormField
                       control={form.control}
                       name="leituraConcluida"
@@ -1793,7 +1793,7 @@ export default function OnboardingMeetingAgenda({
                       )}
                     />
 
-                    <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-4">
+                    <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
                       <div className="flex items-center justify-between">
                         <FormLabel className="text-sm font-medium">❓ Dúvidas e Respostas</FormLabel>
                         <Button
@@ -1871,7 +1871,7 @@ export default function OnboardingMeetingAgenda({
                       control={form.control}
                       name="ajustesSolicitados"
                       render={({ field }) => (
-                        <FormItem className="md:col-span-2">
+                        <FormItem>
                           <FormLabel>🛠️ Ajustes solicitados</FormLabel>
                           <FormControl>
                             <Textarea 
