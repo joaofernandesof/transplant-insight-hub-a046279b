@@ -102,18 +102,34 @@ export default function IpromedClientDetail() {
     enabled: !!id,
   });
 
-  // Fetch contracts for this client
+  // Fetch contracts for this client - only those with documents
   const { data: contracts = [] } = useQuery({
     queryKey: ['ipromed-client-contracts', id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get all contracts
+      const { data: allContracts, error } = await supabase
         .from('ipromed_contracts')
         .select('*')
         .eq('client_id', id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      if (!allContracts || allContracts.length === 0) return [];
+
+      // Get document counts for each contract
+      const contractsWithDocs = await Promise.all(
+        allContracts.map(async (contract) => {
+          const { count } = await supabase
+            .from('ipromed_contract_documents')
+            .select('*', { count: 'exact', head: true })
+            .eq('contract_id', contract.id);
+          
+          return { ...contract, document_count: count || 0 };
+        })
+      );
+
+      // Only return contracts with at least one document
+      return contractsWithDocs.filter(c => c.document_count > 0);
     },
     enabled: !!id,
   });
@@ -528,9 +544,9 @@ export default function IpromedClientDetail() {
               <FileSignature className="h-4 w-4" />
               Contratos ({contracts.length})
             </CardTitle>
-            <CardDescription>Contratos vinculados a este cliente</CardDescription>
+            <CardDescription>Contratos com documentos vinculados</CardDescription>
           </div>
-          <Button size="sm">
+          <Button size="sm" onClick={() => navigate('/ipromed/contracts')}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Contrato
           </Button>
@@ -538,11 +554,17 @@ export default function IpromedClientDetail() {
         <CardContent>
           {contracts.length === 0 ? (
             <div className="text-center py-8">
-              <FileSignature className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Nenhum contrato cadastrado</p>
-              <Button variant="link" className="mt-2">
-                <Plus className="h-4 w-4 mr-1" />
-                Criar primeiro contrato
+              <FileSignature className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <p className="font-medium text-foreground">Nenhum contrato disponível</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Este cliente não possui contratos com documentos anexados.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Para criar um contrato, anexe o documento PDF assinado.
+              </p>
+              <Button variant="outline" className="mt-4" onClick={() => navigate('/ipromed/contracts')}>
+                <Plus className="h-4 w-4 mr-2" />
+                Ir para Contratos
               </Button>
             </div>
           ) : (
@@ -553,9 +575,16 @@ export default function IpromedClientDetail() {
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
                   onClick={() => navigate(`/ipromed/contracts/${contract.id}`)}
                 >
-                  <div>
-                    <p className="font-medium">{contract.title}</p>
-                    <p className="text-sm text-muted-foreground">{contract.contract_type}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <FileSignature className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{contract.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {contract.contract_type} • {contract.document_count} documento{contract.document_count !== 1 ? 's' : ''}
+                      </p>
+                    </div>
                   </div>
                   <Badge variant="outline">{contract.status}</Badge>
                 </div>
