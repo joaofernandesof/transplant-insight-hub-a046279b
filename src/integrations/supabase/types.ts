@@ -7592,12 +7592,52 @@ export type Database = {
         }
         Relationships: []
       }
+      ipromed_legal_subtasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          order_index: number | null
+          task_id: string
+          title: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          order_index?: number | null
+          task_id: string
+          title: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          order_index?: number | null
+          task_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_legal_subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_legal_tasks: {
         Row: {
           actual_hours: number | null
           assigned_to: string | null
           assigned_to_name: string | null
           case_id: string | null
+          category: string | null
+          client_id: string | null
           completed_at: string | null
           contract_id: string | null
           created_at: string | null
@@ -7606,6 +7646,7 @@ export type Database = {
           due_date: string | null
           estimated_hours: number | null
           id: string
+          order_index: number | null
           priority: number | null
           request_id: string | null
           status: string | null
@@ -7619,6 +7660,8 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_name?: string | null
           case_id?: string | null
+          category?: string | null
+          client_id?: string | null
           completed_at?: string | null
           contract_id?: string | null
           created_at?: string | null
@@ -7627,6 +7670,7 @@ export type Database = {
           due_date?: string | null
           estimated_hours?: number | null
           id?: string
+          order_index?: number | null
           priority?: number | null
           request_id?: string | null
           status?: string | null
@@ -7640,6 +7684,8 @@ export type Database = {
           assigned_to?: string | null
           assigned_to_name?: string | null
           case_id?: string | null
+          category?: string | null
+          client_id?: string | null
           completed_at?: string | null
           contract_id?: string | null
           created_at?: string | null
@@ -7648,6 +7694,7 @@ export type Database = {
           due_date?: string | null
           estimated_hours?: number | null
           id?: string
+          order_index?: number | null
           priority?: number | null
           request_id?: string | null
           status?: string | null

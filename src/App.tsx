@@ -126,6 +126,7 @@ const IpromedUniversity = lazy(() => import("./pages/ipromed/IpromedUniversity")
 const IpromedFinancial = lazy(() => import("./pages/ipromed/IpromedFinancial"));
 const IpromedPushJuridico = lazy(() => import("./pages/ipromed/IpromedPushJuridico"));
 const IpromedActivityLogs = lazy(() => import("./pages/ipromed/IpromedActivityLogs"));
+const IpromedTasks = lazy(() => import("./pages/ipromed/IpromedTasks"));
 const IpromedLayout = lazy(() => import("./pages/ipromed/components/IpromedLayout"));
 
 // ====================================
@@ -778,6 +779,7 @@ function AppRoutes() {
       <Route path="/ipromed/financial" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedFinancial /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/ipromed/push-juridico" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedPushJuridico /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       <Route path="/ipromed/logs" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedActivityLogs /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
+      <Route path="/ipromed/tasks" element={<ProfileGuard allowedProfiles={['ipromed', 'administrador']}><IpromedLayoutWrapper><LazyRoute><IpromedTasks /></LazyRoute></IpromedLayoutWrapper></ProfileGuard>} />
       
 {/* ====================================
           Vision - Diagnóstico Capilar IA

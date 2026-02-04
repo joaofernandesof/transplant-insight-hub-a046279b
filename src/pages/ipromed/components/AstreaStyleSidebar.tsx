@@ -31,6 +31,7 @@ import {
   GraduationCap,
   Radar,
   Activity,
+  CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -54,6 +55,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'clients', label: 'Clientes', icon: Users, href: '/ipromed/clients', tourId: 'sidebar-clients' },
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts', tourId: 'sidebar-contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
+  { id: 'tasks', label: 'Tarefas', icon: CheckSquare, href: '/ipromed/tasks' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', tourId: 'sidebar-financial' },
   { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico' },
   { id: 'legal', label: 'Hub Jurídico', icon: Scale, href: '/ipromed/legal' },
