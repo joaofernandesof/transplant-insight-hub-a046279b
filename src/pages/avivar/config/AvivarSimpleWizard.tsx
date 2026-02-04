@@ -282,6 +282,8 @@ export default function AvivarSimpleWizard() {
         updated_at: new Date().toISOString(),
       };
 
+      let savedAgentId: string;
+
       if (isEditMode && agentId) {
         // Atualizar agente existente
         const { error } = await supabase
@@ -290,17 +292,72 @@ export default function AvivarSimpleWizard() {
           .eq('id', agentId);
 
         if (error) throw error;
-        toast.success('Agente atualizado com sucesso!');
+        savedAgentId = agentId;
       } else {
         // Criar novo agente
-        const { error } = await supabase
+        const { data: newAgent, error } = await supabase
           .from('avivar_agents')
-          .insert(agentPayload);
+          .insert(agentPayload)
+          .select('id')
+          .single();
 
         if (error) throw error;
-        toast.success('Agente criado com sucesso! 🎉');
+        savedAgentId = newAgent.id;
       }
 
+      // Salvar documentos de conhecimento na tabela avivar_knowledge_documents
+      if (config.knowledgeFiles && config.knowledgeFiles.length > 0) {
+        for (const doc of config.knowledgeFiles) {
+          // Verificar se já existe um documento com o mesmo nome para este agente
+          const { data: existingDoc } = await supabase
+            .from('avivar_knowledge_documents')
+            .select('id')
+            .eq('agent_id', savedAgentId)
+            .eq('name', doc.name)
+            .single();
+
+          if (!existingDoc) {
+            // Criar chunks do documento
+            const chunkSize = 1000;
+            const overlap = 100;
+            const chunks: string[] = [];
+            
+            for (let i = 0; i < doc.content.length; i += chunkSize - overlap) {
+              chunks.push(doc.content.slice(i, i + chunkSize));
+            }
+
+            // Inserir documento
+            const { data: docData, error: docError } = await supabase
+              .from('avivar_knowledge_documents')
+              .insert({
+                user_id: user.id,
+                agent_id: savedAgentId,
+                name: doc.name,
+                content: doc.content,
+                chunks_count: chunks.length,
+                chunk_size: chunkSize,
+                overlap: overlap,
+                file_size: doc.size,
+                content_type: doc.type || 'text/plain'
+              })
+              .select()
+              .single();
+
+            // Inserir chunks se documento foi criado
+            if (!docError && docData) {
+              const chunkRecords = chunks.map((content, index) => ({
+                document_id: docData.id,
+                content: content,
+                chunk_index: index
+              }));
+
+              await supabase.from('avivar_knowledge_chunks').insert(chunkRecords);
+            }
+          }
+        }
+      }
+
+      toast.success(isEditMode ? 'Agente atualizado com sucesso!' : 'Agente criado com sucesso! 🎉');
       navigate('/avivar/agents');
     } catch (error) {
       console.error('Error saving agent:', error);
