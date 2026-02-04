@@ -144,7 +144,10 @@ const onboardingMeetingSchema = z.object({
 
   // 10. Contrato
   leituraConcluida: z.boolean().default(false),
-  duvidasRegistradas: z.string().optional(),
+  duvidasRespostas: z.array(z.object({
+    duvida: z.string().optional(),
+    resposta: z.string().optional(),
+  })).default([]),
   ajustesSolicitados: z.string().optional(),
   aceiteContrato: z.boolean().default(false),
 });
@@ -250,7 +253,7 @@ export default function OnboardingMeetingAgenda({
       riscosArquivos: [],
       orientacoesDadas: "",
       leituraConcluida: false,
-      duvidasRegistradas: "",
+      duvidasRespostas: [],
       ajustesSolicitados: "",
       aceiteContrato: false,
       ...initialData,
@@ -1717,24 +1720,79 @@ export default function OnboardingMeetingAgenda({
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="duvidasRegistradas"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>❓ Dúvidas registradas</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Dúvida sobre prazo, forma de pagamento..." 
-                              className="min-h-[60px]"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs">Registrar por tópicos</FormDescription>
-                          <FormMessage />
-                        </FormItem>
+                    <div className="md:col-span-2 p-4 border rounded-lg bg-muted/30 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-sm font-medium">❓ Dúvidas e Respostas</FormLabel>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const current = form.getValues("duvidasRespostas") || [];
+                            form.setValue("duvidasRespostas", [...current, { duvida: "", resposta: "" }]);
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Adicionar dúvida
+                        </Button>
+                      </div>
+                      
+                      {(form.watch("duvidasRespostas") || []).length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Clique em "Adicionar dúvida" para registrar uma dúvida e sua resposta
+                        </p>
                       )}
-                    />
+
+                      {(form.watch("duvidasRespostas") || []).map((_, index) => (
+                        <div key={index} className="p-3 border rounded-lg bg-background space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Dúvida {index + 1}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => {
+                                const current = form.getValues("duvidasRespostas") || [];
+                                form.setValue("duvidasRespostas", current.filter((_, i) => i !== index));
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <FormField
+                            control={form.control}
+                            name={`duvidasRespostas.${index}.duvida`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">❓ Dúvida</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Qual a dúvida do cliente?" {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`duvidasRespostas.${index}.resposta`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">✅ Resposta dada</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Qual foi a resposta dada?" 
+                                    className="min-h-[60px]"
+                                    {...field} 
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      ))}
+                    </div>
 
                     <FormField
                       control={form.control}
