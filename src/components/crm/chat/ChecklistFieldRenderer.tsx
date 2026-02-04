@@ -9,7 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -257,6 +260,52 @@ export function ChecklistFieldRenderer({ field, leadPhone, columnId, onUpdate }:
               ))}
             </SelectContent>
           </Select>
+        </div>
+      );
+
+    case 'date':
+      const dateValue = localValue ? new Date(localValue) : undefined;
+      const handleDateSelect = (date: Date | undefined) => {
+        if (date) {
+          const isoDate = date.toISOString().split('T')[0];
+          setLocalValue(isoDate);
+          saveToDatabase(isoDate);
+        }
+      };
+      
+      return (
+        <div className="flex items-center gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
+            {field.field_label}
+            {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
+          </Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                disabled={isSaving}
+                className="h-6 flex items-center gap-2 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] px-0 text-[hsl(var(--avivar-foreground))] focus:outline-none"
+              >
+                <span className="text-[hsl(var(--avivar-muted-foreground)/0.7)]">
+                  {dateValue ? format(dateValue, 'dd/MM/yyyy') : '...'}
+                </span>
+                <CalendarIcon className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-auto p-0 bg-background border border-border shadow-lg" 
+              align="start"
+            >
+              <Calendar
+                mode="single"
+                selected={dateValue}
+                onSelect={handleDateSelect}
+                initialFocus
+                locale={ptBR}
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       );
 
