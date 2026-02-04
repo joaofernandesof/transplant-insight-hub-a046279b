@@ -421,16 +421,6 @@ export default function IpromedClients() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : filteredClients.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhum cliente encontrado</h3>
-                <p className="text-muted-foreground text-sm">
-                  {searchTerm || activeFiltersCount > 0
-                    ? "Tente ajustar os filtros de busca"
-                    : "Cadastre seu primeiro cliente"}
-                </p>
-              </div>
             ) : (
               <div className="w-full">
                 <Table className="w-full table-fixed">
@@ -691,21 +681,36 @@ export default function IpromedClients() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredClients.map((client) => {
-                      const status = statusConfig[client.status] || statusConfig.prospect;
-                      const risk = riskConfig[client.risk_level] || riskConfig.low;
-                      const RiskIcon = risk.icon;
-                      const journey = journeyConfig[client.journey_stage] || journeyConfig.prospect;
-                      const paymentStatus = paymentStatusConfig[client.metadata?.payment_status || 'pending'];
-                      const PaymentIcon = paymentStatus?.icon || Clock;
-                      const contractStatus = contractStatusConfig[client.metadata?.contract_status || 'draft'];
+                    {filteredClients.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={11} className="h-32 text-center">
+                          <div className="flex flex-col items-center justify-center py-4">
+                            <Users className="h-10 w-10 text-muted-foreground mb-3" />
+                            <h3 className="text-base font-medium mb-1">Nenhum cliente encontrado</h3>
+                            <p className="text-muted-foreground text-sm">
+                              {searchTerm || activeFiltersCount > 0
+                                ? "Tente ajustar os filtros de busca"
+                                : "Cadastre seu primeiro cliente"}
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredClients.map((client) => {
+                        const status = statusConfig[client.status] || statusConfig.prospect;
+                        const risk = riskConfig[client.risk_level] || riskConfig.low;
+                        const RiskIcon = risk.icon;
+                        const journey = journeyConfig[client.journey_stage] || journeyConfig.prospect;
+                        const paymentStatus = paymentStatusConfig[client.metadata?.payment_status || 'pending'];
+                        const PaymentIcon = paymentStatus?.icon || Clock;
+                        const contractStatus = contractStatusConfig[client.metadata?.contract_status || 'draft'];
 
-                      return (
-                        <TableRow 
-                          key={client.id} 
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => navigate(`/ipromed/clients/${client.id}`)}
-                        >
+                        return (
+                          <TableRow 
+                            key={client.id} 
+                            className="cursor-pointer hover:bg-muted/50"
+                            onClick={() => navigate(`/ipromed/clients/${client.id}`)}
+                          >
                           {/* Nome */}
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -836,7 +841,8 @@ export default function IpromedClients() {
                           </TableCell>
                         </TableRow>
                       );
-                    })}
+                    })
+                    )}
                   </TableBody>
                 </Table>
               </div>
