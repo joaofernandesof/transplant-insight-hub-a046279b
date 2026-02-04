@@ -1766,9 +1766,9 @@ export default function OnboardingMeetingAgenda({
                               <th className="p-3 text-left">Documento</th>
                               <th className="p-3 text-center w-28">Já possui?</th>
                               <th className="p-3 text-center w-24">Ação</th>
-                              <th className="p-3 text-center w-20">
+                              <th className="p-3 text-center w-24">
                                 <span className="flex items-center justify-center gap-1">
-                                  🚨 Prio
+                                  🚨 Prioridade
                                 </span>
                               </th>
                               <th className="p-3 text-center w-28">Prazo</th>
