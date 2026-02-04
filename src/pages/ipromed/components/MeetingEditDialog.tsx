@@ -12,6 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +63,7 @@ import {
   Loader2,
   ExternalLink,
   Save,
+  Trash2,
 } from "lucide-react";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -119,6 +130,7 @@ export function MeetingEditDialog({
 }: MeetingEditDialogProps) {
   const queryClient = useQueryClient();
   const [showOnboardingAgenda, setShowOnboardingAgenda] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Form state
   const [title, setTitle] = useState('');
@@ -171,6 +183,29 @@ export function MeetingEditDialog({
     },
     onError: (error: any) => {
       toast.error("Erro ao atualizar: " + error.message);
+    },
+  });
+
+  // Delete meeting mutation
+  const deleteMeeting = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('ipromed_client_meetings' as any)
+        .delete()
+        .eq('id', meeting?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-meetings'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-appointments-astrea'] });
+      queryClient.invalidateQueries({ queryKey: ['ipromed-client-activities'] });
+      toast.success("Reunião excluída com sucesso!");
+      setShowDeleteConfirm(false);
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao excluir reunião: " + error.message);
     },
   });
 
@@ -237,8 +272,9 @@ export function MeetingEditDialog({
   if (!meeting) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[95vh] p-0 overflow-hidden">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[95vh] p-0 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-muted/30">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -275,7 +311,11 @@ export function MeetingEditDialog({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>Duplicar reunião</DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem 
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
                   Excluir reunião
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -556,5 +596,33 @@ export function MeetingEditDialog({
         </ScrollArea>
       </DialogContent>
     </Dialog>
+
+    {/* Confirmação de Exclusão */}
+    <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir reunião?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tem certeza que deseja excluir a reunião "{meeting?.title}"? Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deleteMeeting.isPending}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => deleteMeeting.mutate()}
+            disabled={deleteMeeting.isPending}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {deleteMeeting.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 mr-2" />
+            )}
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
