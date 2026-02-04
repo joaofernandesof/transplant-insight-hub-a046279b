@@ -67,8 +67,20 @@ export default function NewContractDialog({ open, onOpenChange }: NewContractDia
     setIsSubmitting(true);
 
     try {
-      // Generate contract number
-      const contractNumber = `IPROMED-${Date.now().toString(36).toUpperCase()}`;
+      // Get next contract number
+      const { data: lastContract } = await supabase
+        .from('ipromed_contracts')
+        .select('contract_number')
+        .like('contract_number', 'CONTRATO_%')
+        .order('contract_number', { ascending: false })
+        .limit(1);
+
+      let nextNumber = 1;
+      if (lastContract && lastContract.length > 0) {
+        const lastNum = parseInt(lastContract[0].contract_number.replace('CONTRATO_', ''), 10);
+        if (!isNaN(lastNum)) nextNumber = lastNum + 1;
+      }
+      const contractNumber = `CONTRATO_${nextNumber.toString().padStart(4, '0')}`;
 
       const { error } = await supabase
         .from('ipromed_contracts')
