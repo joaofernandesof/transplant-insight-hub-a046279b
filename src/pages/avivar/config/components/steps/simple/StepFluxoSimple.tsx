@@ -45,7 +45,7 @@ const SECONDARY_OBJECTIVE_TO_STEP: Record<AgentObjective, { titulo: string; desc
     exemploMensagem: 'Tenho disponível {dia1} às {hora1} ou {dia2} às {hora2}. Qual fica melhor para você?',
   },
   'agendar_online': {
-    titulo: 'Agendar Reunião Online',
+    titulo: 'Agendar Consulta Online',
     descricao: 'Quando o lead quiser agendar uma reunião online/videoconferência, ofereça datas disponíveis e explique como será o acesso.',
     exemploMensagem: 'Para a reunião online, tenho {dia1} às {hora1} ou {dia2} às {hora2}. Você receberá o link por WhatsApp. Qual prefere?',
   },
