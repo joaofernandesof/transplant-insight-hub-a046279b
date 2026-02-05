@@ -1011,6 +1011,8 @@ export type Database = {
           urgency_level: string
           use_ai_generation: boolean | null
           user_id: string
+          video_caption: string | null
+          video_url: string | null
         }
         Insert: {
           ai_context?: string | null
@@ -1040,6 +1042,8 @@ export type Database = {
           urgency_level?: string
           use_ai_generation?: boolean | null
           user_id: string
+          video_caption?: string | null
+          video_url?: string | null
         }
         Update: {
           ai_context?: string | null
@@ -1069,6 +1073,8 @@ export type Database = {
           urgency_level?: string
           use_ai_generation?: boolean | null
           user_id?: string
+          video_caption?: string | null
+          video_url?: string | null
         }
         Relationships: [
           {

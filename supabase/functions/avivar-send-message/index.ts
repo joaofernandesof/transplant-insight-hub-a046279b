@@ -84,9 +84,11 @@ serve(async (req) => {
     const isAudioUrlMessage = mediaType === 'audio' && mediaUrl && !audioBase64;
     // Check if we're sending image via URL (for follow-ups)
     const isImageUrlMessage = mediaType === 'image' && mediaUrl && !imageBase64;
+    // Check if we're sending video via URL (for follow-ups)
+    const isVideoUrlMessage = mediaType === 'video' && mediaUrl && !videoBase64;
 
-    // Validate: need either content, audioBase64, imageBase64, videoBase64, documentBase64, or mediaUrl for audio/image
-    if (!conversationId || (!content && !audioBase64 && !imageBase64 && !videoBase64 && !documentBase64 && !isAudioUrlMessage && !isImageUrlMessage)) {
+    // Validate: need either content, audioBase64, imageBase64, videoBase64, documentBase64, or mediaUrl for audio/image/video
+    if (!conversationId || (!content && !audioBase64 && !imageBase64 && !videoBase64 && !documentBase64 && !isAudioUrlMessage && !isImageUrlMessage && !isVideoUrlMessage)) {
       return new Response(
         JSON.stringify({ success: false, error: "Missing conversationId or content/audio/image/video/document" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -97,7 +99,7 @@ serve(async (req) => {
     const isImageMessage = !!imageBase64;
     const isVideoMessage = !!videoBase64;
     const isDocumentMessage = !!documentBase64;
-    const messageTypeLog = isImageUrlMessage ? "Image URL message" : isAudioUrlMessage ? "Audio URL message" : isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : isVideoMessage ? "Video message" : isDocumentMessage ? "Document message" : `Content: ${content?.substring(0, 50)}`;
+    const messageTypeLog = isVideoUrlMessage ? "Video URL message" : isImageUrlMessage ? "Image URL message" : isAudioUrlMessage ? "Audio URL message" : isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : isVideoMessage ? "Video message" : isDocumentMessage ? "Document message" : `Content: ${content?.substring(0, 50)}`;
     console.log("[Avivar Send Message] Conversation:", conversationId, messageTypeLog);
 
     // Get conversation with lead info and assigned_to (to find the user's instance)
@@ -295,6 +297,27 @@ serve(async (req) => {
       
       savedMediaUrl = mediaUrl;
       messageContent = caption || content || "📷 Imagem";
+    } else if (isVideoUrlMessage && mediaUrl) {
+      // Send video via URL (for follow-ups)
+      console.log("[Avivar Send Message] Sending video URL message via UazAPI");
+      
+      uazapiResponse = await fetch(`${uazapiUrl}/send/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "token": uazapiToken,
+        },
+        body: JSON.stringify({
+          number: phone,
+          type: "video",
+          file: mediaUrl,
+          text: caption || content || " ",
+        }),
+      });
+      await logAttempt("/send/media type=video (URL)", uazapiResponse);
+      
+      savedMediaUrl = mediaUrl;
+      messageContent = caption || content || "🎬 Vídeo";
     } else if (isAudioMessage && audioBase64) {
       // Send audio message
       console.log("[Avivar Send Message] Sending audio message via UazAPI");

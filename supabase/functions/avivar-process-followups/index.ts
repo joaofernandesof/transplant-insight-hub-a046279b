@@ -299,6 +299,8 @@
           const hasAudio = rule?.audio_url && rule?.audio_type;
           // Check if rule has image attachment
           const hasImage = rule?.image_url;
+          // Check if rule has video attachment
+          const hasVideo = rule?.video_url;
           
           let sendResponse;
           if (hasAudio) {
@@ -322,6 +324,17 @@
                 mediaType: 'image',
                 mediaUrl: rule.image_url,
                 caption: rule.image_caption || undefined,
+              },
+            });
+          } else if (hasVideo) {
+            // Send video message
+            sendResponse = await supabase.functions.invoke('avivar-send-message', {
+              body: {
+                conversationId: conversation.id,
+                content: finalMessage || undefined,
+                mediaType: 'video',
+                mediaUrl: rule.video_url,
+                caption: rule.video_caption || undefined,
               },
             });
           } else {
