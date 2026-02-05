@@ -141,19 +141,6 @@ function SidebarContent({ collapsed, onCollapse, counts }: { collapsed: boolean;
         </nav>
       </ScrollArea>
 
-      {/* Footer Stats */}
-      <div className="p-3 border-t border-[hsl(var(--avivar-border))] relative z-10">
-        {!collapsed && (
-          <div className="px-3 py-3 rounded-xl bg-[hsl(var(--avivar-primary)/0.1)] border border-[hsl(var(--avivar-border))]">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">IA Ativa</p>
-            </div>
-            <p className="text-lg font-bold text-[hsl(var(--avivar-foreground))]">127 leads</p>
-            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Processados hoje</p>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
