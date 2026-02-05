@@ -51,7 +51,6 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
  export interface CreateAvivarTaskData {
   lead_id?: string;
   phone_number?: string;
-  contact_name?: string;
    title: string;
    description?: string;
    due_at?: string;
@@ -148,7 +147,7 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
             .from('leads')
             .insert({
               user_id: user?.id,
-              name: data.contact_name || `Lead ${data.phone_number}`,
+              name: `Lead ${data.phone_number}`,
               phone: data.phone_number,
               source: 'manual_task',
               status: 'novo',
