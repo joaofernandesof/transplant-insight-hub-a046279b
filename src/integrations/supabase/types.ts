@@ -2215,6 +2215,475 @@ export type Database = {
           },
         ]
       }
+      cleaning_audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          new_values: Json | null
+          notes: string | null
+          old_values: Json | null
+          tenant_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_values?: Json | null
+          notes?: string | null
+          old_values?: Json | null
+          tenant_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_values?: Json | null
+          notes?: string | null
+          old_values?: Json | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_checklist_items: {
+        Row: {
+          category: string
+          checklist_id: string
+          created_at: string
+          description: string
+          id: string
+          is_critical: boolean
+          order_index: number
+        }
+        Insert: {
+          category?: string
+          checklist_id: string
+          created_at?: string
+          description: string
+          id?: string
+          is_critical?: boolean
+          order_index?: number
+        }
+        Update: {
+          category?: string
+          checklist_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_critical?: boolean
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_checklists: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          environment_id: string
+          id: string
+          is_active: boolean
+          version: number
+          version_notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          environment_id: string
+          id?: string
+          is_active?: boolean
+          version?: number
+          version_notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          environment_id?: string
+          id?: string
+          is_active?: boolean
+          version?: number
+          version_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_checklists_environment_id_fkey"
+            columns: ["environment_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_environments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_daily_routines: {
+        Row: {
+          branch_id: string | null
+          completed_environments: number
+          created_at: string
+          id: string
+          routine_date: string
+          status: string
+          tenant_id: string | null
+          total_environments: number
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          completed_environments?: number
+          created_at?: string
+          id?: string
+          routine_date?: string
+          status?: string
+          tenant_id?: string | null
+          total_environments?: number
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          completed_environments?: number
+          created_at?: string
+          id?: string
+          routine_date?: string
+          status?: string
+          tenant_id?: string | null
+          total_environments?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_daily_routines_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_daily_routines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_environment_executions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          checklist_id: string | null
+          correction_count: number
+          created_at: string
+          environment_id: string
+          executed_by: string | null
+          finished_at: string | null
+          id: string
+          is_locked: boolean
+          rejection_notes: string | null
+          rejection_reason: string | null
+          routine_id: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["cleaning_execution_status"]
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          checklist_id?: string | null
+          correction_count?: number
+          created_at?: string
+          environment_id: string
+          executed_by?: string | null
+          finished_at?: string | null
+          id?: string
+          is_locked?: boolean
+          rejection_notes?: string | null
+          rejection_reason?: string | null
+          routine_id: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["cleaning_execution_status"]
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          checklist_id?: string | null
+          correction_count?: number
+          created_at?: string
+          environment_id?: string
+          executed_by?: string | null
+          finished_at?: string | null
+          id?: string
+          is_locked?: boolean
+          rejection_notes?: string | null
+          rejection_reason?: string | null
+          routine_id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["cleaning_execution_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_environment_executions_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_environment_executions_environment_id_fkey"
+            columns: ["environment_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_environments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_environment_executions_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_daily_routines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_environments: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          description: string | null
+          environment_type: string | null
+          id: string
+          is_active: boolean
+          name: string
+          priority_order: number
+          sanitary_risk_level: Database["public"]["Enums"]["sanitary_risk_level"]
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          description?: string | null
+          environment_type?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          priority_order?: number
+          sanitary_risk_level?: Database["public"]["Enums"]["sanitary_risk_level"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          description?: string | null
+          environment_type?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          priority_order?: number
+          sanitary_risk_level?: Database["public"]["Enums"]["sanitary_risk_level"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_environments_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_environments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_execution_items: {
+        Row: {
+          checklist_item_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          execution_id: string
+          id: string
+          is_completed: boolean
+          is_rejected: boolean
+          rejection_note: string | null
+        }
+        Insert: {
+          checklist_item_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          execution_id: string
+          id?: string
+          is_completed?: boolean
+          is_rejected?: boolean
+          rejection_note?: string | null
+        }
+        Update: {
+          checklist_item_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          execution_id?: string
+          id?: string
+          is_completed?: boolean
+          is_rejected?: boolean
+          rejection_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_execution_items_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_execution_items_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_environment_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_supplies: {
+        Row: {
+          branch_id: string | null
+          category: string
+          cost_unit: number | null
+          created_at: string
+          current_stock: number
+          id: string
+          is_active: boolean
+          min_stock: number
+          name: string
+          tenant_id: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          category?: string
+          cost_unit?: number | null
+          created_at?: string
+          current_stock?: number
+          id?: string
+          is_active?: boolean
+          min_stock?: number
+          name: string
+          tenant_id?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          category?: string
+          cost_unit?: number | null
+          created_at?: string
+          current_stock?: number
+          id?: string
+          is_active?: boolean
+          min_stock?: number
+          name?: string
+          tenant_id?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_supplies_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "neoteam_branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_supplies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_supply_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          execution_id: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          quantity: number
+          supply_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          execution_id?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          quantity: number
+          supply_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          execution_id?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          quantity?: number
+          supply_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_supply_movements_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_environment_executions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_supply_movements_supply_id_fkey"
+            columns: ["supply_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_supplies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_contract_services: {
         Row: {
           baldness_grade: string | null
@@ -16407,6 +16876,10 @@ export type Database = {
         Args: { p_column_id: string; p_contact_id: string; p_kanban_id: string }
         Returns: string
       }
+      create_or_get_daily_cleaning_routine: {
+        Args: { p_branch_id: string; p_date?: string }
+        Returns: string
+      }
       delete_avivar_kanban_lead_cascade: {
         Args: { p_lead_id: string }
         Returns: Json
@@ -16602,6 +17075,10 @@ export type Database = {
           role: Database["public"]["Enums"]["clinic_staff_role"]
         }[]
       }
+      get_user_cleaning_branches: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
       get_user_context: { Args: never; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
@@ -16622,6 +17099,10 @@ export type Database = {
       }
       has_avivar_access: {
         Args: { _owner_user_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_cleaning_role: {
+        Args: { _role_code: string; _user_id: string }
         Returns: boolean
       }
       has_completed_satisfaction_survey: {
@@ -16748,6 +17229,14 @@ export type Database = {
         | "fechado"
         | "reaberto"
         | "cancelado"
+      cleaning_execution_status:
+        | "pendente"
+        | "em_execucao"
+        | "finalizado_limpeza"
+        | "aguardando_fiscalizacao"
+        | "reprovado"
+        | "corrigido"
+        | "aprovado"
       clinic_staff_role:
         | "admin"
         | "gestao"
@@ -16903,6 +17392,7 @@ export type Database = {
         | "inventory"
       procedure_execution_status: "em_andamento" | "finalizado" | "cancelado"
       risk_level: "low" | "medium" | "high" | "critical"
+      sanitary_risk_level: "critico" | "semicritico" | "nao_critico"
       schedule_status:
         | "sem_data"
         | "agendado"
@@ -17084,6 +17574,15 @@ export const Constants = {
         "reaberto",
         "cancelado",
       ],
+      cleaning_execution_status: [
+        "pendente",
+        "em_execucao",
+        "finalizado_limpeza",
+        "aguardando_fiscalizacao",
+        "reprovado",
+        "corrigido",
+        "aprovado",
+      ],
       clinic_staff_role: [
         "admin",
         "gestao",
@@ -17260,6 +17759,7 @@ export const Constants = {
       ],
       procedure_execution_status: ["em_andamento", "finalizado", "cancelado"],
       risk_level: ["low", "medium", "high", "critical"],
+      sanitary_risk_level: ["critico", "semicritico", "nao_critico"],
       schedule_status: [
         "sem_data",
         "agendado",
