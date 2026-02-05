@@ -304,19 +304,7 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
           />
 
           {/* Status e Responsável */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Status</label>
-              <Badge 
-                className={cn(
-                  "text-white",
-                  statusColors[lead.status as keyof typeof statusColors] || 'bg-[hsl(var(--avivar-muted))]'
-                )}
-              >
-                {lead.status || 'Novo'}
-              </Badge>
-            </div>
-            
+          <div className="space-y-3">            
             {lead.procedure_interest && (
               <div className="flex items-center justify-between">
                 <label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Interesse</label>
