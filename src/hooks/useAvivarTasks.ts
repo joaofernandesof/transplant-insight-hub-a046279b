@@ -16,9 +16,9 @@ interface LeadOption {
 }
 
 async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
-  // @ts-ignore - Type instantiation deep issue workaround
+  // Buscar leads do Kanban do Avivar (tabela correta)
   const { data, error } = await supabase
-    .from('leads')
+    .from('avivar_kanban_leads')
     .select('id, name, phone')
     .eq('user_id', userId)
     .order('name');
