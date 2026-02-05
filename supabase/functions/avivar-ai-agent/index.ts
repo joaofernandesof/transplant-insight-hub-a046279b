@@ -2425,14 +2425,27 @@ serve(async (req) => {
     console.log(`[AI Agent] Lead stage: ${leadStage}, kanban: ${kanbanId}`);
 
     // 2. Get routed agent based on kanban ID + stage (HYBRID ROUTING)
-    const routedAgent = await getRoutedAgent(supabase, userId, leadStage, kanbanId);
+    let routedAgent = await getRoutedAgent(supabase, userId, leadStage, kanbanId);
     
+    // If no agent configured, use a default fallback agent
     if (!routedAgent) {
-      console.log("[AI Agent] No agent configured, skipping");
-      return new Response(
-        JSON.stringify({ success: false, error: "Agent not configured" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      console.log("[AI Agent] No agent configured, using default fallback agent");
+      routedAgent = {
+        agent_id: "default-fallback",
+        agent_name: "Assistente Virtual",
+        personality: "cordial e profissional",
+        ai_identity: "Você é um assistente virtual de atendimento. Seja cordial, profissional e ajude o cliente com suas dúvidas.",
+        ai_instructions: "Responda de forma clara e objetiva. Pergunte como pode ajudar se não souber a intenção do cliente.",
+        ai_restrictions: "Não forneça diagnósticos médicos. Não faça promessas que não pode cumprir.",
+        ai_objective: "Ajudar o cliente com suas dúvidas e direcionar para o próximo passo.",
+        tone_of_voice: "cordial",
+        company_name: null,
+        professional_name: null,
+        fluxo_atendimento: null,
+        services: [],
+        target_kanbans: null,
+        target_stages: null
+      };
     }
 
     console.log(`[AI Agent] Using agent: ${routedAgent.agent_name} for stage ${leadStage}`);
