@@ -69,6 +69,42 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
   // Get pending tasks count from custom_fields
   const pendingTasks = (lead.custom_fields as Record<string, unknown>)?.pending_tasks as number | undefined;
 
+  // Get message preview with type indicator
+  const getMessagePreview = (
+    message: string | null | undefined, 
+    type: string | null | undefined,
+    direction: 'inbound' | 'outbound' | null | undefined
+  ): string => {
+    const prefix = direction === 'outbound' ? 'Você: ' : '';
+    
+    if (!message && !type) return '';
+    
+    // Handle media types
+    switch (type) {
+      case 'image':
+        return `${prefix}📷 Imagem`;
+      case 'audio':
+        return `${prefix}🎤 Áudio`;
+      case 'video':
+        return `${prefix}🎬 Vídeo`;
+      case 'document':
+        return `${prefix}📄 Documento`;
+      case 'sticker':
+        return `${prefix}🎨 Figurinha`;
+      case 'location':
+        return `${prefix}📍 Localização`;
+      case 'contact':
+        return `${prefix}👤 Contato`;
+      default:
+        // Truncate text message
+        if (message) {
+          const truncated = message.length > 35 ? message.substring(0, 35) + '...' : message;
+          return `${prefix}${truncated}`;
+        }
+        return '';
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -97,6 +133,12 @@ export function LeadCard({ lead, onDelete, onClick }: LeadCardProps) {
             <h4 className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">
               {lead.name}
             </h4>
+            {/* Last message preview */}
+            {lead.last_message !== undefined && (
+              <p className="text-[10px] text-[hsl(var(--avivar-muted-foreground))] truncate mt-0.5">
+                {getMessagePreview(lead.last_message, lead.last_message_type, lead.last_message_direction)}
+              </p>
+            )}
           </div>
         </div>
 

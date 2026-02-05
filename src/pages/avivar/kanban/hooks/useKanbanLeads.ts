@@ -21,6 +21,10 @@ export interface KanbanLead {
   custom_fields: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  // Last message preview
+  last_message?: string | null;
+  last_message_type?: string | null;
+  last_message_direction?: 'inbound' | 'outbound' | null;
 }
 
 export function useKanbanLeads(kanbanId: string | undefined) {
@@ -39,7 +43,61 @@ export function useKanbanLeads(kanbanId: string | undefined) {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as KanbanLead[];
+      
+      // Fetch last message for each lead that has a phone number
+      const leadsWithPhone = data.filter(lead => lead.phone);
+      const phones = leadsWithPhone.map(lead => lead.phone!);
+      
+      if (phones.length === 0) {
+        return data as KanbanLead[];
+      }
+
+      // Get last message for each phone from avivar_mensagens via avivar_conversas
+      const { data: conversas } = await supabase
+        .from('avivar_conversas')
+        .select('id, numero')
+        .in('numero', phones);
+      
+      const conversaMap = new Map(conversas?.map(c => [c.numero, c.id]) || []);
+      const conversaIds = conversas?.map(c => c.id) || [];
+      
+      let lastMessages: Record<string, { mensagem: string | null; tipo_mensagem: string | null; direcao: string }> = {};
+      
+      if (conversaIds.length > 0) {
+        // Get the latest message for each conversation
+        const { data: mensagens } = await supabase
+          .from('avivar_mensagens')
+          .select('conversa_id, mensagem, tipo_mensagem, direcao, data_hora')
+          .in('conversa_id', conversaIds)
+          .order('data_hora', { ascending: false });
+        
+        // Group by conversa_id and take the first (most recent)
+        if (mensagens) {
+          const seen = new Set<string>();
+          for (const msg of mensagens) {
+            if (!seen.has(msg.conversa_id)) {
+              seen.add(msg.conversa_id);
+              // Find the phone for this conversa
+              const phone = conversas?.find(c => c.id === msg.conversa_id)?.numero;
+              if (phone) {
+                lastMessages[phone] = {
+                  mensagem: msg.mensagem,
+                  tipo_mensagem: msg.tipo_mensagem,
+                  direcao: msg.direcao
+                };
+              }
+            }
+          }
+        }
+      }
+      
+      // Merge last message info into leads
+      return data.map(lead => ({
+        ...lead,
+        last_message: lead.phone ? lastMessages[lead.phone]?.mensagem : null,
+        last_message_type: lead.phone ? lastMessages[lead.phone]?.tipo_mensagem : null,
+        last_message_direction: lead.phone ? lastMessages[lead.phone]?.direcao as 'inbound' | 'outbound' | null : null,
+      })) as KanbanLead[];
     },
     enabled: !!kanbanId,
   });
