@@ -47,7 +47,6 @@ const getMenuItems = (counts: { unreadChats: number; overdueTasks: number }) => 
   { id: 'divider0', label: '', icon: null, href: '', isDivider: true },
   { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: counts.overdueTasks > 0 ? String(counts.overdueTasks) : undefined },
   { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup' },
-  { id: 'cadences', label: 'Cadências', icon: Zap, href: '/avivar/cadences' },
   { id: 'agenda', label: 'Agenda', icon: CalendarDays, href: '/avivar/agenda' },
   { id: 'divider1', label: '', icon: null, href: '', isDivider: true },
   { id: 'config', label: 'Configurar IA', icon: Sparkles, href: '/avivar/config' },

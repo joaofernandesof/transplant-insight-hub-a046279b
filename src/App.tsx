@@ -182,7 +182,6 @@ const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge
 const AvivarPromptPreview = lazy(() => import("./pages/avivar/config/AvivarPromptPreview"));
 const AvivarComercialPage = lazy(() => import("./pages/avivar/AvivarComercialPage"));
 const AvivarPosVendaPage = lazy(() => import("./pages/avivar/AvivarPosVendaPage"));
-const AvivarCadencesPage = lazy(() => import("./pages/avivar/AvivarCadencesPage"));
 const AvivarAgenda = lazy(() => import("./pages/avivar/AvivarAgenda"));
 const AvivarAgendaSettings = lazy(() => import("./pages/avivar/AvivarAgendaSettings"));
 const AvivarIntegrations = lazy(() => import("./pages/avivar/AvivarIntegrations"));
@@ -584,7 +583,6 @@ function AvivarRoutes() {
               <Route path="kanban/:kanbanId" element={<AvivarKanbanPage />} />
               <Route path="analytics" element={<AvivarAnalytics />} />
               <Route path="followup" element={<AvivarFollowUp />} />
-              <Route path="cadences" element={<AvivarCadencesPage />} />
               <Route path="catalog" element={<AvivarCatalog />} />
               <Route path="productivity" element={<AvivarProductivity />} />
               <Route path="hotleads" element={<HotLeads />} />
