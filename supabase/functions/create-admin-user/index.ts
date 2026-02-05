@@ -40,9 +40,8 @@ serve(async (req) => {
 
     const userId = authData.user!.id;
 
-    // All allowed portals
+    // All allowed portals (exceto admin)
     const allPortals = [
-      'admin',
       'avivar', 
       'cpg',
       'ibramec',
