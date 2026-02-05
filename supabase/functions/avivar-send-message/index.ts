@@ -124,8 +124,32 @@ serve(async (req) => {
 
     console.log("[Avivar Send Message] Sending to:", lead.phone);
 
-    // Determine which user owns this conversation (for finding their instance)
-    const ownerUserId = userId || conversation.assigned_to;
+    // Determine which account should be used to send messages.
+    // IMPORTANT: `crm_conversations.assigned_to` can be a team member (attendant),
+    // but the WhatsApp instance belongs to the account owner (owner_user_id).
+    // If we pick the wrong user_id here, we may send using the wrong UazAPI token/instance.
+    let ownerUserId: string | null = userId || conversation.assigned_to;
+
+    if (ownerUserId) {
+      const { data: teamMemberOwner, error: teamOwnerError } = await adminClient
+        .from("avivar_team_members")
+        .select("owner_user_id")
+        .eq("member_user_id", ownerUserId)
+        .limit(1)
+        .maybeSingle();
+
+      if (teamOwnerError) {
+        console.warn("[Avivar Send Message] Could not resolve team owner:", teamOwnerError);
+      }
+
+      if (teamMemberOwner?.owner_user_id) {
+        console.log(
+          "[Avivar Send Message] Resolved owner user id via team membership:",
+          teamMemberOwner.owner_user_id
+        );
+        ownerUserId = teamMemberOwner.owner_user_id;
+      }
+    }
     
     // Try to find the user's UazAPI instance first (new provisioning flow)
     let uazapiUrl: string | undefined = undefined;
@@ -134,7 +158,7 @@ serve(async (req) => {
     if (ownerUserId) {
       const { data: uazapiInstance } = await adminClient
         .from("avivar_uazapi_instances")
-        .select("id, instance_token")
+        .select("id, instance_name, instance_token")
         .eq("user_id", ownerUserId)
         .eq("status", "connected")
         .limit(1)
@@ -144,7 +168,10 @@ serve(async (req) => {
         // User has their own instance - use its token
         uazapiUrl = Deno.env.get("UAZAPI_URL"); // Base URL is shared
         uazapiToken = uazapiInstance.instance_token;
-        console.log("[Avivar Send Message] Using user's UazAPI instance");
+        console.log(
+          "[Avivar Send Message] Using owner's UazAPI instance:",
+          uazapiInstance.instance_name || uazapiInstance.id
+        );
       }
     }
 
