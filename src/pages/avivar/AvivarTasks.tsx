@@ -9,19 +9,10 @@ import { Plus, Clock, CheckCircle2, AlertTriangle, CalendarDays, Sparkles, Loade
 import { useAvivarTasks } from '@/hooks/useAvivarTasks';
 import { AvivarTasksPanel } from '@/components/avivar/AvivarTasksPanel';
 import { CreateTaskDialog } from '@/components/avivar/CreateTaskDialog';
-import { toast } from 'sonner';
 
 export default function AvivarTasks() {
   const { stats, isLoading, leads, createTask } = useAvivarTasks();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-
-  const handleOpenDialog = () => {
-    if (leads.length === 0) {
-      toast.error('Nenhum lead disponível. Crie um lead primeiro.');
-      return;
-    }
-    setShowCreateDialog(true);
-  };
 
   if (isLoading) {
     return (
@@ -43,7 +34,7 @@ export default function AvivarTasks() {
           <p className="text-[hsl(var(--avivar-muted-foreground))]">Gerencie suas atividades de vendas</p>
         </div>
         <Button 
-          onClick={handleOpenDialog}
+          onClick={() => setShowCreateDialog(true)}
           className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white shadow-lg shadow-[hsl(var(--avivar-primary)/0.25)]"
         >
           <Plus className="h-4 w-4 mr-2" />
