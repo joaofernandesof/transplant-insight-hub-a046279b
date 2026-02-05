@@ -334,14 +334,14 @@
              <div className="space-y-2">
                <Label className="text-[hsl(var(--avivar-foreground))]">Mover para Kanban/Etapa</Label>
                <Select
-                 value={formData.target_kanban_id}
-                 onValueChange={(value) => setFormData(prev => ({ ...prev, target_kanban_id: value, move_to_column_id: '' }))}
+                 value={formData.target_kanban_id || 'none'}
+                 onValueChange={(value) => setFormData(prev => ({ ...prev, target_kanban_id: value === 'none' ? '' : value, move_to_column_id: '' }))}
                >
                  <SelectTrigger className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]">
                    <SelectValue placeholder="Selecione um funil (opcional)" />
                  </SelectTrigger>
                  <SelectContent>
-                   <SelectItem value="">Nenhum</SelectItem>
+                   <SelectItem value="none">Nenhum</SelectItem>
                    {boards.map((board) => (
                      <SelectItem key={board.id} value={board.id}>{board.name}</SelectItem>
                    ))}
