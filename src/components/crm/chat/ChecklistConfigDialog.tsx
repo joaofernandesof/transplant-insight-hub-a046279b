@@ -47,6 +47,7 @@ const FIELD_TYPES = [
   { value: 'address', label: 'Endereço' },
   { value: 'datetime', label: 'Data e hora' },
   { value: 'file', label: 'Arquivo' },
+  { value: 'url', label: 'URL' },
 ];
 
 export function ChecklistConfigDialog({ open, onOpenChange, kanbanId, kanbanName }: Props) {
