@@ -20,6 +20,7 @@ interface Kanban {
   id: string;
   name: string;
   icon: string | null;
+  color: string | null;
 }
 
 interface Column {
@@ -38,7 +39,7 @@ export function KanbanColumnSelector({ selectedColumnIds, onSelectionChange }: P
     queryFn: async () => {
       const { data, error } = await supabase
         .from('avivar_kanbans')
-        .select('id, name, icon')
+        .select('id, name, icon, color')
         .order('order_index');
       
       if (error) throw error;
@@ -179,6 +180,12 @@ export function KanbanColumnSelector({ selectedColumnIds, onSelectionChange }: P
                   ) : (
                     <ChevronRight className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
                   )}
+                  {kanban.color && (
+                    <div 
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ backgroundColor: kanban.color }}
+                    />
+                  )}
                   <span className="text-sm text-[hsl(var(--avivar-foreground))] font-medium">
                     {kanban.name}
                   </span>
@@ -190,36 +197,40 @@ export function KanbanColumnSelector({ selectedColumnIds, onSelectionChange }: P
 
               {/* Columns */}
               {isExpanded && kanbanCols.length > 0 && (
-                <div className="ml-6 mt-1 space-y-1 border-l-2 border-[hsl(var(--avivar-border))] pl-3">
-                  {kanbanCols.map((column) => {
-                    const isSelected = selectedColumnIds.includes(column.id);
-                    
-                    return (
-                      <div
-                        key={column.id}
-                        className={cn(
-                          "flex items-center gap-2 p-2 rounded-md hover:bg-[hsl(var(--avivar-muted)/0.3)] cursor-pointer transition-colors",
-                          isSelected && "bg-[hsl(var(--avivar-primary)/0.1)]"
-                        )}
-                        onClick={() => toggleColumn(column.id)}
-                      >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleColumn(column.id)}
-                          className="border-[hsl(var(--avivar-border))] data-[state=checked]:bg-[hsl(var(--avivar-primary))] data-[state=checked]:border-[hsl(var(--avivar-primary))]"
-                        />
-                        {column.color && (
-                          <div 
-                            className="w-3 h-3 rounded-sm shrink-0"
-                            style={{ backgroundColor: column.color }}
-                          />
-                        )}
-                        <span className="text-sm text-[hsl(var(--avivar-foreground))]">
-                          {column.name}
-                        </span>
-                      </div>
-                    );
-                  })}
+                <div className="ml-6 mt-1 border-l-2 border-[hsl(var(--avivar-border))] pl-3">
+                  <ScrollArea className="max-h-[150px]">
+                    <div className="space-y-1 pr-2">
+                      {kanbanCols.map((column) => {
+                        const isSelected = selectedColumnIds.includes(column.id);
+                        
+                        return (
+                          <div
+                            key={column.id}
+                            className={cn(
+                              "flex items-center gap-2 p-2 rounded-md hover:bg-[hsl(var(--avivar-muted)/0.3)] cursor-pointer transition-colors",
+                              isSelected && "bg-[hsl(var(--avivar-primary)/0.1)]"
+                            )}
+                            onClick={() => toggleColumn(column.id)}
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleColumn(column.id)}
+                              className="border-[hsl(var(--avivar-border))] data-[state=checked]:bg-[hsl(var(--avivar-primary))] data-[state=checked]:border-[hsl(var(--avivar-primary))]"
+                            />
+                            {column.color && (
+                              <div 
+                                className="w-3 h-3 rounded-full shrink-0"
+                                style={{ backgroundColor: column.color }}
+                              />
+                            )}
+                            <span className="text-sm text-[hsl(var(--avivar-foreground))]">
+                              {column.name}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
                 </div>
               )}
             </div>
