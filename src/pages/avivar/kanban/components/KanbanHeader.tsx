@@ -171,11 +171,11 @@ export function KanbanHeader({
               
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onImport} className="cursor-pointer">
-                <Upload className="h-4 w-4 mr-2" />
+                <Download className="h-4 w-4 mr-2 text-red-500" />
                 Importar Leads
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onExport} className="cursor-pointer">
-                <Download className="h-4 w-4 mr-2" />
+                <Upload className="h-4 w-4 mr-2 text-green-500" />
                 Exportar Leads
               </DropdownMenuItem>
             </DropdownMenuContent>
