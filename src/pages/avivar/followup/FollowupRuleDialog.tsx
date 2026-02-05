@@ -1,30 +1,33 @@
- import React, { useState, useEffect } from 'react';
- import {
-   Dialog,
-   DialogContent,
-   DialogDescription,
-   DialogHeader,
-   DialogTitle,
-   DialogFooter,
- } from '@/components/ui/dialog';
- import { Button } from '@/components/ui/button';
- import { Input } from '@/components/ui/input';
- import { Label } from '@/components/ui/label';
- import { Textarea } from '@/components/ui/textarea';
- import { Switch } from '@/components/ui/switch';
- import {
-   Select,
-   SelectContent,
-   SelectItem,
-   SelectTrigger,
-   SelectValue,
- } from '@/components/ui/select';
- import { Badge } from '@/components/ui/badge';
- import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
- import { Brain, Clock, Zap, Calendar, Info } from 'lucide-react';
- import { TEMPLATE_VARIABLES } from '@/hooks/useFollowupTemplates';
- import type { FollowupRule, CreateFollowupRuleInput } from '@/hooks/useFollowupRules';
- import { useKanbanBoards } from '@/hooks/useKanbanBoards';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward } from 'lucide-react';
+import { TEMPLATE_VARIABLES } from '@/hooks/useFollowupTemplates';
+import type { FollowupRule, CreateFollowupRuleInput } from '@/hooks/useFollowupRules';
+import { useKanbanBoards } from '@/hooks/useKanbanBoards';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
  
  interface FollowupRuleDialogProps {
    open: boolean;
@@ -46,95 +49,174 @@
    const { boards, columns } = useKanbanBoards();
    const isEditing = !!rule;
  
-   const [formData, setFormData] = useState({
-     name: '',
-     attempt_number: existingRulesCount + 1,
-     delay_value: 30,
-     delay_type: 'minutes' as 'minutes' | 'hours' | 'days',
-     message_template: '',
-     urgency_level: 'soft' as 'soft' | 'medium' | 'urgent',
-     use_ai_generation: false,
-     ai_context: '',
-     respect_business_hours: true,
-     business_hours_start: '08:00',
-     business_hours_end: '18:00',
-     excluded_days: [0, 6],
-     target_kanban_id: '',
-     move_to_column_id: '',
-     create_task_on_failure: false,
-     max_attempts: 3,
-   });
+  const [formData, setFormData] = useState({
+    name: '',
+    attempt_number: existingRulesCount + 1,
+    delay_value: 30,
+    delay_type: 'minutes' as 'minutes' | 'hours' | 'days',
+    message_template: '',
+    urgency_level: 'soft' as 'soft' | 'medium' | 'urgent',
+    use_ai_generation: false,
+    ai_context: '',
+    respect_business_hours: true,
+    business_hours_start: '08:00',
+    business_hours_end: '18:00',
+    excluded_days: [0, 6],
+    target_kanban_id: '',
+    move_to_column_id: '',
+    create_task_on_failure: false,
+    max_attempts: 3,
+    // Audio fields
+    audio_url: '' as string,
+    audio_type: null as 'ptt' | 'audio' | null,
+    audio_forward: false,
+  });
+  
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const audioInputRef = useRef<HTMLInputElement>(null);
  
-   useEffect(() => {
-     if (rule) {
-       let delayValue = rule.delay_minutes;
-       let delayType: 'minutes' | 'hours' | 'days' = 'minutes';
-       
-       if (rule.delay_minutes >= 1440) {
-         delayValue = rule.delay_minutes / 1440;
-         delayType = 'days';
-       } else if (rule.delay_minutes >= 60) {
-         delayValue = rule.delay_minutes / 60;
-         delayType = 'hours';
-       }
- 
-       setFormData({
-         name: rule.name || '',
-         attempt_number: rule.attempt_number,
-         delay_value: delayValue,
-         delay_type: delayType,
-         message_template: rule.message_template,
-         urgency_level: rule.urgency_level,
-         use_ai_generation: rule.use_ai_generation,
-         ai_context: rule.ai_context || '',
-         respect_business_hours: rule.respect_business_hours,
-         business_hours_start: rule.business_hours_start || '08:00',
-         business_hours_end: rule.business_hours_end || '18:00',
-         excluded_days: rule.excluded_days || [0, 6],
-         target_kanban_id: rule.target_kanban_id || '',
-         move_to_column_id: rule.move_to_column_id || '',
-         create_task_on_failure: rule.create_task_on_failure,
-         max_attempts: rule.max_attempts,
-       });
-     } else {
-       setFormData(prev => ({
-         ...prev,
-         name: `Tentativa ${existingRulesCount + 1}`,
-         attempt_number: existingRulesCount + 1,
-       }));
-     }
-   }, [rule, existingRulesCount, open]);
- 
-   const handleSubmit = () => {
-     let delayMinutes = formData.delay_value;
-     if (formData.delay_type === 'hours') delayMinutes *= 60;
-     if (formData.delay_type === 'days') delayMinutes *= 1440;
- 
-     const data = {
-       name: formData.name,
-       attempt_number: formData.attempt_number,
-       delay_minutes: delayMinutes,
-       delay_type: formData.delay_type,
-       message_template: formData.message_template,
-       urgency_level: formData.urgency_level,
-       use_ai_generation: formData.use_ai_generation,
-       ai_context: formData.ai_context || null,
-       respect_business_hours: formData.respect_business_hours,
-       business_hours_start: formData.business_hours_start,
-       business_hours_end: formData.business_hours_end,
-       excluded_days: formData.excluded_days,
-       target_kanban_id: formData.target_kanban_id || null,
-       move_to_column_id: formData.move_to_column_id || null,
-       create_task_on_failure: formData.create_task_on_failure,
-       max_attempts: formData.max_attempts,
-     };
- 
-     if (isEditing && rule) {
-       onSave({ id: rule.id, ...data });
-     } else {
-       onSave(data);
-     }
-   };
+  useEffect(() => {
+    if (rule) {
+      let delayValue = rule.delay_minutes;
+      let delayType: 'minutes' | 'hours' | 'days' = 'minutes';
+      
+      if (rule.delay_minutes >= 1440) {
+        delayValue = rule.delay_minutes / 1440;
+        delayType = 'days';
+      } else if (rule.delay_minutes >= 60) {
+        delayValue = rule.delay_minutes / 60;
+        delayType = 'hours';
+      }
+
+      setFormData({
+        name: rule.name || '',
+        attempt_number: rule.attempt_number,
+        delay_value: delayValue,
+        delay_type: delayType,
+        message_template: rule.message_template,
+        urgency_level: rule.urgency_level,
+        use_ai_generation: rule.use_ai_generation,
+        ai_context: rule.ai_context || '',
+        respect_business_hours: rule.respect_business_hours,
+        business_hours_start: rule.business_hours_start || '08:00',
+        business_hours_end: rule.business_hours_end || '18:00',
+        excluded_days: rule.excluded_days || [0, 6],
+        target_kanban_id: rule.target_kanban_id || '',
+        move_to_column_id: rule.move_to_column_id || '',
+        create_task_on_failure: rule.create_task_on_failure,
+        max_attempts: rule.max_attempts,
+        // Audio fields
+        audio_url: rule.audio_url || '',
+        audio_type: rule.audio_type || null,
+        audio_forward: rule.audio_forward || false,
+      });
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        name: `Tentativa ${existingRulesCount + 1}`,
+        attempt_number: existingRulesCount + 1,
+        audio_url: '',
+        audio_type: null,
+        audio_forward: false,
+      }));
+    }
+  }, [rule, existingRulesCount, open]);
+
+  // Handle audio file upload
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/ogg', 'audio/wav', 'audio/m4a', 'audio/mp4'];
+    if (!validTypes.some(type => file.type.includes(type.split('/')[1]))) {
+      toast.error('Formato de áudio não suportado. Use MP3 ou OGG.');
+      return;
+    }
+
+    // Validate file size (max 16MB)
+    if (file.size > 16 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo 16MB.');
+      return;
+    }
+
+    setIsUploadingAudio(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `followup-audio/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avivar-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avivar-media')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({
+        ...prev,
+        audio_url: publicUrl,
+        audio_type: prev.audio_type || 'ptt', // Default to PTT
+      }));
+      
+      toast.success('Áudio enviado com sucesso!');
+    } catch (error) {
+      console.error('Error uploading audio:', error);
+      toast.error('Erro ao enviar áudio');
+    } finally {
+      setIsUploadingAudio(false);
+      if (audioInputRef.current) {
+        audioInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeAudio = () => {
+    setFormData(prev => ({
+      ...prev,
+      audio_url: '',
+      audio_type: null,
+      audio_forward: false,
+    }));
+  };
+
+  const handleSubmit = () => {
+    let delayMinutes = formData.delay_value;
+    if (formData.delay_type === 'hours') delayMinutes *= 60;
+    if (formData.delay_type === 'days') delayMinutes *= 1440;
+
+    const data = {
+      name: formData.name,
+      attempt_number: formData.attempt_number,
+      delay_minutes: delayMinutes,
+      delay_type: formData.delay_type,
+      message_template: formData.message_template,
+      urgency_level: formData.urgency_level,
+      use_ai_generation: formData.use_ai_generation,
+      ai_context: formData.ai_context || null,
+      respect_business_hours: formData.respect_business_hours,
+      business_hours_start: formData.business_hours_start,
+      business_hours_end: formData.business_hours_end,
+      excluded_days: formData.excluded_days,
+      target_kanban_id: formData.target_kanban_id || null,
+      move_to_column_id: formData.move_to_column_id || null,
+      create_task_on_failure: formData.create_task_on_failure,
+      max_attempts: formData.max_attempts,
+      // Audio fields
+      audio_url: formData.audio_url || null,
+      audio_type: formData.audio_type,
+      audio_forward: formData.audio_forward,
+    };
+
+    if (isEditing && rule) {
+      onSave({ id: rule.id, ...data });
+    } else {
+      onSave(data);
+    }
+  };
  
    const insertVariable = (variable: string) => {
      setFormData(prev => ({
@@ -235,28 +317,139 @@
                </div>
              </div>
  
-             <div className="space-y-2">
-               <Label className="text-[hsl(var(--avivar-foreground))]">Mensagem</Label>
-               <Textarea
-                 value={formData.message_template}
-                 onChange={(e) => setFormData(prev => ({ ...prev, message_template: e.target.value }))}
-                 placeholder="Olá {{primeiro_nome}}! Vi que você demonstrou interesse..."
-                 className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] min-h-[100px]"
-               />
-               <div className="flex flex-wrap gap-2">
-                 {TEMPLATE_VARIABLES.map((v) => (
-                   <Badge
-                     key={v.key}
-                     variant="outline"
-                     className="cursor-pointer hover:bg-[hsl(var(--avivar-primary)/0.1)] border-[hsl(var(--avivar-border))]"
-                     onClick={() => insertVariable(v.key)}
-                   >
-                     {v.key}
-                   </Badge>
-                 ))}
-               </div>
-             </div>
-           </TabsContent>
+            <div className="space-y-2">
+                <Label className="text-[hsl(var(--avivar-foreground))]">Mensagem de Texto</Label>
+                <Textarea
+                  value={formData.message_template}
+                  onChange={(e) => setFormData(prev => ({ ...prev, message_template: e.target.value }))}
+                  placeholder="Olá {{primeiro_nome}}! Vi que você demonstrou interesse..."
+                  className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] min-h-[100px]"
+                />
+                <div className="flex flex-wrap gap-2">
+                  {TEMPLATE_VARIABLES.map((v) => (
+                    <Badge
+                      key={v.key}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-[hsl(var(--avivar-primary)/0.1)] border-[hsl(var(--avivar-border))]"
+                      onClick={() => insertVariable(v.key)}
+                    >
+                      {v.key}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Audio Section */}
+              <div className="space-y-3 p-4 rounded-lg border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary)/0.5)]">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+                    <Mic className="h-4 w-4" />
+                    Áudio (opcional)
+                  </Label>
+                </div>
+
+                {!formData.audio_url ? (
+                  <div className="space-y-2">
+                    <input
+                      ref={audioInputRef}
+                      type="file"
+                      accept="audio/mpeg,audio/mp3,audio/ogg,audio/wav,audio/m4a"
+                      onChange={handleAudioUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => audioInputRef.current?.click()}
+                      disabled={isUploadingAudio}
+                      className="w-full border-dashed border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))]"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isUploadingAudio ? 'Enviando...' : 'Enviar arquivo de áudio (MP3, OGG)'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Audio Preview */}
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))]">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[hsl(var(--avivar-primary)/0.2)] flex items-center justify-center">
+                        <Music className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <audio controls className="w-full h-8" src={formData.audio_url}>
+                          Seu navegador não suporta áudio.
+                        </audio>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={removeAudio}
+                        className="flex-shrink-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Audio Type Selection */}
+                    <div className="space-y-3">
+                      <Label className="text-[hsl(var(--avivar-foreground))] text-sm">
+                        Como o áudio deve aparecer para o lead?
+                      </Label>
+                      <RadioGroup
+                        value={formData.audio_type || 'ptt'}
+                        onValueChange={(value: 'ptt' | 'audio') => setFormData(prev => ({ ...prev, audio_type: value }))}
+                        className="space-y-2"
+                      >
+                        <div className="flex items-start space-x-3 p-3 rounded-lg border border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))] cursor-pointer">
+                          <RadioGroupItem value="ptt" id="ptt" className="mt-0.5" />
+                          <label htmlFor="ptt" className="flex-1 cursor-pointer">
+                            <div className="flex items-center gap-2">
+                              <Mic className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                              <span className="font-medium text-[hsl(var(--avivar-foreground))]">Mensagem de voz</span>
+                            </div>
+                            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">
+                              Aparece como se você tivesse gravado na hora (bolinha com avatar)
+                            </p>
+                          </label>
+                        </div>
+                        <div className="flex items-start space-x-3 p-3 rounded-lg border border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))] cursor-pointer">
+                          <RadioGroupItem value="audio" id="audio" className="mt-0.5" />
+                          <label htmlFor="audio" className="flex-1 cursor-pointer">
+                            <div className="flex items-center gap-2">
+                              <Music className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                              <span className="font-medium text-[hsl(var(--avivar-foreground))]">Arquivo de áudio</span>
+                            </div>
+                            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] mt-1">
+                              Aparece como um arquivo de áudio enviado (ícone de microfone laranja)
+                            </p>
+                          </label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {/* Forward Option (only for audio type) */}
+                    {formData.audio_type === 'audio' && (
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-[hsl(var(--avivar-border))]">
+                        <div className="flex items-center gap-3">
+                          <Forward className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+                          <div>
+                            <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">Marcar como "Encaminhada"</p>
+                            <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                              Mostra "↪ Encaminhada" acima do áudio
+                            </p>
+                          </div>
+                        </div>
+                        <Switch
+                          checked={formData.audio_forward}
+                          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, audio_forward: checked }))}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
  
            <TabsContent value="timing" className="space-y-4">
              <div className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-secondary))]">
@@ -421,18 +614,18 @@
            </TabsContent>
          </Tabs>
  
-         <DialogFooter>
-           <Button variant="outline" onClick={() => onOpenChange(false)} className="border-[hsl(var(--avivar-border))]">
-             Cancelar
-           </Button>
-           <Button 
-             onClick={handleSubmit} 
-             disabled={isLoading || !formData.message_template}
-             className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]"
-           >
-             {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Regra'}
-           </Button>
-         </DialogFooter>
+        <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="border-[hsl(var(--avivar-border))]">
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isLoading || (!formData.message_template && !formData.audio_url)}
+              className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]"
+            >
+              {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Regra'}
+            </Button>
+          </DialogFooter>
        </DialogContent>
      </Dialog>
    );

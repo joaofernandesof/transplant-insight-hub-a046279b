@@ -1,19 +1,22 @@
- import React from 'react';
- import { Badge } from '@/components/ui/badge';
- import { Button } from '@/components/ui/button';
- import { Switch } from '@/components/ui/switch';
- import { 
-   Clock, 
-   MessageSquare, 
-   Edit2, 
-   Trash2, 
-   Zap,
-   Brain,
-   Calendar,
-   ArrowRight,
- } from 'lucide-react';
- import { cn } from '@/lib/utils';
- import type { FollowupRule } from '@/hooks/useFollowupRules';
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { 
+  Clock, 
+  MessageSquare, 
+  Edit2, 
+  Trash2, 
+  Zap,
+  Brain,
+  Calendar,
+  ArrowRight,
+  Mic,
+  Music,
+  Forward,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { FollowupRule } from '@/hooks/useFollowupRules';
  
  interface FollowupRuleCardProps {
    rule: FollowupRule;
@@ -79,12 +82,21 @@
                    IA
                  </Badge>
                )}
-               {rule.respect_business_hours && (
-                 <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))]">
-                   <Calendar className="h-3 w-3 mr-1" />
-                   Horário comercial
-                 </Badge>
-               )}
+              {rule.respect_business_hours && (
+                  <Badge variant="outline" className="text-xs border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-muted-foreground))]">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Horário comercial
+                  </Badge>
+                )}
+                {rule.audio_url && (
+                  <Badge className="text-xs bg-orange-500/20 text-orange-500 border-orange-500/30">
+                    {rule.audio_type === 'ptt' ? (
+                      <><Mic className="h-3 w-3 mr-1" />Voz</>
+                    ) : (
+                      <><Music className="h-3 w-3 mr-1" />Áudio{rule.audio_forward && <Forward className="h-3 w-3 ml-1" />}</>
+                    )}
+                  </Badge>
+                )}
              </div>
              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] mt-1">
                <Clock className="h-3 w-3 inline mr-1" />
