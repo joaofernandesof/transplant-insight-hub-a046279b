@@ -227,7 +227,7 @@ export default function SpotlightTour({ isOpen, onComplete }: SpotlightTourProps
   return (
     <div className="fixed inset-0 z-[9999]">
       {/* Overlay with spotlight cutout */}
-      <svg className="absolute inset-0 w-full h-full">
+      <svg className="absolute inset-0 w-full h-full pointer-events-none">
         <defs>
           <mask id="spotlight-mask">
             <rect width="100%" height="100%" fill="white" />
