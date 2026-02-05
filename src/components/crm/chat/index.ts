@@ -9,3 +9,5 @@ export { MessageBubble } from './MessageBubble';
 export { MessageThread } from './MessageThread';
 export { MessageInput } from './MessageInput';
 export { ChatHeader } from './ChatHeader';
+ export { TaskInlineInput } from './TaskInlineInput';
+ export { TaskBanner } from './TaskBanner';
