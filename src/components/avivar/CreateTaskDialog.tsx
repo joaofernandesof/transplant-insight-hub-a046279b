@@ -2,10 +2,10 @@
   * CreateTaskDialog - Modal para criar nova tarefa
   */
  
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
  import { format, addDays, addHours } from 'date-fns';
  import { ptBR } from 'date-fns/locale';
-import { Loader2, CalendarDays, Phone, User } from 'lucide-react';
+import { Loader2, CalendarDays, Search, User, Phone, Plus } from 'lucide-react';
  import {
    Dialog,
    DialogContent,
@@ -29,7 +29,7 @@ import { Loader2, CalendarDays, Phone, User } from 'lucide-react';
    PopoverContent,
    PopoverTrigger,
  } from '@/components/ui/popover';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
  import { cn } from '@/lib/utils';
  import { CreateAvivarTaskData } from '@/hooks/useAvivarTasks';
  
@@ -57,35 +57,59 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
  }: CreateTaskDialogProps) {
    const [title, setTitle] = useState('');
    const [description, setDescription] = useState('');
-   const [leadId, setLeadId] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [assignmentMode, setAssignmentMode] = useState<'lead' | 'phone'>(leads.length > 0 ? 'lead' : 'phone');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLead, setSelectedLead] = useState<{ id: string; name: string; phone: string | null } | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
    const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
    const [dueDate, setDueDate] = useState<Date | undefined>(addDays(new Date(), 1));
    const [dueTime, setDueTime] = useState('09:00');
  
+  // Filter leads based on search query
+  const filteredLeads = useMemo(() => {
+    if (!searchQuery.trim()) return leads.slice(0, 10);
+    
+    const query = searchQuery.toLowerCase().trim();
+    return leads.filter(lead => 
+      lead.name.toLowerCase().includes(query) ||
+      (lead.phone && lead.phone.includes(query))
+    ).slice(0, 10);
+  }, [leads, searchQuery]);
+
+  // Check if search query looks like a phone number (for new lead creation)
+  const isPhoneNumber = useMemo(() => {
+    const cleaned = searchQuery.replace(/\D/g, '');
+    return cleaned.length >= 8;
+  }, [searchQuery]);
+
   // Reset form when dialog opens/closes
   useEffect(() => {
     if (open) {
       setTitle('');
       setDescription('');
-      setLeadId('');
-      setPhoneNumber('');
-      setContactName('');
-      setAssignmentMode(leads.length > 0 ? 'lead' : 'phone');
+      setSearchQuery('');
+      setSelectedLead(null);
+      setShowSuggestions(false);
       setPriority('medium');
       setDueDate(addDays(new Date(), 1));
       setDueTime('09:00');
     }
-  }, [open, leads.length]);
+  }, [open]);
+
+  const handleSelectLead = (lead: { id: string; name: string; phone: string | null }) => {
+    setSelectedLead(lead);
+    setSearchQuery(lead.name + (lead.phone ? ` (${lead.phone})` : ''));
+    setShowSuggestions(false);
+  };
+
+  const handleCreateNewWithPhone = () => {
+    const phone = searchQuery.replace(/\D/g, '');
+    setSelectedLead({ id: '', name: `Novo Lead`, phone });
+    setShowSuggestions(false);
+  };
 
    const handleSubmit = () => {
     if (!title.trim()) return;
-    
-    // Validate based on assignment mode
-    if (assignmentMode === 'lead' && !leadId) return;
-    if (assignmentMode === 'phone' && !phoneNumber.trim()) return;
+    if (!selectedLead) return;
  
      let due_at: string | undefined;
      if (dueDate) {
@@ -102,20 +126,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
        due_at,
     };
 
-    if (assignmentMode === 'lead') {
-      taskData.lead_id = leadId;
+    if (selectedLead.id) {
+      taskData.lead_id = selectedLead.id;
     } else {
-      taskData.phone_number = phoneNumber.trim();
-      taskData.contact_name = contactName.trim() || undefined;
+      // New lead with phone
+      taskData.phone_number = selectedLead.phone || '';
     }
 
     onCreate(taskData);
    };
  
-  const isValid = title.trim() && (
-    (assignmentMode === 'lead' && leadId) ||
-    (assignmentMode === 'phone' && phoneNumber.trim())
-  );
+  const isValid = title.trim() && selectedLead;
 
    return (
      <Dialog open={open} onOpenChange={onOpenChange}>
@@ -125,62 +146,105 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
          </DialogHeader>
  
          <div className="space-y-4 py-4">
-          {/* Assignment Mode Tabs */}
+          {/* Lead Search */}
            <div className="space-y-2">
-            <Label className="text-[hsl(var(--avivar-foreground))]">Atribuir a *</Label>
-            <Tabs value={assignmentMode} onValueChange={(v) => setAssignmentMode(v as 'lead' | 'phone')}>
-              <TabsList className="grid w-full grid-cols-2 bg-[hsl(var(--avivar-background))]">
-                <TabsTrigger 
-                  value="lead" 
-                  className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
-                  disabled={leads.length === 0}
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Lead Existente
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="phone"
-                  className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
-                >
-                  <Phone className="h-4 w-4 mr-2" />
-                  Telefone
-                </TabsTrigger>
-              </TabsList>
+            <Label className="text-[hsl(var(--avivar-foreground))]">Atribuir tarefa para:</Label>
+            <div className="relative">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />
+                <Input
+                  placeholder="Buscar por nome ou telefone..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSelectedLead(null);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  className="pl-10 bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                />
+              </div>
 
-              <TabsContent value="lead" className="mt-3">
-                <Select value={leadId} onValueChange={setLeadId}>
-                  <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
-                    <SelectValue placeholder="Selecione um lead" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] max-h-[200px]">
-                    {leads.map((lead) => (
-                      <SelectItem key={lead.id} value={lead.id}>
-                        {lead.name} {lead.phone && `(${lead.phone})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TabsContent>
+              {/* Suggestions Dropdown */}
+              {showSuggestions && (searchQuery || leads.length > 0) && (
+                <div className="absolute z-50 w-full mt-1 bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] rounded-md shadow-lg">
+                  <ScrollArea className="max-h-[200px]">
+                    {filteredLeads.length > 0 ? (
+                      <div className="py-1">
+                        {filteredLeads.map((lead) => (
+                          <button
+                            key={lead.id}
+                            type="button"
+                            onClick={() => handleSelectLead(lead)}
+                            className="w-full px-3 py-2 text-left hover:bg-[hsl(var(--avivar-primary)/0.1)] flex items-center gap-3 transition-colors"
+                          >
+                            <div className="h-8 w-8 rounded-full bg-[hsl(var(--avivar-primary)/0.2)] flex items-center justify-center">
+                              <User className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))] truncate">
+                                {lead.name}
+                              </p>
+                              {lead.phone && (
+                                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))] flex items-center gap-1">
+                                  <Phone className="h-3 w-3" />
+                                  {lead.phone}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : searchQuery && (
+                      <div className="py-2 px-3 text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                        Nenhum lead encontrado
+                      </div>
+                    )}
 
-              <TabsContent value="phone" className="mt-3 space-y-3">
-                <div>
-                  <Input
-                    placeholder="Telefone (ex: 11999999999)"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-                  />
+                    {/* Option to create new lead with phone */}
+                    {isPhoneNumber && !filteredLeads.some(l => l.phone === searchQuery.replace(/\D/g, '')) && (
+                      <button
+                        type="button"
+                        onClick={handleCreateNewWithPhone}
+                        className="w-full px-3 py-2 text-left hover:bg-[hsl(var(--avivar-primary)/0.1)] flex items-center gap-3 border-t border-[hsl(var(--avivar-border))] transition-colors"
+                      >
+                        <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                          <Plus className="h-4 w-4 text-emerald-500" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
+                            Criar novo lead
+                          </p>
+                          <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                            com telefone {searchQuery.replace(/\D/g, '')}
+                          </p>
+                        </div>
+                      </button>
+                    )}
+                  </ScrollArea>
                 </div>
-                <div>
-                  <Input
-                    placeholder="Nome do contato (opcional)"
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
-                  />
+              )}
+
+              {/* Selected Lead Badge */}
+              {selectedLead && (
+                <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-[hsl(var(--avivar-primary)/0.1)] rounded-full border border-[hsl(var(--avivar-primary)/0.3)]">
+                  <User className="h-3 w-3 text-[hsl(var(--avivar-primary))]" />
+                  <span className="text-sm text-[hsl(var(--avivar-foreground))]">
+                    {selectedLead.id ? selectedLead.name : `Novo: ${selectedLead.phone}`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedLead(null);
+                      setSearchQuery('');
+                    }}
+                    className="ml-1 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-foreground))]"
+                  >
+                    ×
+                  </button>
                 </div>
-              </TabsContent>
-            </Tabs>
+              )}
+            </div>
            </div>
  
            {/* Title */}
