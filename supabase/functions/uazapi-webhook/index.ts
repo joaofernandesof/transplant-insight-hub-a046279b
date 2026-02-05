@@ -839,6 +839,9 @@ serve(async (req) => {
                       
                       const now = new Date();
                       const existingPendingUntil = currentConv?.pending_until ? new Date(currentConv.pending_until) : null;
+                      
+                      // A batch is only "active" if it exists AND its pending_until hasn't passed yet
+                      // If pending_until has passed, the debounce processor has likely finished or failed
                       const hasPendingBatch = currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil > now;
                       
                       if (hasPendingBatch) {
@@ -850,7 +853,11 @@ serve(async (req) => {
                           .update({ pending_until: pendingUntil })
                           .eq("id", crmConversationId);
                       } else {
-                        // Create new batch and start debounce processor
+                        // Either no batch exists OR the old batch expired (processor finished/failed)
+                        // In both cases, we need to start a fresh batch and processor
+                        if (currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil <= now) {
+                          console.log(`[UazAPI Webhook] ⚠️ Old batch ${currentConv.pending_batch_id} expired at ${existingPendingUntil.toISOString()}, starting fresh`);
+                        }
                         console.log(`[UazAPI Webhook] Creating new debounce batch ${newBatchId}, will process at ${pendingUntil}`);
                         
                         await supabase
