@@ -140,12 +140,6 @@ export function HomeBannerCarousel() {
                     </p>
                   )}
                   
-                  {/* CTA Arrow */}
-                  <div className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2">
-                    <div className="p-2 sm:p-3 rounded-full bg-white/20 backdrop-blur-sm group-hover:bg-white/30 transition-colors">
-                      <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
-                    </div>
-                  </div>
                 </div>
 
                 {/* Decorative elements */}
