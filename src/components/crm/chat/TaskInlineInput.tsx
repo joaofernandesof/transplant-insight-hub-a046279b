@@ -4,23 +4,17 @@
   */
  
  import { useState, useEffect } from 'react';
- import { format, addMinutes, addHours, addDays, addWeeks, addMonths, addYears } from 'date-fns';
+ import { format, addDays, parse, isValid } from 'date-fns';
  import { ptBR } from 'date-fns/locale';
  import { X, Check, ChevronDown, Loader2 } from 'lucide-react';
  import { Button } from '@/components/ui/button';
  import { Input } from '@/components/ui/input';
- import { Calendar } from '@/components/ui/calendar';
- import {
-   Popover,
-   PopoverContent,
-   PopoverTrigger,
- } from '@/components/ui/popover';
+ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
  import { cn } from '@/lib/utils';
  import { useAuth } from '@/contexts/AuthContext';
  import { supabase } from '@/integrations/supabase/client';
  import { useQuery } from '@tanstack/react-query';
  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
- import { ScrollArea } from '@/components/ui/scroll-area';
  
  interface TeamMember {
    id: string;
@@ -42,35 +36,13 @@
    isSubmitting?: boolean;
  }
  
- const quickDateOptions = [
-   { label: 'Após 15 minutos', getValue: () => addMinutes(new Date(), 15) },
-   { label: 'Após 30 minutos', getValue: () => addMinutes(new Date(), 30) },
-   { label: 'Em uma hora', getValue: () => addHours(new Date(), 1) },
-   { label: 'Hoje', getValue: () => new Date() },
-   { label: 'Amanhã', getValue: () => addDays(new Date(), 1) },
-   { label: 'Esta semana', getValue: () => addDays(new Date(), 3) },
-   { label: 'Em 7 dias', getValue: () => addWeeks(new Date(), 1) },
-   { label: 'Em 30 dias', getValue: () => addMonths(new Date(), 1) },
-   { label: 'Em 1 ano', getValue: () => addYears(new Date(), 1) },
- ];
- 
- const timeSlots = Array.from({ length: 24 }, (_, hour) => {
-   return [
-     `${hour.toString().padStart(2, '0')}:00`,
-     `${hour.toString().padStart(2, '0')}:30`,
-   ];
- }).flat();
- 
  export function TaskInlineInput({ leadId, onCancel, onSubmit, isSubmitting }: TaskInlineInputProps) {
    const { user } = useAuth();
    const [title, setTitle] = useState('');
    const [selectedDate, setSelectedDate] = useState<Date>(addDays(new Date(), 1));
    const [selectedTime, setSelectedTime] = useState('09:00');
-   const [isAllDay, setIsAllDay] = useState(false);
    const [assignedTo, setAssignedTo] = useState<string>(user?.id || '');
    
-   const [showDatePicker, setShowDatePicker] = useState(false);
-   const [showTimePicker, setShowTimePicker] = useState(false);
    const [showAssigneePicker, setShowAssigneePicker] = useState(false);
  
    // Set default assignee to current user
@@ -120,32 +92,25 @@
        .slice(0, 2);
    };
  
-   const handleQuickDate = (getValue: () => Date) => {
-     setSelectedDate(getValue());
-     setShowDatePicker(false);
+   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+     const value = e.target.value;
+     // Try parsing dd.MM.yyyy format
+     const parsed = parse(value, 'dd.MM.yyyy', new Date());
+     if (isValid(parsed)) {
+       setSelectedDate(parsed);
+     }
    };
  
-   const handleTimeSelect = (time: string) => {
-     setSelectedTime(time);
-     setIsAllDay(false);
-     setShowTimePicker(false);
-   };
- 
-   const handleAllDay = () => {
-     setIsAllDay(true);
-     setShowTimePicker(false);
+   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+     setSelectedTime(e.target.value);
    };
  
    const handleSubmit = () => {
      if (!title.trim()) return;
  
      const dueDate = new Date(selectedDate);
-     if (!isAllDay) {
-       const [hours, minutes] = selectedTime.split(':').map(Number);
-       dueDate.setHours(hours, minutes, 0, 0);
-     } else {
-       dueDate.setHours(23, 59, 59, 0);
-     }
+     const [hours, minutes] = selectedTime.split(':').map(Number);
+     dueDate.setHours(hours || 0, minutes || 0, 0, 0);
  
      onSubmit({
        title: title.trim(),
@@ -161,93 +126,22 @@
          <span className="text-[hsl(var(--avivar-primary))] font-medium">Tarefa</span>
          <span className="text-[hsl(var(--avivar-muted-foreground))]">vencimento</span>
          
-         {/* Date picker */}
-         <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
-           <PopoverTrigger asChild>
-             <button className="px-2 py-0.5 rounded border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))] transition-colors">
-               {format(selectedDate, 'dd.MM.yyyy', { locale: ptBR })}
-             </button>
-           </PopoverTrigger>
-           <PopoverContent className="w-auto p-0 flex" align="start" side="top">
-             <div className="flex">
-             {/* Quick options */}
-             <div className="border-r border-border py-1 pr-0 pl-1">
-               {quickDateOptions.map((option) => (
-                 <button
-                   key={option.label}
-                   onClick={() => handleQuickDate(option.getValue)}
-                   className="w-full text-left px-1 py-0.5 text-xs rounded hover:bg-muted transition-colors whitespace-nowrap"
-                 >
-                   {option.label}
-                 </button>
-               ))}
-             </div>
-             
-             {/* Calendar */}
-             <div>
-               <Calendar
-                 mode="single"
-                 selected={selectedDate}
-                 onSelect={(date) => {
-                   if (date) {
-                     setSelectedDate(date);
-                     setShowDatePicker(false);
-                   }
-                 }}
-                 locale={ptBR}
-                 initialFocus
-                 className="pointer-events-auto p-0"
-               />
-             </div>
-             
-             {/* Time picker column */}
-             <div className="border-l border-border py-1 pl-1 pr-0.5">
-               <div>
-                 <button
-                   onClick={handleAllDay}
-                   className={cn(
-                     "w-full text-left px-1 py-0.5 text-xs rounded transition-colors whitespace-nowrap",
-                     isAllDay ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                   )}
-                 >
-                   Dia todo
-                 </button>
-               </div>
-               <ScrollArea className="h-[220px]">
-                 <div>
-                   {timeSlots.map((time) => (
-                     <button
-                       key={time}
-                       onClick={() => handleTimeSelect(time)}
-                       className={cn(
-                         "w-full text-left px-1 py-0 text-xs rounded transition-colors",
-                         selectedTime === time && !isAllDay ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                       )}
-                     >
-                       {time}
-                     </button>
-                   ))}
-                 </div>
-               </ScrollArea>
-             </div>
-             </div>
-           </PopoverContent>
-         </Popover>
+         {/* Date input */}
+         <input
+           type="text"
+           defaultValue={format(selectedDate, 'dd.MM.yyyy', { locale: ptBR })}
+           onBlur={handleDateChange}
+           className="w-[90px] px-2 py-0.5 text-sm rounded border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--avivar-primary))]"
+           placeholder="dd.mm.aaaa"
+         />
  
-         {/* Time display */}
-         {!isAllDay && (
-           <button 
-             onClick={() => setShowDatePicker(true)}
-             className="px-2 py-0.5 rounded border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] hover:bg-[hsl(var(--avivar-muted))] transition-colors"
-           >
-             {selectedTime}
-           </button>
-         )}
-         {isAllDay && (
-           <span className="px-2 py-0.5 rounded border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-muted-foreground))]">
-             Dia todo
-           </span>
-         )}
+         {/* Time input */}
+         <input
+           type="time"
+           value={selectedTime}
+           onChange={handleTimeChange}
+           className="w-[80px] px-2 py-0.5 text-sm rounded border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--avivar-primary))]"
+         />
  
          <span className="text-[hsl(var(--avivar-muted-foreground))]">para</span>
          
