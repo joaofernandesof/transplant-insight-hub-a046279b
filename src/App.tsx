@@ -41,6 +41,7 @@ const ArchitectureDocDownload = lazy(() => import("./pages/docs/ArchitectureDocD
 const FlowDoArchitecturePlan = lazy(() => import("./pages/docs/FlowDoArchitecturePlan"));
  const HotLeadsLanding = lazy(() => import("./pages/HotLeadsLanding"));
  const TransplanteLanding = lazy(() => import("./pages/TransplanteLanding"));
+ const AvivarCapilarLanding = lazy(() => import("./pages/AvivarCapilarLanding"));
 
 // ====================================
 // Pages - Flow.do (Gestão Operacional)
@@ -656,6 +657,9 @@ function AppRoutes() {
        
        {/* Landing Page Transplante Capilar - Captação de Leads */}
        <Route path="/transplante-capilar" element={<LazyRoute><TransplanteLanding /></LazyRoute>} />
+        
+        {/* Landing Page Avivar CRM Capilar - Página de Vendas */}
+        <Route path="/avivar-capilar" element={<LazyRoute><AvivarCapilarLanding /></LazyRoute>} />
 
       {/* ====================================
           Rotas Protegidas - Seleção de Perfil
