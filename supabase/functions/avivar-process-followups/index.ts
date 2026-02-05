@@ -222,9 +222,20 @@
  
          let finalMessage = replaceVariables(messageTemplate, variables);
  
-         // If AI generation is enabled, enhance the message
-         if (rule?.use_ai_generation && execution.ai_generated) {
+         // If AI generation is enabled, enhance the message ONLY if template is generic
+         // If user provided a specific template, respect it and only do minor personalization
+         const shouldUseAI = rule?.use_ai_generation && execution.ai_generated;
+         
+         if (shouldUseAI && finalMessage.length > 0) {
            try {
+             // Check if the template is very short (user wants AI to generate more)
+             // or if it's detailed (user wants exact message with variables replaced)
+             const isShortTemplate = messageTemplate.length < 50;
+             
+             const aiPrompt = isShortTemplate
+               ? `Você é um assistente de vendas profissional. Crie uma mensagem de follow-up natural e amigável baseada nesta ideia: "${finalMessage}". Contexto: ${rule.ai_context || 'Follow-up de vendas'}. Nome do lead: ${lead.name}. Mantenha curta (máximo 2 frases). NÃO use aspas na resposta.`
+               : `Você é um assistente. O usuário configurou esta mensagem EXATA para follow-up: "${finalMessage}". Faça APENAS pequenas variações naturais mantendo a estrutura e intenção idênticas. Mude no máximo 1-2 palavras para parecer mais natural. NÃO mude o sentido. NÃO adicione informações. Responda APENAS com a mensagem final, sem aspas.`;
+             
              const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                method: "POST",
                headers: {
@@ -236,14 +247,17 @@
                  messages: [
                    {
                      role: "system",
-                     content: `Você é um assistente de vendas profissional. Personalize esta mensagem de follow-up mantendo o mesmo tom e intenção, mas tornando-a mais natural e pessoal. Mantenha curta (máximo 2 frases). Contexto: ${rule.ai_context || 'Follow-up de vendas'}. Nome do lead: ${lead.name}. Procedimento de interesse: ${lead.procedure_interest || 'não especificado'}.`,
+                     content: aiPrompt,
                    },
                    {
                      role: "user",
-                     content: `Personalize esta mensagem: "${finalMessage}"`,
+                     content: isShortTemplate 
+                       ? `Gere a mensagem de follow-up agora.`
+                       : `Retorne a mensagem com variação mínima.`,
                    },
                  ],
                  max_tokens: 150,
+                 temperature: isShortTemplate ? 0.7 : 0.2, // Lower temperature for exact messages
                }),
              });
  
