@@ -1,5 +1,5 @@
 /**
- * AvivarSimpleWizard - Wizard Simplificado de 5 etapas
+ * AvivarSimpleWizard - Wizard Simplificado de 10 etapas
  * Substitui o wizard de 15 etapas para facilitar para PMEs
  */
 
