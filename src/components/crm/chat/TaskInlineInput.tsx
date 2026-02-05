@@ -21,6 +21,7 @@
  import { useQuery } from '@tanstack/react-query';
  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
  import { ScrollArea } from '@/components/ui/scroll-area';
+import { ConversationTask } from '@/hooks/useConversationTasks';
  
  interface TeamMember {
    id: string;
@@ -31,15 +32,18 @@
    role: string;
  }
  
+export interface TaskFormData {
+  title: string;
+  due_at: string;
+  assigned_to: string;
+}
+
  interface TaskInlineInputProps {
    leadId: string;
    onCancel: () => void;
-   onSubmit: (data: {
-     title: string;
-     due_at: string;
-     assigned_to: string;
-   }) => void;
+  onSubmit: (data: TaskFormData) => void;
    isSubmitting?: boolean;
+  editingTask?: ConversationTask | null;
  }
  
  const quickDateOptions = [
@@ -61,7 +65,7 @@
    ];
  }).flat();
  
- export function TaskInlineInput({ leadId, onCancel, onSubmit, isSubmitting }: TaskInlineInputProps) {
+export function TaskInlineInput({ leadId, onCancel, onSubmit, isSubmitting, editingTask }: TaskInlineInputProps) {
    const { user } = useAuth();
    const [title, setTitle] = useState('');
    const [selectedDate, setSelectedDate] = useState<Date>(addDays(new Date(), 1));
@@ -73,12 +77,23 @@
    const [showTimePicker, setShowTimePicker] = useState(false);
    const [showAssigneePicker, setShowAssigneePicker] = useState(false);
  
-   // Set default assignee to current user
+  // Initialize form with editing task or defaults
    useEffect(() => {
-     if (user?.id && !assignedTo) {
+    if (editingTask) {
+      setTitle(editingTask.title);
+      if (editingTask.due_at) {
+        const dueDate = new Date(editingTask.due_at);
+        setSelectedDate(dueDate);
+        setSelectedTime(format(dueDate, 'HH:mm'));
+        setIsAllDay(false);
+      }
+      if (editingTask.assigned_to) {
+        setAssignedTo(editingTask.assigned_to);
+      }
+    } else if (user?.id && !assignedTo) {
        setAssignedTo(user.id);
      }
-   }, [user?.id]);
+  }, [user?.id, editingTask]);
  
    // Buscar membros da equipe
    const { data: teamMembers = [] } = useQuery({
@@ -158,7 +173,9 @@
      <div className="border-t border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))] p-4">
        {/* Task metadata line */}
        <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
-         <span className="text-[hsl(var(--avivar-primary))] font-medium">Tarefa</span>
+        <span className="text-[hsl(var(--avivar-primary))] font-medium">
+          {editingTask ? 'Editar Tarefa' : 'Tarefa'}
+        </span>
          <span className="text-[hsl(var(--avivar-muted-foreground))]">vencimento</span>
          
          {/* Date picker */}
@@ -338,7 +355,7 @@
            {isSubmitting ? (
              <Loader2 className="h-4 w-4 animate-spin mr-2" />
            ) : null}
-           Definir
+          {editingTask ? 'Salvar' : 'Definir'}
          </Button>
          <Button variant="ghost" onClick={onCancel}>
            Cancelar

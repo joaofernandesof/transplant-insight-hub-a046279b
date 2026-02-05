@@ -11,7 +11,7 @@ import { MessageCircle, Loader2, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useCrmConversations } from '@/hooks/useCrmConversations';
 import { usePatientJourneys } from '@/pages/avivar/journey/hooks/usePatientJourneys';
- import { useConversationTasks } from '@/hooks/useConversationTasks';
+import { useConversationTasks, ConversationTask } from '@/hooks/useConversationTasks';
 
 // Componentes focados
 import { ConversationList } from './chat/ConversationList';
@@ -20,7 +20,7 @@ import { PatientJourneyDetailsSidebar } from './chat/PatientJourneyDetailsSideba
 import { MessageThread } from './chat/MessageThread';
 import { MessageInput } from './chat/MessageInput';
 import { ChatHeader } from './chat/ChatHeader';
- import { TaskInlineInput } from './chat/TaskInlineInput';
+import { TaskInlineInput, TaskFormData } from './chat/TaskInlineInput';
  import { TaskBanner } from './chat/TaskBanner';
 
 interface CrmInboxProps {
@@ -32,6 +32,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showLeadWithoutConversation, setShowLeadWithoutConversation] = useState(false);
    const [showTaskInput, setShowTaskInput] = useState(false);
+  const [editingTask, setEditingTask] = useState<ConversationTask | null>(null);
 
   const {
     conversations,
@@ -58,6 +59,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
    const { 
      tasks: conversationTasks, 
      createTask, 
+    updateTask,
      completeTask, 
      deleteTask 
    } = useConversationTasks(currentLeadId);
@@ -118,6 +120,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
    // Reset task input when conversation changes
    useEffect(() => {
      setShowTaskInput(false);
+    setEditingTask(null);
    }, [selectedConversation]);
 
   const handleSendMessage = async (content: string) => {
@@ -235,19 +238,40 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
     }
   };
 
-   const handleTaskSubmit = (data: { title: string; due_at: string; assigned_to: string }) => {
+   const handleTaskSubmit = (data: TaskFormData) => {
      if (!currentLeadId) return;
      
-     createTask.mutate({
-       lead_id: currentLeadId,
-       title: data.title,
-       due_at: data.due_at,
-       assigned_to: data.assigned_to,
-     }, {
-       onSuccess: () => {
-         setShowTaskInput(false);
-       }
-     });
+     if (editingTask) {
+       // Atualizar tarefa existente
+       updateTask.mutate({
+         id: editingTask.id,
+         title: data.title,
+         due_at: data.due_at,
+         assigned_to: data.assigned_to,
+       }, {
+         onSuccess: () => {
+           setShowTaskInput(false);
+           setEditingTask(null);
+         }
+       });
+     } else {
+       // Criar nova tarefa
+       createTask.mutate({
+         lead_id: currentLeadId,
+         title: data.title,
+         due_at: data.due_at,
+         assigned_to: data.assigned_to,
+       }, {
+         onSuccess: () => {
+           setShowTaskInput(false);
+         }
+       });
+     }
+   };
+
+   const handleEditTask = (task: ConversationTask) => {
+     setEditingTask(task);
+     setShowTaskInput(true);
    };
 
   // Estado de loading inicial
@@ -391,6 +415,7 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
                        task={task}
                        onComplete={(id) => completeTask.mutate(id)}
                        onDelete={(id) => deleteTask.mutate(id)}
+                        onEdit={handleEditTask}
                        isCompleting={completeTask.isPending}
                        isDeleting={deleteTask.isPending}
                      />
@@ -409,9 +434,13 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
                {showTaskInput ? (
                  <TaskInlineInput
                    leadId={currentLeadId || ''}
-                   onCancel={() => setShowTaskInput(false)}
+                  onCancel={() => {
+                    setShowTaskInput(false);
+                    setEditingTask(null);
+                  }}
                    onSubmit={handleTaskSubmit}
-                   isSubmitting={createTask.isPending}
+                  isSubmitting={createTask.isPending || updateTask.isPending}
+                  editingTask={editingTask}
                  />
                ) : (
                  <MessageInput

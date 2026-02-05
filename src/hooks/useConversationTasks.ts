@@ -29,6 +29,13 @@
    assigned_to: string;
  }
  
+export interface UpdateConversationTaskData {
+  id: string;
+  title: string;
+  due_at: string;
+  assigned_to: string;
+}
+
  export function useConversationTasks(leadId?: string) {
    const { user } = useAuth();
    const queryClient = useQueryClient();
@@ -99,6 +106,33 @@
      },
    });
  
+  // Atualizar tarefa existente
+  const updateTask = useMutation({
+    mutationFn: async (data: UpdateConversationTaskData) => {
+      const { data: updated, error } = await supabase
+        .from('lead_tasks')
+        .update({
+          title: data.title,
+          due_at: data.due_at,
+          assigned_to: data.assigned_to,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', data.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return updated as ConversationTask;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversation-tasks'] });
+      toast.success('Tarefa atualizada!');
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar tarefa');
+    },
+  });
+
    // Deletar tarefa
    const deleteTask = useMutation({
      mutationFn: async (taskId: string) => {
@@ -122,6 +156,7 @@
      tasks,
      isLoading,
      createTask,
+    updateTask,
      completeTask,
      deleteTask,
    };
