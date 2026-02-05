@@ -119,7 +119,7 @@ export function FunnelColumnSelector({
           // Create new lead in the target kanban/column
           const { error: insertError } = await supabase
             .from('avivar_kanban_leads')
-            .insert({
+            .insert([{
               user_id: currentLead.user_id,
               kanban_id: kanbanId,
               column_id: columnId,
@@ -130,7 +130,7 @@ export function FunnelColumnSelector({
               notes: currentLead.notes,
               source: currentLead.source,
               tags: currentLead.tags,
-            });
+            }] as any);
 
           if (insertError) throw insertError;
         } else {

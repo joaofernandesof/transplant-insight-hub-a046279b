@@ -872,6 +872,7 @@ export type Database = {
           email: string | null
           id: string
           kanban_id: string
+          lead_code: string
           name: string
           notes: string | null
           order_index: number | null
@@ -889,6 +890,7 @@ export type Database = {
           email?: string | null
           id?: string
           kanban_id: string
+          lead_code: string
           name: string
           notes?: string | null
           order_index?: number | null
@@ -906,6 +908,7 @@ export type Database = {
           email?: string | null
           id?: string
           kanban_id?: string
+          lead_code?: string
           name?: string
           notes?: string | null
           order_index?: number | null
@@ -8034,6 +8037,7 @@ export type Database = {
           email: string | null
           id: string
           interest_level: string | null
+          lead_code: string
           name: string
           notes: string | null
           phone: string
@@ -8061,6 +8065,7 @@ export type Database = {
           email?: string | null
           id?: string
           interest_level?: string | null
+          lead_code: string
           name: string
           notes?: string | null
           phone: string
@@ -8088,6 +8093,7 @@ export type Database = {
           email?: string | null
           id?: string
           interest_level?: string | null
+          lead_code?: string
           name?: string
           notes?: string | null
           phone?: string
@@ -16236,6 +16242,7 @@ export type Database = {
         Returns: Json
       }
       delete_lead_cascade: { Args: { p_lead_id: string }; Returns: Json }
+      generate_lead_code: { Args: never; Returns: string }
       get_agent_for_lead_stage:
         | {
             Args: { p_lead_stage?: string; p_user_id: string }
