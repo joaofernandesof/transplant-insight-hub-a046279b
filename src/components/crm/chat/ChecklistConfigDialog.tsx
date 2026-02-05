@@ -277,8 +277,8 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 pr-4">
-          <div className="space-y-4 py-2">
+        <ScrollArea className="flex-1 min-h-0 max-h-[calc(85vh-80px)]">
+          <div className="space-y-4 py-2 pr-4">
             {/* Lista de campos existentes */}
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
