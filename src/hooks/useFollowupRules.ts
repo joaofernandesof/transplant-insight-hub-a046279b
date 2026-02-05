@@ -3,50 +3,58 @@
  import { useAuth } from '@/contexts/AuthContext';
  import { toast } from 'sonner';
  
- export interface FollowupRule {
-   id: string;
-   user_id: string;
-   name: string;
-   attempt_number: number;
-   delay_minutes: number;
-   delay_type: 'minutes' | 'hours' | 'days';
-   message_template: string;
-   urgency_level: 'soft' | 'medium' | 'urgent';
-   use_ai_generation: boolean;
-   ai_context: string | null;
-   is_active: boolean;
-   target_kanban_id: string | null;
-   move_to_column_id: string | null;
-   create_task_on_failure: boolean;
-   max_attempts: number;
-   respect_business_hours: boolean;
-   business_hours_start: string;
-   business_hours_end: string;
-   excluded_days: number[];
-   order_index: number;
-   created_at: string;
-   updated_at: string;
- }
+export interface FollowupRule {
+  id: string;
+  user_id: string;
+  name: string;
+  attempt_number: number;
+  delay_minutes: number;
+  delay_type: 'minutes' | 'hours' | 'days';
+  message_template: string;
+  urgency_level: 'soft' | 'medium' | 'urgent';
+  use_ai_generation: boolean;
+  ai_context: string | null;
+  is_active: boolean;
+  target_kanban_id: string | null;
+  move_to_column_id: string | null;
+  create_task_on_failure: boolean;
+  max_attempts: number;
+  respect_business_hours: boolean;
+  business_hours_start: string;
+  business_hours_end: string;
+  excluded_days: number[];
+  order_index: number;
+  // Audio fields
+  audio_url: string | null;
+  audio_type: 'ptt' | 'audio' | null;
+  audio_forward: boolean;
+  created_at: string;
+  updated_at: string;
+}
  
- export interface CreateFollowupRuleInput {
-   name?: string;
-   attempt_number: number;
-   delay_minutes: number;
-   delay_type?: 'minutes' | 'hours' | 'days';
-   message_template: string;
-   urgency_level?: 'soft' | 'medium' | 'urgent';
-   use_ai_generation?: boolean;
-   ai_context?: string;
-   is_active?: boolean;
-   target_kanban_id?: string;
-   move_to_column_id?: string;
-   create_task_on_failure?: boolean;
-   max_attempts?: number;
-   respect_business_hours?: boolean;
-   business_hours_start?: string;
-   business_hours_end?: string;
-   excluded_days?: number[];
- }
+export interface CreateFollowupRuleInput {
+  name?: string;
+  attempt_number: number;
+  delay_minutes: number;
+  delay_type?: 'minutes' | 'hours' | 'days';
+  message_template: string;
+  urgency_level?: 'soft' | 'medium' | 'urgent';
+  use_ai_generation?: boolean;
+  ai_context?: string;
+  is_active?: boolean;
+  target_kanban_id?: string;
+  move_to_column_id?: string;
+  create_task_on_failure?: boolean;
+  max_attempts?: number;
+  respect_business_hours?: boolean;
+  business_hours_start?: string;
+  business_hours_end?: string;
+  excluded_days?: number[];
+  // Audio fields
+  audio_url?: string | null;
+  audio_type?: 'ptt' | 'audio' | null;
+  audio_forward?: boolean;
+}
  
  export function useFollowupRules() {
    const { user } = useAuth();

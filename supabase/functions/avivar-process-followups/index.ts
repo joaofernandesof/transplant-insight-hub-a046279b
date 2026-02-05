@@ -294,13 +294,32 @@
            }
          }
  
-         // Send the message via WhatsApp
-         const sendResponse = await supabase.functions.invoke('avivar-send-message', {
-           body: {
-             conversationId: conversation.id,
-             content: finalMessage,
-           },
-         });
+        // Send the message via WhatsApp
+          // Check if rule has audio attachment
+          const hasAudio = rule?.audio_url && rule?.audio_type;
+          
+          let sendResponse;
+          if (hasAudio) {
+            // Send audio message
+            sendResponse = await supabase.functions.invoke('avivar-send-message', {
+              body: {
+                conversationId: conversation.id,
+                content: finalMessage || undefined,
+                mediaType: rule.audio_type === 'ptt' ? 'audio' : 'audio', // Both use audio, but type differs in UazAPI call
+                mediaUrl: rule.audio_url,
+                audioType: rule.audio_type, // 'ptt' or 'audio'
+                audioForward: rule.audio_forward || false,
+              },
+            });
+          } else {
+            // Send text message
+            sendResponse = await supabase.functions.invoke('avivar-send-message', {
+              body: {
+                conversationId: conversation.id,
+                content: finalMessage,
+              },
+            });
+          }
  
          if (sendResponse.error || !sendResponse.data?.success) {
            // Mark as failed

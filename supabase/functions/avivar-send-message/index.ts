@@ -18,6 +18,9 @@ interface SendMessagePayload {
   documentName?: string; // Original filename for document
   caption?: string; // Caption for media messages
   isAIGenerated?: boolean;
+  // New audio options for follow-up
+  audioType?: 'ptt' | 'audio'; // Type of audio message (voice note vs file)
+  audioForward?: boolean; // Mark audio as forwarded
 }
 
 serve(async (req) => {
@@ -73,12 +76,15 @@ serve(async (req) => {
     // Admin client for DB operations
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Parse payload
+  // Parse payload
     const payload: SendMessagePayload = await req.json();
-    const { conversationId, content, mediaUrl, mediaType, audioBase64, imageBase64, videoBase64, documentBase64, documentName, caption, isAIGenerated } = payload;
+    const { conversationId, content, mediaUrl, mediaType, audioBase64, imageBase64, videoBase64, documentBase64, documentName, caption, isAIGenerated, audioType, audioForward } = payload;
 
-    // Validate: need either content, audioBase64, imageBase64, videoBase64, or documentBase64
-    if (!conversationId || (!content && !audioBase64 && !imageBase64 && !videoBase64 && !documentBase64)) {
+    // Check if we're sending audio via URL (for follow-ups)
+    const isAudioUrlMessage = mediaType === 'audio' && mediaUrl && !audioBase64;
+
+    // Validate: need either content, audioBase64, imageBase64, videoBase64, documentBase64, or mediaUrl for audio
+    if (!conversationId || (!content && !audioBase64 && !imageBase64 && !videoBase64 && !documentBase64 && !isAudioUrlMessage)) {
       return new Response(
         JSON.stringify({ success: false, error: "Missing conversationId or content/audio/image/video/document" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -89,7 +95,7 @@ serve(async (req) => {
     const isImageMessage = !!imageBase64;
     const isVideoMessage = !!videoBase64;
     const isDocumentMessage = !!documentBase64;
-    const messageTypeLog = isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : isVideoMessage ? "Video message" : isDocumentMessage ? "Document message" : `Content: ${content?.substring(0, 50)}`;
+    const messageTypeLog = isAudioUrlMessage ? "Audio URL message" : isAudioMessage ? "Audio message" : isImageMessage ? "Image message" : isVideoMessage ? "Video message" : isDocumentMessage ? "Document message" : `Content: ${content?.substring(0, 50)}`;
     console.log("[Avivar Send Message] Conversation:", conversationId, messageTypeLog);
 
     // Get conversation with lead info and assigned_to (to find the user's instance)
@@ -219,7 +225,54 @@ serve(async (req) => {
     let messageContent = content || "";
     let savedMediaUrl: string | null = null;
     
-    if (isAudioMessage && audioBase64) {
+    if (isAudioUrlMessage && mediaUrl) {
+      // Send audio via URL (for follow-ups)
+      console.log("[Avivar Send Message] Sending audio URL message via UazAPI, type:", audioType);
+      
+      // Determine the UazAPI type based on audioType
+      // 'ptt' = push-to-talk (voice note bubble with avatar)
+      // 'audio' = regular audio file (with mic icon)
+      const uazapiType = audioType === 'ptt' ? 'ptt' : 'audio';
+      
+      const audioPayload: Record<string, unknown> = {
+        number: phone,
+        type: uazapiType,
+        file: mediaUrl,
+        text: content || " ",
+      };
+      
+      // Add forward flag if needed
+      if (audioForward && audioType === 'audio') {
+        audioPayload.forward = true;
+      }
+      
+      uazapiResponse = await fetch(`${uazapiUrl}/send/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "token": uazapiToken,
+        },
+        body: JSON.stringify(audioPayload),
+      });
+      await logAttempt(`/send/media type=${uazapiType}`, uazapiResponse);
+      
+      // Fallback to other audio types if ptt fails
+      if (!uazapiResponse.ok && audioType === 'ptt') {
+        audioPayload.type = 'myaudio';
+        uazapiResponse = await fetch(`${uazapiUrl}/send/media`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": uazapiToken,
+          },
+          body: JSON.stringify(audioPayload),
+        });
+        await logAttempt("/send/media type=myaudio", uazapiResponse);
+      }
+      
+      savedMediaUrl = mediaUrl;
+      messageContent = content || "🎤 Mensagem de voz";
+    } else if (isAudioMessage && audioBase64) {
       // Send audio message
       console.log("[Avivar Send Message] Sending audio message via UazAPI");
       

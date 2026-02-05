@@ -986,6 +986,9 @@ export type Database = {
         Row: {
           ai_context: string | null
           attempt_number: number
+          audio_forward: boolean | null
+          audio_type: string | null
+          audio_url: string | null
           business_hours_end: string | null
           business_hours_start: string | null
           create_task_on_failure: boolean | null
@@ -1010,6 +1013,9 @@ export type Database = {
         Insert: {
           ai_context?: string | null
           attempt_number?: number
+          audio_forward?: boolean | null
+          audio_type?: string | null
+          audio_url?: string | null
           business_hours_end?: string | null
           business_hours_start?: string | null
           create_task_on_failure?: boolean | null
@@ -1034,6 +1040,9 @@ export type Database = {
         Update: {
           ai_context?: string | null
           attempt_number?: number
+          audio_forward?: boolean | null
+          audio_type?: string | null
+          audio_url?: string | null
           business_hours_end?: string | null
           business_hours_start?: string | null
           create_task_on_failure?: boolean | null
