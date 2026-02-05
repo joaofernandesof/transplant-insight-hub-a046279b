@@ -22,7 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image } from 'lucide-react';
+import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image, Video } from 'lucide-react';
 import { TEMPLATE_VARIABLES } from '@/hooks/useFollowupTemplates';
 import type { FollowupRule, CreateFollowupRuleInput } from '@/hooks/useFollowupRules';
 import { useKanbanBoards } from '@/hooks/useKanbanBoards';
@@ -73,12 +73,17 @@ import { toast } from 'sonner';
     // Image fields
     image_url: '' as string,
     image_caption: '' as string,
+    // Video fields
+    video_url: '' as string,
+    video_caption: '' as string,
   });
   
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
  
   useEffect(() => {
     if (rule) {
@@ -117,6 +122,9 @@ import { toast } from 'sonner';
         // Image fields
         image_url: rule.image_url || '',
         image_caption: rule.image_caption || '',
+        // Video fields
+        video_url: rule.video_url || '',
+        video_caption: rule.video_caption || '',
       });
     } else {
       setFormData(prev => ({
@@ -128,6 +136,8 @@ import { toast } from 'sonner';
         audio_forward: false,
         image_url: '',
         image_caption: '',
+        video_url: '',
+        video_caption: '',
       }));
     }
   }, [rule, existingRulesCount, open]);
@@ -252,6 +262,65 @@ import { toast } from 'sonner';
     }));
   };
 
+  // Handle video file upload
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Formato de vídeo não suportado. Use MP4, WebM ou MOV.');
+      return;
+    }
+
+    // Validate file size (max 16MB - WhatsApp limit)
+    if (file.size > 16 * 1024 * 1024) {
+      toast.error('Vídeo muito grande. Máximo 16MB.');
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `followup-videos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avivar-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avivar-media')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({
+        ...prev,
+        video_url: publicUrl,
+      }));
+      
+      toast.success('Vídeo enviado com sucesso!');
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      toast.error('Erro ao enviar vídeo');
+    } finally {
+      setIsUploadingVideo(false);
+      if (videoInputRef.current) {
+        videoInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeVideo = () => {
+    setFormData(prev => ({
+      ...prev,
+      video_url: '',
+      video_caption: '',
+    }));
+  };
+
   const handleSubmit = () => {
     let delayMinutes = formData.delay_value;
     if (formData.delay_type === 'hours') delayMinutes *= 60;
@@ -281,6 +350,9 @@ import { toast } from 'sonner';
       // Image fields
       image_url: formData.image_url || null,
       image_caption: formData.image_caption || null,
+      // Video fields
+      video_url: formData.video_url || null,
+      video_caption: formData.video_caption || null,
     };
 
     if (isEditing && rule) {
@@ -586,6 +658,73 @@ import { toast } from 'sonner';
                   </div>
                 )}
               </div>
+
+              {/* Video Section */}
+              <div className="space-y-3 p-4 rounded-lg border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary)/0.5)]">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+                    <Video className="h-4 w-4" />
+                    Vídeo (opcional)
+                  </Label>
+                </div>
+
+                {!formData.video_url ? (
+                  <div className="space-y-2">
+                    <input
+                      ref={videoInputRef}
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => videoInputRef.current?.click()}
+                      disabled={isUploadingVideo}
+                      className="w-full border-dashed border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))]"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isUploadingVideo ? 'Enviando...' : 'Enviar vídeo (MP4, WebM, MOV - máx 16MB)'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Video Preview */}
+                    <div className="relative">
+                      <video 
+                        src={formData.video_url} 
+                        controls
+                        className="w-full max-h-48 rounded-lg border border-[hsl(var(--avivar-border))] bg-black"
+                      >
+                        Seu navegador não suporta vídeos.
+                      </video>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={removeVideo}
+                        className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 hover:text-white"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Video Caption */}
+                    <div className="space-y-2">
+                      <Label className="text-[hsl(var(--avivar-foreground))] text-sm">
+                        Legenda do vídeo (opcional)
+                      </Label>
+                      <Input
+                        value={formData.video_caption}
+                        onChange={(e) => setFormData(prev => ({ ...prev, video_caption: e.target.value }))}
+                        placeholder="Ex: Veja nosso procedimento em ação!"
+                        className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </TabsContent>
  
            <TabsContent value="timing" className="space-y-4">
@@ -757,7 +896,7 @@ import { toast } from 'sonner';
             </Button>
             <Button 
               onClick={handleSubmit} 
-              disabled={isLoading || (!formData.message_template && !formData.audio_url)}
+              disabled={isLoading || (!formData.message_template && !formData.audio_url && !formData.image_url && !formData.video_url)}
               className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))]"
             >
               {isLoading ? 'Salvando...' : isEditing ? 'Salvar' : 'Criar Regra'}
