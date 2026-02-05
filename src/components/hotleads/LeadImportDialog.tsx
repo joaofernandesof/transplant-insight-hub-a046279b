@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, FileSpreadsheet, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, FileSpreadsheet, Loader2, AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
@@ -63,6 +63,30 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
     setResult(null);
     if (fileRef.current) fileRef.current.value = '';
   };
+
+  // Download template spreadsheet
+  const downloadTemplate = useCallback(() => {
+    const templateData = [
+      { Nome: 'João Silva', Telefone: '11999998888', Email: 'joao@email.com', Estado: 'SP', Cidade: 'São Paulo' },
+      { Nome: 'Maria Santos', Telefone: '21988887777', Email: 'maria@email.com', Estado: 'RJ', Cidade: 'Rio de Janeiro' },
+    ];
+    
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
+    
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 25 }, // Nome
+      { wch: 15 }, // Telefone
+      { wch: 30 }, // Email
+      { wch: 10 }, // Estado
+      { wch: 20 }, // Cidade
+    ];
+    
+    XLSX.writeFile(workbook, 'modelo_hotleads.xlsx');
+    toast.success('Modelo baixado com sucesso!');
+  }, []);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     setParseError('');
@@ -125,9 +149,15 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5 text-primary" />
-            Importar Leads via Planilha
+          <DialogTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-primary" />
+              Importar Leads via Planilha
+            </span>
+            <Button variant="outline" size="sm" onClick={downloadTemplate}>
+              <Download className="h-4 w-4 mr-2" />
+              Baixar Modelo
+            </Button>
           </DialogTitle>
           <DialogDescription>
             Envie um arquivo .xls, .xlsx ou .csv com as colunas: Nome, Telefone, Email, Estado, Cidade
