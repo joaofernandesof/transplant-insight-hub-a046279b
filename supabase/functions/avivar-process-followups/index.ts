@@ -295,12 +295,14 @@
          }
  
         // Send the message via WhatsApp
-          // Check if rule has audio attachment
+        // Check if rule has audio attachment
           const hasAudio = rule?.audio_url && rule?.audio_type;
           // Check if rule has image attachment
           const hasImage = rule?.image_url;
           // Check if rule has video attachment
           const hasVideo = rule?.video_url;
+          // Check if rule has document attachment
+          const hasDocument = rule?.document_url;
           
           let sendResponse;
           if (hasAudio) {
@@ -335,6 +337,17 @@
                 mediaType: 'video',
                 mediaUrl: rule.video_url,
                 caption: rule.video_caption || undefined,
+              },
+            });
+          } else if (hasDocument) {
+            // Send document message
+            sendResponse = await supabase.functions.invoke('avivar-send-message', {
+              body: {
+                conversationId: conversation.id,
+                content: finalMessage || undefined,
+                mediaType: 'document',
+                mediaUrl: rule.document_url,
+                documentName: rule.document_name || undefined,
               },
             });
           } else {

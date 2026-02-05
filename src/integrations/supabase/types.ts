@@ -995,6 +995,8 @@ export type Database = {
           created_at: string | null
           delay_minutes: number
           delay_type: string
+          document_name: string | null
+          document_url: string | null
           excluded_days: number[] | null
           id: string
           image_caption: string | null
@@ -1026,6 +1028,8 @@ export type Database = {
           created_at?: string | null
           delay_minutes?: number
           delay_type?: string
+          document_name?: string | null
+          document_url?: string | null
           excluded_days?: number[] | null
           id?: string
           image_caption?: string | null
@@ -1057,6 +1061,8 @@ export type Database = {
           created_at?: string | null
           delay_minutes?: number
           delay_type?: string
+          document_name?: string | null
+          document_url?: string | null
           excluded_days?: number[] | null
           id?: string
           image_caption?: string | null

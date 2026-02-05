@@ -16,6 +16,7 @@ import {
   Forward,
   Image,
   Video,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FollowupRule } from '@/hooks/useFollowupRules';
@@ -107,6 +108,11 @@ import type { FollowupRule } from '@/hooks/useFollowupRules';
                 {rule.video_url && (
                   <Badge className="text-xs bg-pink-500/20 text-pink-500 border-pink-500/30">
                     <Video className="h-3 w-3 mr-1" />Vídeo
+                  </Badge>
+                )}
+                {rule.document_url && (
+                  <Badge className="text-xs bg-cyan-500/20 text-cyan-500 border-cyan-500/30">
+                    <FileText className="h-3 w-3 mr-1" />Arquivo
                   </Badge>
                 )}
              </div>

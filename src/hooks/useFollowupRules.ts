@@ -34,6 +34,9 @@ export interface FollowupRule {
   // Video fields
   video_url: string | null;
   video_caption: string | null;
+  // Document fields
+  document_url: string | null;
+  document_name: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -66,6 +69,9 @@ export interface CreateFollowupRuleInput {
   // Video fields
   video_url?: string | null;
   video_caption?: string | null;
+  // Document fields
+  document_url?: string | null;
+  document_name?: string | null;
 }
  
  export function useFollowupRules() {
