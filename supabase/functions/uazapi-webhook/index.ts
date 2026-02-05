@@ -294,15 +294,19 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const uazapiToken = Deno.env.get("UAZAPI_TOKEN");
 
-    // Validate webhook token (optional but recommended)
+    // Validate webhook token (optional - only validate if both are present)
+    // UazAPI may not always send the token header, so we don't require it
     const requestToken = req.headers.get("x-uazapi-token");
     if (uazapiToken && requestToken && requestToken !== uazapiToken) {
-      console.error("[UazAPI Webhook] Invalid token");
+      console.error("[UazAPI Webhook] Invalid token provided - rejecting request");
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    // Log headers for debugging webhook delivery issues
+    console.log(`[UazAPI Webhook] Method: ${req.method}, Headers: token=${requestToken ? 'present' : 'absent'}, content-type=${req.headers.get('content-type')}`);
 
     // Parse request body
     const payload: UazAPIPayload = await req.json();
