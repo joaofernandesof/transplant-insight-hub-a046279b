@@ -5583,6 +5583,54 @@ export type Database = {
           },
         ]
       }
+      hotleads_captures: {
+        Row: {
+          assigned_at: string | null
+          assigned_to: string | null
+          city: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string
+          quiz_answers: Json | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          city: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone: string
+          quiz_answers?: Json | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          city?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          quiz_answers?: Json | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       import_logs: {
         Row: {
           created_at: string
