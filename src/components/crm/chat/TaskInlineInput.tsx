@@ -169,18 +169,21 @@
              </button>
            </PopoverTrigger>
            <PopoverContent className="w-auto p-0 flex" align="start" side="top">
+             <div className="flex max-h-[320px]">
              {/* Quick options */}
-             <div className="border-r border-border p-2 space-y-1 min-w-[140px]">
+             <ScrollArea className="border-r border-border min-w-[130px] h-[320px]">
+               <div className="p-2 space-y-1">
                {quickDateOptions.map((option) => (
                  <button
                    key={option.label}
                    onClick={() => handleQuickDate(option.getValue)}
-                   className="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-muted transition-colors"
+                   className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors whitespace-nowrap"
                  >
                    {option.label}
                  </button>
                ))}
-             </div>
+               </div>
+             </ScrollArea>
              
              {/* Calendar */}
              <div className="p-0">
@@ -195,12 +198,12 @@
                  }}
                  locale={ptBR}
                  initialFocus
-                 className="pointer-events-auto"
+                 className="pointer-events-auto p-2"
                />
              </div>
              
              {/* Time picker column */}
-             <div className="border-l border-border p-2 min-w-[100px]">
+             <div className="border-l border-border p-2 min-w-[80px]">
                <div className="space-y-1 mb-2">
                  <button
                    onClick={handleAllDay}
@@ -212,7 +215,7 @@
                    Dia todo
                  </button>
                </div>
-               <ScrollArea className="h-[200px]">
+               <ScrollArea className="h-[240px]">
                  <div className="space-y-0.5">
                    {timeSlots.map((time) => (
                      <button
@@ -228,6 +231,7 @@
                    ))}
                  </div>
                </ScrollArea>
+             </div>
              </div>
            </PopoverContent>
          </Popover>
