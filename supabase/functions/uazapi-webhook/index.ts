@@ -869,31 +869,45 @@ serve(async (req) => {
                           .eq("id", crmConversationId);
                         
                         // Call the debounce processor as a separate edge function
-                        // This runs independently and won't be killed when this webhook returns
-                        fetch(`${supabaseUrl}/functions/v1/avivar-debounce-processor`, {
-                          method: "POST",
-                          headers: {
-                            Authorization: `Bearer ${supabaseServiceKey}`,
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            conversationId: crmConversationId,
-                            batchId: newBatchId,
-                            leadPhone: phone,
-                            leadName: msg.pushName || null,
-                            userId,
-                            initialPendingUntil: pendingUntil,
-                          }),
-                        }).then(async (resp) => {
-                          try {
-                            const result = await resp.json();
-                            console.log(`[UazAPI Webhook] Debounce processor started: ${JSON.stringify(result)}`);
-                          } catch (e) {
-                            console.log(`[UazAPI Webhook] Debounce processor response: ${resp.status}`);
+                        // We *await* only the startup ACK (the processor returns immediately),
+                        // ensuring the request is actually dispatched before this webhook finishes.
+                        try {
+                          const startResp = await fetch(`${supabaseUrl}/functions/v1/avivar-debounce-processor`, {
+                            method: "POST",
+                            headers: {
+                              Authorization: `Bearer ${supabaseServiceKey}`,
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              conversationId: crmConversationId,
+                              batchId: newBatchId,
+                              leadPhone: phone,
+                              leadName: msg.pushName || null,
+                              userId,
+                              initialPendingUntil: pendingUntil,
+                            }),
+                          });
+
+                          const startText = await startResp.text();
+                          console.log(
+                            `[UazAPI Webhook] Debounce processor start ACK: status=${startResp.status} body=${startText.substring(0, 500)}`,
+                          );
+
+                          if (!startResp.ok) {
+                            // If we failed to start the processor, clear the batch so next inbound can retry.
+                            await supabase
+                              .from("crm_conversations")
+                              .update({ pending_batch_id: null, pending_until: null })
+                              .eq("id", crmConversationId);
                           }
-                        }).catch((err) => {
+                        } catch (err) {
                           console.error(`[UazAPI Webhook] Failed to start debounce processor:`, err);
-                        });
+                          // Clear the batch so next inbound can retry.
+                          await supabase
+                            .from("crm_conversations")
+                            .update({ pending_batch_id: null, pending_until: null })
+                            .eq("id", crmConversationId);
+                        }
                       }
                     } catch (aiTriggerError) {
                       console.error("[UazAPI Webhook] Error triggering AI Agent:", aiTriggerError);
