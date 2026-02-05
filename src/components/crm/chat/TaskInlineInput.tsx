@@ -169,20 +169,18 @@
              </button>
            </PopoverTrigger>
            <PopoverContent className="w-auto p-0 flex" align="start" side="top">
-             <div className="flex max-h-[280px]">
+             <div className="flex">
              {/* Quick options */}
-             <div className="border-r border-border">
-               <div className="py-1 px-1">
+             <div className="border-r border-border py-1 pr-0 pl-1">
                {quickDateOptions.map((option) => (
                  <button
                    key={option.label}
                    onClick={() => handleQuickDate(option.getValue)}
-                   className="w-full text-left px-2 py-0.5 text-xs rounded hover:bg-muted transition-colors whitespace-nowrap"
+                   className="w-full text-left px-1 py-0.5 text-xs rounded hover:bg-muted transition-colors whitespace-nowrap"
                  >
                    {option.label}
                  </button>
                ))}
-               </div>
              </div>
              
              {/* Calendar */}
@@ -203,26 +201,26 @@
              </div>
              
              {/* Time picker column */}
-             <div className="border-l border-border py-1 px-1">
+             <div className="border-l border-border py-1 pl-1 pr-0.5">
                <div>
                  <button
                    onClick={handleAllDay}
                    className={cn(
-                     "w-full text-left px-1.5 py-0.5 text-xs rounded transition-colors whitespace-nowrap",
+                     "w-full text-left px-1 py-0.5 text-xs rounded transition-colors whitespace-nowrap",
                      isAllDay ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                    )}
                  >
                    Dia todo
                  </button>
                </div>
-               <ScrollArea className="h-[230px]">
+               <ScrollArea className="h-[220px]">
                  <div>
                    {timeSlots.map((time) => (
                      <button
                        key={time}
                        onClick={() => handleTimeSelect(time)}
                        className={cn(
-                         "w-full text-left px-1.5 py-0 text-xs rounded transition-colors",
+                         "w-full text-left px-1 py-0 text-xs rounded transition-colors",
                          selectedTime === time && !isAllDay ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                        )}
                      >
