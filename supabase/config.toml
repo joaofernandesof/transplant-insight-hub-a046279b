@@ -75,3 +75,6 @@ verify_jwt = false
 
 [functions.avivar-transcribe-audio]
 verify_jwt = false
+
+[functions.avivar-process-followups]
+verify_jwt = false

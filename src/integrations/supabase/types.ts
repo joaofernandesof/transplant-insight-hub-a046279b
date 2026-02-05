@@ -822,6 +822,301 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_followup_executions: {
+        Row: {
+          ai_generated: boolean | null
+          attempt_number: number
+          channel: string | null
+          conversation_id: string | null
+          created_at: string | null
+          delivered_at: string | null
+          error_message: string | null
+          final_message: string | null
+          id: string
+          lead_id: string | null
+          lead_name: string | null
+          lead_phone: string | null
+          original_message: string | null
+          read_at: string | null
+          responded_at: string | null
+          rule_id: string | null
+          scheduled_for: string
+          sent_at: string | null
+          skip_reason: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          attempt_number?: number
+          channel?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          final_message?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          lead_phone?: string | null
+          original_message?: string | null
+          read_at?: string | null
+          responded_at?: string | null
+          rule_id?: string | null
+          scheduled_for: string
+          sent_at?: string | null
+          skip_reason?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_generated?: boolean | null
+          attempt_number?: number
+          channel?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          final_message?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          lead_phone?: string | null
+          original_message?: string | null
+          read_at?: string | null
+          responded_at?: string | null
+          rule_id?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          skip_reason?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_followup_executions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "crm_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_followup_executions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_followup_executions_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_followup_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_followup_metrics: {
+        Row: {
+          avg_response_time_seconds: number | null
+          by_attempt: Json | null
+          by_hour: Json | null
+          by_urgency: Json | null
+          created_at: string | null
+          id: string
+          period_end: string
+          period_start: string
+          total_converted: number | null
+          total_delivered: number | null
+          total_failed: number | null
+          total_read: number | null
+          total_responded: number | null
+          total_scheduled: number | null
+          total_sent: number | null
+          total_skipped: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avg_response_time_seconds?: number | null
+          by_attempt?: Json | null
+          by_hour?: Json | null
+          by_urgency?: Json | null
+          created_at?: string | null
+          id?: string
+          period_end: string
+          period_start: string
+          total_converted?: number | null
+          total_delivered?: number | null
+          total_failed?: number | null
+          total_read?: number | null
+          total_responded?: number | null
+          total_scheduled?: number | null
+          total_sent?: number | null
+          total_skipped?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avg_response_time_seconds?: number | null
+          by_attempt?: Json | null
+          by_hour?: Json | null
+          by_urgency?: Json | null
+          created_at?: string | null
+          id?: string
+          period_end?: string
+          period_start?: string
+          total_converted?: number | null
+          total_delivered?: number | null
+          total_failed?: number | null
+          total_read?: number | null
+          total_responded?: number | null
+          total_scheduled?: number | null
+          total_sent?: number | null
+          total_skipped?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      avivar_followup_rules: {
+        Row: {
+          ai_context: string | null
+          attempt_number: number
+          business_hours_end: string | null
+          business_hours_start: string | null
+          create_task_on_failure: boolean | null
+          created_at: string | null
+          delay_minutes: number
+          delay_type: string
+          excluded_days: number[] | null
+          id: string
+          is_active: boolean | null
+          max_attempts: number | null
+          message_template: string
+          move_to_column_id: string | null
+          name: string
+          order_index: number | null
+          respect_business_hours: boolean | null
+          target_kanban_id: string | null
+          updated_at: string | null
+          urgency_level: string
+          use_ai_generation: boolean | null
+          user_id: string
+        }
+        Insert: {
+          ai_context?: string | null
+          attempt_number?: number
+          business_hours_end?: string | null
+          business_hours_start?: string | null
+          create_task_on_failure?: boolean | null
+          created_at?: string | null
+          delay_minutes?: number
+          delay_type?: string
+          excluded_days?: number[] | null
+          id?: string
+          is_active?: boolean | null
+          max_attempts?: number | null
+          message_template: string
+          move_to_column_id?: string | null
+          name?: string
+          order_index?: number | null
+          respect_business_hours?: boolean | null
+          target_kanban_id?: string | null
+          updated_at?: string | null
+          urgency_level?: string
+          use_ai_generation?: boolean | null
+          user_id: string
+        }
+        Update: {
+          ai_context?: string | null
+          attempt_number?: number
+          business_hours_end?: string | null
+          business_hours_start?: string | null
+          create_task_on_failure?: boolean | null
+          created_at?: string | null
+          delay_minutes?: number
+          delay_type?: string
+          excluded_days?: number[] | null
+          id?: string
+          is_active?: boolean | null
+          max_attempts?: number | null
+          message_template?: string
+          move_to_column_id?: string | null
+          name?: string
+          order_index?: number | null
+          respect_business_hours?: boolean | null
+          target_kanban_id?: string | null
+          updated_at?: string | null
+          urgency_level?: string
+          use_ai_generation?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_followup_rules_move_to_column_id_fkey"
+            columns: ["move_to_column_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanban_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avivar_followup_rules_target_kanban_id_fkey"
+            columns: ["target_kanban_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_kanbans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_followup_templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          message_template: string
+          name: string
+          success_rate: number | null
+          updated_at: string | null
+          urgency_level: string | null
+          usage_count: number | null
+          user_id: string
+          variables_used: string[] | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message_template: string
+          name: string
+          success_rate?: number | null
+          updated_at?: string | null
+          urgency_level?: string | null
+          usage_count?: number | null
+          user_id: string
+          variables_used?: string[] | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message_template?: string
+          name?: string
+          success_rate?: number | null
+          updated_at?: string | null
+          urgency_level?: string | null
+          usage_count?: number | null
+          user_id?: string
+          variables_used?: string[] | null
+        }
+        Relationships: []
+      }
       avivar_kanban_columns: {
         Row: {
           ai_instruction: string | null
@@ -16367,6 +16662,18 @@ export type Database = {
           selected_answer: string
         }[]
       }
+      get_followup_stats: {
+        Args: { p_user_id: string }
+        Returns: {
+          avg_response_time_minutes: number
+          by_status: Json
+          pending_now: number
+          success_rate: number
+          today_scheduled: number
+          tomorrow_scheduled: number
+          total_scheduled: number
+        }[]
+      }
       get_neohub_user_id: { Args: { _auth_user_id: string }; Returns: string }
       get_neohub_user_profiles: {
         Args: { _user_id: string }
@@ -16500,6 +16807,10 @@ export type Database = {
       mark_avivar_messages_as_read: {
         Args: { p_conversa_id: string }
         Returns: undefined
+      }
+      schedule_followup_for_conversation: {
+        Args: { p_conversation_id: string; p_user_id: string }
+        Returns: string
       }
       user_has_any_enrollment: { Args: { _user_id: string }; Returns: boolean }
       user_has_flow_tenant_access: {
