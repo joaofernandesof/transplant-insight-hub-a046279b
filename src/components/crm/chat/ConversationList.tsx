@@ -25,6 +25,9 @@ type FilterStatus = 'all' | 'open' | 'pending' | 'resolved' | 'unread' | 'assign
 // Map to store last message content for each conversation
 type LastMessagesMap = Record<string, string>;
 
+// Map to store unanswered inbound message count for each conversation
+type UnansweredCountMap = Record<string, number>;
+
 export function ConversationList({
   conversations,
   selectedId,
@@ -34,6 +37,7 @@ export function ConversationList({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [lastMessages, setLastMessages] = useState<LastMessagesMap>({});
+  const [unansweredCounts, setUnansweredCounts] = useState<UnansweredCountMap>({});
 
   // Fetch last message for all conversations
   useEffect(() => {
@@ -42,10 +46,10 @@ export function ConversationList({
 
       const conversationIds = conversations.map(c => c.id);
       
-      // Fetch the most recent message for each conversation
+      // Fetch all messages for each conversation to calculate preview and unanswered count
       const { data, error } = await supabase
         .from('crm_messages')
-        .select('conversation_id, content, media_type, direction')
+        .select('conversation_id, content, media_type, direction, sent_at')
         .in('conversation_id', conversationIds)
         .order('sent_at', { ascending: false });
 
@@ -54,29 +58,54 @@ export function ConversationList({
         return;
       }
 
-      // Group by conversation_id and get the first (most recent) message
-      const messagesMap: LastMessagesMap = {};
+      // Group messages by conversation_id
+      const messagesByConversation: Record<string, typeof data> = {};
       for (const msg of data || []) {
-        if (!messagesMap[msg.conversation_id]) {
-          // Format the preview message
-          if (msg.media_type) {
+        if (!messagesByConversation[msg.conversation_id]) {
+          messagesByConversation[msg.conversation_id] = [];
+        }
+        messagesByConversation[msg.conversation_id].push(msg);
+      }
+
+      // Calculate last message preview and unanswered count for each conversation
+      const messagesMap: LastMessagesMap = {};
+      const countsMap: UnansweredCountMap = {};
+
+      for (const [convId, messages] of Object.entries(messagesByConversation)) {
+        // Get the most recent message for preview (first in array since sorted desc)
+        const lastMsg = messages[0];
+        if (lastMsg) {
+          if (lastMsg.media_type) {
             const mediaLabels: Record<string, string> = {
               image: '📷 Imagem',
               video: '🎥 Vídeo',
               audio: '🎤 Áudio',
               document: '📄 Documento',
             };
-            messagesMap[msg.conversation_id] = mediaLabels[msg.media_type] || '📎 Arquivo';
-          } else if (msg.content) {
-            // Truncate long messages
-            messagesMap[msg.conversation_id] = msg.content.length > 50 
-              ? msg.content.substring(0, 50) + '...' 
-              : msg.content;
+            messagesMap[convId] = mediaLabels[lastMsg.media_type] || '📎 Arquivo';
+          } else if (lastMsg.content) {
+            messagesMap[convId] = lastMsg.content.length > 50 
+              ? lastMsg.content.substring(0, 50) + '...' 
+              : lastMsg.content;
           }
+        }
+
+        // Calculate unanswered inbound messages:
+        // Count inbound messages that came after the last outbound message
+        const lastOutboundIndex = messages.findIndex(m => m.direction === 'outbound');
+        
+        if (lastOutboundIndex === -1) {
+          // No outbound messages - all inbound messages are unanswered
+          countsMap[convId] = messages.filter(m => m.direction === 'inbound').length;
+        } else {
+          // Count inbound messages before the last outbound (in the array, which means after in time)
+          const messagesAfterLastOutbound = messages.slice(0, lastOutboundIndex);
+          countsMap[convId] = messagesAfterLastOutbound.filter(m => m.direction === 'inbound').length;
         }
       }
 
       setLastMessages(messagesMap);
+      setUnansweredCounts(countsMap);
     }
 
     fetchLastMessages();
@@ -173,6 +202,7 @@ export function ConversationList({
                 isSelected={selectedId === conversation.id}
                 onClick={() => onSelect(conversation.id)}
                 lastMessagePreview={lastMessages[conversation.id]}
+                unansweredCount={unansweredCounts[conversation.id] || 0}
               />
             ))}
           </div>
