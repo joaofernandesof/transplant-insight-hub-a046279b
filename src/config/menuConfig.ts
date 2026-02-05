@@ -53,6 +53,7 @@ import {
   Scale,
   Gavel,
   Kanban,
+  Sparkles,
 } from 'lucide-react';
 
 // Tipos base
@@ -240,6 +241,7 @@ export const NEOTEAM_MENU_CATEGORIES: MenuCategory[] = [
       { id: 'neoteam_tasks', code: 'neoteam_tasks', title: 'Tarefas', icon: ListTodo, route: '/neoteam/tasks' },
       { id: 'neoteam_documents', code: 'neoteam_documents', title: 'Documentos', icon: Folder, route: '/neoteam/documents' },
       { id: 'neoteam_after_sales', code: 'neoteam_after_sales', title: 'Pós-Venda', icon: HeadphonesIcon, route: '/neoteam/postvenda' },
+      { id: 'neoteam_cleaning', code: 'neoteam_cleaning', title: 'Limpeza', icon: Sparkles, route: '/neoteam/limpeza' },
     ],
   },
   {
