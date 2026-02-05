@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo } from 'react';
  import { format, addDays, addHours } from 'date-fns';
  import { ptBR } from 'date-fns/locale';
-import { Loader2, CalendarDays, Search, User, Phone, Plus } from 'lucide-react';
+import { Loader2, CalendarDays, Search, User, Phone } from 'lucide-react';
  import {
    Dialog,
    DialogContent,
@@ -66,20 +66,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
  
   // Filter leads based on search query
   const filteredLeads = useMemo(() => {
-    if (!searchQuery.trim()) return leads.slice(0, 10);
+    if (!searchQuery.trim()) return leads.slice(0, 20);
     
     const query = searchQuery.toLowerCase().trim();
     return leads.filter(lead => 
       lead.name.toLowerCase().includes(query) ||
       (lead.phone && lead.phone.includes(query))
-    ).slice(0, 10);
+    ).slice(0, 20);
   }, [leads, searchQuery]);
-
-  // Check if search query looks like a phone number (for new lead creation)
-  const isPhoneNumber = useMemo(() => {
-    const cleaned = searchQuery.replace(/\D/g, '');
-    return cleaned.length >= 8;
-  }, [searchQuery]);
 
   // Reset form when dialog opens/closes
   useEffect(() => {
@@ -101,15 +95,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
     setShowSuggestions(false);
   };
 
-  const handleCreateNewWithPhone = () => {
-    const phone = searchQuery.replace(/\D/g, '');
-    setSelectedLead({ id: '', name: `Novo Lead`, phone });
-    setShowSuggestions(false);
-  };
-
    const handleSubmit = () => {
     if (!title.trim()) return;
-    if (!selectedLead) return;
+    if (!selectedLead || !selectedLead.id) return;
  
      let due_at: string | undefined;
      if (dueDate) {
@@ -120,23 +108,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
      }
  
     const taskData: CreateAvivarTaskData = {
+      lead_id: selectedLead.id,
        title: title.trim(),
        description: description.trim() || undefined,
        priority,
        due_at,
     };
 
-    if (selectedLead.id) {
-      taskData.lead_id = selectedLead.id;
-    } else {
-      // New lead with phone
-      taskData.phone_number = selectedLead.phone || '';
-    }
-
     onCreate(taskData);
    };
  
-  const isValid = title.trim() && selectedLead;
+  const isValid = title.trim() && selectedLead && selectedLead.id;
 
    return (
      <Dialog open={open} onOpenChange={onOpenChange}>
@@ -166,7 +148,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
               </div>
 
               {/* Suggestions Dropdown */}
-              {showSuggestions && (searchQuery || leads.length > 0) && (
+              {showSuggestions && !selectedLead && (
                 <div className="absolute z-50 w-full mt-1 bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))] rounded-md shadow-lg">
                   <ScrollArea className="max-h-[200px]">
                     {filteredLeads.length > 0 ? (
@@ -195,31 +177,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
                           </button>
                         ))}
                       </div>
-                    ) : searchQuery && (
-                      <div className="py-2 px-3 text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                        Nenhum lead encontrado
+                    ) : (
+                      <div className="py-3 px-3 text-sm text-[hsl(var(--avivar-muted-foreground))] text-center">
+                        {leads.length === 0 
+                          ? 'Nenhum lead cadastrado. Crie um lead primeiro no CRM.' 
+                          : 'Nenhum lead encontrado com esse termo.'}
                       </div>
-                    )}
-
-                    {/* Option to create new lead with phone */}
-                    {isPhoneNumber && !filteredLeads.some(l => l.phone === searchQuery.replace(/\D/g, '')) && (
-                      <button
-                        type="button"
-                        onClick={handleCreateNewWithPhone}
-                        className="w-full px-3 py-2 text-left hover:bg-[hsl(var(--avivar-primary)/0.1)] flex items-center gap-3 border-t border-[hsl(var(--avivar-border))] transition-colors"
-                      >
-                        <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                          <Plus className="h-4 w-4 text-emerald-500" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
-                            Criar novo lead
-                          </p>
-                          <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                            com telefone {searchQuery.replace(/\D/g, '')}
-                          </p>
-                        </div>
-                      </button>
                     )}
                   </ScrollArea>
                 </div>
@@ -230,7 +193,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
                 <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-[hsl(var(--avivar-primary)/0.1)] rounded-full border border-[hsl(var(--avivar-primary)/0.3)]">
                   <User className="h-3 w-3 text-[hsl(var(--avivar-primary))]" />
                   <span className="text-sm text-[hsl(var(--avivar-foreground))]">
-                    {selectedLead.id ? selectedLead.name : `Novo: ${selectedLead.phone}`}
+                    {selectedLead.name}
+                    {selectedLead.phone && <span className="text-[hsl(var(--avivar-muted-foreground))] ml-1">({selectedLead.phone})</span>}
                   </span>
                   <button
                     type="button"
