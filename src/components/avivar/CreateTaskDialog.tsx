@@ -2,7 +2,7 @@
   * CreateTaskDialog - Modal para criar nova tarefa
   */
  
- import { useState } from 'react';
+import { useState, useEffect } from 'react';
  import { format, addDays, addHours } from 'date-fns';
  import { ptBR } from 'date-fns/locale';
  import { Loader2, CalendarDays } from 'lucide-react';
@@ -61,6 +61,18 @@
    const [dueDate, setDueDate] = useState<Date | undefined>(addDays(new Date(), 1));
    const [dueTime, setDueTime] = useState('09:00');
  
+  // Reset form when dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      setTitle('');
+      setDescription('');
+      setLeadId('');
+      setPriority('medium');
+      setDueDate(addDays(new Date(), 1));
+      setDueTime('09:00');
+    }
+  }, [open]);
+
    const handleSubmit = () => {
      if (!title.trim() || !leadId) return;
  
@@ -79,32 +91,24 @@
        priority,
        due_at,
      });
- 
-     // Reset form
-     setTitle('');
-     setDescription('');
-     setLeadId('');
-     setPriority('medium');
-     setDueDate(addDays(new Date(), 1));
-     setDueTime('09:00');
    };
  
    return (
      <Dialog open={open} onOpenChange={onOpenChange}>
-       <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
          <DialogHeader>
-           <DialogTitle>Nova Tarefa</DialogTitle>
+          <DialogTitle className="text-[hsl(var(--avivar-foreground))]">Nova Tarefa</DialogTitle>
          </DialogHeader>
  
          <div className="space-y-4 py-4">
            {/* Lead Selection */}
            <div className="space-y-2">
-             <Label htmlFor="lead">Lead *</Label>
+            <Label htmlFor="lead" className="text-[hsl(var(--avivar-foreground))]">Lead *</Label>
              <Select value={leadId} onValueChange={setLeadId}>
-               <SelectTrigger>
+              <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
                  <SelectValue placeholder="Selecione um lead" />
                </SelectTrigger>
-               <SelectContent>
+              <SelectContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
                  {leads.map((lead) => (
                    <SelectItem key={lead.id} value={lead.id}>
                      {lead.name} {lead.phone && `(${lead.phone})`}
@@ -116,63 +120,66 @@
  
            {/* Title */}
            <div className="space-y-2">
-             <Label htmlFor="title">Título *</Label>
+            <Label htmlFor="title" className="text-[hsl(var(--avivar-foreground))]">Título *</Label>
              <Input
                id="title"
                value={title}
                onChange={(e) => setTitle(e.target.value)}
                placeholder="Ex: Ligar para confirmar agendamento"
+              className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
              />
            </div>
  
            {/* Description */}
            <div className="space-y-2">
-             <Label htmlFor="description">Descrição</Label>
+            <Label htmlFor="description" className="text-[hsl(var(--avivar-foreground))]">Descrição</Label>
              <Textarea
                id="description"
                value={description}
                onChange={(e) => setDescription(e.target.value)}
                placeholder="Detalhes adicionais..."
                rows={2}
+              className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
              />
            </div>
  
            {/* Due Date & Time */}
            <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2">
-               <Label>Data de Vencimento</Label>
+              <Label className="text-[hsl(var(--avivar-foreground))]">Data de Vencimento</Label>
                <Popover>
                  <PopoverTrigger asChild>
                    <Button
                      variant="outline"
                      className={cn(
-                       "w-full justify-start text-left font-normal",
-                       !dueDate && "text-muted-foreground"
+                      "w-full justify-start text-left font-normal bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]",
+                      !dueDate && "text-[hsl(var(--avivar-muted-foreground))]"
                      )}
                    >
                      <CalendarDays className="mr-2 h-4 w-4" />
                      {dueDate ? format(dueDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
                    </Button>
                  </PopoverTrigger>
-                 <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]" align="start">
                    <Calendar
                      mode="single"
                      selected={dueDate}
                      onSelect={setDueDate}
                      locale={ptBR}
                      initialFocus
+                    className="pointer-events-auto"
                    />
                  </PopoverContent>
                </Popover>
              </div>
  
              <div className="space-y-2">
-               <Label>Horário</Label>
+              <Label className="text-[hsl(var(--avivar-foreground))]">Horário</Label>
                <Select value={dueTime} onValueChange={setDueTime}>
-                 <SelectTrigger>
+                <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
                    <SelectValue />
                  </SelectTrigger>
-                 <SelectContent>
+                <SelectContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] max-h-[200px]">
                    {timeSlots.map((time) => (
                      <SelectItem key={time} value={time}>
                        {time}
@@ -185,12 +192,12 @@
  
            {/* Priority */}
            <div className="space-y-2">
-             <Label>Prioridade</Label>
+            <Label className="text-[hsl(var(--avivar-foreground))]">Prioridade</Label>
              <Select value={priority} onValueChange={(v) => setPriority(v as any)}>
-               <SelectTrigger>
+              <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
                  <SelectValue />
                </SelectTrigger>
-               <SelectContent>
+              <SelectContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
                  <SelectItem value="low">Baixa</SelectItem>
                  <SelectItem value="medium">Média</SelectItem>
                  <SelectItem value="high">Alta</SelectItem>
@@ -200,12 +207,13 @@
          </div>
  
          <div className="flex justify-end gap-2">
-           <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
              Cancelar
            </Button>
            <Button 
              onClick={handleSubmit}
              disabled={!title.trim() || !leadId || isCreating}
+            className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
            >
              {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
              Criar Tarefa
