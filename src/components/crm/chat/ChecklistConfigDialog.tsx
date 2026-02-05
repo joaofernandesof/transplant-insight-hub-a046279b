@@ -279,6 +279,113 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
 
         <ScrollArea className="flex-1 min-h-0 pr-4">
           <div className="space-y-4 py-2">
+            {/* Adicionar novo campo */}
+            <Card className="p-4 bg-[hsl(var(--avivar-background))] border-dashed border-[hsl(var(--avivar-border))] space-y-3">
+              <h5 className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">Adicionar Campo</h5>
+              
+              <div>
+                <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Nome do campo</Label>
+                <Input
+                  placeholder="Ex: Nome do responsável"
+                  value={newField.field_label}
+                  onChange={(e) => handleLabelChange(e.target.value)}
+                  className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tipo do campo</Label>
+                  <Select 
+                    value={newField.field_type} 
+                    onValueChange={(v) => handleTypeChange(v, false)}
+                  >
+                    <SelectTrigger className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {FIELD_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-end">
+                  <div className="flex items-center gap-2 pb-2">
+                    <Switch
+                      checked={newField.is_required}
+                      onCheckedChange={(v) => setNewField({ ...newField, is_required: v, required_for_columns: v ? newField.required_for_columns : [] })}
+                    />
+                    <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Obrigatório</Label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Editor de opções para select/multiselect */}
+              {(newField.field_type === 'select' || newField.field_type === 'multiselect') && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Opções</Label>
+                  <div className="space-y-2">
+                    {(newField.options || []).map((option, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={option}
+                          onChange={(e) => updateOption(index, e.target.value, false)}
+                          placeholder="Opção"
+                          className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] flex-1"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeOption(index, false)}
+                          className="h-8 w-8 shrink-0 text-destructive hover:text-destructive/80"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addOption(false)}
+                    className="text-sm text-[hsl(var(--avivar-primary))] hover:underline"
+                  >
+                    Adicionar opção
+                  </button>
+                </div>
+              )}
+
+              {/* Seletor de Kanbans/Colunas quando obrigatório */}
+              {newField.is_required && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                    Selecione as colunas onde este campo é obrigatório para mover o lead:
+                  </Label>
+                  <KanbanColumnSelector
+                    selectedColumnIds={newField.required_for_columns || []}
+                    onSelectionChange={(columnIds) => setNewField({ ...newField, required_for_columns: columnIds })}
+                  />
+                </div>
+              )}
+
+              <Button
+                onClick={handleAddField}
+                disabled={addField.isPending || !newField.field_label}
+                size="sm"
+                className="w-full gap-2 bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)]"
+              >
+                {addField.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                Adicionar Campo
+              </Button>
+            </Card>
+
             {/* Lista de campos existentes */}
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -286,6 +393,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
               </div>
             ) : checklists && checklists.length > 0 ? (
               <div className="space-y-2">
+                <h5 className="text-sm font-medium text-[hsl(var(--avivar-muted-foreground))]">Campos configurados</h5>
                 {checklists.map((field) => (
                   <Card 
                     key={field.id} 
@@ -448,118 +556,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                   </Card>
                 ))}
               </div>
-            ) : (
-              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))] text-center py-6">
-                Nenhum campo configurado
-              </p>
-            )}
-
-            {/* Adicionar novo campo */}
-            <Card className="p-4 bg-[hsl(var(--avivar-background))] border-dashed border-[hsl(var(--avivar-border))] space-y-3">
-              <h5 className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">Adicionar Campo</h5>
-              
-              <div>
-                <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Nome do campo</Label>
-                <Input
-                  placeholder="Ex: Nome do responsável"
-                  value={newField.field_label}
-                  onChange={(e) => handleLabelChange(e.target.value)}
-                  className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Tipo do campo</Label>
-                  <Select 
-                    value={newField.field_type} 
-                    onValueChange={(v) => handleTypeChange(v, false)}
-                  >
-                    <SelectTrigger className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {FIELD_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex items-end">
-                  <div className="flex items-center gap-2 pb-2">
-                    <Switch
-                      checked={newField.is_required}
-                      onCheckedChange={(v) => setNewField({ ...newField, is_required: v, required_for_columns: v ? newField.required_for_columns : [] })}
-                    />
-                    <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Obrigatório</Label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Editor de opções para select/multiselect */}
-              {(newField.field_type === 'select' || newField.field_type === 'multiselect') && (
-                <div className="space-y-2">
-                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">Opções</Label>
-                  <div className="space-y-2">
-                    {(newField.options || []).map((option, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          value={option}
-                          onChange={(e) => updateOption(index, e.target.value, false)}
-                          placeholder="Opção"
-                          className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] flex-1"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeOption(index, false)}
-                          className="h-8 w-8 shrink-0 text-destructive hover:text-destructive/80"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => addOption(false)}
-                    className="text-sm text-[hsl(var(--avivar-primary))] hover:underline"
-                  >
-                    Adicionar opção
-                  </button>
-                </div>
-              )}
-
-              {/* Seletor de Kanbans/Colunas quando obrigatório */}
-              {newField.is_required && (
-                <div className="space-y-2">
-                  <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                    Selecione as colunas onde este campo é obrigatório para mover o lead:
-                  </Label>
-                  <KanbanColumnSelector
-                    selectedColumnIds={newField.required_for_columns || []}
-                    onSelectionChange={(columnIds) => setNewField({ ...newField, required_for_columns: columnIds })}
-                  />
-                </div>
-              )}
-
-              <Button
-                onClick={handleAddField}
-                disabled={addField.isPending || !newField.field_label}
-                size="sm"
-                className="w-full gap-2 bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.9)]"
-              >
-                {addField.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
-                Adicionar Campo
-              </Button>
-            </Card>
+            ) : null}
           </div>
         </ScrollArea>
       </DialogContent>
