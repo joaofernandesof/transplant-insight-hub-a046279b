@@ -54,57 +54,75 @@
      const body = await req.json().catch(() => ({}));
      const { executionId } = body;
  
-    let executions: any[] = [];
-    
-    // If specific execution requested, only process that one
-    if (executionId) {
-      const { data, error } = await supabase
-        .from('avivar_followup_executions')
-        .select(`
+     let executions: any[] = [];
+     
+     // If specific execution requested, only process that one
+     if (executionId) {
+       // Atomically claim this execution to prevent race conditions
+       const { data: claimed, error: claimError } = await supabase
+         .from('avivar_followup_executions')
+         .update({ status: 'processing' })
+         .eq('id', executionId)
+         .in('status', ['pending', 'scheduled'])
+         .select(`
           *,
           rule:avivar_followup_rules(*),
           conversation:crm_conversations(
             id,
             lead:leads(id, name, phone, email, procedure_interest)
           )
-        `)
-        .eq('id', executionId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching execution:', error);
-        return new Response(
-          JSON.stringify({ success: false, error: error.message }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-        );
-      }
-      
-      executions = data ? [data] : [];
-    } else {
-      const { data, error } = await supabase
+         `);
+       
+       if (claimError) {
+         console.error('Error claiming execution:', claimError);
+         return new Response(
+           JSON.stringify({ success: false, error: claimError.message }),
+           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+         );
+     }
+       
+       executions = claimed || [];
+       console.log(`[Followup] Claimed specific execution: ${executionId}, found: ${executions.length}`);
+     } else {
+       // Fetch IDs first, then atomically claim them one by one
+       const { data: pendingIds, error: fetchError } = await supabase
          .from('avivar_followup_executions')
-         .select(`
-           *,
-           rule:avivar_followup_rules(*),
-           conversation:crm_conversations(
-             id,
-             lead:leads(id, name, phone, email, procedure_interest)
-           )
-         `)
-        .in('status', ['pending', 'scheduled'])
-        .lte('scheduled_for', new Date().toISOString())
-        .order('scheduled_for', { ascending: true })
-        .limit(10);
-      
-      if (error) {
-        console.error('Error fetching executions:', error);
-        return new Response(
-          JSON.stringify({ success: false, error: error.message }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-        );
-      }
-      
-      executions = data || [];
+         .select('id')
+         .in('status', ['pending', 'scheduled'])
+         .lte('scheduled_for', new Date().toISOString())
+         .order('scheduled_for', { ascending: true })
+         .limit(10);
+       
+       if (fetchError) {
+         console.error('Error fetching pending executions:', fetchError);
+         return new Response(
+           JSON.stringify({ success: false, error: fetchError.message }),
+           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+         );
+       }
+       
+       // Atomically claim each execution to prevent race conditions
+       for (const pending of pendingIds || []) {
+         const { data: claimed, error: claimError } = await supabase
+           .from('avivar_followup_executions')
+           .update({ status: 'processing' })
+           .eq('id', pending.id)
+           .in('status', ['pending', 'scheduled']) // Only claim if still pending
+           .select(`
+             *,
+             rule:avivar_followup_rules(*),
+             conversation:crm_conversations(
+               id,
+               lead:leads(id, name, phone, email, procedure_interest)
+             )
+           `);
+         
+         if (!claimError && claimed && claimed.length > 0) {
+           executions.push(claimed[0]);
+         }
+       }
+       
+       console.log(`[Followup] Claimed ${executions.length} executions out of ${pendingIds?.length || 0} pending`);
      }
  
      const results: any[] = [];
@@ -196,6 +214,8 @@
            results.push({ id: execution.id, status: 'skipped', reason: 'lead_responded' });
            continue;
          }
+
+          console.log(`[Followup] Processing execution ${execution.id} for lead ${lead.name}`);
  
          // Build message with variables
          const messageTemplate = execution.original_message || rule?.message_template || '';
