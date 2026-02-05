@@ -142,7 +142,7 @@ export function KanbanColumnSelector({ selectedColumnIds, onSelectionChange }: P
   }
 
   return (
-    <ScrollArea className="max-h-[200px] border border-[hsl(var(--avivar-border))] rounded-md">
+    <ScrollArea className="max-h-[280px] border border-[hsl(var(--avivar-border))] rounded-md">
       <div className="p-2 space-y-1">
         {kanbans.map((kanban) => {
           const isExpanded = expandedKanbans.has(kanban.id);
