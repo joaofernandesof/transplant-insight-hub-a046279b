@@ -38,22 +38,23 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PortalSwitcherButton } from '@/components/shared/PortalSwitcherButton';
+import { useAvivarSidebarCounts } from '@/hooks/useAvivarSidebarCounts';
 
-const menuItems = [
+const getMenuItems = (counts: { unreadChats: number; overdueTasks: number }) => [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/avivar' },
-  { id: 'leads', label: 'Funis', icon: Kanban, href: '/avivar/leads', isHighlight: true },
-  { id: 'inbox', label: 'Chats', icon: MessageSquare, href: '/avivar/inbox', badge: '5' },
+  { id: 'leads', label: 'Funis', icon: Kanban, href: '/avivar/leads' },
+  { id: 'inbox', label: 'Chats', icon: MessageSquare, href: '/avivar/inbox', badge: counts.unreadChats > 0 ? String(counts.unreadChats) : undefined },
   { id: 'divider0', label: '', icon: null, href: '', isDivider: true },
-  { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: '3' },
-  { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup', badge: '12' },
-  { id: 'cadences', label: 'Cadências', icon: Zap, href: '/avivar/cadences', isHighlight: true },
-  { id: 'agenda', label: 'Agenda', icon: CalendarDays, href: '/avivar/agenda', isHighlight: true },
+  { id: 'tasks', label: 'Tarefas', icon: ListTodo, href: '/avivar/tasks', badge: counts.overdueTasks > 0 ? String(counts.overdueTasks) : undefined },
+  { id: 'followup', label: 'Follow-up', icon: RefreshCw, href: '/avivar/followup' },
+  { id: 'cadences', label: 'Cadências', icon: Zap, href: '/avivar/cadences' },
+  { id: 'agenda', label: 'Agenda', icon: CalendarDays, href: '/avivar/agenda' },
   { id: 'divider1', label: '', icon: null, href: '', isDivider: true },
   { id: 'config', label: 'Configurar IA', icon: Sparkles, href: '/avivar/config' },
   { id: 'tutorials', label: 'Tutoriais', icon: GraduationCap, href: '/avivar/tutorials' },
   { id: 'divider3', label: '', icon: null, href: '', isDivider: true },
-  { id: 'team', label: 'Equipe', icon: Users, href: '/avivar/team', isHighlight: true },
-  { id: 'integrations', label: 'Integrações', icon: Link2, href: '/avivar/integrations', isHighlight: true },
+  { id: 'team', label: 'Equipe', icon: Users, href: '/avivar/team' },
+  { id: 'integrations', label: 'Integrações', icon: Link2, href: '/avivar/integrations' },
   { id: 'settings', label: 'Configurações', icon: Settings, href: '/avivar/settings' },
 ];
 
@@ -61,8 +62,9 @@ interface AvivarSidebarProps {
   children: React.ReactNode;
 }
 
-function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onCollapse?: () => void }) {
+function SidebarContent({ collapsed, onCollapse, counts }: { collapsed: boolean; onCollapse?: () => void; counts: { unreadChats: number; overdueTasks: number } }) {
   const location = useLocation();
+  const menuItems = getMenuItems(counts);
 
   return (
     <div className="flex flex-col h-full bg-[hsl(var(--avivar-card))] relative overflow-hidden border-r border-[hsl(var(--avivar-border))]">
@@ -163,6 +165,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
   const isMobile = useIsMobile();
   const location = useLocation();
   const isInboxRoute = location.pathname.startsWith('/avivar/inbox');
+  const { counts } = useAvivarSidebarCounts();
 
   if (isMobile) {
     return (
@@ -187,7 +190,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-72 border-[hsl(var(--avivar-border))] bg-transparent">
-                <SidebarContent collapsed={false} onCollapse={() => setMobileOpen(false)} />
+                <SidebarContent collapsed={false} onCollapse={() => setMobileOpen(false)} counts={counts} />
               </SheetContent>
             </Sheet>
           </div>
@@ -218,7 +221,7 @@ export function AvivarSidebar({ children }: AvivarSidebarProps) {
         'fixed left-0 top-0 h-screen transition-all duration-300 z-40',
         collapsed ? 'w-16' : 'w-64'
       )}>
-        <SidebarContent collapsed={collapsed} />
+        <SidebarContent collapsed={collapsed} counts={counts} />
         <Button
           variant="ghost"
           size="icon"
