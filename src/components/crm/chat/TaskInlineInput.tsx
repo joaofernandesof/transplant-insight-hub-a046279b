@@ -169,24 +169,24 @@
              </button>
            </PopoverTrigger>
            <PopoverContent className="w-auto p-0 flex" align="start" side="top">
-             <div className="flex max-h-[320px]">
+             <div className="flex">
              {/* Quick options */}
-             <ScrollArea className="border-r border-border min-w-[130px] h-[320px]">
-               <div className="p-2 space-y-1">
+             <div className="border-r border-border">
+               <div className="p-1.5 space-y-0.5">
                {quickDateOptions.map((option) => (
                  <button
                    key={option.label}
                    onClick={() => handleQuickDate(option.getValue)}
-                   className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors whitespace-nowrap"
+                   className="w-full text-left px-2 py-1 text-sm rounded hover:bg-muted transition-colors whitespace-nowrap"
                  >
                    {option.label}
                  </button>
                ))}
                </div>
-             </ScrollArea>
+             </div>
              
              {/* Calendar */}
-             <div className="p-0">
+             <div>
                <Calendar
                  mode="single"
                  selected={selectedDate}
@@ -198,31 +198,31 @@
                  }}
                  locale={ptBR}
                  initialFocus
-                 className="pointer-events-auto p-2"
+                 className="pointer-events-auto p-1"
                />
              </div>
              
              {/* Time picker column */}
-             <div className="border-l border-border p-2 min-w-[80px]">
-               <div className="space-y-1 mb-2">
+             <div className="border-l border-border p-1.5">
+               <div className="mb-1">
                  <button
                    onClick={handleAllDay}
                    className={cn(
-                     "w-full text-left px-3 py-1.5 text-sm rounded transition-colors",
+                     "w-full text-left px-2 py-1 text-sm rounded transition-colors whitespace-nowrap",
                      isAllDay ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                    )}
                  >
                    Dia todo
                  </button>
                </div>
-               <ScrollArea className="h-[240px]">
-                 <div className="space-y-0.5">
+               <ScrollArea className="h-[200px]">
+                 <div>
                    {timeSlots.map((time) => (
                      <button
                        key={time}
                        onClick={() => handleTimeSelect(time)}
                        className={cn(
-                         "w-full text-left px-3 py-1 text-sm rounded transition-colors",
+                         "w-full text-left px-2 py-0.5 text-sm rounded transition-colors",
                          selectedTime === time && !isAllDay ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                        )}
                      >
