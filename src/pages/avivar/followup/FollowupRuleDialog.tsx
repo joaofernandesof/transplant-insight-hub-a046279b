@@ -22,7 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image, Video } from 'lucide-react';
+import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image, Video, FileText } from 'lucide-react';
 import { TEMPLATE_VARIABLES } from '@/hooks/useFollowupTemplates';
 import type { FollowupRule, CreateFollowupRuleInput } from '@/hooks/useFollowupRules';
 import { useKanbanBoards } from '@/hooks/useKanbanBoards';
@@ -76,14 +76,19 @@ import { toast } from 'sonner';
     // Video fields
     video_url: '' as string,
     video_caption: '' as string,
+    // Document fields
+    document_url: '' as string,
+    document_name: '' as string,
   });
   
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
  
   useEffect(() => {
     if (rule) {
@@ -125,6 +130,9 @@ import { toast } from 'sonner';
         // Video fields
         video_url: rule.video_url || '',
         video_caption: rule.video_caption || '',
+        // Document fields
+        document_url: rule.document_url || '',
+        document_name: rule.document_name || '',
       });
     } else {
       setFormData(prev => ({
@@ -138,6 +146,8 @@ import { toast } from 'sonner';
         image_caption: '',
         video_url: '',
         video_caption: '',
+        document_url: '',
+        document_name: '',
       }));
     }
   }, [rule, existingRulesCount, open]);
@@ -321,6 +331,77 @@ import { toast } from 'sonner';
     }));
   };
 
+  // Handle document file upload
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'application/zip',
+      'application/x-zip-compressed',
+    ];
+    const validExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip'];
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+    
+    if (!validTypes.includes(file.type) && !validExtensions.includes(fileExt)) {
+      toast.error('Formato não suportado. Use PDF, Word, Excel, TXT ou ZIP.');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo 10MB.');
+      return;
+    }
+
+    setIsUploadingDocument(true);
+    try {
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `followup-documents/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avivar-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avivar-media')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({
+        ...prev,
+        document_url: publicUrl,
+        document_name: file.name,
+      }));
+      
+      toast.success('Documento enviado com sucesso!');
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast.error('Erro ao enviar documento');
+    } finally {
+      setIsUploadingDocument(false);
+      if (documentInputRef.current) {
+        documentInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeDocument = () => {
+    setFormData(prev => ({
+      ...prev,
+      document_url: '',
+      document_name: '',
+    }));
+  };
+
   const handleSubmit = () => {
     let delayMinutes = formData.delay_value;
     if (formData.delay_type === 'hours') delayMinutes *= 60;
@@ -353,6 +434,9 @@ import { toast } from 'sonner';
       // Video fields
       video_url: formData.video_url || null,
       video_caption: formData.video_caption || null,
+      // Document fields
+      document_url: formData.document_url || null,
+      document_name: formData.document_name || null,
     };
 
     if (isEditing && rule) {
@@ -721,6 +805,64 @@ import { toast } from 'sonner';
                         placeholder="Ex: Veja nosso procedimento em ação!"
                         className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]"
                       />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Document Section */}
+              <div className="space-y-3 p-4 rounded-lg border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary)/0.5)]">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Documento (opcional)
+                  </Label>
+                </div>
+
+                {!formData.document_url ? (
+                  <div className="space-y-2">
+                    <input
+                      ref={documentInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                      onChange={handleDocumentUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => documentInputRef.current?.click()}
+                      disabled={isUploadingDocument}
+                      className="w-full border-dashed border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))]"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isUploadingDocument ? 'Enviando...' : 'Enviar arquivo (PDF, Word, Excel - máx 10MB)'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Document Preview */}
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--avivar-card))] border border-[hsl(var(--avivar-border))]">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-cyan-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))] truncate">
+                          {formData.document_name || 'Documento'}
+                        </p>
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
+                          Documento anexado
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={removeDocument}
+                        className="flex-shrink-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 )}
