@@ -1,5 +1,6 @@
 /**
- * Hook para buscar campos do checklist de uma coluna e os valores preenchidos do lead
+ * Hook para buscar campos do checklist de um kanban (universal para todos os leads)
+ * e os valores preenchidos do lead específico
  */
 
 import { useQuery } from '@tanstack/react-query';
@@ -13,24 +14,52 @@ interface ChecklistFieldValue {
   is_required: boolean;
   value: string | boolean | null;
   options?: string[];
+  required_for_columns?: string[];
 }
 
-export function useLeadChecklistFields(columnId: string | null | undefined, phone: string | null | undefined) {
+/**
+ * Hook para buscar campos do checklist do kanban
+ * @param kanbanId - ID do kanban (campos são universais por kanban)
+ * @param phone - Telefone do lead para buscar valores preenchidos
+ */
+export function useLeadChecklistFields(kanbanId: string | null | undefined, phone: string | null | undefined) {
   return useQuery({
-    queryKey: ['lead-checklist-fields', columnId, phone],
+    queryKey: ['lead-checklist-fields', kanbanId, phone],
     queryFn: async (): Promise<ChecklistFieldValue[]> => {
-      if (!columnId) return [];
+      if (!kanbanId) return [];
 
-      // Buscar os campos do checklist da coluna
+      // Buscar as colunas do kanban para pegar os campos de checklist
+      const { data: columns, error: columnsError } = await supabase
+        .from('avivar_kanban_columns')
+        .select('id')
+        .eq('kanban_id', kanbanId);
+
+      if (columnsError || !columns || columns.length === 0) {
+        return [];
+      }
+
+      const columnIds = columns.map(c => c.id);
+
+      // Buscar os campos do checklist de todas as colunas do kanban
+      // Isso permite campos universais - configurados em qualquer coluna aparecem para todos
       const { data: checklistFields, error: fieldsError } = await supabase
         .from('avivar_column_checklists')
         .select('*')
-        .eq('column_id', columnId)
+        .in('column_id', columnIds)
         .order('order_index');
 
       if (fieldsError || !checklistFields || checklistFields.length === 0) {
         return [];
       }
+
+      // Deduplicar campos por field_key (pegar o primeiro de cada)
+      const uniqueFieldsMap = new Map<string, typeof checklistFields[0]>();
+      for (const field of checklistFields) {
+        if (!uniqueFieldsMap.has(field.field_key)) {
+          uniqueFieldsMap.set(field.field_key, field);
+        }
+      }
+      const uniqueFields = Array.from(uniqueFieldsMap.values());
 
       // Buscar o lead pelo telefone para pegar os custom_fields
       let customFields: Record<string, unknown> = {};
@@ -40,7 +69,8 @@ export function useLeadChecklistFields(columnId: string | null | undefined, phon
           .from('avivar_kanban_leads')
           .select('custom_fields')
           .eq('phone', phone)
-          .eq('column_id', columnId)
+          .order('updated_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (lead?.custom_fields) {
@@ -49,7 +79,7 @@ export function useLeadChecklistFields(columnId: string | null | undefined, phon
       }
 
       // Combinar campos do checklist com valores do lead
-      return checklistFields.map(field => ({
+      return uniqueFields.map(field => ({
         id: field.id,
         field_key: field.field_key,
         field_label: field.field_label,
@@ -57,9 +87,10 @@ export function useLeadChecklistFields(columnId: string | null | undefined, phon
         is_required: field.is_required ?? false,
         value: customFields[field.field_key] as string | boolean | null ?? null,
         options: (field.options as string[]) || [],
+        required_for_columns: (field.required_for_columns as string[]) || [],
       }));
     },
-    enabled: !!columnId,
+    enabled: !!kanbanId,
     staleTime: 30000,
   });
 }

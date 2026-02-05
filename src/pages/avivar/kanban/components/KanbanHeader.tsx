@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, ArrowLeft, Search, Filter, RefreshCw,
-  MoreHorizontal, Upload, Download, ListChecks, Eye, EyeOff,
+  MoreHorizontal, Upload, Download,
   Briefcase, HeartPulse, TrendingUp, Users, LayoutGrid as LayoutGridIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,6 @@ interface KanbanHeaderProps {
   onAddLead: () => void;
   onImport: () => void;
   onExport: () => void;
-  onChecklist: () => void;
   onRefresh: () => Promise<void> | void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -68,7 +67,6 @@ export function KanbanHeader({
   onAddLead,
   onImport,
   onExport,
-  onChecklist,
   onRefresh,
   searchQuery,
   onSearchChange,
@@ -147,16 +145,6 @@ export function KanbanHeader({
               Nova Coluna
             </Button>
           )}
-
-          {/* Checklist Button - Visible */}
-          <Button
-            variant="outline"
-            onClick={onChecklist}
-            className="border-[hsl(var(--avivar-border))] gap-2"
-          >
-            <ListChecks className="h-4 w-4" />
-            Checklist
-          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

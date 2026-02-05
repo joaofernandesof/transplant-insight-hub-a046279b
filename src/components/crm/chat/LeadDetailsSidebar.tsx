@@ -102,8 +102,8 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
   // Buscar informações do Kanban/Coluna
   const { data: kanbanInfo, refetch: refetchKanbanInfo } = useLeadKanbanInfo(lead?.phone);
   
-  // Buscar campos do checklist da coluna atual
-  const { data: checklistFields = [] } = useLeadChecklistFields(kanbanInfo?.columnId, lead?.phone);
+  // Buscar campos do checklist do kanban (universal para todos os leads do kanban)
+  const { data: checklistFields = [] } = useLeadChecklistFields(kanbanInfo?.kanbanId, lead?.phone);
 
   const handleDeleteLead = async () => {
     if (!lead) return;
@@ -398,13 +398,13 @@ export function LeadDetailsSidebar({ conversation, onClose, onLeadUpdated }: Lea
         onSaved={onLeadUpdated}
       />
 
-      {/* Dialog de Configuração do Checklist */}
-      {kanbanInfo?.columnId && (
+      {/* Dialog de Configuração do Checklist - Único local para configurar */}
+      {kanbanInfo?.kanbanId && (
         <ChecklistConfigDialog
           open={isChecklistConfigOpen}
           onOpenChange={setIsChecklistConfigOpen}
-          columnId={kanbanInfo.columnId}
-          columnName={kanbanInfo.columnName}
+          kanbanId={kanbanInfo.kanbanId}
+          kanbanName={kanbanInfo.kanbanName}
         />
       )}
     </>

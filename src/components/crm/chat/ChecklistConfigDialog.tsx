@@ -1,6 +1,7 @@
 /**
- * Dialog para configurar campos do checklist de uma coluna
+ * Dialog para configurar campos do checklist de um kanban (universal)
  * Permite adicionar, editar e remover campos personalizados
+ * Campos configurados aqui aparecem para TODOS os leads do kanban
  */
 
 import React, { useState } from 'react';
@@ -12,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings2, Plus, Trash2, Loader2, GripVertical, Pencil, X, Check } from 'lucide-react';
+import { Settings2, Plus, Trash2, Loader2, Pencil, X, Check } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -21,8 +22,8 @@ import { KanbanColumnSelector } from './KanbanColumnSelector';
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  columnId: string;
-  columnName?: string;
+  kanbanId: string;
+  kanbanName?: string | null;
 }
 
 interface ChecklistField {
@@ -48,7 +49,7 @@ const FIELD_TYPES = [
   { value: 'file', label: 'Arquivo' },
 ];
 
-export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName }: Props) {
+export function ChecklistConfigDialog({ open, onOpenChange, kanbanId, kanbanName }: Props) {
   const queryClient = useQueryClient();
   const [newField, setNewField] = useState<ChecklistField>({
     field_key: '',
@@ -68,30 +69,63 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
     options: []
   });
 
-  // Buscar checklists existentes
-  const { data: checklists, isLoading, refetch } = useQuery({
-    queryKey: ['avivar-column-checklists', columnId],
+  // Buscar colunas do kanban (precisamos de pelo menos uma para salvar campos)
+  const { data: columns = [] } = useQuery({
+    queryKey: ['avivar-kanban-columns-for-checklist', kanbanId],
     queryFn: async () => {
-      if (!columnId) return [];
+      if (!kanbanId) return [];
       const { data, error } = await supabase
-        .from('avivar_column_checklists')
-        .select('*')
-        .eq('column_id', columnId)
+        .from('avivar_kanban_columns')
+        .select('id, name')
+        .eq('kanban_id', kanbanId)
         .order('order_index');
       
       if (error) throw error;
       return data || [];
     },
-    enabled: !!columnId && open
+    enabled: !!kanbanId && open
+  });
+
+  // Usar a primeira coluna como referência para salvar novos campos
+  const defaultColumnId = columns[0]?.id;
+
+  // Buscar checklists existentes de todas as colunas do kanban
+  const { data: checklists, isLoading, refetch } = useQuery({
+    queryKey: ['avivar-kanban-checklists', kanbanId],
+    queryFn: async () => {
+      if (!kanbanId || columns.length === 0) return [];
+      
+      const columnIds = columns.map(c => c.id);
+      const { data, error } = await supabase
+        .from('avivar_column_checklists')
+        .select('*')
+        .in('column_id', columnIds)
+        .order('order_index');
+      
+      if (error) throw error;
+      
+      // Deduplicar por field_key
+      const uniqueFieldsMap = new Map<string, typeof data[0]>();
+      for (const field of data || []) {
+        if (!uniqueFieldsMap.has(field.field_key)) {
+          uniqueFieldsMap.set(field.field_key, field);
+        }
+      }
+      return Array.from(uniqueFieldsMap.values());
+    },
+    enabled: !!kanbanId && open && columns.length > 0
   });
 
   // Adicionar campo
   const addField = useMutation({
     mutationFn: async (field: ChecklistField) => {
+      if (!defaultColumnId) {
+        throw new Error('Nenhuma coluna disponível no kanban');
+      }
       const { error } = await supabase
         .from('avivar_column_checklists')
         .insert({
-          column_id: columnId,
+          column_id: defaultColumnId,
           field_key: field.field_key,
           field_label: field.field_label,
           field_type: field.field_type,
@@ -269,9 +303,9 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
           <DialogTitle className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
             <Settings2 className="h-5 w-5 text-[hsl(var(--avivar-primary))]" />
             Configurar Checklist
-            {columnName && (
+            {kanbanName && (
               <span className="text-sm font-normal text-[hsl(var(--avivar-muted-foreground))]">
-                — {columnName}
+                — {kanbanName}
               </span>
             )}
           </DialogTitle>
@@ -516,7 +550,7 @@ export function ChecklistConfigDialog({ open, onOpenChange, columnId, columnName
                       // Modo visualização
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <GripVertical className="h-4 w-4 text-[hsl(var(--avivar-muted-foreground))] shrink-0 cursor-grab" />
+                          <div className="h-4 w-4 shrink-0" /> {/* Spacer */}
                           <div className="min-w-0">
                             <p className="font-medium text-sm text-[hsl(var(--avivar-foreground))] truncate">
                               {field.field_label}
