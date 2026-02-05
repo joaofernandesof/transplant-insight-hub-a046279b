@@ -384,20 +384,6 @@
                 />
               </div>
   
-              <div className="space-y-2">
-                <Label className="text-[hsl(var(--avivar-foreground))]">Quantas vezes reenviar esta mensagem?</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={formData.max_attempts}
-                  onChange={(e) => setFormData(prev => ({ ...prev, max_attempts: parseInt(e.target.value) || 3 }))}
-                  className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] w-24"
-                />
-                <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                  Se o lead não responder, o sistema reenvia esta mesma mensagem até {formData.max_attempts}x. Se ele responder em qualquer momento, o envio automático para imediatamente.
-                </p>
-              </div>
            </TabsContent>
  
            <TabsContent value="ai" className="space-y-4">
