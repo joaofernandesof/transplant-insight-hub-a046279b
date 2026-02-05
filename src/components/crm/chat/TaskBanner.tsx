@@ -5,24 +5,25 @@
  
  import { format } from 'date-fns';
  import { ptBR } from 'date-fns/locale';
- import { Clock, Check, X, User } from 'lucide-react';
+import { Clock, Check, X, Pencil } from 'lucide-react';
  import { cn } from '@/lib/utils';
  import { Button } from '@/components/ui/button';
  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
- import { CrmTask } from '@/hooks/useCrmTasks';
+import { ConversationTask } from '@/hooks/useConversationTasks';
  import { useQuery } from '@tanstack/react-query';
  import { supabase } from '@/integrations/supabase/client';
  import { useAuth } from '@/contexts/AuthContext';
  
  interface TaskBannerProps {
-   task: CrmTask;
+  task: ConversationTask;
    onComplete: (taskId: string) => void;
    onDelete: (taskId: string) => void;
+  onEdit?: (task: ConversationTask) => void;
    isCompleting?: boolean;
    isDeleting?: boolean;
  }
  
- export function TaskBanner({ task, onComplete, onDelete, isCompleting, isDeleting }: TaskBannerProps) {
+export function TaskBanner({ task, onComplete, onDelete, onEdit, isCompleting, isDeleting }: TaskBannerProps) {
    const { user } = useAuth();
    
    // Buscar nome do responsável
@@ -111,6 +112,17 @@
  
          {/* Actions */}
          <div className="flex items-center gap-1 shrink-0">
+          {onEdit && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+              onClick={() => onEdit(task)}
+              title="Editar tarefa"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
            <Button
              variant="ghost"
              size="icon"
