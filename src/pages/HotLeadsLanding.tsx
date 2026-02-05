@@ -4,15 +4,12 @@
  import { Badge } from "@/components/ui/badge";
  import { 
    Flame, 
-   Users, 
    Target, 
    TrendingUp, 
    Shield, 
    CheckCircle2, 
    ArrowRight, 
    Phone, 
-   Mail, 
-   Calendar,
    Zap,
    BarChart3,
    Clock,
@@ -355,8 +352,8 @@
          </div>
        </section>
  
-       {/* Pricing */}
-       <section id="planos" className="py-20 px-4 sm:px-6 lg:px-8">
+       {/* Pricing - Dark cards with orange accent */}
+       <section id="planos" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
          <div className="max-w-7xl mx-auto">
            <div className="text-center mb-16">
              <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-0 mb-4">
@@ -373,10 +370,10 @@
              {plans.map((plan) => (
                <Card 
                  key={plan.id} 
-                 className={`relative border-2 transition-all ${
+                 className={`relative transition-all ${
                    plan.highlighted 
-                     ? 'border-orange-500 shadow-xl scale-105' 
-                     : 'border-slate-200 hover:border-slate-300'
+                     ? 'border-2 border-orange-500 shadow-2xl scale-105 bg-slate-800' 
+                     : 'border border-slate-700 bg-slate-800 hover:border-slate-600'
                  }`}
                >
                  {plan.highlighted && (
@@ -388,22 +385,22 @@
                  )}
                  <CardContent className="p-8">
                    <div className="text-center mb-6">
-                     <h3 className="text-xl font-semibold text-slate-900 mb-2">{plan.name}</h3>
-                     <p className="text-slate-500 mb-4">{plan.description}</p>
+                     <h3 className="text-xl font-semibold text-orange-500 mb-2">{plan.name}</h3>
+                     <p className="text-slate-400 mb-4">{plan.description}</p>
                      <div className="flex items-end justify-center gap-1">
-                       <span className="text-sm text-slate-500">R$</span>
-                       <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
-                       <span className="text-slate-500">/mês</span>
+                       <span className="text-sm text-slate-400">R$</span>
+                       <span className="text-4xl font-bold text-white">{plan.price}</span>
+                       <span className="text-slate-400">/mês</span>
                      </div>
-                     <p className="text-sm text-orange-600 mt-2 font-medium">
+                     <p className="text-sm text-orange-500 mt-2 font-medium">
                        {plan.leads} leads/mês
                      </p>
                    </div>
                    <ul className="space-y-3 mb-8">
                      {plan.features.map((feature, index) => (
                        <li key={index} className="flex items-start gap-3">
-                         <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                         <span className="text-slate-600">{feature}</span>
+                         <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                         <span className="text-slate-300">{feature}</span>
                        </li>
                      ))}
                    </ul>
@@ -411,7 +408,7 @@
                      className={`w-full ${
                        plan.highlighted 
                          ? 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white' 
-                         : 'bg-slate-900 hover:bg-slate-800 text-white'
+                         : 'bg-orange-500 hover:bg-orange-600 text-white'
                      }`}
                      onClick={() => window.open('https://wa.me/5511999999999?text=Tenho interesse no plano ' + plan.name, '_blank')}
                    >
