@@ -297,6 +297,8 @@
         // Send the message via WhatsApp
           // Check if rule has audio attachment
           const hasAudio = rule?.audio_url && rule?.audio_type;
+          // Check if rule has image attachment
+          const hasImage = rule?.image_url;
           
           let sendResponse;
           if (hasAudio) {
@@ -309,6 +311,17 @@
                 mediaUrl: rule.audio_url,
                 audioType: rule.audio_type, // 'ptt' or 'audio'
                 audioForward: rule.audio_forward || false,
+              },
+            });
+          } else if (hasImage) {
+            // Send image message
+            sendResponse = await supabase.functions.invoke('avivar-send-message', {
+              body: {
+                conversationId: conversation.id,
+                content: finalMessage || undefined,
+                mediaType: 'image',
+                mediaUrl: rule.image_url,
+                caption: rule.image_caption || undefined,
               },
             });
           } else {

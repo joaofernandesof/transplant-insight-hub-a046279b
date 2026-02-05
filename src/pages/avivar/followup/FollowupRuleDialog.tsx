@@ -22,7 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward } from 'lucide-react';
+import { Brain, Clock, Zap, Calendar, Info, Upload, Mic, Music, X, Forward, Image } from 'lucide-react';
 import { TEMPLATE_VARIABLES } from '@/hooks/useFollowupTemplates';
 import type { FollowupRule, CreateFollowupRuleInput } from '@/hooks/useFollowupRules';
 import { useKanbanBoards } from '@/hooks/useKanbanBoards';
@@ -70,10 +70,15 @@ import { toast } from 'sonner';
     audio_url: '' as string,
     audio_type: null as 'ptt' | 'audio' | null,
     audio_forward: false,
+    // Image fields
+    image_url: '' as string,
+    image_caption: '' as string,
   });
   
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
  
   useEffect(() => {
     if (rule) {
@@ -109,6 +114,9 @@ import { toast } from 'sonner';
         audio_url: rule.audio_url || '',
         audio_type: rule.audio_type || null,
         audio_forward: rule.audio_forward || false,
+        // Image fields
+        image_url: rule.image_url || '',
+        image_caption: rule.image_caption || '',
       });
     } else {
       setFormData(prev => ({
@@ -118,6 +126,8 @@ import { toast } from 'sonner';
         audio_url: '',
         audio_type: null,
         audio_forward: false,
+        image_url: '',
+        image_caption: '',
       }));
     }
   }, [rule, existingRulesCount, open]);
@@ -183,6 +193,65 @@ import { toast } from 'sonner';
     }));
   };
 
+  // Handle image file upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Formato de imagem não suportado. Use JPG, PNG, GIF ou WebP.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem muito grande. Máximo 5MB.');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `followup-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avivar-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avivar-media')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({
+        ...prev,
+        image_url: publicUrl,
+      }));
+      
+      toast.success('Imagem enviada com sucesso!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setIsUploadingImage(false);
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      image_url: '',
+      image_caption: '',
+    }));
+  };
+
   const handleSubmit = () => {
     let delayMinutes = formData.delay_value;
     if (formData.delay_type === 'hours') delayMinutes *= 60;
@@ -209,6 +278,9 @@ import { toast } from 'sonner';
       audio_url: formData.audio_url || null,
       audio_type: formData.audio_type,
       audio_forward: formData.audio_forward,
+      // Image fields
+      image_url: formData.image_url || null,
+      image_caption: formData.image_caption || null,
     };
 
     if (isEditing && rule) {
@@ -446,6 +518,71 @@ import { toast } from 'sonner';
                         />
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+
+              {/* Image Section */}
+              <div className="space-y-3 p-4 rounded-lg border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-secondary)/0.5)]">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[hsl(var(--avivar-foreground))] flex items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    Imagem (opcional)
+                  </Label>
+                </div>
+
+                {!formData.image_url ? (
+                  <div className="space-y-2">
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={isUploadingImage}
+                      className="w-full border-dashed border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-secondary))]"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isUploadingImage ? 'Enviando...' : 'Enviar imagem (JPG, PNG, GIF)'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Image Preview */}
+                    <div className="relative">
+                      <img 
+                        src={formData.image_url} 
+                        alt="Preview" 
+                        className="w-full max-h-48 object-cover rounded-lg border border-[hsl(var(--avivar-border))]"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 hover:text-white"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Image Caption */}
+                    <div className="space-y-2">
+                      <Label className="text-[hsl(var(--avivar-foreground))] text-sm">
+                        Legenda da imagem (opcional)
+                      </Label>
+                      <Input
+                        value={formData.image_caption}
+                        onChange={(e) => setFormData(prev => ({ ...prev, image_caption: e.target.value }))}
+                        placeholder="Ex: Confira nossos resultados!"
+                        className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))]"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
