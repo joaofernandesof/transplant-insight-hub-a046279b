@@ -302,6 +302,7 @@ export type Database = {
           tone_of_voice: string | null
           updated_at: string
           user_id: string
+          video_gallery: Json | null
         }
         Insert: {
           address?: string | null
@@ -339,6 +340,7 @@ export type Database = {
           tone_of_voice?: string | null
           updated_at?: string
           user_id: string
+          video_gallery?: Json | null
         }
         Update: {
           address?: string | null
@@ -376,6 +378,7 @@ export type Database = {
           tone_of_voice?: string | null
           updated_at?: string
           user_id?: string
+          video_gallery?: Json | null
         }
         Relationships: []
       }

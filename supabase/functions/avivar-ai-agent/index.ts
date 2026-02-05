@@ -264,6 +264,28 @@ const TOOLS = [
             required: ["category"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "send_video",
+          description: `Envia um vídeo da galeria pré-aprovada para marketing. Use quando o lead pedir para ver vídeos de depoimentos, procedimentos, tour da clínica, explicações, etc. IMPORTANTE: Todos os vídeos são de uso autorizado.`,
+          parameters: {
+            type: "object",
+            properties: {
+              category: {
+                type: "string",
+                enum: ["depoimentos", "procedimentos", "tour", "geral"],
+                description: "Categoria do vídeo: depoimentos (testemunhos de pacientes), procedimentos (explicações/demos), tour (clínica), geral (outros)"
+              },
+              search_term: {
+                type: "string",
+                description: "Termo de busca opcional para filtrar vídeos pela legenda (ex: 'transplante', 'resultado', 'tour')"
+              }
+            },
+            required: ["category"]
+          }
+        }
       }
 ];
 
@@ -1264,6 +1286,229 @@ async function sendImage(
 }
 
 // ============================================
+// SEND VIDEO TOOL
+// ============================================
+
+interface GalleryVideo {
+  id: string;
+  url: string;
+  caption?: string;
+  category: string;
+}
+
+interface VideoGallery {
+  depoimentos: GalleryVideo[];
+  procedimentos: GalleryVideo[];
+  tour: GalleryVideo[];
+  geral: GalleryVideo[];
+}
+
+async function sendVideo(
+  supabase: AnySupabaseClient,
+  userId: string,
+  agentId: string | null,
+  conversationId: string,
+  leadPhone: string,
+  category: string,
+  searchTerm?: string
+): Promise<{ success: boolean; message: string; videoUrl?: string }> {
+  console.log(`[AI Agent] Tool: send_video(category="${category}", search="${searchTerm || ''}")`);
+
+  // Map category from tool to gallery key
+  const categoryMap: Record<string, keyof VideoGallery> = {
+    "depoimentos": "depoimentos",
+    "testimonials": "depoimentos",
+    "procedimentos": "procedimentos",
+    "procedures": "procedimentos",
+    "tour": "tour",
+    "geral": "geral",
+    "general": "geral"
+  };
+
+  const galleryKey = categoryMap[category.toLowerCase()] || "geral";
+
+  // Get the agent's video gallery (stored in a similar structure to image_gallery)
+  let gallery: VideoGallery | null = null;
+
+  if (agentId) {
+    const { data: agent } = await supabase
+      .from("avivar_agents")
+      .select("video_gallery")
+      .eq("id", agentId)
+      .single();
+
+    if (agent?.video_gallery) {
+      gallery = agent.video_gallery as VideoGallery;
+    }
+  }
+
+  // If no agent gallery, try to get from any agent of this user
+  if (!gallery) {
+    const { data: agents } = await supabase
+      .from("avivar_agents")
+      .select("video_gallery")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .limit(1);
+
+    if (agents?.[0]?.video_gallery) {
+      gallery = agents[0].video_gallery as VideoGallery;
+    }
+  }
+
+  if (!gallery) {
+    console.log("[AI Agent] No video gallery found");
+    return { success: false, message: "Ainda não temos vídeos configurados nesta categoria." };
+  }
+
+  const videos = gallery[galleryKey] || [];
+  
+  if (videos.length === 0) {
+    console.log(`[AI Agent] No videos in category ${galleryKey}`);
+    return { success: false, message: `Não temos vídeos na categoria "${category}" ainda.` };
+  }
+
+  // Filter by search term if provided
+  let selectedVideo: GalleryVideo;
+  
+  if (searchTerm) {
+    const searchLower = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    const matching = videos.filter((vid: GalleryVideo) => {
+      const captionLower = vid.caption?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+      return captionLower.includes(searchLower);
+    });
+    
+    if (matching.length > 0) {
+      selectedVideo = matching[Math.floor(Math.random() * matching.length)];
+      console.log(`[AI Agent] Found ${matching.length} matching video(s)`);
+    } else {
+      console.log(`[AI Agent] No videos matching "${searchTerm}" in category ${galleryKey}`);
+      return { 
+        success: false, 
+        message: `Não encontrei vídeos com as características "${searchTerm}" na galeria. Pergunte ao paciente se deseja ver outros tipos de vídeos que temos disponíveis.` 
+      };
+    }
+  } else {
+    // No search term - pick random video from category
+    selectedVideo = videos[Math.floor(Math.random() * videos.length)];
+  }
+
+  console.log(`[AI Agent] Selected video: ${selectedVideo.url.substring(0, 50)}...`);
+
+  // Get user's connected WhatsApp instance
+  const uazapiUrl = Deno.env.get("UAZAPI_URL") || "";
+  let uazapiToken = Deno.env.get("UAZAPI_TOKEN") || "";
+
+  const { data: uazapiInstance, error: uazapiInstanceError } = await supabase
+    .from("avivar_uazapi_instances")
+    .select("instance_token, status")
+    .eq("user_id", userId)
+    .eq("status", "connected")
+    .limit(1)
+    .maybeSingle();
+
+  if (uazapiInstanceError) {
+    console.error("[AI Agent] Error fetching UazAPI instance:", uazapiInstanceError);
+  }
+  if (uazapiInstance?.instance_token) {
+    uazapiToken = uazapiInstance.instance_token;
+  }
+
+  if (!uazapiUrl || !uazapiToken) {
+    console.log("[AI Agent] UazAPI not configured/connected; returning URL only");
+    return {
+      success: false,
+      message: `Não consegui enviar o vídeo agora porque o WhatsApp não está conectado. Link: ${selectedVideo.url}`,
+      videoUrl: selectedVideo.url,
+    };
+  }
+
+  // Send video via UazAPI
+  try {
+    let phone = leadPhone.replace(/\D/g, "");
+    if (!phone.startsWith("55") && phone.length <= 11) {
+      phone = `55${phone}`;
+    }
+
+    const apiUrl = `${uazapiUrl}/send/media`;
+    console.log(`[AI Agent] Sending video to ${phone} via ${apiUrl}`);
+    console.log(`[AI Agent] Video URL: ${selectedVideo.url}`);
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "token": uazapiToken,
+      },
+      body: JSON.stringify({
+        number: phone,
+        type: "video",
+        file: selectedVideo.url,
+        text: " ", // Caption is for internal AI filtering only
+      }),
+    });
+
+    const responseText = await response.text();
+    console.log(`[AI Agent] UazAPI response (${response.status}): ${responseText}`);
+
+    if (!response.ok) {
+      console.error("[AI Agent] Failed to send video, attempting link fallback:", responseText);
+
+      // Fallback: send the URL as a text message
+      try {
+        const fallbackRes = await fetch(`${uazapiUrl}/send/text`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "token": uazapiToken,
+          },
+          body: JSON.stringify({
+            number: phone,
+            text: selectedVideo.url,
+          }),
+        });
+        const fallbackText = await fallbackRes.text();
+        console.log(`[AI Agent] Fallback /send/text (${fallbackRes.status}): ${fallbackText}`);
+      } catch (fallbackErr) {
+        console.error("[AI Agent] Fallback /send/text failed:", fallbackErr);
+      }
+
+      return {
+        success: false,
+        message: `Não consegui enviar o vídeo como mídia. Enviei o link para o paciente: ${selectedVideo.url}`,
+        videoUrl: selectedVideo.url,
+      };
+    }
+
+    // Save message to CRM (best-effort)
+    await supabase.from("crm_messages").insert({
+      conversation_id: conversationId,
+      direction: "outbound",
+      content: selectedVideo.caption || "[Vídeo enviado]",
+      media_url: selectedVideo.url,
+      media_type: "video",
+      sent_at: new Date().toISOString(),
+      is_ai_generated: true,
+    });
+
+    console.log("[AI Agent] ✅ Video sent successfully");
+    return {
+      success: true,
+      message: "Vídeo enviado com sucesso! Aguarde a resposta do paciente.",
+      videoUrl: selectedVideo.url,
+    };
+  } catch (error) {
+    console.error("[AI Agent] Error sending video:", error);
+    return {
+      success: false,
+      message: `Não consegui enviar o vídeo agora. Link: ${selectedVideo.url}`,
+      videoUrl: selectedVideo.url,
+    };
+  }
+}
+
+// ============================================
 // PROCESS TOOL CALLS
 // ============================================
 
@@ -1332,6 +1577,19 @@ async function processToolCall(
     
     case "send_image": {
       const result = await sendImage(
+        supabase,
+        userId,
+        _agentId,
+        conversationId,
+        patientPhone,
+        toolArgs.category as string,
+        toolArgs.search_term as string | undefined
+      );
+      return result.message;
+    }
+    
+    case "send_video": {
+      const result = await sendVideo(
         supabase,
         userId,
         _agentId,
