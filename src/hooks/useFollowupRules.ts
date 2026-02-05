@@ -28,6 +28,9 @@ export interface FollowupRule {
   audio_url: string | null;
   audio_type: 'ptt' | 'audio' | null;
   audio_forward: boolean;
+  // Image fields
+  image_url: string | null;
+  image_caption: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -54,6 +57,9 @@ export interface CreateFollowupRuleInput {
   audio_url?: string | null;
   audio_type?: 'ptt' | 'audio' | null;
   audio_forward?: boolean;
+  // Image fields
+  image_url?: string | null;
+  image_caption?: string | null;
 }
  
  export function useFollowupRules() {

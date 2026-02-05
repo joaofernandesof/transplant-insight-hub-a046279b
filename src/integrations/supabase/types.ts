@@ -997,6 +997,8 @@ export type Database = {
           delay_type: string
           excluded_days: number[] | null
           id: string
+          image_caption: string | null
+          image_url: string | null
           is_active: boolean | null
           max_attempts: number | null
           message_template: string
@@ -1024,6 +1026,8 @@ export type Database = {
           delay_type?: string
           excluded_days?: number[] | null
           id?: string
+          image_caption?: string | null
+          image_url?: string | null
           is_active?: boolean | null
           max_attempts?: number | null
           message_template: string
@@ -1051,6 +1055,8 @@ export type Database = {
           delay_type?: string
           excluded_days?: number[] | null
           id?: string
+          image_caption?: string | null
+          image_url?: string | null
           is_active?: boolean | null
           max_attempts?: number | null
           message_template?: string

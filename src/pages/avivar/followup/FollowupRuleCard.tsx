@@ -14,6 +14,7 @@ import {
   Mic,
   Music,
   Forward,
+  Image,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FollowupRule } from '@/hooks/useFollowupRules';
@@ -95,6 +96,11 @@ import type { FollowupRule } from '@/hooks/useFollowupRules';
                     ) : (
                       <><Music className="h-3 w-3 mr-1" />Áudio{rule.audio_forward && <Forward className="h-3 w-3 ml-1" />}</>
                     )}
+                  </Badge>
+                )}
+                {rule.image_url && (
+                  <Badge className="text-xs bg-blue-500/20 text-blue-500 border-blue-500/30">
+                    <Image className="h-3 w-3 mr-1" />Imagem
                   </Badge>
                 )}
              </div>
