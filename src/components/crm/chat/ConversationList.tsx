@@ -3,14 +3,15 @@
  * Ordenada da mais recente para mais antiga
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, MessageCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConversationListItem } from './ConversationListItem';
-import { CrmConversation } from '@/hooks/useCrmConversations';
+import { CrmConversation, CrmMessage } from '@/hooks/useCrmConversations';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ConversationListProps {
   conversations: CrmConversation[];
@@ -21,6 +22,9 @@ interface ConversationListProps {
 
 type FilterStatus = 'all' | 'open' | 'pending' | 'resolved' | 'unread' | 'assigned';
 
+// Map to store last message content for each conversation
+type LastMessagesMap = Record<string, string>;
+
 export function ConversationList({
   conversations,
   selectedId,
@@ -29,6 +33,54 @@ export function ConversationList({
 }: ConversationListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+  const [lastMessages, setLastMessages] = useState<LastMessagesMap>({});
+
+  // Fetch last message for all conversations
+  useEffect(() => {
+    async function fetchLastMessages() {
+      if (conversations.length === 0) return;
+
+      const conversationIds = conversations.map(c => c.id);
+      
+      // Fetch the most recent message for each conversation
+      const { data, error } = await supabase
+        .from('crm_messages')
+        .select('conversation_id, content, media_type, direction')
+        .in('conversation_id', conversationIds)
+        .order('sent_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching last messages:', error);
+        return;
+      }
+
+      // Group by conversation_id and get the first (most recent) message
+      const messagesMap: LastMessagesMap = {};
+      for (const msg of data || []) {
+        if (!messagesMap[msg.conversation_id]) {
+          // Format the preview message
+          if (msg.media_type) {
+            const mediaLabels: Record<string, string> = {
+              image: '📷 Imagem',
+              video: '🎥 Vídeo',
+              audio: '🎤 Áudio',
+              document: '📄 Documento',
+            };
+            messagesMap[msg.conversation_id] = mediaLabels[msg.media_type] || '📎 Arquivo';
+          } else if (msg.content) {
+            // Truncate long messages
+            messagesMap[msg.conversation_id] = msg.content.length > 50 
+              ? msg.content.substring(0, 50) + '...' 
+              : msg.content;
+          }
+        }
+      }
+
+      setLastMessages(messagesMap);
+    }
+
+    fetchLastMessages();
+  }, [conversations]);
 
   // Filtrar conversas
   const filteredConversations = conversations.filter(conv => {
@@ -120,6 +172,7 @@ export function ConversationList({
                 conversation={conversation}
                 isSelected={selectedId === conversation.id}
                 onClick={() => onSelect(conversation.id)}
+                lastMessagePreview={lastMessages[conversation.id]}
               />
             ))}
           </div>
