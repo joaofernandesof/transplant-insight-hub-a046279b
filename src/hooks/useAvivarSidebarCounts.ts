@@ -21,12 +21,12 @@
      queryFn: async (): Promise<AvivarSidebarCounts> => {
        if (!user?.id) return { unreadChats: 0, overdueTasks: 0 };
  
-       // Buscar conversas com mensagens não respondidas (unread_count > 0)
+      // Buscar conversas com mensagens não respondidas (unread_count > 0)
+      // NOTE: crm_conversations não possui coluna user_id; a visibilidade deve ser controlada por RLS.
       const { data: conversations, error: convError } = await (supabase as any)
-         .from('crm_conversations')
-         .select('unread_count')
-         .eq('user_id', user.id)
-         .gt('unread_count', 0);
+        .from('crm_conversations')
+        .select('unread_count')
+        .gt('unread_count', 0);
  
        if (convError) console.error('Erro ao buscar conversas:', convError);
  
