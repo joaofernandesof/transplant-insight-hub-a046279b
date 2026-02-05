@@ -808,6 +808,47 @@ export function ChecklistFieldRenderer({ field, leadId, leadPhone, columnId, onU
         </div>
       );
 
+    case 'url':
+      // Ensure URL has protocol for proper linking
+      const getValidUrl = (url: string) => {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          return url;
+        }
+        return `https://${url}`;
+      };
+      
+      return (
+        <div className="flex items-center gap-3">
+          <Label className="text-xs text-[hsl(var(--avivar-muted-foreground))] uppercase tracking-wide whitespace-nowrap shrink-0">
+            {field.field_label}
+            {field.is_required && <span className="text-[hsl(var(--avivar-primary))] ml-0.5">*</span>}
+          </Label>
+          <div className="flex-1 flex items-center gap-2">
+            <Input
+              value={localValue}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="https://..."
+              disabled={isSaving}
+              type="url"
+              className="h-6 text-sm bg-transparent border-0 border-b border-[hsl(var(--avivar-primary))] rounded-none px-0 focus-visible:ring-0 focus-visible:border-[hsl(var(--avivar-primary))] text-[hsl(var(--avivar-foreground))] placeholder:text-[hsl(var(--avivar-muted-foreground)/0.5)] flex-1"
+            />
+            {localValue && (
+              <a
+                href={getValidUrl(localValue)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 hover:bg-[hsl(var(--avivar-muted)/0.3)] rounded transition-colors shrink-0"
+                title="Abrir link"
+              >
+                <ExternalLink className="h-4 w-4 text-[hsl(var(--avivar-primary))]" />
+              </a>
+            )}
+          </div>
+        </div>
+      );
+
     case 'text':
     default:
       return (
