@@ -2,7 +2,7 @@
  import { supabase } from '@/integrations/supabase/client';
  import { useAuth } from '@/contexts/AuthContext';
  import { toast } from 'sonner';
- import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
  
  export interface FollowupExecution {
    id: string;
@@ -50,6 +50,52 @@
  export function useFollowupExecutions() {
    const { user } = useAuth();
    const queryClient = useQueryClient();
+  const processorCalledRef = useRef(false);
+
+  // Process pending followups on mount (acts as a "cron" when user visits the page)
+  useEffect(() => {
+    if (!user?.id || processorCalledRef.current) return;
+    processorCalledRef.current = true;
+
+    // Call the processor in background to handle any pending followups
+    supabase.functions.invoke('avivar-process-followups', { body: {} })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('[Followup] Processor error:', error);
+        } else if (data?.processed > 0) {
+          console.log(`[Followup] Processed ${data.processed} followup(s)`);
+          queryClient.invalidateQueries({ queryKey: ['followup-executions'] });
+          queryClient.invalidateQueries({ queryKey: ['followup-history'] });
+          queryClient.invalidateQueries({ queryKey: ['followup-stats'] });
+        }
+      })
+      .catch(err => console.error('[Followup] Processor call failed:', err));
+  }, [user?.id, queryClient]);
+
+  // Poll processor every 60 seconds while user is on the page
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('avivar-process-followups', { body: {} });
+        if (error) {
+          console.error('[Followup] Polling processor error:', error);
+          return;
+        }
+        if (data?.processed > 0) {
+          console.log(`[Followup] Polled and processed ${data.processed} followup(s)`);
+          queryClient.invalidateQueries({ queryKey: ['followup-executions'] });
+          queryClient.invalidateQueries({ queryKey: ['followup-history'] });
+          queryClient.invalidateQueries({ queryKey: ['followup-stats'] });
+        }
+      } catch (err) {
+        console.error('[Followup] Polling error:', err);
+      }
+    }, 60000); // Every 60 seconds
+
+    return () => clearInterval(intervalId);
+  }, [user?.id, queryClient]);
  
    // Get scheduled/pending executions
    const { data: executions = [], isLoading: isLoadingExecutions } = useQuery({
