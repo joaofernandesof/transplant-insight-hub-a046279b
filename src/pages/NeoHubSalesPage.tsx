@@ -83,7 +83,7 @@ const modules = [
       'Automações inteligentes',
       'Pipeline de vendas',
       'IA conversacional',
-      'Cadências automáticas'
+      'Follow-up automático'
     ]
   },
   { 
