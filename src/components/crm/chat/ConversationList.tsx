@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConversationListItem } from './ConversationListItem';
 import { CrmConversation, CrmMessage } from '@/hooks/useCrmConversations';
 import { supabase } from '@/integrations/supabase/client';
+import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 
 interface ConversationListProps {
   conversations: CrmConversation[];
@@ -38,6 +39,7 @@ export function ConversationList({
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [lastMessages, setLastMessages] = useState<LastMessagesMap>({});
   const [unansweredCounts, setUnansweredCounts] = useState<UnansweredCountMap>({});
+  const { user } = useUnifiedAuth();
 
   // Fetch last message for all conversations
   useEffect(() => {
@@ -117,7 +119,7 @@ export function ConversationList({
     if (filterStatus === 'unread' && (unansweredCounts[conv.id] || 0) === 0) {
       return false;
     }
-    if (filterStatus === 'assigned' && !conv.assigned_to) {
+    if (filterStatus === 'assigned' && conv.assigned_to !== user?.id) {
       return false;
     }
     if (filterStatus !== 'all' && filterStatus !== 'unread' && filterStatus !== 'assigned' && conv.status !== filterStatus) {
@@ -142,7 +144,7 @@ export function ConversationList({
     all: conversations.length,
     unread: conversations.filter(c => (unansweredCounts[c.id] || 0) > 0).length,
     open: conversations.filter(c => c.status === 'open').length,
-    assigned: conversations.filter(c => c.assigned_to).length,
+    assigned: conversations.filter(c => c.assigned_to === user?.id).length,
   };
 
   if (isLoading) {
