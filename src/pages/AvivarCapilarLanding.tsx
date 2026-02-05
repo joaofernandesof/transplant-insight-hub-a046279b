@@ -149,16 +149,16 @@
        <header className="border-b border-slate-800 bg-slate-950/95 backdrop-blur sticky top-0 z-50">
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
            <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
                <Flame className="h-6 w-6 text-white" />
              </div>
              <div>
                <span className="font-bold text-xl text-white">Avivar</span>
-               <span className="text-amber-500 font-semibold ml-1">CRM Capilar</span>
+                <span className="text-purple-500 font-semibold ml-1">CRM Capilar</span>
              </div>
            </div>
            <Button 
-             className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+              className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white"
              onClick={() => handleWhatsApp()}
            >
              Criar conta grátis
@@ -169,12 +169,12 @@
        {/* Hero Section */}
        <section className="py-20 px-4 sm:px-6 lg:px-8">
          <div className="max-w-4xl mx-auto text-center">
-           <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 mb-6">
+            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 mb-6">
              Exclusivo para Clínicas Capilares
            </Badge>
            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
              O CRM capilar com IA criado para transformar{' '}
-             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-500">
                leads em pacientes de transplante
              </span>
            </h1>
@@ -184,7 +184,7 @@
            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
              <Button 
                size="lg"
-               className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-lg px-8"
+                className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white text-lg px-8"
                onClick={() => handleWhatsApp()}
              >
                Criar conta grátis
@@ -194,7 +194,7 @@
            <p className="text-slate-500 text-sm">
              Crie sua conta. Teste gratuitamente. Escale com IA quando quiser.
            </p>
-           <p className="text-amber-500/80 text-sm mt-2">
+            <p className="text-purple-500/80 text-sm mt-2">
              Teste grátis por 7 dias, exclusivo para clínicas capilares.
            </p>
          </div>
@@ -216,7 +216,7 @@
            </div>
            <div className="text-center mt-10">
              <p className="text-xl text-slate-400">Não é falta de demanda.</p>
-             <p className="text-2xl font-bold text-amber-500 mt-2">É falta de sistema capilar.</p>
+              <p className="text-2xl font-bold text-purple-500 mt-2">É falta de sistema capilar.</p>
            </div>
          </div>
        </section>
@@ -230,15 +230,15 @@
              </Badge>
              <h2 className="text-3xl md:text-4xl font-bold mb-4">
                O Avivar CRM Capilar foi criado para a{' '}
-               <span className="text-amber-500">realidade de clínicas capilares</span>
+                <span className="text-purple-500">realidade de clínicas capilares</span>
              </h2>
              <p className="text-slate-400 text-lg">Um sistema pensado para:</p>
            </div>
            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
              {solutions.map((solution, index) => (
-               <div key={index} className="flex items-center gap-4 bg-slate-800/30 rounded-xl p-5 border border-slate-700/50 hover:border-amber-500/30 transition-colors">
-                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 flex items-center justify-center">
-                   <solution.icon className="w-6 h-6 text-amber-500" />
+                <div key={index} className="flex items-center gap-4 bg-slate-800/30 rounded-xl p-5 border border-slate-700/50 hover:border-purple-500/30 transition-colors">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-600/20 flex items-center justify-center">
+                    <solution.icon className="w-6 h-6 text-purple-500" />
                  </div>
                  <span className="text-lg text-white font-medium">{solution.text}</span>
                </div>
@@ -262,7 +262,7 @@
                { step: '4', text: 'Começa a atender imediatamente' }
              ].map((item) => (
                <div key={item.step} className="text-center">
-                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                    {item.step}
                  </div>
                  <p className="text-slate-300">{item.text}</p>
@@ -281,7 +281,7 @@
        <section className="py-20 px-4 sm:px-6 lg:px-8">
          <div className="max-w-7xl mx-auto">
            <div className="text-center mb-12">
-             <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 mb-4">
+              <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 mb-4">
                Planos e Preços
              </Badge>
              <h2 className="text-3xl md:text-4xl font-bold">
@@ -294,20 +294,20 @@
                  key={plan.id}
                  className={`relative bg-slate-800 border-slate-700 transition-all ${
                    plan.highlighted 
-                     ? 'border-2 border-amber-500 shadow-2xl shadow-amber-500/10 scale-105' 
+                      ? 'border-2 border-purple-500 shadow-2xl shadow-purple-500/10 scale-105' 
                      : 'hover:border-slate-600'
                  }`}
                >
                  {plan.highlighted && plan.badge && (
                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                     <Badge className="bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 px-4 py-1">
+                      <Badge className="bg-gradient-to-r from-purple-500 to-violet-600 text-white border-0 px-4 py-1">
                        {plan.badge}
                      </Badge>
                    </div>
                  )}
                  <CardContent className="p-8">
                    <div className="text-center mb-6">
-                     <h3 className="text-xl font-semibold text-amber-500 mb-2">{plan.name}</h3>
+                      <h3 className="text-xl font-semibold text-purple-500 mb-2">{plan.name}</h3>
                      <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
                      <div className="flex items-end justify-center gap-1">
                        <span className="text-sm text-slate-400">R$</span>
@@ -347,7 +347,7 @@
                    <Button 
                      className={`w-full ${
                        plan.highlighted 
-                         ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white' 
+                          ? 'bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white' 
                          : 'bg-slate-700 hover:bg-slate-600 text-white'
                      }`}
                      onClick={() => handleWhatsApp(plan.name)}
@@ -401,7 +401,7 @@
                  {implementations.map((impl, index) => (
                    <div key={index} className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 text-center">
                      <p className="font-medium text-white mb-1">{impl.name}</p>
-                     <p className="text-amber-500 font-semibold">{impl.price}</p>
+                      <p className="text-purple-500 font-semibold">{impl.price}</p>
                    </div>
                  ))}
                </div>
@@ -416,13 +416,13 @@
            <h2 className="text-2xl md:text-3xl font-bold mb-8">Para quem é</h2>
            <div className="flex flex-wrap justify-center gap-4 mb-8">
              {targetAudience.map((item, index) => (
-               <Badge key={index} variant="outline" className="border-amber-500/50 text-amber-400 px-4 py-2 text-base">
+                <Badge key={index} variant="outline" className="border-purple-500/50 text-purple-400 px-4 py-2 text-base">
                  {item}
                </Badge>
              ))}
            </div>
            <p className="text-xl text-slate-300">
-             Se você vende transplante, o <span className="text-amber-500 font-semibold">Avivar foi feito para você</span>.
+              Se você vende transplante, o <span className="text-purple-500 font-semibold">Avivar foi feito para você</span>.
            </p>
          </div>
        </section>
@@ -430,7 +430,7 @@
        {/* Trial */}
        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
          <div className="max-w-4xl mx-auto">
-           <Card className="bg-gradient-to-br from-amber-500/10 to-orange-600/10 border-amber-500/30">
+            <Card className="bg-gradient-to-br from-purple-500/10 to-violet-600/10 border-purple-500/30">
              <CardContent className="p-8 text-center">
                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 mb-4">
                  Trial Gratuito
@@ -451,7 +451,7 @@
                </p>
                <Button 
                  size="lg"
-                 className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+                  className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white"
                  onClick={() => handleWhatsApp()}
                >
                  Começar teste grátis
@@ -477,12 +477,12 @@
                </div>
              ))}
            </div>
-           <p className="text-amber-500 font-medium">Você tem controle total.</p>
+            <p className="text-purple-500 font-medium">Você tem controle total.</p>
          </div>
        </section>
  
        {/* Final CTA */}
-       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-amber-500/10 to-orange-600/10">
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-500/10 to-violet-600/10">
          <div className="max-w-3xl mx-auto text-center">
            <h2 className="text-3xl md:text-4xl font-bold mb-4">
              Pare de perder cirurgias por falta de processo.
@@ -492,7 +492,7 @@
            </p>
            <Button 
              size="lg"
-             className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-lg px-10"
+              className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white text-lg px-10"
              onClick={() => handleWhatsApp()}
            >
              Criar conta grátis agora
@@ -505,7 +505,7 @@
        <footer className="border-t border-slate-800 py-8 px-4 sm:px-6 lg:px-8">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
            <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
                <Flame className="h-5 w-5 text-white" />
              </div>
              <span className="font-semibold text-white">Avivar CRM Capilar</span>
