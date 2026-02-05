@@ -40,6 +40,7 @@ const PublicDashboardPage = lazy(() => import("./pages/public/PublicDashboardPag
 const ArchitectureDocDownload = lazy(() => import("./pages/docs/ArchitectureDocDownload"));
 const FlowDoArchitecturePlan = lazy(() => import("./pages/docs/FlowDoArchitecturePlan"));
  const HotLeadsLanding = lazy(() => import("./pages/HotLeadsLanding"));
+ const TransplanteLanding = lazy(() => import("./pages/TransplanteLanding"));
 
 // ====================================
 // Pages - Flow.do (Gestão Operacional)
@@ -652,6 +653,9 @@ function AppRoutes() {
        
        {/* Landing Page HotLeads - Pública */}
        <Route path="/hotleads-vendas" element={<LazyRoute><HotLeadsLanding /></LazyRoute>} />
+       
+       {/* Landing Page Transplante Capilar - Captação de Leads */}
+       <Route path="/transplante-capilar" element={<LazyRoute><TransplanteLanding /></LazyRoute>} />
 
       {/* ====================================
           Rotas Protegidas - Seleção de Perfil
