@@ -162,7 +162,7 @@ export function ImportLeadsDialog({
 
       const { error } = await supabase
         .from('avivar_kanban_leads')
-        .insert(leadsToInsert);
+        .insert(leadsToInsert as any);
 
       if (error) throw error;
       return leadsToInsert.length;

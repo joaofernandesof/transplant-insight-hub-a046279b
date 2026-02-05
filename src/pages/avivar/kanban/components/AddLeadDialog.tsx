@@ -68,7 +68,7 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
 
       const { data, error } = await supabase
         .from('avivar_kanban_leads')
-        .insert({
+        .insert([{
           kanban_id: kanbanId,
           column_id: columnId,
           user_id: user.id,
@@ -77,7 +77,7 @@ export function AddLeadDialog({ open, onOpenChange, kanbanId, columns }: AddLead
           email: formData.email || null,
           source: formData.source,
           notes: formData.notes || null,
-        })
+        }] as any)
         .select()
         .single();
 

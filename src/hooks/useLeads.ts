@@ -92,7 +92,7 @@ export function useLeads() {
     try {
       const { data: newLead, error } = await supabase
         .from('leads')
-        .insert({
+        .insert([{
           name: data.name,
           phone: data.phone,
           email: data.email || null,
@@ -102,7 +102,7 @@ export function useLeads() {
           interest_level: data.interest_level || 'warm',
           status: 'new',
           available_at: new Date().toISOString()
-        })
+        }] as any)
         .select()
         .single();
 
