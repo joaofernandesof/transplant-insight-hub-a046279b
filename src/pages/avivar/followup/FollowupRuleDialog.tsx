@@ -369,23 +369,23 @@
              )}
  
              <div className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--avivar-secondary))]">
-               <div className="flex items-center gap-3">
-                 <Zap className="h-5 w-5 text-amber-500" />
-                 <div>
-                    <p className="font-medium text-[hsl(var(--avivar-foreground))]">Criar Tarefa se Falhar</p>
+              <div className="flex items-center gap-3">
+                  <Zap className="h-5 w-5 text-amber-500" />
+                  <div>
+                    <p className="font-medium text-[hsl(var(--avivar-foreground))]">Criar Tarefa se Lead Ignorar</p>
                     <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                      Se o lead não responder após todas as tentativas, cria uma tarefa para você entrar em contato manualmente
+                      Se o lead não responder após todas as tentativas automáticas, cria uma tarefa na sua lista para você ligar ou enviar mensagem manualmente
                     </p>
-                 </div>
-               </div>
-               <Switch
-                 checked={formData.create_task_on_failure}
-                 onCheckedChange={(checked) => setFormData(prev => ({ ...prev, create_task_on_failure: checked }))}
-               />
-             </div>
- 
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.create_task_on_failure}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, create_task_on_failure: checked }))}
+                />
+              </div>
+  
               <div className="space-y-2">
-                <Label className="text-[hsl(var(--avivar-foreground))]">Máximo de Tentativas desta Regra</Label>
+                <Label className="text-[hsl(var(--avivar-foreground))]">Quantas vezes reenviar esta mensagem?</Label>
                 <Input
                   type="number"
                   min={1}
@@ -395,7 +395,7 @@
                   className="bg-[hsl(var(--avivar-secondary))] border-[hsl(var(--avivar-border))] w-24"
                 />
                 <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">
-                  Quantas vezes esta mensagem será reenviada se o lead não responder. Após atingir este limite, o sistema para de enviar esta regra automaticamente.
+                  Se o lead não responder, o sistema reenvia esta mesma mensagem até {formData.max_attempts}x. Se ele responder em qualquer momento, o envio automático para imediatamente.
                 </p>
               </div>
            </TabsContent>
