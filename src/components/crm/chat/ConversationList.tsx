@@ -114,7 +114,7 @@ export function ConversationList({
   // Filtrar conversas
   const filteredConversations = conversations.filter(conv => {
     // Filtro por status
-    if (filterStatus === 'unread' && conv.unread_count === 0) {
+    if (filterStatus === 'unread' && (unansweredCounts[conv.id] || 0) === 0) {
       return false;
     }
     if (filterStatus === 'assigned' && !conv.assigned_to) {
@@ -140,7 +140,7 @@ export function ConversationList({
   // Contadores
   const counts = {
     all: conversations.length,
-    unread: conversations.filter(c => c.unread_count > 0).length,
+    unread: conversations.filter(c => (unansweredCounts[c.id] || 0) > 0).length,
     open: conversations.filter(c => c.status === 'open').length,
     assigned: conversations.filter(c => c.assigned_to).length,
   };
