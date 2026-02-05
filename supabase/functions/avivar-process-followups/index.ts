@@ -295,97 +295,157 @@
          }
  
         // Send the message via WhatsApp
-        // Check if rule has audio attachment
-          const hasAudio = rule?.audio_url && rule?.audio_type;
-          // Check if rule has image attachment
-          const hasImage = rule?.image_url;
-          // Check if rule has video attachment
-          const hasVideo = rule?.video_url;
-          // Check if rule has document attachment
-          const hasDocument = rule?.document_url;
+        // Check if rule has media attachments
+        const hasAudio = rule?.audio_url && rule?.audio_type;
+        const hasImage = rule?.image_url;
+        const hasVideo = rule?.video_url;
+        const hasDocument = rule?.document_url;
+        const hasMedia = hasAudio || hasImage || hasVideo || hasDocument;
+        
+        let sendResponse;
+        
+        // IMPORTANT: If there's BOTH text AND media, send them as SEPARATE messages
+        // First send the text, then send the media
+        if (hasMedia && finalMessage && finalMessage.trim().length > 0) {
+          // Step 1: Send text message FIRST (separately)
+          console.log(`[Followup] Sending text message first: "${finalMessage.substring(0, 50)}..."`);
+          const textResponse = await supabase.functions.invoke('avivar-send-message', {
+            body: {
+              conversationId: conversation.id,
+              content: finalMessage,
+            },
+          });
           
-          let sendResponse;
+          if (textResponse.error || !textResponse.data?.success) {
+            console.error('[Followup] Failed to send text message:', textResponse.error);
+          } else {
+            console.log('[Followup] Text message sent successfully');
+          }
+          
+          // Small delay to ensure messages arrive in order
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Step 2: Send media message (WITHOUT the text content)
           if (hasAudio) {
-            // Send audio message
+            console.log(`[Followup] Sending audio message: ${rule.audio_type}`);
             sendResponse = await supabase.functions.invoke('avivar-send-message', {
               body: {
                 conversationId: conversation.id,
-                content: finalMessage || undefined,
-                mediaType: rule.audio_type === 'ptt' ? 'audio' : 'audio', // Both use audio, but type differs in UazAPI call
+                mediaType: 'audio',
                 mediaUrl: rule.audio_url,
-                audioType: rule.audio_type, // 'ptt' or 'audio'
+                audioType: rule.audio_type,
                 audioForward: rule.audio_forward || false,
               },
             });
           } else if (hasImage) {
-            // Send image message
+            console.log(`[Followup] Sending image message`);
             sendResponse = await supabase.functions.invoke('avivar-send-message', {
               body: {
                 conversationId: conversation.id,
-                content: finalMessage || undefined,
                 mediaType: 'image',
                 mediaUrl: rule.image_url,
                 caption: rule.image_caption || undefined,
               },
             });
           } else if (hasVideo) {
-            // Send video message
+            console.log(`[Followup] Sending video message`);
             sendResponse = await supabase.functions.invoke('avivar-send-message', {
               body: {
                 conversationId: conversation.id,
-                content: finalMessage || undefined,
                 mediaType: 'video',
                 mediaUrl: rule.video_url,
                 caption: rule.video_caption || undefined,
               },
             });
           } else if (hasDocument) {
-            // Send document message
+            console.log(`[Followup] Sending document message`);
             sendResponse = await supabase.functions.invoke('avivar-send-message', {
               body: {
                 conversationId: conversation.id,
-                content: finalMessage || undefined,
                 mediaType: 'document',
                 mediaUrl: rule.document_url,
                 documentName: rule.document_name || undefined,
               },
             });
-          } else {
-            // Send text message
-            sendResponse = await supabase.functions.invoke('avivar-send-message', {
-              body: {
-                conversationId: conversation.id,
-                content: finalMessage,
-              },
+          }
+        } else if (hasAudio) {
+          // Only audio, no text
+          sendResponse = await supabase.functions.invoke('avivar-send-message', {
+            body: {
+              conversationId: conversation.id,
+              mediaType: 'audio',
+              mediaUrl: rule.audio_url,
+              audioType: rule.audio_type,
+              audioForward: rule.audio_forward || false,
+            },
+          });
+        } else if (hasImage) {
+          // Only image (with optional caption)
+          sendResponse = await supabase.functions.invoke('avivar-send-message', {
+            body: {
+              conversationId: conversation.id,
+              mediaType: 'image',
+              mediaUrl: rule.image_url,
+              caption: rule.image_caption || undefined,
+            },
+          });
+        } else if (hasVideo) {
+          // Only video (with optional caption)
+          sendResponse = await supabase.functions.invoke('avivar-send-message', {
+            body: {
+              conversationId: conversation.id,
+              mediaType: 'video',
+              mediaUrl: rule.video_url,
+              caption: rule.video_caption || undefined,
+            },
+          });
+        } else if (hasDocument) {
+          // Only document
+          sendResponse = await supabase.functions.invoke('avivar-send-message', {
+            body: {
+              conversationId: conversation.id,
+              mediaType: 'document',
+              mediaUrl: rule.document_url,
+              documentName: rule.document_name || undefined,
+            },
+          });
+        } else {
+          // Text only
+          sendResponse = await supabase.functions.invoke('avivar-send-message', {
+            body: {
+              conversationId: conversation.id,
+              content: finalMessage,
+            },
+          });
+        }
+
+        // Check if sendResponse is defined and has success
+        if (!sendResponse || sendResponse.error || !sendResponse.data?.success) {
+          // Mark as failed
+          await supabase
+            .from('avivar_followup_executions')
+            .update({
+              status: 'failed',
+              error_message: sendResponse?.error?.message || sendResponse?.data?.error || 'Falha ao enviar',
+              final_message: finalMessage,
+            })
+            .eq('id', execution.id);
+
+          // Create task if configured
+          if (rule?.create_task_on_failure) {
+            await supabase.from('lead_tasks').insert({
+              lead_id: lead.id,
+              user_id: execution.user_id,
+              title: `Follow-up falhou: ${lead.name}`,
+              description: `A tentativa ${execution.attempt_number} de follow-up falhou. Verifique manualmente.`,
+              due_at: new Date().toISOString(),
+              priority: 'high',
             });
           }
- 
-         if (sendResponse.error || !sendResponse.data?.success) {
-           // Mark as failed
-           await supabase
-             .from('avivar_followup_executions')
-             .update({
-               status: 'failed',
-               error_message: sendResponse.error?.message || sendResponse.data?.error || 'Falha ao enviar',
-               final_message: finalMessage,
-             })
-             .eq('id', execution.id);
- 
-           // Create task if configured
-           if (rule?.create_task_on_failure) {
-             await supabase.from('lead_tasks').insert({
-               lead_id: lead.id,
-               user_id: execution.user_id,
-               title: `Follow-up falhou: ${lead.name}`,
-               description: `A tentativa ${execution.attempt_number} de follow-up falhou. Verifique manualmente.`,
-               due_at: new Date().toISOString(),
-               priority: 'high',
-             });
-           }
- 
-           results.push({ id: execution.id, status: 'failed', error: sendResponse.error?.message });
-           continue;
-         }
+
+          results.push({ id: execution.id, status: 'failed', error: sendResponse?.error?.message });
+          continue;
+        }
  
          // Success - update execution
          await supabase
