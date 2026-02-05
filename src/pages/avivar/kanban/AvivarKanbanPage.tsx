@@ -134,7 +134,8 @@ export default function AvivarKanbanPage() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (newColumn) => {
+      setVisibleColumns(prev => [...prev, newColumn.id]);
       queryClient.invalidateQueries({ queryKey: ['avivar-kanban-columns', kanbanId] });
       setIsColumnDialogOpen(false);
       toast.success('Coluna criada com sucesso!');
