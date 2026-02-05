@@ -44,7 +44,7 @@
      id: 'start',
      name: 'Start Capilar',
      description: 'Para médicos e clínicas que querem organizar o atendimento capilar.',
-     price: '297',
+    price: '999',
      highlighted: false,
      includes: [
        'CRM capilar completo',
@@ -67,7 +67,7 @@
      id: 'pro',
      name: 'Pro Capilar',
      description: 'Para clínicas que já investem em tráfego e querem vender mais transplantes.',
-     price: '797',
+    price: '1.999',
      highlighted: true,
      badge: 'Mais escolhido',
      includes: [
@@ -86,7 +86,7 @@
      id: 'elite',
      name: 'Elite Capilar',
      description: 'Para clínicas capilares que querem escala e previsibilidade de cirurgias.',
-     price: '1.697',
+    price: '2.999',
      highlighted: false,
      includes: [
        'Tudo do plano Pro, mais:',
