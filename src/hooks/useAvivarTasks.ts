@@ -49,7 +49,9 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
  }
  
  export interface CreateAvivarTaskData {
-   lead_id: string;
+  lead_id?: string;
+  phone_number?: string;
+  contact_name?: string;
    title: string;
    description?: string;
    due_at?: string;
@@ -126,10 +128,50 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
    // Criar tarefa
    const createTask = useMutation({
      mutationFn: async (data: CreateAvivarTaskData) => {
-       const { data: newTask, error } = await supabase
+      let leadId = data.lead_id;
+
+      // If phone_number provided instead of lead_id, find or create lead
+      if (!leadId && data.phone_number) {
+        // Try to find existing lead by phone
+        const { data: existingLead } = await supabase
+          .from('leads')
+          .select('id')
+          .eq('user_id', user?.id)
+          .eq('phone', data.phone_number)
+          .maybeSingle();
+
+        if (existingLead) {
+          leadId = existingLead.id;
+        } else {
+          // Create new lead with phone
+          const { data: newLead, error: leadError } = await supabase
+            .from('leads')
+            .insert({
+              user_id: user?.id,
+              name: data.contact_name || `Lead ${data.phone_number}`,
+              phone: data.phone_number,
+              source: 'manual_task',
+              status: 'novo',
+            })
+            .select('id')
+            .single();
+
+          if (leadError) throw leadError;
+          leadId = newLead.id;
+        }
+      }
+
+      if (!leadId) {
+        throw new Error('Lead ID ou telefone é obrigatório');
+      }
+
+      const { data: newTask, error } = await supabase
          .from('lead_tasks')
          .insert({
-           ...data,
+          lead_id: leadId,
+          title: data.title,
+          description: data.description,
+          due_at: data.due_at,
            priority: data.priority || 'medium',
            assigned_to: data.assigned_to || user?.id,
            created_by: user?.id,
@@ -144,6 +186,7 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
        queryClient.invalidateQueries({ queryKey: ['avivar-tasks'] });
        queryClient.invalidateQueries({ queryKey: ['crm-tasks'] });
        queryClient.invalidateQueries({ queryKey: ['conversation-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['avivar-leads-for-tasks'] });
        toast.success('Tarefa criada com sucesso!');
      },
      onError: () => {

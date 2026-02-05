@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
  import { format, addDays, addHours } from 'date-fns';
  import { ptBR } from 'date-fns/locale';
- import { Loader2, CalendarDays } from 'lucide-react';
+import { Loader2, CalendarDays, Phone, User } from 'lucide-react';
  import {
    Dialog,
    DialogContent,
@@ -29,6 +29,7 @@ import { useState, useEffect } from 'react';
    PopoverContent,
    PopoverTrigger,
  } from '@/components/ui/popover';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
  import { cn } from '@/lib/utils';
  import { CreateAvivarTaskData } from '@/hooks/useAvivarTasks';
  
@@ -57,6 +58,9 @@ import { useState, useEffect } from 'react';
    const [title, setTitle] = useState('');
    const [description, setDescription] = useState('');
    const [leadId, setLeadId] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [assignmentMode, setAssignmentMode] = useState<'lead' | 'phone'>(leads.length > 0 ? 'lead' : 'phone');
    const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
    const [dueDate, setDueDate] = useState<Date | undefined>(addDays(new Date(), 1));
    const [dueTime, setDueTime] = useState('09:00');
@@ -67,14 +71,21 @@ import { useState, useEffect } from 'react';
       setTitle('');
       setDescription('');
       setLeadId('');
+      setPhoneNumber('');
+      setContactName('');
+      setAssignmentMode(leads.length > 0 ? 'lead' : 'phone');
       setPriority('medium');
       setDueDate(addDays(new Date(), 1));
       setDueTime('09:00');
     }
-  }, [open]);
+  }, [open, leads.length]);
 
    const handleSubmit = () => {
-     if (!title.trim() || !leadId) return;
+    if (!title.trim()) return;
+    
+    // Validate based on assignment mode
+    if (assignmentMode === 'lead' && !leadId) return;
+    if (assignmentMode === 'phone' && !phoneNumber.trim()) return;
  
      let due_at: string | undefined;
      if (dueDate) {
@@ -84,15 +95,28 @@ import { useState, useEffect } from 'react';
        due_at = fullDate.toISOString();
      }
  
-     onCreate({
-       lead_id: leadId,
+    const taskData: CreateAvivarTaskData = {
        title: title.trim(),
        description: description.trim() || undefined,
        priority,
        due_at,
-     });
+    };
+
+    if (assignmentMode === 'lead') {
+      taskData.lead_id = leadId;
+    } else {
+      taskData.phone_number = phoneNumber.trim();
+      taskData.contact_name = contactName.trim() || undefined;
+    }
+
+    onCreate(taskData);
    };
  
+  const isValid = title.trim() && (
+    (assignmentMode === 'lead' && leadId) ||
+    (assignmentMode === 'phone' && phoneNumber.trim())
+  );
+
    return (
      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
@@ -101,21 +125,62 @@ import { useState, useEffect } from 'react';
          </DialogHeader>
  
          <div className="space-y-4 py-4">
-           {/* Lead Selection */}
+          {/* Assignment Mode Tabs */}
            <div className="space-y-2">
-            <Label htmlFor="lead" className="text-[hsl(var(--avivar-foreground))]">Lead *</Label>
-             <Select value={leadId} onValueChange={setLeadId}>
-              <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
-                 <SelectValue placeholder="Selecione um lead" />
-               </SelectTrigger>
-              <SelectContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
-                 {leads.map((lead) => (
-                   <SelectItem key={lead.id} value={lead.id}>
-                     {lead.name} {lead.phone && `(${lead.phone})`}
-                   </SelectItem>
-                 ))}
-               </SelectContent>
-             </Select>
+            <Label className="text-[hsl(var(--avivar-foreground))]">Atribuir a *</Label>
+            <Tabs value={assignmentMode} onValueChange={(v) => setAssignmentMode(v as 'lead' | 'phone')}>
+              <TabsList className="grid w-full grid-cols-2 bg-[hsl(var(--avivar-background))]">
+                <TabsTrigger 
+                  value="lead" 
+                  className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
+                  disabled={leads.length === 0}
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Lead Existente
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="phone"
+                  className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white"
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Telefone
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="lead" className="mt-3">
+                <Select value={leadId} onValueChange={setLeadId}>
+                  <SelectTrigger className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]">
+                    <SelectValue placeholder="Selecione um lead" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))] max-h-[200px]">
+                    {leads.map((lead) => (
+                      <SelectItem key={lead.id} value={lead.id}>
+                        {lead.name} {lead.phone && `(${lead.phone})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </TabsContent>
+
+              <TabsContent value="phone" className="mt-3 space-y-3">
+                <div>
+                  <Input
+                    placeholder="Telefone (ex: 11999999999)"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Nome do contato (opcional)"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    className="bg-[hsl(var(--avivar-background))] border-[hsl(var(--avivar-border))] text-[hsl(var(--avivar-foreground))]"
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
            </div>
  
            {/* Title */}
@@ -212,7 +277,7 @@ import { useState, useEffect } from 'react';
            </Button>
            <Button 
              onClick={handleSubmit}
-             disabled={!title.trim() || !leadId || isCreating}
+            disabled={!isValid || isCreating}
             className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
            >
              {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
