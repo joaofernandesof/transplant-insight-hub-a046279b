@@ -16,6 +16,88 @@ const corsHeaders = {
 
 const DEBOUNCE_DELAY_MS = 5000; // 30 seconds
 
+// Schedule a follow-up execution for a conversation
+async function scheduleFollowupForConversation(
+  supabase: any,
+  conversationId: string,
+  userId: string,
+  leadName: string,
+  leadPhone: string
+): Promise<void> {
+  // Check if there's already a scheduled/pending follow-up for this conversation
+  const { data: existingFollowup } = await supabase
+    .from("avivar_followup_executions")
+    .select("id")
+    .eq("conversation_id", conversationId)
+    .in("status", ["scheduled", "pending"])
+    .limit(1)
+    .maybeSingle();
+
+  if (existingFollowup) {
+    console.log(`[Debounce] Follow-up already exists for conversation ${conversationId}, skipping`);
+    return;
+  }
+
+  // Get the first active follow-up rule (attempt 1)
+  const { data: rule, error: ruleError } = await supabase
+    .from("avivar_followup_rules")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .eq("attempt_number", 1)
+    .order("order_index", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (ruleError) {
+    console.error(`[Debounce] Error fetching follow-up rule:`, ruleError);
+    return;
+  }
+
+  if (!rule) {
+    console.log(`[Debounce] No active follow-up rule found for user ${userId}`);
+    return;
+  }
+
+  // Get the lead ID from the conversation
+  const { data: conversation } = await supabase
+    .from("crm_conversations")
+    .select("lead_id")
+    .eq("id", conversationId)
+    .single();
+
+  if (!conversation?.lead_id) {
+    console.log(`[Debounce] No lead_id found for conversation ${conversationId}`);
+    return;
+  }
+
+  // Calculate scheduled time based on rule delay
+  const scheduledFor = new Date(Date.now() + rule.delay_minutes * 60 * 1000);
+
+  // Create the follow-up execution
+  const { error: insertError } = await supabase.from("avivar_followup_executions").insert({
+    user_id: userId,
+    rule_id: rule.id,
+    conversation_id: conversationId,
+    lead_id: conversation.lead_id,
+    lead_name: leadName,
+    lead_phone: leadPhone,
+    attempt_number: 1,
+    status: "scheduled",
+    scheduled_for: scheduledFor.toISOString(),
+    original_message: rule.message_template,
+    ai_generated: rule.use_ai_generation,
+    channel: "whatsapp",
+  });
+
+  if (insertError) {
+    console.error(`[Debounce] Error creating follow-up execution:`, insertError);
+    throw insertError;
+  }
+
+  console.log(`[Debounce] Created follow-up execution scheduled for ${scheduledFor.toISOString()}`);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -209,6 +291,16 @@ serve(async (req) => {
           console.log(
             `[Debounce] 🤖 AI Agent responded successfully (${newMessages.length} messages batched) in ${duration}ms`,
           );
+
+          // Schedule follow-up after AI responds successfully
+          try {
+            await scheduleFollowupForConversation(supabase, conversationId, userId, leadName, leadPhone);
+            console.log(`[Debounce] 📅 Follow-up scheduled for conversation ${conversationId}`);
+          } catch (followupError) {
+            console.error(`[Debounce] Error scheduling follow-up:`, followupError);
+            // Don't fail the whole process if follow-up scheduling fails
+          }
+
           return new Response(
             JSON.stringify({
               success: true,

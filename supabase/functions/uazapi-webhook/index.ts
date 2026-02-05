@@ -798,6 +798,27 @@ serve(async (req) => {
 
                   // 🤖 Trigger AI Agent for inbound messages with 30s debounce
                   if (!msg.key.fromMe && content) {
+                    // ⏹️ Cancel any scheduled follow-ups for this conversation (lead responded)
+                    try {
+                      const { data: cancelledFollowups, error: cancelError } = await supabase
+                        .from("avivar_followup_executions")
+                        .update({
+                          status: "skipped",
+                          skip_reason: "Lead respondeu antes do follow-up",
+                        })
+                        .eq("conversation_id", crmConversationId)
+                        .in("status", ["scheduled", "pending"])
+                        .select("id");
+
+                      if (cancelError) {
+                        console.error("[UazAPI Webhook] Error cancelling follow-ups:", cancelError);
+                      } else if (cancelledFollowups && cancelledFollowups.length > 0) {
+                        console.log(`[UazAPI Webhook] ⏹️ Cancelled ${cancelledFollowups.length} follow-up(s) for conversation ${crmConversationId}`);
+                      }
+                    } catch (cancelFollowupError) {
+                      console.error("[UazAPI Webhook] Error in follow-up cancellation:", cancelFollowupError);
+                    }
+
                     try {
                       console.log(`[UazAPI Webhook] Checking debounce for conversation ${crmConversationId}`);
                       
