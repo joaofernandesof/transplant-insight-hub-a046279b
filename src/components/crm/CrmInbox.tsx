@@ -11,6 +11,7 @@ import { MessageCircle, Loader2, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useCrmConversations } from '@/hooks/useCrmConversations';
 import { usePatientJourneys } from '@/pages/avivar/journey/hooks/usePatientJourneys';
+ import { useConversationTasks } from '@/hooks/useConversationTasks';
 
 // Componentes focados
 import { ConversationList } from './chat/ConversationList';
@@ -19,6 +20,8 @@ import { PatientJourneyDetailsSidebar } from './chat/PatientJourneyDetailsSideba
 import { MessageThread } from './chat/MessageThread';
 import { MessageInput } from './chat/MessageInput';
 import { ChatHeader } from './chat/ChatHeader';
+ import { TaskInlineInput } from './chat/TaskInlineInput';
+ import { TaskBanner } from './chat/TaskBanner';
 
 interface CrmInboxProps {
   initialLeadId?: string;
@@ -28,6 +31,7 @@ interface CrmInboxProps {
 export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [showLeadWithoutConversation, setShowLeadWithoutConversation] = useState(false);
+   const [showTaskInput, setShowTaskInput] = useState(false);
 
   const {
     conversations,
@@ -46,6 +50,17 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
   const directJourney = initialLeadId ? journeys.find(j => j.id === initialLeadId) : null;
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
+ 
+   // Get current lead_id for tasks
+   const currentLeadId = currentConversation?.lead_id;
+   
+   // Tasks hook
+   const { 
+     tasks: conversationTasks, 
+     createTask, 
+     completeTask, 
+     deleteTask 
+   } = useConversationTasks(currentLeadId);
 
   // Handle initialPhone - find conversation by phone number
   useEffect(() => {
@@ -99,6 +114,11 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
     setSelectedConversation(null);
     setShowLeadWithoutConversation(true);
   }, [initialLeadId, conversations, isLoadingConversations, isLoadingJourneys, journeys]);
+
+   // Reset task input when conversation changes
+   useEffect(() => {
+     setShowTaskInput(false);
+   }, [selectedConversation]);
 
   const handleSendMessage = async (content: string) => {
     // If we're showing a lead without conversation, create one first
@@ -214,6 +234,21 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
       });
     }
   };
+
+   const handleTaskSubmit = (data: { title: string; due_at: string; assigned_to: string }) => {
+     if (!currentLeadId) return;
+     
+     createTask.mutate({
+       lead_id: currentLeadId,
+       title: data.title,
+       due_at: data.due_at,
+       assigned_to: data.assigned_to,
+     }, {
+       onSuccess: () => {
+         setShowTaskInput(false);
+       }
+     });
+   };
 
   // Estado de loading inicial
   if (isLoadingConversations || (initialLeadId && isLoadingJourneys)) {
@@ -346,22 +381,51 @@ export function CrmInbox({ initialLeadId, initialPhone }: CrmInboxProps) {
             </div>
 
             {/* Área de mensagens - scroll independente */}
-            <MessageThread
-              messages={messages}
-              isLoading={isLoadingMessages}
-            />
+             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+               {/* Task banners */}
+               {conversationTasks.length > 0 && (
+                 <div className="shrink-0 py-2 border-b border-[hsl(var(--avivar-border))]">
+                   {conversationTasks.map(task => (
+                     <TaskBanner
+                       key={task.id}
+                       task={task}
+                       onComplete={(id) => completeTask.mutate(id)}
+                       onDelete={(id) => deleteTask.mutate(id)}
+                       isCompleting={completeTask.isPending}
+                       isDeleting={deleteTask.isPending}
+                     />
+                   ))}
+                 </div>
+               )}
+               
+               <MessageThread
+                 messages={messages}
+                 isLoading={isLoadingMessages}
+               />
+             </div>
 
             {/* Input de mensagem - fixo no bottom */}
             <div className="shrink-0">
-              <MessageInput
-                onSend={handleSendMessage}
-                onSendAudio={handleSendAudio}
-                onSendImage={handleSendImage}
-                onSendVideo={handleSendVideo}
-                onSendDocument={handleSendDocument}
-                disabled={sendMessage.isPending}
-                placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
-              />
+               {showTaskInput ? (
+                 <TaskInlineInput
+                   leadId={currentLeadId || ''}
+                   onCancel={() => setShowTaskInput(false)}
+                   onSubmit={handleTaskSubmit}
+                   isSubmitting={createTask.isPending}
+                 />
+               ) : (
+                 <MessageInput
+                   onSend={handleSendMessage}
+                   onSendAudio={handleSendAudio}
+                   onSendImage={handleSendImage}
+                   onSendVideo={handleSendVideo}
+                   onSendDocument={handleSendDocument}
+                   disabled={sendMessage.isPending}
+                   placeholder={`Mensagem para ${currentConversation.lead?.name || 'Lead'}...`}
+                   onTaskClick={() => setShowTaskInput(true)}
+                   showTaskButton={!!currentLeadId}
+                 />
+               )}
             </div>
           </div>
         </>

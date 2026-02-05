@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef } from 'react';
-import { Send, Paperclip, Smile, Mic, Image, FileText, X, Square, Trash2, Video } from 'lucide-react';
+ import { Send, Paperclip, Smile, Mic, Image, FileText, X, Square, Trash2, Video, ListTodo } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,9 +30,11 @@ interface MessageInputProps {
   onSendDocument?: (documentBase64: string, documentName: string, caption?: string) => void;
   disabled?: boolean;
   placeholder?: string;
+   onTaskClick?: () => void;
+   showTaskButton?: boolean;
 }
 
-export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, onSendDocument, disabled, placeholder }: MessageInputProps) {
+ export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, onSendDocument, disabled, placeholder, onTaskClick, showTaskButton = true }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ base64: string; preview: string } | null>(null);
@@ -618,6 +620,20 @@ export function MessageInput({ onSend, onSendAudio, onSendImage, onSendVideo, on
           >
             <Mic className="h-5 w-5" />
           </Button>
+
+           {/* Task button */}
+           {showTaskButton && onTaskClick && (
+             <Button
+               variant="ghost"
+               size="icon"
+               className="text-[hsl(var(--avivar-muted-foreground))] hover:text-amber-500 hover:bg-amber-500/10 h-10 w-10"
+               onClick={onTaskClick}
+               disabled={disabled}
+               title="Criar tarefa"
+             >
+               <ListTodo className="h-5 w-5" />
+             </Button>
+           )}
         </div>
 
         {/* Text input */}
