@@ -6,10 +6,12 @@
  import { useState, useEffect } from 'react';
  import { format, addDays, parse, isValid } from 'date-fns';
  import { ptBR } from 'date-fns/locale';
- import { X, Check, ChevronDown, Loader2 } from 'lucide-react';
+ import { X, Check, ChevronDown, Loader2, CalendarIcon, Clock } from 'lucide-react';
  import { Button } from '@/components/ui/button';
  import { Input } from '@/components/ui/input';
  import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+ import { Calendar } from '@/components/ui/calendar';
+ import { ScrollArea } from '@/components/ui/scroll-area';
  import { cn } from '@/lib/utils';
  import { useAuth } from '@/contexts/AuthContext';
  import { supabase } from '@/integrations/supabase/client';
@@ -36,13 +38,22 @@
    isSubmitting?: boolean;
  }
  
+ // Time slots every 30 minutes
+ const timeSlots = Array.from({ length: 48 }, (_, i) => {
+   const hours = Math.floor(i / 2);
+   const minutes = i % 2 === 0 ? '00' : '30';
+   return `${hours.toString().padStart(2, '0')}:${minutes}`;
+ });
+ 
  export function TaskInlineInput({ leadId, onCancel, onSubmit, isSubmitting }: TaskInlineInputProps) {
    const { user } = useAuth();
    const [title, setTitle] = useState('');
    const [selectedDate, setSelectedDate] = useState<Date>(addDays(new Date(), 1));
    const [selectedTime, setSelectedTime] = useState('09:00');
+   const [dateInputValue, setDateInputValue] = useState(format(addDays(new Date(), 1), 'dd.MM.yyyy'));
    const [assignedTo, setAssignedTo] = useState<string>(user?.id || '');
    
+   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
    const [showAssigneePicker, setShowAssigneePicker] = useState(false);
  
    // Set default assignee to current user
@@ -94,11 +105,23 @@
  
    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
      const value = e.target.value;
+     setDateInputValue(value);
      // Try parsing dd.MM.yyyy format
      const parsed = parse(value, 'dd.MM.yyyy', new Date());
      if (isValid(parsed)) {
        setSelectedDate(parsed);
      }
+   };
+ 
+   const handleCalendarSelect = (date: Date | undefined) => {
+     if (date) {
+       setSelectedDate(date);
+       setDateInputValue(format(date, 'dd.MM.yyyy'));
+     }
+   };
+ 
+   const handleTimeSlotSelect = (time: string) => {
+     setSelectedTime(time);
    };
  
    const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,22 +149,76 @@
          <span className="text-[hsl(var(--avivar-primary))] font-medium">Tarefa</span>
          <span className="text-[hsl(var(--avivar-muted-foreground))]">vencimento</span>
          
-         {/* Date input */}
-         <input
-           type="text"
-           defaultValue={format(selectedDate, 'dd.MM.yyyy', { locale: ptBR })}
-           onBlur={handleDateChange}
-           className="w-[90px] px-2 py-0.5 text-sm rounded border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--avivar-primary))]"
-           placeholder="dd.mm.aaaa"
-         />
+         {/* Date input with calendar popup */}
+         <Popover open={showDateTimePicker} onOpenChange={setShowDateTimePicker}>
+           <PopoverTrigger asChild>
+             <div className="flex items-center gap-1">
+               <input
+                 type="text"
+                 value={dateInputValue}
+                 onChange={handleDateChange}
+                 onClick={(e) => e.stopPropagation()}
+                 className="w-[90px] px-2 py-0.5 text-sm rounded-l border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--avivar-primary))]"
+                 placeholder="dd.mm.aaaa"
+               />
+               <button
+                 type="button"
+                 className="px-1.5 py-0.5 rounded-r border border-l-0 border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-muted-foreground))] hover:bg-[hsl(var(--avivar-muted))] transition-colors"
+               >
+                 <CalendarIcon className="h-4 w-4" />
+               </button>
+             </div>
+           </PopoverTrigger>
+           <PopoverContent className="w-auto p-0" align="start" side="top">
+             <div className="flex">
+               {/* Calendar */}
+               <Calendar
+                 mode="single"
+                 selected={selectedDate}
+                 onSelect={handleCalendarSelect}
+                 locale={ptBR}
+                 className="p-2 pointer-events-auto"
+               />
+               {/* Time slots column */}
+               <div className="border-l border-border">
+                 <div className="px-2 py-1.5 border-b border-border">
+                   <span className="text-xs font-medium text-muted-foreground">Horário</span>
+                 </div>
+                 <ScrollArea className="h-[260px]">
+                   <div className="p-1">
+                     {timeSlots.map((time) => (
+                       <button
+                         key={time}
+                         onClick={() => handleTimeSlotSelect(time)}
+                         className={cn(
+                           "w-full text-left px-2 py-1 text-sm rounded transition-colors",
+                           selectedTime === time
+                             ? "bg-primary text-primary-foreground"
+                             : "hover:bg-muted"
+                         )}
+                       >
+                         {time}
+                       </button>
+                     ))}
+                   </div>
+                 </ScrollArea>
+               </div>
+             </div>
+           </PopoverContent>
+         </Popover>
  
-         {/* Time input */}
-         <input
-           type="time"
-           value={selectedTime}
-           onChange={handleTimeChange}
-           className="w-[80px] px-2 py-0.5 text-sm rounded border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--avivar-primary))]"
-         />
+         {/* Time input (editable) with clock icon */}
+         <div className="flex items-center">
+           <input
+             type="time"
+             value={selectedTime}
+             onChange={handleTimeChange}
+             className="w-[75px] px-2 py-0.5 text-sm rounded-l border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--avivar-primary))]"
+           />
+           <span className="px-1.5 py-0.5 rounded-r border border-l-0 border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-background))] text-[hsl(var(--avivar-muted-foreground))]">
+             <Clock className="h-4 w-4" />
+           </span>
+         </div>
  
          <span className="text-[hsl(var(--avivar-muted-foreground))]">para</span>
          
