@@ -39,13 +39,14 @@ interface KanbanHeaderProps {
   onImport: () => void;
   onExport: () => void;
   onChecklist: () => void;
-  onRefresh: () => void;
+  onRefresh: () => Promise<void> | void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   totalLeads: number;
   filteredLeads: number;
   visibleColumns: string[];
   onToggleColumnVisibility: (columnId: string) => void;
+  isRefreshing?: boolean;
 }
 
 const getIconComponent = (iconName: string) => {
@@ -75,7 +76,20 @@ export function KanbanHeader({
   filteredLeads,
   visibleColumns,
   onToggleColumnVisibility,
+  isRefreshing = false,
 }: KanbanHeaderProps) {
+  const [isLocalRefreshing, setIsLocalRefreshing] = useState(false);
+  const refreshing = isRefreshing || isLocalRefreshing;
+
+  const handleRefresh = async () => {
+    setIsLocalRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      // Small delay for visual feedback
+      setTimeout(() => setIsLocalRefreshing(false), 500);
+    }
+  };
   const navigate = useNavigate();
   const Icon = getIconComponent(kanban.icon);
   const isFiltered = searchQuery.length > 0;
@@ -202,14 +216,16 @@ export function KanbanHeader({
           Filtros
         </Button>
 
-        {/* Refresh Button */}
+        {/* Refresh Button - Minimalista */}
         <Button
-          variant="ghost"
-          size="icon"
-          onClick={onRefresh}
-          className="hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-primary)/0.1)] hover:border-[hsl(var(--avivar-primary))] transition-all duration-200 gap-2"
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Atualizando...' : 'Atualizar'}
         </Button>
 
         {/* Lead Count */}
