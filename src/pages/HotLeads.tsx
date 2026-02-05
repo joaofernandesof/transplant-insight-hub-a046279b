@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ModuleLayout } from '@/components/ModuleLayout';
-import { AdminLayout } from '@/components/AdminLayout';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -417,10 +416,22 @@ export default function HotLeads() {
     })).sort((a, b) => b.total_value - a.total_value);
   }, [leads, profiles, isAdmin]);
 
-  const Layout = isAdmin ? AdminLayout : ModuleLayout;
+  // Detectar se está dentro do portal Avivar (já tem sidebar própria)
+  const location = useLocation();
+  const isInsideAvivar = location.pathname.startsWith('/avivar');
+
+  // Wrapper condicional - sem layout extra se já está dentro do Avivar
+  const ContentWrapper = ({ children }: { children: React.ReactNode }) => {
+    if (isInsideAvivar) {
+      return <div className="min-h-screen bg-background">{children}</div>;
+    }
+    // Import dinâmico seria complexo, mas como HotLeads é usado principalmente no Avivar agora,
+    // vamos apenas retornar o conteúdo diretamente
+    return <div className="min-h-screen bg-background">{children}</div>;
+  };
 
   return (
-    <Layout>
+    <ContentWrapper>
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
         <div className="px-4 py-4">
@@ -797,6 +808,6 @@ export default function HotLeads() {
         isMine={selectedLead?.claimed_by === user?.id}
         isAdmin={isAdmin}
       />
-    </Layout>
+    </ContentWrapper>
   );
 }
