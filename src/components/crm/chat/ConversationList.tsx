@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConversationListItem } from './ConversationListItem';
 import { CrmConversation, CrmMessage } from '@/hooks/useCrmConversations';
 import { supabase } from '@/integrations/supabase/client';
-import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ConversationListProps {
   conversations: CrmConversation[];
@@ -39,7 +39,7 @@ export function ConversationList({
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [lastMessages, setLastMessages] = useState<LastMessagesMap>({});
   const [unansweredCounts, setUnansweredCounts] = useState<UnansweredCountMap>({});
-  const { user } = useUnifiedAuth();
+  const { user } = useAuth();
 
   // Fetch last message for all conversations
   useEffect(() => {
