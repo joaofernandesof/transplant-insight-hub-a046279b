@@ -78,3 +78,6 @@ verify_jwt = false
 
 [functions.avivar-process-followups]
 verify_jwt = false
+
+[functions.hotleads-acquire]
+verify_jwt = false

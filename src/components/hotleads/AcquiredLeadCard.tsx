@@ -1,0 +1,38 @@
+import { Card, CardContent } from '@/components/ui/card';
+import { MapPin, Lock, User } from 'lucide-react';
+import type { HotLead } from '@/hooks/useHotLeads';
+
+interface AcquiredLeadCardProps {
+  lead: HotLead;
+  claimerName: string;
+}
+
+export function AcquiredLeadCard({ lead, claimerName }: AcquiredLeadCardProps) {
+  const location = [lead.city, lead.state].filter(Boolean).join(' - ');
+
+  return (
+    <Card className="border-l-4 border-l-muted opacity-75">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm truncate">{lead.name}</h3>
+            {location && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                <MapPin className="h-3 w-3 shrink-0" />
+                {location}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <User className="h-3 w-3 shrink-0" />
+              Adquirido por: <span className="font-medium">{claimerName}</span>
+            </p>
+          </div>
+          <div className="shrink-0 flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+            <Lock className="h-3 w-3" />
+            Bloqueado
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
