@@ -415,8 +415,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </h3>
               {documentsText && (
                 <span 
-                  className="text-[9px] px-2 py-0.5 rounded-full font-medium"
-                  style={{ backgroundColor: CPG_COLORS.cream, color: CPG_COLORS.green }}
+                  className="text-[9px] px-2 py-0.5 rounded-full font-medium text-white"
+                  style={{ backgroundColor: CPG_COLORS.green }}
                 >
                   {documentsText}
                 </span>
