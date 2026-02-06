@@ -94,9 +94,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               className="h-14 w-14 rounded-lg object-cover shadow-sm"
             />
             <div>
-              <h1 className="text-xl font-bold" style={{ color: CPG_COLORS.green }}>
-                CPG Advocacia Médica
-              </h1>
+            <h1 className="text-lg font-bold leading-tight" style={{ color: CPG_COLORS.green }}>
+              Cartaxo Parahyba Guerreiro Advocacia Médica
+            </h1>
               <p className="text-xs font-medium" style={{ color: CPG_COLORS.gold }}>
                 Proteção Jurídica Especializada
               </p>
