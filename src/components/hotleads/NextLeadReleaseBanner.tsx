@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { useLeadRelease } from '@/hooks/useLeadRelease';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { ConfettiEffect } from './ConfettiEffect';
 
 interface NextLeadReleaseBannerProps {
   onLeadReleased?: () => void;
@@ -18,7 +17,6 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
     formatCountdown,
     isReleasing,
     releaseNow,
-    showConfetti,
   } = useLeadRelease();
 
   const handleReleaseNow = async () => {
@@ -41,7 +39,6 @@ export function NextLeadReleaseBanner({ onLeadReleased }: NextLeadReleaseBannerP
 
   return (
     <>
-      <ConfettiEffect active={showConfetti} />
       <div className="rounded-lg border bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-yellow-500/10 border-orange-500/20 p-4 mb-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           {/* Left: Next lead preview */}
