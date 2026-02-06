@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Flame, RefreshCw, Loader2, Upload, BarChart3, Users } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, BarChart3, Users, Trash2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
 import {
   AvailableLeadCard,
@@ -132,6 +134,20 @@ export default function HotLeads() {
                     Importar
                   </Button>
                   <LeadExportButton leads={leads} getClaimerName={getClaimerName} />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-destructive"
+                    onClick={async () => {
+                      if (!confirm('Resetar toda a base de leads? Esta ação não pode ser desfeita.')) return;
+                      const { error } = await supabase.from('leads').delete().eq('source', 'planilha');
+                      if (error) { toast.error('Erro ao resetar'); return; }
+                      toast.success('Base resetada');
+                      fetchLeads(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </>
               )}
               <Button
