@@ -328,7 +328,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="flex flex-wrap justify-center gap-4 text-[10px]" style={{ color: CPG_COLORS.green }}>
             <div className="flex items-center gap-1">
               <Phone className="h-3 w-3" style={{ color: CPG_COLORS.gold }} />
-              <span>(11) 99999-9999</span>
+              <span>(85) 98841-8796</span>
             </div>
             <div className="flex items-center gap-1">
               <Mail className="h-3 w-3" style={{ color: CPG_COLORS.gold }} />
