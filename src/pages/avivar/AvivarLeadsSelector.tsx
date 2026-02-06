@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import { toast } from 'sonner';
 
 const iconOptions = [
@@ -76,7 +77,8 @@ interface KanbanData {
 export function AvivarLeadsSelector() {
   const navigate = useNavigate();
   const { user, session } = useUnifiedAuth();
-  const authUserId = session?.user?.id; // auth.uid() for RLS
+  const authUserId = session?.user?.id;
+  const { accountId } = useAvivarAccount();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -157,6 +159,7 @@ export function AvivarLeadsSelector() {
         .from('avivar_kanbans')
         .insert({
           user_id: authUserId,
+          account_id: accountId!,
           name: kanbanData.name,
           description: kanbanData.description || null,
           icon: kanbanData.icon,

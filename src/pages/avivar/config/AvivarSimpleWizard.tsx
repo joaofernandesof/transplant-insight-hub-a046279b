@@ -236,6 +236,18 @@ export default function AvivarSimpleWizard() {
         navigate('/login');
         return;
       }
+      // Get account_id
+      const { data: memberData } = await supabase
+        .from('avivar_account_members')
+        .select('account_id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single();
+      const acctId = memberData?.account_id;
+      if (!acctId) {
+        toast.error('Conta não encontrada');
+        return;
+      }
 
       // Auto-gerar configurações de IA
       const autoConfig = autoGenerateConfig(
@@ -249,6 +261,7 @@ export default function AvivarSimpleWizard() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const agentPayload: any = {
         user_id: user.id,
+        account_id: acctId,
         name: config.attendantName,
         company_name: config.companyName,
         professional_name: config.professionalName,
@@ -335,6 +348,7 @@ export default function AvivarSimpleWizard() {
               .from('avivar_knowledge_documents')
               .insert({
                 user_id: user.id,
+                account_id: acctId,
                 agent_id: savedAgentId,
                 name: doc.name,
                 content: doc.content,
@@ -351,6 +365,7 @@ export default function AvivarSimpleWizard() {
             if (!docError && docData) {
               const chunkRecords = chunks.map((content, index) => ({
                 document_id: docData.id,
+                account_id: acctId,
                 content: content,
                 chunk_index: index
               }));

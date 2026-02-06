@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import { toast } from 'sonner';
 
 interface Tutorial {
@@ -52,6 +53,7 @@ const CATEGORIES = [
 
 export default function AvivarTutorialsPage() {
   const { isAdmin } = useUnifiedAuth();
+  const { accountId } = useAvivarAccount();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -102,6 +104,7 @@ export default function AvivarTutorialsPage() {
         const { error } = await supabase
           .from('avivar_tutorials')
           .insert({
+            account_id: accountId!,
             title: data.title,
             description: data.description,
             video_url: data.video_url,

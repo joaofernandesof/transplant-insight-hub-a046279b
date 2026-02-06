@@ -1,6 +1,7 @@
  import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
  import { supabase } from '@/integrations/supabase/client';
  import { useAuth } from '@/contexts/AuthContext';
+ import { useAvivarAccount } from '@/hooks/useAvivarAccount';
  import { toast } from 'sonner';
  
  export interface FollowupTemplate {
@@ -75,8 +76,9 @@
  ];
  
  export function useFollowupTemplates() {
-   const { user } = useAuth();
-   const queryClient = useQueryClient();
+    const { user } = useAuth();
+    const { accountId } = useAvivarAccount();
+    const queryClient = useQueryClient();
  
    const { data: templates = [], isLoading } = useQuery({
      queryKey: ['followup-templates', user?.id],
@@ -97,15 +99,16 @@
  
    const createTemplate = useMutation({
      mutationFn: async (input: Omit<FollowupTemplate, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'usage_count' | 'success_rate'>) => {
-       if (!user?.id) throw new Error('Usuário não autenticado');
- 
-       const { data, error } = await supabase
-         .from('avivar_followup_templates')
-         .insert({
-           user_id: user.id,
-           ...input,
-         })
-         .select()
+        if (!user?.id || !accountId) throw new Error('Usuário não autenticado');
+
+        const { data, error } = await supabase
+          .from('avivar_followup_templates')
+          .insert({
+            user_id: user.id,
+            account_id: accountId,
+            ...input,
+          })
+          .select()
          .single();
  
        if (error) throw error;
@@ -161,17 +164,18 @@
  
    // Initialize default templates if none exist
    const initializeDefaults = useMutation({
-     mutationFn: async () => {
-       if (!user?.id) throw new Error('Usuário não autenticado');
- 
-       const templatesWithUserId = DEFAULT_TEMPLATES.map(t => ({
-         ...t,
-         user_id: user.id,
-       }));
- 
-       const { error } = await supabase
-         .from('avivar_followup_templates')
-         .insert(templatesWithUserId);
+      mutationFn: async () => {
+        if (!user?.id || !accountId) throw new Error('Usuário não autenticado');
+
+        const templatesWithUserId = DEFAULT_TEMPLATES.map(t => ({
+          ...t,
+          user_id: user.id,
+          account_id: accountId,
+        }));
+
+        const { error } = await supabase
+          .from('avivar_followup_templates')
+          .insert(templatesWithUserId);
  
        if (error) throw error;
      },

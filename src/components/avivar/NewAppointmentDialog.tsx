@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
+import { useAvivarAccount } from "@/hooks/useAvivarAccount";
 import { useAvivarAgendas, AvivarAgenda } from "@/hooks/useAvivarAgendas";
 
 interface NewAppointmentDialogProps {
@@ -47,6 +48,7 @@ export function NewAppointmentDialog({
   selectedAgenda,
 }: NewAppointmentDialogProps) {
   const { user } = useUnifiedAuth();
+  const { accountId } = useAvivarAccount();
   const { agendas } = useAvivarAgendas();
   const queryClient = useQueryClient();
 
@@ -148,6 +150,7 @@ export function NewAppointmentDialog({
           .from("avivar_appointments")
           .insert({
             user_id: authUser.id,
+            account_id: accountId!,
             patient_name: formData.patient_name,
             patient_phone: formData.patient_phone,
             patient_email: formData.patient_email || null,
