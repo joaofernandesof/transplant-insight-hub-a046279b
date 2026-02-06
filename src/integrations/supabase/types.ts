@@ -9077,6 +9077,7 @@ export type Database = {
           created_at: string
           id: string
           last_release_at: string | null
+          last_released_at: string | null
           next_release_at: string | null
           release_date: string
           released_count: number
@@ -9087,6 +9088,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_release_at?: string | null
+          last_released_at?: string | null
           next_release_at?: string | null
           release_date?: string
           released_count?: number
@@ -9097,6 +9099,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_release_at?: string | null
+          last_released_at?: string | null
           next_release_at?: string | null
           release_date?: string
           released_count?: number
