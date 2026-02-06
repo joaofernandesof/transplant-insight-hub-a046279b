@@ -3,3 +3,8 @@ export { AcquiredLeadCard } from './AcquiredLeadCard';
 export { LeadAcquireDialog } from './LeadAcquireDialog';
 export { LeadImportDialog } from './LeadImportDialog';
 export { LeadExportButton } from './LeadExportButton';
+export { PaginatedLeadColumn } from './PaginatedLeadColumn';
+export { HotLeadsOverview } from './HotLeadsOverview';
+export { BrazilMapChart } from './BrazilMapChart';
+export { HotLeadsCharts } from './HotLeadsCharts';
+export { HotLeadsGlobalFilters } from './HotLeadsGlobalFilters';
