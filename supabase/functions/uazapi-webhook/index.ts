@@ -665,6 +665,7 @@ serve(async (req) => {
               .from("avivar_mensagens")
               .insert({
                 conversa_id: conversaId,
+                account_id: accountId,
                 numero: phone,
                 nome_contato: msg.pushName || null,
                 mensagem: content,
