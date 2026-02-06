@@ -147,6 +147,17 @@ export function useHotLeads() {
       }
     }
 
+    // Schedule the first release countdown immediately after import
+    if (success > 0) {
+      try {
+        await supabase.functions.invoke('hotleads-release', {
+          body: { action: 'schedule_next' },
+        });
+      } catch (e) {
+        console.error('Error scheduling first release:', e);
+      }
+    }
+
     await fetchLeads(true);
     return { success, errors };
   }, [isAdmin, fetchLeads]);
