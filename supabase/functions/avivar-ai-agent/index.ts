@@ -286,6 +286,23 @@ const TOOLS = [
             required: ["category"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "send_fluxo_media",
+          description: `Envia uma mídia (áudio, imagem, vídeo ou documento) que foi anexada a um passo do fluxo de atendimento. Use AUTOMATICAMENTE quando o passo atual do fluxo tiver uma mídia anexada. O step_id corresponde ao ID do passo no fluxo configurado.`,
+          parameters: {
+            type: "object",
+            properties: {
+              step_id: {
+                type: "string",
+                description: "ID do passo do fluxo que contém a mídia (ex: 'saudacao', 'identificacao')"
+              }
+            },
+            required: ["step_id"]
+          }
+        }
       }
 ];
 
@@ -1512,6 +1529,158 @@ async function sendVideo(
   }
 }
 
+// Send media attached to a fluxo de atendimento step
+async function sendFluxoMedia(
+  supabase: AnySupabaseClient,
+  userId: string,
+  agentId: string | null,
+  conversationId: string,
+  leadPhone: string,
+  stepId: string
+): Promise<{ success: boolean; message: string }> {
+  console.log(`[AI Agent] Tool: send_fluxo_media(step_id="${stepId}")`);
+
+  // Get agent's fluxo_atendimento
+  let fluxo: Record<string, unknown> | null = null;
+  if (agentId) {
+    const { data: agent } = await supabase
+      .from("avivar_agents")
+      .select("fluxo_atendimento")
+      .eq("id", agentId)
+      .single();
+    fluxo = agent?.fluxo_atendimento as Record<string, unknown> | null;
+  }
+  if (!fluxo) {
+    const { data: agents } = await supabase
+      .from("avivar_agents")
+      .select("fluxo_atendimento")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .limit(1);
+    fluxo = agents?.[0]?.fluxo_atendimento as Record<string, unknown> | null;
+  }
+
+  if (!fluxo) {
+    return { success: false, message: "Fluxo de atendimento não configurado." };
+  }
+
+  // Find the step with matching id
+  const allSteps = [
+    ...((fluxo.passosCronologicos || []) as Array<Record<string, unknown>>),
+    ...((fluxo.passosExtras || []) as Array<Record<string, unknown>>),
+  ];
+  
+  const step = allSteps.find((s) => s.id === stepId);
+  if (!step || !step.media) {
+    console.log(`[AI Agent] Step "${stepId}" not found or has no media`);
+    return { success: false, message: `Passo "${stepId}" não possui mídia anexada.` };
+  }
+
+  const media = step.media as { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
+  console.log(`[AI Agent] Found media: type=${media.type}, url=${media.url?.substring(0, 60)}`);
+
+  // Get UazAPI credentials
+  const uazapiUrl = Deno.env.get("UAZAPI_URL") || "";
+  let uazapiToken = Deno.env.get("UAZAPI_TOKEN") || "";
+
+  const { data: uazapiInstance } = await supabase
+    .from("avivar_uazapi_instances")
+    .select("instance_token, status")
+    .eq("user_id", userId)
+    .eq("status", "connected")
+    .limit(1)
+    .maybeSingle();
+
+  if (uazapiInstance?.instance_token) {
+    uazapiToken = uazapiInstance.instance_token;
+  }
+
+  if (!uazapiUrl || !uazapiToken) {
+    return { success: false, message: "WhatsApp não está conectado para enviar mídia." };
+  }
+
+  let phone = leadPhone.replace(/\D/g, "");
+  if (!phone.startsWith("55") && phone.length <= 11) {
+    phone = `55${phone}`;
+  }
+
+  try {
+    const apiUrl = `${uazapiUrl}/send/media`;
+    let mediaPayload: Record<string, unknown>;
+
+    if (media.type === "audio") {
+      const uazapiType = media.audio_type === "ptt" ? "ptt" : "audio";
+      mediaPayload = {
+        number: phone,
+        type: uazapiType,
+        file: media.url,
+        text: " ",
+      };
+      if (media.audio_forward && media.audio_type === "audio") {
+        mediaPayload.forward = true;
+      }
+    } else {
+      // image, video, document
+      const typeMap: Record<string, string> = { image: "image", video: "video", document: "document" };
+      mediaPayload = {
+        number: phone,
+        type: typeMap[media.type] || media.type,
+        file: media.url,
+        text: " ",
+      };
+    }
+
+    console.log(`[AI Agent] Sending fluxo media: ${JSON.stringify(mediaPayload).substring(0, 200)}`);
+    
+    let response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "token": uazapiToken },
+      body: JSON.stringify(mediaPayload),
+    });
+
+    // Fallback for PTT audio
+    if (!response.ok && media.type === "audio" && media.audio_type === "ptt") {
+      mediaPayload.type = "myaudio";
+      response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "token": uazapiToken },
+        body: JSON.stringify(mediaPayload),
+      });
+    }
+
+    const responseText = await response.text();
+    console.log(`[AI Agent] Fluxo media send response (${response.status}): ${responseText}`);
+
+    if (!response.ok) {
+      return { success: false, message: `Erro ao enviar mídia do fluxo: ${response.status}` };
+    }
+
+    // Log the sent media in conversation
+    const { data: convData } = await supabase
+      .from("crm_conversations")
+      .select("account_id")
+      .eq("id", conversationId)
+      .single();
+
+    await supabase.from("crm_messages").insert({
+      conversation_id: conversationId,
+      direction: "outbound",
+      content: media.type === "audio" ? "🎤 Áudio do fluxo" : `📎 ${media.name || media.type}`,
+      media_url: media.url,
+      media_type: media.type,
+      sent_at: new Date().toISOString(),
+      is_ai_generated: true,
+      account_id: convData?.account_id,
+    });
+
+    console.log(`[AI Agent] ✅ Fluxo media sent successfully`);
+    return { success: true, message: `Mídia do passo "${stepId}" enviada com sucesso!` };
+  } catch (error) {
+    console.error("[AI Agent] Error sending fluxo media:", error);
+    return { success: false, message: `Erro ao enviar mídia: ${(error as Error).message}` };
+  }
+}
+
 // ============================================
 // PROCESS TOOL CALLS
 // ============================================
@@ -1601,6 +1770,18 @@ async function processToolCall(
         patientPhone,
         toolArgs.category as string,
         toolArgs.search_term as string | undefined
+      );
+      return result.message;
+    }
+    
+    case "send_fluxo_media": {
+      const result = await sendFluxoMedia(
+        supabase,
+        userId,
+        _agentId,
+        conversationId,
+        patientPhone,
+        toolArgs.step_id as string
       );
       return result.message;
     }
@@ -2136,17 +2317,21 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
   if (!fluxo) return '';
   
   const passosCronologicos = (fluxo.passosCronologicos || []) as Array<{
+    id?: string;
     ordem: number;
     titulo: string;
     descricao: string;
     exemploMensagem?: string;
+    media?: { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
   }>;
   
   const passosExtras = (fluxo.passosExtras || []) as Array<{
+    id?: string;
     ordem: number;
     titulo: string;
     descricao: string;
     exemploMensagem?: string;
+    media?: { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
   }>;
   
   if (passosCronologicos.length === 0) return '';
@@ -2164,9 +2349,12 @@ Os exemplos fornecidos são REFERÊNCIAS, não textos fixos. Você deve:
 `;
   
   for (const passo of passosCronologicos) {
+    const mediaInstruction = passo.media 
+      ? `\n🎵 **MÍDIA ANEXADA**: Este passo tem ${passo.media.type === 'audio' ? (passo.media.audio_type === 'ptt' ? 'um áudio de voz' : 'um arquivo de áudio') : passo.media.type === 'image' ? 'uma imagem' : passo.media.type === 'video' ? 'um vídeo' : 'um documento'} anexado. Você DEVE usar a ferramenta send_fluxo_media(step_id="${passo.id}") JUNTO com sua mensagem de texto neste passo. Envie o texto primeiro, depois a mídia.`
+      : '';
     instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
 ${passo.descricao}
-${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemploMensagem}"` : ''}
+${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemploMensagem}"` : ''}${mediaInstruction}
 
 `;
   }
@@ -2176,9 +2364,12 @@ ${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemp
 
 `;
     for (const passo of passosExtras) {
+      const mediaInstruction = passo.media 
+        ? `\n🎵 **MÍDIA ANEXADA**: Este passo tem mídia anexada. Use send_fluxo_media(step_id="${passo.id}") JUNTO com sua mensagem.`
+        : '';
       instructions += `### ${passo.titulo.toUpperCase()}
 ${passo.descricao}
-${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemploMensagem}"` : ''}
+${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemploMensagem}"` : ''}${mediaInstruction}
 
 `;
     }
