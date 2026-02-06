@@ -1,19 +1,25 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Flame, RefreshCw, Loader2, Upload, Users, Lock, UserCheck } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Flame, RefreshCw, Loader2, Upload, BarChart3, Users } from 'lucide-react';
 import { useHotLeads } from '@/hooks/useHotLeads';
-import { AvailableLeadCard } from '@/components/hotleads/AvailableLeadCard';
-import { AcquiredLeadCard } from '@/components/hotleads/AcquiredLeadCard';
-import { LeadAcquireDialog } from '@/components/hotleads/LeadAcquireDialog';
-import { LeadImportDialog } from '@/components/hotleads/LeadImportDialog';
-import { LeadExportButton } from '@/components/hotleads/LeadExportButton';
-import { PaginatedLeadColumn } from '@/components/hotleads/PaginatedLeadColumn';
+import {
+  AvailableLeadCard,
+  AcquiredLeadCard,
+  LeadAcquireDialog,
+  LeadImportDialog,
+  LeadExportButton,
+  PaginatedLeadColumn,
+  HotLeadsOverview,
+  BrazilMapChart,
+  HotLeadsCharts,
+  HotLeadsGlobalFilters,
+} from '@/components/hotleads';
 import type { HotLead } from '@/hooks/useHotLeads';
 
 export default function HotLeads() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const {
     leads,
     availableLeads,
@@ -30,6 +36,69 @@ export default function HotLeads() {
   const [selectedLead, setSelectedLead] = useState<HotLead | null>(null);
   const [isAcquireOpen, setIsAcquireOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Global filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stateFilter, setStateFilter] = useState('all');
+  const [periodFilter, setPeriodFilter] = useState('all');
+
+  // Available states for filter
+  const availableStates = useMemo(() => {
+    return [...new Set(leads.map(l => l.state).filter(Boolean))] as string[];
+  }, [leads]);
+
+  // Filtered leads based on global filters
+  const filteredLeads = useMemo(() => {
+    return leads.filter(lead => {
+      // Search filter
+      if (searchTerm) {
+        const search = searchTerm.toLowerCase();
+        const matchesSearch = 
+          lead.name?.toLowerCase().includes(search) ||
+          lead.phone?.toLowerCase().includes(search) ||
+          lead.city?.toLowerCase().includes(search);
+        if (!matchesSearch) return false;
+      }
+      
+      // State filter
+      if (stateFilter !== 'all' && lead.state !== stateFilter) return false;
+      
+      // Period filter
+      if (periodFilter !== 'all') {
+        const leadDate = new Date(lead.created_at);
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        switch (periodFilter) {
+          case 'today':
+            if (leadDate < today) return false;
+            break;
+          case '7d':
+            if (leadDate < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)) return false;
+            break;
+          case '30d':
+            if (leadDate < new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)) return false;
+            break;
+          case '90d':
+            if (leadDate < new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)) return false;
+            break;
+        }
+      }
+      
+      return true;
+    });
+  }, [leads, searchTerm, stateFilter, periodFilter]);
+
+  // Filtered subsets
+  const filteredAvailable = useMemo(() => 
+    filteredLeads.filter(l => !l.claimed_by), [filteredLeads]);
+  
+  const filteredMyLeads = useMemo(() => 
+    filteredLeads.filter(l => l.claimed_by === user?.id), [filteredLeads, user?.id]);
+  
+  const filteredAcquired = useMemo(() => 
+    filteredLeads.filter(l => !!l.claimed_by && l.claimed_by !== user?.id), [filteredLeads, user?.id]);
 
   const handleAcquireClick = (lead: HotLead) => {
     setSelectedLead(lead);
@@ -78,80 +147,87 @@ export default function HotLeads() {
         </div>
       </header>
 
-      {/* Stats + Columns */}
-      <div className="px-4 py-4 flex-1 flex flex-col overflow-hidden">
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <Users className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{availableLeads.length}</p>
-                  <p className="text-xs text-muted-foreground">Disponíveis</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <UserCheck className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{myLeads.length}</p>
-                  <p className="text-xs text-muted-foreground">Meus Leads</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-muted rounded-lg">
-                  <Lock className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{acquiredLeads.length}</p>
-                  <p className="text-xs text-muted-foreground">Adquiridos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Content with Tabs */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <div className="px-4 pt-4">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="leads" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Leads ({leads.length})
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        {/* Three columns with independent scroll & pagination */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-          <PaginatedLeadColumn
-            title="Leads Disponíveis"
-            dotColor="bg-green-500"
-            items={availableLeads}
-            emptyMessage="Nenhum lead disponível no momento."
-            renderItem={(lead) => (
-              <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
-            )}
-          />
-          <PaginatedLeadColumn
-            title="Meus Leads"
-            dotColor="bg-blue-500"
-            items={myLeads}
-            emptyMessage="Você ainda não adquiriu nenhum lead."
-            renderItem={(lead) => (
-              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
-            )}
-          />
-          <PaginatedLeadColumn
-            title="Leads Adquiridos"
-            dotColor="bg-muted-foreground"
-            items={acquiredLeads}
-            emptyMessage="Nenhum lead adquirido por outros."
-            renderItem={(lead) => (
-              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
-            )}
-          />
-        </div>
+          {/* Global Filters */}
+          <div className="px-4 py-4">
+            <HotLeadsGlobalFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              stateFilter={stateFilter}
+              setStateFilter={setStateFilter}
+              periodFilter={periodFilter}
+              setPeriodFilter={setPeriodFilter}
+              availableStates={availableStates}
+            />
+          </div>
+
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard" className="flex-1 overflow-y-auto px-4 pb-6 mt-0">
+            <div className="space-y-6">
+              {/* Overview Stats */}
+              <HotLeadsOverview
+                leads={filteredLeads}
+                myLeads={myLeads}
+                availableLeads={availableLeads}
+                acquiredLeads={acquiredLeads}
+              />
+
+              {/* Brazil Map */}
+              <BrazilMapChart leads={filteredLeads} />
+
+              {/* Charts */}
+              <HotLeadsCharts leads={filteredLeads} />
+            </div>
+          </TabsContent>
+
+          {/* Leads Tab */}
+          <TabsContent value="leads" className="flex-1 overflow-hidden px-4 pb-4 mt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+              <PaginatedLeadColumn
+                title="Leads Disponíveis"
+                dotColor="bg-green-500"
+                items={filteredAvailable}
+                emptyMessage="Nenhum lead disponível no momento."
+                renderItem={(lead) => (
+                  <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
+                )}
+              />
+              <PaginatedLeadColumn
+                title="Meus Leads"
+                dotColor="bg-blue-500"
+                items={myLeads}
+                emptyMessage="Você ainda não adquiriu nenhum lead."
+                renderItem={(lead) => (
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+                )}
+              />
+              <PaginatedLeadColumn
+                title="Leads Adquiridos"
+                dotColor="bg-muted-foreground"
+                items={acquiredLeads}
+                emptyMessage="Nenhum lead adquirido por outros."
+                renderItem={(lead) => (
+                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+                )}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Dialogs */}
