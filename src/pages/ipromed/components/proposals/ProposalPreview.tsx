@@ -180,39 +180,57 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </div>
             </div>
 
-            {/* Valor Original - Cortado */}
-            {proposal.originalValue > proposal.monthlyValue && (
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <span className="text-[10px] opacity-70">Valor original:</span>
-                <span className="relative inline-block">
-                  <span className="text-base font-medium text-white/60">
-                    R$ {proposal.originalValue.toLocaleString("pt-BR")}
+            {/* Valores com desconto progressivo */}
+            <div className="space-y-1 mb-2">
+              {/* Valor de Tabela - Cortado */}
+              {proposal.originalValue > proposal.monthlyValue && (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-[9px] opacity-60">Valor de tabela:</span>
+                  <span className="relative inline-block">
+                    <span className="text-sm font-medium text-white/50">
+                      R$ {proposal.originalValue.toLocaleString("pt-BR")}
+                    </span>
+                    <span 
+                      className="absolute left-0 top-1/2 w-full h-[2px] -rotate-12"
+                      style={{ backgroundColor: "#dc2626" }}
+                    />
                   </span>
-                  {/* Tarja vermelha diagonal */}
-                  <span 
-                    className="absolute left-0 top-1/2 w-full h-[2px] -rotate-12"
-                    style={{ backgroundColor: "#dc2626" }}
-                  />
+                </div>
+              )}
+
+              {/* Valor Intermediário - Cortado */}
+              {proposal.intermediateValue > proposal.monthlyValue && proposal.intermediateValue < proposal.originalValue && (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-[9px] opacity-60">Por:</span>
+                  <span className="relative inline-block">
+                    <span className="text-base font-medium text-white/50">
+                      R$ {proposal.intermediateValue.toLocaleString("pt-BR")}
+                    </span>
+                    <span 
+                      className="absolute left-0 top-1/2 w-full h-[2px] -rotate-12"
+                      style={{ backgroundColor: "#dc2626" }}
+                    />
+                  </span>
+                </div>
+              )}
+
+              {/* Valor Final - Liberado */}
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <span className="text-[10px]" style={{ color: CPG_COLORS.goldLight }}>Valor liberado:</span>
+                <span className="text-2xl font-bold" style={{ color: CPG_COLORS.gold }}>
+                  R${" "}
+                  {isEditable ? (
+                    <EditableNumber
+                      value={proposal.monthlyValue}
+                      onChange={(value) => onUpdate({ monthlyValue: value })}
+                      style={{ color: CPG_COLORS.gold }}
+                      className="text-2xl font-bold"
+                    />
+                  ) : (
+                    proposal.monthlyValue.toLocaleString("pt-BR")
+                  )}
                 </span>
               </div>
-            )}
-
-            {/* Valor Liberado */}
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-[10px]" style={{ color: CPG_COLORS.goldLight }}>Valor liberado:</span>
-              <span className="text-2xl font-bold" style={{ color: CPG_COLORS.gold }}>
-                R${" "}
-                {isEditable ? (
-                  <EditableNumber
-                    value={proposal.monthlyValue}
-                    onChange={(value) => onUpdate({ monthlyValue: value })}
-                    style={{ color: CPG_COLORS.gold }}
-                    className="text-2xl font-bold"
-                  />
-                ) : (
-                  proposal.monthlyValue.toLocaleString("pt-BR")
-                )}
-              </span>
             </div>
 
             <p className="text-[9px] opacity-80 leading-snug">
