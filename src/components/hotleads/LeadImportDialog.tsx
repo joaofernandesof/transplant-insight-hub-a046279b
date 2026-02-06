@@ -66,9 +66,10 @@ function findValue(normalized: Record<string, string>, possibleNames: string[]):
  */
 function collectTags(normalized: Record<string, string>): string {
   const tagParts: string[] = [];
+  const tagKeywords = ['tag', 'etiqueta', 'rotulo', 'label', 'marcador', 'classificacao'];
   
   for (const [key, value] of Object.entries(normalized)) {
-    if ((key.includes('tag') || key.includes('etiqueta')) && value) {
+    if (value && tagKeywords.some(kw => key.includes(kw))) {
       tagParts.push(value);
     }
   }
@@ -84,11 +85,11 @@ function collectTags(normalized: Record<string, string>): string {
 function parseTags(raw: string): string[] {
   if (!raw) return [];
   
-  // Split by comma, #, or semicolon
+  // Split by comma, semicolon, hash, or pipe
   const tags = raw
-    .split(/[,;#]/)
+    .split(/[,;#|]/)
     .map(t => t.trim())
-    .filter(t => t.length > 0 && t !== 'GRAU' && t !== 'N/A' && t !== 'N A');
+    .filter(t => t.length > 0 && t !== 'GRAU' && t !== 'N/A' && t !== 'N A' && t !== 'undefined' && t !== 'null');
   
   return [...new Set(tags)]; // dedupe
 }
@@ -105,7 +106,7 @@ function mapRow(row: Record<string, any>): ParsedLead | null {
   const email = findValue(normalized, ['email', 'email formulario', 'e-mail', 'e mail']);
   const state = findValue(normalized, ['estado', 'estado do lead', 'uf', 'state']);
   const city = findValue(normalized, ['cidade', 'cidade principal', 'city', 'municipio']);
-  const tagsRaw = collectTags(normalized) || findValue(normalized, ['lead tags', 'tags', 'etiquetas', 'tag']);
+  const tagsRaw = collectTags(normalized) || findValue(normalized, ['lead tags', 'tags', 'tag', 'etiquetas', 'etiqueta', 'rotulo', 'rotulos', 'labels', 'marcadores', 'classificacao']);
 
   if (!name || !phone) return null;
 
