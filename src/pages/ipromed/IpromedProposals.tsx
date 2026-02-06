@@ -277,14 +277,21 @@ export default function IpromedProposalEditor() {
       </div>
 
       {showPreview ? (
-        /* Preview Mode - com edição inline */
-        <div className="bg-white rounded-lg shadow-lg overflow-auto">
-          <ProposalPreview 
-            ref={printRef} 
-            proposal={proposal} 
-            onUpdate={(updates) => setProposal(prev => ({ ...prev, ...updates }))}
-            editable={true}
-          />
+        /* Preview Mode - Simulação de folha A4 estilo Word */
+        <div className="flex justify-center py-8 rounded-lg" style={{ backgroundColor: "#525659" }}>
+          <div 
+            className="bg-white"
+            style={{ 
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.1)",
+            }}
+          >
+            <ProposalPreview 
+              ref={printRef} 
+              proposal={proposal} 
+              onUpdate={(updates) => setProposal(prev => ({ ...prev, ...updates }))}
+              editable={true}
+            />
+          </div>
         </div>
       ) : (
         /* Edit Mode */
