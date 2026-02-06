@@ -137,10 +137,7 @@ async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reas
   const hour = now.getUTCHours() - 3; // BRT = UTC-3
   const brtHour = hour < 0 ? hour + 24 : hour;
 
-  // Only release during business-ish hours (7h - 22h BRT)
-  if (brtHour < 7 || brtHour >= 22) {
-    return { release: false, reason: "outside_hours" };
-  }
+  // Active 24 hours - no time restriction
 
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const { data: daily } = await supabase
@@ -157,9 +154,8 @@ async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reas
     return { release: false, reason: "daily_quota_reached" };
   }
 
-  // Calculate remaining active minutes today (until 22h BRT)
-  const endHourBRT = 22;
-  const minutesLeft = Math.max(1, (endHourBRT - brtHour) * 60 - now.getMinutes());
+  // Calculate remaining minutes until midnight BRT
+  const minutesLeft = Math.max(1, (24 - brtHour) * 60 - now.getMinutes());
 
   // Probability = remaining leads / remaining minutes
   // This naturally increases urgency as the day progresses
