@@ -220,16 +220,22 @@ export default function EnhancedAgendaPage() {
     },
   });
 
+  // Helper to convert local datetime string to proper ISO with timezone offset
+  const toLocalISOString = (dateStr: string, timeStr: string = '00:00') => {
+    const date = new Date(`${dateStr}T${timeStr}:00`);
+    return date.toISOString();
+  };
+
   // Create appointment
   const createAppointment = useMutation({
     mutationFn: async () => {
       const startDateTime = formData.all_day 
-        ? `${formData.start_date}T00:00:00`
-        : `${formData.start_date}T${formData.start_time}:00`;
+        ? toLocalISOString(formData.start_date, '00:00')
+        : toLocalISOString(formData.start_date, formData.start_time);
       
       const endDateTime = formData.all_day
         ? null
-        : `${formData.start_date}T${formData.end_time}:00`;
+        : toLocalISOString(formData.start_date, formData.end_time);
 
       const { error } = await supabase
         .from('ipromed_appointments')
@@ -263,7 +269,7 @@ export default function EnhancedAgendaPage() {
   // Create Task
   const createTask = useMutation({
     mutationFn: async () => {
-      const startDateTime = `${taskForm.date}T09:00:00`;
+      const startDateTime = toLocalISOString(taskForm.date, '09:00');
       
       const { error } = await supabase
         .from('ipromed_appointments')
@@ -297,8 +303,8 @@ export default function EnhancedAgendaPage() {
   // Create Event
   const createEvent = useMutation({
     mutationFn: async () => {
-      const startDateTime = `${eventForm.start_date}T00:00:00`;
-      const endDateTime = `${eventForm.end_date}T23:59:59`;
+      const startDateTime = toLocalISOString(eventForm.start_date, '00:00');
+      const endDateTime = toLocalISOString(eventForm.end_date, '23:59');
       
       const { error } = await supabase
         .from('ipromed_appointments')
