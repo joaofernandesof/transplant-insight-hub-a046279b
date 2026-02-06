@@ -1053,7 +1053,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                   <CardContent className="p-6">
                     <div className="space-y-4">
                       <div className="text-center text-slate-300 text-sm">
-                        O scan analisa a densidade capilar e gera uma visualização em modo "raio-X"
+                        O scan analisa a densidade capilar e gera uma visualização
                         para identificar áreas de maior e menor densidade folicular.
                       </div>
                       

@@ -80,7 +80,7 @@ export default function VisionHome() {
               <div className="p-3 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl w-fit mb-2">
                 <Zap className="h-6 w-6 text-white" />
               </div>
-              <CardTitle>Modo Scan / Raio-X</CardTitle>
+              <CardTitle>Modo Scan</CardTitle>
               <CardDescription className="text-slate-400">
                 Mapeamento de densidade do couro cabeludo
               </CardDescription>
