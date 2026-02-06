@@ -15,6 +15,8 @@ export interface Proposal {
   plan_name: string;
   plan_subtitle: string | null;
   monthly_value: number;
+  original_value: number;
+  intermediate_value: number;
   conditions: string[];
   custom_conditions: string[];
   services: string[];
@@ -23,6 +25,8 @@ export interface Proposal {
   intro_message: string | null;
   closing_message: string | null;
   status: string;
+  validity_days: number;
+  expires_at: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -38,6 +42,8 @@ export interface CreateProposalInput {
   plan_name: string;
   plan_subtitle?: string;
   monthly_value: number;
+  original_value?: number;
+  intermediate_value?: number;
   conditions?: string[];
   custom_conditions?: string[];
   services?: string[];
@@ -46,6 +52,7 @@ export interface CreateProposalInput {
   intro_message?: string;
   closing_message?: string;
   status?: string;
+  validity_days?: number;
 }
 
 async function generateProposalCode(): Promise<string> {
@@ -185,6 +192,98 @@ export function useDeleteProposal() {
     },
     onError: (error) => {
       toast.error("Erro ao excluir proposta: " + error.message);
+    },
+  });
+}
+
+export function useSendProposal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, validityDays = 15 }: { id: string; validityDays?: number }) => {
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
+
+      const { data, error } = await (supabase as any)
+        .from("ipromed_proposals")
+        .update({
+          status: "sent",
+          sent_at: now.toISOString(),
+          validity_days: validityDays,
+          expires_at: expiresAt.toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Proposal;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["ipromed-proposals"] });
+      queryClient.invalidateQueries({ queryKey: ["ipromed-proposal", data.id] });
+      toast.success("Proposta enviada! Validade de " + data.validity_days + " dias.");
+    },
+    onError: (error) => {
+      toast.error("Erro ao enviar proposta: " + error.message);
+    },
+  });
+}
+
+export function useAcceptProposal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await (supabase as any)
+        .from("ipromed_proposals")
+        .update({
+          status: "accepted",
+          accepted_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Proposal;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["ipromed-proposals"] });
+      queryClient.invalidateQueries({ queryKey: ["ipromed-proposal", data.id] });
+      toast.success("Proposta marcada como aceita!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao aceitar proposta: " + error.message);
+    },
+  });
+}
+
+export function useRejectProposal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await (supabase as any)
+        .from("ipromed_proposals")
+        .update({
+          status: "rejected",
+          rejected_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Proposal;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["ipromed-proposals"] });
+      queryClient.invalidateQueries({ queryKey: ["ipromed-proposal", data.id] });
+      toast.success("Proposta marcada como recusada.");
+    },
+    onError: (error) => {
+      toast.error("Erro ao recusar proposta: " + error.message);
     },
   });
 }
