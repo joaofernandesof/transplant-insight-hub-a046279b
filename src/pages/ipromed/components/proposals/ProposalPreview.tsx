@@ -10,7 +10,7 @@ import type { ProposalData } from "../../IpromedProposals";
 // Mapeamento de IDs para labels
 const CONDITION_LABELS: Record<string, string> = {
   mesma_clinica: "Ser médico(a) atuando na mesma clínica",
-  ex_aluno_ibramec: "Ter vindo como aluno(a) do IBRAMEC",
+  ex_aluno_ibramec: "Ser cônjuge de aluna IBRAMEC",
   indicacao: "Ser indicação de um cliente ativo",
   parceiro: "Fazer parte de parceria estratégica",
   estrutura_organizada: "Já estar inserido(a) em uma estrutura assistencial organizada",
@@ -21,8 +21,15 @@ const SERVICE_LABELS: Record<string, string> = {
   defesa_crm: "Defesa ética perante o CRM",
   defesa_civel: "Defesa cível (danos morais e materiais)",
   audiencias: "Acompanhamento em audiências",
-  processos: "Até 3 processos concomitantes",
+  processos_3: "Até 3 processos concomitantes",
   atendimento: "Atendimento contínuo e estratégico",
+  // Serviços do plano Integral
+  contratos: "Análise e revisão de contratos médicos",
+  defesa_criminal: "Defesa criminal médica",
+  defesa_admin: "Defesa administrativa (Vigilância, ANS)",
+  gestao_crise: "Gestão de crise e reputação",
+  parecer: "Parecer jurídico técnico",
+  processos_ilimitados: "Processos concomitantes ilimitados",
 };
 
 const DOCUMENT_LABELS: Record<string, string> = {
