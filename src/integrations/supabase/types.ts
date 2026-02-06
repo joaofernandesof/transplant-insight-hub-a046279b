@@ -17658,7 +17658,9 @@ export type Database = {
         Args: { p_conversa_id: string }
         Returns: undefined
       }
-      release_random_queued_lead: { Args: { p_mode?: string }; Returns: Json }
+      release_random_queued_lead:
+        | { Args: { p_mode?: string }; Returns: Json }
+        | { Args: { p_user_id: string }; Returns: Json }
       schedule_followup_for_conversation: {
         Args: { p_conversation_id: string; p_user_id: string }
         Returns: string
