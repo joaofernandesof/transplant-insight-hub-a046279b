@@ -18,32 +18,37 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Verify auth
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: authError } = await userClient.auth.getClaims(token);
-    if (authError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const body = await req.json().catch(() => ({}));
     const action = body.action || "release";
     const mode = body.mode || "manual_admin";
+
+    // Cron jobs skip user auth - they run with service role via pg_net
+    const isCronMode = mode === "cron_auto";
+
+    if (!isCronMode) {
+      // Verify auth for manual/user-triggered actions
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: authError } = await userClient.auth.getClaims(token);
+      if (authError || !claimsData?.claims) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     if (action === "release") {
       // Call the atomic RPC
