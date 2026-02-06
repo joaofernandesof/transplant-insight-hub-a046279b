@@ -133,8 +133,7 @@ function parseTags(raw: string): string[] {
   let tags: string[];
   
   if (raw.includes(',') || raw.includes(';') || raw.includes('|')) {
-    // Has explicit delimiters — split by those
-    tags = raw.split(/[,;|]/).map(t => t.trim().replace(/^#/, ''));
+    tags = raw.split(/[,;|]/).map(t => t.trim());
   } else if (raw.startsWith('#')) {
     // Hashtag-style: "#TAG1#TAG2" or just "#TAG"
     tags = raw.split('#').map(t => t.trim());
