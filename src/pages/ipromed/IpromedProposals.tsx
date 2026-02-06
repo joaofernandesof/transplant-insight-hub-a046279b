@@ -31,20 +31,33 @@ const LEGAL_DOCUMENTS = [
   { id: "anamnese", label: "Formulário de Anamnese Guiado" },
 ];
 
-// Serviços incluídos no plano
-const PLAN_SERVICES = [
+// Serviços incluídos no plano Essencial
+const ESSENTIAL_SERVICES = [
   { id: "consultoria", label: "Consultoria jurídica preventiva ilimitada" },
   { id: "defesa_crm", label: "Defesa ética perante o CRM" },
   { id: "defesa_civel", label: "Defesa cível (danos morais e materiais)" },
   { id: "audiencias", label: "Acompanhamento em audiências" },
-  { id: "processos", label: "Até 3 processos concomitantes" },
+  { id: "processos_3", label: "Até 3 processos concomitantes" },
   { id: "atendimento", label: "Atendimento contínuo e estratégico" },
 ];
+
+// Serviços adicionais do plano Integral
+const INTEGRAL_SERVICES = [
+  { id: "contratos", label: "Análise e revisão de contratos médicos" },
+  { id: "defesa_criminal", label: "Defesa criminal médica" },
+  { id: "defesa_admin", label: "Defesa administrativa (Vigilância, ANS)" },
+  { id: "gestao_crise", label: "Gestão de crise e reputação" },
+  { id: "parecer", label: "Parecer jurídico técnico" },
+  { id: "processos_ilimitados", label: "Processos concomitantes ilimitados" },
+];
+
+// Todos os serviços disponíveis
+const PLAN_SERVICES = [...ESSENTIAL_SERVICES, ...INTEGRAL_SERVICES];
 
 // Condições especiais pré-definidas
 const SPECIAL_CONDITIONS = [
   { id: "mesma_clinica", label: "Médico(a) da mesma clínica" },
-  { id: "ex_aluno_ibramec", label: "Ex-aluno IBRAMEC" },
+  { id: "ex_aluno_ibramec", label: "Cônjuge de aluna IBRAMEC" },
   { id: "indicacao", label: "Indicação de cliente ativo" },
   { id: "parceiro", label: "Parceiro estratégico" },
   { id: "estrutura_organizada", label: "Estrutura assistencial organizada" },
@@ -65,17 +78,17 @@ export interface ProposalData {
 }
 
 const defaultProposal: ProposalData = {
-  clientName: "",
-  planName: "Plano de Assessoria Jurídica Essencial",
-  planSubtitle: "Condição Especial",
-  monthlyValue: 1000,
-  conditions: ["mesma_clinica", "ex_aluno_ibramec", "estrutura_organizada"],
-  customConditions: [],
+  clientName: "Dr. Dertkigil",
+  planName: "Plano de Assessoria Jurídica Integral",
+  planSubtitle: "Condição Especial - Cônjuge de Aluna IBRAMEC",
+  monthlyValue: 1900,
+  conditions: ["ex_aluno_ibramec"],
+  customConditions: ["Cônjuge da Dra. Marcia Dertkigil, aluna IBRAMEC"],
   services: PLAN_SERVICES.map(s => s.id),
   documents: LEGAL_DOCUMENTS.map(d => d.id),
   documentsIncluded: "full",
-  introMessage: "Quero te apresentar uma proposta especial de assessoria jurídica, pensada exatamente para o seu contexto atual.",
-  closingMessage: "Todos os documentos são padronizados, atualizados e aplicáveis à sua rotina clínica, exatamente os mesmos utilizados na estrutura mais econômica do escritório.",
+  introMessage: "Quero te apresentar uma proposta especial de assessoria jurídica, pensada exclusivamente para você. Por ser cônjuge da Dra. Marcia Dertkigil, aluna IBRAMEC, conseguimos aplicar uma condição excepcional: todos os benefícios do Plano Integral pelo valor do Plano Essencial.",
+  closingMessage: "Esta é uma condição exclusiva que reconhece a parceria com o IBRAMEC. Você terá acesso a toda a proteção jurídica do nosso plano mais completo, incluindo defesa criminal, administrativa e gestão de crise, por um investimento significativamente menor.",
 };
 
 export default function IpromedProposals() {
