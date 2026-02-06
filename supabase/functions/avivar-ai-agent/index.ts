@@ -1258,7 +1258,8 @@ async function sendImage(
       };
     }
 
-    // Save message to CRM (best-effort)
+    // Save message to CRM (best-effort) - resolve account_id from conversation
+    const { data: convData } = await supabase.from("crm_conversations").select("account_id").eq("id", conversationId).single();
     await supabase.from("crm_messages").insert({
       conversation_id: conversationId,
       direction: "outbound",
@@ -1267,6 +1268,7 @@ async function sendImage(
       media_type: "image",
       sent_at: new Date().toISOString(),
       is_ai_generated: true,
+      account_id: convData?.account_id,
     });
 
     console.log("[AI Agent] ✅ Image sent successfully");
@@ -1481,7 +1483,8 @@ async function sendVideo(
       };
     }
 
-    // Save message to CRM (best-effort)
+    // Save message to CRM (best-effort) - resolve account_id from conversation
+    const { data: convData2 } = await supabase.from("crm_conversations").select("account_id").eq("id", conversationId).single();
     await supabase.from("crm_messages").insert({
       conversation_id: conversationId,
       direction: "outbound",
@@ -1490,6 +1493,7 @@ async function sendVideo(
       media_type: "video",
       sent_at: new Date().toISOString(),
       is_ai_generated: true,
+      account_id: convData2?.account_id,
     });
 
     console.log("[AI Agent] ✅ Video sent successfully");

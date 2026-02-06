@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -51,6 +52,7 @@ export interface CrmConversation {
 
 export function useCrmConversations(conversationId?: string) {
   const { user } = useAuth();
+  const { accountId } = useAvivarAccount();
   const queryClient = useQueryClient();
 
   // Realtime subscription for conversations list (new chats / last_message_at updates)
@@ -182,6 +184,7 @@ export function useCrmConversations(conversationId?: string) {
           lead_id: leadId,
           channel,
           assigned_to: user?.id,
+          account_id: accountId!,
         })
         .select()
         .single();

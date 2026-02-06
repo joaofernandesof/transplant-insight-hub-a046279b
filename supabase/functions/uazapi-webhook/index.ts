@@ -514,6 +514,7 @@ serve(async (req) => {
           
           let userId: string | null = null;
           let sessionId: string | null = null;
+          let accountId: string | null = null; // Multi-tenant account_id
           let isLegacySession = false; // Track if this is a legacy session (avivar_whatsapp_sessions)
           
           // Try 1: Check avivar_uazapi_instances (new provisioning flow)
@@ -540,6 +541,16 @@ serve(async (req) => {
             sessionId = uazapiInstance.id;
             isLegacySession = false;
             console.log(`[UazAPI Webhook] Found UazAPI instance: ${uazapiInstance.instance_name} for user: ${userId}`);
+            
+            // Resolve account_id from member
+            const { data: memberData } = await supabase
+              .from("avivar_account_members")
+              .select("account_id")
+              .eq("user_id", userId)
+              .eq("is_active", true)
+              .limit(1)
+              .maybeSingle();
+            accountId = memberData?.account_id || null;
           } else {
             // Try 2: Check avivar_whatsapp_sessions (legacy flow)
             let sessionQuery = supabase
@@ -564,12 +575,22 @@ serve(async (req) => {
               sessionId = session.id;
               isLegacySession = true;
               console.log(`[UazAPI Webhook] Found legacy session: ${session.id} for user: ${userId}`);
+              
+              // Resolve account_id from member
+              const { data: memberData } = await supabase
+                .from("avivar_account_members")
+                .select("account_id")
+                .eq("user_id", userId)
+                .eq("is_active", true)
+                .limit(1)
+                .maybeSingle();
+              accountId = memberData?.account_id || null;
             }
           }
 
-          if (!userId) {
+          if (!userId || !accountId) {
             console.log(
-              `[UazAPI Webhook] No WhatsApp instance/session found for instance=${instanceName ?? "(none)"} owner=${payload.owner ?? "(none)"}. Skipping message.`
+              `[UazAPI Webhook] No WhatsApp instance/session found (or no account) for instance=${instanceName ?? "(none)"} owner=${payload.owner ?? "(none)"}. userId=${userId}, accountId=${accountId}. Skipping message.`
             );
             continue;
           }
@@ -710,6 +731,7 @@ serve(async (req) => {
                   name: leadName,
                   phone,
                   source: "whatsapp",
+                  account_id: accountId,
                 })
                 .select("id")
                 .single();
@@ -767,6 +789,7 @@ serve(async (req) => {
                     last_message_at: timestamp,
                     unread_count: msg.key.fromMe ? 0 : 1,
                     assigned_to: userId,
+                    account_id: accountId,
                   })
                   .select("id")
                   .single();
@@ -792,6 +815,7 @@ serve(async (req) => {
                     sender_name: msg.key.fromMe
                       ? "Operador"
                       : (msg.pushName || null),
+                    account_id: accountId,
                   });
 
               if (crmMessageError) {
@@ -935,9 +959,9 @@ serve(async (req) => {
                 .from("avivar_patient_journeys")
                 .insert({
                   user_id: userId,
+                  account_id: accountId,
                   patient_name: contactName,
                   patient_phone: phone,
-                  // Leave enums omitted to use DB defaults (avoids invalid enum values)
                   lead_source: "whatsapp",
                   notes: `Lead criado automaticamente via WhatsApp em ${new Date().toLocaleDateString("pt-BR")}`,
                 });
@@ -1005,6 +1029,7 @@ serve(async (req) => {
                       .from("avivar_kanban_leads")
                       .insert({
                         user_id: userId,
+                        account_id: accountId,
                         kanban_id: firstKanban.id,
                         column_id: firstColumn.id,
                         contact_id: contactId,

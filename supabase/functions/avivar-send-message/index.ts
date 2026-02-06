@@ -107,7 +107,7 @@ serve(async (req) => {
     // Get conversation with lead info and assigned_to (to find the user's instance)
     const { data: conversation, error: convError } = await adminClient
       .from("crm_conversations")
-      .select("id, lead_id, channel, assigned_to")
+      .select("id, lead_id, channel, assigned_to, account_id")
       .eq("id", conversationId)
       .single();
 
@@ -651,6 +651,7 @@ serve(async (req) => {
         sender_user_id: isAIGenerated ? null : (userId || null),
         sent_at: new Date().toISOString(),
         is_ai_generated: isAIGenerated || false,
+        account_id: conversation.account_id,
       })
       .select()
       .single();
