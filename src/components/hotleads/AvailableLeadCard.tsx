@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, UserPlus, Calendar, Tag } from 'lucide-react';
+import { MapPin, UserPlus, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { HotLead } from '@/hooks/useHotLeads';
@@ -40,11 +40,10 @@ export function AvailableLeadCard({ lead, onAcquire }: AvailableLeadCardProps) {
 
   return (
     <Card className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow relative overflow-hidden">
-      {/* Tag ribbon */}
+      {/* Tag ribbon - top right corner */}
       {hasTags && (
-        <div className="bg-red-500 text-white text-[10px] font-bold px-3 py-1 flex items-center gap-1">
-          <Tag className="h-3 w-3 shrink-0" />
-          <span className="truncate">{lead.tags!.join(' • ')}</span>
+        <div className="absolute -right-8 top-3 rotate-45 bg-red-500 text-white text-[9px] font-bold px-8 py-0.5 shadow-sm z-10 pointer-events-none">
+          {lead.tags![0]}
         </div>
       )}
       <CardContent className="p-4">
