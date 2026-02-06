@@ -34,7 +34,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  Palette
+  Palette,
+  Pencil
 } from 'lucide-react';
 import logoByNeofolic from '@/assets/logo-byneofolic.png';
 import { toast } from 'sonner';
@@ -78,6 +79,9 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   
+  // Use auth user ID for profiles table
+  const authUserId = user?.authUserId || user?.userId;
+  
   const [profile, setProfile] = useState<ProfileData>({
     name: '',
     email: '',
@@ -100,6 +104,7 @@ export default function Profile() {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [newService, setNewService] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -117,16 +122,16 @@ export default function Profile() {
 
   useEffect(() => {
     fetchProfile();
-  }, [user]);
+  }, [authUserId]);
 
   const fetchProfile = async () => {
-    if (!user?.id) return;
+    if (!authUserId) return;
     
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', authUserId)
         .maybeSingle();
 
       if (error) throw error;
@@ -149,6 +154,13 @@ export default function Profile() {
           crm: data.crm || '',
           rqe: data.rqe || ''
         });
+        
+        // Check if profile has meaningful data filled → start in read-only
+        const hasData = data.phone || data.clinic_name || data.city || data.instagram_personal || data.whatsapp_personal || data.crm || data.rqe;
+        setIsEditing(!hasData);
+      } else {
+        // No profile data yet, start in edit mode
+        setIsEditing(true);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -159,11 +171,10 @@ export default function Profile() {
   };
 
   const handleSave = async () => {
-    if (!user?.id) return;
+    if (!authUserId) return;
     
     setIsSaving(true);
     try {
-      // Update profiles table
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -180,7 +191,7 @@ export default function Profile() {
           crm: profile.crm || null,
           rqe: profile.rqe || null
         })
-        .eq('user_id', user.id);
+        .eq('user_id', authUserId);
 
       if (profileError) throw profileError;
 
@@ -193,9 +204,10 @@ export default function Profile() {
           address_city: profile.city,
           address_state: profile.state
         })
-        .eq('user_id', user.id);
+        .eq('user_id', authUserId);
 
       toast.success('Perfil atualizado com sucesso!');
+      setIsEditing(false);
       
       // Refresh user context to update sidebar
       await refreshUser();
@@ -234,7 +246,7 @@ export default function Profile() {
   };
 
   const handleCropComplete = async (croppedBlob: Blob) => {
-    if (!user?.id) return;
+    if (!authUserId) return;
 
     const isAvatar = cropType === 'avatar';
     if (isAvatar) {
@@ -245,7 +257,7 @@ export default function Profile() {
 
     try {
       const bucket = isAvatar ? 'avatars' : 'clinic-logos';
-      const fileName = `${user.id}/${isAvatar ? 'avatar' : 'logo'}.jpg`;
+      const fileName = `${authUserId}/${isAvatar ? 'avatar' : 'logo'}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
@@ -266,7 +278,7 @@ export default function Profile() {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ [updateField]: imageUrl })
-        .eq('user_id', user.id);
+        .eq('user_id', authUserId);
 
       if (updateError) throw updateError;
 
@@ -275,13 +287,12 @@ export default function Profile() {
         await supabase
           .from('neohub_users')
           .update({ avatar_url: imageUrl })
-          .eq('user_id', user.id);
+          .eq('user_id', authUserId);
       }
 
       setProfile(prev => ({ ...prev, [updateField]: imageUrl }));
       toast.success(isAvatar ? 'Foto atualizada com sucesso!' : 'Logo atualizada com sucesso!');
       
-      // Refresh user context to update sidebar
       if (isAvatar) {
         await refreshUser();
       }
@@ -390,10 +401,27 @@ export default function Profile() {
               </Button>
               <img src={logoByNeofolic} alt="ByNeofolic" className="h-10 object-contain" />
             </div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <User className="h-6 w-6 text-primary" />
-              Meu Perfil
-            </h1>
+            <div className="flex items-center gap-2">
+              {!isEditing ? (
+                <Button variant="outline" onClick={() => setIsEditing(true)} className="gap-2">
+                  <Pencil className="h-4 w-4" />
+                  Editar Perfil
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="gap-2"
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Salvar
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -410,18 +438,20 @@ export default function Profile() {
                     {getInitials(profile.name || 'U')}
                   </AvatarFallback>
                 </Avatar>
-                <Button
-                  size="icon"
-                  className="absolute bottom-0 right-0 rounded-full h-10 w-10"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                >
-                  {isUploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Camera className="h-4 w-4" />
-                  )}
-                </Button>
+                {isEditing && (
+                  <Button
+                    size="icon"
+                    className="absolute bottom-0 right-0 rounded-full h-10 w-10"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Camera className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -468,6 +498,7 @@ export default function Profile() {
                   value={profile.name}
                   onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
                   className="pl-10"
+                  disabled={!isEditing}
                 />
               </div>
             </div>
@@ -496,6 +527,7 @@ export default function Profile() {
                   onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
                   className="pl-10"
                   placeholder="(11) 99999-9999"
+                  disabled={!isEditing}
                 />
               </div>
             </div>
@@ -511,6 +543,7 @@ export default function Profile() {
                     onChange={(e) => setProfile(prev => ({ ...prev, instagram_personal: e.target.value }))}
                     className="pl-10"
                     placeholder="@seuinstagram"
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -524,6 +557,7 @@ export default function Profile() {
                     onChange={(e) => setProfile(prev => ({ ...prev, whatsapp_personal: e.target.value }))}
                     className="pl-10"
                     placeholder="(11) 99999-9999"
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -538,6 +572,7 @@ export default function Profile() {
                   value={profile.crm}
                   onChange={(e) => setProfile(prev => ({ ...prev, crm: e.target.value }))}
                   placeholder="CRM/UF 123456"
+                  disabled={!isEditing}
                 />
                 <p className="text-xs text-muted-foreground">Registro no Conselho Regional de Medicina</p>
               </div>
@@ -548,12 +583,15 @@ export default function Profile() {
                   value={profile.rqe}
                   onChange={(e) => setProfile(prev => ({ ...prev, rqe: e.target.value }))}
                   placeholder="RQE 12345"
+                  disabled={!isEditing}
                 />
                 <p className="text-xs text-muted-foreground">Registro de Qualificação de Especialista</p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Clinic Info */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Informações da Clínica</CardTitle>
@@ -575,23 +613,25 @@ export default function Profile() {
                     <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
                   )}
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => logoInputRef.current?.click()}
-                  disabled={isUploadingLogo}
-                >
-                  {isUploadingLogo ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <Camera className="h-4 w-4 mr-2" />
-                      {profile.clinic_logo_url ? 'Alterar Logo' : 'Enviar Logo'}
-                    </>
-                  )}
-                </Button>
+                {isEditing && (
+                  <Button
+                    variant="outline"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                  >
+                    {isUploadingLogo ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="h-4 w-4 mr-2" />
+                        {profile.clinic_logo_url ? 'Alterar Logo' : 'Enviar Logo'}
+                      </>
+                    )}
+                  </Button>
+                )}
                 <input
                   ref={logoInputRef}
                   type="file"
@@ -611,6 +651,7 @@ export default function Profile() {
                   value={profile.clinic_name}
                   onChange={(e) => setProfile(prev => ({ ...prev, clinic_name: e.target.value }))}
                   className="pl-10"
+                  disabled={!isEditing}
                 />
               </div>
             </div>
@@ -625,6 +666,7 @@ export default function Profile() {
                     value={profile.city}
                     onChange={(e) => setProfile(prev => ({ ...prev, city: e.target.value }))}
                     className="pl-10"
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -636,6 +678,7 @@ export default function Profile() {
                   onChange={(e) => setProfile(prev => ({ ...prev, state: e.target.value.toUpperCase().slice(0, 2) }))}
                   maxLength={2}
                   placeholder="UF"
+                  disabled={!isEditing}
                 />
               </div>
             </div>
@@ -651,6 +694,7 @@ export default function Profile() {
                     onChange={(e) => setProfile(prev => ({ ...prev, instagram_clinic: e.target.value }))}
                     className="pl-10"
                     placeholder="@clinicainstagram"
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -664,6 +708,7 @@ export default function Profile() {
                     onChange={(e) => setProfile(prev => ({ ...prev, whatsapp_clinic: e.target.value }))}
                     className="pl-10"
                     placeholder="(11) 99999-9999"
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -689,53 +734,63 @@ export default function Profile() {
                   {profile.services.map((service) => (
                     <Badge key={service} variant="secondary" className="pl-3 pr-1 py-1.5 flex items-center gap-1">
                       {service}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 hover:bg-destructive/20"
-                        onClick={() => removeService(service)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                      {isEditing && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 hover:bg-destructive/20"
+                          onClick={() => removeService(service)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
                     </Badge>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Predefined Services */}
-            <div className="space-y-2">
-              <Label>Serviços disponíveis</Label>
-              <div className="flex flex-wrap gap-2">
-                {PREDEFINED_SERVICES.filter(s => !profile.services.includes(s)).map((service) => (
-                  <Badge
-                    key={service}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-primary/10 transition-colors"
-                    onClick={() => toggleService(service)}
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    {service}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            {profile.services.length === 0 && !isEditing && (
+              <p className="text-sm text-muted-foreground">Nenhum serviço selecionado</p>
+            )}
 
-            {/* Add Custom Service */}
-            <div className="space-y-2">
-              <Label>Adicionar outro serviço</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={newService}
-                  onChange={(e) => setNewService(e.target.value)}
-                  placeholder="Nome do serviço"
-                  onKeyDown={(e) => e.key === 'Enter' && addCustomService()}
-                />
-                <Button variant="outline" onClick={addCustomService}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            {/* Predefined Services - only in edit mode */}
+            {isEditing && (
+              <>
+                <div className="space-y-2">
+                  <Label>Serviços disponíveis</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {PREDEFINED_SERVICES.filter(s => !profile.services.includes(s)).map((service) => (
+                      <Badge
+                        key={service}
+                        variant="outline"
+                        className="cursor-pointer hover:bg-primary/10 transition-colors"
+                        onClick={() => toggleService(service)}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        {service}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Add Custom Service */}
+                <div className="space-y-2">
+                  <Label>Adicionar outro serviço</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newService}
+                      onChange={(e) => setNewService(e.target.value)}
+                      placeholder="Nome do serviço"
+                      onKeyDown={(e) => e.key === 'Enter' && addCustomService()}
+                    />
+                    <Button variant="outline" onClick={addCustomService}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -883,7 +938,7 @@ export default function Profile() {
               variant="outline" 
               className="w-full justify-between"
               onClick={async () => {
-                if (!user?.id) return;
+                if (!authUserId) return;
                 try {
                   await supabase
                     .from('profiles')
@@ -891,10 +946,9 @@ export default function Profile() {
                       onboarding_completed: false,
                       onboarding_completed_at: null
                     })
-                    .eq('user_id', user.id);
+                    .eq('user_id', authUserId);
                   
-                  // Clear checklist dismissed state
-                  localStorage.removeItem(`checklist_dismissed_${user.id}`);
+                  localStorage.removeItem(`checklist_dismissed_${authUserId}`);
                   
                   toast.success('Tutorial resetado! Volte à Home para iniciar.');
                   navigate('/home');
@@ -918,25 +972,27 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Save Button */}
-        <Button 
-          className="w-full" 
-          size="lg"
-          onClick={handleSave}
-          disabled={isSaving}
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Salvando...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Salvar Alterações
-            </>
-          )}
-        </Button>
+        {/* Save Button - fixed at bottom when editing */}
+        {isEditing && (
+          <Button 
+            className="w-full mb-8" 
+            size="lg"
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar Alterações
+              </>
+            )}
+          </Button>
+        )}
       </main>
     </div>
   );
