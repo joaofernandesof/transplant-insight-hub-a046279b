@@ -139,7 +139,7 @@ export function useCreateProposal() {
   });
 }
 
-export function useUpdateProposal() {
+export function useUpdateProposal(options?: { silent?: boolean }) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -157,7 +157,9 @@ export function useUpdateProposal() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["ipromed-proposals"] });
       queryClient.invalidateQueries({ queryKey: ["ipromed-proposal", data.id] });
-      toast.success("Proposta atualizada!");
+      if (!options?.silent) {
+        toast.success("Proposta atualizada!");
+      }
     },
     onError: (error) => {
       toast.error("Erro ao atualizar proposta: " + error.message);

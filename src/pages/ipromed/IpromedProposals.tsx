@@ -135,6 +135,7 @@ export default function IpromedProposalEditor() {
   const { data: existingProposal, isLoading: isLoadingProposal } = useProposal(isNew ? undefined : id);
   const createProposal = useCreateProposal();
   const updateProposal = useUpdateProposal();
+  const silentUpdateProposal = useUpdateProposal({ silent: true });
 
   const [proposal, setProposal] = useState<ProposalData>(defaultProposal);
   const [showPreview, setShowPreview] = useState(startWithPreview);
@@ -187,13 +188,13 @@ export default function IpromedProposalEditor() {
         intro_message: proposalData.introMessage,
         closing_message: proposalData.closingMessage,
       };
-      await updateProposal.mutateAsync({ id, ...data });
+      await silentUpdateProposal.mutateAsync({ id, ...data });
     } catch (error) {
       console.error("Auto-save failed:", error);
     } finally {
       setIsAutoSaving(false);
     }
-  }, [isNew, id, updateProposal]);
+  }, [isNew, id, silentUpdateProposal]);
 
   // Debounced auto-save on proposal change
   useEffect(() => {
