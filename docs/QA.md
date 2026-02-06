@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 17 |
-| Aprovadas | 17 |
+| Total de Tarefas Validadas | 18 |
+| Aprovadas | 18 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-02-06 |
 
@@ -20,6 +20,39 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-02-06
+
+#### ✅ QA-018: Fila Aleatória de Liberação de Leads + Webhook n8n
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | HotLeads / Backend |
+| **Descrição** | Sistema de fila com liberação aleatória de 50 leads/dia, countdown UI, confetti, webhook n8n e botão admin |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-02-06 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Coluna `release_status` adicionada à tabela `leads` (queued/available)
+- [x] Tabela `lead_release_daily` para controle de cota diária (50/dia)
+- [x] Tabela `lead_webhook_outbox` para confiabilidade de webhook
+- [x] RPC `release_random_queued_lead` com transação atômica (FOR UPDATE SKIP LOCKED)
+- [x] RPC `get_lead_release_info` para dados do countdown e preview
+- [x] Edge function `hotleads-release` com release + webhook dispatch + jitter scheduler
+- [x] Webhook POST para URL fixa n8n com retry (3 tentativas)
+- [x] UI: banner `NextLeadReleaseBanner` com countdown, preview e botão admin
+- [x] Animação: `ConfettiEffect` com canvas particles após liberação
+- [x] Importação atualizada: novos leads entram como `queued`
+- [x] Rota `/neolicense/hotleads` preservada sem regressão
+
+**Observações:**
+- Leads existentes mantêm `release_status = 'available'` (compatibilidade)
+- Novos leads importados entram como `queued` e são liberados gradualmente
+- Botão admin conta na cota diária mas não bloqueia (ultrapassa limite se necessário)
+
+---
+
 
 #### ✅ QA-017: Resiliência e Debugging do Wizard de Agentes
 
