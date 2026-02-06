@@ -360,7 +360,7 @@ export default function AdminDashboard() {
               { id: 'ipromed', title: 'IPROMED', icon: Scale, gradient: 'from-blue-600 to-indigo-700', path: '/ipromed' },
               { id: 'vision', title: 'Vision', icon: VisionIcon, gradient: 'from-pink-500 via-rose-500 to-orange-500', path: '/vision' },
               { id: 'neopay', title: 'NeoPay', icon: CreditCard, gradient: 'from-green-500 to-emerald-600', path: '/neopay' },
-              { id: 'neocrm', title: 'NeoCRM', icon: Target, gradient: 'from-orange-500 to-red-500', path: '/neocrm' },
+              
             ].map((portal) => (
               <button
                 key={portal.id}

@@ -149,17 +149,6 @@ const NeoPayAutomations = lazy(() => import("./pages/neopay/NeoPayAutomations"))
 const NeoPaySettings = lazy(() => import("./pages/neopay/NeoPaySettings"));
 const NeoPaySidebar = lazy(() => import("./pages/neopay/components/NeoPaySidebar"));
 
-// ====================================
-// Pages - NeoCRM (CRM de Vendas) - DEPRECATED: merged into Avivar
-// ====================================
-const NeoCrmDashboard = lazy(() => import("./pages/neocrm/NeoCrmDashboard"));
-const NeoCrmPipeline = lazy(() => import("./pages/neocrm/NeoCrmPipeline"));
-const NeoCrmInbox = lazy(() => import("./pages/neocrm/NeoCrmInbox"));
-const NeoCrmTasks = lazy(() => import("./pages/neocrm/NeoCrmTasks"));
-const NeoCrmLeads = lazy(() => import("./pages/neocrm/NeoCrmLeads"));
-const NeoCrmAnalytics = lazy(() => import("./pages/neocrm/NeoCrmAnalytics"));
-const NeoCrmSettings = lazy(() => import("./pages/neocrm/NeoCrmSettings"));
-const NeoCrmSidebar = lazy(() => import("./pages/neocrm/components/NeoCrmSidebar"));
 
 // ====================================
 // Pages - Avivar (Portal CRM + IA)
@@ -840,16 +829,6 @@ function AppRoutes() {
         <Route path="settings" element={<PlaceholderPage title="Configurações" />} />
       </Route>
 
-      {/* ====================================
-          NeoCRM - CRM de Vendas
-          ==================================== */}
-      <Route path="/neocrm" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmDashboard /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neocrm/pipeline" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmPipeline /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neocrm/inbox" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmInbox /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neocrm/tasks" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmTasks /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neocrm/leads" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmLeads /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neocrm/analytics" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmAnalytics /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
-      <Route path="/neocrm/settings" element={<ProtectedRoute><Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}><NeoCrmSidebar><NeoCrmSettings /></NeoCrmSidebar></Suspense></ProtectedRoute>} />
       
       {/* ====================================
           Marketplace

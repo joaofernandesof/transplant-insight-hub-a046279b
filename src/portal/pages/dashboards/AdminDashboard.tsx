@@ -87,25 +87,6 @@ export default function PortalAdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card 
-          className="cursor-pointer border-2 border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-red-500/10 hover:border-orange-500/50 transition-all"
-          onClick={() => navigate('/neocrm')}
-        >
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
-                <Target className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">NeoCRM</h3>
-                <p className="text-sm text-muted-foreground">
-                  Gestão de vendas, leads e pipeline comercial
-                </p>
-              </div>
-            </div>
-            <ArrowRight className="h-5 w-5 text-muted-foreground" />
-          </CardContent>
-        </Card>
       </div>
 
       {/* Main Stats */}

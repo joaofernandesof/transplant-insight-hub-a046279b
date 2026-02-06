@@ -42,7 +42,6 @@ const portals = [
   { id: 'ipromed', label: 'IPROMED', icon: Scale, href: '/ipromed', gradient: 'from-blue-600 to-indigo-700' },
   { id: 'vision', label: 'Vision', icon: Eye, href: '/vision', gradient: 'from-pink-500 to-rose-500' },
   { id: 'neopay', label: 'NeoPay', icon: CreditCard, href: '/neopay', gradient: 'from-green-500 to-emerald-600' },
-  { id: 'neocrm', label: 'NeoCRM', icon: Flame, href: '/neocrm', gradient: 'from-orange-500 to-red-500' },
   { id: 'hotleads', label: 'HotLeads', icon: Flame, href: '/neolicense/hotleads', gradient: 'from-orange-500 to-red-600' },
 ];
 
