@@ -2336,6 +2336,19 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
   
   if (passosCronologicos.length === 0) return '';
   
+  // Collect all steps with media for the summary rule
+  const stepsWithMedia = passosCronologicos
+    .filter(p => p.media)
+    .map(p => `- Passo "${p.id}": send_fluxo_media(step_id="${p.id}") → ${p.media!.type}`)
+    .join('\n');
+  
+  const extraStepsWithMedia = passosExtras
+    .filter(p => p.media)
+    .map(p => `- Passo "${p.id}": send_fluxo_media(step_id="${p.id}") → ${p.media!.type}`)
+    .join('\n');
+  
+  const allMediaSteps = [stepsWithMedia, extraStepsWithMedia].filter(Boolean).join('\n');
+  
   let instructions = `<fluxo_de_atendimento>
 ## PASSOS DO ATENDIMENTO (siga na ordem):
 
@@ -2346,11 +2359,15 @@ Os exemplos fornecidos são REFERÊNCIAS, não textos fixos. Você deve:
 - Adaptar levemente ao tom da conversa mantendo a essência
 - NÃO copiar literalmente - humanize com variações sutis
 
+${allMediaSteps ? `## ⚠️ REGRA OBRIGATÓRIA DE MÍDIA
+Os seguintes passos possuem mídias anexadas. Você é OBRIGADO a chamar send_fluxo_media para CADA passo listado abaixo quando ativá-lo. NUNCA pule o envio da mídia. NÃO mencione a mídia no texto da resposta.
+${allMediaSteps}
+` : ''}
 `;
   
   for (const passo of passosCronologicos) {
     const mediaInstruction = passo.media 
-      ? `\n🎵 **MÍDIA ANEXADA**: Este passo tem mídia anexada. Você DEVE usar a ferramenta send_fluxo_media(step_id="${passo.id}") JUNTO com sua mensagem de texto neste passo. IMPORTANTE: NÃO mencione a mídia no seu texto de resposta. NÃO escreva "Áudio do fluxo", "segue o áudio", "vou enviar um áudio" ou qualquer referência à mídia. Apenas envie sua mensagem de texto normalmente e chame a ferramenta send_fluxo_media silenciosamente.`
+      ? `\n⚠️ **OBRIGATÓRIO**: Ao ativar este passo, você DEVE chamar send_fluxo_media(step_id="${passo.id}"). NÃO mencione a mídia no texto. Chame a ferramenta silenciosamente junto com sua resposta.`
       : '';
     instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
 ${passo.descricao}
@@ -2365,7 +2382,7 @@ ${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemp
 `;
     for (const passo of passosExtras) {
       const mediaInstruction = passo.media 
-        ? `\n🎵 **MÍDIA ANEXADA**: Este passo tem mídia anexada. Use send_fluxo_media(step_id="${passo.id}") JUNTO com sua mensagem. IMPORTANTE: NÃO mencione a mídia no texto. Envie a ferramenta silenciosamente.`
+        ? `\n⚠️ **OBRIGATÓRIO**: Ao ativar este passo, chame send_fluxo_media(step_id="${passo.id}"). NÃO mencione a mídia no texto.`
         : '';
       instructions += `### ${passo.titulo.toUpperCase()}
 ${passo.descricao}
