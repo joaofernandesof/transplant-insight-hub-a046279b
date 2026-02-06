@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Pencil, Check, X, Lightbulb, ArrowRight, GripVertical, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Check, X, Lightbulb, ArrowRight, GripVertical, Plus, Trash2, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { FluxoAtendimento, FluxoStep, AgentObjectives, AgentObjective, CustomObjective } from '../../../types';
+import { FluxoAtendimento, FluxoStep, FluxoStepMedia, AgentObjectives, AgentObjective, CustomObjective } from '../../../types';
+import { FluxoStepMediaPicker } from './FluxoStepMediaPicker';
 import { getFluxoByObjective, OBJECTIVE_TEMPLATE_LABELS } from '../../../fluxoTemplates';
 
 // Mapeamento de objetivos secundários para passos extras
@@ -300,6 +301,22 @@ export function StepFluxoSimple({
     setEditValue('');
   };
 
+  // Handle media change for a step
+  const handleMediaChange = (stepId: string, type: 'passosCronologicos' | 'passosExtras', media: FluxoStepMedia | undefined) => {
+    const steps = [...fluxoAtendimento[type]];
+    const stepIndex = steps.findIndex(s => s.id === stepId);
+    if (stepIndex !== -1) {
+      steps[stepIndex] = { ...steps[stepIndex], media };
+      onChange({ ...fluxoAtendimento, [type]: steps });
+    }
+  };
+
+  // Determine step type helper
+  const getStepType = (stepId: string): 'passosCronologicos' | 'passosExtras' => {
+    if (fluxoAtendimento.passosCronologicos?.some(s => s.id === stepId)) return 'passosCronologicos';
+    return 'passosExtras';
+  };
+
   // Substituir placeholders no exemplo
   const formatExampleMessage = (message?: string) => {
     if (!message) return '';
@@ -531,14 +548,19 @@ export function StepFluxoSimple({
                         rows={3}
                         className="resize-none border-[hsl(var(--avivar-primary))] bg-[hsl(260,25%,12%)] text-white placeholder:text-[hsl(var(--avivar-muted-foreground))]"
                         autoFocus
+                        placeholder="Texto da mensagem (ou deixe vazio para enviar apenas mídia)"
                       />
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Button size="sm" onClick={() => saveEdit(type)} className="gap-1">
                           <Check className="h-3 w-3" /> Salvar
                         </Button>
                         <Button size="sm" variant="outline" onClick={cancelEdit}>
                           Cancelar
                         </Button>
+                        <FluxoStepMediaPicker 
+                          media={step.media}
+                          onChange={(media) => handleMediaChange(step.id, type, media)}
+                        />
                       </div>
                     </div>
                   ) : (
@@ -546,6 +568,12 @@ export function StepFluxoSimple({
                       <p className="text-sm text-[hsl(var(--avivar-foreground))] italic opacity-90">
                         "{formatExampleMessage(step.exemploMensagem)}"
                       </p>
+                      {step.media && (
+                        <FluxoStepMediaPicker 
+                          media={step.media}
+                          onChange={(media) => handleMediaChange(step.id, type, media)}
+                        />
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -561,14 +589,27 @@ export function StepFluxoSimple({
 
               {/* Botão para adicionar exemplo se não tiver */}
               {!step.exemploMensagem && !(editing && editing.stepId === step.id && editing.field === 'exemploMensagem') && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1"
-                  onClick={() => startEditing(step.id, 'exemploMensagem', '')}
-                >
-                  <Lightbulb className="h-3 w-3" /> Adicionar exemplo
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => startEditing(step.id, 'exemploMensagem', '')}
+                  >
+                    <Lightbulb className="h-3 w-3" /> Adicionar exemplo
+                  </Button>
+                  {step.media ? (
+                    <FluxoStepMediaPicker 
+                      media={step.media}
+                      onChange={(media) => handleMediaChange(step.id, type, media)}
+                    />
+                  ) : (
+                    <FluxoStepMediaPicker 
+                      media={undefined}
+                      onChange={(media) => handleMediaChange(step.id, type, media)}
+                    />
+                  )}
+                </div>
               )}
             </div>
           </CollapsibleContent>
