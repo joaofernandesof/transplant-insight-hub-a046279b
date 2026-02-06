@@ -2350,7 +2350,7 @@ Os exemplos fornecidos são REFERÊNCIAS, não textos fixos. Você deve:
   
   for (const passo of passosCronologicos) {
     const mediaInstruction = passo.media 
-      ? `\n🎵 **MÍDIA ANEXADA**: Este passo tem ${passo.media.type === 'audio' ? (passo.media.audio_type === 'ptt' ? 'um áudio de voz' : 'um arquivo de áudio') : passo.media.type === 'image' ? 'uma imagem' : passo.media.type === 'video' ? 'um vídeo' : 'um documento'} anexado. Você DEVE usar a ferramenta send_fluxo_media(step_id="${passo.id}") JUNTO com sua mensagem de texto neste passo. Envie o texto primeiro, depois a mídia.`
+      ? `\n🎵 **MÍDIA ANEXADA**: Este passo tem mídia anexada. Você DEVE usar a ferramenta send_fluxo_media(step_id="${passo.id}") JUNTO com sua mensagem de texto neste passo. IMPORTANTE: NÃO mencione a mídia no seu texto de resposta. NÃO escreva "Áudio do fluxo", "segue o áudio", "vou enviar um áudio" ou qualquer referência à mídia. Apenas envie sua mensagem de texto normalmente e chame a ferramenta send_fluxo_media silenciosamente.`
       : '';
     instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
 ${passo.descricao}
@@ -2365,7 +2365,7 @@ ${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemp
 `;
     for (const passo of passosExtras) {
       const mediaInstruction = passo.media 
-        ? `\n🎵 **MÍDIA ANEXADA**: Este passo tem mídia anexada. Use send_fluxo_media(step_id="${passo.id}") JUNTO com sua mensagem.`
+        ? `\n🎵 **MÍDIA ANEXADA**: Este passo tem mídia anexada. Use send_fluxo_media(step_id="${passo.id}") JUNTO com sua mensagem. IMPORTANTE: NÃO mencione a mídia no texto. Envie a ferramenta silenciosamente.`
         : '';
       instructions += `### ${passo.titulo.toUpperCase()}
 ${passo.descricao}
