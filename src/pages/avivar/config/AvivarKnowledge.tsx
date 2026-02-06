@@ -237,6 +237,9 @@ export default function AvivarKnowledge() {
         // INSERT new agent
         setProgressMessage('Criando agente...');
         
+        // Debug: log payload para diagnóstico em produção
+        console.log('[AgentSave] Knowledge payload:', { user_id: user.id, account_id: acctId });
+        
         const { data, error: agentError } = await supabase
           .from('avivar_agents')
           .insert({
@@ -251,7 +254,10 @@ export default function AvivarKnowledge() {
           .single();
 
         if (agentError) {
-          console.error('Agent save error:', agentError);
+          console.error('[AgentSave] Insert error:', agentError);
+          if (agentError.message?.includes('row-level security')) {
+            throw new Error('Erro de permissão: sua conta pode não estar configurada corretamente. Tente fazer logout e login novamente, ou limpe o cache do navegador.');
+          }
           throw new Error('Erro ao criar agente');
         }
         agentData = data;
