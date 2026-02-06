@@ -301,6 +301,13 @@ export default function AvivarSimpleWizard() {
 
       let savedAgentId: string;
 
+      // Debug: log payload para diagnóstico em produção
+      console.log('[AgentSave] Payload:', { 
+        user_id: agentPayload.user_id, 
+        account_id: agentPayload.account_id,
+        name: agentPayload.name 
+      });
+
       if (isEditMode && agentId) {
         // Atualizar agente existente
         const { error } = await supabase
@@ -308,7 +315,13 @@ export default function AvivarSimpleWizard() {
           .update(agentPayload)
           .eq('id', agentId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('[AgentSave] Update error:', error);
+          if (error.message?.includes('row-level security')) {
+            throw new Error('Erro de permissão: sua conta pode não estar configurada corretamente. Tente fazer logout e login novamente, ou limpe o cache do navegador.');
+          }
+          throw error;
+        }
         savedAgentId = agentId;
       } else {
         // Criar novo agente
@@ -318,7 +331,13 @@ export default function AvivarSimpleWizard() {
           .select('id')
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('[AgentSave] Insert error:', error);
+          if (error.message?.includes('row-level security')) {
+            throw new Error('Erro de permissão: sua conta pode não estar configurada corretamente. Tente fazer logout e login novamente, ou limpe o cache do navegador.');
+          }
+          throw error;
+        }
         savedAgentId = newAgent.id;
       }
 
