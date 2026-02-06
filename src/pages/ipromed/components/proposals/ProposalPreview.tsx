@@ -158,14 +158,14 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             className="rounded-xl p-4 text-white max-w-sm w-full"
             style={{ background: `linear-gradient(135deg, ${CPG_COLORS.green} 0%, ${CPG_COLORS.greenLight} 100%)` }}
           >
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center justify-center gap-2 mb-2">
               <div 
                 className="w-7 h-7 rounded-md flex items-center justify-center"
                 style={{ backgroundColor: CPG_COLORS.gold }}
               >
                 <Shield className="h-4 w-4 text-white" />
               </div>
-              <div className="flex-1">
+              <div>
                 {isEditable ? (
                   <EditableText
                     value={proposal.planName}
@@ -178,7 +178,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 )}
               </div>
             </div>
-            <div className="flex items-baseline gap-1 mb-1">
+            <div className="flex items-baseline justify-center gap-1 mb-1">
               <span className="text-[10px]" style={{ color: CPG_COLORS.goldLight }}>Valor mensal:</span>
               <span className="text-2xl font-bold" style={{ color: CPG_COLORS.gold }}>
                 R${" "}
@@ -194,7 +194,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 )}
               </span>
             </div>
-            <p className="text-[9px] opacity-80 leading-snug">
+            <p className="text-[9px] opacity-80 leading-snug text-center">
               Base jurídica para atuar com segurança e tranquilidade.
             </p>
           </div>
