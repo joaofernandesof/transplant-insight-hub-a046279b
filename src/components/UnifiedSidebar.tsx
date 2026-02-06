@@ -38,6 +38,7 @@ import {
   BookOpen,
   HeartPulse,
   Scale,
+  Flame,
 } from "lucide-react";
 import {
   Select,
@@ -91,7 +92,7 @@ const getLicenseeTier = (userId: string): LicenseeTier => {
 };
 
 // Portal detection and metadata
-type PortalKey = 'admin' | 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'main';
+type PortalKey = 'admin' | 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'hotleads' | 'main';
 
 interface PortalConfig {
   name: string;
@@ -109,6 +110,7 @@ const PORTAL_CONFIG: Record<PortalKey, PortalConfig> = {
   academy: { name: 'Academy', color: 'text-emerald-700', bgColor: 'bg-emerald-100', headerBg: 'bg-gradient-to-r from-emerald-900 to-emerald-800', headerText: 'text-white', icon: GraduationCap },
   neolicense: { name: 'NeoLicense', color: 'text-amber-700', bgColor: 'bg-amber-100', headerBg: 'bg-gradient-to-r from-amber-900 to-amber-800', headerText: 'text-white', icon: Building2 },
   avivar: { name: 'Avivar', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-900 to-orange-800', headerText: 'text-white', icon: Zap },
+  hotleads: { name: 'HotLeads', color: 'text-orange-700', bgColor: 'bg-orange-100', headerBg: 'bg-gradient-to-r from-orange-600 to-red-700', headerText: 'text-white', icon: Flame },
   main: { name: 'NeoHub', color: 'text-primary', bgColor: 'bg-primary/10', headerBg: 'bg-gradient-to-r from-slate-900 to-slate-800', headerText: 'text-white', icon: Layers },
 };
 
@@ -116,6 +118,8 @@ function detectPortal(pathname: string): PortalKey {
   if (pathname.startsWith('/neocare')) return 'neocare';
   if (pathname.startsWith('/neoteam')) return 'neoteam';
   if (pathname.startsWith('/academy')) return 'academy';
+  // HotLeads must be checked BEFORE neolicense since it's a sub-path
+  if (pathname.startsWith('/neolicense/hotleads')) return 'hotleads';
   if (pathname.startsWith('/neolicense')) return 'neolicense';
   if (pathname.startsWith('/avivar')) return 'avivar';
   if (pathname.startsWith('/admin')) return 'admin';

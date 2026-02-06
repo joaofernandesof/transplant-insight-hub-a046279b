@@ -12,12 +12,12 @@ export type NeoHubProfile =
   | 'cliente_avivar'
   | 'ipromed';
 
-export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed';
+export type Portal = 'neocare' | 'neoteam' | 'academy' | 'neolicense' | 'avivar' | 'ipromed' | 'hotleads';
 
 // Mapeamento de perfis para portais
 export const PROFILE_PORTAL_MAP: Record<NeoHubProfile, Portal[]> = {
   administrador: ['neocare', 'neoteam', 'academy', 'neolicense', 'avivar', 'ipromed'],
-  licenciado: ['neolicense'],
+  licenciado: ['neolicense', 'hotleads'],
   colaborador: ['neoteam'],
   medico: ['neoteam'],
   aluno: ['academy'],
@@ -58,6 +58,7 @@ export const PORTAL_NAMES: Record<Portal, string> = {
   neolicense: 'Licença ByNeoFolic',
   avivar: 'Avivar',
   ipromed: 'IPROMED',
+  hotleads: 'HotLeads',
 };
 
 // Ícones dos perfis (lucide-react)
@@ -112,6 +113,7 @@ export function getPortalFromRoute(route: string): Portal | null {
   if (route.startsWith('/neocare')) return 'neocare';
   if (route.startsWith('/neoteam')) return 'neoteam';
   if (route.startsWith('/academy')) return 'academy';
+  if (route.startsWith('/neolicense/hotleads')) return 'hotleads';
   if (route.startsWith('/neolicense')) return 'neolicense';
   if (route.startsWith('/avivar')) return 'avivar';
   if (route.startsWith('/ipromed')) return 'ipromed';
@@ -186,6 +188,9 @@ export const PORTAL_MODULES: Record<Portal, { code: string; name: string; route:
     { code: 'ipromed_journey', name: 'Jornada do Cliente', route: '/ipromed/journey', icon: 'TrendingUp' },
     { code: 'ipromed_legal', name: 'Legal Hub', route: '/ipromed/legal-hub', icon: 'Scale' },
     { code: 'ipromed_contracts', name: 'Contratos', route: '/ipromed/contracts', icon: 'FileSignature' },
+  ],
+  hotleads: [
+    { code: 'hotleads_home', name: 'Dashboard', route: '/neolicense/hotleads', icon: 'Flame' },
   ],
 };
 

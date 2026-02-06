@@ -54,6 +54,7 @@ const PORTAL_COLORS: Record<Portal, string> = {
   neolicense: 'from-amber-400 to-yellow-500',
   avivar: 'from-orange-500 to-red-500',
   ipromed: 'from-[#00629B] to-[#004d7a]',
+  hotleads: 'from-orange-500 to-red-600',
 };
 
 const PORTAL_BG_COLORS: Record<Portal, string> = {
@@ -63,6 +64,7 @@ const PORTAL_BG_COLORS: Record<Portal, string> = {
   neolicense: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800',
   avivar: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800',
   ipromed: 'bg-[#00629B]/10 dark:bg-[#00629B]/20 border-[#00629B]/30 dark:border-[#00629B]/50',
+  hotleads: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800',
 };
 
 const ALL_PROFILES: NeoHubProfile[] = ['administrador', 'licenciado', 'colaborador', 'aluno', 'paciente', 'cliente_avivar', 'ipromed'];
