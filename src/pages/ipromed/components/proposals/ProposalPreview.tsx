@@ -133,28 +133,10 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </p>
         </div>
 
-        {/* Grid de 2 colunas para condições e plano */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {/* Coluna esquerda: Condições especiais */}
-          {allConditions.length > 0 && (
-            <div>
-              <h2 className="text-xs font-semibold mb-2 flex items-center gap-1" style={{ color: CPG_COLORS.gold }}>
-                ✦ Por você:
-              </h2>
-              <ul className="space-y-1">
-                {allConditions.map((condition, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5 text-[11px]" style={{ color: CPG_COLORS.green }}>
-                    <Check className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: CPG_COLORS.gold }} />
-                    <span>{condition}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Coluna direita: Box do Plano */}
+        {/* Box do Plano - Centralizado */}
+        <div className="flex justify-center mb-4">
           <div 
-            className="rounded-xl p-4 text-white"
+            className="rounded-xl p-4 text-white max-w-sm w-full"
             style={{ background: `linear-gradient(135deg, ${CPG_COLORS.green} 0%, ${CPG_COLORS.greenLight} 100%)` }}
           >
             <div className="flex items-center gap-2 mb-2">
