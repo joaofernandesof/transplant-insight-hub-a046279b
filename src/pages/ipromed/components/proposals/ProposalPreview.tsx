@@ -86,19 +86,48 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
     return (
       <div
         ref={ref}
-        className="bg-white print:text-black"
+        className="bg-white print:text-black proposal-print-container"
         style={{ 
           fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
           width: "210mm",
           minHeight: "297mm",
           maxHeight: "297mm",
           overflow: "hidden",
-          padding: "12mm 14mm",
+          padding: "10mm 12mm",
           boxSizing: "border-box",
         }}
       >
+        {/* Print-specific styles for single page */}
+        <style>{`
+          @media print {
+            @page {
+              size: A4;
+              margin: 0;
+            }
+            
+            .proposal-print-container {
+              width: 210mm !important;
+              height: 297mm !important;
+              max-height: 297mm !important;
+              padding: 8mm 10mm !important;
+              overflow: hidden !important;
+              page-break-after: avoid !important;
+              page-break-inside: avoid !important;
+            }
+            
+            .proposal-print-container * {
+              page-break-inside: avoid !important;
+            }
+            
+            /* Scale down slightly to ensure it fits */
+            .proposal-print-container {
+              transform-origin: top left;
+              transform: scale(0.95);
+            }
+          }
+        `}</style>
         {/* Header com logo */}
-        <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: `2px solid ${CPG_COLORS.gold}` }}>
+        <div className="flex items-center justify-between mb-3 pb-2" style={{ borderBottom: `2px solid ${CPG_COLORS.gold}` }}>
           <div className="flex items-center gap-3">
             <img 
               src={cpgLogo} 
@@ -169,7 +198,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Destinatário */}
-        <div className="text-center mb-4">
+        <div className="text-center mb-3">
           <p className="text-sm" style={{ color: CPG_COLORS.green }}>
             Proposta para{" "}
             <span className="font-semibold">
@@ -189,7 +218,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Introdução compacta */}
         <div 
-          className="rounded-lg p-3 mb-4 text-xs leading-relaxed"
+          className="rounded-lg p-2.5 mb-3 text-[11px] leading-snug"
           style={{ backgroundColor: CPG_COLORS.cream }}
         >
           <p style={{ color: CPG_COLORS.green }}>
@@ -208,9 +237,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Box do Plano - Centralizado */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-3">
           <div 
-            className="rounded-xl p-5 text-white max-w-sm w-full text-center"
+            className="rounded-xl p-4 text-white max-w-sm w-full text-center"
             style={{ background: `linear-gradient(135deg, ${CPG_COLORS.green} 0%, ${CPG_COLORS.greenLight} 100%)` }}
           >
             {/* Nome do Plano */}
@@ -325,7 +354,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Serviços incluídos */}
         {proposal.services.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-3">
             <div className="flex items-center gap-2 mb-2">
               <Shield className="h-4 w-4" style={{ color: CPG_COLORS.gold }} />
               <h3 className="text-xs font-semibold" style={{ color: CPG_COLORS.green }}>
@@ -342,13 +371,13 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </h3>
             </div>
             <div 
-              className="rounded-lg p-3"
+              className="rounded-lg p-2.5"
               style={{ backgroundColor: CPG_COLORS.cream }}
             >
-              <div className="grid grid-cols-3 gap-x-3 gap-y-2">
+              <div className="grid grid-cols-3 gap-x-2 gap-y-1.5">
                 {proposal.services.map(serviceId => (
-                  <div key={serviceId} className="flex items-start gap-1.5 text-[10px]" style={{ color: CPG_COLORS.green }}>
-                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
+                  <div key={serviceId} className="flex items-start gap-1 text-[9px]" style={{ color: CPG_COLORS.green }}>
+                    <CheckCircle2 className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
                     {isEditable ? (
                       <EditableText
                         value={getServiceLabel(serviceId)}
@@ -368,7 +397,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Documentação Jurídica */}
         {proposal.documents.length > 0 && proposal.documentsIncluded !== "none" && (
-          <div className="mb-4">
+          <div className="mb-3">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="h-4 w-4" style={{ color: CPG_COLORS.gold }} />
               <h3 className="text-xs font-semibold" style={{ color: CPG_COLORS.green }}>
@@ -393,13 +422,13 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               )}
             </div>
             <div 
-              className="rounded-lg p-3"
+              className="rounded-lg p-2.5"
               style={{ backgroundColor: CPG_COLORS.cream }}
             >
-              <div className="grid grid-cols-3 gap-x-3 gap-y-2">
+              <div className="grid grid-cols-3 gap-x-2 gap-y-1.5">
                 {proposal.documents.map(docId => (
-                  <div key={docId} className="flex items-start gap-1.5 text-[10px]" style={{ color: CPG_COLORS.green }}>
-                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
+                  <div key={docId} className="flex items-start gap-1 text-[9px]" style={{ color: CPG_COLORS.green }}>
+                    <CheckCircle2 className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
                     {isEditable ? (
                       <EditableText
                         value={getDocumentLabel(docId)}
@@ -418,7 +447,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         )}
 
         {/* Mensagem de fechamento */}
-        <div className="text-[10px] italic mb-4 leading-relaxed" style={{ color: CPG_COLORS.green }}>
+        <div className="text-[9px] italic mb-3 leading-snug" style={{ color: CPG_COLORS.green }}>
           "
           {isEditable ? (
             <EditableText
@@ -436,7 +465,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* CTA e Contato */}
         <div 
-          className="rounded-xl p-4 text-center mb-3"
+          className="rounded-xl p-3 text-center mb-2"
           style={{ background: `linear-gradient(135deg, ${CPG_COLORS.cream} 0%, #f5f2ed 100%)`, border: `1px solid ${CPG_COLORS.gold}` }}
         >
           <h3 className="text-sm font-bold mb-1" style={{ color: CPG_COLORS.green }}>
@@ -451,7 +480,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               proposal.ctaTitle || "Pronto para começar?"
             )}
           </h3>
-          <p className="text-[10px] mb-3" style={{ color: CPG_COLORS.greenLight }}>
+          <p className="text-[9px] mb-2" style={{ color: CPG_COLORS.greenLight }}>
             {isEditable ? (
               <EditableText
                 value={proposal.ctaSubtitle || "Entre em contato para dar início à sua proteção jurídica."}
@@ -463,7 +492,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               proposal.ctaSubtitle || "Entre em contato para dar início à sua proteção jurídica."
             )}
           </p>
-          <div className="flex flex-wrap justify-center gap-4 text-[10px]" style={{ color: CPG_COLORS.green }}>
+          <div className="flex flex-wrap justify-center gap-3 text-[9px]" style={{ color: CPG_COLORS.green }}>
             <div className="flex items-center gap-1">
               <Phone className="h-3 w-3" style={{ color: CPG_COLORS.gold }} />
               {isEditable ? (
@@ -507,7 +536,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Rodapé */}
-        <div className="text-center text-[9px]" style={{ color: CPG_COLORS.greenLight }}>
+        <div className="text-center text-[8px]" style={{ color: CPG_COLORS.greenLight }}>
           <p className="font-medium">
             {isEditable ? (
               <EditableText
