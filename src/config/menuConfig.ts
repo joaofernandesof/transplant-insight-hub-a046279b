@@ -309,6 +309,11 @@ export const AVIVAR_MENU_ITEMS: MenuItem[] = [
   { id: 'avivar_settings', code: 'avivar_settings', title: 'Configurações', icon: Settings, route: '/avivar/settings' },
 ];
 
+// HotLeads dedicated portal menu
+export const HOTLEADS_MENU_ITEMS: MenuItem[] = [
+  { id: 'hotleads_home', code: 'hotleads_home', title: 'Dashboard', icon: BarChart3, route: '/neolicense/hotleads' },
+];
+
 // Mapeamento de portal para menu flat (compatibilidade)
 export const PORTAL_MENUS: Record<string, MenuItem[]> = {
   neocare: NEOCARE_MENU_ITEMS,
@@ -316,6 +321,7 @@ export const PORTAL_MENUS: Record<string, MenuItem[]> = {
   academy: ACADEMY_MENU_ITEMS,
   neolicense: NEOLICENSE_MENU_ITEMS,
   avivar: AVIVAR_MENU_ITEMS,
+  hotleads: HOTLEADS_MENU_ITEMS,
 };
 
 // Mapeamento de portal para menu em categorias
