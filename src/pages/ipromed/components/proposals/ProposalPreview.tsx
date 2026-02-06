@@ -6,7 +6,7 @@
  */
 
 import React, { forwardRef } from "react";
-import { Check, Shield, FileText, Phone, Mail, Globe } from "lucide-react";
+import { CheckCircle2, Shield, FileText, Phone, Mail, Globe } from "lucide-react";
 import type { ProposalData } from "../../IpromedProposals";
 import cpgLogo from "@/assets/cpg-logo.jpg";
 import { EditableText, EditableNumber } from "./EditableText";
@@ -348,7 +348,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               <div className="grid grid-cols-3 gap-x-3 gap-y-2">
                 {proposal.services.map(serviceId => (
                   <div key={serviceId} className="flex items-start gap-1.5 text-[10px]" style={{ color: CPG_COLORS.green }}>
-                    <Check className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
+                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
                     {isEditable ? (
                       <EditableText
                         value={getServiceLabel(serviceId)}
@@ -399,7 +399,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               <div className="grid grid-cols-3 gap-x-3 gap-y-2">
                 {proposal.documents.map(docId => (
                   <div key={docId} className="flex items-start gap-1.5 text-[10px]" style={{ color: CPG_COLORS.green }}>
-                    <Check className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
+                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
                     {isEditable ? (
                       <EditableText
                         value={getDocumentLabel(docId)}
