@@ -125,14 +125,25 @@ function collectTags(normalized: Record<string, string>): string {
 function parseTags(raw: string): string[] {
   if (!raw) return [];
   
-  const NOISE = new Set(['GRAU', 'N/A', 'N A', 'undefined', 'null', 'none', '-', '']);
+  // Only filter out truly meaningless values
+  const NOISE = new Set(['N/A', 'N A', 'undefined', 'null', 'none', '-', '']);
   
-  const tags = raw
-    .split(/[,;#|]/)
-    .map(t => t.trim())
-    .filter(t => t.length > 0 && !NOISE.has(t));
+  // First try splitting by comma/semicolon/pipe (common delimiters)
+  // Only split by # if the value starts with # (hashtag-style tags)
+  let tags: string[];
   
-  return [...new Set(tags)];
+  if (raw.includes(',') || raw.includes(';') || raw.includes('|')) {
+    // Has explicit delimiters — split by those
+    tags = raw.split(/[,;|]/).map(t => t.trim().replace(/^#/, ''));
+  } else if (raw.startsWith('#')) {
+    // Hashtag-style: "#TAG1#TAG2" or just "#TAG"
+    tags = raw.split('#').map(t => t.trim());
+  } else {
+    // Single value
+    tags = [raw.trim()];
+  }
+  
+  return [...new Set(tags.filter(t => t.length > 0 && !NOISE.has(t)))];
 }
 
 function mapRow(row: Record<string, any>, rowIndex?: number): ParsedLead | null {
