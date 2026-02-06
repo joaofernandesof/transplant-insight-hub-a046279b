@@ -18,11 +18,12 @@ export interface LeadReleaseInfo {
 export function useLeadRelease() {
   const [info, setInfo] = useState<LeadReleaseInfo | null>(null);
   const [isReleasing, setIsReleasing] = useState(false);
+  const isReleasingRef = useRef(false);
   const [countdown, setCountdown] = useState<number>(0);
   const [newlyReleasedLeadId, setNewlyReleasedLeadId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
-  const autoReleaseTriggeredRef = useRef<string | null>(null); // tracks which next_release_at was already triggered
+  const autoReleaseTriggeredRef = useRef<string | null>(null);
 
   const fetchInfo = useCallback(async () => {
     try {
@@ -37,7 +38,8 @@ export function useLeadRelease() {
   }, []);
 
   const doRelease = useCallback(async (mode: 'scheduled' | 'manual_admin') => {
-    if (isReleasing) return null;
+    if (isReleasingRef.current) return null;
+    isReleasingRef.current = true;
     setIsReleasing(true);
     try {
       const { data, error } = await supabase.functions.invoke('hotleads-release', {
@@ -54,16 +56,16 @@ export function useLeadRelease() {
         await fetchInfo();
         return data;
       }
-      // If no success (limit/no queued), still refresh info to get next schedule
       await fetchInfo();
       return data;
     } catch (err) {
       console.error('Error releasing lead:', err);
       throw err;
     } finally {
+      isReleasingRef.current = false;
       setIsReleasing(false);
     }
-  }, [isReleasing, fetchInfo]);
+  }, [fetchInfo]);
 
   // Countdown timer + auto-release when it hits 0
   useEffect(() => {
