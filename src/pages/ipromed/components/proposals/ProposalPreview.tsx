@@ -175,16 +175,6 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <p style={{ color: CPG_COLORS.green }}>
             {isEditable ? (
               <EditableText
-                value={proposal.greeting || `Olá${proposal.clientName ? `, ${proposal.clientName.split(" ")[0]}` : ""}!`}
-                onChange={(value) => onUpdate({ greeting: value })}
-                placeholder="Saudação..."
-                style={{ color: CPG_COLORS.green }}
-              />
-            ) : (
-              proposal.greeting || `Olá${proposal.clientName ? `, ${proposal.clientName.split(" ")[0]}` : ""}!`
-            )}{" "}
-            {isEditable ? (
-              <EditableText
                 value={proposal.introMessage}
                 onChange={(value) => onUpdate({ introMessage: value })}
                 placeholder="Mensagem de introdução..."
