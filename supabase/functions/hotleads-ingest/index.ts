@@ -6,6 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const N8N_WEBHOOK_URL = "https://n8n-n8n-start.bym1io.easypanel.host/webhook/lead";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -70,7 +72,7 @@ Deno.serve(async (req) => {
     const { data, error } = await supabaseAdmin
       .from("leads")
       .insert(validated)
-      .select("id, name, phone");
+      .select("id, name, phone, email, city, state, source");
 
     if (error) {
       console.error("[hotleads-ingest] DB insert error:", error);
@@ -81,6 +83,43 @@ Deno.serve(async (req) => {
     }
 
     console.log(`[hotleads-ingest] Inserted ${data.length} leads from n8n`);
+
+    // Insert webhook outbox entries for each lead and process them
+    const outboxEntries = data.map((lead: any) => ({
+      lead_id: lead.id,
+      event_type: "lead.available",
+      payload: {
+        event: "lead.available",
+        timestamp: new Date().toISOString(),
+        mode: "n8n_ingest",
+        lead: {
+          id: lead.id,
+          name: lead.name,
+          phone: lead.phone,
+          email: lead.email,
+          source: lead.source,
+          city: lead.city,
+          state: lead.state,
+        },
+      },
+      webhook_url: N8N_WEBHOOK_URL,
+      status: "pending",
+      attempts: 0,
+      max_attempts: 3,
+    }));
+
+    const { error: outboxError } = await supabaseAdmin
+      .from("lead_webhook_outbox")
+      .insert(outboxEntries);
+
+    if (outboxError) {
+      console.error("[hotleads-ingest] Outbox insert error:", outboxError);
+      // Don't fail the request, leads were inserted successfully
+    } else {
+      console.log(`[hotleads-ingest] Queued ${outboxEntries.length} webhook(s)`);
+      // Process webhooks in background
+      EdgeRuntime.waitUntil(processWebhookOutbox(supabaseAdmin));
+    }
 
     return new Response(
       JSON.stringify({
@@ -99,3 +138,54 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+async function processWebhookOutbox(supabase: any) {
+  try {
+    const { data: pending } = await supabase
+      .from("lead_webhook_outbox")
+      .select("*")
+      .eq("status", "pending")
+      .lt("attempts", 3)
+      .order("created_at", { ascending: true })
+      .limit(10);
+
+    if (!pending?.length) return;
+
+    for (const entry of pending) {
+      try {
+        const webhookUrl = entry.webhook_url || N8N_WEBHOOK_URL;
+        const response = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(entry.payload),
+        });
+
+        if (response.ok) {
+          await supabase
+            .from("lead_webhook_outbox")
+            .update({
+              status: "completed",
+              completed_at: new Date().toISOString(),
+              attempts: entry.attempts + 1,
+              last_attempt_at: new Date().toISOString(),
+            })
+            .eq("id", entry.id);
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (err) {
+        await supabase
+          .from("lead_webhook_outbox")
+          .update({
+            attempts: entry.attempts + 1,
+            last_attempt_at: new Date().toISOString(),
+            error_message: err.message,
+            status: entry.attempts + 1 >= entry.max_attempts ? "failed" : "pending",
+          })
+          .eq("id", entry.id);
+      }
+    }
+  } catch (err) {
+    console.error("[hotleads-ingest] Webhook outbox error:", err);
+  }
+}
