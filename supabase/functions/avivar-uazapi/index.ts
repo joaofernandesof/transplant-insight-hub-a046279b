@@ -92,7 +92,22 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
   const body = await req.json().catch(() => ({}));
   const instanceName = body.instanceName || `avivar-${userId.slice(0, 8)}`;
 
-  console.log(`Creating UazAPI instance: ${instanceName} for user: ${userId}`);
+  // Resolve account_id for multi-tenant
+  const { data: memberData, error: memberError } = await supabase
+    .from("avivar_account_members")
+    .select("account_id")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .limit(1)
+    .single();
+
+  if (memberError || !memberData?.account_id) {
+    console.error("Could not resolve account_id for user:", userId, memberError);
+    throw new Error("Could not resolve account for user");
+  }
+
+  const accountId = memberData.account_id;
+  console.log(`Creating UazAPI instance: ${instanceName} for user: ${userId}, account: ${accountId}`);
 
   // Construct webhook URL
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -165,6 +180,7 @@ async function handleCreateInstance(req: Request, supabase: any, userId: string)
     .from("avivar_uazapi_instances")
     .upsert({
       user_id: userId,
+      account_id: accountId,
       instance_id: data.instance.id,
       instance_name: instanceName,
       instance_token: data.instance.token,
