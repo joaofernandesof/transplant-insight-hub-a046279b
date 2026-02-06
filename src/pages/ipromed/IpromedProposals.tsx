@@ -3,7 +3,7 @@
  * Geração e edição de propostas personalizadas para clientes
  */
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,7 +140,10 @@ export default function IpromedProposalEditor() {
   const [showPreview, setShowPreview] = useState(startWithPreview);
   const [newCondition, setNewCondition] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasLoadedRef = useRef(false);
 
   // Carregar dados da proposta existente
   useEffect(() => {
@@ -161,8 +164,58 @@ export default function IpromedProposalEditor() {
         introMessage: existingProposal.intro_message || "",
         closingMessage: existingProposal.closing_message || "",
       });
+      hasLoadedRef.current = true;
     }
   }, [existingProposal]);
+
+  // Auto-save function
+  const performAutoSave = useCallback(async (proposalData: ProposalData) => {
+    if (isNew || !id || !proposalData.clientName.trim()) return;
+    
+    setIsAutoSaving(true);
+    try {
+      const data = {
+        client_name: proposalData.clientName,
+        plan_name: proposalData.planName,
+        plan_subtitle: proposalData.planSubtitle,
+        monthly_value: proposalData.monthlyValue,
+        conditions: proposalData.conditions,
+        custom_conditions: proposalData.customConditions,
+        services: proposalData.services,
+        documents: proposalData.documents,
+        documents_included: proposalData.documentsIncluded,
+        intro_message: proposalData.introMessage,
+        closing_message: proposalData.closingMessage,
+      };
+      await updateProposal.mutateAsync({ id, ...data });
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [isNew, id, updateProposal]);
+
+  // Debounced auto-save on proposal change
+  useEffect(() => {
+    // Don't auto-save on initial load or for new proposals
+    if (!hasLoadedRef.current || isNew) return;
+
+    // Clear previous timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save (1.5 second debounce)
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      performAutoSave(proposal);
+    }, 1500);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [proposal, isNew, performAutoSave]);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -264,8 +317,14 @@ export default function IpromedProposalEditor() {
               <FileText className="h-6 w-6" />
               {isNew ? "Nova Proposta" : "Editar Proposta"}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground flex items-center gap-2">
               {isNew ? "Crie uma nova proposta comercial" : `Editando proposta para ${proposal.clientName}`}
+              {isAutoSaving && (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Salvando...
+                </span>
+              )}
             </p>
           </div>
         </div>
