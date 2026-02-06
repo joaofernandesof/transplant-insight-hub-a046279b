@@ -333,6 +333,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                   ) : (
                     proposal.monthlyValue.toLocaleString("pt-BR")
                   )}
+                  <span className="text-sm font-normal opacity-80">/mês</span>
                 </span>
               </div>
             </div>
