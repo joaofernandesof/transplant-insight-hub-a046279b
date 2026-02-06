@@ -114,21 +114,14 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         </div>
 
-        {/* Título e destinatário */}
-        <div className="text-center mb-4">
-          <div 
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold"
-            style={{ backgroundColor: CPG_COLORS.cream, color: CPG_COLORS.green, border: `1px solid ${CPG_COLORS.gold}` }}
-          >
-            <Shield className="h-3.5 w-3.5" style={{ color: CPG_COLORS.gold }} />
-            {proposal.planSubtitle || "Proposta Comercial Especial"}
-          </div>
-          {proposal.clientName && (
-            <p className="mt-2 text-sm" style={{ color: CPG_COLORS.green }}>
-              para <span className="font-semibold">{proposal.clientName}</span>
+        {/* Destinatário */}
+        {proposal.clientName && (
+          <div className="text-center mb-4">
+            <p className="text-sm" style={{ color: CPG_COLORS.green }}>
+              Proposta para <span className="font-semibold">{proposal.clientName}</span>
             </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Introdução compacta */}
         <div 
