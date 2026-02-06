@@ -33,6 +33,7 @@ import {
   Activity,
   CheckSquare,
   Target,
+  FileSignature,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -57,6 +58,7 @@ const cpgNavItems: NavItem[] = [
   { id: 'contracts', label: 'Contratos', icon: FileText, href: '/ipromed/contracts', tourId: 'sidebar-contracts' },
   { id: 'journey', label: 'Jornada do Cliente', icon: LayoutGrid, href: '/ipromed/journey' },
   { id: 'sales-funnel', label: 'Funil Comercial', icon: Target, href: '/ipromed/sales-funnel' },
+  { id: 'proposals', label: 'Propostas', icon: FileSignature, href: '/ipromed/proposals', isNew: true },
   { id: 'tasks', label: 'Tarefas', icon: CheckSquare, href: '/ipromed/tasks' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, href: '/ipromed/financial', tourId: 'sidebar-financial' },
   { id: 'push', label: 'Push Jurídico', icon: Radar, href: '/ipromed/push-juridico' },
@@ -186,6 +188,12 @@ export default function AstreaStyleSidebar({
                   {!isCollapsed && (
                     <>
                       <span className="flex-1">{item.label}</span>
+                      
+                      {item.isNew && (
+                        <Badge className="bg-emerald-500 text-white text-[10px] px-1.5">
+                          Novo
+                        </Badge>
+                      )}
                       
                       {item.badge && (
                         <Badge className={cn("text-white text-xs px-1.5 min-w-[20px] justify-center", item.badgeColor)}>
