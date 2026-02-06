@@ -2,8 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Flame, RefreshCw, Loader2, Upload, BarChart3, Users, Trash2 } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useHotLeads } from '@/hooks/useHotLeads';
@@ -14,9 +13,6 @@ import {
   LeadImportDialog,
   LeadExportButton,
   PaginatedLeadColumn,
-  HotLeadsOverview,
-  BrazilMapChart,
-  HotLeadsCharts,
   HotLeadsGlobalFilters,
   NextLeadReleaseBanner,
 } from '@/components/hotleads';
@@ -50,7 +46,6 @@ export default function HotLeads() {
     }
     return success;
   }, [acquireLead]);
-  const [activeTab, setActiveTab] = useState('dashboard');
   
   // Global filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -175,88 +170,54 @@ export default function HotLeads() {
         </div>
       </header>
 
-      {/* Content with Tabs */}
+      {/* Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <div className="px-4 pt-4">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="leads" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Leads ({leads.length})
-              </TabsTrigger>
-            </TabsList>
-          </div>
+        {/* Global Filters */}
+        <div className="px-4 py-4">
+          <HotLeadsGlobalFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            stateFilter={stateFilter}
+            setStateFilter={setStateFilter}
+            periodFilter={periodFilter}
+            setPeriodFilter={setPeriodFilter}
+            availableStates={availableStates}
+          />
+        </div>
 
-          {/* Global Filters */}
-          <div className="px-4 py-4">
-            <HotLeadsGlobalFilters
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              stateFilter={stateFilter}
-              setStateFilter={setStateFilter}
-              periodFilter={periodFilter}
-              setPeriodFilter={setPeriodFilter}
-              availableStates={availableStates}
+        {/* Leads Content */}
+        <div className="flex-1 overflow-hidden px-4 pb-4">
+          <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+            <PaginatedLeadColumn
+              title="Leads Disponíveis"
+              dotColor="bg-green-500"
+              items={filteredAvailable}
+              emptyMessage="Nenhum lead disponível no momento."
+              renderItem={(lead) => (
+                <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
+              )}
+            />
+            <PaginatedLeadColumn
+              title="Meus Leads"
+              dotColor="bg-blue-500"
+              items={myLeads}
+              emptyMessage="Você ainda não adquiriu nenhum lead."
+              renderItem={(lead) => (
+                <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+              )}
+            />
+            <PaginatedLeadColumn
+              title="Leads Adquiridos"
+              dotColor="bg-muted-foreground"
+              items={acquiredLeads}
+              emptyMessage="Nenhum lead adquirido por outros."
+              renderItem={(lead) => (
+                <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+              )}
             />
           </div>
-
-          {/* Dashboard Tab */}
-          <TabsContent value="dashboard" className="flex-1 overflow-y-auto px-4 pb-6 mt-0">
-            <div className="space-y-6">
-              {/* Overview Stats */}
-              <HotLeadsOverview
-                leads={filteredLeads}
-                myLeads={myLeads}
-                availableLeads={availableLeads}
-                acquiredLeads={acquiredLeads}
-              />
-
-              {/* Brazil Map */}
-              <BrazilMapChart leads={filteredLeads} />
-
-              {/* Charts */}
-              <HotLeadsCharts leads={filteredLeads} />
-            </div>
-          </TabsContent>
-
-          {/* Leads Tab */}
-          <TabsContent value="leads" className="flex-1 overflow-hidden px-4 pb-4 mt-0">
-            <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-              <PaginatedLeadColumn
-                title="Leads Disponíveis"
-                dotColor="bg-green-500"
-                items={filteredAvailable}
-                emptyMessage="Nenhum lead disponível no momento."
-                renderItem={(lead) => (
-                  <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
-                )}
-              />
-              <PaginatedLeadColumn
-                title="Meus Leads"
-                dotColor="bg-blue-500"
-                items={myLeads}
-                emptyMessage="Você ainda não adquiriu nenhum lead."
-                renderItem={(lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
-                )}
-              />
-              <PaginatedLeadColumn
-                title="Leads Adquiridos"
-                dotColor="bg-muted-foreground"
-                items={acquiredLeads}
-                emptyMessage="Nenhum lead adquirido por outros."
-                renderItem={(lead) => (
-                  <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
-                )}
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
 
       {/* Dialogs */}

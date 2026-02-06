@@ -10,8 +10,8 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 18 |
-| Aprovadas | 18 |
+| Total de Tarefas Validadas | 19 |
+| Aprovadas | 19 |
 | Reprovadas | 0 |
 | Última Atualização | 2026-02-06 |
 
@@ -20,6 +20,32 @@
 ## 🗂️ Registro de Validações
 
 ### 2026-02-06
+
+#### ✅ QA-019: Simplificação UI HotLeads - Remoção Dashboard Tab
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | HotLeads / Frontend |
+| **Descrição** | Remoção da aba Dashboard, exibição direta dos leads, renomeação do menu lateral para "HotLeads" |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-02-06 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Aba Dashboard removida da página HotLeads
+- [x] Conteúdo de leads exibido diretamente sem tabs
+- [x] Menu lateral renomeado de "Dashboard" para "HotLeads" com ícone Flame
+- [x] Filtros globais mantidos e funcionais
+- [x] Colunas de leads (Disponíveis, Meus Leads, Adquiridos) preservadas
+- [x] Imports não utilizados removidos (Tabs, BrazilMapChart, HotLeadsOverview, HotLeadsCharts)
+
+**Observações:**
+- Dashboard poderá ser reintroduzido futuramente como página separada
+- Componentes de gráficos mantidos no codebase para uso futuro
+
+---
 
 #### ✅ QA-018: Fila Aleatória de Liberação de Leads + Webhook n8n
 

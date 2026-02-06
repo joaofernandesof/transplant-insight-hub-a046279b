@@ -311,7 +311,7 @@ export const AVIVAR_MENU_ITEMS: MenuItem[] = [
 
 // HotLeads dedicated portal menu
 export const HOTLEADS_MENU_ITEMS: MenuItem[] = [
-  { id: 'hotleads_home', code: 'hotleads_home', title: 'Dashboard', icon: BarChart3, route: '/neolicense/hotleads' },
+  { id: 'hotleads_home', code: 'hotleads_home', title: 'HotLeads', icon: Flame, route: '/neolicense/hotleads' },
 ];
 
 // Mapeamento de portal para menu flat (compatibilidade)
