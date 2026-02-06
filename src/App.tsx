@@ -176,7 +176,7 @@ const AvivarFollowUp = lazy(() => import("./pages/avivar/AvivarFollowUp"));
 const AvivarCatalog = lazy(() => import("./pages/avivar/AvivarCatalog"));
 const AvivarProductivity = lazy(() => import("./pages/avivar/AvivarProductivity"));
 const AvivarSidebar = lazy(() => import("./pages/avivar/AvivarSidebar"));
-const OnboardingBlocker = lazy(() => import("./pages/avivar/onboarding").then(m => ({ default: m.OnboardingBlocker })));
+
 const AvivarSimpleWizard = lazy(() => import("./pages/avivar/config/AvivarSimpleWizard"));
 const AvivarKnowledge = lazy(() => import("./pages/avivar/config/AvivarKnowledge"));
 const AvivarPromptPreview = lazy(() => import("./pages/avivar/config/AvivarPromptPreview"));
@@ -570,7 +570,6 @@ function AvivarRoutes() {
   return (
     <ProfileGuard allowedProfiles={['cliente_avivar', 'administrador']}>
       <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#0a0612]"><Loader2 className="h-8 w-8 animate-spin text-purple-400" /></div>}>
-        <OnboardingBlocker>
           <AvivarSidebar>
             <Routes>
               <Route index element={<AvivarDashboard />} />
@@ -610,7 +609,6 @@ function AvivarRoutes() {
               <Route path="*" element={<Navigate to="/avivar" replace />} />
             </Routes>
           </AvivarSidebar>
-        </OnboardingBlocker>
       </Suspense>
     </ProfileGuard>
   );
