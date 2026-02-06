@@ -134,9 +134,9 @@ function parseTags(raw: string): string[] {
   
   if (raw.includes(',') || raw.includes(';') || raw.includes('|')) {
     tags = raw.split(/[,;|]/).map(t => t.trim());
-  } else if (raw.startsWith('#')) {
-    // Hashtag-style: "#TAG1#TAG2" or just "#TAG"
-    tags = raw.split('#').map(t => t.trim());
+  } else if (raw.includes('#')) {
+    // Hashtag-style: "#TAG1#TAG2" or just "#TAG" — preserve the #
+    tags = raw.match(/#[^#,;|]+/g)?.map(t => t.trim()) || [raw.trim()];
   } else {
     // Single value
     tags = [raw.trim()];
