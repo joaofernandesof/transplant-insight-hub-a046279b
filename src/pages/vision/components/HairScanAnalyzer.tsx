@@ -751,7 +751,7 @@ export default function HairScanAnalyzer({ onBack }: HairScanAnalyzerProps) {
                         size="lg"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        className="border-purple-400 text-white hover:bg-purple-500/20"
+                        className="border-purple-400 text-slate-800 bg-white/90 hover:bg-purple-500/20 hover:text-white"
                       >
                         <Upload className="h-5 w-5 mr-2" />
                         Upload de Foto
