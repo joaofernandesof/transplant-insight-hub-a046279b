@@ -9,7 +9,7 @@ const corsHeaders = {
 /**
  * UazAPI Webhook Handler
  * Recebe eventos de mensagens do WhatsApp via UazAPI e sincroniza com o CRM Avivar
- * 
+ *
  * Eventos suportados:
  * - messages.upsert: Nova mensagem recebida/enviada
  * - connection.update: Atualização de status da conexão
@@ -105,7 +105,7 @@ interface UazAPINativeMessage {
   id: string;
   messageid?: string;
   text?: string;
-  content?: { 
+  content?: {
     text?: string;
     URL?: string;
     mimetype?: string;
@@ -134,30 +134,30 @@ async function downloadMediaFromUazAPI(
   uazapiUrl: string,
   instanceToken: string,
   messageId: string,
-  mediaType: string
+  mediaType: string,
 ): Promise<{ fileURL: string | null; transcription: string | null }> {
   try {
     console.log(`[UazAPI Webhook] 📥 Downloading media via /message/download, messageId: ${messageId}`);
-    
+
     // Prepare request body according to UazAPI documentation
     const requestBody: Record<string, unknown> = {
       id: messageId,
       return_link: true, // Get public URL
       return_base64: false, // We don't need base64 if we have URL
     };
-    
+
     // For audio, request MP3 format (better browser compatibility)
     if (mediaType === "audio" || mediaType === "ptt") {
       requestBody.generate_mp3 = true;
     }
-    
+
     console.log(`[UazAPI Webhook] Request body:`, JSON.stringify(requestBody));
-    
+
     const downloadResponse = await fetch(`${uazapiUrl}/message/download`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "token": instanceToken,
+        token: instanceToken,
       },
       body: JSON.stringify(requestBody),
     });
@@ -170,17 +170,17 @@ async function downloadMediaFromUazAPI(
 
     const data = await downloadResponse.json();
     console.log(`[UazAPI Webhook] Download response:`, JSON.stringify(data).substring(0, 500));
-    
+
     // UazAPI returns: { fileURL, mimetype, base64Data?, transcription? }
     const fileURL = data.fileURL || data.fileUrl || data.url || null;
     const transcription = data.transcription || null;
-    
+
     if (fileURL) {
       console.log(`[UazAPI Webhook] ✅ Media downloaded successfully: ${fileURL.substring(0, 80)}...`);
     } else {
       console.log(`[UazAPI Webhook] ⚠️ No fileURL in response`);
     }
-    
+
     return { fileURL, transcription };
   } catch (error) {
     console.error("[UazAPI Webhook] Error downloading media:", error);
@@ -299,14 +299,16 @@ serve(async (req) => {
     const requestToken = req.headers.get("x-uazapi-token");
     if (uazapiToken && requestToken && requestToken !== uazapiToken) {
       console.error("[UazAPI Webhook] Invalid token provided - rejecting request");
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-    
+
     // Log headers for debugging webhook delivery issues
-    console.log(`[UazAPI Webhook] Method: ${req.method}, Headers: token=${requestToken ? 'present' : 'absent'}, content-type=${req.headers.get('content-type')}`);
+    console.log(
+      `[UazAPI Webhook] Method: ${req.method}, Headers: token=${requestToken ? "present" : "absent"}, content-type=${req.headers.get("content-type")}`,
+    );
 
     // Parse request body
     const payload: UazAPIPayload = await req.json();
@@ -338,37 +340,41 @@ serve(async (req) => {
         }
         // Format 3: Single message in payload.data
         else if (payload.data?.key) {
-          messages = [{
-            key: payload.data.key,
-            pushName: payload.data.pushName,
-            message: payload.data.message,
-            messageTimestamp: payload.data.messageTimestamp,
-            status: payload.data.status,
-          }];
+          messages = [
+            {
+              key: payload.data.key,
+              pushName: payload.data.pushName,
+              message: payload.data.message,
+              messageTimestamp: payload.data.messageTimestamp,
+              status: payload.data.status,
+            },
+          ];
         }
         // Format 4: Single message directly in payload
         else if (payload.key) {
-          messages = [{
-            key: payload.key,
-            pushName: payload.pushName,
-            message: payload.message as UazAPIMessage["message"],
-            messageTimestamp: payload.messageTimestamp,
-          }];
+          messages = [
+            {
+              key: payload.key,
+              pushName: payload.pushName,
+              message: payload.message as UazAPIMessage["message"],
+              messageTimestamp: payload.messageTimestamp,
+            },
+          ];
         }
         // Format 5: UazAPI native format - single message in payload.message
         else if (payload.message && "chatid" in payload.message) {
           const msg = payload.message as UazAPINativeMessage;
-          
+
           // Determine message content based on type
           let messageContent: UazAPIMessage["message"] | undefined;
           let nativeMediaContent: UazAPINativeMessage["content"] | undefined;
-          
+
           // Check if it's a media message (audio, image, video, document)
           if (msg.type === "media" || msg.mediaType) {
             const mediaType = msg.mediaType || "";
             const mediaUrl = msg.content?.URL || null;
             nativeMediaContent = msg.content; // Preserve for download later
-            
+
             if (mediaType === "ptt" || mediaType === "audio" || msg.messageType === "AudioMessage") {
               // Audio/PTT message
               messageContent = {
@@ -377,7 +383,9 @@ serve(async (req) => {
                   mimetype: msg.content?.mimetype,
                 },
               };
-              console.log(`[UazAPI Webhook] 🎤 Audio message detected, URL: ${mediaUrl?.substring(0, 50)}..., has mediaKey: ${!!msg.content?.mediaKey}`);
+              console.log(
+                `[UazAPI Webhook] 🎤 Audio message detected, URL: ${mediaUrl?.substring(0, 50)}..., has mediaKey: ${!!msg.content?.mediaKey}`,
+              );
             } else if (mediaType === "image" || msg.messageType === "ImageMessage") {
               // Image message
               messageContent = {
@@ -422,7 +430,7 @@ serve(async (req) => {
               conversation: msg.text || msg.content?.text,
             };
           }
-          
+
           // Store native media content for download processing
           const msgWithMedia = {
             key: {
@@ -436,7 +444,7 @@ serve(async (req) => {
             _nativeMediaContent: nativeMediaContent, // Custom field for media download
             _nativeMediaType: msg.mediaType,
           } as UazAPIMessage & { _nativeMediaContent?: typeof nativeMediaContent; _nativeMediaType?: string };
-          
+
           messages = [msgWithMedia];
         }
 
@@ -468,9 +476,8 @@ serve(async (req) => {
           // If the value is > 10 billion, it's already in ms. Otherwise, it's in seconds.
           let timestampMs: number;
           if (msg.messageTimestamp) {
-            const rawTs = typeof msg.messageTimestamp === "string"
-              ? parseInt(msg.messageTimestamp)
-              : msg.messageTimestamp;
+            const rawTs =
+              typeof msg.messageTimestamp === "string" ? parseInt(msg.messageTimestamp) : msg.messageTimestamp;
             // If > 10 billion, already in ms; else in seconds
             timestampMs = rawTs > 10000000000 ? rawTs : rawTs * 1000;
           } else {
@@ -478,30 +485,35 @@ serve(async (req) => {
           }
           const timestamp = new Date(timestampMs).toISOString();
 
-          console.log(`[UazAPI Webhook] Message: ${msg.key.fromMe ? "OUT" : "IN"} | Phone: ${phone} | Content: ${content?.substring(0, 50)}... | MediaType: ${mediaType}`);
+          console.log(
+            `[UazAPI Webhook] Message: ${msg.key.fromMe ? "OUT" : "IN"} | Phone: ${phone} | Content: ${content?.substring(0, 50)}... | MediaType: ${mediaType}`,
+          );
 
           // 🎵 MEDIA DOWNLOAD: If this is a media message, download from UazAPI to get a playable URL
           // WhatsApp media URLs are encrypted and only accessible via UazAPI /message/download
           const baseUrl = payload.BaseUrl || `https://${instanceName?.split("-")[0] || "neofolic"}.uazapi.com`;
           const instanceToken = payload.token || Deno.env.get("UAZAPI_TOKEN") || "";
-          
-          if (mediaType && (mediaType === "audio" || mediaType === "image" || mediaType === "video" || mediaType === "document")) {
+
+          if (
+            mediaType &&
+            (mediaType === "audio" || mediaType === "image" || mediaType === "video" || mediaType === "document")
+          ) {
             console.log(`[UazAPI Webhook] 🎵 Media message detected (${mediaType}), downloading from UazAPI...`);
-            
+
             const { fileURL, transcription } = await downloadMediaFromUazAPI(
               baseUrl,
               instanceToken,
               msg.key.id,
-              mediaType
+              mediaType,
             );
-            
+
             if (fileURL) {
               mediaUrl = fileURL;
               console.log(`[UazAPI Webhook] ✅ Media URL updated to: ${fileURL.substring(0, 80)}...`);
             } else {
               console.log(`[UazAPI Webhook] ⚠️ Could not download media, keeping original URL`);
             }
-            
+
             // If transcription was returned (for audio with OpenAI key configured in UazAPI)
             if (transcription && mediaType === "audio") {
               content = `[Áudio transcrito]: ${transcription}`;
@@ -511,12 +523,11 @@ serve(async (req) => {
 
           // Find the user/clinic that owns this WhatsApp instance
           // Check both tables: avivar_uazapi_instances (new) and avivar_whatsapp_sessions (legacy)
-          
+
           let userId: string | null = null;
           let sessionId: string | null = null;
-          let accountId: string | null = null; // Multi-tenant account_id
           let isLegacySession = false; // Track if this is a legacy session (avivar_whatsapp_sessions)
-          
+
           // Try 1: Check avivar_uazapi_instances (new provisioning flow)
           let uazapiQuery = supabase
             .from("avivar_uazapi_instances")
@@ -541,16 +552,6 @@ serve(async (req) => {
             sessionId = uazapiInstance.id;
             isLegacySession = false;
             console.log(`[UazAPI Webhook] Found UazAPI instance: ${uazapiInstance.instance_name} for user: ${userId}`);
-            
-            // Resolve account_id from member
-            const { data: memberData } = await supabase
-              .from("avivar_account_members")
-              .select("account_id")
-              .eq("user_id", userId)
-              .eq("is_active", true)
-              .limit(1)
-              .maybeSingle();
-            accountId = memberData?.account_id || null;
           } else {
             // Try 2: Check avivar_whatsapp_sessions (legacy flow)
             let sessionQuery = supabase
@@ -575,22 +576,12 @@ serve(async (req) => {
               sessionId = session.id;
               isLegacySession = true;
               console.log(`[UazAPI Webhook] Found legacy session: ${session.id} for user: ${userId}`);
-              
-              // Resolve account_id from member
-              const { data: memberData } = await supabase
-                .from("avivar_account_members")
-                .select("account_id")
-                .eq("user_id", userId)
-                .eq("is_active", true)
-                .limit(1)
-                .maybeSingle();
-              accountId = memberData?.account_id || null;
             }
           }
 
-          if (!userId || !accountId) {
+          if (!userId) {
             console.log(
-              `[UazAPI Webhook] No WhatsApp instance/session found (or no account) for instance=${instanceName ?? "(none)"} owner=${payload.owner ?? "(none)"}. userId=${userId}, accountId=${accountId}. Skipping message.`
+              `[UazAPI Webhook] No WhatsApp instance/session found for instance=${instanceName ?? "(none)"} owner=${payload.owner ?? "(none)"}. Skipping message.`,
             );
             continue;
           }
@@ -612,24 +603,22 @@ serve(async (req) => {
 
           // Only insert to avivar_whatsapp_messages for legacy sessions (FK constraint issue)
           if (!existingMsg && isLegacySession && sessionId) {
-            const { error: msgError } = await supabase
-              .from("avivar_whatsapp_messages")
-              .insert({
-                session_id: sessionId,
-                user_id: userId,
-                message_id: msg.key.id,
-                remote_jid: msg.key.remoteJid,
-                from_me: msg.key.fromMe,
-                contact_name: msg.pushName || null,
-                contact_phone: phone,
-                content,
-                media_type: mediaType,
-                media_url: mediaUrl,
-                timestamp,
-                status: msg.key.fromMe ? "sent" : "received",
-                is_group: isGroupChat,
-                synced_to_crm: false,
-              });
+            const { error: msgError } = await supabase.from("avivar_whatsapp_messages").insert({
+              session_id: sessionId,
+              user_id: userId,
+              message_id: msg.key.id,
+              remote_jid: msg.key.remoteJid,
+              from_me: msg.key.fromMe,
+              contact_name: msg.pushName || null,
+              contact_phone: phone,
+              content,
+              media_type: mediaType,
+              media_url: mediaUrl,
+              timestamp,
+              status: msg.key.fromMe ? "sent" : "received",
+              is_group: isGroupChat,
+              synced_to_crm: false,
+            });
 
             if (msgError) {
               console.error("[UazAPI Webhook] Error storing WhatsApp message:", msgError);
@@ -638,13 +627,12 @@ serve(async (req) => {
 
           // 2. Sync to CRM (avivar_conversas + avivar_mensagens)
           // Get or create conversation using RPC
-          const { data: conversaId, error: conversaError } = await supabase
-            .rpc("get_or_create_avivar_conversa", {
-              p_user_id: userId,
-              p_numero: phone,
-              p_conversa_id: msg.key.remoteJid,
-              p_nome_contato: msg.pushName || null,
-            });
+          const { data: conversaId, error: conversaError } = await supabase.rpc("get_or_create_avivar_conversa", {
+            p_user_id: userId,
+            p_numero: phone,
+            p_conversa_id: msg.key.remoteJid,
+            p_nome_contato: msg.pushName || null,
+          });
 
           if (conversaError) {
             console.error("[UazAPI Webhook] Error getting/creating conversa:", conversaError);
@@ -661,27 +649,24 @@ serve(async (req) => {
 
           if (!existingCrmMsg) {
             // 4. Insert message into avivar_mensagens
-            const { error: mensagemError } = await supabase
-              .from("avivar_mensagens")
-              .insert({
-                conversa_id: conversaId,
-                account_id: accountId,
-                numero: phone,
-                nome_contato: msg.pushName || null,
-                mensagem: content,
-                direcao: msg.key.fromMe ? "saida" : "entrada",
-                data_hora: timestamp,
-                // Must match CHECK constraint on avivar_mensagens_tipo_mensagem_check
-                tipo_mensagem: mapAvivarTipoMensagem(mediaType),
-                url_arquivo: mediaUrl,
-                lida: msg.key.fromMe, // Outgoing messages are already "read"
-                metadata: {
-                  message_id: msg.key.id,
-                  remote_jid: msg.key.remoteJid,
-                  is_group: isGroupChat,
-                  source: "uazapi",
-                },
-              });
+            const { error: mensagemError } = await supabase.from("avivar_mensagens").insert({
+              conversa_id: conversaId,
+              numero: phone,
+              nome_contato: msg.pushName || null,
+              mensagem: content,
+              direcao: msg.key.fromMe ? "saida" : "entrada",
+              data_hora: timestamp,
+              // Must match CHECK constraint on avivar_mensagens_tipo_mensagem_check
+              tipo_mensagem: mapAvivarTipoMensagem(mediaType),
+              url_arquivo: mediaUrl,
+              lida: msg.key.fromMe, // Outgoing messages are already "read"
+              metadata: {
+                message_id: msg.key.id,
+                remote_jid: msg.key.remoteJid,
+                is_group: isGroupChat,
+                source: "uazapi",
+              },
+            });
 
             if (mensagemError) {
               console.error("[UazAPI Webhook] Error storing CRM message:", mensagemError);
@@ -732,7 +717,6 @@ serve(async (req) => {
                   name: leadName,
                   phone,
                   source: "whatsapp",
-                  account_id: accountId,
                 })
                 .select("id")
                 .single();
@@ -790,7 +774,6 @@ serve(async (req) => {
                     last_message_at: timestamp,
                     unread_count: msg.key.fromMe ? 0 : 1,
                     assigned_to: userId,
-                    account_id: accountId,
                   })
                   .select("id")
                   .single();
@@ -804,22 +787,17 @@ serve(async (req) => {
               }
 
               if (crmConversationId) {
-                const { error: crmMessageError } = await supabase
-                  .from("crm_messages")
-                  .insert({
-                    conversation_id: crmConversationId,
-                    direction: msg.key.fromMe ? "outbound" : "inbound",
-                    content,
-                    media_url: mediaUrl,
-                    media_type: mapCrmMediaType(mediaType),
-                    sent_at: timestamp,
-                    sender_name: msg.key.fromMe
-                      ? "Operador"
-                      : (msg.pushName || null),
-                    account_id: accountId,
-                  });
+                const { error: crmMessageError } = await supabase.from("crm_messages").insert({
+                  conversation_id: crmConversationId,
+                  direction: msg.key.fromMe ? "outbound" : "inbound",
+                  content,
+                  media_url: mediaUrl,
+                  media_type: mapCrmMediaType(mediaType),
+                  sent_at: timestamp,
+                  sender_name: msg.key.fromMe ? "Operador" : msg.pushName || null,
+                });
 
-              if (crmMessageError) {
+                if (crmMessageError) {
                   console.error("[UazAPI Webhook] Error inserting crm_message:", crmMessageError);
                 } else {
                   syncedToInbox = true;
@@ -842,7 +820,9 @@ serve(async (req) => {
                       if (cancelError) {
                         console.error("[UazAPI Webhook] Error cancelling follow-ups:", cancelError);
                       } else if (cancelledFollowups && cancelledFollowups.length > 0) {
-                        console.log(`[UazAPI Webhook] ⏹️ Cancelled ${cancelledFollowups.length} follow-up(s) for conversation ${crmConversationId}`);
+                        console.log(
+                          `[UazAPI Webhook] ⏹️ Cancelled ${cancelledFollowups.length} follow-up(s) for conversation ${crmConversationId}`,
+                        );
                       }
                     } catch (cancelFollowupError) {
                       console.error("[UazAPI Webhook] Error in follow-up cancellation:", cancelFollowupError);
@@ -850,29 +830,34 @@ serve(async (req) => {
 
                     try {
                       console.log(`[UazAPI Webhook] Checking debounce for conversation ${crmConversationId}`);
-                      
+
                       // Generate a new batch ID
                       const newBatchId = crypto.randomUUID();
-                      const pendingUntil = new Date(Date.now() + 30000).toISOString(); // 30 seconds from now
-                      
+                      const pendingUntil = new Date(Date.now() + 5000).toISOString(); // 30 seconds from now
+
                       // Check if there's already a pending batch for this conversation
                       const { data: currentConv } = await supabase
                         .from("crm_conversations")
                         .select("pending_batch_id, pending_until")
                         .eq("id", crmConversationId)
                         .single();
-                      
+
                       const now = new Date();
-                      const existingPendingUntil = currentConv?.pending_until ? new Date(currentConv.pending_until) : null;
-                      
+                      const existingPendingUntil = currentConv?.pending_until
+                        ? new Date(currentConv.pending_until)
+                        : null;
+
                       // A batch is only "active" if it exists AND its pending_until hasn't passed yet
                       // If pending_until has passed, the debounce processor has likely finished or failed
-                      const hasPendingBatch = currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil > now;
-                      
+                      const hasPendingBatch =
+                        currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil > now;
+
                       if (hasPendingBatch) {
                         // Extend the pending window - update pending_until
                         // The debounce processor will see the extension and wait
-                        console.log(`[UazAPI Webhook] Extending debounce window for batch ${currentConv.pending_batch_id}`);
+                        console.log(
+                          `[UazAPI Webhook] Extending debounce window for batch ${currentConv.pending_batch_id}`,
+                        );
                         await supabase
                           .from("crm_conversations")
                           .update({ pending_until: pendingUntil })
@@ -881,18 +866,22 @@ serve(async (req) => {
                         // Either no batch exists OR the old batch expired (processor finished/failed)
                         // In both cases, we need to start a fresh batch and processor
                         if (currentConv?.pending_batch_id && existingPendingUntil && existingPendingUntil <= now) {
-                          console.log(`[UazAPI Webhook] ⚠️ Old batch ${currentConv.pending_batch_id} expired at ${existingPendingUntil.toISOString()}, starting fresh`);
+                          console.log(
+                            `[UazAPI Webhook] ⚠️ Old batch ${currentConv.pending_batch_id} expired at ${existingPendingUntil.toISOString()}, starting fresh`,
+                          );
                         }
-                        console.log(`[UazAPI Webhook] Creating new debounce batch ${newBatchId}, will process at ${pendingUntil}`);
-                        
+                        console.log(
+                          `[UazAPI Webhook] Creating new debounce batch ${newBatchId}, will process at ${pendingUntil}`,
+                        );
+
                         await supabase
                           .from("crm_conversations")
-                          .update({ 
+                          .update({
                             pending_batch_id: newBatchId,
-                            pending_until: pendingUntil 
+                            pending_until: pendingUntil,
                           })
                           .eq("id", crmConversationId);
-                        
+
                         // Call the debounce processor as a separate edge function
                         // We *await* only the startup ACK (the processor returns immediately),
                         // ensuring the request is actually dispatched before this webhook finishes.
@@ -956,16 +945,14 @@ serve(async (req) => {
             if (!existingLead) {
               // Create a new lead automatically
               const contactName = msg.pushName || `WhatsApp ${phone}`;
-              const { error: leadError } = await supabase
-                .from("avivar_patient_journeys")
-                .insert({
-                  user_id: userId,
-                  account_id: accountId,
-                  patient_name: contactName,
-                  patient_phone: phone,
-                  lead_source: "whatsapp",
-                  notes: `Lead criado automaticamente via WhatsApp em ${new Date().toLocaleDateString("pt-BR")}`,
-                });
+              const { error: leadError } = await supabase.from("avivar_patient_journeys").insert({
+                user_id: userId,
+                patient_name: contactName,
+                patient_phone: phone,
+                // Leave enums omitted to use DB defaults (avoids invalid enum values)
+                lead_source: "whatsapp",
+                notes: `Lead criado automaticamente via WhatsApp em ${new Date().toLocaleDateString("pt-BR")}`,
+              });
 
               if (leadError) {
                 console.error("[UazAPI Webhook] Error creating lead:", leadError);
@@ -981,12 +968,11 @@ serve(async (req) => {
             const contactName = msg.pushName || null;
 
             // Step 6a: Get or create contact using RPC
-            const { data: contactId, error: contactError } = await supabase
-              .rpc("get_or_create_avivar_contact", {
-                p_user_id: userId,
-                p_phone: phone,
-                p_name: contactName,
-              });
+            const { data: contactId, error: contactError } = await supabase.rpc("get_or_create_avivar_contact", {
+              p_user_id: userId,
+              p_phone: phone,
+              p_name: contactName,
+            });
 
             if (contactError) {
               console.error("[UazAPI Webhook] Error creating avivar_contact:", contactError);
@@ -1026,18 +1012,15 @@ serve(async (req) => {
 
                   if (firstColumn) {
                     // Step 6d: Create the kanban lead
-                    const { error: kanbanLeadError } = await supabase
-                      .from("avivar_kanban_leads")
-                      .insert({
-                        user_id: userId,
-                        account_id: accountId,
-                        kanban_id: firstKanban.id,
-                        column_id: firstColumn.id,
-                        contact_id: contactId,
-                        name: contactName || `WhatsApp ${phone}`,
-                        phone,
-                        source: "whatsapp_auto",
-                      });
+                    const { error: kanbanLeadError } = await supabase.from("avivar_kanban_leads").insert({
+                      user_id: userId,
+                      kanban_id: firstKanban.id,
+                      column_id: firstColumn.id,
+                      contact_id: contactId,
+                      name: contactName || `WhatsApp ${phone}`,
+                      phone,
+                      source: "whatsapp_auto",
+                    });
 
                     if (kanbanLeadError) {
                       console.error("[UazAPI Webhook] Error creating kanban lead:", kanbanLeadError);
@@ -1080,18 +1063,16 @@ serve(async (req) => {
                 })
                 .eq("id", existingContact.id);
             } else {
-              await supabase
-                .from("avivar_whatsapp_contacts")
-                .insert({
-                  session_id: sessionId!,
-                  user_id: userId,
-                  jid: msg.key.remoteJid,
-                  phone,
-                  name: null,
-                  push_name: msg.pushName || null,
-                  last_message_at: timestamp,
-                  unread_count: 1,
-                });
+              await supabase.from("avivar_whatsapp_contacts").insert({
+                session_id: sessionId!,
+                user_id: userId,
+                jid: msg.key.remoteJid,
+                phone,
+                name: null,
+                push_name: msg.pushName || null,
+                last_message_at: timestamp,
+                unread_count: 1,
+              });
             }
           }
         }
@@ -1146,15 +1127,14 @@ serve(async (req) => {
     const duration = Date.now() - startTime;
     console.log(`[UazAPI Webhook] Completed in ${duration}ms`);
 
-    return new Response(
-      JSON.stringify({ success: true, duration }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: true, duration }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("[UazAPI Webhook] Error:", error);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
