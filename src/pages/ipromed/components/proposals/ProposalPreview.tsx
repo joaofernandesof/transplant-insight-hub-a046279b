@@ -27,12 +27,13 @@ const SERVICE_LABELS: Record<string, string> = {
   audiencias: "Acompanhamento em audiências",
   processos_3: "Até 3 processos concomitantes",
   atendimento: "Atendimento contínuo e estratégico",
-  contratos: "Análise e revisão de contratos",
+  contratos: "Análise e revisão de contratos médicos",
   defesa_criminal: "Defesa criminal médica",
   defesa_admin: "Defesa administrativa (Vigilância, ANS)",
   gestao_crise: "Gestão de crise e reputação",
   parecer: "Parecer jurídico técnico",
-  processos_ilimitados: "Processos ilimitados",
+  processos_ilimitados: "Processos concomitantes ilimitados",
+  documentacao_inclusa: "Documentação Jurídica Preventiva inclusa",
 };
 
 const DOCUMENT_LABELS: Record<string, string> = {
