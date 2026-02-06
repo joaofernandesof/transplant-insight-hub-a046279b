@@ -10,14 +10,177 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de Tarefas Validadas | 11 |
-| Aprovadas | 11 |
+| Total de Tarefas Validadas | 17 |
+| Aprovadas | 17 |
 | Reprovadas | 0 |
-| Última Atualização | 2026-01-27 |
+| Última Atualização | 2026-02-06 |
 
 ---
 
 ## 🗂️ Registro de Validações
+
+### 2026-02-06
+
+#### ✅ QA-017: Resiliência e Debugging do Wizard de Agentes
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Avivar / Config |
+| **Descrição** | Adição de logging de debug e tratamento de erro RLS específico no fluxo de criação/edição de agentes |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-02-06 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Logging `[AgentSave]` adicionado antes de insert/update com payload (user_id, account_id, name)
+- [x] Tratamento de erro RLS específico com mensagem orientando logout/login
+- [x] Correção de useEffect no fluxo do wizard para evitar loops
+- [x] Injeção de `account_id` em knowledge document inserts
+- [x] Mensagem de erro amigável para falhas de permissão
+
+**Observações:**
+- Erro em produção causado por build publicado desatualizado (frontend sem `account_id` no payload)
+- Solução: republicar + logging para diagnóstico em produção
+
+---
+
+### 2026-02-05
+
+#### ✅ QA-016: Redesign Dashboard HotLeads
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Frontend / CRM |
+| **Descrição** | Redesign completo do dashboard de Hot Leads com layout responsivo e novas funcionalidades |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-02-05 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Layout 3 colunas responsivo (lista, detalhes, chat)
+- [x] Máscara de privacidade em dados sensíveis (telefone, email)
+- [x] Paginação infinita na lista de leads
+- [x] Navegação card → chat funcional
+- [x] Filtros por status e período
+
+**Observações:**
+- Melhora significativa na UX para gestores comerciais
+- Componentes separados para cada coluna (lista, detalhes, chat)
+
+---
+
+### 2026-02-04
+
+#### ✅ QA-015: Sistema Universal de Checklists (Funil Comercial)
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Shared / Kanban |
+| **Descrição** | Implementação de checklists universais por Kanban com campos personalizados e bloqueio de movimentação |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-02-04 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Componente `ChecklistUniversal` criado com suporte a múltiplos tipos de campo
+- [x] Editor de campos com tipos: Texto, Numérico, Multisseleção, Data, Arquivo, URL
+- [x] Persistência multi-tenant via `account_id`
+- [x] Bloqueio de movimentação no Kanban via RPC `can_move_lead_to_column`
+- [x] Configuração de campos obrigatórios por coluna via `KanbanColumnSelector`
+- [x] URLs clicáveis com validação automática de protocolo
+
+**Observações:**
+- Alterações na estrutura dos campos aplicam-se a todos os leads do mesmo quadro
+- Suporte a upload de arquivos até 10MB por campo
+
+---
+
+### 2026-02-01
+
+#### ✅ QA-014: Processador de Debounce (Mensagens em Lote)
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Backend / Performance |
+| **Descrição** | Edge function para agrupamento de mensagens WhatsApp com buffer de 30 segundos |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-02-01 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Edge function `avivar-debounce-processor` criada e deployada
+- [x] Buffer de 30 segundos para agrupar mensagens consecutivas
+- [x] Batching de mensagens antes de enviar para o agente de IA
+- [x] Tratamento de erro 404 para leads/conversas não encontradas
+- [x] `EdgeRuntime.waitUntil` para processamento em background
+- [x] ACK 200 imediato para o webhook da UazAPI
+
+**Observações:**
+- Reduz chamadas à IA agrupando mensagens rápidas do mesmo lead
+- Recuperação automática de batches expirados ou travados
+
+---
+
+#### ✅ QA-013: Suporte Multimídia e Ferramentas de Fluxo no AI Agent
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | AI / Edge Functions |
+| **Descrição** | Implementação de ferramenta de envio de mídia e suporte a múltiplos formatos no agente de IA |
+| **Tipo de Teste** | Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-02-01 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Ferramenta `send_fluxo_media` implementada no agente de IA
+- [x] Regras de prompt para envio silencioso (sem mencionar o anexo no texto)
+- [x] Integração com uazapi-webhook para envio de mídias
+- [x] Suporte a formatos .mp3, .mp4, .pdf, imagens
+- [x] Galeria de mídia categorizada (Antes/Depois, Catálogo, Localização, Geral, Vídeos)
+
+**Observações:**
+- A IA é proibida de mencionar o envio de mídia na resposta de texto
+- Busca de mídia utiliza correspondência estrita de legendas com expansão de sinônimos
+
+---
+
+### 2026-01-28
+
+#### ✅ QA-012: Arquitetura Multi-tenant Fase 1 - Avivar
+
+| Campo | Valor |
+|-------|-------|
+| **Módulo** | Core / Database |
+| **Descrição** | Implementação da arquitetura multi-tenant para isolamento de dados entre empresas no portal Avivar |
+| **Tipo de Teste** | Automatizado (Linter RLS) + Manual |
+| **Status** | ✔ Aprovado |
+| **Data** | 2026-01-28 |
+| **Responsável** | Lovable AI |
+| **Ref. Roadmap** | N/A |
+
+**Validações Realizadas:**
+- [x] Tabelas `avivar_accounts` e `avivar_account_members` criadas com RLS
+- [x] Coluna `account_id` adicionada em 28+ tabelas operacionais
+- [x] Função RPC `get_user_avivar_account_id` criada como SECURITY DEFINER
+- [x] Políticas RLS atualizadas para isolamento por `account_id`
+- [x] Super Admin (`adm@neofolic.com.br`) com acesso global via `is_avivar_super_admin`
+- [x] Prevenção de recursão infinita em RLS com SECURITY DEFINER
+
+**Observações:**
+- Política híbrida na tabela `leads`: multi-tenant quando `account_id` preenchido, legado quando nulo
+- Compatibilidade mantida entre portais Avivar e CPG/NeoHub
+
+---
 
 ### 2026-01-27
 
