@@ -526,6 +526,7 @@ serve(async (req) => {
 
           let userId: string | null = null;
           let sessionId: string | null = null;
+          let accountId: string | null = null;
           let isLegacySession = false; // Track if this is a legacy session (avivar_whatsapp_sessions)
 
           // Try 1: Check avivar_uazapi_instances (new provisioning flow)
@@ -584,6 +585,23 @@ serve(async (req) => {
               `[UazAPI Webhook] No WhatsApp instance/session found for instance=${instanceName ?? "(none)"} owner=${payload.owner ?? "(none)"}. Skipping message.`,
             );
             continue;
+          }
+
+          // Resolve account_id for multi-tenant isolation
+          const { data: accountData } = await supabase
+            .from("avivar_account_members")
+            .select("account_id")
+            .eq("user_id", userId)
+            .eq("is_active", true)
+            .limit(1)
+            .maybeSingle();
+
+          accountId = accountData?.account_id || null;
+
+          if (!accountId) {
+            console.error(`[UazAPI Webhook] ⚠️ No account_id found for user ${userId}. Multi-tenant insert will fail.`);
+          } else {
+            console.log(`[UazAPI Webhook] Resolved account_id: ${accountId}`);
           }
 
           // 1. Store in avivar_whatsapp_messages (raw message storage)
@@ -650,6 +668,7 @@ serve(async (req) => {
           if (!existingCrmMsg) {
             // 4. Insert message into avivar_mensagens
             const { error: mensagemError } = await supabase.from("avivar_mensagens").insert({
+              account_id: accountId,
               conversa_id: conversaId,
               numero: phone,
               nome_contato: msg.pushName || null,
@@ -714,6 +733,7 @@ serve(async (req) => {
               const { data: createdLead, error: leadCreateError } = await supabase
                 .from("leads")
                 .insert({
+                  account_id: accountId,
                   name: leadName,
                   phone,
                   source: "whatsapp",
@@ -768,6 +788,7 @@ serve(async (req) => {
                 const { data: createdConversation, error: crmConvCreateError } = await supabase
                   .from("crm_conversations")
                   .insert({
+                    account_id: accountId,
                     lead_id: leadId,
                     channel: "whatsapp",
                     status: "pending",
@@ -788,6 +809,7 @@ serve(async (req) => {
 
               if (crmConversationId) {
                 const { error: crmMessageError } = await supabase.from("crm_messages").insert({
+                  account_id: accountId,
                   conversation_id: crmConversationId,
                   direction: msg.key.fromMe ? "outbound" : "inbound",
                   content,
@@ -946,6 +968,7 @@ serve(async (req) => {
               // Create a new lead automatically
               const contactName = msg.pushName || `WhatsApp ${phone}`;
               const { error: leadError } = await supabase.from("avivar_patient_journeys").insert({
+                account_id: accountId,
                 user_id: userId,
                 patient_name: contactName,
                 patient_phone: phone,
@@ -1013,6 +1036,7 @@ serve(async (req) => {
                   if (firstColumn) {
                     // Step 6d: Create the kanban lead
                     const { error: kanbanLeadError } = await supabase.from("avivar_kanban_leads").insert({
+                      account_id: accountId,
                       user_id: userId,
                       kanban_id: firstKanban.id,
                       column_id: firstColumn.id,
