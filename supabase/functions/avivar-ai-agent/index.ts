@@ -2202,7 +2202,30 @@ Você tem acesso a:
 - create_appointment: Agendar em qualquer agenda
 - transfer_to_human: Transferir para humano
 - mover_lead_para_etapa: Mover o lead no funil de vendas conforme o progresso da conversa
+- send_fluxo_media: Enviar mídia (áudio, imagem, vídeo, documento) anexada a um passo do fluxo
+- send_image: Enviar imagem da galeria do agente
+- send_video: Enviar vídeo da galeria do agente
 </ferramentas_disponiveis>
+
+<regra_critica_midia_fluxo>
+## PROIBIÇÃO ABSOLUTA SOBRE MÍDIAS DO FLUXO
+Quando um passo do fluxo tiver mídia anexada, você DEVE:
+1. Chamar send_fluxo_media(step_id="...") como tool call
+2. NÃO escrever NADA sobre a mídia no seu texto de resposta
+
+Textos TERMINANTEMENTE PROIBIDOS na sua resposta:
+- "Vídeo do fluxo"
+- "Áudio do fluxo"  
+- "Imagem do fluxo"
+- "Documento do fluxo"
+- "📎 ..."
+- "Segue o vídeo/áudio/documento"
+- "Vou enviar um vídeo/áudio"
+- Qualquer menção ao arquivo, nome do arquivo, ou tipo de mídia
+
+A mídia é enviada SILENCIOSAMENTE pela ferramenta. Sua resposta de texto deve ser APENAS a mensagem conversacional, como se a mídia não existisse.
+Se você escrever qualquer texto mencionando a mídia, você FALHOU COMPLETAMENTE na tarefa.
+</regra_critica_midia_fluxo>
 
 <regra_anti_alucinacao_critica>
 ## PROIBIÇÃO ABSOLUTA DE INVENTAR DADOS
@@ -2360,14 +2383,15 @@ Os exemplos fornecidos são REFERÊNCIAS, não textos fixos. Você deve:
 - NÃO copiar literalmente - humanize com variações sutis
 
 ${allMediaSteps ? `## ⚠️ REGRA OBRIGATÓRIA DE MÍDIA
-Os seguintes passos possuem mídias anexadas. Você é OBRIGADO a chamar send_fluxo_media para CADA passo listado abaixo quando ativá-lo. NUNCA pule o envio da mídia. NÃO mencione a mídia no texto da resposta.
+Para CADA passo abaixo, você DEVE incluir a tool call send_fluxo_media na sua resposta.
+A mídia é enviada SILENCIOSAMENTE — NUNCA escreva "Vídeo do fluxo", "Áudio do fluxo", nome do arquivo ou qualquer referência à mídia no texto.
 ${allMediaSteps}
 ` : ''}
 `;
   
   for (const passo of passosCronologicos) {
     const mediaInstruction = passo.media 
-      ? `\n⚠️ **OBRIGATÓRIO**: Ao ativar este passo, você DEVE chamar send_fluxo_media(step_id="${passo.id}"). NÃO mencione a mídia no texto. Chame a ferramenta silenciosamente junto com sua resposta.`
+      ? `\n⚠️ **TOOL CALL OBRIGATÓRIA**: Inclua send_fluxo_media(step_id="${passo.id}") na sua resposta. PROIBIDO escrever "${passo.media.name || passo.media.type}", "Vídeo do fluxo", "Áudio do fluxo" ou qualquer referência à mídia no texto.`
       : '';
     instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
 ${passo.descricao}
@@ -2382,7 +2406,7 @@ ${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemp
 `;
     for (const passo of passosExtras) {
       const mediaInstruction = passo.media 
-        ? `\n⚠️ **OBRIGATÓRIO**: Ao ativar este passo, chame send_fluxo_media(step_id="${passo.id}"). NÃO mencione a mídia no texto.`
+        ? `\n⚠️ **TOOL CALL OBRIGATÓRIA**: Inclua send_fluxo_media(step_id="${passo.id}") na sua resposta. PROIBIDO mencionar a mídia no texto.`
         : '';
       instructions += `### ${passo.titulo.toUpperCase()}
 ${passo.descricao}
