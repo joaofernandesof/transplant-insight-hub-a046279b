@@ -43,7 +43,7 @@ export function PaginatedLeadColumn({ title, dotColor, items, emptyMessage, rend
   }, [page, totalPages]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col min-h-0 h-full">
       <CardHeader className="px-0 pt-0 pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <div className={`h-3 w-3 rounded-full ${dotColor}`} />
@@ -51,7 +51,7 @@ export function PaginatedLeadColumn({ title, dotColor, items, emptyMessage, rend
         </CardTitle>
       </CardHeader>
 
-      <ScrollArea className="flex-1 min-h-0" style={{ height: 'calc(100vh - 280px)' }}>
+      <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-3 pr-2">
           {paginatedItems.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">{emptyMessage}</p>
