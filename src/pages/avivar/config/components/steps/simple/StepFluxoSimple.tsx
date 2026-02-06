@@ -186,10 +186,14 @@ export function StepFluxoSimple({
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [editValue, setEditValue] = useState('');
 
-  // Carregar template baseado no objetivo quando a etapa é montada ou objetivo mudar
+  // Carregar template baseado no objetivo APENAS quando não há fluxo salvo
+  // Isso evita sobrescrever mídias e edições feitas pelo usuário
   useEffect(() => {
-    // Se tem objetivo primário, sempre carrega/atualiza o template
     if (objectives.primary) {
+      // Se já existe um fluxo com passos (salvo no banco), NÃO sobrescrever
+      const hasExistingFluxo = fluxoAtendimento?.passosCronologicos?.length > 0;
+      if (hasExistingFluxo) return;
+
       const template = getFluxoByObjective(objectives.primary);
       
       // Adicionar objetivos secundários como passos extras (se houver e não for "Nenhum")
