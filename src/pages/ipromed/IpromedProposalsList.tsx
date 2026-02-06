@@ -245,7 +245,7 @@ export default function IpromedProposalsList() {
                 <div
                   key={proposal.id}
                   className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/ipromed/proposals/${proposal.id}`)}
+                  onClick={() => navigate(`/ipromed/proposals/${proposal.id}?preview=true`)}
                 >
                   <div className="flex items-center gap-4">
                     <div 

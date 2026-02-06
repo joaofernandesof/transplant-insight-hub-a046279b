@@ -111,7 +111,7 @@ export default function IpromedProposalEditor() {
   const updateProposal = useUpdateProposal();
 
   const [proposal, setProposal] = useState<ProposalData>(defaultProposal);
-  const [showPreview, setShowPreview] = useState(false); // Sempre inicia em modo edição
+  const [showPreview, setShowPreview] = useState(startWithPreview);
   const [newCondition, setNewCondition] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
