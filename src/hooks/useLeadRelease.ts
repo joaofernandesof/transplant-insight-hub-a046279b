@@ -22,6 +22,7 @@ export function useLeadRelease() {
   const [newlyReleasedLeadId, setNewlyReleasedLeadId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const autoReleaseTriggeredRef = useRef<string | null>(null); // tracks which next_release_at was already triggered
 
   const fetchInfo = useCallback(async () => {
     try {
@@ -35,7 +36,36 @@ export function useLeadRelease() {
     }
   }, []);
 
-  // Countdown timer
+  const doRelease = useCallback(async (mode: 'scheduled' | 'manual_admin') => {
+    if (isReleasing) return null;
+    setIsReleasing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('hotleads-release', {
+        body: { action: 'release', mode },
+      });
+      if (error) throw error;
+
+      if (data?.success) {
+        setNewlyReleasedLeadId(data.lead_id);
+        setTimeout(() => {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+        }, 1500);
+        await fetchInfo();
+        return data;
+      }
+      // If no success (limit/no queued), still refresh info to get next schedule
+      await fetchInfo();
+      return data;
+    } catch (err) {
+      console.error('Error releasing lead:', err);
+      throw err;
+    } finally {
+      setIsReleasing(false);
+    }
+  }, [isReleasing, fetchInfo]);
+
+  // Countdown timer + auto-release when it hits 0
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -50,9 +80,15 @@ export function useLeadRelease() {
       const diff = Math.max(0, Math.floor((target - now) / 1000));
       setCountdown(diff);
 
-      // Auto-refresh when countdown reaches 0
-      if (diff <= 0) {
-        fetchInfo();
+      // Auto-release when countdown reaches 0 (guard against double-fire)
+      if (diff <= 0 && autoReleaseTriggeredRef.current !== info.next_release_at) {
+        autoReleaseTriggeredRef.current = info.next_release_at;
+        doRelease('scheduled').catch(() => {
+          // On error, allow retry by resetting the guard after 10s
+          setTimeout(() => {
+            autoReleaseTriggeredRef.current = null;
+          }, 10000);
+        });
       }
     };
 
@@ -62,43 +98,25 @@ export function useLeadRelease() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [info?.next_release_at, fetchInfo]);
+  }, [info?.next_release_at, doRelease]);
 
+  // Initial fetch + periodic refresh
   useEffect(() => {
     fetchInfo();
-    // Refresh every 30s
     const interval = setInterval(fetchInfo, 30000);
     return () => clearInterval(interval);
   }, [fetchInfo]);
 
-  const releaseNow = useCallback(async () => {
-    setIsReleasing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('hotleads-release', {
-        body: { action: 'release', mode: 'manual_admin' },
-      });
-      if (error) throw error;
-
-      if (data?.success) {
-        setNewlyReleasedLeadId(data.lead_id);
-        // Show confetti after fade-in (1.5s)
-        setTimeout(() => {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-        }, 1500);
-        
-        // Refresh info
-        await fetchInfo();
-        return data;
-      }
-      return data;
-    } catch (err) {
-      console.error('Error releasing lead:', err);
-      throw err;
-    } finally {
-      setIsReleasing(false);
+  // Schedule first next_release_at when info loads with none set
+  useEffect(() => {
+    if (info && !info.next_release_at && info.queued_count > 0 && info.daily_released < info.daily_target) {
+      supabase.functions.invoke('hotleads-release', {
+        body: { action: 'schedule_next' },
+      }).then(() => fetchInfo());
     }
-  }, [fetchInfo]);
+  }, [info, fetchInfo]);
+
+  const releaseNow = useCallback(() => doRelease('manual_admin'), [doRelease]);
 
   const clearNewLead = useCallback(() => {
     setNewlyReleasedLeadId(null);
