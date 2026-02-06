@@ -270,9 +270,14 @@ export default function IpromedProposalEditor() {
       </div>
 
       {showPreview ? (
-        /* Preview Mode */
+        /* Preview Mode - com edição inline */
         <div className="bg-white rounded-lg shadow-lg overflow-auto">
-          <ProposalPreview ref={printRef} proposal={proposal} />
+          <ProposalPreview 
+            ref={printRef} 
+            proposal={proposal} 
+            onUpdate={(updates) => setProposal(prev => ({ ...prev, ...updates }))}
+            editable={true}
+          />
         </div>
       ) : (
         /* Edit Mode */

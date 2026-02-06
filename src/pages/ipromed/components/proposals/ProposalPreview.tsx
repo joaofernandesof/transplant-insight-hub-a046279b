@@ -2,12 +2,14 @@
  * CPG Advocacia Médica - Preview da Proposta Comercial
  * Layout compacto para impressão em uma única página A4
  * Cores da identidade visual: Verde escuro (#3d5a47) e Dourado (#c9a55c)
+ * Suporta edição inline clicando nos textos
  */
 
 import React, { forwardRef } from "react";
-import { Check, Shield, FileText, Phone, Mail, Globe, MapPin } from "lucide-react";
+import { Check, Shield, FileText, Phone, Mail, Globe } from "lucide-react";
 import type { ProposalData } from "../../IpromedProposals";
 import cpgLogo from "@/assets/cpg-logo.jpg";
+import { EditableText, EditableNumber } from "./EditableText";
 
 // Cores da identidade visual CPG
 const CPG_COLORS = {
@@ -16,15 +18,6 @@ const CPG_COLORS = {
   gold: "#c9a55c",
   goldLight: "#d4b46d",
   cream: "#f9f7f3",
-};
-
-// Mapeamento de IDs para labels (versões curtas para economizar espaço)
-const CONDITION_LABELS: Record<string, string> = {
-  mesma_clinica: "Médico(a) da mesma clínica",
-  ex_aluno_ibramec: "Cônjuge de aluna IBRAMEC",
-  indicacao: "Indicação de cliente ativo",
-  parceiro: "Parceiro estratégico",
-  estrutura_organizada: "Estrutura assistencial organizada",
 };
 
 const SERVICE_LABELS: Record<string, string> = {
@@ -56,14 +49,13 @@ const DOCUMENT_LABELS: Record<string, string> = {
 
 interface ProposalPreviewProps {
   proposal: ProposalData;
+  onUpdate?: (updates: Partial<ProposalData>) => void;
+  editable?: boolean;
 }
 
 export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
-  ({ proposal }, ref) => {
-    const allConditions = [
-      ...proposal.conditions.map(id => CONDITION_LABELS[id] || id),
-      ...proposal.customConditions,
-    ];
+  ({ proposal, onUpdate, editable = true }, ref) => {
+    const isEditable = editable && !!onUpdate;
 
     const documentsText = proposal.documentsIncluded === "full" 
       ? "100% inclusa" 
@@ -94,9 +86,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               className="h-14 w-14 rounded-lg object-cover shadow-sm"
             />
             <div>
-            <h1 className="text-lg font-bold leading-tight" style={{ color: CPG_COLORS.green }}>
-              Cartaxo Parahyba Guerreiro Advocacia Médica
-            </h1>
+              <h1 className="text-lg font-bold leading-tight" style={{ color: CPG_COLORS.green }}>
+                Cartaxo Parahyba Guerreiro Advocacia Médica
+              </h1>
               <p className="text-xs font-medium" style={{ color: CPG_COLORS.gold }}>
                 Proteção Jurídica Especializada
               </p>
@@ -115,13 +107,23 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Destinatário */}
-        {proposal.clientName && (
-          <div className="text-center mb-4">
-            <p className="text-sm" style={{ color: CPG_COLORS.green }}>
-              Proposta para <span className="font-semibold">{proposal.clientName}</span>
-            </p>
-          </div>
-        )}
+        <div className="text-center mb-4">
+          <p className="text-sm" style={{ color: CPG_COLORS.green }}>
+            Proposta para{" "}
+            <span className="font-semibold">
+              {isEditable ? (
+                <EditableText
+                  value={proposal.clientName}
+                  onChange={(value) => onUpdate({ clientName: value })}
+                  placeholder="Nome do cliente"
+                  style={{ color: CPG_COLORS.green }}
+                />
+              ) : (
+                proposal.clientName || "Cliente"
+              )}
+            </span>
+          </p>
+        </div>
 
         {/* Introdução compacta */}
         <div 
@@ -129,7 +131,18 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           style={{ backgroundColor: CPG_COLORS.cream }}
         >
           <p style={{ color: CPG_COLORS.green }}>
-            Olá{proposal.clientName ? `, ${proposal.clientName.split(" ")[0]}` : ""}! {proposal.introMessage}
+            Olá{proposal.clientName ? `, ${proposal.clientName.split(" ")[0]}` : ""}!{" "}
+            {isEditable ? (
+              <EditableText
+                value={proposal.introMessage}
+                onChange={(value) => onUpdate({ introMessage: value })}
+                placeholder="Mensagem de introdução..."
+                multiline
+                style={{ color: CPG_COLORS.green }}
+              />
+            ) : (
+              proposal.introMessage
+            )}
           </p>
         </div>
 
@@ -146,14 +159,33 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               >
                 <Shield className="h-4 w-4 text-white" />
               </div>
-              <div>
-                <h3 className="text-sm font-bold leading-tight">{proposal.planName}</h3>
+              <div className="flex-1">
+                {isEditable ? (
+                  <EditableText
+                    value={proposal.planName}
+                    onChange={(value) => onUpdate({ planName: value })}
+                    placeholder="Nome do plano"
+                    className="text-sm font-bold leading-tight text-white"
+                  />
+                ) : (
+                  <h3 className="text-sm font-bold leading-tight">{proposal.planName}</h3>
+                )}
               </div>
             </div>
             <div className="flex items-baseline gap-1 mb-1">
               <span className="text-[10px]" style={{ color: CPG_COLORS.goldLight }}>Valor mensal:</span>
               <span className="text-2xl font-bold" style={{ color: CPG_COLORS.gold }}>
-                R$ {proposal.monthlyValue.toLocaleString("pt-BR")}
+                R${" "}
+                {isEditable ? (
+                  <EditableNumber
+                    value={proposal.monthlyValue}
+                    onChange={(value) => onUpdate({ monthlyValue: value })}
+                    style={{ color: CPG_COLORS.gold }}
+                    className="text-2xl font-bold"
+                  />
+                ) : (
+                  proposal.monthlyValue.toLocaleString("pt-BR")
+                )}
               </span>
             </div>
             <p className="text-[9px] opacity-80 leading-snug">
@@ -221,11 +253,21 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         )}
 
         {/* Mensagem de fechamento */}
-        {proposal.closingMessage && (
-          <p className="text-[10px] italic mb-4 leading-relaxed" style={{ color: CPG_COLORS.green }}>
-            "{proposal.closingMessage}"
-          </p>
-        )}
+        <div className="text-[10px] italic mb-4 leading-relaxed" style={{ color: CPG_COLORS.green }}>
+          "
+          {isEditable ? (
+            <EditableText
+              value={proposal.closingMessage}
+              onChange={(value) => onUpdate({ closingMessage: value })}
+              placeholder="Mensagem de fechamento..."
+              multiline
+              style={{ color: CPG_COLORS.green }}
+            />
+          ) : (
+            proposal.closingMessage
+          )}
+          "
+        </div>
 
         {/* CTA e Contato */}
         <div 
