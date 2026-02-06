@@ -8663,6 +8663,7 @@ export type Database = {
           custom_conditions: string[] | null
           documents: string[] | null
           documents_included: string
+          expires_at: string | null
           id: string
           intermediate_value: number | null
           intro_message: string | null
@@ -8676,6 +8677,7 @@ export type Database = {
           services: string[] | null
           status: string
           updated_at: string
+          validity_days: number | null
         }
         Insert: {
           accepted_at?: string | null
@@ -8689,6 +8691,7 @@ export type Database = {
           custom_conditions?: string[] | null
           documents?: string[] | null
           documents_included?: string
+          expires_at?: string | null
           id?: string
           intermediate_value?: number | null
           intro_message?: string | null
@@ -8702,6 +8705,7 @@ export type Database = {
           services?: string[] | null
           status?: string
           updated_at?: string
+          validity_days?: number | null
         }
         Update: {
           accepted_at?: string | null
@@ -8715,6 +8719,7 @@ export type Database = {
           custom_conditions?: string[] | null
           documents?: string[] | null
           documents_included?: string
+          expires_at?: string | null
           id?: string
           intermediate_value?: number | null
           intro_message?: string | null
@@ -8728,6 +8733,7 @@ export type Database = {
           services?: string[] | null
           status?: string
           updated_at?: string
+          validity_days?: number | null
         }
         Relationships: []
       }

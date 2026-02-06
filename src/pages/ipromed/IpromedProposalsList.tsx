@@ -43,8 +43,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useProposals, useDeleteProposal, type Proposal } from "./hooks/useIpromedProposals";
-import { format } from "date-fns";
+import { useProposals, useDeleteProposal, useSendProposal, useAcceptProposal, useRejectProposal, type Proposal } from "./hooks/useIpromedProposals";
+import { format, isPast, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 // Cores da identidade CPG
@@ -55,9 +55,10 @@ const CPG_COLORS = {
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   draft: { label: "Rascunho", icon: Clock, color: "bg-muted text-muted-foreground" },
-  sent: { label: "Enviada", icon: Send, color: "bg-blue-100 text-blue-700" },
-  accepted: { label: "Aceita", icon: CheckCircle2, color: "bg-green-100 text-green-700" },
-  rejected: { label: "Recusada", icon: XCircle, color: "bg-red-100 text-red-700" },
+  sent: { label: "Enviada", icon: Send, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  accepted: { label: "Aceita", icon: CheckCircle2, color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  rejected: { label: "Recusada", icon: XCircle, color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+  expired: { label: "Expirada", icon: Clock, color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
 };
 
 export default function IpromedProposalsList() {
@@ -67,6 +68,9 @@ export default function IpromedProposalsList() {
   
   const { data: proposals, isLoading } = useProposals(searchQuery);
   const deleteProposal = useDeleteProposal();
+  const sendProposal = useSendProposal();
+  const acceptProposal = useAcceptProposal();
+  const rejectProposal = useRejectProposal();
 
   const recentProposals = proposals?.slice(0, 5) || [];
   
@@ -83,14 +87,34 @@ export default function IpromedProposalsList() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const config = STATUS_CONFIG[status] || STATUS_CONFIG.draft;
+  const getEffectiveStatus = (proposal: Proposal): string => {
+    // Check if sent proposal has expired
+    if (proposal.status === "sent" && proposal.expires_at && isPast(new Date(proposal.expires_at))) {
+      return "expired";
+    }
+    return proposal.status;
+  };
+
+  const getStatusBadge = (proposal: Proposal) => {
+    const effectiveStatus = getEffectiveStatus(proposal);
+    const config = STATUS_CONFIG[effectiveStatus] || STATUS_CONFIG.draft;
     const Icon = config.icon;
+    
+    // Show expiry countdown for sent proposals
+    const showExpiry = proposal.status === "sent" && proposal.expires_at && !isPast(new Date(proposal.expires_at));
+    
     return (
-      <Badge variant="secondary" className={`${config.color} gap-1`}>
-        <Icon className="h-3 w-3" />
-        {config.label}
-      </Badge>
+      <div className="flex flex-col items-end gap-0.5">
+        <Badge variant="secondary" className={`${config.color} gap-1`}>
+          <Icon className="h-3 w-3" />
+          {config.label}
+        </Badge>
+        {showExpiry && (
+          <span className="text-[10px] text-muted-foreground">
+            Expira {formatDistanceToNow(new Date(proposal.expires_at!), { locale: ptBR, addSuffix: true })}
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -275,7 +299,7 @@ export default function IpromedProposalsList() {
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(proposal.created_at), "dd MMM yyyy", { locale: ptBR })}
                     </span>
-                    {getStatusBadge(proposal.status)}
+                    {getStatusBadge(proposal)}
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -284,6 +308,35 @@ export default function IpromedProposalsList() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {/* Status actions */}
+                        {proposal.status === "draft" && (
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            sendProposal.mutate({ id: proposal.id });
+                          }}>
+                            <Send className="h-4 w-4 mr-2" />
+                            Enviar Proposta
+                          </DropdownMenuItem>
+                        )}
+                        {(proposal.status === "sent" || getEffectiveStatus(proposal) === "expired") && (
+                          <>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              acceptProposal.mutate(proposal.id);
+                            }}>
+                              <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                              Marcar como Aceita
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              rejectProposal.mutate(proposal.id);
+                            }}>
+                              <XCircle className="h-4 w-4 mr-2 text-red-600" />
+                              Marcar como Recusada
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/ipromed/proposals/${proposal.id}`);
