@@ -15,6 +15,7 @@ import {
   BrazilMapChart,
   HotLeadsCharts,
   HotLeadsGlobalFilters,
+  NextLeadReleaseBanner,
 } from '@/components/hotleads';
 import type { HotLead } from '@/hooks/useHotLeads';
 
@@ -197,6 +198,7 @@ export default function HotLeads() {
 
           {/* Leads Tab */}
           <TabsContent value="leads" className="flex-1 overflow-hidden px-4 pb-4 mt-0">
+            <NextLeadReleaseBanner onLeadReleased={() => fetchLeads(true)} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
               <PaginatedLeadColumn
                 title="Leads Disponíveis"

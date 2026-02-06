@@ -8,3 +8,5 @@ export { HotLeadsOverview } from './HotLeadsOverview';
 export { BrazilMapChart } from './BrazilMapChart';
 export { HotLeadsCharts } from './HotLeadsCharts';
 export { HotLeadsGlobalFilters } from './HotLeadsGlobalFilters';
+export { NextLeadReleaseBanner } from './NextLeadReleaseBanner';
+export { ConfettiEffect } from './ConfettiEffect';

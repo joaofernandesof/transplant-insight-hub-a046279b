@@ -8997,6 +8997,39 @@ export type Database = {
           },
         ]
       }
+      lead_release_daily: {
+        Row: {
+          created_at: string
+          id: string
+          last_release_at: string | null
+          next_release_at: string | null
+          release_date: string
+          released_count: number
+          target_count: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_release_at?: string | null
+          next_release_at?: string | null
+          release_date?: string
+          released_count?: number
+          target_count?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_release_at?: string | null
+          next_release_at?: string | null
+          release_date?: string
+          released_count?: number
+          target_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_tasks: {
         Row: {
           assigned_to: string | null
@@ -9047,6 +9080,59 @@ export type Database = {
           },
         ]
       }
+      lead_webhook_outbox: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          last_attempt_at: string | null
+          lead_id: string
+          max_attempts: number
+          payload: Json
+          status: string
+          webhook_url: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          lead_id: string
+          max_attempts?: number
+          payload: Json
+          status?: string
+          webhook_url: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          lead_id?: string
+          max_attempts?: number
+          payload?: Json
+          status?: string
+          webhook_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_webhook_outbox_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           account_id: string | null
@@ -9068,6 +9154,7 @@ export type Database = {
           phone: string
           procedure_interest: string | null
           procedures_sold: string[] | null
+          release_status: string | null
           scheduled_at: string | null
           source: string | null
           state: string | null
@@ -9097,6 +9184,7 @@ export type Database = {
           phone: string
           procedure_interest?: string | null
           procedures_sold?: string[] | null
+          release_status?: string | null
           scheduled_at?: string | null
           source?: string | null
           state?: string | null
@@ -9126,6 +9214,7 @@ export type Database = {
           phone?: string
           procedure_interest?: string | null
           procedures_sold?: string[] | null
+          release_status?: string | null
           scheduled_at?: string | null
           source?: string | null
           state?: string | null
@@ -17417,6 +17506,7 @@ export type Database = {
           total_scheduled: number
         }[]
       }
+      get_lead_release_info: { Args: never; Returns: Json }
       get_neohub_user_id: { Args: { _auth_user_id: string }; Returns: string }
       get_neohub_user_profiles: {
         Args: { _user_id: string }
@@ -17568,6 +17658,7 @@ export type Database = {
         Args: { p_conversa_id: string }
         Returns: undefined
       }
+      release_random_queued_lead: { Args: { p_mode?: string }; Returns: Json }
       schedule_followup_for_conversation: {
         Args: { p_conversation_id: string; p_user_id: string }
         Returns: string

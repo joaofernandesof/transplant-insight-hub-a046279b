@@ -33,7 +33,7 @@ export function useHotLeads() {
       // This excludes leads from Avivar CRM and other sources
       const { data, error } = await supabase
         .from('leads')
-        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at')
+        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status')
         .eq('source', 'planilha')
         .order('created_at', { ascending: false });
 
@@ -68,7 +68,7 @@ export function useHotLeads() {
   }, [fetchLeads, fetchProfiles]);
 
   const availableLeads = useMemo(() =>
-    leads.filter(l => !l.claimed_by), [leads]);
+    leads.filter(l => !l.claimed_by && (l as any).release_status !== 'queued'), [leads]);
 
   const myLeads = useMemo(() =>
     leads.filter(l => l.claimed_by === user?.id), [leads, user?.id]);
@@ -130,7 +130,7 @@ export function useHotLeads() {
         source: 'planilha',
         status: 'new',
         interest_level: 'warm',
-        available_at: new Date().toISOString(),
+        release_status: 'queued',
       }));
 
       const { data, error } = await supabase
