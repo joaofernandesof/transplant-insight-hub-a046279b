@@ -81,3 +81,6 @@ verify_jwt = false
 
 [functions.hotleads-acquire]
 verify_jwt = false
+
+[functions.hotleads-release]
+verify_jwt = false
