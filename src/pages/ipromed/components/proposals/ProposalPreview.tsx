@@ -155,10 +155,11 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         {/* Box do Plano - Centralizado */}
         <div className="flex justify-center mb-4">
           <div 
-            className="rounded-xl p-4 text-white max-w-sm w-full"
+            className="rounded-xl p-5 text-white max-w-sm w-full text-center"
             style={{ background: `linear-gradient(135deg, ${CPG_COLORS.green} 0%, ${CPG_COLORS.greenLight} 100%)` }}
           >
-            <div className="flex items-center justify-center gap-2 mb-2">
+            {/* Nome do Plano */}
+            <div className="flex items-center justify-center gap-2 mb-3">
               <div 
                 className="w-7 h-7 rounded-md flex items-center justify-center"
                 style={{ backgroundColor: CPG_COLORS.gold }}
@@ -178,8 +179,27 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 )}
               </div>
             </div>
-            <div className="flex items-baseline justify-center gap-1 mb-1">
-              <span className="text-[10px]" style={{ color: CPG_COLORS.goldLight }}>Valor mensal:</span>
+
+            {/* Valor Original - Cortado */}
+            {proposal.originalValue > proposal.monthlyValue && (
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <span className="text-[10px] opacity-70">Valor original:</span>
+                <span className="relative inline-block">
+                  <span className="text-base font-medium text-white/60">
+                    R$ {proposal.originalValue.toLocaleString("pt-BR")}
+                  </span>
+                  {/* Tarja vermelha diagonal */}
+                  <span 
+                    className="absolute left-0 top-1/2 w-full h-[2px] -rotate-12"
+                    style={{ backgroundColor: "#dc2626" }}
+                  />
+                </span>
+              </div>
+            )}
+
+            {/* Valor Liberado */}
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <span className="text-[10px]" style={{ color: CPG_COLORS.goldLight }}>Valor liberado:</span>
               <span className="text-2xl font-bold" style={{ color: CPG_COLORS.gold }}>
                 R${" "}
                 {isEditable ? (
@@ -194,7 +214,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 )}
               </span>
             </div>
-            <p className="text-[9px] opacity-80 leading-snug text-center">
+
+            <p className="text-[9px] opacity-80 leading-snug">
               Base jurídica para atuar com segurança e tranquilidade.
             </p>
           </div>

@@ -75,6 +75,7 @@ export interface ProposalData {
   clientName: string;
   planName: string;
   planSubtitle: string;
+  originalValue: number;
   monthlyValue: number;
   conditions: string[];
   customConditions: string[];
@@ -89,6 +90,7 @@ const defaultProposal: ProposalData = {
   clientName: "",
   planName: "Plano de Assessoria Jurídica Essencial",
   planSubtitle: "Condição Especial",
+  originalValue: 2500,
   monthlyValue: 1500,
   conditions: [],
   customConditions: [],
@@ -119,10 +121,12 @@ export default function IpromedProposalEditor() {
   // Carregar dados da proposta existente
   useEffect(() => {
     if (existingProposal) {
+      const ep = existingProposal as any;
       setProposal({
         clientName: existingProposal.client_name,
         planName: existingProposal.plan_name,
         planSubtitle: existingProposal.plan_subtitle || "",
+        originalValue: Number(ep.original_value) || Number(existingProposal.monthly_value) * 1.5,
         monthlyValue: Number(existingProposal.monthly_value),
         conditions: existingProposal.conditions || [],
         customConditions: existingProposal.custom_conditions || [],
@@ -325,14 +329,25 @@ export default function IpromedProposalEditor() {
                     placeholder="Ex: Condição Especial"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="monthlyValue">Valor Mensal (R$)</Label>
-                  <Input
-                    id="monthlyValue"
-                    type="number"
-                    value={proposal.monthlyValue}
-                    onChange={e => updateField("monthlyValue", Number(e.target.value))}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="originalValue">Valor Original (R$)</Label>
+                    <Input
+                      id="originalValue"
+                      type="number"
+                      value={proposal.originalValue}
+                      onChange={e => updateField("originalValue", Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="monthlyValue">Valor Liberado (R$)</Label>
+                    <Input
+                      id="monthlyValue"
+                      type="number"
+                      value={proposal.monthlyValue}
+                      onChange={e => updateField("monthlyValue", Number(e.target.value))}
+                    />
+                  </div>
                 </div>
                 <div>
                   <Label>Documentação Jurídica</Label>
