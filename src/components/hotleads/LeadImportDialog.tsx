@@ -29,8 +29,51 @@ function normalizeHeader(header: string): string {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/[_\s]+/g, ' ')
     .trim();
+}
+
+/**
+ * Find the value for a field using flexible matching against normalized keys.
+ * Tries exact match, then starts-with, then contains.
+ */
+function findValue(normalized: Record<string, string>, possibleNames: string[]): string {
+  const keys = Object.keys(normalized);
+  const targets = possibleNames.map(n => normalizeHeader(n));
+
+  // Priority 1: Exact match
+  for (const target of targets) {
+    if (normalized[target] !== undefined) return normalized[target];
+  }
+
+  // Priority 2: Starts with
+  for (const target of targets) {
+    const key = keys.find(k => k.startsWith(target));
+    if (key) return normalized[key];
+  }
+
+  // Priority 3: Contains
+  for (const target of targets) {
+    const key = keys.find(k => k.includes(target));
+    if (key) return normalized[key];
+  }
+
+  return '';
+}
+
+/**
+ * Collect ALL tag-like columns from a row (some spreadsheets split tags across multiple columns).
+ */
+function collectTags(normalized: Record<string, string>): string {
+  const tagParts: string[] = [];
+  
+  for (const [key, value] of Object.entries(normalized)) {
+    if ((key.includes('tag') || key.includes('etiqueta')) && value) {
+      tagParts.push(value);
+    }
+  }
+  
+  return tagParts.join(', ');
 }
 
 /**
@@ -39,13 +82,13 @@ function normalizeHeader(header: string): string {
  * Filters out #GRAU and empty values.
  */
 function parseTags(raw: string): string[] {
-  if (!raw || raw === '#GRAU' || raw === '#N/A' || raw === 'N/A') return [];
+  if (!raw) return [];
   
   // Split by comma, #, or semicolon
   const tags = raw
     .split(/[,;#]/)
     .map(t => t.trim())
-    .filter(t => t.length > 0 && t !== 'GRAU' && t !== 'N/A');
+    .filter(t => t.length > 0 && t !== 'GRAU' && t !== 'N/A' && t !== 'N A');
   
   return [...new Set(tags)]; // dedupe
 }
@@ -56,13 +99,13 @@ function mapRow(row: Record<string, any>): ParsedLead | null {
     normalized[normalizeHeader(key)] = String(value || '').trim();
   });
 
-  // Map spreadsheet columns (support both old and new header names)
-  const name = normalized['nome'] || normalized['contato principal'] || '';
-  const phone = normalized['telefone'] || normalized['telefone comercial contato'] || normalized['telefone comercial (contato)'] || '';
-  const email = normalized['email'] || normalized['email formulario'] || normalized['email (formulario)'] || '';
-  const state = normalized['estado'] || normalized['estado do lead'] || '';
-  const city = normalized['cidade'] || normalized['cidade principal'] || '';
-  const tagsRaw = normalized['lead tags'] || normalized['tags'] || '';
+  // Map spreadsheet columns with flexible matching
+  const name = findValue(normalized, ['nome', 'contato principal', 'contato', 'name']);
+  const phone = findValue(normalized, ['telefone', 'telefone comercial', 'telefone comercial contato', 'phone', 'celular', 'whatsapp']);
+  const email = findValue(normalized, ['email', 'email formulario', 'e-mail', 'e mail']);
+  const state = findValue(normalized, ['estado', 'estado do lead', 'uf', 'state']);
+  const city = findValue(normalized, ['cidade', 'cidade principal', 'city', 'municipio']);
+  const tagsRaw = collectTags(normalized) || findValue(normalized, ['lead tags', 'tags', 'etiquetas', 'tag']);
 
   if (!name || !phone) return null;
 
