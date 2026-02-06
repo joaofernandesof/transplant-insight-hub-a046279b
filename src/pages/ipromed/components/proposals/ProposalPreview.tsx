@@ -374,7 +374,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               className="rounded-lg p-2.5"
               style={{ backgroundColor: CPG_COLORS.cream }}
             >
-              <div className="grid grid-cols-3 gap-x-2 gap-y-1.5">
+              <div className="grid grid-cols-3 gap-x-3 gap-y-3">
                 {proposal.services.map(serviceId => (
                   <div key={serviceId} className="flex items-start gap-1 text-[9px]" style={{ color: CPG_COLORS.green }}>
                     <CheckCircle2 className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
@@ -425,7 +425,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               className="rounded-lg p-2.5"
               style={{ backgroundColor: CPG_COLORS.cream }}
             >
-              <div className="grid grid-cols-3 gap-x-2 gap-y-1.5">
+              <div className="grid grid-cols-3 gap-x-3 gap-y-3">
                 {proposal.documents.map(docId => (
                   <div key={docId} className="flex items-start gap-1 text-[9px]" style={{ color: CPG_COLORS.green }}>
                     <CheckCircle2 className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: "#22c55e" }} />
