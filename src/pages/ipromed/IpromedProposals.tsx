@@ -1,9 +1,10 @@
 /**
- * CPG Advocacia Médica - Módulo de Propostas Comerciais
- * Geração de propostas personalizadas para clientes
+ * CPG Advocacia Médica - Editor de Propostas Comerciais
+ * Geração e edição de propostas personalizadas para clientes
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,10 +14,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Printer, Eye, Plus, Trash2, Save, RefreshCw } from "lucide-react";
+import { FileText, Printer, Eye, Plus, Trash2, Save, RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { ProposalPreview } from "./components/proposals/ProposalPreview";
 import { toast } from "sonner";
+import { useProposal, useCreateProposal, useUpdateProposal } from "./hooks/useIpromedProposals";
+
+// Cores CPG
+const CPG_COLORS = {
+  green: "#3d5a47",
+  gold: "#c9a55c",
+};
 
 // Tipos de documentos jurídicos incluídos
 const LEGAL_DOCUMENTS = [
@@ -78,24 +86,54 @@ export interface ProposalData {
 }
 
 const defaultProposal: ProposalData = {
-  clientName: "Dr. Dertkigil",
-  planName: "Plano de Assessoria Jurídica Integral",
-  planSubtitle: "Condição Especial - Cônjuge de Aluna IBRAMEC",
-  monthlyValue: 1900,
-  conditions: ["ex_aluno_ibramec"],
-  customConditions: ["Cônjuge da Dra. Marcia Dertkigil, aluna IBRAMEC"],
-  services: PLAN_SERVICES.map(s => s.id),
+  clientName: "",
+  planName: "Plano de Assessoria Jurídica Essencial",
+  planSubtitle: "Condição Especial",
+  monthlyValue: 1500,
+  conditions: [],
+  customConditions: [],
+  services: ESSENTIAL_SERVICES.map(s => s.id),
   documents: LEGAL_DOCUMENTS.map(d => d.id),
   documentsIncluded: "full",
-  introMessage: "Quero te apresentar uma proposta especial de assessoria jurídica, pensada exclusivamente para você. Por ser cônjuge da Dra. Marcia Dertkigil, aluna IBRAMEC, conseguimos aplicar uma condição excepcional: todos os benefícios do Plano Integral pelo valor do Plano Essencial.",
-  closingMessage: "Esta é uma condição exclusiva que reconhece a parceria com o IBRAMEC. Você terá acesso a toda a proteção jurídica do nosso plano mais completo, incluindo defesa criminal, administrativa e gestão de crise, por um investimento significativamente menor.",
+  introMessage: "Quero te apresentar uma proposta especial de assessoria jurídica, pensada exatamente para o seu contexto atual.",
+  closingMessage: "Todos os documentos são padronizados, atualizados e aplicáveis à sua rotina clínica.",
 };
 
-export default function IpromedProposals() {
+export default function IpromedProposalEditor() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isNew = !id || id === "new";
+  const startWithPreview = searchParams.get("preview") === "true";
+
+  const { data: existingProposal, isLoading: isLoadingProposal } = useProposal(isNew ? undefined : id);
+  const createProposal = useCreateProposal();
+  const updateProposal = useUpdateProposal();
+
   const [proposal, setProposal] = useState<ProposalData>(defaultProposal);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(startWithPreview);
   const [newCondition, setNewCondition] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+
+  // Carregar dados da proposta existente
+  useEffect(() => {
+    if (existingProposal) {
+      setProposal({
+        clientName: existingProposal.client_name,
+        planName: existingProposal.plan_name,
+        planSubtitle: existingProposal.plan_subtitle || "",
+        monthlyValue: Number(existingProposal.monthly_value),
+        conditions: existingProposal.conditions || [],
+        customConditions: existingProposal.custom_conditions || [],
+        services: existingProposal.services || [],
+        documents: existingProposal.documents || [],
+        documentsIncluded: (existingProposal.documents_included as "full" | "discount" | "none") || "full",
+        introMessage: existingProposal.intro_message || "",
+        closingMessage: existingProposal.closing_message || "",
+      });
+    }
+  }, [existingProposal]);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -139,20 +177,70 @@ export default function IpromedProposals() {
     toast.info("Proposta resetada para valores padrão");
   };
 
+  const handleSave = async () => {
+    if (!proposal.clientName.trim()) {
+      toast.error("Por favor, informe o nome do cliente");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const data = {
+        client_name: proposal.clientName,
+        plan_name: proposal.planName,
+        plan_subtitle: proposal.planSubtitle,
+        monthly_value: proposal.monthlyValue,
+        conditions: proposal.conditions,
+        custom_conditions: proposal.customConditions,
+        services: proposal.services,
+        documents: proposal.documents,
+        documents_included: proposal.documentsIncluded,
+        intro_message: proposal.introMessage,
+        closing_message: proposal.closingMessage,
+      };
+
+      if (isNew) {
+        const result = await createProposal.mutateAsync(data);
+        navigate(`/ipromed/proposals/${result.id}`, { replace: true });
+      } else {
+        await updateProposal.mutateAsync({ id, ...data });
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!isNew && isLoadingProposal) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-            <FileText className="h-6 w-6" />
-            Propostas Comerciais
-          </h1>
-          <p className="text-muted-foreground">
-            Gere propostas personalizadas para seus clientes
-          </p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/ipromed/proposals")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: CPG_COLORS.green }}>
+              <FileText className="h-6 w-6" />
+              {isNew ? "Nova Proposta" : "Editar Proposta"}
+            </h1>
+            <p className="text-muted-foreground">
+              {isNew ? "Crie uma nova proposta comercial" : `Editando proposta para ${proposal.clientName}`}
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={resetProposal}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Resetar
@@ -161,7 +249,20 @@ export default function IpromedProposals() {
             <Eye className="h-4 w-4 mr-2" />
             {showPreview ? "Editar" : "Visualizar"}
           </Button>
-          <Button onClick={() => handlePrint()}>
+          <Button 
+            onClick={handleSave} 
+            disabled={isSaving}
+            style={{ backgroundColor: CPG_COLORS.green }}
+            className="hover:opacity-90"
+          >
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Salvar
+          </Button>
+          <Button onClick={() => handlePrint()} style={{ backgroundColor: CPG_COLORS.gold }} className="hover:opacity-90 text-white">
             <Printer className="h-4 w-4 mr-2" />
             Imprimir / PDF
           </Button>
@@ -170,7 +271,7 @@ export default function IpromedProposals() {
 
       {showPreview ? (
         /* Preview Mode */
-        <div className="bg-white rounded-lg shadow-lg">
+        <div className="bg-white rounded-lg shadow-lg overflow-auto">
           <ProposalPreview ref={printRef} proposal={proposal} />
         </div>
       ) : (
