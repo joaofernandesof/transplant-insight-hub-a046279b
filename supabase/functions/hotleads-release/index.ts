@@ -51,6 +51,20 @@ serve(async (req) => {
     }
 
     if (action === "release") {
+      // For cron mode: use probabilistic release instead of fixed intervals
+      if (isCronMode) {
+        const shouldRelease = await shouldReleaseNow(supabase);
+        if (!shouldRelease.release) {
+          return new Response(JSON.stringify({ 
+            skipped: true, 
+            reason: shouldRelease.reason,
+            next_check: "~1 min" 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       // Call the atomic RPC
       const { data, error } = await supabase.rpc("release_random_queued_lead", {
         p_mode: mode,
@@ -114,6 +128,54 @@ serve(async (req) => {
     });
   }
 });
+
+// Probabilistic release: decides randomly whether to release NOW
+// With 50 leads/day and 1440 minutes, probability per minute ≈ 50/1440 ≈ 3.5%
+// We adjust based on remaining leads and remaining time in the day
+async function shouldReleaseNow(supabase: any): Promise<{ release: boolean; reason: string }> {
+  const now = new Date();
+  const hour = now.getUTCHours() - 3; // BRT = UTC-3
+  const brtHour = hour < 0 ? hour + 24 : hour;
+
+  // Only release during business-ish hours (7h - 22h BRT)
+  if (brtHour < 7 || brtHour >= 22) {
+    return { release: false, reason: "outside_hours" };
+  }
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const { data: daily } = await supabase
+    .from("lead_release_daily")
+    .select("*")
+    .eq("release_date", today.toISOString().split("T")[0])
+    .single();
+
+  const released = daily?.released_count || 0;
+  const target = daily?.target_count || 50;
+  const remaining = Math.max(0, target - released);
+
+  if (remaining <= 0) {
+    return { release: false, reason: "daily_quota_reached" };
+  }
+
+  // Calculate remaining active minutes today (until 22h BRT)
+  const endHourBRT = 22;
+  const minutesLeft = Math.max(1, (endHourBRT - brtHour) * 60 - now.getMinutes());
+
+  // Probability = remaining leads / remaining minutes
+  // This naturally increases urgency as the day progresses
+  const probability = Math.min(0.95, remaining / minutesLeft);
+
+  // Random dice roll
+  const roll = Math.random();
+  const shouldRelease = roll < probability;
+
+  console.log(`[HotLeads Cron] hour=${brtHour} released=${released}/${target} remaining=${remaining} minutesLeft=${minutesLeft} prob=${(probability*100).toFixed(1)}% roll=${roll.toFixed(3)} => ${shouldRelease ? 'RELEASE' : 'SKIP'}`);
+
+  return { 
+    release: shouldRelease, 
+    reason: shouldRelease ? "probability_hit" : "probability_miss" 
+  };
+}
 
 async function calculateNextRelease(supabase: any) {
   const now = new Date();
