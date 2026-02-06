@@ -93,7 +93,7 @@ export default function HotLeads() {
 
   // Filtered subsets
   const filteredAvailable = useMemo(() => 
-    filteredLeads.filter(l => !l.claimed_by), [filteredLeads]);
+    filteredLeads.filter(l => !l.claimed_by && (l as any).release_status === 'available'), [filteredLeads]);
   
   const filteredMyLeads = useMemo(() => 
     filteredLeads.filter(l => l.claimed_by === user?.id), [filteredLeads, user?.id]);
