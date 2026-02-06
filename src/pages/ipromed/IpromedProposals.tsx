@@ -218,6 +218,8 @@ export default function IpromedProposalEditor() {
         client_name: proposal.clientName,
         plan_name: proposal.planName,
         plan_subtitle: proposal.planSubtitle,
+        original_value: proposal.originalValue,
+        intermediate_value: proposal.intermediateValue,
         monthly_value: proposal.monthlyValue,
         conditions: proposal.conditions,
         custom_conditions: proposal.customConditions,

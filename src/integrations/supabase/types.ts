@@ -8664,8 +8664,10 @@ export type Database = {
           documents: string[] | null
           documents_included: string
           id: string
+          intermediate_value: number | null
           intro_message: string | null
           monthly_value: number
+          original_value: number | null
           plan_name: string
           plan_subtitle: string | null
           proposal_code: string
@@ -8688,8 +8690,10 @@ export type Database = {
           documents?: string[] | null
           documents_included?: string
           id?: string
+          intermediate_value?: number | null
           intro_message?: string | null
           monthly_value?: number
+          original_value?: number | null
           plan_name: string
           plan_subtitle?: string | null
           proposal_code: string
@@ -8712,8 +8716,10 @@ export type Database = {
           documents?: string[] | null
           documents_included?: string
           id?: string
+          intermediate_value?: number | null
           intro_message?: string | null
           monthly_value?: number
+          original_value?: number | null
           plan_name?: string
           plan_subtitle?: string | null
           proposal_code?: string
