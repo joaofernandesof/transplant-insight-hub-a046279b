@@ -7,6 +7,7 @@ import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import { toast } from 'sonner';
 import { 
   Users, 
@@ -103,6 +104,7 @@ const ROLE_INFO: Record<TeamRole, { label: string; color: string; description: s
 
 export default function AvivarTeamPage() {
   const { user } = useUnifiedAuth();
+  const { accountId } = useAvivarAccount();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
@@ -207,6 +209,7 @@ export default function AvivarTeamPage() {
         .from('avivar_team_members')
         .insert({
           owner_user_id: user.authUserId,
+          account_id: accountId!,
           member_user_id: tempMemberId,
           name: data.name,
           email: data.email,

@@ -120,10 +120,19 @@ export default function AvivarKanbanPage() {
   // Create column mutation
   const createColumn = useMutation({
     mutationFn: async (columnData: { name: string; color: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: memberData } = await supabase
+        .from('avivar_account_members')
+        .select('account_id')
+        .eq('user_id', user!.id)
+        .eq('is_active', true)
+        .single();
+      
       const { data, error } = await supabase
         .from('avivar_kanban_columns')
         .insert({
           kanban_id: kanbanId,
+          account_id: memberData!.account_id,
           name: columnData.name,
           color: columnData.color,
           order_index: columns.length,

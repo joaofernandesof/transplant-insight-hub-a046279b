@@ -1,6 +1,7 @@
  import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
  import { supabase } from '@/integrations/supabase/client';
  import { useAuth } from '@/contexts/AuthContext';
+ import { useAvivarAccount } from '@/hooks/useAvivarAccount';
  import { toast } from 'sonner';
  
 export interface FollowupRule {
@@ -95,18 +96,28 @@ export interface CreateFollowupRuleInput {
      enabled: !!user?.id,
    });
  
-   const createRule = useMutation({
-     mutationFn: async (input: CreateFollowupRuleInput) => {
-       if (!user?.id) throw new Error('Usuário não autenticado');
- 
-       const { data, error } = await supabase
-         .from('avivar_followup_rules')
-         .insert({
-           user_id: user.id,
-           ...input,
-         })
-         .select()
-         .single();
+    const createRule = useMutation({
+      mutationFn: async (input: CreateFollowupRuleInput) => {
+        if (!user?.id) throw new Error('Usuário não autenticado');
+        const { accountId: acctId } = await supabase
+          .from('avivar_account_members')
+          .select('account_id')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .single()
+          .then(r => ({ accountId: r.data?.account_id }));
+
+        if (!acctId) throw new Error('Conta não encontrada');
+
+        const { data, error } = await supabase
+          .from('avivar_followup_rules')
+          .insert({
+            user_id: user.id,
+            account_id: acctId,
+            ...input,
+          })
+          .select()
+          .single();
  
        if (error) throw error;
        return data;

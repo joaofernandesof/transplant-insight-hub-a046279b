@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import { toast } from 'sonner';
 
 export interface AvivarAgenda {
@@ -29,6 +30,7 @@ export interface NewAgenda {
 
 export function useAvivarAgendas() {
   const { user } = useUnifiedAuth();
+  const { accountId } = useAvivarAccount();
   const queryClient = useQueryClient();
 
   const { data: agendas = [], isLoading, error } = useQuery({
@@ -53,11 +55,13 @@ export function useAvivarAgendas() {
     mutationFn: async (agenda: NewAgenda) => {
       if (!user?.authUserId) throw new Error('Usuário não autenticado');
 
+      if (!accountId) throw new Error('Conta não encontrada');
       const { data, error } = await supabase
         .from('avivar_agendas')
         .insert({
           ...agenda,
           user_id: user.authUserId,
+          account_id: accountId,
         })
         .select()
         .single();

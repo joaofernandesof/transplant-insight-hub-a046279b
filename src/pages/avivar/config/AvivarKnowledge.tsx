@@ -154,6 +154,18 @@ export default function AvivarKnowledge() {
       toast.error('Você precisa estar logado');
       return;
     }
+    // Get account_id
+    const { data: memberData } = await supabase
+      .from('avivar_account_members')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single();
+    const acctId = memberData?.account_id;
+    if (!acctId) {
+      toast.error('Conta não encontrada');
+      return;
+    }
 
     if (!agentName.trim()) {
       toast.error('Digite um nome para o agente');
@@ -230,6 +242,7 @@ export default function AvivarKnowledge() {
           .insert({
             ...agentPayload,
             user_id: user.id,
+            account_id: acctId,
             target_kanbans: ['comercial'],
             target_stages: ['novo_lead', 'qualificacao'],
             is_active: true
@@ -255,7 +268,8 @@ export default function AvivarKnowledge() {
           .from('avivar_knowledge_documents')
           .insert({
             user_id: user.id,
-            agent_id: agentData.id, // Link document to the agent
+            account_id: acctId,
+            agent_id: agentData.id,
             name: doc.name,
             content: doc.content,
             chunks_count: chunks.length,
@@ -268,6 +282,7 @@ export default function AvivarKnowledge() {
         if (!docError && docData) {
           const chunkRecords = chunks.map((content, index) => ({
             document_id: docData.id,
+            account_id: acctId,
             content: content,
             chunk_index: index
           }));

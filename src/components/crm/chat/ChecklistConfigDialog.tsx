@@ -123,10 +123,20 @@ export function ChecklistConfigDialog({ open, onOpenChange, kanbanId, kanbanName
       if (!defaultColumnId) {
         throw new Error('Nenhuma coluna disponível no kanban');
       }
+      // Get account_id
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: memberData } = await supabase
+        .from('avivar_account_members')
+        .select('account_id')
+        .eq('user_id', user!.id)
+        .eq('is_active', true)
+        .single();
+
       const { error } = await supabase
         .from('avivar_column_checklists')
         .insert({
           column_id: defaultColumnId,
+          account_id: memberData!.account_id,
           field_key: field.field_key,
           field_label: field.field_label,
           field_type: field.field_type,

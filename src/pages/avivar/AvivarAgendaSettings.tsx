@@ -23,6 +23,7 @@ import { ptBR } from "date-fns/locale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
+import { useAvivarAccount } from "@/hooks/useAvivarAccount";
 import { AgendaSelector } from "@/components/avivar/AgendaSelector";
 import { AvivarAgenda, useAvivarAgendas } from "@/hooks/useAvivarAgendas";
 import { cn } from "@/lib/utils";
@@ -73,6 +74,7 @@ const DEFAULT_HOURS: DayHours[] = [
 export default function AvivarAgendaSettings() {
   const navigate = useNavigate();
   const { user } = useUnifiedAuth();
+  const { accountId } = useAvivarAccount();
   const { agendas } = useAvivarAgendas();
   const queryClient = useQueryClient();
 
@@ -231,6 +233,7 @@ export default function AvivarAgendaSettings() {
       // Upsert config - usar authUserId para compatibilidade com RLS
       const configData = {
         user_id: user.authUserId,
+        account_id: accountId!,
         professional_name: config.professional_name || 'Profissional',
         consultation_duration: config.consultation_duration,
         buffer_between: config.buffer_between,
@@ -267,6 +270,7 @@ export default function AvivarAgendaSettings() {
       // Flatten periods into individual rows
       const hoursData: Array<{
         schedule_config_id: string;
+        account_id: string;
         day_of_week: number;
         is_enabled: boolean;
         start_time: string;
@@ -277,6 +281,7 @@ export default function AvivarAgendaSettings() {
         for (const period of h.periods) {
           hoursData.push({
             schedule_config_id: configId!,
+            account_id: accountId!,
             day_of_week: h.day_of_week,
             is_enabled: h.is_enabled,
             start_time: period.start_time,
@@ -317,6 +322,7 @@ export default function AvivarAgendaSettings() {
           .from('avivar_schedule_blocks')
           .insert({
             schedule_config_id: configId,
+            account_id: accountId!,
             block_date: block.block_date!,
             start_time: block.start_time || null,
             end_time: block.end_time || null,
@@ -328,6 +334,7 @@ export default function AvivarAgendaSettings() {
           .from('avivar_schedule_blocks')
           .insert({
             schedule_config_id: existingConfig.id,
+            account_id: accountId!,
             block_date: block.block_date!,
             start_time: block.start_time || null,
             end_time: block.end_time || null,

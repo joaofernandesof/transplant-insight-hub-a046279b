@@ -113,10 +113,19 @@ export function OnboardingStepChecklists({ onComplete }: Props) {
   // Adicionar campo
   const addField = useMutation({
     mutationFn: async (field: ChecklistField) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: memberData } = await supabase
+        .from('avivar_account_members')
+        .select('account_id')
+        .eq('user_id', user!.id)
+        .eq('is_active', true)
+        .single();
+
       const { error } = await supabase
         .from('avivar_column_checklists')
         .insert({
           column_id: selectedColumn,
+          account_id: memberData!.account_id,
           ...field,
           order_index: (checklists?.length || 0)
         });

@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import { toast } from 'sonner';
 
 export interface AvivarContact {
@@ -47,6 +48,7 @@ export interface UpdateContactData {
 
 export function useAvivarContacts() {
   const { user } = useAuth();
+  const { accountId } = useAvivarAccount();
   const [contacts, setContacts] = useState<AvivarContact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -104,13 +106,14 @@ export function useAvivarContacts() {
   }, [user?.id]);
 
   const createContact = useCallback(async (data: CreateContactData): Promise<AvivarContact | null> => {
-    if (!user?.id) return null;
+    if (!user?.id || !accountId) return null;
 
     try {
       const { data: newContact, error } = await supabase
         .from('avivar_contacts')
         .insert({
           user_id: user.id,
+          account_id: accountId,
           phone: data.phone,
           name: data.name || null,
           email: data.email || null,

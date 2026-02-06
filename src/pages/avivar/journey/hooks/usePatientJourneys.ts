@@ -38,9 +38,18 @@ export function usePatientJourneys(journeyType?: JourneyType) {
 
   const createJourney = useMutation({
     mutationFn: async (journey: Partial<PatientJourney>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: memberData } = await supabase
+        .from('avivar_account_members')
+        .select('account_id')
+        .eq('user_id', user!.id)
+        .eq('is_active', true)
+        .single();
+
       const { data, error } = await supabase
         .from('avivar_patient_journeys')
         .insert({
+          account_id: memberData!.account_id,
           patient_name: journey.patient_name || 'Novo Lead',
           service_type: journey.service_type || 'capilar',
           current_stage: journey.current_stage || 'lead_entrada',
