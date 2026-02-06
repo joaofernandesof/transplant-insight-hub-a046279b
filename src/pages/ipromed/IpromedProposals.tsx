@@ -206,10 +206,10 @@ export default function IpromedProposalEditor() {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    // Set new timeout for auto-save (1.5 second debounce)
+    // Set new timeout for auto-save (1 second debounce)
     autoSaveTimeoutRef.current = setTimeout(() => {
       performAutoSave(proposal);
-    }, 1500);
+    }, 1000);
 
     return () => {
       if (autoSaveTimeoutRef.current) {
