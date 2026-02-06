@@ -269,20 +269,21 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               {/* Valor de Tabela - Cortado */}
               {proposal.originalValue > proposal.monthlyValue && (
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-[9px] opacity-60">Valor de tabela:</span>
+                  <span className="text-[10px] opacity-60">Valor de tabela:</span>
                   <span className="relative inline-block">
-                    <span className="text-sm font-medium text-white/50">
+                    <span className="text-xl font-bold text-white/50">
                       R${" "}
                       {isEditable ? (
                         <EditableNumber
                           value={proposal.originalValue}
                           onChange={(value) => onUpdate({ originalValue: value })}
-                          className="text-sm font-medium"
+                          className="text-xl font-bold"
                           style={{ color: "rgba(255,255,255,0.5)" }}
                         />
                       ) : (
                         proposal.originalValue.toLocaleString("pt-BR")
                       )}
+                      <span className="text-sm font-normal opacity-80">/mês</span>
                     </span>
                     <span 
                       className="absolute left-0 top-1/2 w-full h-[2px] -rotate-12"
@@ -295,20 +296,21 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               {/* Valor Intermediário - Cortado */}
               {proposal.intermediateValue > proposal.monthlyValue && proposal.intermediateValue < proposal.originalValue && (
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-[9px] opacity-60">Por:</span>
+                  <span className="text-[10px] opacity-60">Por:</span>
                   <span className="relative inline-block">
-                    <span className="text-base font-medium text-white/50">
+                    <span className="text-xl font-bold text-white/50">
                       R${" "}
                       {isEditable ? (
                         <EditableNumber
                           value={proposal.intermediateValue}
                           onChange={(value) => onUpdate({ intermediateValue: value })}
-                          className="text-base font-medium"
+                          className="text-xl font-bold"
                           style={{ color: "rgba(255,255,255,0.5)" }}
                         />
                       ) : (
                         proposal.intermediateValue.toLocaleString("pt-BR")
                       )}
+                      <span className="text-sm font-normal opacity-80">/mês</span>
                     </span>
                     <span 
                       className="absolute left-0 top-1/2 w-full h-[2px] -rotate-12"
