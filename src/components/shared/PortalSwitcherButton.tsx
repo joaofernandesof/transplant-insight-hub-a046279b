@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { 
   Layers, 
   ChevronDown, 
@@ -65,7 +66,11 @@ export function PortalSwitcherButton({
   onNavigate
 }: PortalSwitcherButtonProps) {
   const navigate = useNavigate();
+  const { isAdmin } = useUnifiedAuth();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Filtrar portais: admin só aparece para isAdmin
+  const filteredPortals = portals.filter(p => p.id !== 'admin' || isAdmin);
 
   const handleNavigate = (href: string) => {
     navigate(href);
@@ -131,7 +136,7 @@ export function PortalSwitcherButton({
       </CollapsibleTrigger>
       
       <CollapsibleContent className="mt-1 space-y-1 pl-2">
-        {portals.map((portal) => {
+        {filteredPortals.map((portal) => {
           const Icon = portal.icon;
           return (
             <button
