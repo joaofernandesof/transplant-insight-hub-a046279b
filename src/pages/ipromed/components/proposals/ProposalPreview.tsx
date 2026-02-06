@@ -87,10 +87,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             />
             <div>
               <h1 className="text-lg font-bold leading-tight" style={{ color: CPG_COLORS.green }}>
-                Cartaxo Parahyba Guerreiro Advocacia Médica
+                Cartaxo Parahyba Guerreiro - Advocacia Médica
               </h1>
-              <p className="text-xs font-medium" style={{ color: CPG_COLORS.gold }}>
-                Proteção Jurídica Especializada
+              <p className="text-[9px] mt-0.5" style={{ color: CPG_COLORS.greenLight }}>
+                CNPJ: 33.947.033/0001-0
+              </p>
+              <p className="text-[8px] leading-snug" style={{ color: CPG_COLORS.greenLight }}>
+                Rua Marcos Macêdo, 1333, Pátio Dom Luis, Torre 02, sala 2201, Aldeota, Fortaleza/CE
+              </p>
+              <p className="text-[8px]" style={{ color: CPG_COLORS.greenLight }}>
+                contato@cpgadvocacia.com.br | WhatsApp: (85) 98841-8796
               </p>
             </div>
           </div>
@@ -298,7 +304,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Rodapé */}
         <div className="text-center text-[9px]" style={{ color: CPG_COLORS.greenLight }}>
-          <p className="font-medium">CPG Advocacia Médica • Proteção Jurídica Especializada</p>
+          <p className="font-medium">Cartaxo Parahyba Guerreiro - Advocacia Médica • Proteção Jurídica Especializada</p>
           <p className="mt-0.5 opacity-70">Esta proposta é válida por 30 dias a partir da data de emissão.</p>
         </div>
       </div>
