@@ -134,16 +134,22 @@ export default function RealAppointmentsPage() {
     },
   });
 
+  // Helper to convert local datetime string to proper ISO with timezone offset
+  const toLocalISOString = (dateStr: string, timeStr: string = '00:00') => {
+    const date = new Date(`${dateStr}T${timeStr}:00`);
+    return date.toISOString();
+  };
+
   // Create appointment
   const createAppointment = useMutation({
     mutationFn: async () => {
       const startDateTime = formData.all_day 
-        ? `${formData.start_date}T00:00:00`
-        : `${formData.start_date}T${formData.start_time}:00`;
+        ? toLocalISOString(formData.start_date, '00:00')
+        : toLocalISOString(formData.start_date, formData.start_time);
       
       const endDateTime = formData.all_day
         ? null
-        : `${formData.start_date}T${formData.end_time}:00`;
+        : toLocalISOString(formData.start_date, formData.end_time);
 
       const { error } = await supabase
         .from('ipromed_appointments')
