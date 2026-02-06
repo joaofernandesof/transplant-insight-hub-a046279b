@@ -1,92 +1,69 @@
 
-# Plano: Proteger conversas e leads com isolamento multi-tenant
+# Plano: Corrigir erro de salvamento do agente de IA em producao
 
-## Problema Critico
+## Diagnostico
 
-As tabelas que armazenam as conversas do chat (IA e humano) estao **completamente abertas**:
+Apos analise completa, o erro "new row violates row-level security policy for table avivar_agents" esta sendo causado pela **versao publicada do frontend estar desatualizada** em relacao ao codigo atual.
 
-- `crm_conversations`: policy SELECT usa `qual = true` (qualquer usuario ve tudo)
-- `crm_messages`: policy SELECT usa `qual = true` (qualquer usuario le todas as mensagens)
-- `leads`: sem coluna `account_id`, sem isolamento por conta
+### Evidencias
 
-Isso significa que **qualquer cliente logado pode ver as conversas, mensagens e leads de todos os outros clientes**.
+1. **O codigo no preview esta correto**: Ambos os fluxos de criacao de agente (`AvivarSimpleWizard.tsx` e `AvivarKnowledge.tsx`) ja incluem a busca do `account_id` via `avivar_account_members` e o passam no payload de insert.
 
-## O que sera feito
+2. **A RLS esta correta**: A policy `acct_i` exige `WITH CHECK (account_id = get_user_avivar_account_id(auth.uid()))`. A funcao retorna `a0000001-0000-0000-0000-000000000003` para `ti@neofolic.com.br` - tudo ok.
 
-### Etapa 1 - Adicionar `account_id` nas 3 tabelas
+3. **O banco esta correto**: A coluna `account_id` e NOT NULL e a funcao de resolucao funciona.
 
-Adicionar coluna `account_id UUID REFERENCES avivar_accounts(id)` em:
-- `leads`
-- `crm_conversations`
-- `crm_messages`
+4. **O erro e do PostgREST** (frontend), nao de uma edge function - confirma que e o site publicado enviando dados incompletos.
 
-### Etapa 2 - Migrar dados existentes
+5. **Possivel causa do deploy nao atualizar**: Com 70+ edge functions, cada publicacao demora para propagar. Alem disso, o dominio customizado `neohub.ibramec.com` pode ter **cache de CDN** que impede o JavaScript novo de ser servido.
 
-Preencher `account_id` nos registros existentes:
-- Para `leads`: resolver via `avivar_kanban_leads.phone` -> `account_id`, ou via `crm_conversations.lead_id`
-- Para `crm_conversations`: resolver via lead vinculado
-- Para `crm_messages`: resolver via conversa vinculada
+## Acoes
 
-### Etapa 3 - Tornar NOT NULL + indices
+### 1. Republicar o projeto
+Republicar o projeto para forcar um novo build do frontend com o codigo atualizado.
 
-Apos migracao, aplicar constraint NOT NULL e criar indices de performance.
+### 2. Adicionar tratamento de erro especifico
+Melhorar a mensagem de erro no `AvivarSimpleWizard.tsx` para que, se o INSERT falhar por RLS, o usuario veja uma mensagem clara em vez de um erro generico. Isso ajuda a diagnosticar se o problema persiste.
 
-### Etapa 4 - Substituir RLS policies
-
-Dropar as policies abertas e aplicar o modelo padrao:
-
-```text
-Super Admin: acesso total (is_avivar_super_admin)
-Membros da conta: somente seus dados (account_id = get_user_avivar_account_id)
-```
-
-### Etapa 5 - Atualizar frontend
-
-Modificar o hook `useCrmConversations` e demais componentes de chat para incluir `account_id` nos inserts.
+### 3. Adicionar logging no payload
+Incluir `console.log` temporario no fluxo de salvamento para confirmar que o `account_id` esta sendo enviado corretamente pelo frontend publicado. Isso permite verificar se o build publicado contem o codigo atualizado.
 
 ## Secao Tecnica
 
-### Tabelas afetadas
+### Arquivo: `src/pages/avivar/config/AvivarSimpleWizard.tsx`
 
-- `leads` (tabela compartilhada com CPG - precisa manter compatibilidade)
-- `crm_conversations` (usada pelo chat Avivar)
-- `crm_messages` (mensagens do chat)
-
-### RLS final aplicada
+Adicionar log de debug antes do insert/update:
 
 ```text
--- crm_conversations
-DROP POLICY "Users can view all conversations"
-DROP POLICY "Users can insert conversations"
-DROP POLICY "Users can update conversations"
-DROP POLICY "Admins can delete conversations"
-
-CREATE POLICY "sa_all" FOR ALL USING (is_avivar_super_admin(auth.uid()))
-CREATE POLICY "acct_s" FOR SELECT USING (account_id = get_user_avivar_account_id(auth.uid()))
-CREATE POLICY "acct_i" FOR INSERT WITH CHECK (account_id = get_user_avivar_account_id(auth.uid()))
-CREATE POLICY "acct_u" FOR UPDATE USING (account_id = get_user_avivar_account_id(auth.uid()))
-CREATE POLICY "acct_d" FOR DELETE USING (account_id = get_user_avivar_account_id(auth.uid()))
-
--- crm_messages (mesma estrutura)
--- leads (precisa manter policies do CPG + adicionar isolamento Avivar)
+// Antes do insert (linha ~315)
+console.log('[AgentSave] Payload:', { 
+  user_id: agentPayload.user_id, 
+  account_id: agentPayload.account_id,
+  name: agentPayload.name 
+});
 ```
 
-### Nota sobre tabela `leads`
+Melhorar tratamento de erro:
 
-A tabela `leads` e compartilhada com o portal CPG (clinicas). As policies existentes do CPG (claimed_by, staff_role) precisam ser mantidas em paralelo com as novas policies de isolamento Avivar. A solucao e:
-- Adicionar `account_id` nullable (nem todo lead e do Avivar)
-- Criar policy: se `account_id IS NOT NULL`, aplicar isolamento; caso contrario, manter regras CPG existentes
+```text
+// No catch do insert (linha ~321)
+if (error) {
+  console.error('[AgentSave] Error:', error);
+  if (error.message?.includes('row-level security')) {
+    throw new Error('Erro de permissao: sua conta pode nao estar configurada corretamente. Tente fazer logout e login novamente.');
+  }
+  throw error;
+}
+```
 
-### Hooks do frontend a atualizar
+### Arquivo: `src/pages/avivar/config/AvivarKnowledge.tsx`
 
-- `useCrmConversations.ts` - adicionar account_id nos inserts de conversas
-- `ConversationList.tsx` - nenhuma mudanca necessaria (RLS cuida do filtro)
-- Edge functions `avivar-send-message`, `uazapi-webhook` - garantir account_id ao criar mensagens/conversas
+Aplicar o mesmo tratamento de erro e logging (linhas ~240-256).
 
-### Ordem de execucao
+### Teste de validacao
 
-1. Adicionar colunas nullable (nao quebra nada)
-2. Migrar dados existentes
-3. Tornar NOT NULL em crm_conversations e crm_messages (leads fica nullable por ser compartilhada)
-4. Dropar policies antigas e criar novas
-5. Atualizar frontend e edge functions
+Apos publicar:
+1. Limpar cache do navegador em `neohub.ibramec.com`
+2. Fazer logout e login novamente com `ti@neofolic.com.br`
+3. Tentar criar um agente novo
+4. Verificar no console do navegador se o log `[AgentSave] Payload:` aparece com `account_id` preenchido
