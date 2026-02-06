@@ -78,15 +78,33 @@ export function useLeadRelease() {
           event: 'UPDATE',
           schema: 'public',
           table: 'leads',
-          filter: 'source=eq.planilha',
         },
         (payload) => {
           const newRow = payload.new as any;
           const oldRow = payload.old as any;
-          // If a lead just became available (was queued before)
-          if (newRow.release_status === 'available' && oldRow.release_status === 'queued') {
+          // If a lead just became available (was queued before) - from planilha queue
+          if (
+            (newRow.source === 'planilha' || newRow.source === 'n8n') &&
+            newRow.release_status === 'available' &&
+            oldRow.release_status === 'queued'
+          ) {
             setNewlyReleasedLeadId(newRow.id);
-            // Refresh info for updated countdown
+            fetchInfo();
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'leads',
+        },
+        (payload) => {
+          const newRow = payload.new as any;
+          // n8n leads arrive directly as available - notify everyone
+          if (newRow.source === 'n8n' && newRow.release_status === 'available') {
+            setNewlyReleasedLeadId(newRow.id);
             fetchInfo();
           }
         }

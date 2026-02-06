@@ -29,12 +29,12 @@ export function useHotLeads() {
       if (showRefresh) setIsRefreshing(true);
       else setIsLoading(true);
 
-      // Filter only leads imported from spreadsheet (source = 'planilha')
+      // Filter leads from HotLeads sources (planilha + n8n)
       // This excludes leads from Avivar CRM and other sources
       const { data, error } = await supabase
         .from('leads')
         .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status')
-        .eq('source', 'planilha')
+        .in('source', ['planilha', 'n8n'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
