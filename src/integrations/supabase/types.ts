@@ -4360,6 +4360,7 @@ export type Database = {
       }
       crm_conversations: {
         Row: {
+          account_id: string
           agent_mode: string | null
           ai_enabled: boolean
           assigned_agent_id: string | null
@@ -4376,6 +4377,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id: string
           agent_mode?: string | null
           ai_enabled?: boolean
           assigned_agent_id?: string | null
@@ -4392,6 +4394,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string
           agent_mode?: string | null
           ai_enabled?: boolean
           assigned_agent_id?: string | null
@@ -4408,6 +4411,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "crm_conversations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crm_conversations_assigned_agent_id_fkey"
             columns: ["assigned_agent_id"]
@@ -4426,6 +4436,7 @@ export type Database = {
       }
       crm_messages: {
         Row: {
+          account_id: string
           content: string | null
           conversation_id: string
           created_at: string
@@ -4441,6 +4452,7 @@ export type Database = {
           sent_at: string
         }
         Insert: {
+          account_id: string
           content?: string | null
           conversation_id: string
           created_at?: string
@@ -4456,6 +4468,7 @@ export type Database = {
           sent_at?: string
         }
         Update: {
+          account_id?: string
           content?: string | null
           conversation_id?: string
           created_at?: string
@@ -4471,6 +4484,13 @@ export type Database = {
           sent_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "crm_messages_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crm_messages_conversation_id_fkey"
             columns: ["conversation_id"]
@@ -9029,6 +9049,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          account_id: string | null
           available_at: string | null
           city: string | null
           claimed_at: string | null
@@ -9057,6 +9078,7 @@ export type Database = {
           utm_source: string | null
         }
         Insert: {
+          account_id?: string | null
           available_at?: string | null
           city?: string | null
           claimed_at?: string | null
@@ -9085,6 +9107,7 @@ export type Database = {
           utm_source?: string | null
         }
         Update: {
+          account_id?: string | null
           available_at?: string | null
           city?: string | null
           claimed_at?: string | null
@@ -9113,6 +9136,13 @@ export type Database = {
           utm_source?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_clinic_id_fkey"
             columns: ["clinic_id"]
