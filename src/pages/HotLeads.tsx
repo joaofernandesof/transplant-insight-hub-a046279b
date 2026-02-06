@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Flame, RefreshCw, Loader2, Upload, Users, Lock } from 'lucide-react';
+import { Flame, RefreshCw, Loader2, Upload, Users, Lock, UserCheck } from 'lucide-react';
 import { useHotLeads } from '@/hooks/useHotLeads';
 import { AvailableLeadCard } from '@/components/hotleads/AvailableLeadCard';
 import { AcquiredLeadCard } from '@/components/hotleads/AcquiredLeadCard';
@@ -16,6 +16,7 @@ export default function HotLeads() {
   const {
     leads,
     availableLeads,
+    myLeads,
     acquiredLeads,
     isLoading,
     isRefreshing,
@@ -78,7 +79,7 @@ export default function HotLeads() {
 
       {/* Stats */}
       <div className="px-4 py-4">
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <Card>
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center gap-3">
@@ -88,6 +89,19 @@ export default function HotLeads() {
                 <div>
                   <p className="text-2xl font-bold">{availableLeads.length}</p>
                   <p className="text-xs text-muted-foreground">Disponíveis</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <UserCheck className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{myLeads.length}</p>
+                  <p className="text-xs text-muted-foreground">Meus Leads</p>
                 </div>
               </div>
             </CardContent>
@@ -108,7 +122,7 @@ export default function HotLeads() {
         </div>
 
         {/* Two columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Available */}
           <div>
             <CardHeader className="px-0 pt-0">
@@ -134,7 +148,32 @@ export default function HotLeads() {
             </div>
           </div>
 
-          {/* Acquired */}
+          {/* My Leads */}
+          <div>
+            <CardHeader className="px-0 pt-0">
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-blue-500" />
+                Meus Leads ({myLeads.length})
+              </CardTitle>
+            </CardHeader>
+            <div className="space-y-3">
+              {myLeads.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Você ainda não adquiriu nenhum lead.
+                </p>
+              ) : (
+                myLeads.map(lead => (
+                  <AcquiredLeadCard
+                    key={lead.id}
+                    lead={lead}
+                    claimerName={getClaimerName(lead.claimed_by)}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Acquired by others */}
           <div>
             <CardHeader className="px-0 pt-0">
               <CardTitle className="text-base flex items-center gap-2">
@@ -145,7 +184,7 @@ export default function HotLeads() {
             <div className="space-y-3">
               {acquiredLeads.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  Nenhum lead adquirido ainda.
+                  Nenhum lead adquirido por outros.
                 </p>
               ) : (
                 acquiredLeads.map(lead => (
