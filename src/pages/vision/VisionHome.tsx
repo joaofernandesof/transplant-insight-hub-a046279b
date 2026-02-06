@@ -89,7 +89,7 @@ export default function VisionHome() {
               <ul className="space-y-2 text-sm text-slate-300">
                 <li className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                  Visualização em negativo médico
+                  Visualização em negativo
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
