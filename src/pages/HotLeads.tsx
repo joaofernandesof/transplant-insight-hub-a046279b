@@ -9,6 +9,7 @@ import { AcquiredLeadCard } from '@/components/hotleads/AcquiredLeadCard';
 import { LeadAcquireDialog } from '@/components/hotleads/LeadAcquireDialog';
 import { LeadImportDialog } from '@/components/hotleads/LeadImportDialog';
 import { LeadExportButton } from '@/components/hotleads/LeadExportButton';
+import { PaginatedLeadColumn } from '@/components/hotleads/PaginatedLeadColumn';
 import type { HotLead } from '@/hooks/useHotLeads';
 
 export default function HotLeads() {
@@ -121,82 +122,35 @@ export default function HotLeads() {
           </Card>
         </div>
 
-        {/* Two columns */}
+        {/* Three columns with independent scroll & pagination */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Available */}
-          <div>
-            <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-green-500" />
-                Leads Disponíveis ({availableLeads.length})
-              </CardTitle>
-            </CardHeader>
-            <div className="space-y-3">
-              {availableLeads.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Nenhum lead disponível no momento.
-                </p>
-              ) : (
-                availableLeads.map(lead => (
-                  <AvailableLeadCard
-                    key={lead.id}
-                    lead={lead}
-                    onAcquire={handleAcquireClick}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* My Leads */}
-          <div>
-            <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-blue-500" />
-                Meus Leads ({myLeads.length})
-              </CardTitle>
-            </CardHeader>
-            <div className="space-y-3">
-              {myLeads.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Você ainda não adquiriu nenhum lead.
-                </p>
-              ) : (
-                myLeads.map(lead => (
-                  <AcquiredLeadCard
-                    key={lead.id}
-                    lead={lead}
-                    claimerName={getClaimerName(lead.claimed_by)}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Acquired by others */}
-          <div>
-            <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-muted-foreground" />
-                Leads Adquiridos ({acquiredLeads.length})
-              </CardTitle>
-            </CardHeader>
-            <div className="space-y-3">
-              {acquiredLeads.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Nenhum lead adquirido por outros.
-                </p>
-              ) : (
-                acquiredLeads.map(lead => (
-                  <AcquiredLeadCard
-                    key={lead.id}
-                    lead={lead}
-                    claimerName={getClaimerName(lead.claimed_by)}
-                  />
-                ))
-              )}
-            </div>
-          </div>
+          <PaginatedLeadColumn
+            title="Leads Disponíveis"
+            dotColor="bg-green-500"
+            items={availableLeads}
+            emptyMessage="Nenhum lead disponível no momento."
+            renderItem={(lead) => (
+              <AvailableLeadCard key={lead.id} lead={lead} onAcquire={handleAcquireClick} />
+            )}
+          />
+          <PaginatedLeadColumn
+            title="Meus Leads"
+            dotColor="bg-blue-500"
+            items={myLeads}
+            emptyMessage="Você ainda não adquiriu nenhum lead."
+            renderItem={(lead) => (
+              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+            )}
+          />
+          <PaginatedLeadColumn
+            title="Leads Adquiridos"
+            dotColor="bg-muted-foreground"
+            items={acquiredLeads}
+            emptyMessage="Nenhum lead adquirido por outros."
+            renderItem={(lead) => (
+              <AcquiredLeadCard key={lead.id} lead={lead} claimerName={getClaimerName(lead.claimed_by)} />
+            )}
+          />
         </div>
       </div>
 
