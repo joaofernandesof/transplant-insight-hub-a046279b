@@ -87,16 +87,52 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             />
             <div>
               <h1 className="text-lg font-bold leading-tight" style={{ color: CPG_COLORS.green }}>
-                Cartaxo Parahyba Guerreiro - Advocacia Médica
+                {isEditable ? (
+                  <EditableText
+                    value={proposal.firmName || "Cartaxo Parahyba Guerreiro - Advocacia Médica"}
+                    onChange={(value) => onUpdate({ firmName: value })}
+                    placeholder="Nome do escritório"
+                    style={{ color: CPG_COLORS.green }}
+                  />
+                ) : (
+                  proposal.firmName || "Cartaxo Parahyba Guerreiro - Advocacia Médica"
+                )}
               </h1>
               <p className="text-[9px] mt-0.5" style={{ color: CPG_COLORS.greenLight }}>
-                CNPJ: 33.947.033/0001-0
+                {isEditable ? (
+                  <EditableText
+                    value={proposal.firmCnpj || "CNPJ: 33.947.033/0001-0"}
+                    onChange={(value) => onUpdate({ firmCnpj: value })}
+                    placeholder="CNPJ"
+                    style={{ color: CPG_COLORS.greenLight }}
+                  />
+                ) : (
+                  proposal.firmCnpj || "CNPJ: 33.947.033/0001-0"
+                )}
               </p>
               <p className="text-[8px] leading-snug" style={{ color: CPG_COLORS.greenLight }}>
-                Rua Marcos Macêdo, 1333, Pátio Dom Luis, Torre 02, sala 2201, Aldeota, Fortaleza/CE
+                {isEditable ? (
+                  <EditableText
+                    value={proposal.firmAddress || "Rua Marcos Macêdo, 1333, Pátio Dom Luis, Torre 02, sala 2201, Aldeota, Fortaleza/CE"}
+                    onChange={(value) => onUpdate({ firmAddress: value })}
+                    placeholder="Endereço"
+                    style={{ color: CPG_COLORS.greenLight }}
+                  />
+                ) : (
+                  proposal.firmAddress || "Rua Marcos Macêdo, 1333, Pátio Dom Luis, Torre 02, sala 2201, Aldeota, Fortaleza/CE"
+                )}
               </p>
               <p className="text-[8px]" style={{ color: CPG_COLORS.greenLight }}>
-                contato@cpgadvocacia.com.br | WhatsApp: (85) 98841-8796
+                {isEditable ? (
+                  <EditableText
+                    value={proposal.firmContact || "contato@cpgadvocacia.com.br | WhatsApp: (85) 98841-8796"}
+                    onChange={(value) => onUpdate({ firmContact: value })}
+                    placeholder="Contato"
+                    style={{ color: CPG_COLORS.greenLight }}
+                  />
+                ) : (
+                  proposal.firmContact || "contato@cpgadvocacia.com.br | WhatsApp: (85) 98841-8796"
+                )}
               </p>
             </div>
           </div>
@@ -137,7 +173,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           style={{ backgroundColor: CPG_COLORS.cream }}
         >
           <p style={{ color: CPG_COLORS.green }}>
-            Olá{proposal.clientName ? `, ${proposal.clientName.split(" ")[0]}` : ""}!{" "}
+            {isEditable ? (
+              <EditableText
+                value={proposal.greeting || `Olá${proposal.clientName ? `, ${proposal.clientName.split(" ")[0]}` : ""}!`}
+                onChange={(value) => onUpdate({ greeting: value })}
+                placeholder="Saudação..."
+                style={{ color: CPG_COLORS.green }}
+              />
+            ) : (
+              proposal.greeting || `Olá${proposal.clientName ? `, ${proposal.clientName.split(" ")[0]}` : ""}!`
+            )}{" "}
             {isEditable ? (
               <EditableText
                 value={proposal.introMessage}
@@ -188,7 +233,17 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                   <span className="text-[9px] opacity-60">Valor de tabela:</span>
                   <span className="relative inline-block">
                     <span className="text-sm font-medium text-white/50">
-                      R$ {proposal.originalValue.toLocaleString("pt-BR")}
+                      R${" "}
+                      {isEditable ? (
+                        <EditableNumber
+                          value={proposal.originalValue}
+                          onChange={(value) => onUpdate({ originalValue: value })}
+                          className="text-sm font-medium"
+                          style={{ color: "rgba(255,255,255,0.5)" }}
+                        />
+                      ) : (
+                        proposal.originalValue.toLocaleString("pt-BR")
+                      )}
                     </span>
                     <span 
                       className="absolute left-0 top-1/2 w-full h-[2px] -rotate-12"
@@ -204,7 +259,17 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                   <span className="text-[9px] opacity-60">Por:</span>
                   <span className="relative inline-block">
                     <span className="text-base font-medium text-white/50">
-                      R$ {proposal.intermediateValue.toLocaleString("pt-BR")}
+                      R${" "}
+                      {isEditable ? (
+                        <EditableNumber
+                          value={proposal.intermediateValue}
+                          onChange={(value) => onUpdate({ intermediateValue: value })}
+                          className="text-base font-medium"
+                          style={{ color: "rgba(255,255,255,0.5)" }}
+                        />
+                      ) : (
+                        proposal.intermediateValue.toLocaleString("pt-BR")
+                      )}
                     </span>
                     <span 
                       className="absolute left-0 top-1/2 w-full h-[2px] -rotate-12"
@@ -234,7 +299,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             </div>
 
             <p className="text-[9px] opacity-80 leading-snug">
-              Base jurídica para atuar com segurança e tranquilidade.
+              {isEditable ? (
+                <EditableText
+                  value={proposal.planTagline || "Base jurídica para atuar com segurança e tranquilidade."}
+                  onChange={(value) => onUpdate({ planTagline: value })}
+                  placeholder="Slogan do plano..."
+                  style={{ color: "rgba(255,255,255,0.8)" }}
+                />
+              ) : (
+                proposal.planTagline || "Base jurídica para atuar com segurança e tranquilidade."
+              )}
             </p>
           </div>
         </div>
@@ -245,7 +319,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             <div className="flex items-center gap-2 mb-2">
               <Shield className="h-4 w-4" style={{ color: CPG_COLORS.gold }} />
               <h3 className="text-xs font-semibold" style={{ color: CPG_COLORS.green }}>
-                Serviços Incluídos
+                {isEditable ? (
+                  <EditableText
+                    value={proposal.servicesTitle || "Serviços Incluídos"}
+                    onChange={(value) => onUpdate({ servicesTitle: value })}
+                    placeholder="Título da seção..."
+                    style={{ color: CPG_COLORS.green }}
+                  />
+                ) : (
+                  proposal.servicesTitle || "Serviços Incluídos"
+                )}
               </h3>
             </div>
             <div 
@@ -270,7 +353,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             <div className="flex items-center gap-2 mb-2">
               <FileText className="h-4 w-4" style={{ color: CPG_COLORS.gold }} />
               <h3 className="text-xs font-semibold" style={{ color: CPG_COLORS.green }}>
-                Documentação Jurídica Preventiva
+                {isEditable ? (
+                  <EditableText
+                    value={proposal.documentsTitle || "Documentação Jurídica Preventiva"}
+                    onChange={(value) => onUpdate({ documentsTitle: value })}
+                    placeholder="Título da seção..."
+                    style={{ color: CPG_COLORS.green }}
+                  />
+                ) : (
+                  proposal.documentsTitle || "Documentação Jurídica Preventiva"
+                )}
               </h3>
               {documentsText && (
                 <span 
@@ -320,31 +412,98 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           style={{ background: `linear-gradient(135deg, ${CPG_COLORS.cream} 0%, #f5f2ed 100%)`, border: `1px solid ${CPG_COLORS.gold}` }}
         >
           <h3 className="text-sm font-bold mb-1" style={{ color: CPG_COLORS.green }}>
-            Pronto para começar?
+            {isEditable ? (
+              <EditableText
+                value={proposal.ctaTitle || "Pronto para começar?"}
+                onChange={(value) => onUpdate({ ctaTitle: value })}
+                placeholder="Título CTA..."
+                style={{ color: CPG_COLORS.green }}
+              />
+            ) : (
+              proposal.ctaTitle || "Pronto para começar?"
+            )}
           </h3>
           <p className="text-[10px] mb-3" style={{ color: CPG_COLORS.greenLight }}>
-            Entre em contato para dar início à sua proteção jurídica.
+            {isEditable ? (
+              <EditableText
+                value={proposal.ctaSubtitle || "Entre em contato para dar início à sua proteção jurídica."}
+                onChange={(value) => onUpdate({ ctaSubtitle: value })}
+                placeholder="Subtítulo CTA..."
+                style={{ color: CPG_COLORS.greenLight }}
+              />
+            ) : (
+              proposal.ctaSubtitle || "Entre em contato para dar início à sua proteção jurídica."
+            )}
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-[10px]" style={{ color: CPG_COLORS.green }}>
             <div className="flex items-center gap-1">
               <Phone className="h-3 w-3" style={{ color: CPG_COLORS.gold }} />
-              <span>(85) 98841-8796</span>
+              {isEditable ? (
+                <EditableText
+                  value={proposal.ctaPhone || "(85) 98841-8796"}
+                  onChange={(value) => onUpdate({ ctaPhone: value })}
+                  placeholder="Telefone..."
+                  style={{ color: CPG_COLORS.green }}
+                />
+              ) : (
+                <span>{proposal.ctaPhone || "(85) 98841-8796"}</span>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <Mail className="h-3 w-3" style={{ color: CPG_COLORS.gold }} />
-              <span>contato@cpgadvocacia.com.br</span>
+              {isEditable ? (
+                <EditableText
+                  value={proposal.ctaEmail || "contato@cpgadvocacia.com.br"}
+                  onChange={(value) => onUpdate({ ctaEmail: value })}
+                  placeholder="Email..."
+                  style={{ color: CPG_COLORS.green }}
+                />
+              ) : (
+                <span>{proposal.ctaEmail || "contato@cpgadvocacia.com.br"}</span>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <Globe className="h-3 w-3" style={{ color: CPG_COLORS.gold }} />
-              <span>www.cpgadvocacia.com.br</span>
+              {isEditable ? (
+                <EditableText
+                  value={proposal.ctaWebsite || "www.cpgadvocacia.com.br"}
+                  onChange={(value) => onUpdate({ ctaWebsite: value })}
+                  placeholder="Website..."
+                  style={{ color: CPG_COLORS.green }}
+                />
+              ) : (
+                <span>{proposal.ctaWebsite || "www.cpgadvocacia.com.br"}</span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Rodapé */}
         <div className="text-center text-[9px]" style={{ color: CPG_COLORS.greenLight }}>
-          <p className="font-medium">Cartaxo Parahyba Guerreiro - Advocacia Médica • Proteção Jurídica Especializada</p>
-          <p className="mt-0.5 opacity-70">Esta proposta é válida por 30 dias a partir da data de emissão.</p>
+          <p className="font-medium">
+            {isEditable ? (
+              <EditableText
+                value={proposal.footerText || "Cartaxo Parahyba Guerreiro - Advocacia Médica • Proteção Jurídica Especializada"}
+                onChange={(value) => onUpdate({ footerText: value })}
+                placeholder="Texto do rodapé..."
+                style={{ color: CPG_COLORS.greenLight }}
+              />
+            ) : (
+              proposal.footerText || "Cartaxo Parahyba Guerreiro - Advocacia Médica • Proteção Jurídica Especializada"
+            )}
+          </p>
+          <p className="mt-0.5 opacity-70">
+            {isEditable ? (
+              <EditableText
+                value={proposal.validityText || "Esta proposta é válida por 30 dias a partir da data de emissão."}
+                onChange={(value) => onUpdate({ validityText: value })}
+                placeholder="Texto de validade..."
+                style={{ color: CPG_COLORS.greenLight }}
+              />
+            ) : (
+              proposal.validityText || "Esta proposta é válida por 30 dias a partir da data de emissão."
+            )}
+          </p>
         </div>
       </div>
     );

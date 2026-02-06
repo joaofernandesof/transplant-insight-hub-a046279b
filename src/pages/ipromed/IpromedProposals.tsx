@@ -75,6 +75,7 @@ export interface ProposalData {
   clientName: string;
   planName: string;
   planSubtitle: string;
+  planTagline?: string;
   originalValue: number;
   intermediateValue: number;
   monthlyValue: number;
@@ -85,6 +86,24 @@ export interface ProposalData {
   documentsIncluded: "full" | "discount" | "none";
   introMessage: string;
   closingMessage: string;
+  greeting?: string;
+  // Header/Firm info
+  firmName?: string;
+  firmCnpj?: string;
+  firmAddress?: string;
+  firmContact?: string;
+  // Section titles
+  servicesTitle?: string;
+  documentsTitle?: string;
+  // CTA section
+  ctaTitle?: string;
+  ctaSubtitle?: string;
+  ctaPhone?: string;
+  ctaEmail?: string;
+  ctaWebsite?: string;
+  // Footer
+  footerText?: string;
+  validityText?: string;
 }
 
 const defaultProposal: ProposalData = {
