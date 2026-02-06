@@ -1,69 +1,84 @@
 
-# Plano: Corrigir erro de salvamento do agente de IA em producao
+# Plano: Atualizar QA.md com todas as tarefas pendentes de registro
 
-## Diagnostico
+## Problema identificado
 
-Apos analise completa, o erro "new row violates row-level security policy for table avivar_agents" esta sendo causado pela **versao publicada do frontend estar desatualizada** em relacao ao codigo atual.
+O arquivo `docs/QA.md` nao e atualizado desde **2026-01-27** (QA-011). Desde entao, pelo menos **6 tarefas significativas** foram executadas sem registro de QA. Isso viola a regra obrigatoria de atualizacao apos cada tarefa.
 
-### Evidencias
+## Tarefas sem registro (QA-012 a QA-017)
 
-1. **O codigo no preview esta correto**: Ambos os fluxos de criacao de agente (`AvivarSimpleWizard.tsx` e `AvivarKnowledge.tsx`) ja incluem a busca do `account_id` via `avivar_account_members` e o passam no payload de insert.
-
-2. **A RLS esta correta**: A policy `acct_i` exige `WITH CHECK (account_id = get_user_avivar_account_id(auth.uid()))`. A funcao retorna `a0000001-0000-0000-0000-000000000003` para `ti@neofolic.com.br` - tudo ok.
-
-3. **O banco esta correto**: A coluna `account_id` e NOT NULL e a funcao de resolucao funciona.
-
-4. **O erro e do PostgREST** (frontend), nao de uma edge function - confirma que e o site publicado enviando dados incompletos.
-
-5. **Possivel causa do deploy nao atualizar**: Com 70+ edge functions, cada publicacao demora para propagar. Alem disso, o dominio customizado `neohub.ibramec.com` pode ter **cache de CDN** que impede o JavaScript novo de ser servido.
+| ID | Tarefa | Data aprox. | Modulo |
+|---|---|---|---|
+| QA-012 | Arquitetura Multi-tenant Fase 1 - Avivar | 2026-01-28 | Core / Database |
+| QA-013 | Suporte Multimidia e Ferramentas de Fluxo no AI Agent | 2026-02-01 | AI / Edge Functions |
+| QA-014 | Processador de Debounce (Mensagens em Lote) | 2026-02-01 | Backend / Performance |
+| QA-015 | Sistema Universal de Checklists (Funil Comercial) | 2026-02-04 | Shared / Kanban |
+| QA-016 | Redesign Dashboard HotLeads | 2026-02-05 | Frontend / CRM |
+| QA-017 | Resiliencia e Debugging do Wizard de Agentes | 2026-02-06 | Avivar / Config |
 
 ## Acoes
 
-### 1. Republicar o projeto
-Republicar o projeto para forcar um novo build do frontend com o codigo atualizado.
+### 1. Atualizar `docs/QA.md`
 
-### 2. Adicionar tratamento de erro especifico
-Melhorar a mensagem de erro no `AvivarSimpleWizard.tsx` para que, se o INSERT falhar por RLS, o usuario veja uma mensagem clara em vez de um erro generico. Isso ajuda a diagnosticar se o problema persiste.
+Adicionar as 6 entradas faltantes seguindo o template padrao ja existente no arquivo, incluindo:
+- Tabela de metadados (Modulo, Descricao, Tipo de Teste, Status, Data, Responsavel, Ref. Roadmap)
+- Lista de validacoes realizadas com checkboxes
+- Observacoes tecnicas relevantes
 
-### 3. Adicionar logging no payload
-Incluir `console.log` temporario no fluxo de salvamento para confirmar que o `account_id` esta sendo enviado corretamente pelo frontend publicado. Isso permite verificar se o build publicado contem o codigo atualizado.
+### 2. Atualizar contadores do resumo
+
+Atualizar a tabela de resumo no topo do arquivo:
+- Total de Tarefas Validadas: 11 -> 17
+- Aprovadas: 11 -> 17
+- Ultima Atualizacao: 2026-01-27 -> 2026-02-06
+
+### 3. Compromisso futuro
+
+A partir de agora, toda tarefa concluida tera o QA.md atualizado como ultimo passo obrigatorio antes de finalizar a resposta.
 
 ## Secao Tecnica
 
-### Arquivo: `src/pages/avivar/config/AvivarSimpleWizard.tsx`
+### Arquivo: `docs/QA.md`
 
-Adicionar log de debug antes do insert/update:
-
-```text
-// Antes do insert (linha ~315)
-console.log('[AgentSave] Payload:', { 
-  user_id: agentPayload.user_id, 
-  account_id: agentPayload.account_id,
-  name: agentPayload.name 
-});
-```
-
-Melhorar tratamento de erro:
+Sera adicionado um bloco `### 2026-02-06` (e `### 2026-02-01`, `### 2026-02-04`, etc.) contendo as 6 novas entradas, cada uma com:
 
 ```text
-// No catch do insert (linha ~321)
-if (error) {
-  console.error('[AgentSave] Error:', error);
-  if (error.message?.includes('row-level security')) {
-    throw new Error('Erro de permissao: sua conta pode nao estar configurada corretamente. Tente fazer logout e login novamente.');
-  }
-  throw error;
-}
+#### [check] QA-0XX: [Nome da Funcionalidade]
+
+| Campo | Valor |
+|-------|-------|
+| **Modulo** | [modulo] |
+| **Descricao** | [descricao] |
+| **Tipo de Teste** | [tipo] |
+| **Status** | [check] Aprovado |
+| **Data** | YYYY-MM-DD |
+| **Responsavel** | Lovable AI |
+| **Ref. Roadmap** | [ref] |
+
+**Validacoes Realizadas:**
+- [x] Item 1
+- [x] Item 2
+
+**Observacoes:**
+- ...
 ```
 
-### Arquivo: `src/pages/avivar/config/AvivarKnowledge.tsx`
+### Detalhes de cada entrada
 
-Aplicar o mesmo tratamento de erro e logging (linhas ~240-256).
+**QA-012: Multi-tenant**
+- Validacoes: tabelas `avivar_accounts`/`avivar_account_members` criadas, coluna `account_id` em 28 tabelas, funcao RPC `get_user_avivar_account_id`, RLS atualizado
 
-### Teste de validacao
+**QA-013: Multimidia AI Agent**
+- Validacoes: ferramenta `send_fluxo_media`, regras de prompt para envio silencioso, integracao uazapi-webhook, suporte a .mp3/.mp4/.pdf
 
-Apos publicar:
-1. Limpar cache do navegador em `neohub.ibramec.com`
-2. Fazer logout e login novamente com `ti@neofolic.com.br`
-3. Tentar criar um agente novo
-4. Verificar no console do navegador se o log `[AgentSave] Payload:` aparece com `account_id` preenchido
+**QA-014: Debounce Processor**
+- Validacoes: edge function `avivar-debounce-processor`, buffer 30s, batching de mensagens, tratamento de erro 404
+
+**QA-015: Checklists Universais**
+- Validacoes: componente `ChecklistUniversal`, editor de campos, persistencia multi-tenant, bloqueio de movimentacao no Kanban
+
+**QA-016: Redesign HotLeads**
+- Validacoes: layout 3 colunas responsivo, mascara de privacidade, paginacao infinita, navegacao card -> chat
+
+**QA-017: Debugging Wizard Agentes**
+- Validacoes: logging `[AgentSave]`, tratamento de erro RLS especifico, correcao useEffect fluxo, injecao account_id em knowledge inserts
