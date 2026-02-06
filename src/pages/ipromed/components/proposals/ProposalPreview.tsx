@@ -181,19 +181,29 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Serviços incluídos */}
-        <div className="mb-4">
-          <h3 className="text-xs font-semibold mb-2" style={{ color: CPG_COLORS.green }}>
-            Serviços Incluídos:
-          </h3>
-          <div className="grid grid-cols-3 gap-x-3 gap-y-1">
-            {proposal.services.map(serviceId => (
-              <div key={serviceId} className="flex items-start gap-1 text-[10px]" style={{ color: CPG_COLORS.green }}>
-                <Check className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: CPG_COLORS.gold }} />
-                <span>{SERVICE_LABELS[serviceId] || serviceId}</span>
+        {proposal.services.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="h-4 w-4" style={{ color: CPG_COLORS.gold }} />
+              <h3 className="text-xs font-semibold" style={{ color: CPG_COLORS.green }}>
+                Serviços Incluídos
+              </h3>
+            </div>
+            <div 
+              className="rounded-lg p-3"
+              style={{ backgroundColor: CPG_COLORS.cream }}
+            >
+              <div className="grid grid-cols-3 gap-x-3 gap-y-1">
+                {proposal.services.map(serviceId => (
+                  <div key={serviceId} className="flex items-start gap-1 text-[10px]" style={{ color: CPG_COLORS.green }}>
+                    <Check className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: CPG_COLORS.gold }} />
+                    <span>{SERVICE_LABELS[serviceId] || serviceId}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Documentação Jurídica */}
         {proposal.documents.length > 0 && proposal.documentsIncluded !== "none" && (
