@@ -70,8 +70,11 @@ export function useHotLeads() {
   const availableLeads = useMemo(() =>
     leads.filter(l => !l.claimed_by), [leads]);
 
+  const myLeads = useMemo(() =>
+    leads.filter(l => l.claimed_by === user?.id), [leads, user?.id]);
+
   const acquiredLeads = useMemo(() =>
-    leads.filter(l => !!l.claimed_by), [leads]);
+    leads.filter(l => !!l.claimed_by && l.claimed_by !== user?.id), [leads, user?.id]);
 
   const acquireLead = useCallback(async (leadId: string, userEmail: string): Promise<boolean> => {
     try {
@@ -155,6 +158,7 @@ export function useHotLeads() {
   return {
     leads,
     availableLeads,
+    myLeads,
     acquiredLeads,
     isLoading,
     isRefreshing,
