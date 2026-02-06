@@ -54,8 +54,6 @@ export function useLeadRelease() {
 
       if (data?.success) {
         setNewlyReleasedLeadId(data.lead_id);
-        // Celebration handled by doRelease caller or realtime
-        setTimeout(() => triggerCelebration(), 1500);
         await fetchInfo();
         return data;
       }
@@ -88,7 +86,6 @@ export function useLeadRelease() {
           // If a lead just became available (was queued before)
           if (newRow.release_status === 'available' && oldRow.release_status === 'queued') {
             setNewlyReleasedLeadId(newRow.id);
-            triggerCelebration();
             // Refresh info for updated countdown
             fetchInfo();
           }

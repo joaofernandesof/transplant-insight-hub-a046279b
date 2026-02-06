@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { ConfettiEffect } from '@/components/hotleads/ConfettiEffect';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -39,6 +40,16 @@ export default function HotLeads() {
   const [selectedLead, setSelectedLead] = useState<HotLead | null>(null);
   const [isAcquireOpen, setIsAcquireOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const handleAcquireConfirm = useCallback(async (leadId: string, email: string) => {
+    const success = await acquireLead(leadId, email);
+    if (success) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3500);
+    }
+    return success;
+  }, [acquireLead]);
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // Global filters
@@ -249,11 +260,13 @@ export default function HotLeads() {
       </div>
 
       {/* Dialogs */}
+      <ConfettiEffect active={showConfetti} />
+
       <LeadAcquireDialog
         lead={selectedLead}
         open={isAcquireOpen}
         onOpenChange={setIsAcquireOpen}
-        onConfirm={acquireLead}
+        onConfirm={handleAcquireConfirm}
       />
 
       <LeadImportDialog
