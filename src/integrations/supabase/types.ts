@@ -8650,6 +8650,81 @@ export type Database = {
           },
         ]
       }
+      ipromed_proposals: {
+        Row: {
+          accepted_at: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          closing_message: string | null
+          conditions: string[] | null
+          created_at: string
+          created_by: string | null
+          custom_conditions: string[] | null
+          documents: string[] | null
+          documents_included: string
+          id: string
+          intro_message: string | null
+          monthly_value: number
+          plan_name: string
+          plan_subtitle: string | null
+          proposal_code: string
+          rejected_at: string | null
+          sent_at: string | null
+          services: string[] | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          closing_message?: string | null
+          conditions?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          custom_conditions?: string[] | null
+          documents?: string[] | null
+          documents_included?: string
+          id?: string
+          intro_message?: string | null
+          monthly_value?: number
+          plan_name: string
+          plan_subtitle?: string | null
+          proposal_code: string
+          rejected_at?: string | null
+          sent_at?: string | null
+          services?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          closing_message?: string | null
+          conditions?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          custom_conditions?: string[] | null
+          documents?: string[] | null
+          documents_included?: string
+          id?: string
+          intro_message?: string | null
+          monthly_value?: number
+          plan_name?: string
+          plan_subtitle?: string | null
+          proposal_code?: string
+          rejected_at?: string | null
+          sent_at?: string | null
+          services?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ipromed_publications: {
         Row: {
           case_id: string | null
