@@ -104,6 +104,9 @@ export interface ProposalData {
   // Footer
   footerText?: string;
   validityText?: string;
+  // Custom labels for services and documents
+  customServiceLabels?: Record<string, string>;
+  customDocumentLabels?: Record<string, string>;
 }
 
 const defaultProposal: ProposalData = {

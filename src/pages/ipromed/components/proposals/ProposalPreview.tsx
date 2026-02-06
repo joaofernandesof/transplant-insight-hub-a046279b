@@ -63,6 +63,25 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         ? "com desconto" 
         : "";
 
+    // Helpers para obter labels editáveis
+    const getServiceLabel = (serviceId: string) => {
+      return proposal.customServiceLabels?.[serviceId] || SERVICE_LABELS[serviceId] || serviceId;
+    };
+
+    const getDocumentLabel = (docId: string) => {
+      return proposal.customDocumentLabels?.[docId] || DOCUMENT_LABELS[docId] || docId;
+    };
+
+    const updateServiceLabel = (serviceId: string, newLabel: string) => {
+      const current = proposal.customServiceLabels || {};
+      onUpdate?.({ customServiceLabels: { ...current, [serviceId]: newLabel } });
+    };
+
+    const updateDocumentLabel = (docId: string, newLabel: string) => {
+      const current = proposal.customDocumentLabels || {};
+      onUpdate?.({ customDocumentLabels: { ...current, [docId]: newLabel } });
+    };
+
     return (
       <div
         ref={ref}
@@ -329,7 +348,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 {proposal.services.map(serviceId => (
                   <div key={serviceId} className="flex items-start gap-1 text-[10px]" style={{ color: CPG_COLORS.green }}>
                     <Check className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: CPG_COLORS.gold }} />
-                    <span>{SERVICE_LABELS[serviceId] || serviceId}</span>
+                    {isEditable ? (
+                      <EditableText
+                        value={getServiceLabel(serviceId)}
+                        onChange={(value) => updateServiceLabel(serviceId, value)}
+                        placeholder="Serviço..."
+                        style={{ color: CPG_COLORS.green }}
+                      />
+                    ) : (
+                      <span>{getServiceLabel(serviceId)}</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -371,7 +399,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 {proposal.documents.map(docId => (
                   <div key={docId} className="flex items-start gap-1 text-[10px]" style={{ color: CPG_COLORS.green }}>
                     <Check className="h-3 w-3 flex-shrink-0 mt-0.5" style={{ color: CPG_COLORS.gold }} />
-                    <span>{DOCUMENT_LABELS[docId] || docId}</span>
+                    {isEditable ? (
+                      <EditableText
+                        value={getDocumentLabel(docId)}
+                        onChange={(value) => updateDocumentLabel(docId, value)}
+                        placeholder="Documento..."
+                        style={{ color: CPG_COLORS.green }}
+                      />
+                    ) : (
+                      <span>{getDocumentLabel(docId)}</span>
+                    )}
                   </div>
                 ))}
               </div>
