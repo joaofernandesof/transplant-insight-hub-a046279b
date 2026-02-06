@@ -471,25 +471,25 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <h3 className="text-sm font-bold mb-1" style={{ color: CPG_COLORS.green }}>
             {isEditable ? (
               <EditableText
-                value={proposal.ctaTitle || "Pronto para começar?"}
+                value={proposal.ctaTitle || "Sua carreira protegida. Sua paz garantida."}
                 onChange={(value) => onUpdate({ ctaTitle: value })}
                 placeholder="Título CTA..."
                 style={{ color: CPG_COLORS.green }}
               />
             ) : (
-              proposal.ctaTitle || "Pronto para começar?"
+              proposal.ctaTitle || "Sua carreira protegida. Sua paz garantida."
             )}
           </h3>
           <p className="text-[9px] mb-2" style={{ color: CPG_COLORS.greenLight }}>
             {isEditable ? (
               <EditableText
-                value={proposal.ctaSubtitle || "Entre em contato para dar início à sua proteção jurídica."}
+                value={proposal.ctaSubtitle || "Proteção jurídica especializada para médicos que não querem se preocupar com processos."}
                 onChange={(value) => onUpdate({ ctaSubtitle: value })}
                 placeholder="Subtítulo CTA..."
                 style={{ color: CPG_COLORS.greenLight }}
               />
             ) : (
-              proposal.ctaSubtitle || "Entre em contato para dar início à sua proteção jurídica."
+              proposal.ctaSubtitle || "Proteção jurídica especializada para médicos que não querem se preocupar com processos."
             )}
           </p>
           <div className="flex flex-wrap justify-center gap-3 text-[9px]" style={{ color: CPG_COLORS.green }}>
