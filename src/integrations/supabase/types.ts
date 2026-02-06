@@ -17428,25 +17428,15 @@ export type Database = {
         Args: { p_name?: string; p_phone: string; p_user_id: string }
         Returns: string
       }
-      get_or_create_avivar_conversa:
-        | {
-            Args: {
-              p_conversa_id?: string
-              p_nome_contato?: string
-              p_numero: string
-              p_user_id: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_conversa_id?: string
-              p_nome_contato?: string
-              p_numero: string
-              p_user_id: string
-            }
-            Returns: string
-          }
+      get_or_create_avivar_conversa: {
+        Args: {
+          p_conversa_id?: string
+          p_nome_contato?: string
+          p_numero: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       get_or_create_user_scan_credits: {
         Args: { _user_id: string }
         Returns: {
