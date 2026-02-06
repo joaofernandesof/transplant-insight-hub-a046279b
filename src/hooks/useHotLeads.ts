@@ -15,6 +15,7 @@ export interface HotLead {
   claimed_by: string | null;
   claimed_at: string | null;
   created_at: string;
+  tags: string[] | null;
 }
 
 export function useHotLeads() {
@@ -33,7 +34,7 @@ export function useHotLeads() {
       // This excludes leads from Avivar CRM and other sources
       const { data, error } = await supabase
         .from('leads')
-        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status')
+        .select('id, name, email, phone, city, state, source, status, claimed_by, claimed_at, created_at, release_status, tags')
         .in('source', ['planilha', 'n8n'])
         .order('created_at', { ascending: false });
 
@@ -107,7 +108,7 @@ export function useHotLeads() {
   }, [user?.id, fetchLeads]);
 
   const importLeads = useCallback(async (
-    leadsData: { name: string; phone: string; email: string; state: string; city: string }[]
+    leadsData: { name: string; phone: string; email: string; state: string; city: string; tags?: string[] }[]
   ): Promise<{ success: number; errors: number }> => {
     if (!isAdmin) {
       toast.error('Apenas administradores podem importar leads');
@@ -127,6 +128,7 @@ export function useHotLeads() {
         email: l.email || null,
         state: l.state || null,
         city: l.city || null,
+        tags: l.tags && l.tags.length > 0 ? l.tags : null,
         source: 'planilha',
         status: 'new',
         interest_level: 'warm',

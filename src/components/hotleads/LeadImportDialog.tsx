@@ -13,6 +13,7 @@ interface ParsedLead {
   email: string;
   state: string;
   city: string;
+  tags: string[];
 }
 
 interface LeadImportDialogProps {
@@ -21,14 +22,32 @@ interface LeadImportDialogProps {
   onImport: (leads: ParsedLead[]) => Promise<{ success: number; errors: number }>;
 }
 
-const REQUIRED_COLUMNS = ['nome', 'telefone', 'email', 'estado', 'cidade'];
+const REQUIRED_COLUMNS = ['nome', 'telefone'];
 
 function normalizeHeader(header: string): string {
   return header
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 ]/g, '')
     .trim();
+}
+
+/**
+ * Parse the "Lead tags" column value into an array of tags.
+ * Handles comma-separated, #-separated, and space-separated tags.
+ * Filters out #GRAU and empty values.
+ */
+function parseTags(raw: string): string[] {
+  if (!raw || raw === '#GRAU' || raw === '#N/A' || raw === 'N/A') return [];
+  
+  // Split by comma, #, or semicolon
+  const tags = raw
+    .split(/[,;#]/)
+    .map(t => t.trim())
+    .filter(t => t.length > 0 && t !== 'GRAU' && t !== 'N/A');
+  
+  return [...new Set(tags)]; // dedupe
 }
 
 function mapRow(row: Record<string, any>): ParsedLead | null {
@@ -37,15 +56,17 @@ function mapRow(row: Record<string, any>): ParsedLead | null {
     normalized[normalizeHeader(key)] = String(value || '').trim();
   });
 
-  const name = normalized['nome'] || '';
-  const phone = normalized['telefone'] || '';
-  const email = normalized['email'] || '';
-  const state = normalized['estado'] || '';
-  const city = normalized['cidade'] || '';
+  // Map spreadsheet columns (support both old and new header names)
+  const name = normalized['nome'] || normalized['contato principal'] || '';
+  const phone = normalized['telefone'] || normalized['telefone comercial contato'] || normalized['telefone comercial (contato)'] || '';
+  const email = normalized['email'] || normalized['email formulario'] || normalized['email (formulario)'] || '';
+  const state = normalized['estado'] || normalized['estado do lead'] || '';
+  const city = normalized['cidade'] || normalized['cidade principal'] || '';
+  const tagsRaw = normalized['lead tags'] || normalized['tags'] || '';
 
   if (!name || !phone) return null;
 
-  return { name, phone, email, state, city };
+  return { name, phone, email, state, city, tags: parseTags(tagsRaw) };
 }
 
 export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDialogProps) {
@@ -67,21 +88,21 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
   // Download template spreadsheet
   const downloadTemplate = useCallback(() => {
     const templateData = [
-      { Nome: 'João Silva', Telefone: '11999998888', Email: 'joao@email.com', Estado: 'SP', Cidade: 'São Paulo' },
-      { Nome: 'Maria Santos', Telefone: '21988887777', Email: 'maria@email.com', Estado: 'RJ', Cidade: 'Rio de Janeiro' },
+      { 'Contato principal': 'João Silva', 'Telefone comercial (contato)': '11999998888', 'EMAIL (FORMULÁRIO)': 'joao@email.com', 'ESTADO DO LEAD': 'SP', 'CIDADE PRINCIPAL': 'São Paulo', 'Lead tags': '' },
+      { 'Contato principal': 'Maria Santos', 'Telefone comercial (contato)': '21988887777', 'EMAIL (FORMULÁRIO)': 'maria@email.com', 'ESTADO DO LEAD': 'RJ', 'CIDADE PRINCIPAL': 'Rio de Janeiro', 'Lead tags': 'Oportunidade, #DISPARO_OPERAÇÃO' },
     ];
     
     const worksheet = XLSX.utils.json_to_sheet(templateData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
     
-    // Set column widths
     worksheet['!cols'] = [
-      { wch: 25 }, // Nome
-      { wch: 15 }, // Telefone
-      { wch: 30 }, // Email
-      { wch: 10 }, // Estado
-      { wch: 20 }, // Cidade
+      { wch: 25 },
+      { wch: 22 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 35 },
     ];
     
     XLSX.writeFile(workbook, 'modelo_hotleads.xlsx');
@@ -109,11 +130,13 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
           return;
         }
 
-        // Validate columns
+        // Validate required columns exist
         const headers = Object.keys(json[0]).map(normalizeHeader);
-        const missing = REQUIRED_COLUMNS.filter(col => !headers.includes(col));
-        if (missing.length > 0) {
-          setParseError(`Colunas obrigatórias ausentes: ${missing.join(', ')}`);
+        const hasName = headers.some(h => h === 'nome' || h === 'contato principal');
+        const hasPhone = headers.some(h => h.includes('telefone'));
+        
+        if (!hasName || !hasPhone) {
+          setParseError('Colunas obrigatórias ausentes: necessário "Contato principal" (ou "Nome") e "Telefone"');
           return;
         }
 
@@ -160,7 +183,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
             </Button>
           </DialogTitle>
           <DialogDescription>
-            Envie um arquivo .xls, .xlsx ou .csv com as colunas: Nome, Telefone, Email, Estado, Cidade
+            Envie um arquivo .xls, .xlsx ou .csv com as colunas: Contato principal, Telefone, Email, Estado, Cidade, Lead tags
           </DialogDescription>
         </DialogHeader>
 
@@ -209,6 +232,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
                       <th className="text-left p-2">Email</th>
                       <th className="text-left p-2">Estado</th>
                       <th className="text-left p-2">Cidade</th>
+                      <th className="text-left p-2">Tags</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -219,11 +243,14 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
                         <td className="p-2">{l.email}</td>
                         <td className="p-2">{l.state}</td>
                         <td className="p-2">{l.city}</td>
+                        <td className="p-2">
+                          {l.tags.length > 0 ? l.tags.join(', ') : '-'}
+                        </td>
                       </tr>
                     ))}
                     {parsedLeads.length > 20 && (
                       <tr className="border-t">
-                        <td colSpan={5} className="p-2 text-center text-muted-foreground">
+                        <td colSpan={6} className="p-2 text-center text-muted-foreground">
                           ... e mais {parsedLeads.length - 20} leads
                         </td>
                       </tr>
