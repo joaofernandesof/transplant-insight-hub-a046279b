@@ -130,7 +130,8 @@ export function useHotLeads() {
         source: 'planilha',
         status: 'new',
         interest_level: 'warm',
-        release_status: 'queued',
+        release_status: 'available',
+        available_at: new Date().toISOString(),
       }));
 
       const { data, error } = await supabase
