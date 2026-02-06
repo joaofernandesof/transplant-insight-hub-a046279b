@@ -88,12 +88,22 @@ export type SubnichoType =
 export type TemplateType = SubnichoType;
 
 // Fluxo de Atendimento
+export interface FluxoStepMedia {
+  type: 'audio' | 'image' | 'video' | 'document';
+  url: string;
+  name?: string;
+  // Audio-specific
+  audio_type?: 'ptt' | 'audio'; // ptt = gravado na hora, audio = arquivo
+  audio_forward?: boolean; // encaminhada
+}
+
 export interface FluxoStep {
   id: string;
   ordem: number;
   titulo: string;
   descricao: string;
   exemploMensagem?: string; // Exemplo opcional de mensagem para referência de tom
+  media?: FluxoStepMedia; // Mídia opcional para este passo
 }
 
 export interface FluxoAtendimento {
