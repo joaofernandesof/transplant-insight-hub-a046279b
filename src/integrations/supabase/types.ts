@@ -9243,6 +9243,7 @@ export type Database = {
           source: string | null
           state: string | null
           status: string | null
+          tags: string[] | null
           updated_at: string
           utm_campaign: string | null
           utm_medium: string | null
@@ -9273,6 +9274,7 @@ export type Database = {
           source?: string | null
           state?: string | null
           status?: string | null
+          tags?: string[] | null
           updated_at?: string
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -9303,6 +9305,7 @@ export type Database = {
           source?: string | null
           state?: string | null
           status?: string | null
+          tags?: string[] | null
           updated_at?: string
           utm_campaign?: string | null
           utm_medium?: string | null
