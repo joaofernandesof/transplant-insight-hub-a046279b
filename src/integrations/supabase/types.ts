@@ -223,8 +223,80 @@ export type Database = {
         }
         Relationships: []
       }
+      avivar_account_members: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          role: Database["public"]["Enums"]["avivar_account_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: Database["public"]["Enums"]["avivar_account_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: Database["public"]["Enums"]["avivar_account_role"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avivar_account_members_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avivar_accounts: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          owner_user_id: string
+          plan: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          owner_user_id: string
+          plan?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          owner_user_id?: string
+          plan?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       avivar_agendas: {
         Row: {
+          account_id: string
           address: string | null
           city: string | null
           color: string | null
@@ -238,6 +310,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           address?: string | null
           city?: string | null
           color?: string | null
@@ -251,6 +324,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           address?: string | null
           city?: string | null
           color?: string | null
@@ -263,10 +337,19 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_agendas_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_agents: {
         Row: {
+          account_id: string
           address: string | null
           ai_identity: string | null
           ai_instructions: string | null
@@ -305,6 +388,7 @@ export type Database = {
           video_gallery: Json | null
         }
         Insert: {
+          account_id: string
           address?: string | null
           ai_identity?: string | null
           ai_instructions?: string | null
@@ -343,6 +427,7 @@ export type Database = {
           video_gallery?: Json | null
         }
         Update: {
+          account_id?: string
           address?: string | null
           ai_identity?: string | null
           ai_instructions?: string | null
@@ -380,10 +465,19 @@ export type Database = {
           user_id?: string
           video_gallery?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_agents_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_appointments: {
         Row: {
+          account_id: string
           agenda_id: string | null
           appointment_date: string
           cancellation_reason: string | null
@@ -408,6 +502,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           agenda_id?: string | null
           appointment_date: string
           cancellation_reason?: string | null
@@ -432,6 +527,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           agenda_id?: string | null
           appointment_date?: string
           cancellation_reason?: string | null
@@ -457,6 +553,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_appointments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_appointments_agenda_id_fkey"
             columns: ["agenda_id"]
             isOneToOne: false
@@ -481,6 +584,7 @@ export type Database = {
       }
       avivar_column_checklists: {
         Row: {
+          account_id: string
           column_id: string
           created_at: string
           field_key: string
@@ -493,6 +597,7 @@ export type Database = {
           required_for_columns: string[] | null
         }
         Insert: {
+          account_id: string
           column_id: string
           created_at?: string
           field_key: string
@@ -505,6 +610,7 @@ export type Database = {
           required_for_columns?: string[] | null
         }
         Update: {
+          account_id?: string
           column_id?: string
           created_at?: string
           field_key?: string
@@ -518,6 +624,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_column_checklists_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_column_checklists_column_id_fkey"
             columns: ["column_id"]
             isOneToOne: false
@@ -528,6 +641,7 @@ export type Database = {
       }
       avivar_contacts: {
         Row: {
+          account_id: string
           avatar_url: string | null
           company_name: string | null
           created_at: string
@@ -544,6 +658,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           avatar_url?: string | null
           company_name?: string | null
           created_at?: string
@@ -560,6 +675,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           avatar_url?: string | null
           company_name?: string | null
           created_at?: string
@@ -575,10 +691,19 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_contacts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_conversas: {
         Row: {
+          account_id: string
           conversa_id: string | null
           created_at: string | null
           id: string
@@ -593,6 +718,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           conversa_id?: string | null
           created_at?: string | null
           id?: string
@@ -607,6 +733,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           conversa_id?: string | null
           created_at?: string | null
           id?: string
@@ -620,10 +747,19 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_conversas_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_followup_executions: {
         Row: {
+          account_id: string
           ai_generated: boolean | null
           attempt_number: number
           channel: string | null
@@ -648,6 +784,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           ai_generated?: boolean | null
           attempt_number?: number
           channel?: string | null
@@ -672,6 +809,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           ai_generated?: boolean | null
           attempt_number?: number
           channel?: string | null
@@ -697,6 +835,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_followup_executions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_followup_executions_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
@@ -721,6 +866,7 @@ export type Database = {
       }
       avivar_followup_metrics: {
         Row: {
+          account_id: string
           avg_response_time_seconds: number | null
           by_attempt: Json | null
           by_hour: Json | null
@@ -741,6 +887,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           avg_response_time_seconds?: number | null
           by_attempt?: Json | null
           by_hour?: Json | null
@@ -761,6 +908,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           avg_response_time_seconds?: number | null
           by_attempt?: Json | null
           by_hour?: Json | null
@@ -780,10 +928,19 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_followup_metrics_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_followup_rules: {
         Row: {
+          account_id: string
           ai_context: string | null
           attempt_number: number
           audio_forward: boolean | null
@@ -817,6 +974,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          account_id: string
           ai_context?: string | null
           attempt_number?: number
           audio_forward?: boolean | null
@@ -850,6 +1008,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          account_id?: string
           ai_context?: string | null
           attempt_number?: number
           audio_forward?: boolean | null
@@ -883,6 +1042,13 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "avivar_followup_rules_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "avivar_followup_rules_move_to_column_id_fkey"
             columns: ["move_to_column_id"]
@@ -901,6 +1067,7 @@ export type Database = {
       }
       avivar_followup_templates: {
         Row: {
+          account_id: string
           category: string | null
           created_at: string | null
           id: string
@@ -915,6 +1082,7 @@ export type Database = {
           variables_used: string[] | null
         }
         Insert: {
+          account_id: string
           category?: string | null
           created_at?: string | null
           id?: string
@@ -929,6 +1097,7 @@ export type Database = {
           variables_used?: string[] | null
         }
         Update: {
+          account_id?: string
           category?: string | null
           created_at?: string | null
           id?: string
@@ -942,10 +1111,19 @@ export type Database = {
           user_id?: string
           variables_used?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_followup_templates_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_kanban_columns: {
         Row: {
+          account_id: string
           ai_instruction: string | null
           color: string | null
           created_at: string
@@ -956,6 +1134,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id: string
           ai_instruction?: string | null
           color?: string | null
           created_at?: string
@@ -966,6 +1145,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string
           ai_instruction?: string | null
           color?: string | null
           created_at?: string
@@ -977,6 +1157,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_kanban_columns_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_kanban_columns_kanban_id_fkey"
             columns: ["kanban_id"]
             isOneToOne: false
@@ -987,6 +1174,7 @@ export type Database = {
       }
       avivar_kanban_leads: {
         Row: {
+          account_id: string
           column_id: string
           contact_id: string | null
           created_at: string
@@ -1005,6 +1193,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           column_id: string
           contact_id?: string | null
           created_at?: string
@@ -1023,6 +1212,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           column_id?: string
           contact_id?: string | null
           created_at?: string
@@ -1041,6 +1231,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "avivar_kanban_leads_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "avivar_kanban_leads_column_id_fkey"
             columns: ["column_id"]
@@ -1066,6 +1263,7 @@ export type Database = {
       }
       avivar_kanbans: {
         Row: {
+          account_id: string
           color: string | null
           created_at: string
           description: string | null
@@ -1078,6 +1276,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           color?: string | null
           created_at?: string
           description?: string | null
@@ -1090,6 +1289,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           color?: string | null
           created_at?: string
           description?: string | null
@@ -1101,10 +1301,19 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_kanbans_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_knowledge_chunks: {
         Row: {
+          account_id: string
           chunk_index: number
           content: string
           created_at: string
@@ -1113,6 +1322,7 @@ export type Database = {
           id: string
         }
         Insert: {
+          account_id: string
           chunk_index: number
           content: string
           created_at?: string
@@ -1121,6 +1331,7 @@ export type Database = {
           id?: string
         }
         Update: {
+          account_id?: string
           chunk_index?: number
           content?: string
           created_at?: string
@@ -1129,6 +1340,13 @@ export type Database = {
           id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "avivar_knowledge_chunks_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "avivar_knowledge_chunks_document_id_fkey"
             columns: ["document_id"]
@@ -1140,6 +1358,7 @@ export type Database = {
       }
       avivar_knowledge_documents: {
         Row: {
+          account_id: string
           agent_id: string | null
           chunk_size: number | null
           chunks_count: number | null
@@ -1154,6 +1373,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           agent_id?: string | null
           chunk_size?: number | null
           chunks_count?: number | null
@@ -1168,6 +1388,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           agent_id?: string | null
           chunk_size?: number | null
           chunks_count?: number | null
@@ -1183,6 +1404,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_knowledge_documents_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_knowledge_documents_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
@@ -1193,6 +1421,7 @@ export type Database = {
       }
       avivar_mensagens: {
         Row: {
+          account_id: string
           conversa_id: string
           created_at: string | null
           data_hora: string | null
@@ -1208,6 +1437,7 @@ export type Database = {
           url_arquivo: string | null
         }
         Insert: {
+          account_id: string
           conversa_id: string
           created_at?: string | null
           data_hora?: string | null
@@ -1223,6 +1453,7 @@ export type Database = {
           url_arquivo?: string | null
         }
         Update: {
+          account_id?: string
           conversa_id?: string
           created_at?: string | null
           data_hora?: string | null
@@ -1239,6 +1470,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_mensagens_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_mensagens_conversa_id_fkey"
             columns: ["conversa_id"]
             isOneToOne: false
@@ -1249,6 +1487,7 @@ export type Database = {
       }
       avivar_onboarding_progress: {
         Row: {
+          account_id: string
           ai_agent_created: boolean | null
           ai_routing_configured: boolean | null
           column_checklists_setup: boolean | null
@@ -1267,6 +1506,7 @@ export type Database = {
           whatsapp_connected: boolean | null
         }
         Insert: {
+          account_id: string
           ai_agent_created?: boolean | null
           ai_routing_configured?: boolean | null
           column_checklists_setup?: boolean | null
@@ -1285,6 +1525,7 @@ export type Database = {
           whatsapp_connected?: boolean | null
         }
         Update: {
+          account_id?: string
           ai_agent_created?: boolean | null
           ai_routing_configured?: boolean | null
           column_checklists_setup?: boolean | null
@@ -1302,10 +1543,19 @@ export type Database = {
           user_id?: string
           whatsapp_connected?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_onboarding_progress_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_patient_journeys: {
         Row: {
+          account_id: string
           assigned_to: string | null
           attended: boolean | null
           confirmation_sent: boolean | null
@@ -1354,6 +1604,7 @@ export type Database = {
           welcome_sent: boolean | null
         }
         Insert: {
+          account_id: string
           assigned_to?: string | null
           attended?: boolean | null
           confirmation_sent?: boolean | null
@@ -1402,6 +1653,7 @@ export type Database = {
           welcome_sent?: boolean | null
         }
         Update: {
+          account_id?: string
           assigned_to?: string | null
           attended?: boolean | null
           confirmation_sent?: boolean | null
@@ -1449,10 +1701,19 @@ export type Database = {
           user_id?: string | null
           welcome_sent?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_patient_journeys_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_products: {
         Row: {
+          account_id: string
           category: string | null
           created_at: string | null
           description: string | null
@@ -1467,6 +1728,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -1481,6 +1743,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -1494,10 +1757,19 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_products_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_schedule_blocks: {
         Row: {
+          account_id: string
           block_date: string
           created_at: string
           end_time: string | null
@@ -1507,6 +1779,7 @@ export type Database = {
           start_time: string | null
         }
         Insert: {
+          account_id: string
           block_date: string
           created_at?: string
           end_time?: string | null
@@ -1516,6 +1789,7 @@ export type Database = {
           start_time?: string | null
         }
         Update: {
+          account_id?: string
           block_date?: string
           created_at?: string
           end_time?: string | null
@@ -1525,6 +1799,13 @@ export type Database = {
           start_time?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "avivar_schedule_blocks_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "avivar_schedule_blocks_schedule_config_id_fkey"
             columns: ["schedule_config_id"]
@@ -1536,6 +1817,7 @@ export type Database = {
       }
       avivar_schedule_config: {
         Row: {
+          account_id: string
           advance_booking_days: number
           agenda_id: string | null
           buffer_between: number
@@ -1549,6 +1831,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           advance_booking_days?: number
           agenda_id?: string | null
           buffer_between?: number
@@ -1562,6 +1845,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           advance_booking_days?: number
           agenda_id?: string | null
           buffer_between?: number
@@ -1576,6 +1860,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_schedule_config_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_schedule_config_agenda_id_fkey"
             columns: ["agenda_id"]
             isOneToOne: false
@@ -1586,6 +1877,7 @@ export type Database = {
       }
       avivar_schedule_hours: {
         Row: {
+          account_id: string
           created_at: string
           day_of_week: number
           end_time: string
@@ -1595,6 +1887,7 @@ export type Database = {
           start_time: string
         }
         Insert: {
+          account_id: string
           created_at?: string
           day_of_week: number
           end_time: string
@@ -1604,6 +1897,7 @@ export type Database = {
           start_time: string
         }
         Update: {
+          account_id?: string
           created_at?: string
           day_of_week?: number
           end_time?: string
@@ -1613,6 +1907,13 @@ export type Database = {
           start_time?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "avivar_schedule_hours_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "avivar_schedule_hours_schedule_config_id_fkey"
             columns: ["schedule_config_id"]
@@ -1625,6 +1926,7 @@ export type Database = {
       avivar_team_members: {
         Row: {
           accepted_at: string | null
+          account_id: string
           avatar_url: string | null
           created_at: string
           email: string
@@ -1640,6 +1942,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          account_id: string
           avatar_url?: string | null
           created_at?: string
           email: string
@@ -1655,6 +1958,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          account_id?: string
           avatar_url?: string | null
           created_at?: string
           email?: string
@@ -1668,10 +1972,19 @@ export type Database = {
           role?: Database["public"]["Enums"]["avivar_team_role"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_team_members_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_tutorials: {
         Row: {
+          account_id: string
           category: string | null
           created_at: string
           created_by: string | null
@@ -1685,6 +1998,7 @@ export type Database = {
           video_url: string
         }
         Insert: {
+          account_id: string
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -1698,6 +2012,7 @@ export type Database = {
           video_url: string
         }
         Update: {
+          account_id?: string
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -1710,10 +2025,19 @@ export type Database = {
           updated_at?: string
           video_url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_tutorials_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_uazapi_instances: {
         Row: {
+          account_id: string
           created_at: string
           error_message: string | null
           id: string
@@ -1733,6 +2057,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           created_at?: string
           error_message?: string | null
           id?: string
@@ -1752,6 +2077,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           created_at?: string
           error_message?: string | null
           id?: string
@@ -1770,10 +2096,19 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_uazapi_instances_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avivar_whatsapp_contacts: {
         Row: {
+          account_id: string
           created_at: string
           crm_lead_id: string | null
           id: string
@@ -1791,6 +2126,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           created_at?: string
           crm_lead_id?: string | null
           id?: string
@@ -1808,6 +2144,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           created_at?: string
           crm_lead_id?: string | null
           id?: string
@@ -1826,6 +2163,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_whatsapp_contacts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_whatsapp_contacts_crm_lead_id_fkey"
             columns: ["crm_lead_id"]
             isOneToOne: false
@@ -1843,6 +2187,7 @@ export type Database = {
       }
       avivar_whatsapp_messages: {
         Row: {
+          account_id: string
           contact_name: string | null
           contact_phone: string | null
           content: string | null
@@ -1866,6 +2211,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           contact_name?: string | null
           contact_phone?: string | null
           content?: string | null
@@ -1889,6 +2235,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           contact_name?: string | null
           contact_phone?: string | null
           content?: string | null
@@ -1913,6 +2260,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "avivar_whatsapp_messages_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "avivar_whatsapp_messages_crm_conversation_id_fkey"
             columns: ["crm_conversation_id"]
             isOneToOne: false
@@ -1930,6 +2284,7 @@ export type Database = {
       }
       avivar_whatsapp_sessions: {
         Row: {
+          account_id: string
           connected_at: string | null
           created_at: string
           error_message: string | null
@@ -1948,6 +2303,7 @@ export type Database = {
           webhook_url: string | null
         }
         Insert: {
+          account_id: string
           connected_at?: string | null
           created_at?: string
           error_message?: string | null
@@ -1966,6 +2322,7 @@ export type Database = {
           webhook_url?: string | null
         }
         Update: {
+          account_id?: string
           connected_at?: string | null
           created_at?: string
           error_message?: string | null
@@ -1983,7 +2340,15 @@ export type Database = {
           user_id?: string
           webhook_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avivar_whatsapp_sessions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "avivar_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       banner_clicks: {
         Row: {
@@ -17033,15 +17398,25 @@ export type Database = {
         Args: { p_name?: string; p_phone: string; p_user_id: string }
         Returns: string
       }
-      get_or_create_avivar_conversa: {
-        Args: {
-          p_conversa_id?: string
-          p_nome_contato?: string
-          p_numero: string
-          p_user_id: string
-        }
-        Returns: string
-      }
+      get_or_create_avivar_conversa:
+        | {
+            Args: {
+              p_conversa_id?: string
+              p_nome_contato?: string
+              p_numero: string
+              p_user_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_conversa_id?: string
+              p_nome_contato?: string
+              p_numero: string
+              p_user_id: string
+            }
+            Returns: string
+          }
       get_or_create_user_scan_credits: {
         Args: { _user_id: string }
         Returns: {
@@ -17074,6 +17449,14 @@ export type Database = {
           branch: string
           role: Database["public"]["Enums"]["clinic_staff_role"]
         }[]
+      }
+      get_user_avivar_account_id: {
+        Args: { _user_id: string }
+        Returns: string
+      }
+      get_user_avivar_account_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["avivar_account_role"]
       }
       get_user_cleaning_branches: {
         Args: { _user_id: string }
@@ -17149,6 +17532,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      is_avivar_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_avivar_team_owner: { Args: { _user_id: string }; Returns: boolean }
       is_feature_enabled: {
         Args: { _environment?: string; _feature_key: string }
@@ -17197,6 +17581,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "licensee" | "colaborador" | "aluno" | "paciente"
+      avivar_account_role:
+        | "owner"
+        | "admin"
+        | "coordenador"
+        | "sdr"
+        | "atendente"
       avivar_journey_type: "comercial" | "pos_venda"
       avivar_service_type: "capilar" | "barba" | "sobrancelha"
       avivar_stage:
@@ -17539,6 +17929,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "licensee", "colaborador", "aluno", "paciente"],
+      avivar_account_role: [
+        "owner",
+        "admin",
+        "coordenador",
+        "sdr",
+        "atendente",
+      ],
       avivar_journey_type: ["comercial", "pos_venda"],
       avivar_service_type: ["capilar", "barba", "sobrancelha"],
       avivar_stage: [
