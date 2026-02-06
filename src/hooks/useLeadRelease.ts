@@ -25,6 +25,11 @@ export function useLeadRelease() {
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const autoReleaseTriggeredRef = useRef<string | null>(null);
 
+  const triggerCelebration = useCallback(() => {
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 3500);
+  }, []);
+
   const fetchInfo = useCallback(async () => {
     try {
       const { data, error } = await supabase.functions.invoke('hotleads-release', {
@@ -49,10 +54,8 @@ export function useLeadRelease() {
 
       if (data?.success) {
         setNewlyReleasedLeadId(data.lead_id);
-        setTimeout(() => {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-        }, 1500);
+        // Celebration handled by doRelease caller or realtime
+        setTimeout(() => triggerCelebration(), 1500);
         await fetchInfo();
         return data;
       }
@@ -65,7 +68,38 @@ export function useLeadRelease() {
       isReleasingRef.current = false;
       setIsReleasing(false);
     }
-  }, [fetchInfo]);
+  }, [fetchInfo, triggerCelebration]);
+
+  // Listen for realtime lead releases (so ALL users see confetti)
+  useEffect(() => {
+    const channel = supabase
+      .channel('hotleads-release-events')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'leads',
+          filter: 'source=eq.planilha',
+        },
+        (payload) => {
+          const newRow = payload.new as any;
+          const oldRow = payload.old as any;
+          // If a lead just became available (was queued before)
+          if (newRow.release_status === 'available' && oldRow.release_status === 'queued') {
+            setNewlyReleasedLeadId(newRow.id);
+            triggerCelebration();
+            // Refresh info for updated countdown
+            fetchInfo();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [triggerCelebration, fetchInfo]);
 
   // Countdown timer + auto-release when it hits 0
   useEffect(() => {
@@ -82,11 +116,9 @@ export function useLeadRelease() {
       const diff = Math.max(0, Math.floor((target - now) / 1000));
       setCountdown(diff);
 
-      // Auto-release when countdown reaches 0 (guard against double-fire)
       if (diff <= 0 && autoReleaseTriggeredRef.current !== info.next_release_at) {
         autoReleaseTriggeredRef.current = info.next_release_at;
         doRelease('scheduled').catch(() => {
-          // On error, allow retry by resetting the guard after 10s
           setTimeout(() => {
             autoReleaseTriggeredRef.current = null;
           }, 10000);
