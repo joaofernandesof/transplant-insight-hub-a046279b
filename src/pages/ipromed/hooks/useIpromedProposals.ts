@@ -49,7 +49,7 @@ export interface CreateProposalInput {
 }
 
 async function generateProposalCode(): Promise<string> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("ipromed_proposals")
     .select("proposal_code")
     .order("created_at", { ascending: false })
@@ -73,7 +73,7 @@ export function useProposals(searchQuery?: string) {
   return useQuery({
     queryKey: ["ipromed-proposals", searchQuery],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("ipromed_proposals")
         .select("*")
         .order("created_at", { ascending: false });
@@ -96,7 +96,7 @@ export function useProposal(id: string | undefined) {
     queryKey: ["ipromed-proposal", id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("ipromed_proposals")
         .select("*")
         .eq("id", id)
@@ -116,7 +116,7 @@ export function useCreateProposal() {
       const proposal_code = await generateProposalCode();
       const { data: userData } = await supabase.auth.getUser();
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("ipromed_proposals")
         .insert({
           ...input,
@@ -144,7 +144,7 @@ export function useUpdateProposal() {
 
   return useMutation({
     mutationFn: async ({ id, ...input }: Partial<Proposal> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("ipromed_proposals")
         .update(input)
         .eq("id", id)
@@ -170,7 +170,7 @@ export function useDeleteProposal() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("ipromed_proposals")
         .delete()
         .eq("id", id);
