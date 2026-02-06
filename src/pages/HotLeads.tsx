@@ -45,7 +45,7 @@ export default function HotLeads() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-20">
         <div className="px-4 py-4">
@@ -78,8 +78,8 @@ export default function HotLeads() {
         </div>
       </header>
 
-      {/* Stats */}
-      <div className="px-4 py-4">
+      {/* Stats + Columns */}
+      <div className="px-4 py-4 flex-1 flex flex-col overflow-hidden">
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Card>
             <CardContent className="pt-4 pb-4">
@@ -123,7 +123,7 @@ export default function HotLeads() {
         </div>
 
         {/* Three columns with independent scroll & pagination */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
           <PaginatedLeadColumn
             title="Leads Disponíveis"
             dotColor="bg-green-500"
