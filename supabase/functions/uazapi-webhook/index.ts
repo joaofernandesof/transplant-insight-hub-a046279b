@@ -576,31 +576,34 @@ serve(async (req) => {
           if (!isGroupChat) {
             const contactName = msg.pushName || `WhatsApp ${phone}`;
 
-            // STEP 1: Check if a patient journey already exists with this phone (for this user)
+            // STEP 1: Check if a patient journey already exists with this phone (for this account)
             // This ensures we link the conversation to the existing journey instead of creating a new lead
-            const { data: existingJourney } = await supabase
+            const { data: existingJourney } = accountId ? await supabase
               .from("avivar_patient_journeys")
               .select("id, patient_name")
-              .eq("user_id", userId)
+              .eq("account_id", accountId)
               .eq("patient_phone", phone)
-              .maybeSingle();
+              .maybeSingle() : { data: null };
 
-            // STEP 2: Find or create lead in "leads" table
+            // STEP 2: Find or create lead in "leads" table (scoped to account)
             let leadId: string | null = null;
-            const { data: existingLead, error: leadLookupError } = await supabase
-              .from("leads")
-              .select("id")
-              .eq("phone", phone)
-              .maybeSingle();
-
-            if (leadLookupError) {
-              console.error("[UazAPI Webhook] Error looking up lead:", leadLookupError);
+            
+            // First try to find lead by phone AND account_id (multi-tenant correct)
+            if (accountId) {
+              const { data: accountLead } = await supabase
+                .from("leads")
+                .select("id")
+                .eq("phone", phone)
+                .eq("account_id", accountId)
+                .maybeSingle();
+              
+              if (accountLead?.id) {
+                leadId = accountLead.id;
+              }
             }
 
-            if (existingLead?.id) {
-              leadId = existingLead.id;
-            } else {
-              // Create lead with the same name as the journey if it exists
+            // If not found in this account, create a new lead for this account
+            if (!leadId) {
               const leadName = existingJourney?.patient_name || contactName;
               const { data: createdLead, error: leadCreateError } = await supabase
                 .from("leads")
@@ -829,12 +832,12 @@ serve(async (req) => {
           // 5. Auto-create lead in avivar_patient_journeys if new contact (incoming message only)
           if (!msg.key.fromMe && !isGroupChat) {
             // Check if lead already exists for this phone
-            const { data: existingLead } = await supabase
+            const { data: existingLead } = accountId ? await supabase
               .from("avivar_patient_journeys")
               .select("id")
-              .eq("user_id", userId)
+              .eq("account_id", accountId)
               .eq("patient_phone", phone)
-              .maybeSingle();
+              .maybeSingle() : { data: null };
 
             if (!existingLead) {
               // Create a new lead automatically
