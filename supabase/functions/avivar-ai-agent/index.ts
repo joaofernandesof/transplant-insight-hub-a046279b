@@ -312,19 +312,23 @@ const TOOLS = [
 
 async function listAgendas(
   supabase: AnySupabaseClient,
-  userId: string
+  accountId: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: list_agendas()`);
+  console.log(`[AI Agent] Tool: list_agendas() for account: ${accountId}`);
 
-  const { data: agendas, error } = await supabase.rpc("get_avivar_agendas_for_ai", {
-    p_user_id: userId
-  });
+  const { data: agendas, error } = await supabase
+    .from("avivar_agendas")
+    .select("id, name, professional_name, city, address")
+    .eq("account_id", accountId)
+    .eq("is_active", true)
+    .order("name");
 
   if (error || !agendas?.length) {
     const { data: configData } = await supabase
       .from("avivar_schedule_config")
       .select("id, professional_name")
-      .eq("user_id", userId)
+      .eq("account_id", accountId)
+      .limit(1)
       .maybeSingle();
     
     if (configData) {
@@ -333,8 +337,8 @@ async function listAgendas(
     return "Não há agendas configuradas no momento.";
   }
 
-  const formatted = (agendas as Agenda[]).map((a, i) => 
-    `${i + 1}. ${a.agenda_name}${a.city ? ` - ${a.city}` : ""}${a.professional_name ? ` (${a.professional_name})` : ""}`
+  const formatted = agendas.map((a: any, i: number) => 
+    `${i + 1}. ${a.name}${a.city ? ` - ${a.city}` : ""}${a.professional_name ? ` (${a.professional_name})` : ""}`
   ).join("\n");
 
   return `Nossas unidades disponíveis:\n\n${formatted}\n\nEm qual unidade você gostaria de agendar?`;
@@ -342,14 +346,17 @@ async function listAgendas(
 
 async function listProducts(
   supabase: AnySupabaseClient,
-  userId: string,
+  accountId: string,
   category?: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: list_products(category=${category || "all"})`);
+  console.log(`[AI Agent] Tool: list_products(category=${category || "all"}) for account: ${accountId}`);
 
-  const { data: products, error } = await supabase.rpc("get_avivar_products_for_ai", {
-    p_user_id: userId
-  });
+  const { data: products, error } = await supabase
+    .from("avivar_products")
+    .select("id, name, description, category, price, promotional_price, stock_quantity, is_active")
+    .eq("account_id", accountId)
+    .eq("is_active", true)
+    .order("name");
 
   if (error || !products?.length) {
     return "Não há produtos cadastrados no momento.";
@@ -383,11 +390,11 @@ async function listProducts(
 
 async function searchKnowledgeBase(
   supabase: AnySupabaseClient,
-  userId: string,
+  accountId: string,
   _agentId: string | null, // Ignoramos agentId - acesso à base completa
   query: string
 ): Promise<string> {
-  console.log(`[AI Agent] Tool: search_knowledge_base("${query.substring(0, 50)}...") - FULL ACCESS`);
+  console.log(`[AI Agent] Tool: search_knowledge_base("${query.substring(0, 50)}...") - FULL ACCESS for account: ${accountId}`);
 
   const queryTerms = query.toLowerCase().split(" ").filter(t => t.length > 2);
   const allKnowledge: Array<{ content: string; source: string }> = [];
@@ -396,7 +403,7 @@ async function searchKnowledgeBase(
   const { data: documents } = await supabase
     .from("avivar_knowledge_documents")
     .select("id, name")
-    .eq("user_id", userId);
+    .eq("account_id", accountId);
 
   if (documents?.length) {
     console.log(`[AI Agent] Found ${documents.length} documents in avivar_knowledge_documents`);
@@ -419,7 +426,7 @@ async function searchKnowledgeBase(
   const { data: agents } = await supabase
     .from("avivar_agents")
     .select("id, name, knowledge_files")
-    .eq("user_id", userId)
+    .eq("account_id", accountId)
     .eq("is_active", true);
 
   if (agents?.length) {
@@ -522,13 +529,13 @@ function timeToMinutes(t: string): number {
 
 async function resolveAgenda(
   supabase: AnySupabaseClient,
-  userId: string,
+  accountId: string,
   agendaName: string
 ): Promise<ResolvedAgendaInfo> {
   const { data: agendas } = await supabase
     .from("avivar_agendas")
     .select("id, name, city, professional_name, address")
-    .eq("user_id", userId)
+    .eq("account_id", accountId)
     .eq("is_active", true)
     .ilike("name", `%${agendaName}%`);
 
@@ -538,7 +545,7 @@ async function resolveAgenda(
     const { data: byCity } = await supabase
       .from("avivar_agendas")
       .select("id, name, city, professional_name, address")
-      .eq("user_id", userId)
+      .eq("account_id", accountId)
       .eq("is_active", true)
       .ilike("city", `%${agendaName}%`);
     agendaInfo = byCity?.[0] || null;
@@ -724,14 +731,14 @@ async function checkSlot(
         configId = byAgenda?.id || null;
       }
       if (!configId) {
-        const { data: byUser } = await supabase
+        const { data: byAccount } = await supabase
           .from("avivar_schedule_config")
           .select("id")
-          .eq("user_id", userId)
+          .eq("account_id", accountId)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        configId = byUser?.id || null;
+        configId = byAccount?.id || null;
       }
 
       let periodsText: string | null = null;
@@ -766,6 +773,7 @@ async function checkSlot(
 
 async function createAppointment(
   supabase: AnySupabaseClient,
+  accountId: string,
   userId: string,
   leadId: string | null,
   conversationId: string,
@@ -779,7 +787,7 @@ async function createAppointment(
 ): Promise<string> {
   console.log(`[AI Agent] Tool: create_appointment(agenda="${agendaName}", ${patientName}, ${date} ${time})`);
 
-  const { agendaId, agendaInfo } = await resolveAgenda(supabase, userId, agendaName);
+  const { agendaId, agendaInfo } = await resolveAgenda(supabase, accountId, agendaName);
 
   const normalizedDate = normalizeDateISO(date);
   const normalizedTime = normalizeTimeHHMM(time);
@@ -804,12 +812,13 @@ async function createAppointment(
   );
 
   if (!slotAvailable) {
-    return `❌ Infelizmente o horário ${normalizedTime} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
+    return `Infelizmente o horário ${normalizedTime} do dia ${normalizedDate} não está mais disponível. Por favor, escolha outro horário.`;
   }
 
   const { data: appointment, error } = await supabase
     .from("avivar_appointments")
     .insert({
+      account_id: accountId,
       user_id: userId,
       agenda_id: agendaId,
       lead_id: leadId,
@@ -942,11 +951,17 @@ async function moverLeadParaEtapa(
       .single();
 
     if (leadData?.user_id) {
-      // Get all kanbans for this user
+      // Get all kanbans for this account (via lead's account_id)
+      const { data: leadAccountData } = await supabase
+        .from("avivar_kanban_leads")
+        .select("account_id")
+        .eq("id", lead.id)
+        .single();
+      const leadAccountId = leadAccountData?.account_id || leadData.user_id;
       const { data: allKanbans } = await supabase
         .from("avivar_kanbans")
         .select("id")
-        .eq("user_id", leadData.user_id)
+        .eq("account_id", leadAccountId)
         .eq("is_active", true);
 
       if (allKanbans?.length) {
@@ -1075,7 +1090,7 @@ async function sendImage(
     const { data: agents } = await supabase
       .from("avivar_agents")
       .select("image_gallery, before_after_images")
-      .eq("user_id", userId)
+      .eq("account_id", userId)
       .eq("is_active", true)
       .limit(1);
 
@@ -1197,7 +1212,7 @@ async function sendImage(
   const { data: uazapiInstance, error: uazapiInstanceError } = await supabase
     .from("avivar_uazapi_instances")
     .select("instance_token, status")
-    .eq("user_id", userId)
+    .eq("account_id", userId)
     .eq("status", "connected")
     .limit(1)
     .maybeSingle();
@@ -1366,7 +1381,7 @@ async function sendVideo(
     const { data: agents } = await supabase
       .from("avivar_agents")
       .select("video_gallery")
-      .eq("user_id", userId)
+      .eq("account_id", userId)
       .eq("is_active", true)
       .limit(1);
 
@@ -1422,7 +1437,7 @@ async function sendVideo(
   const { data: uazapiInstance, error: uazapiInstanceError } = await supabase
     .from("avivar_uazapi_instances")
     .select("instance_token, status")
-    .eq("user_id", userId)
+    .eq("account_id", userId)
     .eq("status", "connected")
     .limit(1)
     .maybeSingle();
@@ -1554,7 +1569,7 @@ async function sendFluxoMedia(
     const { data: agents } = await supabase
       .from("avivar_agents")
       .select("fluxo_atendimento")
-      .eq("user_id", userId)
+      .eq("account_id", userId)
       .eq("is_active", true)
       .limit(1);
     fluxo = agents?.[0]?.fluxo_atendimento as Record<string, unknown> | null;
@@ -1586,7 +1601,7 @@ async function sendFluxoMedia(
   const { data: uazapiInstance } = await supabase
     .from("avivar_uazapi_instances")
     .select("instance_token, status")
-    .eq("user_id", userId)
+    .eq("account_id", userId)
     .eq("status", "connected")
     .limit(1)
     .maybeSingle();
@@ -1687,6 +1702,7 @@ async function sendFluxoMedia(
 
 async function processToolCall(
   supabase: AnySupabaseClient,
+  accountId: string,
   userId: string,
   _agentId: string | null,
   leadId: string | null,
@@ -1697,18 +1713,18 @@ async function processToolCall(
 ): Promise<string> {
   switch (toolName) {
     case "list_agendas":
-      return await listAgendas(supabase, userId);
+      return await listAgendas(supabase, accountId);
     
     case "list_products":
-      return await listProducts(supabase, userId, toolArgs.category as string | undefined);
+      return await listProducts(supabase, accountId, toolArgs.category as string | undefined);
     
     case "search_knowledge_base":
-      return await searchKnowledgeBase(supabase, userId, null, toolArgs.query as string);
+      return await searchKnowledgeBase(supabase, accountId, null, toolArgs.query as string);
     
     case "get_available_slots":
       return await getAvailableSlots(
         supabase, 
-        userId, 
+        accountId, 
         toolArgs.agenda_name as string,
         toolArgs.date as string | undefined
       );
@@ -1716,7 +1732,7 @@ async function processToolCall(
     case "check_slot":
       return await checkSlot(
         supabase,
-        userId,
+        accountId,
         toolArgs.agenda_name as string,
         toolArgs.date as string,
         toolArgs.time as string
@@ -1725,6 +1741,7 @@ async function processToolCall(
     case "create_appointment":
       return await createAppointment(
         supabase,
+        accountId,
         userId,
         leadId,
         conversationId,
@@ -1751,7 +1768,7 @@ async function processToolCall(
     case "send_image": {
       const result = await sendImage(
         supabase,
-        userId,
+        accountId,
         _agentId,
         conversationId,
         patientPhone,
@@ -1764,7 +1781,7 @@ async function processToolCall(
     case "send_video": {
       const result = await sendVideo(
         supabase,
-        userId,
+        accountId,
         _agentId,
         conversationId,
         patientPhone,
@@ -1777,7 +1794,7 @@ async function processToolCall(
     case "send_fluxo_media": {
       const result = await sendFluxoMedia(
         supabase,
-        userId,
+        accountId,
         _agentId,
         conversationId,
         patientPhone,
@@ -1797,39 +1814,61 @@ async function processToolCall(
 
 async function getRoutedAgent(
   supabase: AnySupabaseClient,
-  userId: string,
+  accountId: string,
   leadStage: string,
   kanbanId: string | null
 ): Promise<RoutedAgent | null> {
-  console.log(`[AI Agent] Routing for stage: ${leadStage}, kanban: ${kanbanId}`);
+  console.log(`[AI Agent] Routing for stage: ${leadStage}, kanban: ${kanbanId}, account: ${accountId}`);
 
-  // Call RPC with kanban_id for precise matching
-  const { data: agents, error } = await supabase.rpc("get_agent_for_lead_stage", {
-    p_user_id: userId,
-    p_lead_stage: leadStage,
-    p_kanban_id: kanbanId
-  });
+  // Query agents directly by account_id for multi-tenant safety
+  let query = supabase
+    .from("avivar_agents")
+    .select("*")
+    .eq("account_id", accountId)
+    .eq("is_active", true);
+
+  const { data: allAgents, error } = await query.order("created_at", { ascending: false });
 
   if (error) {
     console.error("[AI Agent] Routing error:", error);
     return null;
   }
 
-  if (agents && agents.length > 0) {
-    const agent = agents[0] as RoutedAgent;
-    console.log(`[AI Agent] Routed to: ${agent.agent_name} (${agent.agent_id})`);
-    return agent;
+  if (allAgents && allAgents.length > 0) {
+    // Try to find agent matching kanban/stage
+    let matchedAgent = null;
+    
+    if (kanbanId) {
+      matchedAgent = allAgents.find((a: any) => a.target_kanbans?.includes(kanbanId));
+    }
+    if (!matchedAgent) {
+      matchedAgent = allAgents.find((a: any) => a.target_stages?.includes(leadStage));
+    }
+    if (!matchedAgent) {
+      matchedAgent = allAgents[0]; // Fallback to first active agent
+    }
+
+    const agent = matchedAgent;
+    console.log(`[AI Agent] Routed to: ${agent.name} (${agent.id})`);
+    return {
+      agent_id: agent.id,
+      agent_name: agent.name,
+      personality: agent.personality,
+      ai_identity: agent.ai_identity,
+      ai_instructions: agent.ai_instructions,
+      ai_restrictions: agent.ai_restrictions,
+      ai_objective: agent.ai_objective,
+      tone_of_voice: agent.tone_of_voice,
+      company_name: agent.company_name,
+      professional_name: agent.professional_name,
+      fluxo_atendimento: agent.fluxo_atendimento,
+      services: agent.services || [],
+      target_kanbans: agent.target_kanbans,
+      target_stages: agent.target_stages
+    };
   }
 
-  // Fallback: get any active agent
-  const { data: fallbackAgent } = await supabase
-    .from("avivar_agents")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  return null;
 
   if (fallbackAgent) {
     console.log(`[AI Agent] Fallback to: ${fallbackAgent.name}`);
@@ -1992,9 +2031,9 @@ async function getLeadId(supabase: AnySupabaseClient, conversationId: string): P
 
 async function getKanbanColumnsForUser(
   supabase: AnySupabaseClient,
-  userId: string
+  accountId: string
 ): Promise<KanbanColumnInfo[]> {
-  console.log(`[AI Agent] Loading Kanban columns for user: ${userId}`);
+  console.log(`[AI Agent] Loading Kanban columns for account: ${accountId}`);
 
   const { data: kanbans, error } = await supabase
     .from("avivar_kanbans")
@@ -2009,7 +2048,7 @@ async function getKanbanColumnsForUser(
         order_index
       )
     `)
-    .eq("user_id", userId)
+    .eq("account_id", accountId)
     .eq("is_active", true)
     .order("order_index", { ascending: true });
 
@@ -2656,12 +2695,35 @@ serve(async (req) => {
 
     console.log(`[AI Agent] Processing: "${messageContent.substring(0, 50)}..."`);
 
+    // CRITICAL: Resolve account_id from conversation for multi-tenant isolation
+    let accountId: string | null = null;
+    const { data: convAccountData } = await supabase
+      .from("crm_conversations")
+      .select("account_id")
+      .eq("id", conversationId)
+      .single();
+    accountId = convAccountData?.account_id || null;
+
+    // Fallback: resolve from user's membership
+    if (!accountId) {
+      const { data: memberData } = await supabase
+        .from("avivar_account_members")
+        .select("account_id")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      accountId = memberData?.account_id || null;
+    }
+
+    console.log(`[AI Agent] Resolved accountId: ${accountId} for userId: ${userId}`);
+
     // 1. Get lead stage and kanban for hybrid routing (based on Kanban position)
     const { stage: leadStage, kanbanId } = await getLeadStage(supabase, conversationId, leadPhone);
     console.log(`[AI Agent] Lead stage: ${leadStage}, kanban: ${kanbanId}`);
 
     // 2. Get routed agent based on kanban ID + stage (HYBRID ROUTING)
-    let routedAgent = await getRoutedAgent(supabase, userId, leadStage, kanbanId);
+    let routedAgent = await getRoutedAgent(supabase, accountId || userId, leadStage, kanbanId);
     
     // If no agent configured, use a default fallback agent
     if (!routedAgent) {
@@ -2686,8 +2748,8 @@ serve(async (req) => {
 
     console.log(`[AI Agent] Using agent: ${routedAgent.agent_name} for stage ${leadStage}`);
 
-    // 3. Load dynamic Kanban columns for this user
-    const kanbanColumns = await getKanbanColumnsForUser(supabase, userId);
+    // 3. Load dynamic Kanban columns for this account
+    const kanbanColumns = await getKanbanColumnsForUser(supabase, accountId || userId);
     const dynamicMovementInstructions = buildDynamicMovementInstructions(kanbanColumns);
 
     // 3.5 Build fluxo de atendimento instructions from agent config
@@ -2764,6 +2826,7 @@ serve(async (req) => {
       for (const toolCall of aiResult.toolCalls) {
         const result = await processToolCall(
           supabase,
+          accountId || userId,
           userId,
           routedAgent.agent_id,
           leadId,
