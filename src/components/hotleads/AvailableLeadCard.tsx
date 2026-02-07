@@ -31,7 +31,6 @@ function maskName(fullName: string): string {
 export function AvailableLeadCard({ lead, onAcquire }: AvailableLeadCardProps) {
   const location = [lead.city, lead.state].filter(Boolean).join(' - ');
   const maskedName = maskName(lead.name);
-  const hasTags = lead.tags && lead.tags.length > 0;
   
   // Format arrival date
   const arrivalDate = lead.created_at 
@@ -39,13 +38,7 @@ export function AvailableLeadCard({ lead, onAcquire }: AvailableLeadCardProps) {
     : null;
 
   return (
-    <Card className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow relative overflow-hidden">
-      {/* Tag ribbon - top right corner */}
-      {hasTags && (
-        <div className="absolute -right-8 top-3 rotate-45 bg-red-500 text-white text-[9px] font-bold px-8 py-0.5 shadow-sm z-10 pointer-events-none">
-          {lead.tags![0]}
-        </div>
-      )}
+    <Card className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
