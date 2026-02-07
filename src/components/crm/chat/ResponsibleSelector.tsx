@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAvivarAccount } from '@/hooks/useAvivarAccount';
 import { toast } from 'sonner';
 
 interface TeamMember {
@@ -41,45 +42,36 @@ export function ResponsibleSelector({
   const [open, setOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const { user } = useAuth();
+  const { accountId } = useAvivarAccount();
 
   // Buscar membros da equipe
   const { data: teamMembers = [], isLoading } = useQuery({
-    queryKey: ['team-members-for-assignment', user?.id],
+    queryKey: ['team-members-for-assignment', accountId],
     queryFn: async (): Promise<TeamMember[]> => {
-      if (!user?.id) return [];
+      if (!user?.id || !accountId) return [];
 
-      // Buscar membros da equipe do usuário atual (owner)
       const { data, error } = await supabase
-        .from('avivar_team_members')
-        .select('id, member_user_id, name, email, avatar_url, role')
-        .eq('owner_user_id', user.id)
+        .from('avivar_account_members')
+        .select('id, user_id, role')
+        .eq('account_id', accountId)
         .eq('is_active', true)
-        .order('name');
+        .order('role');
 
       if (error) throw error;
       
-      // Adicionar o próprio usuário como opção
-      const currentUserAsOwner: TeamMember = {
-        id: 'owner',
-        member_user_id: user.id,
-        name: 'Eu (Proprietário)',
-        email: user.email || '',
-        avatar_url: null,
-        role: 'admin'
-      };
-
-      const members = (data || []).map(m => ({
+      // Map account members to TeamMember interface
+      const members: TeamMember[] = (data || []).map(m => ({
         id: m.id,
-        member_user_id: m.member_user_id,
-        name: m.name,
-        email: m.email,
-        avatar_url: m.avatar_url,
+        member_user_id: m.user_id,
+        name: m.user_id === user.id ? 'Eu (Proprietário)' : `Membro (${m.role})`,
+        email: '',
+        avatar_url: null,
         role: m.role
       }));
 
-      return [currentUserAsOwner, ...members];
+      return members;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!accountId,
   });
 
   const handleSelect = async (memberId: string | null) => {

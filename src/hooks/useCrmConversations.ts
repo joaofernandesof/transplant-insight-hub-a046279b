@@ -152,15 +152,15 @@ export function useCrmConversations(conversationId?: string) {
       const messagesWithSenders = await Promise.all(
         (data as CrmMessage[]).map(async (msg) => {
           if (msg.direction === 'outbound' && msg.sender_user_id && !msg.is_ai_generated) {
-            // Try to get sender from team members first
-            const { data: teamMember } = await supabase
-              .from('avivar_team_members')
+            // Try to get sender from account members or profiles
+            const { data: profile } = await supabase
+              .from('profiles')
               .select('name, avatar_url')
-              .eq('member_user_id', msg.sender_user_id)
+              .eq('user_id', msg.sender_user_id)
               .single();
             
-            if (teamMember) {
-              return { ...msg, sender: teamMember };
+            if (profile) {
+              return { ...msg, sender: profile };
             }
           }
           return msg;

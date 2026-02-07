@@ -207,13 +207,6 @@ function isGroup(jid: string): boolean {
   return jid?.includes("@g.us") || false;
 }
 
-function mapAvivarTipoMensagem(mediaType: string | null): string {
-  // public.avivar_mensagens has a CHECK constraint allowing only these values
-  const allowed = new Set(["text", "image", "audio", "video", "document", "sticker", "location"]);
-  if (!mediaType) return "text";
-  return allowed.has(mediaType) ? mediaType : "text";
-}
-
 function mapCrmMediaType(mediaType: string | null): string | null {
   // public.crm_messages has a CHECK constraint allowing only these values (or NULL)
   const allowed = new Set(["image", "video", "audio", "document"]);
@@ -522,14 +515,11 @@ serve(async (req) => {
           }
 
           // Find the user/clinic that owns this WhatsApp instance
-          // Check both tables: avivar_uazapi_instances (new) and avivar_whatsapp_sessions (legacy)
-
           let userId: string | null = null;
           let sessionId: string | null = null;
           let accountId: string | null = null;
-          let isLegacySession = false; // Track if this is a legacy session (avivar_whatsapp_sessions)
 
-          // Try 1: Check avivar_uazapi_instances (new provisioning flow)
+          // Check avivar_uazapi_instances
           let uazapiQuery = supabase
             .from("avivar_uazapi_instances")
             .select("id, user_id, instance_id, instance_name, phone_number, status")
@@ -551,33 +541,7 @@ serve(async (req) => {
           if (uazapiInstance) {
             userId = uazapiInstance.user_id;
             sessionId = uazapiInstance.id;
-            isLegacySession = false;
             console.log(`[UazAPI Webhook] Found UazAPI instance: ${uazapiInstance.instance_name} for user: ${userId}`);
-          } else {
-            // Try 2: Check avivar_whatsapp_sessions (legacy flow)
-            let sessionQuery = supabase
-              .from("avivar_whatsapp_sessions")
-              .select("id, user_id, phone_number, phone_name, instance_id, status")
-              .limit(1);
-
-            if (instanceName) {
-              sessionQuery = sessionQuery.eq("instance_id", instanceName);
-            } else if (payload.owner) {
-              sessionQuery = sessionQuery.eq("phone_number", payload.owner);
-            }
-
-            const { data: session, error: sessionError } = await sessionQuery.maybeSingle();
-
-            if (sessionError) {
-              console.error("[UazAPI Webhook] Error fetching session mapping:", sessionError);
-            }
-
-            if (session) {
-              userId = session.user_id;
-              sessionId = session.id;
-              isLegacySession = true;
-              console.log(`[UazAPI Webhook] Found legacy session: ${session.id} for user: ${userId}`);
-            }
           }
 
           if (!userId) {
@@ -604,99 +568,7 @@ serve(async (req) => {
             console.log(`[UazAPI Webhook] Resolved account_id: ${accountId}`);
           }
 
-          // 1. Store in avivar_whatsapp_messages (raw message storage)
-          // IMPORTANT: Only insert if using legacy session (avivar_whatsapp_sessions)
-          // because the FK constraint references avivar_whatsapp_sessions, not avivar_uazapi_instances
-          const { data: existingMsg } = await supabase
-            .from("avivar_whatsapp_messages")
-            .select("id, synced_to_crm")
-            .eq("message_id", msg.key.id)
-            .maybeSingle();
-
-          // If we already processed/synced this message, skip to avoid duplicates in CRM tables
-          if (existingMsg?.synced_to_crm) {
-            console.log(`[UazAPI Webhook] Message already synced, skipping: ${msg.key.id}`);
-            continue;
-          }
-
-          // Only insert to avivar_whatsapp_messages for legacy sessions (FK constraint issue)
-          if (!existingMsg && isLegacySession && sessionId) {
-            const { error: msgError } = await supabase.from("avivar_whatsapp_messages").insert({
-              session_id: sessionId,
-              user_id: userId,
-              message_id: msg.key.id,
-              remote_jid: msg.key.remoteJid,
-              from_me: msg.key.fromMe,
-              contact_name: msg.pushName || null,
-              contact_phone: phone,
-              content,
-              media_type: mediaType,
-              media_url: mediaUrl,
-              timestamp,
-              status: msg.key.fromMe ? "sent" : "received",
-              is_group: isGroupChat,
-              synced_to_crm: false,
-            });
-
-            if (msgError) {
-              console.error("[UazAPI Webhook] Error storing WhatsApp message:", msgError);
-            }
-          }
-
-          // 2. Sync to CRM (avivar_conversas + avivar_mensagens)
-          // Get or create conversation using RPC
-          const { data: conversaId, error: conversaError } = await supabase.rpc("get_or_create_avivar_conversa", {
-            p_user_id: userId,
-            p_numero: phone,
-            p_conversa_id: msg.key.remoteJid,
-            p_nome_contato: msg.pushName || null,
-          });
-
-          if (conversaError) {
-            console.error("[UazAPI Webhook] Error getting/creating conversa:", conversaError);
-            continue;
-          }
-
-          // 3. Check if message already exists in CRM to avoid duplicates
-          const { data: existingCrmMsg } = await supabase
-            .from("avivar_mensagens")
-            .select("id")
-            .eq("conversa_id", conversaId)
-            .eq("metadata->>message_id", msg.key.id)
-            .maybeSingle();
-
-          if (!existingCrmMsg) {
-            // 4. Insert message into avivar_mensagens
-            const { error: mensagemError } = await supabase.from("avivar_mensagens").insert({
-              account_id: accountId,
-              conversa_id: conversaId,
-              numero: phone,
-              nome_contato: msg.pushName || null,
-              mensagem: content,
-              direcao: msg.key.fromMe ? "saida" : "entrada",
-              data_hora: timestamp,
-              // Must match CHECK constraint on avivar_mensagens_tipo_mensagem_check
-              tipo_mensagem: mapAvivarTipoMensagem(mediaType),
-              url_arquivo: mediaUrl,
-              lida: msg.key.fromMe, // Outgoing messages are already "read"
-              metadata: {
-                message_id: msg.key.id,
-                remote_jid: msg.key.remoteJid,
-                is_group: isGroupChat,
-                source: "uazapi",
-              },
-            });
-
-            if (mensagemError) {
-              console.error("[UazAPI Webhook] Error storing CRM message:", mensagemError);
-            } else {
-              console.log(`[UazAPI Webhook] ✅ Message stored in CRM: ${msg.key.id}`);
-            }
-          } else {
-            console.log(`[UazAPI Webhook] Message already exists in CRM: ${msg.key.id}`);
-          }
-
-          // 4b. Sync to Inbox tables (leads + crm_conversations + crm_messages)
+          // Sync to Inbox tables (leads + crm_conversations + crm_messages)
           // NOTE: The /avivar/inbox UI reads from crm_conversations + crm_messages.
           // IMPORTANT: First check if a journey already exists with this phone to maintain consistency.
           let syncedToInbox = false;
@@ -1059,46 +931,7 @@ serve(async (req) => {
             }
           }
 
-          // Mark raw WhatsApp message as synced when it reached the Inbox tables
-          // (this prevents duplicate inserts if the webhook retries or receives the same payload again)
-          if (syncedToInbox) {
-            await supabase
-              .from("avivar_whatsapp_messages")
-              .update({ synced_to_crm: true })
-              .eq("message_id", msg.key.id);
-          }
-
-          // 7. Update contact in avivar_whatsapp_contacts
-          if (!msg.key.fromMe) {
-            // Check if contact exists first
-            const { data: existingContact } = await supabase
-              .from("avivar_whatsapp_contacts")
-              .select("id")
-              .eq("session_id", sessionId!)
-              .eq("jid", msg.key.remoteJid)
-              .maybeSingle();
-
-            if (existingContact) {
-              await supabase
-                .from("avivar_whatsapp_contacts")
-                .update({
-                  push_name: msg.pushName || undefined,
-                  last_message_at: timestamp,
-                })
-                .eq("id", existingContact.id);
-            } else {
-              await supabase.from("avivar_whatsapp_contacts").insert({
-                session_id: sessionId!,
-                user_id: userId,
-                jid: msg.key.remoteJid,
-                phone,
-                name: null,
-                push_name: msg.pushName || null,
-                last_message_at: timestamp,
-                unread_count: 1,
-              });
-            }
-          }
+          // Legacy tables removed - no longer syncing to avivar_whatsapp_messages or avivar_whatsapp_contacts
         }
         break;
       }
@@ -1108,28 +941,27 @@ serve(async (req) => {
         console.log(`[UazAPI Webhook] Connection update: ${state}`);
 
         if (state === "open" || state === "connected") {
-          // Find and update session status
           const instance = payload.instanceName || payload.instance;
           if (instance) {
             await supabase
-              .from("avivar_whatsapp_sessions")
+              .from("avivar_uazapi_instances")
               .update({
                 status: "connected",
                 connected_at: new Date().toISOString(),
                 error_message: null,
               })
-              .eq("instance_id", instance);
+              .or(`instance_name.eq.${instance},instance_id.eq.${instance}`);
           }
         } else if (state === "close" || state === "disconnected") {
           const instance = payload.instanceName || payload.instance;
           if (instance) {
             await supabase
-              .from("avivar_whatsapp_sessions")
+              .from("avivar_uazapi_instances")
               .update({
                 status: "disconnected",
                 error_message: "Conexão encerrada",
               })
-              .eq("instance_id", instance);
+              .or(`instance_name.eq.${instance},instance_id.eq.${instance}`);
           }
         }
         break;

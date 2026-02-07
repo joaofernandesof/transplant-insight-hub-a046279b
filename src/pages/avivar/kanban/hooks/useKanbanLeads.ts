@@ -52,39 +52,47 @@ export function useKanbanLeads(kanbanId: string | undefined) {
         return data as KanbanLead[];
       }
 
-      // Get last message for each phone from avivar_mensagens via avivar_conversas
-      const { data: conversas } = await supabase
-        .from('avivar_conversas')
-        .select('id, numero')
-        .in('numero', phones);
+      // Get last message for each phone from crm_messages via crm_conversations + leads
+      const { data: leadsWithConvos } = await supabase
+        .from('leads')
+        .select('phone, crm_conversations(id)')
+        .in('phone', phones);
       
-      const conversaMap = new Map(conversas?.map(c => [c.numero, c.id]) || []);
-      const conversaIds = conversas?.map(c => c.id) || [];
+      const phoneToConvoId = new Map<string, string>();
+      if (leadsWithConvos) {
+        for (const l of leadsWithConvos) {
+          const convos = (l as any).crm_conversations;
+          if (convos && convos.length > 0 && l.phone) {
+            phoneToConvoId.set(l.phone, convos[0].id);
+          }
+        }
+      }
+
+      const conversationIds = [...phoneToConvoId.values()];
+      let lastMessages: Record<string, { content: string | null; media_type: string | null; direction: string }> = {};
       
-      let lastMessages: Record<string, { mensagem: string | null; tipo_mensagem: string | null; direcao: string }> = {};
-      
-      if (conversaIds.length > 0) {
-        // Get the latest message for each conversation
-        const { data: mensagens } = await supabase
-          .from('avivar_mensagens')
-          .select('conversa_id, mensagem, tipo_mensagem, direcao, data_hora')
-          .in('conversa_id', conversaIds)
-          .order('data_hora', { ascending: false });
+      if (conversationIds.length > 0) {
+        const { data: messages } = await supabase
+          .from('crm_messages')
+          .select('conversation_id, content, media_type, direction, sent_at')
+          .in('conversation_id', conversationIds)
+          .order('sent_at', { ascending: false });
         
-        // Group by conversa_id and take the first (most recent)
-        if (mensagens) {
+        if (messages) {
           const seen = new Set<string>();
-          for (const msg of mensagens) {
-            if (!seen.has(msg.conversa_id)) {
-              seen.add(msg.conversa_id);
-              // Find the phone for this conversa
-              const phone = conversas?.find(c => c.id === msg.conversa_id)?.numero;
-              if (phone) {
-                lastMessages[phone] = {
-                  mensagem: msg.mensagem,
-                  tipo_mensagem: msg.tipo_mensagem,
-                  direcao: msg.direcao
-                };
+          for (const msg of messages) {
+            if (!seen.has(msg.conversation_id)) {
+              seen.add(msg.conversation_id);
+              // Find the phone for this conversation
+              for (const [phone, convoId] of phoneToConvoId) {
+                if (convoId === msg.conversation_id) {
+                  lastMessages[phone] = {
+                    content: msg.content,
+                    media_type: msg.media_type,
+                    direction: msg.direction,
+                  };
+                  break;
+                }
               }
             }
           }
@@ -94,9 +102,9 @@ export function useKanbanLeads(kanbanId: string | undefined) {
       // Merge last message info into leads
       return data.map(lead => ({
         ...lead,
-        last_message: lead.phone ? lastMessages[lead.phone]?.mensagem : null,
-        last_message_type: lead.phone ? lastMessages[lead.phone]?.tipo_mensagem : null,
-        last_message_direction: lead.phone ? lastMessages[lead.phone]?.direcao as 'inbound' | 'outbound' | null : null,
+        last_message: lead.phone ? lastMessages[lead.phone]?.content : null,
+        last_message_type: lead.phone ? lastMessages[lead.phone]?.media_type : null,
+        last_message_direction: lead.phone ? lastMessages[lead.phone]?.direction as 'inbound' | 'outbound' | null : null,
       })) as KanbanLead[];
     },
     enabled: !!kanbanId,

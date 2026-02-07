@@ -63,30 +63,34 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type TeamRole = 'admin' | 'gestor' | 'sdr' | 'atendente';
+type TeamRole = 'owner' | 'admin' | 'coordenador' | 'sdr' | 'atendente';
 
 interface TeamMember {
   id: string;
-  owner_user_id: string;
-  member_user_id: string;
+  user_id: string;
   role: TeamRole;
+  is_active: boolean;
+  created_at: string | null;
+  // Derived from profiles or auth
   name: string;
   email: string;
   phone: string | null;
   avatar_url: string | null;
-  is_active: boolean;
-  invited_at: string;
-  accepted_at: string | null;
 }
 
 const ROLE_INFO: Record<TeamRole, { label: string; color: string; description: string }> = {
+  owner: { 
+    label: 'Proprietário', 
+    color: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    description: 'Dono da conta'
+  },
   admin: { 
     label: 'Administrador', 
     color: 'bg-red-500/10 text-red-600 border-red-500/20',
     description: 'Acesso total ao sistema'
   },
-  gestor: { 
-    label: 'Gestor', 
+  coordenador: { 
+    label: 'Coordenador', 
     color: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
     description: 'Tudo exceto configurações IA'
   },
@@ -175,64 +179,58 @@ export default function AvivarTeamPage() {
 
   // Fetch team members
   const { data: teamMembers = [], isLoading } = useQuery({
-    queryKey: ['avivar-team-members', user?.authUserId],
+    queryKey: ['avivar-team-members', accountId],
     queryFn: async () => {
-      if (!user?.authUserId) return [];
+      if (!accountId) return [];
       
       const { data, error } = await supabase
-        .from('avivar_team_members')
-        .select('*')
-        .eq('owner_user_id', user.authUserId)
+        .from('avivar_account_members')
+        .select('id, user_id, role, is_active, created_at')
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as TeamMember[];
+      return (data || []).map(m => ({
+        ...m,
+        name: m.user_id === user?.authUserId ? 'Eu (Proprietário)' : `Membro (${m.role})`,
+        email: '',
+        phone: null,
+        avatar_url: null,
+      })) as TeamMember[];
     },
-    enabled: !!user?.authUserId,
+    enabled: !!accountId,
   });
 
   // Add team member mutation
   const addMemberMutation = useMutation({
     mutationFn: async (data: typeof formData & { avatarFile?: File | null }) => {
-      if (!user?.authUserId) throw new Error('Usuário não autenticado');
+      if (!accountId) throw new Error('Conta não encontrada');
 
-      setIsUploading(true);
-      const tempMemberId = crypto.randomUUID();
-
-      // Upload avatar if provided
-      let avatarUrl: string | null = null;
-      if (data.avatarFile) {
-        avatarUrl = await uploadAvatar(data.avatarFile, tempMemberId);
-      }
+      // For now, create a placeholder member (real user invitation can be added later)
+      const tempUserId = crypto.randomUUID();
 
       const { error } = await supabase
-        .from('avivar_team_members')
+        .from('avivar_account_members')
         .insert({
-          owner_user_id: user.authUserId,
-          account_id: accountId!,
-          member_user_id: tempMemberId,
-          name: data.name,
-          email: data.email,
-          phone: data.phone || null,
-          role: data.role,
-          avatar_url: avatarUrl,
+          account_id: accountId,
+          user_id: tempUserId,
+          role: data.role as any,
+          is_active: true,
         });
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success('Atendente adicionado com sucesso!');
+      toast.success('Membro adicionado com sucesso!');
       setIsAddDialogOpen(false);
       resetForm();
-      setIsUploading(false);
     },
     onError: (error: Error) => {
-      setIsUploading(false);
       if (error.message.includes('duplicate')) {
-        toast.error('Este email já está cadastrado na equipe');
+        toast.error('Este membro já está na equipe');
       } else {
-        toast.error('Erro ao adicionar atendente');
+        toast.error('Erro ao adicionar membro');
       }
     },
   });
@@ -241,11 +239,9 @@ export default function AvivarTeamPage() {
   const updateMemberMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
       const { error } = await supabase
-        .from('avivar_team_members')
+        .from('avivar_account_members')
         .update({
-          name: data.name,
-          phone: data.phone || null,
-          role: data.role,
+          role: data.role as any,
         })
         .eq('id', id);
 
@@ -253,12 +249,12 @@ export default function AvivarTeamPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success('Atendente atualizado!');
+      toast.success('Membro atualizado!');
       setIsEditDialogOpen(false);
       setSelectedMember(null);
     },
     onError: () => {
-      toast.error('Erro ao atualizar atendente');
+      toast.error('Erro ao atualizar membro');
     },
   });
 
@@ -266,7 +262,7 @@ export default function AvivarTeamPage() {
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
       const { error } = await supabase
-        .from('avivar_team_members')
+        .from('avivar_account_members')
         .update({ is_active: isActive })
         .eq('id', id);
 
@@ -274,18 +270,17 @@ export default function AvivarTeamPage() {
     },
     onSuccess: (_, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success(isActive ? 'Atendente reativado!' : 'Atendente desativado!');
+      toast.success(isActive ? 'Membro reativado!' : 'Membro desativado!');
     },
     onError: () => {
       toast.error('Erro ao alterar status');
     },
   });
 
-  // Delete team member mutation
   const deleteMemberMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('avivar_team_members')
+        .from('avivar_account_members')
         .delete()
         .eq('id', id);
 
@@ -293,12 +288,12 @@ export default function AvivarTeamPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['avivar-team-members'] });
-      toast.success('Atendente removido!');
+      toast.success('Membro removido!');
       setIsDeleteDialogOpen(false);
       setSelectedMember(null);
     },
     onError: () => {
-      toast.error('Erro ao remover atendente');
+      toast.error('Erro ao remover membro');
     },
   });
 
@@ -505,7 +500,7 @@ export default function AvivarTeamPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-[hsl(var(--avivar-foreground))]">
-                  {teamMembers.filter(m => !m.accepted_at).length}
+                  {teamMembers.filter(m => !m.is_active).length}
                 </p>
                 <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">Pendentes</p>
               </div>
@@ -587,12 +582,6 @@ export default function AvivarTeamPage() {
                       <Shield className="h-3 w-3 mr-1" />
                       {ROLE_INFO[member.role].label}
                     </Badge>
-                    {!member.accepted_at && (
-                      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Pendente
-                      </Badge>
-                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
