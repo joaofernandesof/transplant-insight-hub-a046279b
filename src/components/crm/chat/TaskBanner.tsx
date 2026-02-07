@@ -41,13 +41,13 @@ export function TaskBanner({ task, onComplete, onDelete, onEdit, isCompleting, i
        }
        
        // Busca nos membros da equipe
-       const { data } = await supabase
-         .from('avivar_team_members')
-         .select('name, avatar_url')
-         .eq('member_user_id', task.assigned_to)
-         .single();
+        const { data } = await supabase
+          .from('avivar_account_members')
+          .select('user_id')
+          .eq('user_id', task.assigned_to)
+          .single();
        
-       return data;
+       return data ? { name: 'Membro', avatar_url: null } : null;
      },
      enabled: !!task.assigned_to,
    });

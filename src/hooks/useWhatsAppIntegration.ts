@@ -66,13 +66,13 @@ export function useWhatsAppIntegration() {
 
     try {
       const { data, error } = await supabase
-        .from('avivar_whatsapp_sessions')
+        .from('avivar_uazapi_instances')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
-      setSession(data as WhatsAppSession | null);
+      setSession(data as unknown as WhatsAppSession | null);
       
       if (data?.qr_code) {
         setQrCode(data.qr_code);
@@ -276,7 +276,7 @@ export function useWhatsAppIntegration() {
         {
           event: '*',
           schema: 'public',
-          table: 'avivar_whatsapp_sessions',
+          table: 'avivar_uazapi_instances',
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {

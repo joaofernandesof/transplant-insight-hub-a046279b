@@ -17,6 +17,7 @@
  } from '@/components/ui/popover';
  import { cn } from '@/lib/utils';
  import { useAuth } from '@/contexts/AuthContext';
+ import { useAvivarAccount } from '@/hooks/useAvivarAccount';
  import { supabase } from '@/integrations/supabase/client';
  import { useQuery } from '@tanstack/react-query';
  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -67,6 +68,7 @@ export interface TaskFormData {
  
 export function TaskInlineInput({ leadId, onCancel, onSubmit, isSubmitting, editingTask }: TaskInlineInputProps) {
    const { user } = useAuth();
+   const { accountId } = useAvivarAccount();
    const [title, setTitle] = useState('');
    const [selectedDate, setSelectedDate] = useState<Date>(addDays(new Date(), 1));
    const [selectedTime, setSelectedTime] = useState('09:00');
@@ -97,31 +99,31 @@ export function TaskInlineInput({ leadId, onCancel, onSubmit, isSubmitting, edit
  
    // Buscar membros da equipe
    const { data: teamMembers = [] } = useQuery({
-     queryKey: ['team-members-for-task', user?.id],
+     queryKey: ['team-members-for-task', accountId],
      queryFn: async (): Promise<TeamMember[]> => {
-       if (!user?.id) return [];
+       if (!user?.id || !accountId) return [];
  
        const { data, error } = await supabase
-         .from('avivar_team_members')
-         .select('id, member_user_id, name, email, avatar_url, role')
-         .eq('owner_user_id', user.id)
+         .from('avivar_account_members')
+         .select('id, user_id, role')
+         .eq('account_id', accountId)
          .eq('is_active', true)
-         .order('name');
+         .order('role');
  
        if (error) throw error;
        
-       const currentUserAsOwner: TeamMember = {
-         id: 'owner',
-         member_user_id: user.id,
-         name: 'Eu (Proprietário)',
-         email: user.email || '',
+       const members: TeamMember[] = (data || []).map(m => ({
+         id: m.id,
+         member_user_id: m.user_id,
+         name: m.user_id === user.id ? 'Eu (Proprietário)' : `Membro (${m.role})`,
+         email: '',
          avatar_url: null,
-         role: 'admin'
-       };
- 
-       return [currentUserAsOwner, ...(data || [])];
+         role: m.role
+       }));
+
+       return members;
      },
-     enabled: !!user?.id,
+     enabled: !!user?.id && !!accountId,
    });
  
    const selectedMember = teamMembers.find(m => m.member_user_id === assignedTo);

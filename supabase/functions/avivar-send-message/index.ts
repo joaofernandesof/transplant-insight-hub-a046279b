@@ -143,23 +143,26 @@ serve(async (req) => {
     let ownerUserId: string | null = userId || conversation.assigned_to;
 
     if (ownerUserId) {
-      const { data: teamMemberOwner, error: teamOwnerError } = await adminClient
-        .from("avivar_team_members")
-        .select("owner_user_id")
-        .eq("member_user_id", ownerUserId)
+      // Resolve the account owner via avivar_account_members
+      const { data: memberAccount, error: memberError } = await adminClient
+        .from("avivar_account_members")
+        .select("account_id, avivar_accounts!inner(owner_user_id)")
+        .eq("user_id", ownerUserId)
+        .eq("is_active", true)
         .limit(1)
         .maybeSingle();
 
-      if (teamOwnerError) {
-        console.warn("[Avivar Send Message] Could not resolve team owner:", teamOwnerError);
+      if (memberError) {
+        console.warn("[Avivar Send Message] Could not resolve account owner:", memberError);
       }
 
-      if (teamMemberOwner?.owner_user_id) {
+      const resolvedOwner = (memberAccount as any)?.avivar_accounts?.owner_user_id;
+      if (resolvedOwner && resolvedOwner !== ownerUserId) {
         console.log(
-          "[Avivar Send Message] Resolved owner user id via team membership:",
-          teamMemberOwner.owner_user_id
+          "[Avivar Send Message] Resolved owner user id via account membership:",
+          resolvedOwner
         );
-        ownerUserId = teamMemberOwner.owner_user_id;
+        ownerUserId = resolvedOwner;
       }
     }
     
@@ -610,28 +613,15 @@ serve(async (req) => {
       // Ignore parse errors
     }
 
-    // Get sender name from team members or profile
+    // Get sender name from account members or profile
     let senderName = "Assistente IA";
     if (!isAIGenerated && userId) {
-      // First try team members
-      const { data: teamMember } = await adminClient
-        .from("avivar_team_members")
+      const { data: profile } = await adminClient
+        .from("profiles")
         .select("name")
-        .eq("member_user_id", userId)
-        .limit(1)
-        .maybeSingle();
-      
-      if (teamMember?.name) {
-        senderName = teamMember.name;
-      } else {
-        // Fallback to profiles
-        const { data: profile } = await adminClient
-          .from("profiles")
-          .select("name")
-          .eq("user_id", userId)
-          .single();
-        senderName = profile?.name || "Operador";
-      }
+        .eq("user_id", userId)
+        .single();
+      senderName = profile?.name || "Operador";
     }
 
     // Determine media type for storage
@@ -669,29 +659,6 @@ serve(async (req) => {
         status: "pending",
       })
       .eq("id", conversationId);
-
-    // Also save to avivar_mensagens for legacy support
-    if (ownerUserId) {
-      const { data: avivarConversa } = await adminClient
-        .from("avivar_conversas")
-        .select("id")
-        .eq("numero", phone)
-        .limit(1)
-        .maybeSingle();
-
-      if (avivarConversa) {
-        const legacyMsgType = isAudioMessage ? "audio" : isImageMessage ? "image" : isVideoMessage ? "video" : isDocumentMessage ? "document" : "text";
-        await adminClient.from("avivar_mensagens").insert({
-          conversa_id: avivarConversa.id,
-          numero: phone,
-          mensagem: messageContent,
-          direcao: "saida",
-          data_hora: new Date().toISOString(),
-          tipo_mensagem: legacyMsgType,
-          lida: true,
-        });
-      }
-    }
 
     console.log("[Avivar Send Message] ✅ Message sent successfully");
 
