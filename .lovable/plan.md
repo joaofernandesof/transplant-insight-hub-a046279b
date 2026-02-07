@@ -1,84 +1,114 @@
 
-# Plano: Atualizar QA.md com todas as tarefas pendentes de registro
 
-## Problema identificado
+# Auditoria e Limpeza de Tabelas Legadas do Avivar CRM
 
-O arquivo `docs/QA.md` nao e atualizado desde **2026-01-27** (QA-011). Desde entao, pelo menos **6 tarefas significativas** foram executadas sem registro de QA. Isso viola a regra obrigatoria de atualizacao apos cada tarefa.
+## Contexto
 
-## Tarefas sem registro (QA-012 a QA-017)
+Antes da migração multi-tenant, o CRM Avivar usava tabelas com isolamento baseado em `user_id`. Agora, o isolamento correto usa `account_id` via `avivar_accounts` e `avivar_account_members`. A migração deixou tabelas legadas que duplicam funcionalidades e causam bugs (dual-write, conflitos de função, etc).
 
-| ID | Tarefa | Data aprox. | Modulo |
-|---|---|---|---|
-| QA-012 | Arquitetura Multi-tenant Fase 1 - Avivar | 2026-01-28 | Core / Database |
-| QA-013 | Suporte Multimidia e Ferramentas de Fluxo no AI Agent | 2026-02-01 | AI / Edge Functions |
-| QA-014 | Processador de Debounce (Mensagens em Lote) | 2026-02-01 | Backend / Performance |
-| QA-015 | Sistema Universal de Checklists (Funil Comercial) | 2026-02-04 | Shared / Kanban |
-| QA-016 | Redesign Dashboard HotLeads | 2026-02-05 | Frontend / CRM |
-| QA-017 | Resiliencia e Debugging do Wizard de Agentes | 2026-02-06 | Avivar / Config |
+## Resultado da Auditoria
 
-## Acoes
+### Tabelas para REMOVER (legadas, substituidas ou vazias)
 
-### 1. Atualizar `docs/QA.md`
+| Tabela | Motivo | Dados | Substituta |
+|--------|--------|-------|------------|
+| `avivar_whatsapp_messages` | Nunca usada, 0 registros | 0 | `crm_messages` |
+| `avivar_whatsapp_contacts` | Legacy, 3 registros irrelevantes | 3 | `avivar_contacts` |
+| `avivar_whatsapp_sessions` | Legacy, substituida por `avivar_uazapi_instances` | 2 | `avivar_uazapi_instances` |
+| `avivar_followup_metrics` | Vazia, nunca populada | 0 | Pode ser recriada se necessario |
+| `avivar_team_members` | Legacy, substituida por `avivar_account_members` | 2 | `avivar_account_members` |
 
-Adicionar as 6 entradas faltantes seguindo o template padrao ja existente no arquivo, incluindo:
-- Tabela de metadados (Modulo, Descricao, Tipo de Teste, Status, Data, Responsavel, Ref. Roadmap)
-- Lista de validacoes realizadas com checkboxes
-- Observacoes tecnicas relevantes
+### Tabelas para REMOVER com migracão de código (dual-write ativo)
 
-### 2. Atualizar contadores do resumo
+| Tabela | Motivo | Dados | Substituta |
+|--------|--------|-------|------------|
+| `avivar_conversas` | Legacy chat, dual-write com `crm_conversations` | 1 | `crm_conversations` |
+| `avivar_mensagens` | Legacy messages, dual-write com `crm_messages` | 33 | `crm_messages` |
 
-Atualizar a tabela de resumo no topo do arquivo:
-- Total de Tarefas Validadas: 11 -> 17
-- Aprovadas: 11 -> 17
-- Ultima Atualizacao: 2026-01-27 -> 2026-02-06
+### Edge Functions para REMOVER
 
-### 3. Compromisso futuro
+| Funcao | Motivo |
+|--------|--------|
+| `n8n-whatsapp-webhook` | Legacy, substituida por `uazapi-webhook` |
+| `avivar-whatsapp` | Legacy, substituida por `avivar-uazapi` |
 
-A partir de agora, toda tarefa concluida tera o QA.md atualizado como ultimo passo obrigatorio antes de finalizar a resposta.
+### Tabelas que PERMANECEM (multi-tenant corretas)
 
-## Secao Tecnica
+Todas as 23 tabelas restantes ja possuem `account_id` e fazem parte da arquitetura multi-tenant:
 
-### Arquivo: `docs/QA.md`
+`avivar_accounts`, `avivar_account_members`, `avivar_agents`, `avivar_agendas`, `avivar_appointments`, `avivar_contacts`, `avivar_column_checklists`, `avivar_kanban_columns`, `avivar_kanban_leads`, `avivar_kanbans`, `avivar_knowledge_chunks`, `avivar_knowledge_documents`, `avivar_onboarding_progress`, `avivar_patient_journeys`, `avivar_products`, `avivar_schedule_blocks`, `avivar_schedule_config`, `avivar_schedule_hours`, `avivar_tutorials`, `avivar_uazapi_instances`, `avivar_followup_executions`, `avivar_followup_rules`, `avivar_followup_templates`
 
-Sera adicionado um bloco `### 2026-02-06` (e `### 2026-02-01`, `### 2026-02-04`, etc.) contendo as 6 novas entradas, cada uma com:
+Tabelas CRM que permanecem: `crm_conversations`, `crm_messages`, `leads`, `lead_tasks`
 
-```text
-#### [check] QA-0XX: [Nome da Funcionalidade]
+---
 
-| Campo | Valor |
-|-------|-------|
-| **Modulo** | [modulo] |
-| **Descricao** | [descricao] |
-| **Tipo de Teste** | [tipo] |
-| **Status** | [check] Aprovado |
-| **Data** | YYYY-MM-DD |
-| **Responsavel** | Lovable AI |
-| **Ref. Roadmap** | [ref] |
+## Plano de Execução (em 3 fases)
 
-**Validacoes Realizadas:**
-- [x] Item 1
-- [x] Item 2
+### Fase 1 - Eliminar dual-write no código
 
-**Observacoes:**
-- ...
+Remover toda escrita para `avivar_conversas` e `avivar_mensagens` de:
+
+1. **`supabase/functions/uazapi-webhook/index.ts`** - Remove o bloco que chama `get_or_create_avivar_conversa` e insere em `avivar_mensagens` (linhas ~646-680). Manter apenas a escrita em `crm_conversations`/`crm_messages`.
+
+2. **`supabase/functions/avivar-send-message/index.ts`** - Remove o bloco "Also save to avivar_mensagens for legacy support" (linhas ~673-695).
+
+3. **`src/pages/avivar/kanban/hooks/useKanbanLeads.ts`** - Migrar a query de "última mensagem" de `avivar_conversas`/`avivar_mensagens` para `crm_conversations`/`crm_messages`.
+
+### Fase 2 - Migrar referências a `avivar_team_members` para `avivar_account_members`
+
+Atualizar os seguintes arquivos para usar `avivar_account_members` no lugar de `avivar_team_members`:
+
+- `src/components/crm/chat/TaskBanner.tsx`
+- `src/components/crm/chat/ResponsibleSelector.tsx`
+- `src/components/crm/chat/TaskInlineInput.tsx`
+- `src/hooks/useCrmConversations.ts`
+- `src/pages/avivar/AvivarTeamPage.tsx`
+- `supabase/functions/avivar-send-message/index.ts`
+
+Migrar `avivar_whatsapp_sessions` em:
+- `src/hooks/useWhatsAppIntegration.ts` - Migrar para usar `avivar_uazapi_instances`
+
+### Fase 3 - Dropar tabelas, triggers, funcões e edge functions
+
+Migration SQL:
+
+```sql
+-- Drop triggers first
+DROP TRIGGER IF EXISTS trigger_update_conversa_on_message ON avivar_mensagens;
+DROP TRIGGER IF EXISTS update_avivar_conversas_updated_at ON avivar_conversas;
+DROP TRIGGER IF EXISTS update_avivar_mensagens_updated_at ON avivar_mensagens;
+DROP TRIGGER IF EXISTS update_whatsapp_sessions_updated_at ON avivar_whatsapp_sessions;
+DROP TRIGGER IF EXISTS update_whatsapp_contacts_updated_at ON avivar_whatsapp_contacts;
+DROP TRIGGER IF EXISTS update_avivar_team_members_timestamp ON avivar_team_members;
+DROP TRIGGER IF EXISTS update_followup_metrics_updated_at ON avivar_followup_metrics;
+
+-- Drop functions
+DROP FUNCTION IF EXISTS get_or_create_avivar_conversa(text, text, text, text);
+DROP FUNCTION IF EXISTS mark_avivar_messages_as_read(uuid);
+DROP FUNCTION IF EXISTS update_avivar_conversa_on_message();
+DROP FUNCTION IF EXISTS update_avivar_team_members_updated_at();
+
+-- Drop tables (order matters for FK dependencies)
+DROP TABLE IF EXISTS avivar_mensagens CASCADE;
+DROP TABLE IF EXISTS avivar_conversas CASCADE;
+DROP TABLE IF EXISTS avivar_whatsapp_messages CASCADE;
+DROP TABLE IF EXISTS avivar_whatsapp_contacts CASCADE;
+DROP TABLE IF EXISTS avivar_whatsapp_sessions CASCADE;
+DROP TABLE IF EXISTS avivar_followup_metrics CASCADE;
+DROP TABLE IF EXISTS avivar_team_members CASCADE;
 ```
 
-### Detalhes de cada entrada
+Deletar edge functions:
+- `n8n-whatsapp-webhook`
+- `avivar-whatsapp`
 
-**QA-012: Multi-tenant**
-- Validacoes: tabelas `avivar_accounts`/`avivar_account_members` criadas, coluna `account_id` em 28 tabelas, funcao RPC `get_user_avivar_account_id`, RLS atualizado
+---
 
-**QA-013: Multimidia AI Agent**
-- Validacoes: ferramenta `send_fluxo_media`, regras de prompt para envio silencioso, integracao uazapi-webhook, suporte a .mp3/.mp4/.pdf
+## Resumo do Impacto
 
-**QA-014: Debounce Processor**
-- Validacoes: edge function `avivar-debounce-processor`, buffer 30s, batching de mensagens, tratamento de erro 404
+- **7 tabelas removidas** (todas legadas ou vazias)
+- **2 edge functions removidas** (substituidas)
+- **~10 arquivos de código atualizados** (remover dual-write e migrar referências)
+- **3 funcões DB e 7 triggers removidos**
+- **0 dados importantes perdidos** (dados úteis ja estão nas tabelas novas `crm_*` e `avivar_account_members`)
 
-**QA-015: Checklists Universais**
-- Validacoes: componente `ChecklistUniversal`, editor de campos, persistencia multi-tenant, bloqueio de movimentacao no Kanban
-
-**QA-016: Redesign HotLeads**
-- Validacoes: layout 3 colunas responsivo, mascara de privacidade, paginacao infinita, navegacao card -> chat
-
-**QA-017: Debugging Wizard Agentes**
-- Validacoes: logging `[AgentSave]`, tratamento de erro RLS especifico, correcao useEffect fluxo, injecao account_id em knowledge inserts
