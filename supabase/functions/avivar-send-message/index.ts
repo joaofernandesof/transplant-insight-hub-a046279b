@@ -136,15 +136,29 @@ serve(async (req) => {
 
     console.log("[Avivar Send Message] Sending to:", lead.phone);
 
-    // Determine which account should be used to send messages.
-    // IMPORTANT: `crm_conversations.assigned_to` can be a team member (attendant),
-    // but the WhatsApp instance belongs to the account owner (owner_user_id).
-    // If we pick the wrong user_id here, we may send using the wrong UazAPI token/instance.
+    // Determine which account's WhatsApp instance to use.
+    // Use the conversation's account_id directly (most reliable for multi-tenant).
+    const conversationAccountId = conversation.account_id;
     let ownerUserId: string | null = userId || conversation.assigned_to;
 
-    if (ownerUserId) {
-      // Resolve the account owner via avivar_account_members
-      const { data: memberAccount, error: memberError } = await adminClient
+    // Resolve owner from account directly using account_id from the conversation
+    if (conversationAccountId) {
+      const { data: account } = await adminClient
+        .from("avivar_accounts")
+        .select("owner_user_id")
+        .eq("id", conversationAccountId)
+        .single();
+
+      if (account?.owner_user_id) {
+        console.log(
+          "[Avivar Send Message] Resolved owner from conversation account:",
+          account.owner_user_id
+        );
+        ownerUserId = account.owner_user_id;
+      }
+    } else if (ownerUserId) {
+      // Fallback: resolve via membership (only if conversation has no account_id)
+      const { data: memberAccount } = await adminClient
         .from("avivar_account_members")
         .select("account_id, avivar_accounts!inner(owner_user_id)")
         .eq("user_id", ownerUserId)
@@ -152,25 +166,39 @@ serve(async (req) => {
         .limit(1)
         .maybeSingle();
 
-      if (memberError) {
-        console.warn("[Avivar Send Message] Could not resolve account owner:", memberError);
-      }
-
       const resolvedOwner = (memberAccount as any)?.avivar_accounts?.owner_user_id;
-      if (resolvedOwner && resolvedOwner !== ownerUserId) {
-        console.log(
-          "[Avivar Send Message] Resolved owner user id via account membership:",
-          resolvedOwner
-        );
+      if (resolvedOwner) {
+        console.log("[Avivar Send Message] Resolved owner via membership:", resolvedOwner);
         ownerUserId = resolvedOwner;
       }
     }
     
-    // Try to find the user's UazAPI instance first (new provisioning flow)
+    // Find UazAPI instance for this account (preferred) or owner
     let uazapiUrl: string | undefined = undefined;
     let uazapiToken: string | undefined = undefined;
 
-    if (ownerUserId) {
+    // First try by account_id (most reliable for multi-tenant)
+    if (conversationAccountId) {
+      const { data: uazapiInstance } = await adminClient
+        .from("avivar_uazapi_instances")
+        .select("id, instance_name, instance_token")
+        .eq("account_id", conversationAccountId)
+        .eq("status", "connected")
+        .limit(1)
+        .maybeSingle();
+
+      if (uazapiInstance?.instance_token) {
+        uazapiUrl = Deno.env.get("UAZAPI_URL");
+        uazapiToken = uazapiInstance.instance_token;
+        console.log(
+          "[Avivar Send Message] Using account's UazAPI instance:",
+          uazapiInstance.instance_name || uazapiInstance.id
+        );
+      }
+    }
+
+    // Fallback: try by owner user_id
+    if (!uazapiToken && ownerUserId) {
       const { data: uazapiInstance } = await adminClient
         .from("avivar_uazapi_instances")
         .select("id, instance_name, instance_token")
