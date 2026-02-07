@@ -13,14 +13,19 @@ interface LeadOption {
   id: string;
   name: string;
   phone: string | null;
+  lead_code?: string;
 }
 
 async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
-  // Buscar leads do Kanban do Avivar (tabela correta)
+  // First get user's account_id
+  const { data: accountId } = await supabase.rpc('get_user_avivar_account_id', { _user_id: userId });
+  if (!accountId) return [];
+
+  // Buscar leads do Kanban do Avivar filtrados por account_id
   const { data, error } = await supabase
     .from('avivar_kanban_leads')
-    .select('id, name, phone')
-    .eq('user_id', userId)
+    .select('id, name, phone, lead_code')
+    .eq('account_id', accountId)
     .order('name');
 
   if (error) throw error;
@@ -28,12 +33,13 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
     id: l.id,
     name: l.name,
     phone: l.phone,
+    lead_code: l.lead_code,
   })) as LeadOption[];
 }
 
  export interface AvivarTask {
    id: string;
-   lead_id: string;
+   lead_id: string | null;
    title: string;
    description: string | null;
    due_at: string | null;
@@ -49,7 +55,7 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
  }
  
  export interface CreateAvivarTaskData {
-  lead_id: string;
+  lead_id?: string;
    title: string;
    description?: string;
    due_at?: string;
@@ -125,18 +131,20 @@ async function fetchLeadsForTasks(userId: string): Promise<LeadOption[]> {
  
    // Criar tarefa
    const createTask = useMutation({
-     mutationFn: async (data: CreateAvivarTaskData) => {
+   mutationFn: async (data: CreateAvivarTaskData) => {
+      const insertData: any = {
+        title: data.title,
+        description: data.description,
+        due_at: data.due_at,
+        priority: data.priority || 'medium',
+        assigned_to: data.assigned_to || user?.id,
+        created_by: user?.id,
+      };
+      if (data.lead_id) insertData.lead_id = data.lead_id;
+
       const { data: newTask, error } = await supabase
          .from('lead_tasks')
-         .insert({
-          lead_id: data.lead_id,
-          title: data.title,
-          description: data.description,
-          due_at: data.due_at,
-           priority: data.priority || 'medium',
-           assigned_to: data.assigned_to || user?.id,
-           created_by: user?.id,
-         })
+         .insert(insertData)
          .select()
          .single();
  

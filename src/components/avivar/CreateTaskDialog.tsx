@@ -33,13 +33,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
  import { cn } from '@/lib/utils';
  import { CreateAvivarTaskData } from '@/hooks/useAvivarTasks';
  
- interface CreateTaskDialogProps {
-   open: boolean;
-   onOpenChange: (open: boolean) => void;
-   leads: Array<{ id: string; name: string; phone: string | null }>;
-   onCreate: (data: CreateAvivarTaskData) => void;
-   isCreating: boolean;
- }
+interface CreateTaskDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  leads: Array<{ id: string; name: string; phone: string | null; lead_code?: string }>;
+  onCreate: (data: CreateAvivarTaskData) => void;
+  isCreating: boolean;
+}
  
  const timeSlots = Array.from({ length: 24 }, (_, hour) => {
    return [
@@ -71,7 +71,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
     const query = searchQuery.toLowerCase().trim();
     return leads.filter(lead => 
       lead.name.toLowerCase().includes(query) ||
-      (lead.phone && lead.phone.includes(query))
+      (lead.phone && lead.phone.includes(query)) ||
+      (lead.lead_code && lead.lead_code.toLowerCase().includes(query))
     ).slice(0, 20);
   }, [leads, searchQuery]);
 
@@ -97,7 +98,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
    const handleSubmit = () => {
     if (!title.trim()) return;
-    if (!selectedLead || !selectedLead.id) return;
  
      let due_at: string | undefined;
      if (dueDate) {
@@ -108,17 +108,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
      }
  
     const taskData: CreateAvivarTaskData = {
-      lead_id: selectedLead.id,
        title: title.trim(),
        description: description.trim() || undefined,
        priority,
        due_at,
     };
 
+    if (selectedLead) {
+      taskData.lead_id = selectedLead.id;
+    }
+
     onCreate(taskData);
    };
  
-  const isValid = title.trim() && selectedLead && selectedLead.id;
+  const isValid = !!title.trim();
 
    return (
      <Dialog open={open} onOpenChange={onOpenChange}>
@@ -130,7 +133,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
          <div className="space-y-4 py-4">
           {/* Lead Search */}
            <div className="space-y-2">
-            <Label className="text-[hsl(var(--avivar-foreground))]">Atribuir tarefa para:</Label>
+            <Label className="text-[hsl(var(--avivar-foreground))]">Atribuir tarefa para: <span className="text-xs text-[hsl(var(--avivar-muted-foreground))]">(opcional)</span></Label>
             <div className="relative">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--avivar-muted-foreground))]" />

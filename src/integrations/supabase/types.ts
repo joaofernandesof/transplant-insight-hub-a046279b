@@ -8630,7 +8630,7 @@ export type Database = {
           description: string | null
           due_at: string | null
           id: string
-          lead_id: string
+          lead_id: string | null
           priority: string
           title: string
           updated_at: string
@@ -8643,7 +8643,7 @@ export type Database = {
           description?: string | null
           due_at?: string | null
           id?: string
-          lead_id: string
+          lead_id?: string | null
           priority?: string
           title: string
           updated_at?: string
@@ -8656,7 +8656,7 @@ export type Database = {
           description?: string | null
           due_at?: string | null
           id?: string
-          lead_id?: string
+          lead_id?: string | null
           priority?: string
           title?: string
           updated_at?: string
