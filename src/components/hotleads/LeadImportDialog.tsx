@@ -13,7 +13,6 @@ interface ParsedLead {
   email: string;
   state: string;
   city: string;
-  tags: string[];
 }
 
 interface LeadImportDialogProps {
@@ -182,7 +181,7 @@ function mapRow(row: Record<string, any>, rowIndex?: number): ParsedLead | null 
 
   if (!name || !phone) return null;
 
-  return { name, phone, email, state, city, tags: parseTags(tagsRaw) };
+  return { name, phone, email, state, city };
 }
 
 export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDialogProps) {
@@ -302,7 +301,7 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
             </Button>
           </DialogTitle>
           <DialogDescription>
-            Envie um arquivo .xls, .xlsx ou .csv com as colunas: Contato principal, Telefone, Email, Estado, Cidade, Lead tags
+            Envie um arquivo .xls, .xlsx ou .csv com as colunas: Contato principal, Telefone, Email, Estado, Cidade
           </DialogDescription>
         </DialogHeader>
 
@@ -351,7 +350,6 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
                       <th className="text-left p-2">Email</th>
                       <th className="text-left p-2">Estado</th>
                       <th className="text-left p-2">Cidade</th>
-                      <th className="text-left p-2">Tags</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -362,9 +360,6 @@ export function LeadImportDialog({ open, onOpenChange, onImport }: LeadImportDia
                         <td className="p-2">{l.email}</td>
                         <td className="p-2">{l.state}</td>
                         <td className="p-2">{l.city}</td>
-                        <td className="p-2">
-                          {l.tags.length > 0 ? l.tags.join(', ') : '-'}
-                        </td>
                       </tr>
                     ))}
                     {parsedLeads.length > 20 && (
