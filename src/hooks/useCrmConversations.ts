@@ -55,9 +55,10 @@ export function useCrmConversations(conversationId?: string) {
   const { accountId } = useAvivarAccount();
   const queryClient = useQueryClient();
 
-  // Realtime subscription for conversations list (new chats / last_message_at updates)
+  // Realtime subscriptions for conversations list, leads, and global messages
   useEffect(() => {
-    const channel = supabase
+    // Listen for conversation changes (new chats, status updates, last_message_at)
+    const conversationsChannel = supabase
       .channel('crm-conversations-realtime')
       .on(
         'postgres_changes',
@@ -72,8 +73,44 @@ export function useCrmConversations(conversationId?: string) {
       )
       .subscribe();
 
+    // Listen for new/updated leads (new leads from webhook)
+    const leadsChannel = supabase
+      .channel('crm-leads-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.conversations });
+        }
+      )
+      .subscribe();
+
+    // Listen for ANY new message across all conversations to update the list
+    const globalMessagesChannel = supabase
+      .channel('crm-messages-global-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'crm_messages',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.conversations });
+          // Also invalidate the currently viewed messages
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.messages });
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(conversationsChannel);
+      supabase.removeChannel(leadsChannel);
+      supabase.removeChannel(globalMessagesChannel);
     };
   }, [queryClient]);
 
@@ -138,7 +175,7 @@ export function useCrmConversations(conversationId?: string) {
     gcTime: CACHE_TIMES.SHORT.gcTime,
   });
 
-  // Realtime subscription for new messages
+  // Realtime subscription for messages in the currently selected conversation
   useEffect(() => {
     if (!conversationId) return;
 
@@ -153,7 +190,7 @@ export function useCrmConversations(conversationId?: string) {
           filter: `conversation_id=eq.${conversationId}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['crm-messages', conversationId] });
+          queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.messages, conversationId] });
         }
       )
       .subscribe();
