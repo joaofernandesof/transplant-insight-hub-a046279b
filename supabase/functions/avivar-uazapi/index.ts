@@ -244,6 +244,49 @@ async function handleConnectInstance(req: Request, supabase: any, userId: string
   if (!response.ok) {
     const errorText = await response.text();
     console.error("UazAPI connect error:", response.status, errorText);
+    
+    // 408 = timeout waiting for QR code; fall back to /instance/status to retrieve it
+    if (response.status === 408) {
+      console.log("Connect returned 408, falling back to /instance/status for QR code...");
+      const statusRes = await fetch(`${UAZAPI_URL}/instance/status`, {
+        method: "GET",
+        headers: { "token": instance.instance_token },
+      });
+
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        console.log("Fallback status response:", JSON.stringify(statusData, null, 2));
+
+        const qrCode = statusData.instance?.qrcode || null;
+        const pairCode = statusData.instance?.paircode || null;
+        const isConnected = statusData.status?.connected === true;
+
+        // Update DB with connecting state + QR
+        await supabase
+          .from("avivar_uazapi_instances")
+          .update({
+            status: isConnected ? "connected" : "connecting",
+            qr_code: qrCode,
+            pair_code: pairCode,
+          })
+          .eq("user_id", userId);
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            connected: isConnected,
+            qrCode,
+            pairCode,
+            phoneNumber: statusData.instance?.owner || null,
+            profileName: statusData.instance?.profileName || null,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // If status also fails, fall through to the generic error
+      console.error("Fallback status also failed:", statusRes.status);
+    }
+
     throw new Error(`Failed to connect: ${response.status}`);
   }
 
