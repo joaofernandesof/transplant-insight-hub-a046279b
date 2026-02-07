@@ -62,16 +62,32 @@ async function scheduleFollowupForConversation(
     return;
   }
 
-  // Get the first active follow-up rule (attempt 1)
-  const { data: rule, error: ruleError } = await supabase
+  // Resolve account_id for the user
+  const { data: memberInfo } = await supabase
+    .from("avivar_account_members")
+    .select("account_id")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
+  const ruleAccountId = memberInfo?.account_id;
+
+  // Get the first active follow-up rule (attempt 1) - use account_id for multi-tenant
+  let ruleQuery = supabase
     .from("avivar_followup_rules")
     .select("*")
-    .eq("user_id", userId)
     .eq("is_active", true)
     .eq("attempt_number", 1)
     .order("order_index", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+
+  if (ruleAccountId) {
+    ruleQuery = ruleQuery.eq("account_id", ruleAccountId);
+  } else {
+    ruleQuery = ruleQuery.eq("user_id", userId);
+  }
+
+  const { data: rule, error: ruleError } = await ruleQuery.maybeSingle();
 
   if (ruleError) {
     console.error(`[Debounce] Error fetching follow-up rule:`, ruleError);
