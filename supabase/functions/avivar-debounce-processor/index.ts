@@ -83,10 +83,10 @@ async function scheduleFollowupForConversation(
     return;
   }
 
-  // Get the lead ID from the conversation
+  // Get the lead ID and account_id from the conversation
   const { data: conversation } = await supabase
     .from("crm_conversations")
-    .select("lead_id")
+    .select("lead_id, account_id")
     .eq("id", conversationId)
     .single();
 
@@ -100,6 +100,7 @@ async function scheduleFollowupForConversation(
 
   // Create the follow-up execution
   const { error: insertError } = await supabase.from("avivar_followup_executions").insert({
+    account_id: conversation.account_id,
     user_id: userId,
     rule_id: rule.id,
     conversation_id: conversationId,
