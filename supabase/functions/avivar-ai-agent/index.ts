@@ -1586,12 +1586,22 @@ async function sendFluxoMedia(
   ];
   
   const step = allSteps.find((s) => s.id === stepId);
-  if (!step || !step.media) {
+  if (!step || (!step.media && !(step.mediaVariations as unknown[] || []).length)) {
     console.log(`[AI Agent] Step "${stepId}" not found or has no media`);
     return { success: false, message: `Passo "${stepId}" não possui mídia anexada.` };
   }
 
-  const media = step.media as { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
+  // Select media: if mediaVariations exists, pick random; otherwise use legacy media
+  const variations = (step.mediaVariations || []) as Array<{ type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean }>;
+  let media: { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
+  
+  if (variations.length > 0) {
+    const randomIndex = Math.floor(Math.random() * variations.length);
+    media = variations[randomIndex];
+    console.log(`[AI Agent] Anti-spam rotation: selected variation ${randomIndex + 1}/${variations.length} for step "${stepId}"`);
+  } else {
+    media = step.media as { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
+  }
   console.log(`[AI Agent] Found media: type=${media.type}, url=${media.url?.substring(0, 60)}`);
 
   // Get UazAPI credentials
@@ -2385,6 +2395,7 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
     descricao: string;
     exemploMensagem?: string;
     media?: { type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean };
+    mediaVariations?: Array<{ type: string; url: string; name?: string; audio_type?: string; audio_forward?: boolean }>;
   }>;
   
   const passosExtras = (fluxo.passosExtras || []) as Array<{
@@ -2399,14 +2410,20 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
   if (passosCronologicos.length === 0) return '';
   
   // Collect all steps with media for the summary rule
+  const hasMedia = (p: typeof passosCronologicos[0]) => p.media || (p.mediaVariations && p.mediaVariations.length > 0);
+  const getMediaType = (p: typeof passosCronologicos[0]) => {
+    if (p.mediaVariations && p.mediaVariations.length > 0) return `${p.mediaVariations[0].type} (${p.mediaVariations.length} variações)`;
+    return p.media!.type;
+  };
+
   const stepsWithMedia = passosCronologicos
-    .filter(p => p.media)
-    .map(p => `- Passo "${p.id}": send_fluxo_media(step_id="${p.id}") → ${p.media!.type}`)
+    .filter(hasMedia)
+    .map(p => `- Passo "${p.id}": send_fluxo_media(step_id="${p.id}") → ${getMediaType(p)}`)
     .join('\n');
   
   const extraStepsWithMedia = passosExtras
-    .filter(p => p.media)
-    .map(p => `- Passo "${p.id}": send_fluxo_media(step_id="${p.id}") → ${p.media!.type}`)
+    .filter(hasMedia)
+    .map(p => `- Passo "${p.id}": send_fluxo_media(step_id="${p.id}") → ${getMediaType(p)}`)
     .join('\n');
   
   const allMediaSteps = [stepsWithMedia, extraStepsWithMedia].filter(Boolean).join('\n');
@@ -2453,8 +2470,10 @@ ${allMediaSteps}
 `;
   
   for (const passo of passosCronologicos) {
-    const mediaInstruction = passo.media 
-      ? `\n⚠️ **TOOL CALL OBRIGATÓRIA**: Inclua send_fluxo_media(step_id="${passo.id}") na sua resposta. PROIBIDO escrever "${passo.media.name || passo.media.type}", "Vídeo do fluxo", "Áudio do fluxo" ou qualquer referência à mídia no texto.`
+    const stepHasMedia = passo.media || (passo.mediaVariations && passo.mediaVariations.length > 0);
+    const mediaName = passo.mediaVariations?.length ? passo.mediaVariations[0].type : (passo.media?.name || passo.media?.type || '');
+    const mediaInstruction = stepHasMedia 
+      ? `\n⚠️ **TOOL CALL OBRIGATÓRIA**: Inclua send_fluxo_media(step_id="${passo.id}") na sua resposta. PROIBIDO escrever "${mediaName}", "Vídeo do fluxo", "Áudio do fluxo" ou qualquer referência à mídia no texto.`
       : '';
     instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
 ${passo.descricao}
@@ -2468,7 +2487,8 @@ ${passo.exemploMensagem ? `📝 Referência de intenção (REESCREVA com suas pa
 
 `;
     for (const passo of passosExtras) {
-      const mediaInstruction = passo.media 
+      const extraHasMedia = passo.media || (passo.mediaVariations && passo.mediaVariations.length > 0);
+      const mediaInstruction = extraHasMedia 
         ? `\n⚠️ **TOOL CALL OBRIGATÓRIA**: Inclua send_fluxo_media(step_id="${passo.id}") na sua resposta. PROIBIDO mencionar a mídia no texto.`
         : '';
       instructions += `### ${passo.titulo.toUpperCase()}
