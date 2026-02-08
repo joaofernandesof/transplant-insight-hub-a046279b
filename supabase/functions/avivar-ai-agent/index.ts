@@ -2431,6 +2431,17 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
   let instructions = `<fluxo_de_atendimento>
 ## PASSOS DO ATENDIMENTO (siga na ordem):
 
+**🚫 REGRA CRÍTICA — UM PASSO POR VEZ:**
+Você DEVE executar APENAS UM passo do fluxo por resposta. NUNCA avance múltiplos passos de uma só vez.
+- Analise o histórico da conversa para determinar em qual passo o atendimento está
+- Execute SOMENTE o próximo passo pendente
+- AGUARDE a resposta do lead antes de avançar para o passo seguinte
+- Se o passo atual tiver mídia, envie APENAS a mídia desse passo (nunca de outros passos)
+- MÁXIMO 1 chamada de send_fluxo_media por resposta (NUNCA 2 ou mais)
+- Exemplo: se o lead respondeu ao passo 2 (interesse), execute APENAS o passo 3 (qualificação). NÃO pule para o passo 4 ou 5
+- PROIBIDO: Enviar mídia de um passo + texto de outro passo na mesma resposta
+- Se o passo tem mídia E texto, envie ambos, mas APENAS do passo atual
+
 **⚠️ REGRA ANTI-SPAM OBRIGATÓRIA — VARIAÇÃO DE MENSAGENS:**
 Os exemplos fornecidos são REFERÊNCIAS DE INTENÇÃO, NUNCA textos para copiar. Para CADA mensagem que você enviar:
 1. ENTENDA o objetivo/intenção do exemplo (ex: se apresentar, pedir nome, confirmar horário)
@@ -2462,9 +2473,10 @@ Quando o exemplo de mensagem contiver o marcador "---", isso indica que a IA DEV
 - Cada "---" no template = um ponto de quebra obrigatório na sua resposta (use \\n\\n para separar)
 - NUNCA junte em uma única mensagem o que o template separou com "---"
 
-${allMediaSteps ? `## ⚠️ REGRA OBRIGATÓRIA DE MÍDIA
-Para CADA passo abaixo, você DEVE incluir a tool call send_fluxo_media na sua resposta.
+${allMediaSteps ? `## ⚠️ REGRA OBRIGATÓRIA DE MÍDIA (respeite a regra de UM PASSO POR VEZ)
+Quando estiver no passo correspondente, inclua a tool call send_fluxo_media. Mas APENAS UMA por resposta — a do passo atual.
 A mídia é enviada SILENCIOSAMENTE — NUNCA escreva "Vídeo do fluxo", "Áudio do fluxo", nome do arquivo ou qualquer referência à mídia no texto.
+⚠️ MÁXIMO 1 send_fluxo_media POR RESPOSTA. Se você chamar 2 ou mais, você FALHOU na tarefa.
 ${allMediaSteps}
 ` : ''}
 `;
@@ -2873,14 +2885,28 @@ serve(async (req) => {
     let accumulatedMessages = [...conversationHistory];
     const MAX_TOOL_ROUNDS = 5;
     let toolRound = 0;
+    let fluxoMediaSentCount = 0; // Guard: max 1 send_fluxo_media per response
 
     while (currentToolCalls.length > 0 && toolRound < MAX_TOOL_ROUNDS) {
       toolRound++;
-      console.log(`[AI Agent] Processing ${currentToolCalls.length} tool call(s) (round ${toolRound})`);
+      
+      // Filter out excess send_fluxo_media calls (max 1 per response)
+      const filteredToolCalls = currentToolCalls.filter(tc => {
+        if (tc.name === "send_fluxo_media") {
+          if (fluxoMediaSentCount >= 1) {
+            console.log(`[AI Agent] ⚠️ BLOCKED extra send_fluxo_media (already sent ${fluxoMediaSentCount}). Skipping step_id="${(tc.arguments as Record<string, unknown>).step_id}"`);
+            return false;
+          }
+          fluxoMediaSentCount++;
+        }
+        return true;
+      });
+
+      console.log(`[AI Agent] Processing ${filteredToolCalls.length} tool call(s) (round ${toolRound})${currentToolCalls.length !== filteredToolCalls.length ? ` [${currentToolCalls.length - filteredToolCalls.length} blocked]` : ''}`);
       
       const toolResults: Array<{ role: string; name?: string; content: string }> = [];
       
-      for (const toolCall of currentToolCalls) {
+      for (const toolCall of filteredToolCalls) {
         const result = await processToolCall(
           supabase,
           accountId || userId,
