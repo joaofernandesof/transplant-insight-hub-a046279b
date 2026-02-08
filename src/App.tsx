@@ -585,7 +585,7 @@ function AvivarRoutes() {
               <Route path="agenda" element={<AvivarAgenda />} />
               <Route path="agenda/settings" element={<AvivarAgendaSettings />} />
               <Route path="integrations" element={<AvivarIntegrations />} />
-              <Route path="google-callback" element={<GoogleCalendarCallback />} />
+              {/* google-callback movido para rota pública no nível raiz */}
               <Route path="voip" element={<AvivarVoip />} />
               <Route path="config" element={<AvivarAgentsPage />} />
               <Route path="config/new" element={<AvivarSimpleWizard />} />
@@ -651,6 +651,9 @@ function AppRoutes() {
         
         {/* Landing Page Avivar CRM Capilar - Página de Vendas */}
         <Route path="/avivar-capilar" element={<LazyRoute><AvivarCapilarLanding /></LazyRoute>} />
+
+        {/* Google Calendar OAuth Callback - fora do ProtectedRoute para não perder sessão no redirect */}
+        <Route path="/avivar/google-callback" element={<LazyRoute><GoogleCalendarCallback /></LazyRoute>} />
 
       {/* ====================================
           Rotas Protegidas - Seleção de Perfil
