@@ -403,24 +403,24 @@ export function StepFluxoSimple({
   const renderStep = (step: FluxoStep, type: 'passosCronologicos' | 'passosExtras', displayOrder: number) => {
     const isExpanded = expandedSteps.has(step.id);
     const isEditing = editing?.stepId === step.id;
-
+    const isAnyEditing = editing !== null;
     return (
       <div 
         className="border border-[hsl(var(--avivar-border))] rounded-lg overflow-hidden bg-[hsl(var(--avivar-card))]"
       >
-        <Collapsible open={isExpanded} onOpenChange={() => { if (!isEditing) toggleStep(step.id); }}>
+        <Collapsible open={isExpanded} onOpenChange={() => { if (!isAnyEditing) toggleStep(step.id); }}>
           <div className="flex items-center">
             {/* Drag Handle - não é mais parte do sortable, só visual */}
             <div 
-              className={`flex items-center justify-center w-10 transition-colors py-4 ${isEditing ? 'opacity-30 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing hover:bg-[hsl(var(--avivar-muted)/0.5)]'}`}
-              title={isEditing ? "Finalize a edição antes de reordenar" : "Arraste para reordenar"}
+              className={`flex items-center justify-center w-10 transition-colors py-4 ${isAnyEditing ? 'opacity-30 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing hover:bg-[hsl(var(--avivar-muted)/0.5)]'}`}
+              title={isAnyEditing ? "Finalize a edição antes de reordenar" : "Arraste para reordenar"}
             >
               <GripVertical className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))]" />
             </div>
             
             <CollapsibleTrigger asChild>
               <div 
-                className={`flex-1 flex items-center justify-between p-4 transition-colors ${isEditing ? 'cursor-not-allowed' : 'hover:bg-[hsl(var(--avivar-muted)/0.5)] cursor-pointer'}`}
+                className={`flex-1 flex items-center justify-between p-4 transition-colors ${isAnyEditing ? 'cursor-not-allowed' : 'hover:bg-[hsl(var(--avivar-muted)/0.5)] cursor-pointer'}`}
                 role="button"
                 tabIndex={0}
               >
@@ -456,10 +456,10 @@ export function StepFluxoSimple({
                           {step.titulo}
                         </span>
                         <div
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-[hsl(var(--avivar-muted))] rounded cursor-pointer"
+                          className={`transition-opacity p-1 rounded ${isAnyEditing ? 'hidden' : 'opacity-0 group-hover:opacity-100 hover:bg-[hsl(var(--avivar-muted))] cursor-pointer'}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            startEditing(step.id, 'titulo', step.titulo);
+                            if (!isAnyEditing) startEditing(step.id, 'titulo', step.titulo);
                           }}
                         >
                           <Pencil className="h-3 w-3 text-[hsl(var(--avivar-muted-foreground))]" />
@@ -485,9 +485,9 @@ export function StepFluxoSimple({
             
             {/* Delete button */}
             <div
-              className={`flex items-center justify-center w-10 transition-colors py-4 ${isEditing ? 'opacity-30 cursor-not-allowed' : 'hover:bg-destructive/20 cursor-pointer'}`}
-              title={isEditing ? "Finalize a edição antes de excluir" : "Remover passo"}
-              onClick={() => { if (!isEditing) removeStep(step.id, type); }}
+              className={`flex items-center justify-center w-10 transition-colors py-4 ${isAnyEditing ? 'opacity-30 cursor-not-allowed' : 'hover:bg-destructive/20 cursor-pointer'}`}
+              title={isAnyEditing ? "Finalize a edição antes de excluir" : "Remover passo"}
+              onClick={() => { if (!isAnyEditing) removeStep(step.id, type); }}
             >
               <Trash2 className="h-4 w-4 text-destructive" />
             </div>
@@ -526,8 +526,9 @@ export function StepFluxoSimple({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity gap-1"
-                      onClick={() => startEditing(step.id, 'descricao', step.descricao)}
+                      className={`mt-1 transition-opacity gap-1 ${isAnyEditing ? 'hidden' : 'opacity-0 group-hover:opacity-100'}`}
+                      onClick={() => { if (!isAnyEditing) startEditing(step.id, 'descricao', step.descricao); }}
+                      disabled={isAnyEditing}
                     >
                       <Pencil className="h-3 w-3" /> Editar
                     </Button>
@@ -630,8 +631,9 @@ export function StepFluxoSimple({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity gap-1"
-                        onClick={() => startEditing(step.id, 'exemploMensagem', step.exemploMensagem || '')}
+                        className={`mt-1 transition-opacity gap-1 ${isAnyEditing ? 'hidden' : 'opacity-0 group-hover:opacity-100'}`}
+                        onClick={() => { if (!isAnyEditing) startEditing(step.id, 'exemploMensagem', step.exemploMensagem || ''); }}
+                        disabled={isAnyEditing}
                       >
                         <Pencil className="h-3 w-3" /> Editar
                       </Button>
@@ -647,7 +649,8 @@ export function StepFluxoSimple({
                     variant="outline"
                     size="sm"
                     className="gap-1"
-                    onClick={() => startEditing(step.id, 'exemploMensagem', '')}
+                    onClick={() => { if (!isAnyEditing) startEditing(step.id, 'exemploMensagem', ''); }}
+                    disabled={isAnyEditing}
                   >
                     <Lightbulb className="h-3 w-3" /> Adicionar exemplo
                   </Button>
@@ -707,6 +710,7 @@ export function StepFluxoSimple({
             size="sm"
             className="gap-1"
             onClick={() => addNewStep('passosCronologicos')}
+            disabled={editing !== null}
           >
             <Plus className="h-4 w-4" /> Adicionar Passo
           </Button>
@@ -761,6 +765,7 @@ export function StepFluxoSimple({
             size="sm"
             className="gap-1"
             onClick={() => addNewStep('passosExtras')}
+            disabled={editing !== null}
           >
             <Plus className="h-4 w-4" /> Adicionar Extra
           </Button>
