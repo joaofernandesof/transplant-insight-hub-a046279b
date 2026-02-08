@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Calendar, Pause, Lock, Settings2, Save, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Pause, Lock, Settings2, Save, Plus, Trash2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -89,6 +89,8 @@ export default function AvivarAgendaSettings() {
   });
   const [hours, setHours] = useState<DayHours[]>(DEFAULT_HOURS);
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
+  const [replicateFrom, setReplicateFrom] = useState<number | null>(null);
+  const [replicateTargets, setReplicateTargets] = useState<number[]>([]);
   const [newBlock, setNewBlock] = useState<Partial<ScheduleBlock>>({
     block_date: format(new Date(), 'yyyy-MM-dd'),
     start_time: null,
@@ -413,6 +415,30 @@ export default function AvivarAgendaSettings() {
     }));
   };
 
+  const handleReplicateHours = (sourceDayIndex: number) => {
+    if (replicateTargets.length === 0) return;
+    const sourceDay = hours[sourceDayIndex];
+    setHours(prev => prev.map((h, i) => {
+      if (!replicateTargets.includes(h.day_of_week)) return h;
+      return {
+        ...h,
+        is_enabled: true,
+        periods: sourceDay.periods.map(p => ({ start_time: p.start_time, end_time: p.end_time })),
+      };
+    }));
+    toast.success(`Horários replicados para ${replicateTargets.length} dia(s)!`);
+    setReplicateFrom(null);
+    setReplicateTargets([]);
+  };
+
+  const toggleReplicateTarget = (dayOfWeek: number) => {
+    setReplicateTargets(prev => 
+      prev.includes(dayOfWeek) 
+        ? prev.filter(d => d !== dayOfWeek) 
+        : [...prev, dayOfWeek]
+    );
+  };
+
   if (loadingConfig) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -542,14 +568,89 @@ export default function AvivarAgendaSettings() {
                             </Button>
                           )}
                           {periodIndex === dayHour.periods.length - 1 && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => addPeriod(index)}
-                              className="h-8 w-8 text-[hsl(var(--avivar-primary))] hover:text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => addPeriod(index)}
+                                className="h-8 w-8 text-[hsl(var(--avivar-primary))] hover:text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                              <Popover 
+                                open={replicateFrom === dayHour.day_of_week} 
+                                onOpenChange={(open) => {
+                                  if (open) {
+                                    setReplicateFrom(dayHour.day_of_week);
+                                    setReplicateTargets([]);
+                                  } else {
+                                    setReplicateFrom(null);
+                                    setReplicateTargets([]);
+                                  }
+                                }}
+                              >
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    title="Replicar horários para outros dias"
+                                    className="h-8 w-8 text-[hsl(var(--avivar-muted-foreground))] hover:text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+                                  >
+                                    <Copy className="h-4 w-4" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent 
+                                  className="w-64 bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]"
+                                  align="start"
+                                >
+                                  <div className="space-y-3">
+                                    <p className="text-sm font-medium text-[hsl(var(--avivar-foreground))]">
+                                      Replicar para quais dias?
+                                    </p>
+                                    <div className="space-y-2">
+                                      {DAY_NAMES.map((name, dayIdx) => {
+                                        if (dayIdx === dayHour.day_of_week) return null;
+                                        return (
+                                          <label
+                                            key={dayIdx}
+                                            className="flex items-center gap-2 text-sm cursor-pointer hover:bg-[hsl(var(--avivar-muted))] p-1.5 rounded"
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={replicateTargets.includes(dayIdx)}
+                                              onChange={() => toggleReplicateTarget(dayIdx)}
+                                              className="rounded border-[hsl(var(--avivar-border))] accent-[hsl(var(--avivar-primary))]"
+                                            />
+                                            <span className="text-[hsl(var(--avivar-foreground))]">{name}</span>
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
+                                    <div className="flex gap-2 pt-1">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="flex-1 text-xs"
+                                        onClick={() => {
+                                          const allOtherDays = DAY_NAMES.map((_, i) => i).filter(i => i !== dayHour.day_of_week);
+                                          setReplicateTargets(allOtherDays);
+                                        }}
+                                      >
+                                        Todos
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        className="flex-1 text-xs bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+                                        disabled={replicateTargets.length === 0}
+                                        onClick={() => handleReplicateHours(index)}
+                                      >
+                                        Replicar
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            </>
                           )}
                         </div>
                       ))}
