@@ -149,8 +149,39 @@ export default function FinancialOverviewDashboard() {
     }
   }, [period, customDateRange]);
 
+  // Mock data for demonstration
+  const mockInstallments: Installment[] = [
+    { id: '1', client_id: 'c1', amount: 5000, due_date: '2026-02-05', status: 'pending', paid_at: null, paid_amount: null },
+    { id: '2', client_id: 'c2', amount: 8500, due_date: '2026-02-10', status: 'pending', paid_at: null, paid_amount: null },
+    { id: '3', client_id: 'c3', amount: 3500, due_date: '2026-01-25', status: 'overdue', paid_at: null, paid_amount: null },
+    { id: '4', client_id: 'c1', amount: 2500, due_date: '2026-01-20', status: 'paid', paid_at: '2026-01-20', paid_amount: 2500 },
+    { id: '5', client_id: 'c2', amount: 4500, due_date: '2026-01-15', status: 'paid', paid_at: '2026-01-15', paid_amount: 4500 },
+    { id: '6', client_id: 'c4', amount: 6000, due_date: '2026-02-15', status: 'pending', paid_at: null, paid_amount: null },
+    { id: '7', client_id: 'c3', amount: 2000, due_date: '2026-01-18', status: 'overdue', paid_at: null, paid_amount: null },
+    { id: '8', client_id: 'c5', amount: 15000, due_date: '2026-03-01', status: 'pending', paid_at: null, paid_amount: null },
+    { id: '9', client_id: 'c1', amount: 3200, due_date: '2026-01-28', status: 'paid', paid_at: '2026-01-28', paid_amount: 3200 },
+    { id: '10', client_id: 'c4', amount: 7500, due_date: '2026-01-22', status: 'paid', paid_at: '2026-01-22', paid_amount: 7500 },
+  ];
+
+  const mockPaymentHistory: PaymentHistory[] = [
+    { id: 'p1', amount: 2500, payment_date: '2026-01-20T14:30:00', payment_method: 'pix', client_id: 'c1' },
+    { id: 'p2', amount: 4500, payment_date: '2026-01-15T10:15:00', payment_method: 'transferencia', client_id: 'c2' },
+    { id: 'p3', amount: 3200, payment_date: '2026-01-28T16:45:00', payment_method: 'pix', client_id: 'c1' },
+    { id: 'p4', amount: 7500, payment_date: '2026-01-22T09:00:00', payment_method: 'boleto', client_id: 'c4' },
+    { id: 'p5', amount: 5000, payment_date: '2026-01-10T11:30:00', payment_method: 'pix', client_id: 'c5' },
+    { id: 'p6', amount: 8500, payment_date: '2026-01-05T15:00:00', payment_method: 'cartao_credito', client_id: 'c2' },
+  ];
+
+  const mockClients: Client[] = [
+    { id: 'c1', name: 'Dr. João Silva' },
+    { id: 'c2', name: 'Hospital XYZ' },
+    { id: 'c3', name: 'Clínica ABC' },
+    { id: 'c4', name: 'Dra. Maria Santos' },
+    { id: 'c5', name: 'Dr. Carlos Oliveira' },
+  ];
+
   // Fetch installments
-  const { data: installments = [], isLoading: loadingInstallments } = useQuery({
+  const { data: dbInstallments = [], isLoading: loadingInstallments } = useQuery({
     queryKey: ['financial-installments-overview'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -169,8 +200,11 @@ export default function FinancialOverviewDashboard() {
     },
   });
 
+  // Use mock data if no real data exists
+  const installments = dbInstallments.length > 0 ? dbInstallments : mockInstallments;
+
   // Fetch payment history
-  const { data: paymentHistory = [], isLoading: loadingPayments } = useQuery({
+  const { data: dbPaymentHistory = [], isLoading: loadingPayments } = useQuery({
     queryKey: ['financial-payments-overview'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -184,8 +218,11 @@ export default function FinancialOverviewDashboard() {
     },
   });
 
+  // Use mock data if no real data exists
+  const paymentHistory = dbPaymentHistory.length > 0 ? dbPaymentHistory : mockPaymentHistory;
+
   // Fetch clients for names
-  const { data: clients = [] } = useQuery({
+  const { data: dbClients = [] } = useQuery({
     queryKey: ['financial-clients-overview'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -196,6 +233,9 @@ export default function FinancialOverviewDashboard() {
       return data as Client[];
     },
   });
+
+  // Use mock data if no real data exists
+  const clients = dbClients.length > 0 ? dbClients : mockClients;
 
   const clientMap = useMemo(() => {
     return new Map(clients.map(c => [c.id, c.name]));
