@@ -67,8 +67,14 @@ export function useAvivarScheduleConfig(agendaId: string | null) {
       if (error) throw error;
       
       // Group by day_of_week to support multiple periods per day
+      // Track is_enabled from DB rows (not just presence of periods)
       const grouped: Record<number, TimePeriod[]> = {};
+      const disabledDays = new Set<number>();
       for (const row of data) {
+        if (row.is_enabled === false) {
+          disabledDays.add(row.day_of_week);
+          continue; // Skip disabled rows — don't add their periods
+        }
         if (!grouped[row.day_of_week]) {
           grouped[row.day_of_week] = [];
         }
@@ -82,10 +88,11 @@ export function useAvivarScheduleConfig(agendaId: string | null) {
       const daySchedules: DaySchedule[] = [];
       for (let i = 0; i <= 6; i++) {
         const periods = grouped[i];
+        const isDisabled = disabledDays.has(i);
         daySchedules.push({
           day_of_week: i,
-          is_enabled: periods && periods.length > 0,
-          periods: periods || [],
+          is_enabled: !isDisabled && !!periods && periods.length > 0,
+          periods: isDisabled ? [] : (periods || []),
         });
       }
       
