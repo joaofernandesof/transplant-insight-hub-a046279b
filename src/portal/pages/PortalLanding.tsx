@@ -182,8 +182,8 @@ export default function PortalLanding() {
               © {new Date().getFullYear()} Neo Folic. Todos os direitos reservados.
             </p>
             <div className="flex gap-4 text-sm text-muted-foreground">
-              <Link to="/portal/privacy" className="hover:text-foreground">Privacidade</Link>
-              <Link to="/portal/terms" className="hover:text-foreground">Termos</Link>
+              <Link to="/privacy-policy" className="hover:text-foreground">Política de Privacidade</Link>
+              <Link to="/terms" className="hover:text-foreground">Termos de Serviço</Link>
             </div>
           </div>
         </div>
