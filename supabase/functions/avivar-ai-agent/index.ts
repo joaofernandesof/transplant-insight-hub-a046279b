@@ -2421,6 +2421,15 @@ Os exemplos fornecidos são REFERÊNCIAS, não textos fixos. Você deve:
 - Adaptar levemente ao tom da conversa mantendo a essência
 - NÃO copiar literalmente - humanize com variações sutis
 
+**REGRA CRÍTICA DE SEPARAÇÃO DE MENSAGENS:**
+Quando o exemplo de mensagem contiver o marcador "---", isso indica que a IA DEVE enviar como MENSAGENS SEPARADAS no WhatsApp.
+- O texto ANTES do "---" deve ser uma mensagem
+- O texto DEPOIS do "---" deve ser OUTRA mensagem separada
+- Use exatamente uma linha vazia dupla (dois \\n\\n) no seu texto para separar as partes que devem ser enviadas como mensagens diferentes
+- Exemplo: se o template diz "Olá! Eu sou a Ana.---Qual seu nome?", você deve responder com duas mensagens separadas por \\n\\n
+- Cada "---" no template = um ponto de quebra obrigatório na sua resposta (use \\n\\n para separar)
+- NUNCA junte em uma única mensagem o que o template separou com "---"
+
 ${allMediaSteps ? `## ⚠️ REGRA OBRIGATÓRIA DE MÍDIA
 Para CADA passo abaixo, você DEVE incluir a tool call send_fluxo_media na sua resposta.
 A mídia é enviada SILENCIOSAMENTE — NUNCA escreva "Vídeo do fluxo", "Áudio do fluxo", nome do arquivo ou qualquer referência à mídia no texto.
@@ -2585,13 +2594,21 @@ async function callAIWithTools(
  * This creates a more natural WhatsApp conversation flow
  */
 function splitMessageIntoParts(content: string): string[] {
-  // Split by double line breaks (paragraph breaks)
-  const parts = content
+  // First try splitting by double line breaks (paragraph breaks - AI should use this)
+  let parts = content
     .split(/\n\n+/)
     .map(part => part.trim())
     .filter(part => part.length > 0);
   
-  // If no splits found, return original content
+  // If only 1 part found, also try splitting by "---" separator (user-defined splits)
+  if (parts.length <= 1) {
+    parts = content
+      .split(/---+/)
+      .map(part => part.trim())
+      .filter(part => part.length > 0);
+  }
+  
+  // If still no splits found, return original content
   if (parts.length === 0) {
     return [content.trim()];
   }
