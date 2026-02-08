@@ -305,12 +305,12 @@ export function StepFluxoSimple({
     setEditValue('');
   };
 
-  // Handle media change for a step
-  const handleMediaChange = (stepId: string, type: 'passosCronologicos' | 'passosExtras', media: FluxoStepMedia | undefined) => {
+  // Handle media change for a step (supports variations)
+  const handleMediaChange = (stepId: string, type: 'passosCronologicos' | 'passosExtras', media: FluxoStepMedia | undefined, mediaVariations?: FluxoStepMedia[]) => {
     const steps = [...fluxoAtendimento[type]];
     const stepIndex = steps.findIndex(s => s.id === stepId);
     if (stepIndex !== -1) {
-      steps[stepIndex] = { ...steps[stepIndex], media };
+      steps[stepIndex] = { ...steps[stepIndex], media, mediaVariations };
       onChange({ ...fluxoAtendimento, [type]: steps });
     }
   };
@@ -585,7 +585,8 @@ export function StepFluxoSimple({
                         </Button>
                         <FluxoStepMediaPicker 
                           media={step.media}
-                          onChange={(media) => handleMediaChange(step.id, type, media)}
+                          mediaVariations={step.mediaVariations}
+                          onChange={(media, variations) => handleMediaChange(step.id, type, media, variations)}
                         />
                       </div>
                       {editValue.includes('---') && (
@@ -622,10 +623,11 @@ export function StepFluxoSimple({
                           "{formatExampleMessage(step.exemploMensagem)}"
                         </p>
                       )}
-                      {step.media && (
+                      {(step.media || (step.mediaVariations && step.mediaVariations.length > 0)) && (
                         <FluxoStepMediaPicker 
                           media={step.media}
-                          onChange={(media) => handleMediaChange(step.id, type, media)}
+                          mediaVariations={step.mediaVariations}
+                          onChange={(media, variations) => handleMediaChange(step.id, type, media, variations)}
                         />
                       )}
                       <Button
@@ -654,17 +656,11 @@ export function StepFluxoSimple({
                   >
                     <Lightbulb className="h-3 w-3" /> Adicionar exemplo
                   </Button>
-                  {step.media ? (
-                    <FluxoStepMediaPicker 
-                      media={step.media}
-                      onChange={(media) => handleMediaChange(step.id, type, media)}
-                    />
-                  ) : (
-                    <FluxoStepMediaPicker 
-                      media={undefined}
-                      onChange={(media) => handleMediaChange(step.id, type, media)}
-                    />
-                  )}
+                  <FluxoStepMediaPicker 
+                    media={step.media}
+                    mediaVariations={step.mediaVariations}
+                    onChange={(media, variations) => handleMediaChange(step.id, type, media, variations)}
+                  />
                 </div>
               )}
             </div>

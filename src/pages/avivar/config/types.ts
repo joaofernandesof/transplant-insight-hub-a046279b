@@ -103,7 +103,8 @@ export interface FluxoStep {
   titulo: string;
   descricao: string;
   exemploMensagem?: string; // Exemplo opcional de mensagem para referência de tom
-  media?: FluxoStepMedia; // Mídia opcional para este passo
+  media?: FluxoStepMedia; // Mídia única (legado, compatibilidade)
+  mediaVariations?: FluxoStepMedia[]; // Múltiplas mídias para rotação anti-spam (max 5)
 }
 
 export interface FluxoAtendimento {
