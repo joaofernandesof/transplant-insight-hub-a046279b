@@ -145,6 +145,7 @@ export default function AvivarSimpleWizard() {
         toast.error('Erro ao carregar agente');
       } finally {
         setLoading(false);
+        setCurrentStep(SIMPLE_STEPS.length - 1); // Abrir direto na revisão
       }
     }
 
