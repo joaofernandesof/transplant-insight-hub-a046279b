@@ -177,10 +177,16 @@ async function createEvent(
     location,
     start: { dateTime: startDateTime, timeZone: "America/Sao_Paulo" },
     end: { dateTime: endDateTime, timeZone: "America/Sao_Paulo" },
+    conferenceData: {
+      createRequest: {
+        requestId: crypto.randomUUID(),
+        conferenceSolutionKey: { type: "hangoutsMeet" },
+      },
+    },
   };
 
   const response = await fetch(
-    `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events`,
+    `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?conferenceDataVersion=1`,
     {
       method: "POST",
       headers: {
