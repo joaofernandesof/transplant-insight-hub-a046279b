@@ -2427,7 +2427,14 @@ Os exemplos fornecidos são REFERÊNCIAS DE INTENÇÃO, NUNCA textos para copiar
 ❌ PROIBIDO: Copiar o exemplo palavra por palavra
 ❌ PROIBIDO: Usar a mesma frase de abertura em todas as conversas
 ✅ OBRIGATÓRIO: Cada conversa deve ter uma versão única e natural da mensagem
-✅ OBRIGATÓRIO: Manter o mesmo sentido, contexto e dados factuais (nomes, procedimentos)
+✅ OBRIGATÓRIO: Manter INTACTOS todos os dados factuais — NUNCA altere, invente ou substitua:
+   • Nomes (empresa, médico, atendente, paciente)
+   • Endereços, cidades, estados
+   • Datas, horários, duração de consulta
+   • Preços, valores, formas de pagamento
+   • CRM, Instagram, telefones, links
+   • Nomes de procedimentos e serviços
+   → Apenas VARIE as palavras ao redor desses dados, nunca os dados em si
 
 **REGRA CRÍTICA DE SEPARAÇÃO DE MENSAGENS:**
 Quando o exemplo de mensagem contiver o marcador "---", isso indica que a IA DEVE enviar como MENSAGENS SEPARADAS no WhatsApp.
