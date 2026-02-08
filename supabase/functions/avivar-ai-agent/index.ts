@@ -2867,15 +2867,20 @@ serve(async (req) => {
       throw aiError;
     }
 
-    // 7. Process tool calls if any
+    // 7. Process tool calls in a loop (supports sequential tool calls like list_agendas → get_available_slots)
     let finalResponse = aiResult.content || "";
+    let currentToolCalls = aiResult.toolCalls;
+    let accumulatedMessages = [...conversationHistory];
+    const MAX_TOOL_ROUNDS = 5;
+    let toolRound = 0;
 
-    if (aiResult.toolCalls.length > 0) {
-      console.log(`[AI Agent] Processing ${aiResult.toolCalls.length} tool call(s)`);
+    while (currentToolCalls.length > 0 && toolRound < MAX_TOOL_ROUNDS) {
+      toolRound++;
+      console.log(`[AI Agent] Processing ${currentToolCalls.length} tool call(s) (round ${toolRound})`);
       
       const toolResults: Array<{ role: string; name?: string; content: string }> = [];
       
-      for (const toolCall of aiResult.toolCalls) {
+      for (const toolCall of currentToolCalls) {
         const result = await processToolCall(
           supabase,
           accountId || userId,
@@ -2897,13 +2902,14 @@ serve(async (req) => {
         });
       }
 
-      // Call AI again with tool results
+      // Build messages for the follow-up call
       const followUpMessages = [
-        ...conversationHistory,
-        { role: "assistant", content: aiResult.content || "" },
+        ...accumulatedMessages,
+        { role: "assistant", content: finalResponse || "" },
         ...toolResults.map(tr => ({ role: "tool" as const, content: `[${tr.name}]: ${tr.content}` }))
       ];
 
+      // Call AI again WITH tools so it can make further tool calls if needed
       const followUpResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -2916,6 +2922,8 @@ serve(async (req) => {
             { role: "system", content: systemPrompt },
             ...followUpMessages.map(m => ({ role: m.role === "tool" ? "user" : m.role, content: m.content }))
           ],
+          tools,
+          tool_choice: "auto",
           max_tokens: 500,
           temperature: 0.7,
         }),
@@ -2923,8 +2931,27 @@ serve(async (req) => {
 
       if (followUpResponse.ok) {
         const followUpData = await followUpResponse.json();
-        finalResponse = followUpData.choices?.[0]?.message?.content || finalResponse;
+        const followUpChoice = followUpData.choices?.[0];
+        finalResponse = followUpChoice?.message?.content || finalResponse;
+
+        // Check if AI wants to make more tool calls
+        const newToolCalls = followUpChoice?.message?.tool_calls?.map((tc: { function: { name: string; arguments: string } }) => {
+          try {
+            return { name: tc.function.name, arguments: JSON.parse(tc.function.arguments) };
+          } catch { return null; }
+        }).filter(Boolean) || [];
+
+        // Update accumulated messages for the next round
+        accumulatedMessages = followUpMessages;
+        currentToolCalls = newToolCalls;
+      } else {
+        console.error(`[AI Agent] Follow-up AI call failed: ${followUpResponse.status}`);
+        currentToolCalls = []; // Stop loop
       }
+    }
+
+    if (toolRound >= MAX_TOOL_ROUNDS) {
+      console.warn(`[AI Agent] Reached max tool rounds (${MAX_TOOL_ROUNDS})`);
     }
 
     if (!finalResponse) {
