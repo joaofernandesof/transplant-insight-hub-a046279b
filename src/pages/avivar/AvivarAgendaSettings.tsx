@@ -257,25 +257,29 @@ export default function AvivarAgendaSettings() {
   const saveConfigMutation = useMutation({
     mutationFn: async () => {
       if (!user?.authUserId) throw new Error('Usuário não autenticado');
+      if (!accountId) throw new Error('Conta não encontrada. Faça login novamente.');
 
       // Prevent creating ghost config without agenda when agendas exist
       if (!selectedAgenda && agendas && agendas.length > 0) {
         throw new Error('Selecione uma agenda antes de salvar');
       }
 
-      // Upsert config - usar authUserId para compatibilidade com RLS
+      const agendaId = selectedAgenda?.id || null;
+
+      // Use upsert to handle both new and existing configs safely
       const configData = {
         user_id: user.authUserId,
-        account_id: accountId!,
+        account_id: accountId,
         professional_name: config.professional_name || 'Profissional',
         consultation_duration: config.consultation_duration,
         buffer_between: config.buffer_between,
         min_advance_hours: config.min_advance_hours,
         advance_booking_days: config.advance_booking_days,
         timezone: config.timezone,
-        agenda_id: selectedAgenda?.id || null,
+        agenda_id: agendaId,
       };
 
+      // If we have an existing id, update by id for safety
       let configId = config.id;
 
       if (configId) {
@@ -285,13 +289,38 @@ export default function AvivarAgendaSettings() {
           .eq('id', configId);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase
+        // Check if config already exists for this account+agenda (race condition / stale state)
+        let query = supabase
           .from('avivar_schedule_config')
-          .insert(configData)
-          .select()
-          .single();
-        if (error) throw error;
-        configId = data.id;
+          .select('id')
+          .eq('account_id', accountId);
+
+        if (agendaId) {
+          query = query.eq('agenda_id', agendaId);
+        } else {
+          query = query.is('agenda_id', null);
+        }
+
+        const { data: existing } = await query.maybeSingle();
+
+        if (existing) {
+          // Config already exists, update it
+          configId = existing.id;
+          const { error } = await supabase
+            .from('avivar_schedule_config')
+            .update(configData)
+            .eq('id', configId);
+          if (error) throw error;
+        } else {
+          // Truly new config, insert
+          const { data, error } = await supabase
+            .from('avivar_schedule_config')
+            .insert(configData)
+            .select()
+            .single();
+          if (error) throw error;
+          configId = data.id;
+        }
       }
 
       // Delete existing hours and insert new (flattened for multiple periods)
