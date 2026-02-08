@@ -1,6 +1,6 @@
 /**
- * Etapa 5 Simplificada: Revisão e Finalização
- * Mostra resumo e permite ajustes rápidos
+ * Etapa Final Simplificada: Revisão e Finalização
+ * Mostra resumo completo e permite ajustes rápidos
  */
 
 import React, { useState } from 'react';
@@ -22,9 +22,12 @@ import {
   ChevronUp,
   Sparkles,
   Settings2,
-  Loader2
+  Loader2,
+  CreditCard,
+  Target,
+  Route,
+  HelpCircle,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { AgentConfig, DAY_NAMES, WeekSchedule } from '../../../types';
 
 interface StepReviewSimpleProps {
@@ -69,9 +72,35 @@ export function StepReviewSimple({
     return days.join(', ');
   };
 
+  const fluxoStepsCount = (config.fluxoAtendimento?.passosCronologicos?.length || 0) + (config.fluxoAtendimento?.passosExtras?.length || 0);
+
   const handleComplete = () => {
     onComplete(agentName);
   };
+
+  // Step indices matching SIMPLE_STEPS:
+  // 0: Tipo de Negócio, 1: Sua Empresa, 2: Serviços, 3: Pagamentos,
+  // 4: Objetivos, 5: Fluxo, 6: FAQ, 7: Documentos, 8: Imagens
+
+  const ReviewRow = ({ icon: Icon, children, stepIndex }: { icon: React.ElementType; children: React.ReactNode; stepIndex: number }) => (
+    <>
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3">
+          <Icon className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
+          <div>{children}</div>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => onEdit(stepIndex)}
+          className="text-[hsl(var(--avivar-primary))]"
+        >
+          Editar
+        </Button>
+      </div>
+      <div className="border-t border-[hsl(var(--avivar-border))]" />
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -108,196 +137,113 @@ export function StepReviewSimple({
         {/* Resumo */}
         <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
           <CardContent className="p-4 space-y-4">
-            {/* Empresa */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <Building2 className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                    {config.companyName || 'Empresa não definida'}
-                  </p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    {config.city && config.state ? `${config.city}/${config.state}` : 'Localização não definida'}
-                  </p>
-                </div>
+            {/* Empresa - step 1 */}
+            <ReviewRow icon={Building2} stepIndex={1}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                {config.companyName || 'Empresa não definida'}
+              </p>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                {config.city && config.state ? `${config.city}/${config.state}` : 'Localização não definida'}
+              </p>
+            </ReviewRow>
+
+            {/* Profissional - step 1 */}
+            <ReviewRow icon={User} stepIndex={1}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                {config.professionalName || 'Profissional não definido'}
+              </p>
+              {config.crm && (
+                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">{config.crm}</p>
+              )}
+            </ReviewRow>
+
+            {/* Atendente Virtual - step 1 */}
+            <ReviewRow icon={Bot} stepIndex={1}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                Atendente: <span className="text-[hsl(var(--avivar-primary))]">{config.attendantName || 'Não definido'}</span>
+              </p>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                Tom de voz: {config.toneOfVoice === 'formal' ? 'Formal' : config.toneOfVoice === 'casual' ? 'Descontraído' : 'Cordial'}
+              </p>
+            </ReviewRow>
+
+            {/* Serviços - step 2 */}
+            <ReviewRow icon={Package} stepIndex={2}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                {enabledServices.length} serviço{enabledServices.length !== 1 ? 's' : ''} ativo{enabledServices.length !== 1 ? 's' : ''}
+              </p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {enabledServices.slice(0, 3).map(s => (
+                  <Badge key={s.id} variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]">
+                    {s.name}
+                  </Badge>
+                ))}
+                {enabledServices.length > 3 && (
+                  <Badge variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]">
+                    +{enabledServices.length - 3}
+                  </Badge>
+                )}
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onEdit(1)}
-                className="text-[hsl(var(--avivar-primary))]"
-              >
-                Editar
-              </Button>
-            </div>
+            </ReviewRow>
 
-            <div className="border-t border-[hsl(var(--avivar-border))]" />
-
-            {/* Profissional */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <User className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                    {config.professionalName || 'Profissional não definido'}
-                  </p>
-                  {config.crm && (
-                    <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                      {config.crm}
-                    </p>
-                  )}
-                </div>
+            {/* Pagamentos - step 3 */}
+            <ReviewRow icon={CreditCard} stepIndex={3}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                {enabledPayments.length} forma{enabledPayments.length !== 1 ? 's' : ''} de pagamento
+              </p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {enabledPayments.slice(0, 4).map(p => (
+                  <Badge key={p.id} variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]">
+                    {p.name}
+                  </Badge>
+                ))}
+                {enabledPayments.length > 4 && (
+                  <Badge variant="secondary" className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]">
+                    +{enabledPayments.length - 4}
+                  </Badge>
+                )}
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onEdit(1)}
-                className="text-[hsl(var(--avivar-primary))]"
-              >
-                Editar
-              </Button>
-            </div>
+            </ReviewRow>
 
-            <div className="border-t border-[hsl(var(--avivar-border))]" />
+            {/* Objetivos - step 4 */}
+            <ReviewRow icon={Target} stepIndex={4}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                Objetivo do Agente
+              </p>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                {config.aiObjective || 'Objetivo não definido'}
+              </p>
+            </ReviewRow>
 
-            {/* Atendente Virtual */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <Bot className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                    Atendente: <span className="text-[hsl(var(--avivar-primary))]">{config.attendantName || 'Não definido'}</span>
-                  </p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    Tom de voz: {config.toneOfVoice === 'formal' ? 'Formal' : config.toneOfVoice === 'casual' ? 'Descontraído' : 'Cordial'}
-                  </p>
-                </div>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onEdit(1)}
-                className="text-[hsl(var(--avivar-primary))]"
-              >
-                Editar
-              </Button>
-            </div>
+            {/* Fluxo - step 5 */}
+            <ReviewRow icon={Route} stepIndex={5}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                Fluxo de Atendimento
+              </p>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                {fluxoStepsCount} passo{fluxoStepsCount !== 1 ? 's' : ''} configurado{fluxoStepsCount !== 1 ? 's' : ''}
+              </p>
+            </ReviewRow>
 
-            <div className="border-t border-[hsl(var(--avivar-border))]" />
+            {/* Documentos - step 7 */}
+            <ReviewRow icon={FileText} stepIndex={7}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                Base de Conhecimento
+              </p>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                {config.knowledgeFiles?.length || 0} documento(s) adicionado(s)
+              </p>
+            </ReviewRow>
 
-            {/* Serviços */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <Package className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                    {enabledServices.length} serviço{enabledServices.length !== 1 ? 's' : ''} ativo{enabledServices.length !== 1 ? 's' : ''}
-                  </p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {enabledServices.slice(0, 3).map(s => (
-                      <Badge 
-                        key={s.id} 
-                        variant="secondary"
-                        className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]"
-                      >
-                        {s.name}
-                      </Badge>
-                    ))}
-                    {enabledServices.length > 3 && (
-                      <Badge 
-                        variant="secondary"
-                        className="text-xs bg-[hsl(var(--avivar-muted))] text-[hsl(var(--avivar-foreground))]"
-                      >
-                        +{enabledServices.length - 3}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onEdit(2)}
-                className="text-[hsl(var(--avivar-primary))]"
-              >
-                Editar
-              </Button>
-            </div>
-
-            <div className="border-t border-[hsl(var(--avivar-border))]" />
-
-            {/* Horários */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                    Horários de Atendimento
-                  </p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    {getEnabledDays(config.schedule)}
-                  </p>
-                </div>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onEdit(3)}
-                className="text-[hsl(var(--avivar-primary))]"
-              >
-                Editar
-              </Button>
-            </div>
-
-            <div className="border-t border-[hsl(var(--avivar-border))]" />
-
-            {/* Documentos */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <FileText className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                    Base de Conhecimento
-                  </p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    {config.knowledgeFiles?.length || 0} documento(s) adicionado(s)
-                  </p>
-                </div>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onEdit(6)}
-                className="text-[hsl(var(--avivar-primary))]"
-              >
-                Editar
-              </Button>
-            </div>
-
-            <div className="border-t border-[hsl(var(--avivar-border))]" />
-
-            {/* Imagens */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <ImageIcon className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
-                <div>
-                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">
-                    Galeria de Imagens
-                  </p>
-                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                    {imagesCount} imagem(ns) adicionada(s)
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit(7)}
-                className="text-[hsl(var(--avivar-primary))]"
-              >
-                Editar
-              </Button>
-            </div>
+            {/* Imagens - step 8 */}
+            <ReviewRow icon={ImageIcon} stepIndex={8}>
+              <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                Galeria de Imagens
+              </p>
+              <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                {imagesCount} imagem(ns) adicionada(s)
+              </p>
+            </ReviewRow>
           </CardContent>
         </Card>
 
@@ -322,11 +268,21 @@ export function StepReviewSimple({
 
             {showAdvanced && (
               <div className="mt-4 space-y-3 pt-3 border-t border-[hsl(var(--avivar-border))]">
-                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
-                  A personalidade, instruções e fluxo de atendimento foram configurados automaticamente 
-                  com base no seu tipo de negócio. Você pode ajustá-los depois na página de gerenciamento do agente.
-                </p>
-                
+                {/* Horários */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-[hsl(var(--avivar-primary))] mt-0.5" />
+                    <div>
+                      <p className="font-medium text-[hsl(var(--avivar-foreground))]">
+                        Horários de Atendimento
+                      </p>
+                      <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                        {getEnabledDays(config.schedule)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline" className="border-[hsl(var(--avivar-border))]">
                     ✓ Personalidade configurada
@@ -352,18 +308,18 @@ export function StepReviewSimple({
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Criando agente...
+              Salvando agente...
             </>
           ) : (
             <>
               <Check className="h-5 w-5 mr-2" />
-              Criar Meu Agente de IA
+              Salvar Agente
             </>
           )}
         </Button>
 
         <p className="text-center text-xs text-[hsl(var(--avivar-muted-foreground))]">
-          Você poderá editar todas as configurações depois, incluindo base de conhecimento e imagens.
+          Você poderá editar todas as configurações depois.
         </p>
       </div>
     </div>
