@@ -206,9 +206,9 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const action = url.searchParams.get("action") || (await req.json().catch(() => ({}))).action;
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+    const url = new URL(req.url);
+    const action = url.searchParams.get("action") || body.action;
     
     const supabaseAdmin = getSupabaseAdmin();
 
