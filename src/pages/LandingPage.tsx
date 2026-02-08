@@ -151,8 +151,8 @@ export default function LandingPage() {
             <span>© {new Date().getFullYear()} NeoHub by NeoFolic. Todos os direitos reservados.</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/privacy" className="hover:text-slate-300 transition-colors">Privacidade</Link>
-            <Link to="/terms" className="hover:text-slate-300 transition-colors">Termos</Link>
+            <a href="https://neohub.ibramec.com/privacy-policy" className="hover:text-slate-300 transition-colors">Política de Privacidade</a>
+            <a href="https://neohub.ibramec.com/terms" className="hover:text-slate-300 transition-colors">Termos de Serviço</a>
           </div>
         </div>
       </footer>

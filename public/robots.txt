@@ -4,13 +4,17 @@
 User-agent: *
 Disallow: /
 
-# Permitir acesso à landing page para SEO mínimo
+# Permitir acesso à landing page e páginas legais para SEO
 User-agent: Googlebot
 Allow: /$
+Allow: /privacy-policy
+Allow: /terms
 Disallow: /
 
 User-agent: Bingbot
 Allow: /$
+Allow: /privacy-policy
+Allow: /terms
 Disallow: /
 
 # Bloquear todas as outras áreas
