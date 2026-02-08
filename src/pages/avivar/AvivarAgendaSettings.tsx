@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, addDays as addDaysDateFns, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,6 +61,19 @@ interface ScheduleBlock {
 
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
+// Helper to generate array of date strings between start and end (inclusive)
+function getDateRange(startDate: string, endDate: string): string[] {
+  const start = new Date(startDate + 'T12:00:00');
+  const end = new Date(endDate + 'T12:00:00');
+  const days = differenceInDays(end, start);
+  if (days < 0) return [startDate];
+  const dates: string[] = [];
+  for (let i = 0; i <= days; i++) {
+    dates.push(format(addDaysDateFns(start, i), 'yyyy-MM-dd'));
+  }
+  return dates;
+}
+
 const DEFAULT_HOURS: DayHours[] = [
   { day_of_week: 0, is_enabled: false, periods: [{ start_time: '08:00', end_time: '18:00' }] },
   { day_of_week: 1, is_enabled: true, periods: [{ start_time: '08:00', end_time: '12:00' }, { start_time: '14:00', end_time: '18:00' }] },
@@ -91,13 +104,15 @@ export default function AvivarAgendaSettings() {
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
   const [replicateFrom, setReplicateFrom] = useState<number | null>(null);
   const [replicateTargets, setReplicateTargets] = useState<number[]>([]);
-  const [newBlock, setNewBlock] = useState<Partial<ScheduleBlock>>({
+  const [newBlock, setNewBlock] = useState<Partial<ScheduleBlock> & { end_block_date?: string }>({
     block_date: format(new Date(), 'yyyy-MM-dd'),
+    end_block_date: format(new Date(), 'yyyy-MM-dd'),
     start_time: null,
     end_time: null,
     reason: '',
   });
   const [blockDateOpen, setBlockDateOpen] = useState(false);
+  const [blockEndDateOpen, setBlockEndDateOpen] = useState(false);
 
   // Fetch existing config - usar authUserId para compatibilidade com RLS
   const { data: existingConfig, isLoading: loadingConfig } = useQuery({
@@ -312,36 +327,40 @@ export default function AvivarAgendaSettings() {
     },
   });
 
-  // Add block mutation
+  // Add block mutation (supports date ranges)
   const addBlockMutation = useMutation({
-    mutationFn: async (block: Partial<ScheduleBlock>) => {
+    mutationFn: async (block: Partial<ScheduleBlock> & { end_block_date?: string }) => {
       if (!existingConfig?.id) {
-        // Need to save config first
         const configId = await saveConfigMutation.mutateAsync();
-        block = { ...block };
         
+        const dates = getDateRange(block.block_date!, block.end_block_date || block.block_date!);
+        const inserts = dates.map(d => ({
+          schedule_config_id: configId,
+          account_id: accountId!,
+          block_date: d,
+          start_time: block.start_time || null,
+          end_time: block.end_time || null,
+          reason: block.reason || null,
+        }));
+
         const { error } = await supabase
           .from('avivar_schedule_blocks')
-          .insert({
-            schedule_config_id: configId,
-            account_id: accountId!,
-            block_date: block.block_date!,
-            start_time: block.start_time || null,
-            end_time: block.end_time || null,
-            reason: block.reason || null,
-          });
+          .insert(inserts);
         if (error) throw error;
       } else {
+        const dates = getDateRange(block.block_date!, block.end_block_date || block.block_date!);
+        const inserts = dates.map(d => ({
+          schedule_config_id: existingConfig.id,
+          account_id: accountId!,
+          block_date: d,
+          start_time: block.start_time || null,
+          end_time: block.end_time || null,
+          reason: block.reason || null,
+        }));
+
         const { error } = await supabase
           .from('avivar_schedule_blocks')
-          .insert({
-            schedule_config_id: existingConfig.id,
-            account_id: accountId!,
-            block_date: block.block_date!,
-            start_time: block.start_time || null,
-            end_time: block.end_time || null,
-            reason: block.reason || null,
-          });
+          .insert(inserts);
         if (error) throw error;
       }
     },
@@ -350,6 +369,7 @@ export default function AvivarAgendaSettings() {
       queryClient.invalidateQueries({ queryKey: ['avivar-schedule-blocks'] });
       setNewBlock({
         block_date: format(new Date(), 'yyyy-MM-dd'),
+        end_block_date: format(new Date(), 'yyyy-MM-dd'),
         start_time: null,
         end_time: null,
         reason: '',
@@ -825,39 +845,85 @@ export default function AvivarAgendaSettings() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Data</Label>
-                  <Popover open={blockDateOpen} onOpenChange={setBlockDateOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))]",
-                          !newBlock.block_date && "text-muted-foreground"
-                        )}
-                      >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {newBlock.block_date
-                          ? format(new Date(newBlock.block_date + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                          : "Selecione uma data"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarPicker
-                        mode="single"
-                        selected={newBlock.block_date ? new Date(newBlock.block_date + 'T12:00:00') : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            setNewBlock(prev => ({ ...prev, block_date: format(date, 'yyyy-MM-dd') }));
-                            setBlockDateOpen(false);
-                          }
-                        }}
-                        locale={ptBR}
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Data Início</Label>
+                    <Popover open={blockDateOpen} onOpenChange={setBlockDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))]",
+                            !newBlock.block_date && "text-muted-foreground"
+                          )}
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {newBlock.block_date
+                            ? format(new Date(newBlock.block_date + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })
+                            : "Início"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarPicker
+                          mode="single"
+                          selected={newBlock.block_date ? new Date(newBlock.block_date + 'T12:00:00') : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              const formatted = format(date, 'yyyy-MM-dd');
+                              setNewBlock(prev => ({
+                                ...prev,
+                                block_date: formatted,
+                                end_block_date: prev.end_block_date && prev.end_block_date < formatted ? formatted : prev.end_block_date,
+                              }));
+                              setBlockDateOpen(false);
+                            }
+                          }}
+                          locale={ptBR}
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data Fim</Label>
+                    <Popover open={blockEndDateOpen} onOpenChange={setBlockEndDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal bg-[hsl(var(--avivar-input))] border-[hsl(var(--avivar-border))]",
+                            !newBlock.end_block_date && "text-muted-foreground"
+                          )}
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {newBlock.end_block_date
+                            ? format(new Date(newBlock.end_block_date + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })
+                            : "Fim"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarPicker
+                          mode="single"
+                          selected={newBlock.end_block_date ? new Date(newBlock.end_block_date + 'T12:00:00') : undefined}
+                          disabled={(date) => newBlock.block_date ? date < new Date(newBlock.block_date + 'T12:00:00') : false}
+                          onSelect={(date) => {
+                            if (date) {
+                              setNewBlock(prev => ({ ...prev, end_block_date: format(date, 'yyyy-MM-dd') }));
+                              setBlockEndDateOpen(false);
+                            }
+                          }}
+                          locale={ptBR}
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
+                {newBlock.block_date && newBlock.end_block_date && newBlock.block_date !== newBlock.end_block_date && (
+                  <p className="text-xs text-[hsl(var(--avivar-primary))]">
+                    {getDateRange(newBlock.block_date, newBlock.end_block_date).length} dia(s) serão bloqueados
+                  </p>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
