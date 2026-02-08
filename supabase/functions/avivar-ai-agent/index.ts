@@ -2922,7 +2922,7 @@ serve(async (req) => {
             { role: "system", content: systemPrompt },
             ...followUpMessages.map(m => ({ role: m.role === "tool" ? "user" : m.role, content: m.content }))
           ],
-          tools,
+          tools: TOOLS,
           tool_choice: "auto",
           max_tokens: 500,
           temperature: 0.7,
