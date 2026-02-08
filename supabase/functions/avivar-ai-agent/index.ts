@@ -761,6 +761,7 @@ async function getAvailableSlots(
     if (error) {
       console.error("[AI Agent] Error getting slots:", error);
       continue;
+    }
     // Filter by Google Calendar busy times
     let available = (slots || []).filter((s: { is_available: boolean }) => s.is_available);
     
