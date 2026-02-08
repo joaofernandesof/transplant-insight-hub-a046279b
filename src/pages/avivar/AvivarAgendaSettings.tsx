@@ -92,6 +92,7 @@ export default function AvivarAgendaSettings() {
   const queryClient = useQueryClient();
 
   const [selectedAgenda, setSelectedAgenda] = useState<AvivarAgenda | null>(null);
+  const [agendaInitialized, setAgendaInitialized] = useState(false);
   const [config, setConfig] = useState<ScheduleConfig>({
     professional_name: '',
     consultation_duration: 30,
@@ -228,6 +229,14 @@ export default function AvivarAgendaSettings() {
     }
   }, [existingConfig, selectedAgenda]);
 
+  // Auto-select first agenda when agendas load (prevent "Todas as agendas" ghost config)
+  useEffect(() => {
+    if (!agendaInitialized && agendas && agendas.length > 0) {
+      setSelectedAgenda(agendas[0]);
+      setAgendaInitialized(true);
+    }
+  }, [agendas, agendaInitialized]);
+
   useEffect(() => {
     if (existingHours && existingHours.length > 0) {
       setHours(existingHours);
@@ -246,6 +255,11 @@ export default function AvivarAgendaSettings() {
   const saveConfigMutation = useMutation({
     mutationFn: async () => {
       if (!user?.authUserId) throw new Error('Usuário não autenticado');
+
+      // Prevent creating ghost config without agenda when agendas exist
+      if (!selectedAgenda && agendas && agendas.length > 0) {
+        throw new Error('Selecione uma agenda antes de salvar');
+      }
 
       // Upsert config - usar authUserId para compatibilidade com RLS
       const configData = {
@@ -492,7 +506,8 @@ export default function AvivarAgendaSettings() {
         <div className="flex items-center gap-3">
           <AgendaSelector 
             selectedAgenda={selectedAgenda} 
-            onSelect={setSelectedAgenda} 
+            onSelect={setSelectedAgenda}
+            hideAllOption
           />
           <Button
             className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
