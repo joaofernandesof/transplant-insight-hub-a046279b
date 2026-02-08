@@ -117,16 +117,16 @@ export default function AvivarAgendaSettings() {
   const [blockDateOpen, setBlockDateOpen] = useState(false);
   const [blockEndDateOpen, setBlockEndDateOpen] = useState(false);
 
-  // Fetch existing config - usar authUserId para compatibilidade com RLS
+  // Fetch existing config - usar account_id para compatibilidade com índice único
   const { data: existingConfig, isLoading: loadingConfig } = useQuery({
-    queryKey: ['avivar-schedule-config', selectedAgenda?.id, user?.authUserId],
+    queryKey: ['avivar-schedule-config', selectedAgenda?.id, accountId],
     queryFn: async () => {
-      if (!user?.authUserId) return null;
+      if (!accountId) return null;
 
       let query = supabase
         .from('avivar_schedule_config')
         .select('*')
-        .eq('user_id', user.authUserId);
+        .eq('account_id', accountId);
 
       if (selectedAgenda) {
         query = query.eq('agenda_id', selectedAgenda.id);
@@ -134,11 +134,11 @@ export default function AvivarAgendaSettings() {
         query = query.is('agenda_id', null);
       }
 
-      const { data, error } = await query.single();
-      if (error && error.code !== 'PGRST116') throw error;
+      const { data, error } = await query.maybeSingle();
+      if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.authUserId && !!accountId,
   });
 
   // Fetch hours for config
@@ -332,7 +332,9 @@ export default function AvivarAgendaSettings() {
 
       return configId;
     },
-    onSuccess: () => {
+    onSuccess: (configId) => {
+      // Update local state with the saved config id to prevent duplicate inserts
+      setConfig(prev => ({ ...prev, id: configId }));
       toast.success('Configurações salvas com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['avivar-schedule-config'] });
       queryClient.invalidateQueries({ queryKey: ['avivar-schedule-hours'] });
