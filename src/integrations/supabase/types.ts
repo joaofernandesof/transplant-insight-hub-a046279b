@@ -6189,6 +6189,148 @@ export type Database = {
           },
         ]
       }
+      ipromed_bank_accounts: {
+        Row: {
+          account_holder: string | null
+          account_number: string
+          account_type: string
+          agency: string
+          balance: number | null
+          bank_code: string
+          bank_name: string
+          created_at: string
+          id: string
+          integration_error: string | null
+          integration_id: string | null
+          integration_provider: string | null
+          integration_status: string | null
+          is_active: boolean | null
+          last_sync_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_holder?: string | null
+          account_number: string
+          account_type?: string
+          agency: string
+          balance?: number | null
+          bank_code: string
+          bank_name: string
+          created_at?: string
+          id?: string
+          integration_error?: string | null
+          integration_id?: string | null
+          integration_provider?: string | null
+          integration_status?: string | null
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_holder?: string | null
+          account_number?: string
+          account_type?: string
+          agency?: string
+          balance?: number | null
+          bank_code?: string
+          bank_name?: string
+          created_at?: string
+          id?: string
+          integration_error?: string | null
+          integration_id?: string | null
+          integration_provider?: string | null
+          integration_status?: string | null
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ipromed_bank_transactions: {
+        Row: {
+          amount: number
+          bank_account_id: string
+          category: string | null
+          created_at: string
+          description: string
+          external_id: string | null
+          id: string
+          import_source: string | null
+          matched_at: string | null
+          matched_by: string | null
+          matched_payable_id: string | null
+          matched_receivable_id: string | null
+          raw_data: Json | null
+          reconciliation_status: string | null
+          transaction_date: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id: string
+          category?: string | null
+          created_at?: string
+          description: string
+          external_id?: string | null
+          id?: string
+          import_source?: string | null
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_payable_id?: string | null
+          matched_receivable_id?: string | null
+          raw_data?: Json | null
+          reconciliation_status?: string | null
+          transaction_date: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string
+          category?: string | null
+          created_at?: string
+          description?: string
+          external_id?: string | null
+          id?: string
+          import_source?: string | null
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_payable_id?: string | null
+          matched_receivable_id?: string | null
+          raw_data?: Json | null
+          reconciliation_status?: string | null
+          transaction_date?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_bank_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_bank_transactions_matched_payable_id_fkey"
+            columns: ["matched_payable_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_payables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_bank_transactions_matched_receivable_id_fkey"
+            columns: ["matched_receivable_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_receivables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_billing_rules: {
         Row: {
           created_at: string | null
@@ -6230,6 +6372,96 @@ export type Database = {
           send_whatsapp?: boolean | null
         }
         Relationships: []
+      }
+      ipromed_billings: {
+        Row: {
+          amount: number
+          billing_number: string
+          billing_type: string
+          boleto_code: string | null
+          client_email: string | null
+          client_id: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          due_date: string
+          id: string
+          last_reminder_at: string | null
+          notes: string | null
+          paid_at: string | null
+          payment_link: string | null
+          pix_code: string | null
+          receivable_id: string | null
+          reminder_sent_count: number | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_number: string
+          billing_type: string
+          boleto_code?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          due_date: string
+          id?: string
+          last_reminder_at?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_link?: string | null
+          pix_code?: string | null
+          receivable_id?: string | null
+          reminder_sent_count?: number | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_number?: string
+          billing_type?: string
+          boleto_code?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          due_date?: string
+          id?: string
+          last_reminder_at?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_link?: string | null
+          pix_code?: string | null
+          receivable_id?: string | null
+          reminder_sent_count?: number | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_billings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_billings_receivable_id_fkey"
+            columns: ["receivable_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_receivables"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ipromed_case_events: {
         Row: {
@@ -8087,6 +8319,74 @@ export type Database = {
         }
         Relationships: []
       }
+      ipromed_payables: {
+        Row: {
+          amount: number
+          attachments: Json | null
+          category: string
+          cost_center: string | null
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          parent_id: string | null
+          payment_date: string | null
+          payment_method: string | null
+          recurrence: string | null
+          status: string
+          supplier: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          attachments?: Json | null
+          category?: string
+          cost_center?: string | null
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          parent_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          recurrence?: string | null
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          attachments?: Json | null
+          category?: string
+          cost_center?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          parent_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          recurrence?: string | null
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_payables_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_payables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ipromed_payment_history: {
         Row: {
           amount: number
@@ -8322,6 +8622,84 @@ export type Database = {
             columns: ["generated_deadline_id"]
             isOneToOne: false
             referencedRelation: "ipromed_appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipromed_receivables: {
+        Row: {
+          amount: number
+          billing_id: string | null
+          category: string
+          client_id: string | null
+          contract_id: string | null
+          cost_center: string | null
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          installment_number: number | null
+          notes: string | null
+          payment_method: string | null
+          received_date: string | null
+          status: string
+          total_installments: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_id?: string | null
+          category?: string
+          client_id?: string | null
+          contract_id?: string | null
+          cost_center?: string | null
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          installment_number?: number | null
+          notes?: string | null
+          payment_method?: string | null
+          received_date?: string | null
+          status?: string
+          total_installments?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_id?: string | null
+          category?: string
+          client_id?: string | null
+          contract_id?: string | null
+          cost_center?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          installment_number?: number | null
+          notes?: string | null
+          payment_method?: string | null
+          received_date?: string | null
+          status?: string
+          total_installments?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipromed_receivables_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_legal_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ipromed_receivables_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ipromed_contracts"
             referencedColumns: ["id"]
           },
         ]
