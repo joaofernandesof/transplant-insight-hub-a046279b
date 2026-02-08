@@ -139,11 +139,6 @@ export function useLeads() {
   }, []);
 
   const deleteLead = useCallback(async (id: string): Promise<boolean> => {
-    if (!isAdmin) {
-      toast.error('Apenas administradores podem excluir leads');
-      return false;
-    }
-
     try {
       // Use cascade delete function to remove lead and all related data
       const { data, error } = await supabase.rpc('delete_lead_cascade', {
