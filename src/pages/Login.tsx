@@ -546,6 +546,10 @@ export default function Login() {
                     <br />
                     <span className="text-muted-foreground/70">Não é possível criar uma conta diretamente.</span>
                   </p>
+                  <div className="mt-3 flex justify-center gap-4 text-xs text-muted-foreground/70">
+                    <a href="https://neohub.ibramec.com/privacy-policy" className="hover:text-muted-foreground transition-colors">Política de Privacidade</a>
+                    <a href="https://neohub.ibramec.com/terms" className="hover:text-muted-foreground transition-colors">Termos de Serviço</a>
+                  </div>
                 </div>
               </>
             )}
