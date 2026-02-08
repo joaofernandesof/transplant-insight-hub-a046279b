@@ -301,6 +301,13 @@ export type Database = {
           city: string | null
           color: string | null
           created_at: string | null
+          google_access_token: string | null
+          google_calendar_id: string | null
+          google_calendar_name: string | null
+          google_connected: boolean
+          google_connected_at: string | null
+          google_refresh_token: string | null
+          google_token_expires_at: string | null
           id: string
           is_active: boolean | null
           name: string
@@ -315,6 +322,13 @@ export type Database = {
           city?: string | null
           color?: string | null
           created_at?: string | null
+          google_access_token?: string | null
+          google_calendar_id?: string | null
+          google_calendar_name?: string | null
+          google_connected?: boolean
+          google_connected_at?: string | null
+          google_refresh_token?: string | null
+          google_token_expires_at?: string | null
           id?: string
           is_active?: boolean | null
           name: string
@@ -329,6 +343,13 @@ export type Database = {
           city?: string | null
           color?: string | null
           created_at?: string | null
+          google_access_token?: string | null
+          google_calendar_id?: string | null
+          google_calendar_name?: string | null
+          google_connected?: boolean
+          google_connected_at?: string | null
+          google_refresh_token?: string | null
+          google_token_expires_at?: string | null
           id?: string
           is_active?: boolean | null
           name?: string

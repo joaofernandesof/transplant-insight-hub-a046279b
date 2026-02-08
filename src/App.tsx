@@ -176,6 +176,7 @@ const AvivarPosVendaPage = lazy(() => import("./pages/avivar/AvivarPosVendaPage"
 const AvivarAgenda = lazy(() => import("./pages/avivar/AvivarAgenda"));
 const AvivarAgendaSettings = lazy(() => import("./pages/avivar/AvivarAgendaSettings"));
 const AvivarIntegrations = lazy(() => import("./pages/avivar/AvivarIntegrations"));
+const GoogleCalendarCallback = lazy(() => import("./pages/avivar/GoogleCalendarCallback"));
 const AvivarVoip = lazy(() => import("./pages/avivar/voip/VoipPage"));
 const AvivarTutorialsPage = lazy(() => import("./pages/avivar/AvivarTutorialsPage"));
 const AvivarAgentRoutingConfig = lazy(() => import("./pages/avivar/config/AvivarAgentRoutingConfig"));
@@ -584,6 +585,7 @@ function AvivarRoutes() {
               <Route path="agenda" element={<AvivarAgenda />} />
               <Route path="agenda/settings" element={<AvivarAgendaSettings />} />
               <Route path="integrations" element={<AvivarIntegrations />} />
+              <Route path="google-callback" element={<GoogleCalendarCallback />} />
               <Route path="voip" element={<AvivarVoip />} />
               <Route path="config" element={<AvivarAgentsPage />} />
               <Route path="config/new" element={<AvivarSimpleWizard />} />
