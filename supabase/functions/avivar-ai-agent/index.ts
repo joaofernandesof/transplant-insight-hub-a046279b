@@ -2302,8 +2302,13 @@ Você TEM QUE usar "mover_lead_para_etapa" para atualizar o funil. NÃO É OPCIO
   instructions += `### IMPORTANTE - SEMPRE MOVA APÓS TOOL CALLS:
 - Após get_available_slots → mova para "${tentandoAgendarKey || "tentando_agendar"}"
 - Após create_appointment → mova para "${agendadoKey || "agendado"}"
-- NUNCA deixe de mover o lead quando usar essas ferramentas!`;
+- NUNCA deixe de mover o lead quando usar essas ferramentas!
 
+### REGRA CRÍTICA PÓS-AGENDAMENTO:
+- Quando create_appointment retornar ✅ (sucesso), o agendamento JÁ ESTÁ CONFIRMADO no sistema.
+- NUNCA use check_slot ou get_available_slots após um create_appointment bem-sucedido na mesma conversa.
+- Após criar o agendamento, apenas confirme ao lead com os detalhes e mova para "${agendadoKey || "agendado"}".
+- NÃO re-verifique disponibilidade — o horário vai aparecer como ocupado porque ACABOU de ser reservado.`;
   return instructions;
 }
 
@@ -3010,6 +3015,7 @@ serve(async (req) => {
     const MAX_TOOL_ROUNDS = 5;
     let toolRound = 0;
     let fluxoMediaSentCount = 0; // Guard: max 1 send_fluxo_media per response
+    let appointmentJustCreated = false; // Guard: prevent re-checking slots after successful booking
 
     while (currentToolCalls.length > 0 && toolRound < MAX_TOOL_ROUNDS) {
       toolRound++;
@@ -3022,6 +3028,11 @@ serve(async (req) => {
             return false;
           }
           fluxoMediaSentCount++;
+        }
+        // CRITICAL: Block slot re-checks after a successful booking to prevent false "unavailable" messages
+        if (appointmentJustCreated && (tc.name === "check_slot" || tc.name === "get_available_slots")) {
+          console.log(`[AI Agent] ⚠️ BLOCKED ${tc.name} after successful create_appointment — slot was just booked`);
+          return false;
         }
         return true;
       });
@@ -3044,6 +3055,12 @@ serve(async (req) => {
         );
         
         console.log(`[AI Agent] Tool ${toolCall.name} result: ${result.substring(0, 100)}...`);
+        
+        // Mark that appointment was successfully created to prevent re-checking slots
+        if (toolCall.name === "create_appointment" && result.includes("✅")) {
+          appointmentJustCreated = true;
+          console.log(`[AI Agent] 🔒 Appointment created — blocking future slot re-checks in this response`);
+        }
         
         toolResults.push({
           role: "tool",
