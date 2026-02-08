@@ -329,43 +329,8 @@ serve(async (req) => {
         );
       }
 
-      // Get busy times from Google Calendar (used by AI agent for availability)
-      case "get_busy_times": {
-        const { agenda_id, date } = body;
-        if (!agenda_id || !date) throw new Error("agenda_id and date are required");
-
-        const { data: agenda } = await supabaseAdmin
-          .from("avivar_agendas")
-          .select("google_calendar_id, google_connected")
-          .eq("id", agenda_id)
-          .single();
-
-        if (!agenda?.google_connected || !agenda?.google_calendar_id) {
-          return new Response(
-            JSON.stringify({ busy_times: [], connected: false }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        const accessToken = await getValidAccessToken(supabaseAdmin, agenda_id);
-        const timeMin = `${date}T00:00:00-03:00`;
-        const timeMax = `${date}T23:59:59-03:00`;
-        const events = await getEvents(accessToken, agenda.google_calendar_id, timeMin, timeMax);
-
-        // Extract busy periods
-        const busyTimes = events
-          .filter((e: any) => e.status !== "cancelled")
-          .map((e: any) => ({
-            start: e.start,
-            end: e.end,
-            summary: e.summary,
-          }));
-
-        return new Response(
-          JSON.stringify({ busy_times: busyTimes, connected: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      // NOTE: get_busy_times removed - sync is ONE-WAY (CRM → Google only)
+      // Google Calendar events do NOT block CRM availability
 
       // Create event in Google Calendar (called after appointment is created)
       case "create_event": {

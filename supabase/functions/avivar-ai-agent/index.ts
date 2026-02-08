@@ -60,61 +60,9 @@ async function getGoogleAccessToken(supabase: AnySupabaseClient, agendaId: strin
   }
 }
 
-interface GoogleBusySlot { start: string; end: string; }
-
-async function getGoogleBusyTimes(supabase: AnySupabaseClient, agendaId: string, date: string): Promise<GoogleBusySlot[]> {
-  try {
-    const { data: agenda } = await supabase
-      .from("avivar_agendas")
-      .select("google_calendar_id")
-      .eq("id", agendaId)
-      .single();
-
-    if (!agenda?.google_calendar_id) return [];
-
-    const accessToken = await getGoogleAccessToken(supabase, agendaId);
-    if (!accessToken) return [];
-
-    const timeMin = `${date}T00:00:00-03:00`;
-    const timeMax = `${date}T23:59:59-03:00`;
-    const params = new URLSearchParams({
-      timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "50",
-    });
-
-    const response = await fetch(
-      `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(agenda.google_calendar_id)}/events?${params}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-
-    if (!response.ok) {
-      console.error("[AI Agent] Google Calendar API error:", response.status);
-      return [];
-    }
-
-    const data = await response.json();
-    return (data.items || [])
-      .filter((e: any) => e.status !== "cancelled" && e.start?.dateTime && e.end?.dateTime)
-      .map((e: any) => ({ start: e.start.dateTime, end: e.end.dateTime }));
-  } catch (e) {
-    console.error("[AI Agent] Error fetching Google busy times:", e);
-    return [];
-  }
-}
-
-function isSlotBusyOnGoogle(slotStart: string, date: string, busyTimes: GoogleBusySlot[], durationMinutes = 30): boolean {
-  const slotStartDate = new Date(`${date}T${slotStart}:00-03:00`);
-  const slotEndDate = new Date(slotStartDate.getTime() + durationMinutes * 60 * 1000);
-
-  for (const busy of busyTimes) {
-    const busyStart = new Date(busy.start);
-    const busyEnd = new Date(busy.end);
-    // Overlap check
-    if (slotStartDate < busyEnd && slotEndDate > busyStart) {
-      return true;
-    }
-  }
-  return false;
-}
+// Google Calendar sync is ONE-WAY: CRM Avivar → Google Calendar only.
+// The AI checks availability solely from CRM's own schedule (avivar_schedule_config/hours/blocks + avivar_appointments).
+// Google Calendar events do NOT block CRM availability.
 
 async function createGoogleCalendarEvent(
   supabase: AnySupabaseClient,
@@ -762,18 +710,8 @@ async function getAvailableSlots(
       console.error("[AI Agent] Error getting slots:", error);
       continue;
     }
-    // Filter by Google Calendar busy times
+    // Availability comes solely from CRM schedule (no Google Calendar filtering)
     let available = (slots || []).filter((s: { is_available: boolean }) => s.is_available);
-    
-    if (agendaId) {
-      const googleBusy = await getGoogleBusyTimes(supabase, agendaId, date);
-      if (googleBusy.length > 0) {
-        console.log(`[AI Agent] Found ${googleBusy.length} Google Calendar events on ${date}`);
-        available = available.filter((s: { slot_start: string }) => 
-          !isSlotBusyOnGoogle(s.slot_start.substring(0, 5), date, googleBusy)
-        );
-      }
-    }
     
     if (available.length > 0) {
       const dateObj = new Date(date + "T12:00:00");
