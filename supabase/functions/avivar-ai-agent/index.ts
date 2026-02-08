@@ -1,6 +1,170 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// ============================================
+// GOOGLE CALENDAR HELPERS
+// ============================================
+
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+const GOOGLE_CALENDAR_API = "https://www.googleapis.com/calendar/v3";
+
+async function refreshGoogleToken(refreshToken: string): Promise<{ access_token: string; expires_in: number }> {
+  const clientId = Deno.env.get("GOOGLE_CALENDAR_CLIENT_ID");
+  const clientSecret = Deno.env.get("GOOGLE_CALENDAR_CLIENT_SECRET");
+  if (!clientId || !clientSecret) throw new Error("Google Calendar credentials not configured");
+
+  const response = await fetch(GOOGLE_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      refresh_token: refreshToken,
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  if (!response.ok) throw new Error("Failed to refresh Google token");
+  return await response.json();
+}
+
+async function getGoogleAccessToken(supabase: AnySupabaseClient, agendaId: string): Promise<string | null> {
+  const { data: agenda } = await supabase
+    .from("avivar_agendas")
+    .select("google_access_token, google_refresh_token, google_token_expires_at, google_connected, google_calendar_id")
+    .eq("id", agendaId)
+    .single();
+
+  if (!agenda?.google_connected || !agenda?.google_refresh_token || !agenda?.google_calendar_id) {
+    return null;
+  }
+
+  const expiresAt = agenda.google_token_expires_at ? new Date(agenda.google_token_expires_at) : null;
+  const now = new Date();
+
+  if (agenda.google_access_token && expiresAt && expiresAt.getTime() - now.getTime() > 5 * 60 * 1000) {
+    return agenda.google_access_token;
+  }
+
+  try {
+    const tokens = await refreshGoogleToken(agenda.google_refresh_token);
+    const newExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
+    await supabase
+      .from("avivar_agendas")
+      .update({ google_access_token: tokens.access_token, google_token_expires_at: newExpiresAt })
+      .eq("id", agendaId);
+    return tokens.access_token;
+  } catch (e) {
+    console.error("[AI Agent] Failed to refresh Google token:", e);
+    return null;
+  }
+}
+
+interface GoogleBusySlot { start: string; end: string; }
+
+async function getGoogleBusyTimes(supabase: AnySupabaseClient, agendaId: string, date: string): Promise<GoogleBusySlot[]> {
+  try {
+    const { data: agenda } = await supabase
+      .from("avivar_agendas")
+      .select("google_calendar_id")
+      .eq("id", agendaId)
+      .single();
+
+    if (!agenda?.google_calendar_id) return [];
+
+    const accessToken = await getGoogleAccessToken(supabase, agendaId);
+    if (!accessToken) return [];
+
+    const timeMin = `${date}T00:00:00-03:00`;
+    const timeMax = `${date}T23:59:59-03:00`;
+    const params = new URLSearchParams({
+      timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "50",
+    });
+
+    const response = await fetch(
+      `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(agenda.google_calendar_id)}/events?${params}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    if (!response.ok) {
+      console.error("[AI Agent] Google Calendar API error:", response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    return (data.items || [])
+      .filter((e: any) => e.status !== "cancelled" && e.start?.dateTime && e.end?.dateTime)
+      .map((e: any) => ({ start: e.start.dateTime, end: e.end.dateTime }));
+  } catch (e) {
+    console.error("[AI Agent] Error fetching Google busy times:", e);
+    return [];
+  }
+}
+
+function isSlotBusyOnGoogle(slotStart: string, date: string, busyTimes: GoogleBusySlot[], durationMinutes = 30): boolean {
+  const slotStartDate = new Date(`${date}T${slotStart}:00-03:00`);
+  const slotEndDate = new Date(slotStartDate.getTime() + durationMinutes * 60 * 1000);
+
+  for (const busy of busyTimes) {
+    const busyStart = new Date(busy.start);
+    const busyEnd = new Date(busy.end);
+    // Overlap check
+    if (slotStartDate < busyEnd && slotEndDate > busyStart) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function createGoogleCalendarEvent(
+  supabase: AnySupabaseClient,
+  agendaId: string,
+  summary: string,
+  date: string,
+  startTime: string,
+  endTime: string,
+  description?: string,
+  location?: string
+): Promise<void> {
+  try {
+    const { data: agenda } = await supabase
+      .from("avivar_agendas")
+      .select("google_calendar_id")
+      .eq("id", agendaId)
+      .single();
+
+    if (!agenda?.google_calendar_id) return;
+
+    const accessToken = await getGoogleAccessToken(supabase, agendaId);
+    if (!accessToken) return;
+
+    const event = {
+      summary,
+      description,
+      location,
+      start: { dateTime: `${date}T${startTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
+      end: { dateTime: `${date}T${endTime}:00-03:00`, timeZone: "America/Sao_Paulo" },
+    };
+
+    const response = await fetch(
+      `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(agenda.google_calendar_id)}/events`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+      }
+    );
+
+    if (response.ok) {
+      console.log("[AI Agent] Google Calendar event created successfully");
+    } else {
+      console.error("[AI Agent] Failed to create Google Calendar event:", response.status);
+    }
+  } catch (e) {
+    console.error("[AI Agent] Error creating Google Calendar event:", e);
+  }
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -597,9 +761,18 @@ async function getAvailableSlots(
     if (error) {
       console.error("[AI Agent] Error getting slots:", error);
       continue;
+    // Filter by Google Calendar busy times
+    let available = (slots || []).filter((s: { is_available: boolean }) => s.is_available);
+    
+    if (agendaId) {
+      const googleBusy = await getGoogleBusyTimes(supabase, agendaId, date);
+      if (googleBusy.length > 0) {
+        console.log(`[AI Agent] Found ${googleBusy.length} Google Calendar events on ${date}`);
+        available = available.filter((s: { slot_start: string }) => 
+          !isSlotBusyOnGoogle(s.slot_start.substring(0, 5), date, googleBusy)
+        );
+      }
     }
-
-    const available = (slots || []).filter((s: { is_available: boolean }) => s.is_available);
     
     if (available.length > 0) {
       const dateObj = new Date(date + "T12:00:00");
@@ -841,6 +1014,18 @@ async function createAppointment(
   if (error) {
     console.error("[AI Agent] Error creating appointment:", error);
     return "❌ Ocorreu um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato conosco.";
+  }
+
+  // Sync to Google Calendar (fire and forget)
+  if (agendaId) {
+    const serviceLabel = serviceType === "avaliacao" ? "Avaliação Capilar" : "Transplante Capilar";
+    createGoogleCalendarEvent(
+      supabase, agendaId,
+      `${serviceLabel} - ${patientName}`,
+      normalizedDate, normalizedTime, endTime,
+      `Paciente: ${patientName}\nTelefone: ${patientPhone}\n${notes || ""}`,
+      agendaInfo?.address || agendaInfo?.city || undefined
+    ).catch(e => console.error("[AI Agent] Google Calendar sync error:", e));
   }
 
   const dateObj = new Date(normalizedDate + "T12:00:00");

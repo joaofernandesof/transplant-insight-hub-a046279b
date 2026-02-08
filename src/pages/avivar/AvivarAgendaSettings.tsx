@@ -5,7 +5,8 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Calendar, Pause, Lock, Settings2, Save, Plus, Trash2, Copy, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Pause, Lock, Settings2, Save, Plus, Trash2, Copy, AlertTriangle, ExternalLink, Unlink } from "lucide-react";
+import { useGoogleCalendarConnect } from "@/hooks/useGoogleCalendarConnect";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -577,6 +578,10 @@ export default function AvivarAgendaSettings() {
             <Lock className="h-4 w-4 mr-2" />
             Bloqueios
           </TabsTrigger>
+          <TabsTrigger value="google" className="data-[state=active]:bg-[hsl(var(--avivar-primary))] data-[state=active]:text-white">
+            <Calendar className="h-4 w-4 mr-2" />
+            Google Calendar
+          </TabsTrigger>
         </TabsList>
 
         {/* Hours Tab */}
@@ -1087,7 +1092,187 @@ export default function AvivarAgendaSettings() {
             </Card>
           </div>
         </TabsContent>
+        {/* Google Calendar Tab */}
+        <TabsContent value="google">
+          <GoogleCalendarTab agendaId={selectedAgenda?.id || null} agendaName={selectedAgenda?.name || ''} />
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// Google Calendar integration tab component
+function GoogleCalendarTab({ agendaId, agendaName }: { agendaId: string | null; agendaName: string }) {
+  const {
+    status,
+    isLoadingStatus,
+    isConnecting,
+    calendars,
+    showCalendarPicker,
+    setShowCalendarPicker,
+    connectGoogle,
+    selectCalendar,
+    disconnectGoogle,
+    listCalendars,
+  } = useGoogleCalendarConnect(agendaId);
+
+  if (!agendaId) {
+    return (
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardContent className="py-8 text-center">
+          <p className="text-[hsl(var(--avivar-muted-foreground))]">
+            Selecione uma agenda para configurar o Google Calendar.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoadingStatus) {
+    return (
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardContent className="py-8 flex justify-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[hsl(var(--avivar-primary))]" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardHeader>
+          <CardTitle className="text-lg text-[hsl(var(--avivar-foreground))]">
+            Google Calendar - {agendaName}
+          </CardTitle>
+          <CardDescription className="text-[hsl(var(--avivar-muted-foreground))]">
+            Sincronize agendamentos do Avivar com o Google Calendar. A IA verificará horários ocupados no Google antes de agendar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {status?.google_connected ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                <div className="h-3 w-3 rounded-full bg-green-500" />
+                <div className="flex-1">
+                  <p className="font-medium text-[hsl(var(--avivar-foreground))]">Conectado</p>
+                  <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                    Calendário: <strong>{status.google_calendar_name || status.google_calendar_id}</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={listCalendars}
+                  className="border-[hsl(var(--avivar-border))]"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Trocar calendário
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10">
+                      <Unlink className="h-4 w-4 mr-2" />
+                      Desconectar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-[hsl(var(--avivar-foreground))]">Desconectar Google Calendar?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-[hsl(var(--avivar-muted-foreground))]">
+                        A IA não verificará mais horários do Google e novos agendamentos não serão sincronizados.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={disconnectGoogle} className="bg-destructive text-destructive-foreground">
+                        Desconectar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-[hsl(var(--avivar-muted))]/50 border border-[hsl(var(--avivar-border))]">
+                <p className="text-sm text-[hsl(var(--avivar-muted-foreground))]">
+                  Conecte o Google Calendar para que a IA verifique automaticamente seus horários ocupados antes de agendar pacientes, e crie eventos no Google ao confirmar agendamentos.
+                </p>
+              </div>
+              <Button
+                onClick={connectGoogle}
+                disabled={isConnecting}
+                className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
+              >
+                {isConnecting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2" />
+                    Conectando...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Conectar Google Calendar
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Calendar picker dialog */}
+          {showCalendarPicker && calendars.length > 0 && (
+            <div className="mt-4 p-4 rounded-lg border border-[hsl(var(--avivar-border))] bg-[hsl(var(--avivar-card))]">
+              <h4 className="font-medium mb-3 text-[hsl(var(--avivar-foreground))]">Selecione o calendário:</h4>
+              <div className="space-y-2">
+                {calendars.map((cal) => (
+                  <button
+                    key={cal.id}
+                    onClick={() => selectCalendar(cal.id, cal.summary)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-[hsl(var(--avivar-border))] hover:bg-[hsl(var(--avivar-muted))]/50 text-left transition-colors"
+                  >
+                    {cal.backgroundColor && (
+                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cal.backgroundColor }} />
+                    )}
+                    <div>
+                      <p className="font-medium text-[hsl(var(--avivar-foreground))]">{cal.summary}</p>
+                      {cal.description && (
+                        <p className="text-xs text-[hsl(var(--avivar-muted-foreground))]">{cal.description}</p>
+                      )}
+                    </div>
+                    {cal.primary && (
+                      <Badge variant="secondary" className="ml-auto text-xs">Principal</Badge>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCalendarPicker(false)}
+                className="mt-2"
+              >
+                Cancelar
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Info about bidirectional sync */}
+      <Card className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+        <CardContent className="py-4">
+          <h4 className="font-medium text-sm text-[hsl(var(--avivar-foreground))] mb-2">Como funciona a sincronização bidirecional:</h4>
+          <ul className="space-y-1 text-sm text-[hsl(var(--avivar-muted-foreground))]">
+            <li>✅ Agendamentos criados no Avivar são automaticamente criados no Google Calendar</li>
+            <li>✅ A IA verifica eventos existentes no Google para evitar conflitos de horário</li>
+            <li>✅ Horários ocupados no Google bloqueiam automaticamente a disponibilidade para agendamento</li>
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   );
 }
