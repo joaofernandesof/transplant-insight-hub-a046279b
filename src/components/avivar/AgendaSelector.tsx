@@ -26,6 +26,8 @@ interface AgendaSelectorProps {
   onSelect: (agenda: AvivarAgenda | null) => void;
   /** "default" shows full button, "compact" shows only a small dropdown trigger */
   variant?: "default" | "compact";
+  /** Hide the "Todas as agendas" option */
+  hideAllOption?: boolean;
 }
 
 const AGENDA_COLORS = [
@@ -39,7 +41,7 @@ const AGENDA_COLORS = [
   "#F97316", // orange
 ];
 
-export function AgendaSelector({ selectedAgenda, onSelect, variant = "default" }: AgendaSelectorProps) {
+export function AgendaSelector({ selectedAgenda, onSelect, variant = "default", hideAllOption = false }: AgendaSelectorProps) {
   const { agendas, createAgenda, isLoading } = useAvivarAgendas();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAgenda, setNewAgenda] = useState<NewAgenda>({
@@ -112,10 +114,14 @@ export function AgendaSelector({ selectedAgenda, onSelect, variant = "default" }
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[250px]">
-            <DropdownMenuItem onClick={() => onSelect(null)}>
-              <span className="text-muted-foreground">Todas as agendas</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {!hideAllOption && (
+              <>
+                <DropdownMenuItem onClick={() => onSelect(null)}>
+                  <span className="text-muted-foreground">Todas as agendas</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             {agendas.map((agenda) => (
               <DropdownMenuItem
                 key={agenda.id}
@@ -187,10 +193,14 @@ export function AgendaSelector({ selectedAgenda, onSelect, variant = "default" }
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-[250px]">
-          <DropdownMenuItem onClick={() => onSelect(null)}>
-            <span className="text-muted-foreground">Todas as agendas</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {!hideAllOption && (
+            <>
+              <DropdownMenuItem onClick={() => onSelect(null)}>
+                <span className="text-muted-foreground">Todas as agendas</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           {agendas.map((agenda) => (
             <DropdownMenuItem
               key={agenda.id}
