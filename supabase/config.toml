@@ -87,3 +87,6 @@ verify_jwt = false
 
 [functions.hotleads-ingest]
 verify_jwt = false
+
+[functions.avivar-google-calendar]
+verify_jwt = false
