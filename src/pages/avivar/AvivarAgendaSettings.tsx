@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Calendar, Pause, Lock, Settings2, Save, Plus, Trash2, Copy } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Pause, Lock, Settings2, Save, Plus, Trash2, Copy, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format, addDays as addDaysDateFns, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -88,7 +89,7 @@ export default function AvivarAgendaSettings() {
   const navigate = useNavigate();
   const { user } = useUnifiedAuth();
   const { accountId } = useAvivarAccount();
-  const { agendas } = useAvivarAgendas();
+  const { agendas, deleteAgenda } = useAvivarAgendas();
   const queryClient = useQueryClient();
 
   const [selectedAgenda, setSelectedAgenda] = useState<AvivarAgenda | null>(null);
@@ -509,6 +510,47 @@ export default function AvivarAgendaSettings() {
             onSelect={setSelectedAgenda}
             hideAllOption
           />
+          {selectedAgenda && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  title="Excluir agenda"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-[hsl(var(--avivar-card))] border-[hsl(var(--avivar-border))]">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2 text-[hsl(var(--avivar-foreground))]">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    Excluir Agenda
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-[hsl(var(--avivar-muted-foreground))]">
+                    Tem certeza que deseja excluir a agenda <strong className="text-[hsl(var(--avivar-foreground))]">"{selectedAgenda.name}"</strong>? 
+                    Todos os agendamentos e configurações associados serão desativados. Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="border-[hsl(var(--avivar-border))]">Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => deleteAgenda.mutate(selectedAgenda.id, {
+                      onSuccess: () => {
+                        setSelectedAgenda(null);
+                        setAgendaInitialized(false);
+                        navigate('/avivar/agenda');
+                      }
+                    })}
+                  >
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
           <Button
             className="bg-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-accent))] text-white"
             onClick={() => saveConfigMutation.mutate()}
