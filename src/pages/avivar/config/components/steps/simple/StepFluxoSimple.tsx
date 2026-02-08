@@ -408,19 +408,19 @@ export function StepFluxoSimple({
       <div 
         className="border border-[hsl(var(--avivar-border))] rounded-lg overflow-hidden bg-[hsl(var(--avivar-card))]"
       >
-        <Collapsible open={isExpanded} onOpenChange={() => toggleStep(step.id)}>
+        <Collapsible open={isExpanded} onOpenChange={() => { if (!isEditing) toggleStep(step.id); }}>
           <div className="flex items-center">
             {/* Drag Handle - não é mais parte do sortable, só visual */}
             <div 
-              className="flex items-center justify-center w-10 cursor-grab active:cursor-grabbing hover:bg-[hsl(var(--avivar-muted)/0.5)] transition-colors py-4"
-              title="Arraste para reordenar"
+              className={`flex items-center justify-center w-10 transition-colors py-4 ${isEditing ? 'opacity-30 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing hover:bg-[hsl(var(--avivar-muted)/0.5)]'}`}
+              title={isEditing ? "Finalize a edição antes de reordenar" : "Arraste para reordenar"}
             >
               <GripVertical className="h-5 w-5 text-[hsl(var(--avivar-muted-foreground))]" />
             </div>
             
             <CollapsibleTrigger asChild>
               <div 
-                className="flex-1 flex items-center justify-between p-4 hover:bg-[hsl(var(--avivar-muted)/0.5)] transition-colors cursor-pointer"
+                className={`flex-1 flex items-center justify-between p-4 transition-colors ${isEditing ? 'cursor-not-allowed' : 'hover:bg-[hsl(var(--avivar-muted)/0.5)] cursor-pointer'}`}
                 role="button"
                 tabIndex={0}
               >
@@ -485,9 +485,9 @@ export function StepFluxoSimple({
             
             {/* Delete button */}
             <div
-              className="flex items-center justify-center w-10 hover:bg-destructive/20 transition-colors py-4 cursor-pointer"
-              title="Remover passo"
-              onClick={() => removeStep(step.id, type)}
+              className={`flex items-center justify-center w-10 transition-colors py-4 ${isEditing ? 'opacity-30 cursor-not-allowed' : 'hover:bg-destructive/20 cursor-pointer'}`}
+              title={isEditing ? "Finalize a edição antes de excluir" : "Remover passo"}
+              onClick={() => { if (!isEditing) removeStep(step.id, type); }}
             >
               <Trash2 className="h-4 w-4 text-destructive" />
             </div>
