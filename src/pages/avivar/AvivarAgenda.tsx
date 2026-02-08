@@ -4,7 +4,7 @@
  * Agora inclui Controle de Calls integrado
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, MapPin, Settings, Lock, Calendar as CalendarIcon, CalendarCheck, CalendarX, Search, Filter, RefreshCw, Bell, MessageSquare, MoreVertical, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -124,6 +124,7 @@ export default function AvivarAgenda() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [view, setView] = useState<"day" | "week">("day");
   const [selectedAgenda, setSelectedAgenda] = useState<AgendaType | null>(null);
+  const [agendaInitialized, setAgendaInitialized] = useState(false);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showEditAppointment, setShowEditAppointment] = useState(false);
   const [showCreateAgenda, setShowCreateAgenda] = useState(false);
@@ -142,6 +143,14 @@ export default function AvivarAgenda() {
   const { agendas, isLoading: loadingAgendas } = useAvivarAgendas();
   const { scheduleConfig, scheduleHours, isLoading: loadingSchedule } = useAvivarScheduleConfig(selectedAgenda?.id || null);
   const queryClient = useQueryClient();
+
+  // Auto-select first agenda when agendas load (prevent "Todas as agendas" ghost state)
+  useEffect(() => {
+    if (!agendaInitialized && agendas && agendas.length > 0) {
+      setSelectedAgenda(agendas[0]);
+      setAgendaInitialized(true);
+    }
+  }, [agendas, agendaInitialized]);
 
   // Calendar view appointments (week based)
   const { data: calendarAppointments = [], isLoading: isLoadingCalendar } = useQuery({
@@ -505,6 +514,7 @@ export default function AvivarAgenda() {
               selectedAgenda={selectedAgenda} 
               onSelect={setSelectedAgenda}
               variant="compact"
+              hideAllOption
             />
           )}
           {/* View Toggle - Dia/Semana - always visible above calendar */}
