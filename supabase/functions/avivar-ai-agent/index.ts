@@ -2414,12 +2414,20 @@ function buildFluxoInstructions(fluxo: Record<string, unknown> | null): string {
   let instructions = `<fluxo_de_atendimento>
 ## PASSOS DO ATENDIMENTO (siga na ordem):
 
-**IMPORTANTE sobre exemplos de mensagem:**
-Os exemplos fornecidos são REFERÊNCIAS, não textos fixos. Você deve:
-- Manter o mesmo sentido e contexto da mensagem
-- Fazer pequenas variações naturais (sinônimos, expressões equivalentes)
-- Adaptar levemente ao tom da conversa mantendo a essência
-- NÃO copiar literalmente - humanize com variações sutis
+**⚠️ REGRA ANTI-SPAM OBRIGATÓRIA — VARIAÇÃO DE MENSAGENS:**
+Os exemplos fornecidos são REFERÊNCIAS DE INTENÇÃO, NUNCA textos para copiar. Para CADA mensagem que você enviar:
+1. ENTENDA o objetivo/intenção do exemplo (ex: se apresentar, pedir nome, confirmar horário)
+2. REESCREVA completamente usando suas próprias palavras, mantendo APENAS o objetivo
+3. VARIE a estrutura da frase (comece de forma diferente a cada conversa)
+4. USE sinônimos e expressões equivalentes (ex: "Olá" → "Oi", "E aí", "Hey"; "faço parte" → "sou da equipe", "trabalho com", "atuo junto")
+5. MUDE a ordem das informações quando possível
+6. ADAPTE ao tom da conversa em andamento
+7. NUNCA repita a mesma frase em conversas diferentes — o WhatsApp detecta mensagens idênticas como SPAM
+
+❌ PROIBIDO: Copiar o exemplo palavra por palavra
+❌ PROIBIDO: Usar a mesma frase de abertura em todas as conversas
+✅ OBRIGATÓRIO: Cada conversa deve ter uma versão única e natural da mensagem
+✅ OBRIGATÓRIO: Manter o mesmo sentido, contexto e dados factuais (nomes, procedimentos)
 
 **REGRA CRÍTICA DE SEPARAÇÃO DE MENSAGENS:**
 Quando o exemplo de mensagem contiver o marcador "---", isso indica que a IA DEVE enviar como MENSAGENS SEPARADAS no WhatsApp.
@@ -2443,7 +2451,7 @@ ${allMediaSteps}
       : '';
     instructions += `### PASSO ${passo.ordem}: ${passo.titulo.toUpperCase()}
 ${passo.descricao}
-${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemploMensagem}"` : ''}${mediaInstruction}
+${passo.exemploMensagem ? `📝 Referência de intenção (REESCREVA com suas palavras, NÃO copie): "${passo.exemploMensagem}"` : ''}${mediaInstruction}
 
 `;
   }
@@ -2458,7 +2466,7 @@ ${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemp
         : '';
       instructions += `### ${passo.titulo.toUpperCase()}
 ${passo.descricao}
-${passo.exemploMensagem ? `📝 Mensagem base (adapte levemente): "${passo.exemploMensagem}"` : ''}${mediaInstruction}
+${passo.exemploMensagem ? `📝 Referência de intenção (REESCREVA com suas palavras, NÃO copie): "${passo.exemploMensagem}"` : ''}${mediaInstruction}
 
 `;
     }
