@@ -6,8 +6,8 @@
  * Suporta drag-and-drop para reordenar e adicionar novos passos.
  */
 
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Pencil, Check, X, Lightbulb, ArrowRight, GripVertical, Plus, Trash2, Paperclip } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, ChevronUp, Pencil, Check, X, Lightbulb, ArrowRight, GripVertical, Plus, Trash2, Paperclip, SplitSquareVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -547,10 +547,11 @@ export function StepFluxoSimple({
                   {editing && editing.stepId === step.id && editing.field === 'exemploMensagem' ? (
                     <div className="space-y-2">
                       <Textarea
+                        id={`textarea-exemplo-${step.id}`}
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        rows={3}
-                        className="resize-none border-[hsl(var(--avivar-primary))] bg-[hsl(260,25%,12%)] text-white placeholder:text-[hsl(var(--avivar-muted-foreground))]"
+                        rows={4}
+                        className="resize-none border-[hsl(var(--avivar-primary))] bg-[hsl(260,25%,12%)] text-white placeholder:text-[hsl(var(--avivar-muted-foreground))] font-mono text-sm"
                         autoFocus
                         placeholder="Texto da mensagem (ou deixe vazio para enviar apenas mídia)"
                       />
@@ -561,17 +562,65 @@ export function StepFluxoSimple({
                         <Button size="sm" variant="outline" onClick={cancelEdit}>
                           Cancelar
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1 border-dashed border-[hsl(var(--avivar-primary))] text-[hsl(var(--avivar-primary))] hover:bg-[hsl(var(--avivar-primary)/0.1)]"
+                          onClick={() => {
+                            const textarea = document.getElementById(`textarea-exemplo-${step.id}`) as HTMLTextAreaElement;
+                            if (textarea) {
+                              const pos = textarea.selectionStart || editValue.length;
+                              const before = editValue.slice(0, pos);
+                              const after = editValue.slice(pos);
+                              const separator = (before.length > 0 && !before.endsWith('\n') ? '\n' : '') + '---' + (after.length > 0 && !after.startsWith('\n') ? '\n' : '');
+                              setEditValue(before + separator + after);
+                            } else {
+                              setEditValue(editValue + (editValue.length > 0 ? '\n---\n' : '---\n'));
+                            }
+                          }}
+                          title="Insere um separador: a IA enviará como mensagens separadas no WhatsApp"
+                        >
+                          <SplitSquareVertical className="h-3 w-3" /> Separar mensagem
+                        </Button>
                         <FluxoStepMediaPicker 
                           media={step.media}
                           onChange={(media) => handleMediaChange(step.id, type, media)}
                         />
                       </div>
+                      {editValue.includes('---') && (
+                        <p className="text-xs text-[hsl(var(--avivar-primary))] flex items-center gap-1">
+                          <SplitSquareVertical className="h-3 w-3" />
+                          A IA enviará {editValue.split('---').filter(p => p.trim()).length} mensagens separadas no WhatsApp
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div className="group">
-                      <p className="text-sm text-[hsl(var(--avivar-foreground))] italic opacity-90">
-                        "{formatExampleMessage(step.exemploMensagem)}"
-                      </p>
+                      {step.exemploMensagem?.includes('---') ? (
+                        <div className="space-y-2">
+                          {step.exemploMensagem.split('---').filter(p => p.trim()).map((part, idx) => (
+                            <React.Fragment key={idx}>
+                              {idx > 0 && (
+                                <div className="flex items-center gap-2 py-1">
+                                  <div className="flex-1 border-t border-dashed border-[hsl(var(--avivar-primary)/0.4)]" />
+                                  <span className="text-[10px] text-[hsl(var(--avivar-primary))] font-medium flex items-center gap-1">
+                                    <SplitSquareVertical className="h-3 w-3" />
+                                    mensagem separada
+                                  </span>
+                                  <div className="flex-1 border-t border-dashed border-[hsl(var(--avivar-primary)/0.4)]" />
+                                </div>
+                              )}
+                              <p className="text-sm text-[hsl(var(--avivar-foreground))] italic opacity-90">
+                                "{formatExampleMessage(part.trim())}"
+                              </p>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-[hsl(var(--avivar-foreground))] italic opacity-90">
+                          "{formatExampleMessage(step.exemploMensagem)}"
+                        </p>
+                      )}
                       {step.media && (
                         <FluxoStepMediaPicker 
                           media={step.media}
