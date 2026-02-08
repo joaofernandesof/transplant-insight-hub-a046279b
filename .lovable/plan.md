@@ -1,114 +1,72 @@
 
+# Galeria de Variacao de Midia por Passo do Fluxo
 
-# Auditoria e Limpeza de Tabelas Legadas do Avivar CRM
+## Problema
+Quando a IA envia sempre a mesma midia (mesmo hash de arquivo) para todos os leads em um passo do fluxo, o WhatsApp detecta isso como spam e pode bloquear o numero.
 
-## Contexto
+## Solucao
+Permitir anexar **multiplas midias** (3-5) por passo do fluxo. No momento do envio, a IA seleciona aleatoriamente uma delas, quebrando o padrao de hash repetido.
 
-Antes da migração multi-tenant, o CRM Avivar usava tabelas com isolamento baseado em `user_id`. Agora, o isolamento correto usa `account_id` via `avivar_accounts` e `avivar_account_members`. A migração deixou tabelas legadas que duplicam funcionalidades e causam bugs (dual-write, conflitos de função, etc).
+## Mudancas
 
-## Resultado da Auditoria
+### 1. Atualizar o tipo `FluxoStep` (types.ts)
+- Adicionar campo `mediaVariations: FluxoStepMedia[]` ao `FluxoStep`
+- Manter o campo `media` existente para compatibilidade (midia unica vira a primeira variacao)
 
-### Tabelas para REMOVER (legadas, substituidas ou vazias)
+### 2. Atualizar o componente `FluxoStepMediaPicker`
+- Transformar de seletor de midia unica para galeria de variacoes
+- Exibir lista de midias anexadas com badges (ex: "1/5", "2/5")
+- Botao "Adicionar variacao" para anexar mais midias do mesmo tipo
+- Limite maximo de 5 variacoes por passo
+- Permitir remover variacoes individuais
+- Indicador visual: "X variacoes - rotacao anti-spam ativa"
 
-| Tabela | Motivo | Dados | Substituta |
-|--------|--------|-------|------------|
-| `avivar_whatsapp_messages` | Nunca usada, 0 registros | 0 | `crm_messages` |
-| `avivar_whatsapp_contacts` | Legacy, 3 registros irrelevantes | 3 | `avivar_contacts` |
-| `avivar_whatsapp_sessions` | Legacy, substituida por `avivar_uazapi_instances` | 2 | `avivar_uazapi_instances` |
-| `avivar_followup_metrics` | Vazia, nunca populada | 0 | Pode ser recriada se necessario |
-| `avivar_team_members` | Legacy, substituida por `avivar_account_members` | 2 | `avivar_account_members` |
+### 3. Atualizar a Edge Function `avivar-ai-agent`
+- Na funcao `sendFluxoMedia`: ao encontrar o passo, verificar se existe `mediaVariations`
+- Se sim, selecionar uma midia aleatoria do array (`Math.random()`)
+- Se nao, usar o campo `media` existente (compatibilidade)
+- Log qual variacao foi selecionada
 
-### Tabelas para REMOVER com migracão de código (dual-write ativo)
+### 4. Atualizar o prompt do sistema
+- Nenhuma mudanca necessaria no prompt - a selecao aleatoria acontece no backend, transparente para a IA
 
-| Tabela | Motivo | Dados | Substituta |
-|--------|--------|-------|------------|
-| `avivar_conversas` | Legacy chat, dual-write com `crm_conversations` | 1 | `crm_conversations` |
-| `avivar_mensagens` | Legacy messages, dual-write com `crm_messages` | 33 | `crm_messages` |
+## Detalhes Tecnicos
 
-### Edge Functions para REMOVER
-
-| Funcao | Motivo |
-|--------|--------|
-| `n8n-whatsapp-webhook` | Legacy, substituida por `uazapi-webhook` |
-| `avivar-whatsapp` | Legacy, substituida por `avivar-uazapi` |
-
-### Tabelas que PERMANECEM (multi-tenant corretas)
-
-Todas as 23 tabelas restantes ja possuem `account_id` e fazem parte da arquitetura multi-tenant:
-
-`avivar_accounts`, `avivar_account_members`, `avivar_agents`, `avivar_agendas`, `avivar_appointments`, `avivar_contacts`, `avivar_column_checklists`, `avivar_kanban_columns`, `avivar_kanban_leads`, `avivar_kanbans`, `avivar_knowledge_chunks`, `avivar_knowledge_documents`, `avivar_onboarding_progress`, `avivar_patient_journeys`, `avivar_products`, `avivar_schedule_blocks`, `avivar_schedule_config`, `avivar_schedule_hours`, `avivar_tutorials`, `avivar_uazapi_instances`, `avivar_followup_executions`, `avivar_followup_rules`, `avivar_followup_templates`
-
-Tabelas CRM que permanecem: `crm_conversations`, `crm_messages`, `leads`, `lead_tasks`
-
----
-
-## Plano de Execução (em 3 fases)
-
-### Fase 1 - Eliminar dual-write no código
-
-Remover toda escrita para `avivar_conversas` e `avivar_mensagens` de:
-
-1. **`supabase/functions/uazapi-webhook/index.ts`** - Remove o bloco que chama `get_or_create_avivar_conversa` e insere em `avivar_mensagens` (linhas ~646-680). Manter apenas a escrita em `crm_conversations`/`crm_messages`.
-
-2. **`supabase/functions/avivar-send-message/index.ts`** - Remove o bloco "Also save to avivar_mensagens for legacy support" (linhas ~673-695).
-
-3. **`src/pages/avivar/kanban/hooks/useKanbanLeads.ts`** - Migrar a query de "última mensagem" de `avivar_conversas`/`avivar_mensagens` para `crm_conversations`/`crm_messages`.
-
-### Fase 2 - Migrar referências a `avivar_team_members` para `avivar_account_members`
-
-Atualizar os seguintes arquivos para usar `avivar_account_members` no lugar de `avivar_team_members`:
-
-- `src/components/crm/chat/TaskBanner.tsx`
-- `src/components/crm/chat/ResponsibleSelector.tsx`
-- `src/components/crm/chat/TaskInlineInput.tsx`
-- `src/hooks/useCrmConversations.ts`
-- `src/pages/avivar/AvivarTeamPage.tsx`
-- `supabase/functions/avivar-send-message/index.ts`
-
-Migrar `avivar_whatsapp_sessions` em:
-- `src/hooks/useWhatsAppIntegration.ts` - Migrar para usar `avivar_uazapi_instances`
-
-### Fase 3 - Dropar tabelas, triggers, funcões e edge functions
-
-Migration SQL:
-
-```sql
--- Drop triggers first
-DROP TRIGGER IF EXISTS trigger_update_conversa_on_message ON avivar_mensagens;
-DROP TRIGGER IF EXISTS update_avivar_conversas_updated_at ON avivar_conversas;
-DROP TRIGGER IF EXISTS update_avivar_mensagens_updated_at ON avivar_mensagens;
-DROP TRIGGER IF EXISTS update_whatsapp_sessions_updated_at ON avivar_whatsapp_sessions;
-DROP TRIGGER IF EXISTS update_whatsapp_contacts_updated_at ON avivar_whatsapp_contacts;
-DROP TRIGGER IF EXISTS update_avivar_team_members_timestamp ON avivar_team_members;
-DROP TRIGGER IF EXISTS update_followup_metrics_updated_at ON avivar_followup_metrics;
-
--- Drop functions
-DROP FUNCTION IF EXISTS get_or_create_avivar_conversa(text, text, text, text);
-DROP FUNCTION IF EXISTS mark_avivar_messages_as_read(uuid);
-DROP FUNCTION IF EXISTS update_avivar_conversa_on_message();
-DROP FUNCTION IF EXISTS update_avivar_team_members_updated_at();
-
--- Drop tables (order matters for FK dependencies)
-DROP TABLE IF EXISTS avivar_mensagens CASCADE;
-DROP TABLE IF EXISTS avivar_conversas CASCADE;
-DROP TABLE IF EXISTS avivar_whatsapp_messages CASCADE;
-DROP TABLE IF EXISTS avivar_whatsapp_contacts CASCADE;
-DROP TABLE IF EXISTS avivar_whatsapp_sessions CASCADE;
-DROP TABLE IF EXISTS avivar_followup_metrics CASCADE;
-DROP TABLE IF EXISTS avivar_team_members CASCADE;
+### Tipo atualizado
+```text
+FluxoStep {
+  id: string
+  ordem: number
+  titulo: string
+  descricao: string
+  exemploMensagem?: string
+  media?: FluxoStepMedia          // legado, compatibilidade
+  mediaVariations?: FluxoStepMedia[] // novo: array de variacoes
+}
 ```
 
-Deletar edge functions:
-- `n8n-whatsapp-webhook`
-- `avivar-whatsapp`
+### Logica de selecao (Edge Function)
+```text
+1. Buscar passo pelo step_id
+2. Se mediaVariations existe e tem itens:
+   -> Selecionar indice aleatorio
+   -> Usar mediaVariations[indice]
+3. Senao, usar media (comportamento atual)
+```
 
----
+### UI do MediaPicker
+```text
+Passo: "Enviar video de boas-vindas"
+  [Video1.mp4] [Video2.mp4] [Video3.mp4]
+  [+ Adicionar variacao] (max 5)
+  "3 variacoes - rotacao anti-spam ativa"
+```
 
-## Resumo do Impacto
+### Migracao de dados
+- Nenhuma migracao de banco necessaria (dados ficam no JSON do `fluxo_atendimento`)
+- Agentes existentes com `media` unica continuam funcionando sem mudanca
 
-- **7 tabelas removidas** (todas legadas ou vazias)
-- **2 edge functions removidas** (substituidas)
-- **~10 arquivos de código atualizados** (remover dual-write e migrar referências)
-- **3 funcões DB e 7 triggers removidos**
-- **0 dados importantes perdidos** (dados úteis ja estão nas tabelas novas `crm_*` e `avivar_account_members`)
-
+## Arquivos a modificar
+1. `src/pages/avivar/config/types.ts` - Adicionar `mediaVariations` ao `FluxoStep`
+2. `src/pages/avivar/config/components/steps/simple/FluxoStepMediaPicker.tsx` - Suportar multiplas midias
+3. `supabase/functions/avivar-ai-agent/index.ts` - Selecao aleatoria na funcao `sendFluxoMedia`
